@@ -101,6 +101,17 @@ public sealed class LiveWriteServiceValidationTests
             .ApproveRunAsync(0);
         Assert.False(invalid.Succeeded);
         Assert.Equal("invalid", invalid.Code);
+
+        var genInvalid = await new ErpPayrollGenerateWriteService(new ConfiguredNeverOpened())
+            .GenerateAsync("not-a-period");
+        Assert.False(genInvalid.Succeeded);
+        Assert.Equal("invalid", genInvalid.Code);
+        Assert.Equal("Invalid period (use YYYY-MM)", genInvalid.Message);
+
+        var genDb = await new ErpPayrollGenerateWriteService(new UnconfiguredConnections())
+            .GenerateAsync("2026-09");
+        Assert.False(genDb.Succeeded);
+        Assert.Equal("db", genDb.Code);
     }
 
     [Fact]
