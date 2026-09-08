@@ -1725,7 +1725,7 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_con_contracts`) AS contract_count
         """;
 
-    /// <summary>Projects list — omits timesheet rates.</summary>
+    /// <summary>Projects list — omits customer_id, budget_cost, and timesheet rates.</summary>
     public const string SelectCpProjects = """
         SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
                IFNULL(`status`,'') AS status, IFNULL(`billing_type`,'') AS billing_type,
@@ -1733,6 +1733,39 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_prj_projects`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened project — includes customer_id and budget_cost omitted from the dump.</summary>
+    public const string SelectCpProjectDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`customer_id`,0) AS customer_id, IFNULL(`billing_type`,'') AS billing_type,
+               IFNULL(`budget_cost`,0) AS budget_cost, IFNULL(`contract_value`,0) AS contract_value,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prj_projects`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Opened project tasks (PHP epc_prj_tasks by project_id).</summary>
+    public const string SelectCpProjectTasks = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id, IFNULL(`name`,'') AS name,
+               IFNULL(`planned_hours`,0) AS planned_hours, IFNULL(`percent_complete`,0) AS percent_complete,
+               IFNULL(`status`,'') AS status
+        FROM `epc_prj_tasks`
+        WHERE `project_id` = @id
+        ORDER BY `id` ASC
+        """;
+
+    /// <summary>Opened project timesheets — includes cost_rate/bill_rate omitted from the dump.</summary>
+    public const string SelectCpProjectTimesheets = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id, IFNULL(`task_id`,0) AS task_id,
+               IFNULL(`employee_id`,0) AS employee_id, IFNULL(`work_date`,0) AS work_date,
+               IFNULL(`hours`,0) AS hours, IFNULL(`cost_rate`,0) AS cost_rate,
+               IFNULL(`bill_rate`,0) AS bill_rate, IFNULL(`billable`,0) AS billable
+        FROM `epc_prj_timesheets`
+        WHERE `project_id` = @id
+        ORDER BY `id` DESC
+        LIMIT 20
         """;
 
     /// <summary>Industry pack KPIs — omits JSON blobs.</summary>

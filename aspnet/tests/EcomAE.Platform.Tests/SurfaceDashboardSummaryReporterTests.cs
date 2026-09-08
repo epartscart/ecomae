@@ -595,6 +595,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_ins_claims", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceClaims, StringComparison.Ordinal);
         Assert.Contains("`policy_id` = @id", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceClaims, StringComparison.Ordinal);
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
+        Assert.Contains("epc_prj_projects", LegacySurfaceDashboardSql.SelectCpProjects, StringComparison.Ordinal);
+        Assert.DoesNotContain("budget_cost", LegacySurfaceDashboardSql.SelectCpProjects, StringComparison.Ordinal);
+        Assert.DoesNotContain("customer_id", LegacySurfaceDashboardSql.SelectCpProjects, StringComparison.Ordinal);
+        Assert.Contains("budget_cost", LegacySurfaceDashboardSql.SelectCpProjectDetail, StringComparison.Ordinal);
+        Assert.Contains("customer_id", LegacySurfaceDashboardSql.SelectCpProjectDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpProjectDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_prj_tasks", LegacySurfaceDashboardSql.SelectCpProjectTasks, StringComparison.Ordinal);
+        Assert.Contains("`project_id` = @id", LegacySurfaceDashboardSql.SelectCpProjectTasks, StringComparison.Ordinal);
+        Assert.Contains("cost_rate", LegacySurfaceDashboardSql.SelectCpProjectTimesheets, StringComparison.Ordinal);
+        Assert.Contains("bill_rate", LegacySurfaceDashboardSql.SelectCpProjectTimesheets, StringComparison.Ordinal);
         Assert.Contains("epc_acc_listings", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
         Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
         Assert.DoesNotContain("image_url", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
