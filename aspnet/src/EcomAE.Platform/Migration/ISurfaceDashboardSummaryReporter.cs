@@ -278,6 +278,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only blockchain proofs (payload/merkle JSON omitted).</summary>
     Task<CpBlockchainProofsDigestResult> BuildCpBlockchainProofsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened blockchain proof (PHP <c>proof_id</c>). Payload excerpt only; merkle JSON omitted.</summary>
+    Task<CpBlockchainProofDetailResult> BuildCpBlockchainProofDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only landed cost sheets (notes omitted).</summary>
     Task<CpLandedCostDigestResult> BuildCpLandedCostDigestAsync(int limit, CancellationToken cancellationToken = default);
 
