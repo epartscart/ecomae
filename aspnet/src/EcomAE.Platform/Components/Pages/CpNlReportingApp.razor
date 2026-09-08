@@ -20,18 +20,104 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/nl-reporting-app")</p>
+                <p>Open a definition for a short query excerpt and run history. Recipients, parameters, generate, and schedule stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/nl-reporting-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/nl-reporting-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDef is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="NL reporting KPIs">
+        <div class="kpi"><div class="lbl">Definitions</div><div class="val">@_definitions.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val">@_definitions.Count(d => d.Active).ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Opened runs</div><div class="val">@_openedRuns.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_openedDef is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedDef.Name) ? _openedDef.Name : ("Report #" + _openedDef.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(_openedDef.Active ? "active" : "off")</span>
+                </div>
+                <div class="panel-body">
+                    <p>@(!string.IsNullOrWhiteSpace(_openedDef.SiteKey) ? _openedDef.SiteKey : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedDef.ReportType) ? _openedDef.ReportType : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedDef.Schedule) ? _openedDef.Schedule : "—")
+                        · @(!string.IsNullOrWhiteSpace(_openedDef.Format) ? _openedDef.Format : "—")</p>
+                    @if (!string.IsNullOrWhiteSpace(_openedDef.Description))
+                    {
+                        <p>@_openedDef.Description</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedDef.QueryExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedDef.QueryExcerpt</pre>
+                        @if (_openedDef.QueryLen > _openedDef.QueryExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_openedDef.QueryExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedDef.QueryLen.ToString(CultureInfo.InvariantCulture) chars). Full query and recipients stay on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted">No query excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Runs</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Status</th>
+                                    <th>Rows</th>
+                                    <th>Ms</th>
+                                    <th>Error</th>
+                                    <th>Started</th>
+                                    <th>Completed</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedRuns.Count == 0)
+                                {
+                                    <tr><td colspan="7">No runs yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var run in _openedRuns)
+                                    {
+                                        <tr>
+                                            <td>@run.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(run.Status) ? run.Status : "—")</td>
+                                            <td>@run.RowCount.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@run.ExecutionMs.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(run.ErrorMessage) ? run.ErrorMessage : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(run.CreatedAt) ? run.CreatedAt : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(run.CompletedAt) ? run.CompletedAt : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>ID</th>
@@ -47,13 +133,13 @@
             <tbody>
                 @if (_definitions.Count == 0)
                 {
-                    <tr><td colspan="8">No records yet.</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var d in _definitions)
                     {
-                        <tr>
+                        <tr id="erp-row-@d.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(d.Id, _openedId)">
                             <td><strong>@d.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(d.SiteKey) ? "—" : d.SiteKey)</td>
                             <td>@(string.IsNullOrWhiteSpace(d.Name) ? "—" : d.Name)</td>
@@ -61,7 +147,7 @@
                             <td>@(string.IsNullOrWhiteSpace(d.Schedule) ? "—" : d.Schedule)</td>
                             <td>@(string.IsNullOrWhiteSpace(d.Format) ? "—" : d.Format)</td>
                             <td>@(d.Active ? "yes" : "no")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "report_id", d.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -76,15 +162,28 @@
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_nl_reporting";
+    private const string _listHref = "/cp/nl-reporting-app";
     private bool _isAdmin;
     private IReadOnlyList<CpNlReportDefinitionDigest> _definitions = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private CpNlReportDefinitionDetail? _openedDef;
+    private IReadOnlyList<CpNlReportRunDigest> _openedRuns = [];
+
+    private string OpenedCaption => _openedDef is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedDef.Name)
+            ? ("Report #" + _openedDef.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedDef.Name)
+            + (_openedDef.Active ? " · active" : " · off");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "report_id");
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -97,5 +196,24 @@
         _definitions = result.Definitions;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpNlReportDefinitionDetailAsync(_openedId, ctx.RequestAborted);
+            _openedDef = detail.Definition;
+            _openedRuns = detail.Runs;
+            if (_openedDef is not null)
+            {
+                var openedList = _definitions.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _definitions = new[] { openedList }.Concat(_definitions.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

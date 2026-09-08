@@ -5978,7 +5978,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_report_definitions metadata (query_template/recipients omitted). Writes remain PHP epc_nl_reporting."
+                note = "Read-only epc_report_definitions metadata. Open ?report_id= loads a 280-char query excerpt plus runs. recipients/parameters omitted. Generate/schedule writes stay PHP."
             });
         });
 

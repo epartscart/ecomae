@@ -1028,6 +1028,34 @@ public sealed record CpNlReportingDigestResult(
     string Source,
     string Message);
 
+public sealed record CpNlReportDefinitionDetail(
+    long Id,
+    string SiteKey,
+    string Name,
+    string Description,
+    string ReportType,
+    string Schedule,
+    string Format,
+    bool Active,
+    long CreatedBy,
+    int QueryLen,
+    string QueryExcerpt);
+
+public sealed record CpNlReportRunDigest(
+    long Id,
+    string Status,
+    int RowCount,
+    int ExecutionMs,
+    string ErrorMessage,
+    string CreatedAt,
+    string CompletedAt);
+
+public sealed record CpNlReportDefinitionDetailResult(
+    CpNlReportDefinitionDetail? Definition,
+    IReadOnlyList<CpNlReportRunDigest> Runs,
+    string Source,
+    string Message);
+
 public sealed record CpMarketingBroadcastSummary(
     int Campaigns,
     int EmailsSent,
