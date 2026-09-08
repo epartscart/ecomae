@@ -60,6 +60,13 @@ public sealed class EpartscartCustomerJourneyParityTests
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOrdersApp.razor"));
         Assert.Contains("@page \"/en/shop/orders\"", orders, StringComparison.Ordinal);
         Assert.Contains("@page \"/en/shop/orders/order\"", orders, StringComparison.Ordinal);
+        Assert.Contains("panel panel-primary", orders, StringComparison.Ordinal);
+
+        var garage = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGarageApp.razor"));
+        Assert.Contains("epc-gl", garage, StringComparison.Ordinal);
+        Assert.Contains("Garage Manager login", garage, StringComparison.Ordinal);
+        Assert.Contains("/garage/login", garage, StringComparison.Ordinal);
     }
 
     [Fact]
