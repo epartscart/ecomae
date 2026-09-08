@@ -1591,7 +1591,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxWorkflowRun = "/erp/ajax/workflow-run";
     /// <summary>Wave B dry-run for PHP automation_activate (writes=0).</summary>
     public const string ErpAjaxAutomationActivate = "/erp/ajax/automation-activate";
-    /// <summary>Wave B dry-run for PHP automation_deactivate (writes=0).</summary>
+    /// <summary>HTML form POST for PHP automation_deactivate. confirmWrites=true writes via IErpAutomationDeactivateWriteService.</summary>
+    public const string ErpAutomationDeactivate = "/erp/automation/deactivate";
+    /// <summary>Live PHP automation_deactivate ajax alias of <see cref="ErpAutomationDeactivate"/>.</summary>
     public const string ErpAjaxAutomationDeactivate = "/erp/ajax/automation-deactivate";
     /// <summary>Wave B dry-run for PHP automation_install_template (writes=0).</summary>
     public const string ErpAjaxAutomationInstallTemplate = "/erp/ajax/automation-install-template";

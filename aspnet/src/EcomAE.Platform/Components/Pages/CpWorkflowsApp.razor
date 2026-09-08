@@ -53,6 +53,48 @@
     </section>
     <PhpParityModuleBody AppPath="/cp/workflows-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+    @if (_isErp)
+    {
+        <form method="post" action="/erp/automation/deactivate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/workflows-app" />
+            <label>Automation
+                <select name="id">
+                    <option value="order_to_erp">order_to_erp</option>
+                    <option value="period_close">period_close</option>
+                    <option value="year_end_close">year_end_close</option>
+                    <option value="bank_recon">bank_recon</option>
+                    <option value="collections_dunning">collections_dunning</option>
+                    <option value="report_scheduler">report_scheduler</option>
+                    <option value="vat_reminder">vat_reminder</option>
+                    <option value="gl_auto_post">gl_auto_post</option>
+                    <option value="payment_reminder">payment_reminder</option>
+                    <option value="depreciation_run">depreciation_run</option>
+                    <option value="po_approval">po_approval</option>
+                    <option value="invoice_autosend">invoice_autosend</option>
+                    <option value="low_stock_alert">low_stock_alert</option>
+                    <option value="employee_onboarding">employee_onboarding</option>
+                    <option value="daily_sales_summary">daily_sales_summary</option>
+                    <option value="aml_alert">aml_alert</option>
+                    <option value="process_flow_routing">process_flow_routing</option>
+                    <option value="three_way_match">three_way_match</option>
+                    <option value="subscription_billing">subscription_billing</option>
+                    <option value="rma_warranty">rma_warranty</option>
+                    <option value="credit_check">credit_check</option>
+                    <option value="goods_receipt_notify">goods_receipt_notify</option>
+                </select>
+            </label>
+            <button type="submit">Disable automation</button>
+        </form>
+    }
 
     <div class="epc-wf-kpis" aria-label="Workflows stats">
         <div class="epc-wf-kpi"><strong>@_summary.WorkflowCount.ToString(CultureInfo.InvariantCulture)</strong><span>Workflows</span></div>
@@ -107,18 +149,24 @@
 @code {
     private const string _phpTab = "/CP/shop/finance/erp?area=setup&tab=workflow_automation&epc_erp_shell=1";
     private bool _isAdmin;
+    private bool _isErp;
     private CpWorkflowsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpWorkflowDigest> _workflows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isErp = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data

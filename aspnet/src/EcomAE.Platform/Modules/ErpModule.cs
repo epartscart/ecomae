@@ -1042,8 +1042,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpWorkflowRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationActivate, async (HttpContext context, ErpAutomationActivateBody? body, ILegacySessionValidator validator, IErpAutomationActivateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpAutomationActivateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationDeactivate, async (HttpContext context, ErpAutomationDeactivateBody? body, ILegacySessionValidator validator, IErpAutomationDeactivateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpAutomationDeactivateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationDeactivate, HandleAutomationDeactivateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAutomationDeactivate, HandleAutomationDeactivateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationInstallTemplate, async (HttpContext context, ErpAutomationInstallTemplateBody? body, ILegacySessionValidator validator, IErpAutomationInstallTemplateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAutomationInstallTemplateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationEnableCategory, async (HttpContext context, ErpAutomationEnableCategoryBody? body, ILegacySessionValidator validator, IErpAutomationEnableCategoryDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11774,6 +11774,50 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandleAutomationDeactivateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutomationDeactivateDryRun dryRun,
+        IErpAutomationDeactivateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workflows-app", "Admin ERP capability required for automation deactivate.");
+        }
+
+        var id = "";
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Text(form, "id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+            confirm = ErpAutomationDeactivateWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            id = ErpAutomationDeactivateWriteService.JsonText(root, "id");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpAutomationDeactivateRequest(false, id)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.DeactivateAsync(
+            new ErpAutomationDeactivateWriteRequest(id),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/workflows-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleWhtCodeSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -13475,7 +13519,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpWorkflowSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpWorkflowRunBody(bool ConfirmWrites = false);
     private sealed record ErpAutomationActivateBody(bool ConfirmWrites = false);
-    private sealed record ErpAutomationDeactivateBody(bool ConfirmWrites = false);
     private sealed record ErpAutomationInstallTemplateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAutomationEnableCategoryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAutomationTickBody(bool ConfirmWrites = false);

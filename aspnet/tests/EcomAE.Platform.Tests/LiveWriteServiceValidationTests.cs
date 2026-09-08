@@ -3060,6 +3060,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtSettleDb.Succeeded);
         Assert.Equal("db", whtSettleDb.Code);
 
+        var autoOffInvalid = await new ErpAutomationDeactivateWriteService(new ConfiguredNeverOpened())
+            .DeactivateAsync(new ErpAutomationDeactivateWriteRequest());
+        Assert.False(autoOffInvalid.Succeeded);
+        Assert.Equal("invalid", autoOffInvalid.Code);
+        Assert.Equal("Unknown automation", autoOffInvalid.Message);
+
+        var autoOffDb = await new ErpAutomationDeactivateWriteService(new UnconfiguredConnections())
+            .DeactivateAsync(new ErpAutomationDeactivateWriteRequest("order_to_erp"));
+        Assert.False(autoOffDb.Succeeded);
+        Assert.Equal("db", autoOffDb.Code);
+
         var whtCodeInvalid = await new ErpWhtCodeSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpWhtCodeSaveWriteRequest());
         Assert.False(whtCodeInvalid.Succeeded);

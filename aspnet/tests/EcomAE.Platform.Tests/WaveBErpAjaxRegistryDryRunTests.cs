@@ -103,6 +103,17 @@ public sealed class WaveBErpAjaxRegistryDryRunTests
     }
 
     [Fact]
+    public void AutomationDeactivateValidated()
+    {
+        var r = new ErpAutomationDeactivateDryRun().Evaluate(new());
+        Assert.Equal("dry-run-validated", r.Status);
+        Assert.Equal(0, r.Writes);
+        Assert.Equal(
+            "confirm_writes_refused",
+            new ErpAutomationDeactivateDryRun().Evaluate(new(true)).ValidationCode);
+    }
+
+    [Fact]
     public void OnPremisesSetupWizardAndBackupValidated()
     {
         var setup = new OnPremisesSetupWizardDryRun().Evaluate(new("demo"));
