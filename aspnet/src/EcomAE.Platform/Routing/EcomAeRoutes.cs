@@ -1455,7 +1455,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxPayrollApprove = "/erp/ajax/payroll-approve";
     /// <summary>Wave B dry-run for PHP payroll_pay (writes=0).</summary>
     public const string ErpAjaxPayrollPay = "/erp/ajax/payroll-pay";
-    /// <summary>Wave B dry-run for PHP payroll_update_days (writes=0).</summary>
+    /// <summary>PHP epc_erp_payroll_update_line_days. <c>confirmWrites=true</c> writes via <c>IErpPayrollUpdateDaysWriteService</c>.</summary>
+    public const string ErpPayrollUpdateDays = "/erp/payroll/update-days";
+    /// <summary>Live PHP epc_erp_payroll_update_line_days twin (ajax alias of <see cref="ErpPayrollUpdateDays"/>).</summary>
     public const string ErpAjaxPayrollUpdateDays = "/erp/ajax/payroll-update-days";
     /// <summary>Wave B dry-run for PHP uae_tax_fta_fetch (writes=0).</summary>
     public const string ErpAjaxUaeTaxFtaFetch = "/erp/ajax/uae-tax-fta-fetch";
