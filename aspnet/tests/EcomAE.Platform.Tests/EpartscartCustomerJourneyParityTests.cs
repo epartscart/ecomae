@@ -222,6 +222,16 @@ public sealed class EpartscartCustomerJourneyParityTests
         var brochure = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontBrochureApp.razor"));
         Assert.Contains("panel panel-default", brochure, StringComparison.Ordinal);
+
+        var workshop = File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAutoWorkshopApp.razor"));
+        Assert.Contains("panel panel-primary", workshop, StringComparison.Ordinal);
+        Assert.Contains("name=\"customer_name\"", workshop, StringComparison.Ordinal);
+        Assert.Contains("name=\"plate\"", workshop, StringComparison.Ordinal);
+        Assert.Contains("name=\"complaint\"", workshop, StringComparison.Ordinal);
+        Assert.Contains("name=\"ref\"", workshop, StringComparison.Ordinal);
+        Assert.Contains("id=\"book\"", workshop, StringComparison.Ordinal);
+        Assert.Contains("id=\"track\"", workshop, StringComparison.Ordinal);
     }
 
     [Fact]

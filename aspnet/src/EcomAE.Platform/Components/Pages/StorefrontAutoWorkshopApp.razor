@@ -29,39 +29,47 @@
                 <div><strong>4. Ready</strong><p style="color:#64748b;margin:.25rem 0 0">Collect the vehicle; the invoice stays with the job.</p></div>
             </div>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
-                <form id="book" method="post" action="@PhpWorkshopPortal.BookWriteHref" style="background:#f4f7f5;border:1px solid #d9e2e0;border-radius:.7rem;padding:1.1rem 1.15rem">
-                    <h2 style="margin:.1rem 0 .75rem;font-size:1.1rem">Book a service</h2>
-                    <label>Your name *</label>
-                    <input name="customer_name" required style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>Phone *</label>
-                    <input name="customer_phone" required placeholder="+971…" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>E-mail</label>
-                    <input name="customer_email" type="email" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>Plate *</label>
-                    <input name="plate" required placeholder="D-12345" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>Make / model / year</label>
-                    <input name="make" placeholder="Make" style="width:100%;margin:0 0 .4rem;padding:.5rem" />
-                    <input name="model" placeholder="Model" style="width:100%;margin:0 0 .4rem;padding:.5rem" />
-                    <input name="year" placeholder="Year" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>VIN</label>
-                    <input name="vin" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>What needs doing? *</label>
-                    <textarea name="complaint" rows="3" required style="width:100%;margin:0 0 .85rem;padding:.5rem"></textarea>
-                    <button type="submit" style="border:0;border-radius:.45rem;background:#0e7490;color:#fff;font-weight:800;padding:.65rem 1rem;cursor:pointer">Submit booking</button>
-                </form>
-                <form id="track" method="post" action="@PhpWorkshopPortal.TrackWriteHref" style="background:#f4f7f5;border:1px solid #d9e2e0;border-radius:.7rem;padding:1.1rem 1.15rem">
-                    <h2 style="margin:.1rem 0 .75rem;font-size:1.1rem">Track your job</h2>
-                    <label>Job number or plate *</label>
-                    <input name="ref" required placeholder="WS-… or D-12345" style="width:100%;margin:0 0 .65rem;padding:.5rem" />
-                    <label>Phone (optional)</label>
-                    <input name="phone" placeholder="+971…" style="width:100%;margin:0 0 .85rem;padding:.5rem" />
-                    <button type="submit" style="border:0;border-radius:.45rem;background:#0e7490;color:#fff;font-weight:800;padding:.65rem 1rem;cursor:pointer">Check status</button>
-                    <p style="margin:1rem 0 0;color:#64748b;font-size:.85rem">
-                        Need parts while you wait?
-                        <a href="@StorefrontSurfaceLinks.PartSearch">Parts search</a> ·
-                        <a href="@StorefrontSurfaceLinks.LaximoVin">OEM catalog</a>
-                    </p>
-                </form>
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Book a service</div>
+                    <div class="panel-body">
+                        <form id="book" method="post" action="@PhpWorkshopPortal.BookWriteHref">
+                            <label for="customer_name">Your name *</label>
+                            <input id="customer_name" class="form-control" name="customer_name" required />
+                            <label for="customer_phone">Phone *</label>
+                            <input id="customer_phone" class="form-control" name="customer_phone" required placeholder="+971…" />
+                            <label for="customer_email">E-mail</label>
+                            <input id="customer_email" class="form-control" name="customer_email" type="email" />
+                            <label for="plate">Plate *</label>
+                            <input id="plate" class="form-control" name="plate" required placeholder="D-12345" />
+                            <label>Make / model / year</label>
+                            <input class="form-control" name="make" placeholder="Make" />
+                            <input class="form-control" name="model" placeholder="Model" />
+                            <input class="form-control" name="year" placeholder="Year" />
+                            <label for="vin">VIN</label>
+                            <input id="vin" class="form-control" name="vin" />
+                            <label for="complaint">What needs doing? *</label>
+                            <textarea id="complaint" class="form-control" name="complaint" rows="3" required></textarea>
+                            <button type="submit" class="btn btn-ar btn-primary" style="margin-top:10px;">Submit booking</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="panel panel-primary">
+                    <div class="panel-heading">Track your job</div>
+                    <div class="panel-body">
+                        <form id="track" method="post" action="@PhpWorkshopPortal.TrackWriteHref">
+                            <label for="ref">Job number or plate *</label>
+                            <input id="ref" class="form-control" name="ref" required placeholder="WS-… or D-12345" />
+                            <label for="phone">Phone (optional)</label>
+                            <input id="phone" class="form-control" name="phone" placeholder="+971…" />
+                            <button type="submit" class="btn btn-ar btn-primary" style="margin-top:10px;">Check status</button>
+                            <p style="margin:1rem 0 0;color:#64748b;font-size:.85rem">
+                                Need parts while you wait?
+                                <a href="@StorefrontSurfaceLinks.PartSearch">Parts search</a> ·
+                                <a href="@StorefrontSurfaceLinks.LaximoVin">OEM catalog</a>
+                            </p>
+                        </form>
+                    </div>
+                </div>
             </div>
         </div>
     </section>
