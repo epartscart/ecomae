@@ -3111,6 +3111,11 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var mfgrRouteDb = await new ErpMfgrRouteSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpMfgrRouteSaveWriteRequest(Name: "FG route"));
+        Assert.False(mfgrRouteDb.Succeeded);
+        Assert.Equal("db", mfgrRouteDb.Code);
     }
 
     [Fact]
