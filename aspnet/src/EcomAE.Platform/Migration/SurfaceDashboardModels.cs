@@ -5286,8 +5286,35 @@ public sealed record CpSeoRowDigest(string Key, string Value);
 public sealed record CpSeoDigestResult(CpSeoSummary Summary, IReadOnlyList<CpSeoRowDigest> Rows, int Count, string Source, string Message);
 
 public sealed record CpSocialHubSummary(int AccountCount, int DraftCount, int PublishedCount, int ErrorCount, string Source, string Message);
-public sealed record CpSocialHubRowDigest(string Platform, string Username, string Status, string Title, string DraftStatus);
+public sealed record CpSocialHubRowDigest(long Id, string Platform, string Username, string Status, string Title, string DraftStatus);
 public sealed record CpSocialHubDigestResult(CpSocialHubSummary Summary, IReadOnlyList<CpSocialHubRowDigest> Rows, int Count, string Source, string Message);
+
+public sealed record CpSocialHubAccountDetail(
+    long Id,
+    string SiteKey,
+    string Platform,
+    string AccountLabel,
+    string Username,
+    string Status,
+    long LastTestAt,
+    int LastTestOk,
+    long CreatedAt,
+    long UpdatedAt);
+
+public sealed record CpSocialHubDraftDigest(
+    long Id,
+    string Title,
+    string Status,
+    long ScheduledAt,
+    long PublishedAt,
+    int CaptionLen,
+    string CaptionExcerpt);
+
+public sealed record CpSocialHubAccountDetailResult(
+    CpSocialHubAccountDetail? Account,
+    IReadOnlyList<CpSocialHubDraftDigest> Drafts,
+    string Source,
+    string Message);
 
 public sealed record CpTenantFeaturesSummary(int SiteCount, int FlagCount, int EnabledCount, int DisabledCount, string Source, string Message);
 public sealed record CpTenantFeaturesRowDigest(string SiteKey, string FeatureKey, bool Enabled, long UpdatedAt);

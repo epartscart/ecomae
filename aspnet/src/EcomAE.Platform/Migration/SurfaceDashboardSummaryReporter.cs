@@ -16551,6 +16551,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     rows.Add(new CpSocialHubRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["platform"] is DBNull ? string.Empty : reader["platform"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["username"] is DBNull ? string.Empty : reader["username"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
@@ -16566,6 +16567,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<CpSocialHubAccountDetailResult> BuildCpSocialHubAccountDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpSocialHubAccountDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSocialHubAccountDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpSocialHubAccountDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["platform"] is DBNull ? string.Empty : reader["platform"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["account_label"] is DBNull ? string.Empty : reader["account_label"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["username"] is DBNull ? string.Empty : reader["username"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["last_test_at"] is DBNull ? 0 : reader["last_test_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["last_test_ok"] is DBNull ? 0 : reader["last_test_ok"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["created_at"] is DBNull ? 0 : reader["created_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["updated_at"] is DBNull ? 0 : reader["updated_at"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Account not found.");
+            }
+
+            var drafts = new List<CpSocialHubDraftDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSocialHubAccountDrafts;
+                AddParameter(cmd, "@site_key", header.SiteKey);
+                AddParameter(cmd, "@platform", header.Platform);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    drafts.Add(new CpSocialHubDraftDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["scheduled_at"] is DBNull ? 0 : reader["scheduled_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["published_at"] is DBNull ? 0 : reader["published_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["caption_len"] is DBNull ? 0 : reader["caption_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["caption_excerpt"] is DBNull ? string.Empty : reader["caption_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, drafts, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
         }
     }
 

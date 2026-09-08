@@ -9103,7 +9103,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_social_accounts/drafts (encrypted_credentials omitted). Publish/save remain portal_social dry-run."
+                note = "Read-only epc_social_accounts/drafts. Open ?social_id= loads last-test plus draft caption excerpts. encrypted_credentials omitted. Publish/save remain portal_social dry-run."
             });
         });
 

@@ -2494,7 +2494,7 @@ public static class LegacySurfaceDashboardSql
         """;
 
     public const string SelectCpSocialHubRows = """
-        SELECT IFNULL(a.`platform`,'') AS platform,
+        SELECT a.`id`, IFNULL(a.`platform`,'') AS platform,
                IFNULL(a.`username`,'') AS username,
                IFNULL(a.`status`,'') AS status,
                IFNULL(d.`title`,'') AS title,
@@ -2503,6 +2503,30 @@ public static class LegacySurfaceDashboardSql
         LEFT JOIN `epc_social_post_drafts` d ON d.`site_key` = a.`site_key` AND d.`platform` = a.`platform`
         ORDER BY a.`id` DESC, d.`id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened social account. encrypted_credentials/meta_json omitted.</summary>
+    public const string SelectCpSocialHubAccountDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`platform`,'') AS platform,
+               IFNULL(`account_label`,'') AS account_label, IFNULL(`username`,'') AS username,
+               IFNULL(`status`,'') AS status, IFNULL(`last_test_at`,0) AS last_test_at,
+               IFNULL(`last_test_ok`,0) AS last_test_ok,
+               IFNULL(`created_at`,0) AS created_at, IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_social_accounts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Drafts for the opened account. caption is a short excerpt; last_error omitted.</summary>
+    public const string SelectCpSocialHubAccountDrafts = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`status`,'') AS status,
+               IFNULL(`scheduled_at`,0) AS scheduled_at, IFNULL(`published_at`,0) AS published_at,
+               CHAR_LENGTH(IFNULL(`caption`,'')) AS caption_len,
+               LEFT(IFNULL(`caption`,''), 280) AS caption_excerpt
+        FROM `epc_social_post_drafts`
+        WHERE `site_key` = @site_key AND `platform` = @platform
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     public const string SelectCpCustomerBoardStats = """
