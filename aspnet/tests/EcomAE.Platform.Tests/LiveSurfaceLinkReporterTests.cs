@@ -401,10 +401,16 @@ public sealed class LiveSurfaceLinkReporterTests
             && link.AspNetRouteHint == "/erp/withholding/txns/certificate");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
-            && link.AspNetRouteHint == "/erp/uae-tax/legislation/checklist/set");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/ajax/uae-tax-legislation-checklist-set");
+            && link.AspNetRouteHint == "/erp/uae-tax/legislation/checklist/set");
+
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-diagnostics"
+            && link.AspNetRouteHint == "/erp/ajax/sub-generate");
+            && link.AspNetRouteHint == "/erp/subscriptions/generate");
+
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-diagnostics"
             && link.AspNetRouteHint == "/erp/marketing/create");
