@@ -37,6 +37,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/version_control?item_id=4", "/cp/ops-guides-app?item_id=4")]
     [InlineData("/CP/control/portal/epc_marketplace?app_id=7", "/cp/marketplace-apps-app?app_id=7")]
     [InlineData("/CP/control/portal/epc_nl_reporting?report_id=8", "/cp/nl-reporting-app?report_id=8")]
+    [InlineData("/CP/control/portal/epc_power_bi?pbi_id=5", "/cp/power-bi-app?pbi_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -456,6 +457,35 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/nl-reporting-app",
                 "/CP/control/portal/epc_nl_reporting?report_id=8"));
+    }
+
+    [Fact]
+    public void PowerBiApp_OpenLoadsNotesExcerptAndCategorySiblings()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpPowerBiApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"pbi_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"pbi_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpPowerBiReportDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No notes excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No category siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("<iframe", text, StringComparison.OrdinalIgnoreCase);
+
+        Assert.Equal("/cp/power-bi-app?pbi_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/power-bi-app", "pbi_id", 5));
+        Assert.Equal(
+            "/cp/power-bi-app?pbi_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/power-bi-app",
+                "/CP/control/portal/epc_power_bi?pbi_id=5"));
     }
 
     [Fact]

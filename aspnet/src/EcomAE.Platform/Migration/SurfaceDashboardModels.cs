@@ -968,6 +968,36 @@ public sealed record CpPowerBiDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPowerBiReportDetail(
+    long Id,
+    string SiteKey,
+    string ReportId,
+    string ReportName,
+    string DatasetId,
+    string Category,
+    string EmbedUrl,
+    bool Active,
+    string CreatedAt);
+
+public sealed record CpPowerBiSiteConfigExcerpt(
+    string SiteKey,
+    string WorkspaceId,
+    string AzureTenantId,
+    string DefaultReportId,
+    string DefaultDatasetId,
+    string EmbedUrl,
+    string EmbedMode,
+    int NotesLen,
+    string NotesExcerpt,
+    bool Active);
+
+public sealed record CpPowerBiReportDetailResult(
+    CpPowerBiReportDetail? Report,
+    CpPowerBiSiteConfigExcerpt? SiteConfig,
+    IReadOnlyList<CpPowerBiReportDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpMobileAppsSummary(
     bool Enabled,
     string AppName,

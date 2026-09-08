@@ -5846,6 +5846,100 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpPowerBiReportDetailResult> BuildCpPowerBiReportDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpPowerBiReportDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiReportDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpPowerBiReportDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["report_id"] is DBNull ? string.Empty : reader["report_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["report_name"] is DBNull ? string.Empty : reader["report_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["dataset_id"] is DBNull ? string.Empty : reader["dataset_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["embed_url"] is DBNull ? string.Empty : reader["embed_url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, null, [], "database", "Report not found.");
+            }
+
+            CpPowerBiSiteConfigExcerpt? siteConfig = null;
+            if (!string.IsNullOrWhiteSpace(header.SiteKey))
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiSiteConfig;
+                AddParameter(cmd, "@site_key", header.SiteKey);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siteConfig = new CpPowerBiSiteConfigExcerpt(
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["workspace_id"] is DBNull ? string.Empty : reader["workspace_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["azure_tenant_id"] is DBNull ? string.Empty : reader["azure_tenant_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["default_report_id"] is DBNull ? string.Empty : reader["default_report_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["default_dataset_id"] is DBNull ? string.Empty : reader["default_dataset_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["embed_url"] is DBNull ? string.Empty : reader["embed_url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["embed_mode"] is DBNull ? string.Empty : reader["embed_mode"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0);
+                }
+            }
+
+            var siblings = new List<CpPowerBiReportDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiCategorySiblings;
+                AddParameter(cmd, "@site_key", header.SiteKey);
+                AddParameter(cmd, "@category", header.Category);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpPowerBiReportDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["report_id"] is DBNull ? string.Empty : reader["report_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["report_name"] is DBNull ? string.Empty : reader["report_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["dataset_id"] is DBNull ? string.Empty : reader["dataset_id"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["embed_url"] is DBNull ? string.Empty : reader["embed_url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0));
+                }
+            }
+
+            return new(header, siteConfig, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpMobileAppsDigestResult> BuildCpMobileAppsDigestAsync(CancellationToken cancellationToken = default)
     {
         var empty = new CpMobileAppsSummary(
