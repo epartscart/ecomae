@@ -261,7 +261,11 @@ public static class LegacySurfaceDashboardSql
             (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'done') AS done_count,
             (SELECT COUNT(*) FROM `epc_pf_cases`
              WHERE `status` = 'open' AND `due_at` > 0 AND `due_at` < UNIX_TIMESTAMP()) AS overdue_count,
-            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` IN ('cancelled','rejected')) AS cancelled_count
+            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` IN ('cancelled','rejected')) AS cancelled_count,
+            (SELECT COUNT(*) FROM `epc_pf_cases` WHERE `status` = 'rejected') AS rejected_count,
+            (SELECT IFNULL(ROUND(AVG((`completed_at` - `started_at`) / 3600), 1), 0)
+             FROM `epc_pf_cases`
+             WHERE `status` = 'done' AND `completed_at` > `started_at` AND `started_at` > 0) AS avg_cycle_hours
         """;
 
     /// <summary>
@@ -290,20 +294,32 @@ public static class LegacySurfaceDashboardSql
           AND COLUMN_NAME = 'company_id'
         """;
 
-    /// <summary>Process-flow cases — omits comments/step detail; PHP processflow UI remains authoritative.</summary>
+    /// <summary>Process-flow cases — PHP <c>epc_pf_cases</c> monitor columns (process name, step, assignee, location).</summary>
     public const string SelectErpProcessFlowTasks = """
-        SELECT `id`, IFNULL(`process_id`,0) AS process_id, IFNULL(`title`,'') AS title,
-               IFNULL(`reference`,'') AS reference, IFNULL(`priority`,'') AS priority,
-               IFNULL(`status`,'') AS status, IFNULL(`current_step_no`,0) AS current_step_no,
-               IFNULL(`current_assignee_id`,0) AS current_assignee_id,
-               IFNULL(`current_department`,'') AS current_department,
-               IFNULL(`initiator_id`,0) AS initiator_id,
-               IFNULL(`subject_type`,'') AS subject_type, IFNULL(`subject_id`,0) AS subject_id,
-               IFNULL(`started_at`,0) AS started_at, IFNULL(`due_at`,0) AS due_at,
-               IFNULL(`completed_at`,0) AS completed_at,
-               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated
-        FROM `epc_pf_cases`
-        ORDER BY `id` DESC
+        SELECT c.`id`, IFNULL(c.`process_id`,0) AS process_id, IFNULL(c.`title`,'') AS title,
+               IFNULL(c.`reference`,'') AS reference, IFNULL(c.`priority`,'') AS priority,
+               IFNULL(c.`status`,'') AS status, IFNULL(c.`current_step_no`,0) AS current_step_no,
+               IFNULL(c.`current_assignee_id`,0) AS current_assignee_id,
+               IFNULL(c.`current_department`,'') AS current_department,
+               IFNULL(c.`initiator_id`,0) AS initiator_id,
+               IFNULL(c.`subject_type`,'') AS subject_type, IFNULL(c.`subject_id`,0) AS subject_id,
+               IFNULL(c.`started_at`,0) AS started_at, IFNULL(c.`due_at`,0) AS due_at,
+               IFNULL(c.`completed_at`,0) AS completed_at,
+               IFNULL(c.`time_created`,0) AS time_created, IFNULL(c.`time_updated`,0) AS time_updated,
+               IFNULL(c.`current_location`,'') AS current_location,
+               IFNULL(p.`name`,'') AS process_name,
+               (SELECT COUNT(*) FROM `epc_pf_case_steps` cs WHERE cs.`case_id` = c.`id`) AS step_count,
+               IFNULL((SELECT cs2.`name` FROM `epc_pf_case_steps` cs2
+                       WHERE cs2.`case_id` = c.`id` AND cs2.`step_no` = c.`current_step_no` LIMIT 1),'') AS current_step_name,
+               IFNULL(assignee.`display_name`,'') AS assignee_name,
+               IFNULL(initiator.`display_name`,'') AS initiator_name
+        FROM `epc_pf_cases` c
+        LEFT JOIN `epc_pf_processes` p ON p.`id` = c.`process_id`
+        LEFT JOIN `epc_erp_staff_profiles` assignee ON assignee.`user_id` = c.`current_assignee_id`
+        LEFT JOIN `epc_erp_staff_profiles` initiator ON initiator.`user_id` = c.`initiator_id`
+        ORDER BY FIELD(c.`status`,'open','rejected','done','cancelled'),
+                 FIELD(c.`priority`,'urgent','high','normal','low'),
+                 c.`due_at` ASC, c.`id` DESC
         LIMIT @limit
         """;
 

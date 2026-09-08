@@ -8188,7 +8188,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     public async Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
-        var empty = new ErpProcessFlowTasksSummary(0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        var empty = new ErpProcessFlowTasksSummary(0, 0, 0, 0, 0, 0, 0m, "migration", "TenantRegistry DB is not configured.");
         if (!_connections.IsConfigured)
         {
             return new(empty, [], 0, "migration", empty.Message);
@@ -8197,7 +8197,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
-            var tasks = 0; var open = 0; var done = 0; var overdue = 0; var cancelled = 0;
+            var tasks = 0; var open = 0; var done = 0; var overdue = 0; var cancelled = 0; var rejected = 0;
+            var avgCycle = 0m;
             await using (var stats = connection.CreateCommand())
             {
                 stats.CommandText = LegacySurfaceDashboardSql.SelectErpProcessFlowTaskStats;
@@ -8209,6 +8210,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     done = Convert.ToInt32(reader["done_count"] is DBNull ? 0 : reader["done_count"], CultureInfo.InvariantCulture);
                     overdue = Convert.ToInt32(reader["overdue_count"] is DBNull ? 0 : reader["overdue_count"], CultureInfo.InvariantCulture);
                     cancelled = Convert.ToInt32(reader["cancelled_count"] is DBNull ? 0 : reader["cancelled_count"], CultureInfo.InvariantCulture);
+                    rejected = Convert.ToInt32(reader["rejected_count"] is DBNull ? 0 : reader["rejected_count"], CultureInfo.InvariantCulture);
+                    avgCycle = Convert.ToDecimal(reader["avg_cycle_hours"] is DBNull ? 0 : reader["avg_cycle_hours"], CultureInfo.InvariantCulture);
                 }
             }
 
@@ -8237,11 +8240,17 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["due_at"] is DBNull ? 0 : reader["due_at"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["completed_at"] is DBNull ? 0 : reader["completed_at"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
-                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "current_location"),
+                        ReadStr(reader, "process_name"),
+                        Convert.ToInt32(reader["step_count"] is DBNull ? 0 : reader["step_count"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "current_step_name"),
+                        ReadStr(reader, "assignee_name"),
+                        ReadStr(reader, "initiator_name")));
                 }
             }
 
-            var summary = new ErpProcessFlowTasksSummary(tasks, open, done, overdue, cancelled, "database", string.Empty);
+            var summary = new ErpProcessFlowTasksSummary(tasks, open, done, overdue, cancelled, rejected, avgCycle, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)

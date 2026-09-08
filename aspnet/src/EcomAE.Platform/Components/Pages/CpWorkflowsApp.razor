@@ -8,126 +8,278 @@
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
-
-<PageTitle>Workflows · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
+<PageTitle>@(_isErpHost ? "Automation Centre · ERP" : "Workflows · Control Panel") · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="@(_isErpHost ? "erp" : "cp")" />
 <HeadContent>
 <style>
-        .epc-wf-hero {
-            margin-bottom:1rem; padding:1.1rem 1.2rem; border-radius:.7rem; color:#fff;
-            background:linear-gradient(135deg,#0c4a6e 0%,#2563eb 45%,#0ea5e9 100%);
-        }
-        .epc-wf-hero h1 { margin:.25rem 0 .35rem; font-size:clamp(1.35rem,2.8vw,1.85rem); }
-        .epc-wf-hero p { margin:0; color:rgba(255,255,255,.85); max-width:44rem; font-size:.92rem; line-height:1.45; }
-        .epc-wf-cta { display:flex; gap:.45rem; flex-wrap:wrap; margin-top:.85rem; }
-        .epc-wf-cta a {
-            display:inline-flex; padding:.5rem .8rem; border-radius:.4rem; font-weight:700; font-size:.82rem;
-            text-decoration:none; color:#312e81; background:#a5b4fc;
-        }
-        .epc-wf-cta a.ghost { background:transparent; border:1px solid rgba(255,255,255,.35); color:#fff; }
-        .epc-wf-kpis { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:.65rem; margin-bottom:1rem; }
-        .epc-wf-kpi { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .9rem; }
-        .epc-wf-kpi strong { display:block; font-size:1.2rem; word-break:break-word; }
-        .epc-wf-kpi span { color:#64748b; font-size:.78rem; }
-        .epc-wf-table-wrap { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; overflow:auto; }
-        .epc-wf-table { width:100%; border-collapse:collapse; font-size:.86rem; }
-        .epc-wf-table th, .epc-wf-table td { padding:.55rem .7rem; border-bottom:1px solid #f1f5f9; text-align:left; white-space:nowrap; }
-        .epc-wf-table th { background:#f8fafc; color:#475569; font-size:.75rem; text-transform:uppercase; letter-spacing:.03em; }
-        .epc-wf-note { margin-top:1rem; padding:.75rem .9rem; background:#eef2ff; border:1px solid #a5b4fc; border-radius:.45rem; color:#312e81; font-size:.86rem; }
-        @@media (max-width:900px){ .epc-wf-kpis{grid-template-columns:1fr 1fr;} }
-    
+.epc-auto-hero{background:linear-gradient(135deg,#0b3d4a 0%,#0e7490 48%,#22d3ee 100%);color:#fff;border-radius:14px;padding:22px 24px;margin-bottom:16px;position:relative;overflow:hidden}
+.epc-auto-hero::after{content:"";position:absolute;right:-40px;top:-40px;width:220px;height:220px;border-radius:50%;background:rgba(255,255,255,.08)}
+.epc-auto-hero h3{margin:0 0 6px;font-size:20px;font-weight:800;color:#fff}
+.epc-auto-hero p{margin:0;max-width:720px;opacity:.95}
+.epc-auto-kpis{display:flex;flex-wrap:wrap;gap:10px;margin:14px 0 18px}
+.epc-auto-kpis .kpi{flex:1 1 120px;background:#fff;border:1px solid #dbeafe;border-radius:12px;padding:12px 14px;box-shadow:0 1px 3px rgba(14,116,144,.08)}
+.epc-auto-kpis .kpi .lbl{font-size:10px;text-transform:uppercase;letter-spacing:.06em;color:#64748b;font-weight:700}
+.epc-auto-kpis .kpi .val{font-size:22px;font-weight:800;color:#0f172a;margin-top:2px}
+.epc-auto-tabs{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px}
+.epc-auto-tabs a{display:inline-flex;align-items:center;gap:6px;padding:8px 14px;border-radius:999px;border:1px solid #e2e8f0;background:#fff;color:#334155;font-weight:600;font-size:12px;text-decoration:none}
+.epc-auto-tabs a.active{background:linear-gradient(135deg,#0e7490,#22d3ee);color:#fff;border-color:transparent}
+.epc-auto-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:18px}
+.epc-auto-card{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:14px 16px;display:flex;flex-direction:column;gap:8px;min-height:180px}
+.epc-auto-card__head{display:flex;align-items:flex-start;justify-content:space-between;gap:8px}
+.epc-auto-card__title{margin:0;font-size:14px;font-weight:800;color:#0f172a}
+.epc-auto-card__title i{color:#0e7490;margin-right:6px}
+.epc-auto-card__desc{margin:0;font-size:12px;color:#64748b;line-height:1.45;flex:1}
+.epc-auto-card__actions{display:flex;flex-wrap:wrap;gap:6px;margin-top:4px}
+.epc-auto-pipeline{display:flex;flex-wrap:wrap;align-items:center;gap:4px;margin:4px 0}
+.epc-auto-pipeline__step{display:flex;align-items:center;gap:6px;background:linear-gradient(180deg,#f8fafc,#f1f5f9);border:1px solid #e2e8f0;border-left:3px solid var(--epc-step,#0ea5e9);border-radius:8px;padding:6px 8px;min-width:72px}
+.epc-auto-pipeline__num{width:18px;height:18px;border-radius:50%;background:var(--epc-step,#0ea5e9);color:#fff;font-size:10px;font-weight:800;display:inline-flex;align-items:center;justify-content:center}
+.epc-auto-pipeline__label{font-size:10px;font-weight:700;color:#334155;line-height:1.2}
+.epc-auto-pipeline__arrow{color:#94a3b8;font-size:10px;padding:0 2px}
+.epc-auto-canvas{background:#0b1220;border-radius:14px;padding:18px;margin-bottom:16px;overflow-x:auto}
+.epc-auto-flow{display:flex;align-items:stretch;gap:0;min-width:max-content;padding:8px 4px}
+.epc-auto-node{width:160px;background:#111827;border:1px solid #334155;border-radius:12px;padding:12px;color:#e2e8f0;box-shadow:0 8px 24px rgba(0,0,0,.35)}
+.epc-auto-node--trigger{border-color:#22d3ee;background:linear-gradient(180deg,#083344,#0f172a)}
+.epc-auto-node--action{border-color:#34d399}
+.epc-auto-node__kind{font-size:9px;text-transform:uppercase;letter-spacing:.08em;opacity:.7;margin-bottom:4px}
+.epc-auto-node__title{font-size:13px;font-weight:700;margin:0 0 4px}
+.epc-auto-node__meta{font-size:11px;opacity:.75}
+.epc-auto-connector{width:36px;display:flex;align-items:center;justify-content:center;color:#22d3ee;position:relative}
+.epc-auto-connector::before{content:"";position:absolute;left:0;right:0;height:2px;background:linear-gradient(90deg,#22d3ee,#34d399);top:50%}
+.epc-auto-connector i{position:relative;z-index:1;background:#0b1220;padding:2px}
+.epc-auto-map{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin:12px 0}
+.epc-auto-map__item{background:#fff;border:1px solid #e2e8f0;border-radius:10px;padding:10px 12px}
+.epc-auto-map__item h5{margin:0 0 6px;font-size:12px;font-weight:800}
+.epc-wf-table-wrap{background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;overflow:auto}
+.epc-wf-table{width:100%;border-collapse:collapse;font-size:.86rem}
+.epc-wf-table th,.epc-wf-table td{padding:.55rem .7rem;border-bottom:1px solid #f1f5f9;text-align:left;white-space:nowrap}
+.epc-wf-table th{background:#f8fafc;color:#475569;font-size:.75rem;text-transform:uppercase;letter-spacing:.03em}
 </style>
 </HeadContent>
 
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <section class="epc-wf-hero">
-        <img src="@LegacyPresentationAssets.BrandMarkUrl" alt="ECOM AE" style="height:28px;background:#fff;border-radius:4px;padding:2px" />
-        <h1>Workflows</h1>
-        <p>@CpPhpModuleCopy.PurposeFor(Nav.Uri)</p>
-        <div class="epc-wf-cta">
-            <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open module</a>
-        </div>
-    </section>
-    <PhpParityModuleBody AppPath="/cp/workflows-app" IsAdmin="_isAdmin" />
-
-
-    <div class="epc-wf-kpis" aria-label="Workflows stats">
-        <div class="epc-wf-kpi"><strong>@_summary.WorkflowCount.ToString(CultureInfo.InvariantCulture)</strong><span>Workflows</span></div>
-        <div class="epc-wf-kpi"><strong>@_summary.ActiveWorkflows.ToString(CultureInfo.InvariantCulture)</strong><span>Active</span></div>
-        <div class="epc-wf-kpi"><strong>@_summary.RunCount.ToString(CultureInfo.InvariantCulture)</strong><span>Runs</span></div>
-        <div class="epc-wf-kpi"><strong>@_summary.FailedRuns.ToString(CultureInfo.InvariantCulture)</strong><span>Failed runs</span></div>
+    <div class="epc-auto-hero">
+        <h3><i class="fa fa-magic"></i> Accounting &amp; Business Process Automation</h3>
+        <p>See every automation available for this ERP tenant, watch the graphical pipeline, and open the matching module. Custom trigger → condition → action builder execute is not on this screen.</p>
     </div>
 
-    <div class="epc-wf-table-wrap">
-        <table class="epc-wf-table">
-            <thead>
-                <tr>
-                    <th>Id</th>
-                    <th>Site</th>
-                    <th>Name</th>
-                    <th>Trigger</th>
-                    <th>Active</th>
-                    <th>Version</th>
-                    <th>Runs</th>
-                    <th>Last status</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_workflows.Count == 0)
-                {
-                    <tr><td colspan="9">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _workflows)
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+
+    <div class="epc-auto-kpis">
+        <div class="kpi"><div class="lbl">Total</div><div class="val">@ErpAutomationCatalogue.All.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active</div><div class="val" style="color:#059669">@_activeDefault.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Available</div><div class="val" style="color:#d97706">@_availableDefault.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Accounting</div><div class="val">@ErpAutomationCatalogue.Accounting.Count().ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Processes</div><div class="val">@ErpAutomationCatalogue.Processes.Count().ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Workflows</div><div class="val">@_summary.ActiveWorkflows.ToString(CultureInfo.InvariantCulture)/@_summary.WorkflowCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    <nav class="epc-auto-tabs" aria-label="Automation views">
+        <a class="@TabClass("hub")" href="@AutoHref("hub")"><i class="fa fa-th-large"></i> Hub</a>
+        <a class="@TabClass("accounting")" href="@AutoHref("accounting")"><i class="fa fa-university"></i> Accounting</a>
+        <a class="@TabClass("processes")" href="@AutoHref("processes")"><i class="fa fa-sitemap"></i> Business processes</a>
+        <a class="@TabClass("builder")" href="@AutoHref("builder")"><i class="fa fa-cogs"></i> Workflow builder</a>
+        <a class="@TabClass("runs")" href="@AutoHref("runs")"><i class="fa fa-history"></i> Run history</a>
+    </nav>
+
+    @if (_view is "hub" or "accounting")
+    {
+        <div class="ef-window">
+            <div class="ef-title"><i class="fa fa-university"></i> Accounting automation</div>
+            <div class="ef-body">
+                <p class="text-muted" style="margin-top:0">Order-to-cash, period close, bank recon, collections, report schedules and GL posting — each with a visual pipeline.</p>
+                <div class="epc-auto-grid">
+                    @foreach (var autoItem in ErpAutomationCatalogue.Accounting)
                     {
-                        <tr>
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.TriggerType) ? row.TriggerType : "—")</td>
-                            <td>@(row.Active ? "yes" : "no")</td>
-                            <td>@row.Version.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.RunCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.LastRunStatus) ? row.LastRunStatus : "—")</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
+                        @Card(autoItem, "blue")
                     }
-                }
-            </tbody>
-        </table>
-    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_view is "hub" or "processes")
+    {
+        <div class="ef-window">
+            <div class="ef-title"><i class="fa fa-sitemap"></i> Business process automation</div>
+            <div class="ef-body">
+                <p class="text-muted" style="margin-top:0">Approvals, inventory alerts, onboarding, AML, 3-way match, subscriptions, RMA.</p>
+                <div class="epc-auto-grid">
+                    @foreach (var autoItem in ErpAutomationCatalogue.Processes)
+                    {
+                        @Card(autoItem, "teal")
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="ef-window">
+            <div class="ef-title"><i class="fa fa-magic"></i> Installable workflow templates</div>
+            <div class="ef-body">
+                <div class="epc-auto-map">
+                    @foreach (var tplRow in ErpAutomationCatalogue.Templates)
+                    {
+                        <div class="epc-auto-map__item">
+                            <h5>@tplRow.Name</h5>
+                            <p class="text-muted" style="font-size:12px;margin:0 0 8px">@tplRow.Description</p>
+                            <span class="label label-info">@tplRow.TriggerType</span>
+                            <span class="label label-default">@tplRow.StepCount.ToString(CultureInfo.InvariantCulture) steps</span>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_view == "builder")
+    {
+        <div class="ef-window">
+            <div class="ef-title"><i class="fa fa-cogs"></i> Workflow — graphical builder</div>
+            <div class="ef-body">
+                <p class="text-muted">Preview of the trigger → action chain. Saving a custom workflow from this canvas is not on this screen.</p>
+                <div class="epc-auto-canvas">
+                    <div class="epc-auto-flow">
+                        <div class="epc-auto-node epc-auto-node--trigger">
+                            <div class="epc-auto-node__kind">Trigger</div>
+                            <div class="epc-auto-node__title">event</div>
+                            <div class="epc-auto-node__meta">Starts the chain</div>
+                        </div>
+                        <div class="epc-auto-connector"><i class="fa fa-arrow-right"></i></div>
+                        <div class="epc-auto-node epc-auto-node--action">
+                            <div class="epc-auto-node__kind">Action</div>
+                            <div class="epc-auto-node__title">Notify team</div>
+                            <div class="epc-auto-node__meta">send_notification</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_view == "runs" || _view == "hub")
+    {
+        <div class="ef-window">
+            <div class="ef-title"><i class="fa fa-history"></i> Workflows</div>
+            <div class="ef-body">
+                <div class="epc-wf-table-wrap">
+                    <table class="epc-wf-table">
+                        <thead>
+                            <tr>
+                                <th>Id</th>
+                                <th>Site</th>
+                                <th>Name</th>
+                                <th>Trigger</th>
+                                <th>Active</th>
+                                <th>Version</th>
+                                <th>Runs</th>
+                                <th>Last status</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (_workflows.Count == 0)
+                            {
+                                <tr><td colspan="8">No records yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _workflows)
+                                {
+                                    <tr>
+                                        <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.TriggerType) ? row.TriggerType : "—")</td>
+                                        <td>@(row.Active ? "yes" : "no")</td>
+                                        <td>@row.Version.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@row.RunCount.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(!string.IsNullOrWhiteSpace(row.LastRunStatus) ? row.LastRunStatus : "—")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/finance/erp?area=setup&tab=workflow_automation&epc_erp_shell=1";
     private bool _isAdmin;
+    private bool _isErpHost;
+    private string _view = "hub";
+    private string _basePath = "/cp/workflows-app";
     private CpWorkflowsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpWorkflowDigest> _workflows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _activeDefault;
+    private int _availableDefault;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        var path = ctx.Request.Path.Value ?? "";
+        _isErpHost = path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
+        _basePath = _isErpHost ? "/erp/workflows-app" : "/cp/workflows-app";
+        _view = (ctx.Request.Query["auto_view"].ToString() ?? "hub").Trim().ToLowerInvariant();
+        if (_view is not ("hub" or "accounting" or "processes" or "builder" or "runs"))
+        {
+            _view = "hub";
+        }
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _activeDefault = ErpAutomationCatalogue.All.Count(i => i.DefaultOn);
+        _availableDefault = ErpAutomationCatalogue.All.Count - _activeDefault;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
-        if (!_isAdmin)
-        {
-            return; // guest browse — Sign in for live data
-        }
+        if (!_isAdmin) return;
 
         var result = await Dashboards.BuildCpWorkflowsDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _workflows = result.Workflows;
-        _source = result.Source;
-        _message = result.Message;
     }
+
+    private string AutoHref(string view) => _basePath + "?auto_view=" + Uri.EscapeDataString(view);
+    private string TabClass(string view) => string.Equals(_view, view, StringComparison.OrdinalIgnoreCase) ? "active" : "";
+
+    private RenderFragment Card(ErpAutomationCatalogue.Item autoItem, string tone) => __builder =>
+    {
+        var colors = tone == "teal" ? new[] { "#134e4a", "#0f766e", "#14b8a6" } : new[] { "#0c4a6e", "#0369a1", "#0ea5e9" };
+        var status = autoItem.DefaultOn ? "active" : "available";
+        var badge = autoItem.DefaultOn ? "success" : "warning";
+        <div class="epc-auto-card" data-auto-id="@autoItem.Id">
+            <div class="epc-auto-card__head">
+                <h4 class="epc-auto-card__title"><i class="fa @autoItem.Icon"></i>@autoItem.Name</h4>
+                <span class="label label-@badge">@status</span>
+            </div>
+            <p class="epc-auto-card__desc">@autoItem.Description</p>
+            <div class="epc-auto-pipeline" role="list">
+                @for (var i = 0; i < autoItem.Pipeline.Count; i++)
+                {
+                    var stepColor = colors[i % 3];
+                    <div class="epc-auto-pipeline__step" role="listitem" style="--epc-step:@stepColor">
+                        <span class="epc-auto-pipeline__num">@((i + 1).ToString(CultureInfo.InvariantCulture))</span>
+                        <span class="epc-auto-pipeline__label">@autoItem.Pipeline[i]</span>
+                    </div>
+                    @if (i < autoItem.Pipeline.Count - 1)
+                    {
+                        <div class="epc-auto-pipeline__arrow" aria-hidden="true"><i class="fa fa-chevron-right"></i></div>
+                    }
+                }
+            </div>
+            <div class="epc-auto-card__actions">
+                <a class="btn btn-default btn-xs" href="@ErpAutomationCatalogue.OpenHref(autoItem)"><i class="fa fa-external-link"></i> Open</a>
+            </div>
+        </div>
+    };
 }
