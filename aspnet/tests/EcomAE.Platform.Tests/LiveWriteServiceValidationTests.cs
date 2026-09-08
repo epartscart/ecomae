@@ -102,7 +102,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(invalid.Succeeded);
         Assert.Equal("invalid", invalid.Code);
 
-var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
+        var payDb = await new ErpPayrollPayWriteService(new UnconfiguredConnections())
+            .PayRunAsync(1);
+        Assert.False(payDb.Succeeded);
+        Assert.Equal("db", payDb.Code);
+
+        var payInvalid = await new ErpPayrollPayWriteService(new ConfiguredNeverOpened())
+            .PayRunAsync(0);
+        Assert.False(payInvalid.Succeeded);
+        Assert.Equal("invalid", payInvalid.Code);
+        Assert.Equal("Payroll run not found", payInvalid.Message);
+
+        var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnections())
             .UpdateLineDaysAsync(1, 15);
         Assert.False(daysDb.Succeeded);
         Assert.Equal("db", daysDb.Code);
@@ -3155,6 +3166,17 @@ var daysDb = await new ErpPayrollUpdateDaysWriteService(new UnconfiguredConnecti
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var hrPayInvalid = await new ErpHrPayrollRunWriteService(new ConfiguredNeverOpened())
+            .GenerateAsync(new ErpHrPayrollRunWriteRequest(Period: "not-a-period"));
+        Assert.False(hrPayInvalid.Succeeded);
+        Assert.Equal("invalid", hrPayInvalid.Code);
+        Assert.Equal("Invalid period (use YYYY-MM)", hrPayInvalid.Message);
+
+        var hrPayDb = await new ErpHrPayrollRunWriteService(new UnconfiguredConnections())
+            .GenerateAsync(new ErpHrPayrollRunWriteRequest(Period: "2026-01"));
+        Assert.False(hrPayDb.Succeeded);
+        Assert.Equal("db", hrPayDb.Code);
     }
 
     [Fact]
