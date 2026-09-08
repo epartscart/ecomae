@@ -153,6 +153,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         var demandIntelligence = await reporter.BuildCpDemandIntelligenceDigestAsync(10);
         var creditLimits = await reporter.BuildCpCreditLimitsDigestAsync(10);
         var insuranceCompliance = await reporter.BuildCpInsuranceComplianceDigestAsync(10);
+        var insuranceComplianceDetail = await reporter.BuildCpInsuranceComplianceDetailAsync(7);
         var auditTrail = await reporter.BuildCpAuditTrailDigestAsync(10);
         var docExpiry = await reporter.BuildCpDocExpiryDigestAsync(10);
         var tenantConfig = await reporter.BuildCpTenantConfigDigestAsync(10);
@@ -376,6 +377,7 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Equal("migration", demandIntelligence.Source);
         Assert.Equal("migration", creditLimits.Source);
         Assert.Equal("migration", insuranceCompliance.Source);
+        Assert.Equal("migration", insuranceComplianceDetail.Source);
         Assert.Equal("migration", warehouseWms.Source);
         Assert.Equal("migration", aiService.Source);
         Assert.Equal("migration", returnsRma.Source);
@@ -529,6 +531,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`notes`", LegacySurfaceDashboardSql.SelectCpCollectionsDunningQueueDetail, StringComparison.Ordinal);
         Assert.Contains("epc_dunning_log", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("`queue_id` = @id", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicies, StringComparison.Ordinal);
+        Assert.DoesNotContain("contact_email", LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicies, StringComparison.Ordinal);
+        Assert.Contains("`note`", LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicyDetail, StringComparison.Ordinal);
+        Assert.Contains("contact_email", LegacySurfaceDashboardSql.SelectCpInsuranceCompliancePolicyDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_ins_documents", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceDocuments, StringComparison.Ordinal);
+        Assert.Contains("`policy_id` = @id", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceDocuments, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_ins_claims", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceClaims, StringComparison.Ordinal);
+        Assert.Contains("`policy_id` = @id", LegacySurfaceDashboardSql.SelectCpInsuranceComplianceClaims, StringComparison.Ordinal);
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);

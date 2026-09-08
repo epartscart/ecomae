@@ -296,6 +296,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only insurance policies (notes/emails omitted).</summary>
     Task<CpInsuranceComplianceDigestResult> BuildCpInsuranceComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened insurance policy + documents + claims (PHP <c>pol=</c> detail).</summary>
+    Task<CpInsuranceComplianceDetailResult> BuildCpInsuranceComplianceDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only ERP audit trail (detail/old/new JSON omitted).</summary>
     Task<CpAuditTrailDigestResult> BuildCpAuditTrailDigestAsync(int limit, CancellationToken cancellationToken = default);
 
