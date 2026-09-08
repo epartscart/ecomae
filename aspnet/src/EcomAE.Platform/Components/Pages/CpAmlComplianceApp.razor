@@ -21,43 +21,66 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/aml-compliance-app")</p>
-                <p>Save a KYC record or set an AML alert status here.</p>
+                <p>Save a KYC record or set an AML alert status here. Open a row to see notes, ID details, and customer transactions.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/aml-compliance-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody AppPath="/cp/aml-compliance-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+    }
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDetail is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="AML KYC KPIs">
+        <div class="kpi"><div class="lbl">KYC</div><div class="val">@_summary.KycCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Pending</div><div class="val">@_summary.PendingKycCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Flagged txns</div><div class="val">@_summary.FlaggedTxnCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active rules</div><div class="val">@_summary.ActiveRuleCount.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
 
     @if (_isAdmin)
     {
-        <form method="post" action="/erp/aml/kyc-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+        <form id="erp-module-new" method="post" action="/erp/aml/kyc-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/aml-compliance-app" />
-            <label>Customer <input name="customer_name" required /></label>
-            <label>Id type <input name="id_type" /></label>
-            <label>Id number <input name="id_number" /></label>
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <input type="hidden" name="id" value="@OpenedIdValue" />
+            <label>Customer <input name="customer_name" required value="@OpenedCustomerName" /></label>
+            <label>Customer id <input name="customer_id" type="number" min="0" style="width:6rem" value="@OpenedCustomerIdValue" /></label>
+            <label>Id type <input name="id_type" value="@OpenedIdType" /></label>
+            <label>Id number <input name="id_number" value="@OpenedIdNumber" /></label>
+            <label>Expiry <input name="id_expiry" value="@OpenedIdExpiry" /></label>
+            <label>Nationality <input name="nationality" value="@OpenedNationality" /></label>
             <label>Risk
                 <select name="risk_level">
-                    <option value="low">low</option>
-                    <option value="medium">medium</option>
-                    <option value="high">high</option>
-                    <option value="very_high">very_high</option>
+                    <option value="low" selected="@OpenedRiskIs("low")">low</option>
+                    <option value="medium" selected="@OpenedRiskIs("medium")">medium</option>
+                    <option value="high" selected="@OpenedRiskIs("high")">high</option>
+                    <option value="very_high" selected="@OpenedRiskIs("very_high")">very_high</option>
                 </select>
             </label>
             <label>Status
                 <select name="verification_status">
-                    <option value="pending">pending</option>
-                    <option value="verified">verified</option>
-                    <option value="rejected">rejected</option>
-                    <option value="expired">expired</option>
+                    <option value="pending" selected="@OpenedStatusIs("pending")">pending</option>
+                    <option value="verified" selected="@OpenedStatusIs("verified")">verified</option>
+                    <option value="rejected" selected="@OpenedStatusIs("rejected")">rejected</option>
+                    <option value="expired" selected="@OpenedStatusIs("expired")">expired</option>
                 </select>
             </label>
+            <label>Notes <input name="notes" value="@OpenedNotes" style="width:14rem" /></label>
+            <label><input type="checkbox" name="pep_status" value="1" checked="@OpenedPep" /> PEP</label>
             <button type="submit">Save KYC</button>
         </form>
         <form method="post" action="/erp/aml/alert-status" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/aml-compliance-app" />
-            <label>Txn id <input name="id" type="number" min="1" required /></label>
+            <input type="hidden" name="returnUrl" value="@_returnHref" />
+            <label>Txn id <input name="id" type="number" min="1" required value="@OpenedTxnIdValue" /></label>
             <label>Status
                 <select name="status">
                     <option value="open">open</option>
@@ -72,6 +95,98 @@
         </form>
     }
 
+    @if (_openedDetail is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(!string.IsNullOrWhiteSpace(_openedDetail.CustomerName) ? _openedDetail.CustomerName : ("KYC #" + _openedDetail.Id.ToString(CultureInfo.InvariantCulture)))
+                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedDetail.VerificationStatus) ? _openedDetail.VerificationStatus : "—")</span>
+                </div>
+                <div class="panel-body">
+                    <p>Customer id: <strong>@_openedDetail.CustomerId.ToString(CultureInfo.InvariantCulture)</strong>
+                        · Risk: <strong>@(!string.IsNullOrWhiteSpace(_openedDetail.RiskLevel) ? _openedDetail.RiskLevel : "—")</strong>
+                        @if (_openedDetail.PepStatus != 0)
+                        {
+                            <span class="label label-warning">PEP</span>
+                        }
+                    </p>
+                    <p>ID: <strong>@(!string.IsNullOrWhiteSpace(_openedDetail.IdType) ? _openedDetail.IdType : "—")</strong>
+                        @(!string.IsNullOrWhiteSpace(_openedDetail.IdNumber) ? _openedDetail.IdNumber : "—")
+                        @if (!string.IsNullOrWhiteSpace(_openedDetail.IdExpiry))
+                        {
+                            <span> · expires @_openedDetail.IdExpiry</span>
+                        }
+                    </p>
+                    <p>Nationality: @(!string.IsNullOrWhiteSpace(_openedDetail.Nationality) ? _openedDetail.Nationality : "—")
+                        · DOB: @(!string.IsNullOrWhiteSpace(_openedDetail.Dob) ? _openedDetail.Dob : "—")</p>
+                    <p>Sanctions: @(_openedDetail.SanctionsChecked != 0 ? "checked" : "not checked")
+                        @if (_openedDetail.SanctionsMatch != 0)
+                        {
+                            <span class="label label-danger">match</span>
+                        }
+                    </p>
+                    @if (!string.IsNullOrWhiteSpace(_openedDetail.NextReview))
+                    {
+                        <p>Next review: @_openedDetail.NextReview</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedDetail.IdDocumentPath))
+                    {
+                        <p class="text-muted">Document: @_openedDetail.IdDocumentPath</p>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_openedDetail.Notes))
+                    {
+                        <p class="text-muted">@_openedDetail.Notes</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Customer transactions</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>Id</th>
+                                    <th>Type</th>
+                                    <th class="text-right">Amount</th>
+                                    <th>Score</th>
+                                    <th>Flagged</th>
+                                    <th>Status</th>
+                                    <th>Reason</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedTxns.Count == 0)
+                                {
+                                    <tr><td colspan="7">No transactions yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var txn in _openedTxns)
+                                    {
+                                        <tr>
+                                            <td>@txn.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(txn.TransactionType) ? txn.TransactionType : "—")</td>
+                                            <td class="text-right">@txn.Amount.ToString("0.00", CultureInfo.InvariantCulture) @(!string.IsNullOrWhiteSpace(txn.Currency) ? txn.Currency : "")</td>
+                                            <td>@txn.RiskScore.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(txn.Flagged != 0 ? "yes" : "no")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(txn.ReviewStatus) ? txn.ReviewStatus : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(txn.FlagReason) ? txn.FlagReason : "—")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
     <p class="help-block">@_summary.KycCount.ToString(CultureInfo.InvariantCulture) KYC · @_summary.PendingKycCount.ToString(CultureInfo.InvariantCulture) Pending · @_summary.FlaggedTxnCount.ToString(CultureInfo.InvariantCulture) Flagged txns · @_summary.ActiveRuleCount.ToString(CultureInfo.InvariantCulture) Active rules.</p>
 
     <div class="col-lg-12">
@@ -79,7 +194,7 @@
             <div class="panel-heading hbuilt">Records</div>
             <div class="panel-body">
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
         <thead>
             <tr>
                     <th>Id</th>
@@ -97,13 +212,13 @@
         <tbody>
             @if (_rows.Count == 0)
             {
-                <tr><td colspan="10">No records yet.</td></tr>
+                <tr><td colspan="10">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
             }
             else
             {
                 @foreach (var row in _rows)
                 {
-                    <tr>
+                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.CompanyId.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.CustomerId.ToString(CultureInfo.InvariantCulture)</td>
@@ -113,7 +228,7 @@
                             <td>@row.PepStatus.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(!string.IsNullOrWhiteSpace(row.VerificationStatus) ? row.VerificationStatus : "—")</td>
                             <td>@row.TimeCreated.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "kyc_id", row.Id)">Open</a></td>
                     </tr>
                 }
             }
@@ -133,11 +248,60 @@
     private IReadOnlyList<CpAmlComplianceKycDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private long _openedId;
+    private CpAmlComplianceKycDetail? _openedDetail;
+    private IReadOnlyList<CpAmlComplianceKycTxnDigest> _openedTxns = [];
+    private string _listHref = "/cp/aml-compliance-app";
+    private string _returnHref = "/cp/aml-compliance-app";
+
+    private string OpenedCaption => _openedDetail is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedDetail.CustomerName) ? ("KYC #" + _openedDetail.Id.ToString(CultureInfo.InvariantCulture)) : _openedDetail.CustomerName)
+            + " · " + (string.IsNullOrWhiteSpace(_openedDetail.VerificationStatus) ? "open" : _openedDetail.VerificationStatus);
+
+    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
+    private string OpenedCustomerName => _openedDetail?.CustomerName ?? "";
+    private string OpenedCustomerIdValue => _openedDetail is { CustomerId: > 0 } ? _openedDetail.CustomerId.ToString(CultureInfo.InvariantCulture) : "";
+    private string OpenedIdType => _openedDetail?.IdType ?? "";
+    private string OpenedIdNumber => _openedDetail?.IdNumber ?? "";
+    private string OpenedIdExpiry => _openedDetail?.IdExpiry ?? "";
+    private string OpenedNationality => _openedDetail?.Nationality ?? "";
+    private string OpenedNotes => _openedDetail?.Notes ?? "";
+    private bool OpenedPep => _openedDetail is { PepStatus: not 0 };
+    private string OpenedTxnIdValue
+    {
+        get
+        {
+            var flagged = _openedTxns.FirstOrDefault(t => t.Flagged != 0);
+            var pick = flagged ?? _openedTxns.FirstOrDefault();
+            return pick is null ? "" : pick.Id.ToString(CultureInfo.InvariantCulture);
+        }
+    }
+
+    private bool OpenedRiskIs(string value)
+        => string.Equals(_openedDetail?.RiskLevel, value, StringComparison.OrdinalIgnoreCase)
+           || (_openedDetail is null && string.Equals(value, "low", StringComparison.Ordinal));
+
+    private bool OpenedStatusIs(string value)
+        => string.Equals(_openedDetail?.VerificationStatus, value, StringComparison.OrdinalIgnoreCase)
+           || (_openedDetail is null && string.Equals(value, "pending", StringComparison.Ordinal));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/aml-compliance-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/aml-compliance-app"
+            : "/cp/aml-compliance-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "kyc_id", "kyc");
+        _returnHref = _openedId > 0
+            ? ErpRecordOpen.Href(_listHref, "kyc_id", _openedId).Split('#')[0]
+            : _listHref;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -151,5 +315,24 @@
         _rows = result.Kyc;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpAmlComplianceKycDetailAsync(_openedId, ctx.RequestAborted);
+            _openedDetail = detail.Kyc;
+            _openedTxns = detail.Transactions;
+            if (_openedDetail is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }

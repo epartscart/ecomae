@@ -203,6 +203,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only CRM opportunities (notes omitted).</summary>
     Task<CpCrmOpportunitiesDigestResult> BuildCpCrmOpportunitiesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened CRM opportunity plus activities (PHP <c>opp_id</c>).</summary>
+    Task<CpCrmOpportunityDetailResult> BuildCpCrmOpportunityDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only integrations/webhooks (secrets/events omitted).</summary>
     Task<CpIntegrationsDigestResult> BuildCpIntegrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
@@ -254,11 +257,20 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only returns/RMA requests (description/notes omitted).</summary>
     Task<CpReturnsRmaDigestResult> BuildCpReturnsRmaDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened aftersales RMA header + items (PHP <c>rma_id=</c> detail).</summary>
+    Task<CpReturnsRmaDetailResult> BuildCpReturnsRmaDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened shop return header + lines (PHP <c>return_id=</c> detail).</summary>
+    Task<CpShopReturnDetailResult> BuildCpShopReturnDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only commerce isolation audit runs (report_json omitted).</summary>
     Task<CpIsolationAuditDigestResult> BuildCpIsolationAuditDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only AML KYC rows (notes/document paths omitted).</summary>
     Task<CpAmlComplianceDigestResult> BuildCpAmlComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened AML KYC + customer transactions (PHP <c>kyc_id=</c> detail).</summary>
+    Task<CpAmlComplianceKycDetailResult> BuildCpAmlComplianceKycDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only jewellery karat/rate/barcode masters.</summary>
     Task<CpJewelleryMastersDigestResult> BuildCpJewelleryMastersDigestAsync(int limit, CancellationToken cancellationToken = default);
@@ -293,14 +305,26 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only insurance policies (notes/emails omitted).</summary>
     Task<CpInsuranceComplianceDigestResult> BuildCpInsuranceComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened insurance policy + documents + claims (PHP <c>pol=</c> detail).</summary>
+    Task<CpInsuranceComplianceDetailResult> BuildCpInsuranceComplianceDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only ERP audit trail (detail/old/new JSON omitted).</summary>
     Task<CpAuditTrailDigestResult> BuildCpAuditTrailDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened audit event (PHP <c>event_id</c>).</summary>
+    Task<CpAuditTrailDetailResult> BuildCpAuditTrailDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only document expiry register (notes/emails/paths omitted).</summary>
     Task<CpDocExpiryDigestResult> BuildCpDocExpiryDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened expiry document plus reminder log (PHP <c>doc</c>).</summary>
+    Task<CpDocExpiryDetailResult> BuildCpDocExpiryDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only tenant config keys (config_value omitted).</summary>
     Task<CpTenantConfigDigestResult> BuildCpTenantConfigDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened tenant config row plus history (PHP <c>config_id</c>).</summary>
+    Task<CpTenantConfigDetailResult> BuildCpTenantConfigDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only jewellery stock verification vouchers (remarks omitted).</summary>
     Task<CpJewelleryStockVerificationDigestResult> BuildCpJewelleryStockVerificationDigestAsync(int limit, CancellationToken cancellationToken = default);
@@ -423,7 +447,13 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpWebTrackerDashboardResult> BuildCpWebTrackerDashboardAsync(CpWebTrackerFilterQuery filters, CancellationToken cancellationToken = default);
     Task<CpWebTrackerSessionDetailResult> BuildCpWebTrackerSessionDetailAsync(long sessionId, string siteKey, bool isSuper, CancellationToken cancellationToken = default);
     Task<CpAbandonedCartsDigestResult> BuildCpAbandonedCartsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened abandoned cart line + sibling lines (PHP <c>cart_id=</c> detail).</summary>
+    Task<CpAbandonedCartsDetailResult> BuildCpAbandonedCartsDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpQuoteRequestsDigestResult> BuildCpQuoteRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened quote request + lines (PHP <c>quote_id=</c> detail).</summary>
+    Task<CpQuoteRequestDetailResult> BuildCpQuoteRequestDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpPlatformCommunicationDigestResult> BuildCpPlatformCommunicationDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpInfoBlocksDigestResult> BuildCpInfoBlocksDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFreeToolsDigestResult> BuildCpFreeToolsDigestAsync(int limit, CancellationToken cancellationToken = default);
@@ -510,6 +540,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only withholding codes + transactions (PHP <c>epc_wht_*</c>). Settle, code save, record, and certificate writes are live.</summary>
     Task<ErpWithholdingDigestResult> BuildErpWithholdingDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened withholding transaction (PHP <c>txn_id</c>).</summary>
+    Task<ErpWithholdingTxnDetailResult> BuildErpWithholdingTxnDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only petty cash floats (PHP <c>epc_erp_petty_cash</c>).</summary>
     Task<ErpPettyCashListResult> ListErpPettyCashAsync(int limit, CancellationToken cancellationToken = default);
