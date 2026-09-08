@@ -7040,7 +7040,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_marketing_* KPIs + reviews (notes omitted). PHP marketing growth / campaigns hub remains authoritative."
+                note = "Read-only epc_marketing_* KPIs + reviews. Open ?review_id= loads a 280-char notes excerpt plus strategy siblings. PHP marketing growth / campaigns hub remains authoritative."
             });
         });
 

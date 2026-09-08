@@ -40,6 +40,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_power_bi?pbi_id=5", "/cp/power-bi-app?pbi_id=5")]
     [InlineData("/CP/general_pages/epc_metabase_embed?mb_id=6", "/cp/metabase-app?mb_id=6")]
     [InlineData("/CP/control/portal/epc_bi_metrics?mb_id=6", "/cp/metabase-app?mb_id=6")]
+    [InlineData("/CP/shop/marketing/marketing?review_id=9", "/cp/marketing-growth-app?review_id=9")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -518,6 +519,34 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/metabase-app",
                 "/CP/general_pages/epc_metabase_embed?mb_id=6"));
+    }
+
+    [Fact]
+    public void MarketingGrowthApp_OpenLoadsNotesExcerptAndStrategySiblings()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpMarketingGrowthApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"review_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"review_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpMarketingGrowthReviewDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No notes excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No strategy siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/marketing-growth-app?review_id=9#erp-row-9",
+            ErpRecordOpen.Href("/cp/marketing-growth-app", "review_id", 9));
+        Assert.Equal(
+            "/cp/marketing-growth-app?review_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/marketing-growth-app",
+                "/CP/shop/marketing/marketing?review_id=9"));
     }
 
     [Fact]
