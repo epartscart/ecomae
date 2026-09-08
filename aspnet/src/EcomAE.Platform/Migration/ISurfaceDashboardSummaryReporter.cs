@@ -251,6 +251,12 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only returns/RMA requests (description/notes omitted).</summary>
     Task<CpReturnsRmaDigestResult> BuildCpReturnsRmaDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened aftersales RMA header + items (PHP <c>rma_id=</c> detail).</summary>
+    Task<CpReturnsRmaDetailResult> BuildCpReturnsRmaDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened shop return header + lines (PHP <c>return_id=</c> detail).</summary>
+    Task<CpShopReturnDetailResult> BuildCpShopReturnDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only commerce isolation audit runs (report_json omitted).</summary>
     Task<CpIsolationAuditDigestResult> BuildCpIsolationAuditDigestAsync(int limit, CancellationToken cancellationToken = default);
 

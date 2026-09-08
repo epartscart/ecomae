@@ -1594,6 +1594,11 @@ public static class PhpSurfaceLinkMap
                     return MapCpDocpartPricesHref(value, aspNet);
                 }
 
+                if (aspNet.Equals("/cp/returns-rma-app", StringComparison.OrdinalIgnoreCase))
+                {
+                    return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
+                }
+
                 return aspNet;
             }
         }
