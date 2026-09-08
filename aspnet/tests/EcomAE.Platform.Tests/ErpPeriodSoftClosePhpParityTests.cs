@@ -83,8 +83,8 @@ public sealed class ErpPeriodSoftClosePhpParityTests
     public void Matrix_MentionsSoftCloseOnPeriodCloseRow()
     {
         var row = PhpVsAspNetRemovalMatrix.Rows.First(item => item.Id == "erp-fy-reopen-period");
-        Assert.Contains("soft-close", row.Notes, StringComparison.Ordinal);
-        Assert.Contains("lock", row.Notes, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("soft-close", row.Note, StringComparison.Ordinal);
+        Assert.Contains("lock", row.Note, StringComparison.OrdinalIgnoreCase);
         Assert.Equal("aspnet", row.WritesOwner);
     }
 
