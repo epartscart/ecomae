@@ -40,7 +40,7 @@
     {
         <form method="post" action="/cp/content/published" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? _listHref + "?content_id=" + _selectedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
             <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
             <label>Published
                 <select name="publishedFlag">
@@ -52,14 +52,14 @@
         </form>
         <form method="post" action="/cp/content/main" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? _listHref + "?content_id=" + _selectedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
             <input type="hidden" name="isFrontend" value="1" />
             <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
             <button type="submit">Set as main page</button>
         </form>
         <form method="post" action="/cp/content/body" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? _listHref + "?content_id=" + _selectedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
             <input type="hidden" name="langCode" value="en" />
             <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
                 <label>Page id <input type="number" name="contentId" min="1" required style="width:6rem" value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
@@ -78,7 +78,7 @@
         </form>
         <form method="post" action="/cp/content/save" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? _listHref + "?content_id=" + _selectedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
             <input type="hidden" name="langCode" value="en" />
             <div style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
                 <label>Page id <input type="number" name="contentId" min="0" value="0" style="width:6rem" title="0 = create" /></label>
@@ -117,7 +117,7 @@
         </form>
         <form method="post" action="/cp/content/tree" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/pages-app" />
+            <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? _listHref + "?content_id=" + _selectedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
             <input type="hidden" name="langCode" value="en" />
             <input type="hidden" name="isFrontend" value="1" />
             <label>Tree JSON
