@@ -62,8 +62,9 @@ public sealed class LoginHostBrandTests
             "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpSurfaceHostLogo.razor"));
         Assert.Contains("LoginHostBrand.Resolve", logo, StringComparison.Ordinal);
         Assert.Contains("Request.Host.Host", logo, StringComparison.Ordinal);
-        Assert.DoesNotContain("company", logo, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Never reads ?company=", logo, StringComparison.Ordinal);
+        Assert.DoesNotContain("Request.Query", logo, StringComparison.Ordinal);
+        Assert.DoesNotContain("ActiveCompanyIdFromQuery", logo, StringComparison.Ordinal);
+        Assert.Contains("intra-tenant legal entity", logo, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
