@@ -1256,7 +1256,9 @@ public static class EcomAeRoutes
     public const string ErpAjaxHrtJobSave = "/erp/ajax/hrt-job-save";
     /// <summary>Wave B dry-run for PHP hrt_applicant_add (writes=0).</summary>
     public const string ErpAjaxHrtApplicantAdd = "/erp/ajax/hrt-applicant-add";
-    /// <summary>Wave B dry-run for PHP hrt_applicant_stage (writes=0).</summary>
+    /// <summary>HTML form POST for PHP hrt_applicant_stage. confirmWrites=true writes via IErpHrtApplicantStageWriteService.</summary>
+    public const string ErpRecruitmentApplicantStage = "/erp/recruitment/applicants/stage";
+    /// <summary>Live PHP hrt_applicant_stage ajax alias of <see cref="ErpRecruitmentApplicantStage"/>.</summary>
     public const string ErpAjaxHrtApplicantStage = "/erp/ajax/hrt-applicant-stage";
     /// <summary>Wave B dry-run for PHP hrt_review_save (writes=0).</summary>
     public const string ErpAjaxHrtReviewSave = "/erp/ajax/hrt-review-save";

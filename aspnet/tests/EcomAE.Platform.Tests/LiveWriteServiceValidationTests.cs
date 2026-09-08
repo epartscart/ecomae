@@ -3111,6 +3111,17 @@ public sealed class LiveWriteServiceValidationTests
             .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
         Assert.False(hrAttDb.Succeeded);
         Assert.Equal("db", hrAttDb.Code);
+
+        var hrtStageInvalid = await new ErpHrtApplicantStageWriteService(new ConfiguredNeverOpened())
+            .SetAsync(new ErpHrtApplicantStageWriteRequest(Id: 1, Stage: "unknown", StageSpecified: true));
+        Assert.False(hrtStageInvalid.Succeeded);
+        Assert.Equal("invalid", hrtStageInvalid.Code);
+        Assert.Equal("Invalid applicant stage", hrtStageInvalid.Message);
+
+        var hrtStageDb = await new ErpHrtApplicantStageWriteService(new UnconfiguredConnections())
+            .SetAsync(new ErpHrtApplicantStageWriteRequest(Id: 1, Stage: "hired", StageSpecified: true));
+        Assert.False(hrtStageDb.Succeeded);
+        Assert.Equal("db", hrtStageDb.Code);
     }
 
     [Fact]
