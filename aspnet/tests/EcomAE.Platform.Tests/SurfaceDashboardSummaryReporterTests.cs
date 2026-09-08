@@ -663,6 +663,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("shop_obtaining_modes", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", LegacySurfaceDashboardSql.SelectCpDeliveryModes, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_articles_analogs_list", LegacySurfaceDashboardSql.SelectCpCrossPairs, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_manufacturers_synonyms", LegacySurfaceDashboardSql.SelectCpSynonymsRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("s.`id`", LegacySurfaceDashboardSql.SelectCpSynonymsRows, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_manufacturers", LegacySurfaceDashboardSql.SelectCpSynonymManufacturerDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpSynonymManufacturerDetail, StringComparison.Ordinal);
+        Assert.Contains("s.`id`", LegacySurfaceDashboardSql.SelectCpSynonymChildren, StringComparison.Ordinal);
+        Assert.Contains("s.`manufacturer_id` = @id", LegacySurfaceDashboardSql.SelectCpSynonymChildren, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_prices_data", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("{ARTICLE_MATCH}", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);
         Assert.Contains("@brand", LegacySurfaceDashboardSql.SelectStorefrontPartSearch, StringComparison.Ordinal);

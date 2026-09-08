@@ -499,6 +499,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpAccessoriesDigestResult> BuildCpAccessoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: manufacturer synonyms digest (writes remain module-ajax dry-run).</summary>
     Task<CpSynonymsDigestResult> BuildCpSynonymsDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened manufacturer + synonym children (PHP <c>manufacturer_id=</c> detail, includes synonym id).</summary>
+    Task<CpSynonymDetailResult> BuildCpSynonymDetailAsync(long manufacturerId, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: SEO content KPIs (sitemap/robots; ping/warm remain PHP).</summary>
     Task<CpSeoDigestResult> BuildCpSeoDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: social hub accounts/drafts (credentials omitted; publish dry-run).</summary>

@@ -28,13 +28,14 @@ public static class ErpRecordOpen
         "event_id", "template_id", "session_id", "license_id",
         "req_id", "rq",
         "queue_id", "txn_id",
-        "promo_id", "layout_id",
-        "toolkit_id", "sheet_id",
-        "cart_id", "kyc_id",
-        "kyc", "opp_id",
-        "config_id", "doc",
-        "pol", "policy_id",
-        "rma_id", "return_id",
+        "manufacturer_id", "promo_id",
+        "layout_id", "toolkit_id",
+        "sheet_id", "cart_id",
+        "kyc_id", "kyc",
+        "opp_id", "config_id",
+        "doc", "pol",
+        "policy_id", "rma_id",
+        "return_id",
     ];
 
     public static string Href(string appPath, string param, long id)

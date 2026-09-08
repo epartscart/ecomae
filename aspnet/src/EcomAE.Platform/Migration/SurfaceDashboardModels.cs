@@ -4530,6 +4530,14 @@ public sealed record CpSynonymsSummary(int ManufacturerCount, int SynonymCount, 
 public sealed record CpSynonymsRowDigest(string Manufacturer, string Synonym, int ManufacturerId);
 public sealed record CpSynonymsDigestResult(CpSynonymsSummary Summary, IReadOnlyList<CpSynonymsRowDigest> Rows, int Count, string Source, string Message);
 
+public sealed record CpSynonymManufacturerDetail(long Id, string Name);
+public sealed record CpSynonymChildDigest(long Id, long ManufacturerId, string Synonym);
+public sealed record CpSynonymDetailResult(
+    CpSynonymManufacturerDetail? Manufacturer,
+    IReadOnlyList<CpSynonymChildDigest> Synonyms,
+    string Source,
+    string Message);
+
 public sealed record CpSeoSummary(int UrlCount, int IndexedReady, int PingJobs, int WarmJobs, string Source, string Message);
 public sealed record CpSeoRowDigest(string Key, string Value);
 public sealed record CpSeoDigestResult(CpSeoSummary Summary, IReadOnlyList<CpSeoRowDigest> Rows, int Count, string Source, string Message);
