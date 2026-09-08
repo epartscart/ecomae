@@ -13,6 +13,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<StorefrontAccountDigestResult> BuildStorefrontAccountAsync(int userId, int recentLimit = 10, CancellationToken cancellationToken = default);
 
+    /// <summary>PHP <c>my_balance.php</c> ledger rows from <c>shop_users_accounting</c>.</summary>
+    Task<StorefrontAccountOperationsResult> ListStorefrontAccountOperationsAsync(int userId, int limit, CancellationToken cancellationToken = default);
+
     Task<PortalTenantListResult> ListPortalTenantsAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<BosFleetHealthResult> BuildBosFleetHealthAsync(int sampleLimit, CancellationToken cancellationToken = default);
@@ -49,6 +52,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<StorefrontGarageResult> ListStorefrontGarageAsync(int userId, int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>PHP <c>shop_docpart_garage_orders</c> links for an order owned by the customer.</summary>
+    Task<StorefrontGarageOrderLinksResult> ListStorefrontGarageOrderLinksAsync(int userId, long orderId, CancellationToken cancellationToken = default);
     Task<StorefrontGarageNotepadResult> ListStorefrontGarageNotepadAsync(int userId, long garageId, int limit, CancellationToken cancellationToken = default);
     Task<StorefrontReturnsResult> ListStorefrontReturnsAsync(int userId, int limit, CancellationToken cancellationToken = default);
     Task<StorefrontReturnDetailResult> GetStorefrontReturnAsync(int userId, long returnId, CancellationToken cancellationToken = default);

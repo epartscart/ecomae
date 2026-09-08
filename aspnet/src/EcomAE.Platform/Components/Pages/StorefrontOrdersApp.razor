@@ -326,7 +326,7 @@
                                         <input type="hidden" name="returnUrl" value="@("/storefront/orders-app?order_id=" + _selected.Id.ToString(CultureInfo.InvariantCulture))" />
                                         <input type="hidden" name="orderId" value="@_selected.Id.ToString(CultureInfo.InvariantCulture)" />
                                         <input type="hidden" name="carId" value="@carId" />
-                                        <button type="submit" class="btn btn-xs" style="color:#a9a9a9;font-size:14px;border:1px solid #dddddd;" onclick="return check_car(this);">
+                                        <button type="submit" class="btn btn-xs" style="color:@( _linkedGarageIds.Contains(car.Id) ? "#66bf05" : "#f2f2f2" );font-size:14px;border:1px solid #dddddd;" onclick="return check_car(this);">
                                             <i class="fa fa-check" aria-hidden="true"></i>
                                         </button>
                                     </form>
@@ -382,6 +382,7 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private IReadOnlyList<StorefrontGarageVehicleDigest> _garage = [];
+    private HashSet<long> _linkedGarageIds = [];
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public long? OrderId { get; set; }
@@ -442,6 +443,8 @@
             _messages = thread.Messages;
             var garage = await Dashboards.ListStorefrontGarageAsync(session.UserId, 50, ctx.RequestAborted);
             _garage = garage.Vehicles;
+            var links = await Dashboards.ListStorefrontGarageOrderLinksAsync(session.UserId, _selected.Id, ctx.RequestAborted);
+            _linkedGarageIds = links.GarageIds.ToHashSet();
         }
     }
 

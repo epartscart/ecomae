@@ -691,6 +691,48 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<StorefrontAccountOperationsResult> ListStorefrontAccountOperationsAsync(int userId, int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 200);
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0)
+        {
+            return new(0, [], 0, "rejected", "Valid customer user id is required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerAccountOperations;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@limit", safeLimit);
+            var rows = new List<StorefrontAccountOperationDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new StorefrontAccountOperationDigest(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["time"] is DBNull ? 0 : reader["time"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["amount"] is DBNull ? 0 : reader["amount"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["income"] is DBNull ? 0 : reader["income"], CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["operation_code"] is DBNull ? 0 : reader["operation_code"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty));
+            }
+
+            return new(userId, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<PortalTenantListResult> ListPortalTenantsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
@@ -1597,6 +1639,41 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         catch (Exception ex)
         {
             return new(userId, [], 0, "database-error", ex.Message);
+        }
+    }
+
+    public async Task<StorefrontGarageOrderLinksResult> ListStorefrontGarageOrderLinksAsync(int userId, long orderId, CancellationToken cancellationToken = default)
+    {
+        var safeOrder = orderId < 0 ? 0 : orderId;
+        if (!_connections.IsConfigured)
+        {
+            return new(userId, safeOrder, [], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        if (userId <= 0 || safeOrder <= 0)
+        {
+            return new(userId, safeOrder, [], 0, "rejected", "Valid customer user id and order id are required.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCustomerGarageOrderLinks;
+            AddParameter(command, "@userId", userId);
+            AddParameter(command, "@orderId", safeOrder);
+            var ids = new List<long>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                ids.Add(Convert.ToInt64(reader["garage_id"], CultureInfo.InvariantCulture));
+            }
+
+            return new(userId, safeOrder, ids, ids.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(userId, safeOrder, [], 0, "database-error", ex.Message);
         }
     }
 

@@ -75,6 +75,8 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("id=\"message_textarea\"", checkout, StringComparison.Ordinal);
         Assert.Contains("id=\"confirm_btn\"", checkout, StringComparison.Ordinal);
         Assert.Contains("EpcObtainModes.HasCustomerInterface", checkout, StringComparison.Ordinal);
+        Assert.Contains("_step = \"how_get\";", checkout, StringComparison.Ordinal);
+        Assert.DoesNotContain("Checkout readiness", checkout, StringComparison.Ordinal);
         Assert.Contains("class=\"table\"", checkout, StringComparison.Ordinal);
         Assert.Contains("product_div_first", checkout, StringComparison.Ordinal);
         Assert.Contains("product_div_last", checkout, StringComparison.Ordinal);
@@ -98,6 +100,9 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("car_tr_", orders, StringComparison.Ordinal);
         Assert.Contains("PhpCustomerWrites.GarageCheckCarHref", orders, StringComparison.Ordinal);
         Assert.Contains("function check_car", orders, StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontGarageOrderLinksAsync", orders, StringComparison.Ordinal);
+        Assert.Contains("#66bf05", orders, StringComparison.Ordinal);
+        Assert.Contains("#f2f2f2", orders, StringComparison.Ordinal);
 
         var cart = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
@@ -209,6 +214,10 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("id=\"time_from\"", account, StringComparison.Ordinal);
         Assert.Contains("id=\"operation_code\"", account, StringComparison.Ordinal);
         Assert.Contains("id=\"id_sorter\"", account, StringComparison.Ordinal);
+        Assert.Contains("ListStorefrontAccountOperationsAsync", account, StringComparison.Ordinal);
+        Assert.Contains("background-color:#b4fed4;", account, StringComparison.Ordinal);
+        Assert.Contains("background-color:#ffe4e4;", account, StringComparison.Ordinal);
+        Assert.Contains("No account operations yet.", account, StringComparison.Ordinal);
 
         var payment = File.ReadAllText(Find(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPaymentApp.razor"));

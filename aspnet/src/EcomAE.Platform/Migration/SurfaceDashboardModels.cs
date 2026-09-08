@@ -93,6 +93,22 @@ public sealed record StorefrontAccountDigestResult(
     string Source,
     string Message);
 
+public sealed record StorefrontAccountOperationDigest(
+    long Id,
+    long TimeUnix,
+    decimal Amount,
+    int Income,
+    long OrderId,
+    int OperationCode,
+    string Name);
+
+public sealed record StorefrontAccountOperationsResult(
+    int UserId,
+    IReadOnlyList<StorefrontAccountOperationDigest> Operations,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record PortalTenantDigest(
     string SiteKey,
     string Hostname,
@@ -360,6 +376,14 @@ public sealed record StorefrontGarageVehicleDigest(
 public sealed record StorefrontGarageResult(
     int UserId,
     IReadOnlyList<StorefrontGarageVehicleDigest> Vehicles,
+    int Count,
+    string Source,
+    string Message);
+
+public sealed record StorefrontGarageOrderLinksResult(
+    int UserId,
+    long OrderId,
+    IReadOnlyList<long> GarageIds,
     int Count,
     string Source,
     string Message);

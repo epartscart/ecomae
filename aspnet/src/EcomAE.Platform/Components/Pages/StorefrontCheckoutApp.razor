@@ -413,75 +413,6 @@
             </div>
         </div>
     }
-    else if (_step is not "how_get" and not "confirm" and not "login_offer" && _hasShopper)
-    {
-        <div class="epc-sf-co-kpis" aria-label="Checkout readiness KPIs">
-            <div class="epc-sf-co-kpi"><strong>@_summary.Count</strong><span>Cart lines</span></div>
-            <div class="epc-sf-co-kpi"><strong>@_summary.Sum.ToString("N2", CultureInfo.InvariantCulture)</strong><span>Cart sum</span></div>
-            <div class="epc-sf-co-kpi"><strong>@_checkedCount</strong><span>Checked for order</span></div>
-            <div class="epc-sf-co-kpi"><strong>@_readiness</strong><span>Readiness</span></div>
-        </div>
-
-        @if (_lines.Count > 0 && _step is not "confirm")
-        {
-            <table style="width:100%;border-collapse:collapse;font-size:.86rem;margin:0 0 1rem;background:#fff">
-                <thead>
-                    <tr>
-                        <th style="text-align:left;padding:.4rem .5rem">Brand</th>
-                        <th style="text-align:left;padding:.4rem .5rem">Article</th>
-                        <th style="text-align:left;padding:.4rem .5rem">Name</th>
-                        <th style="text-align:left;padding:.4rem .5rem">Qty</th>
-                        <th style="text-align:left;padding:.4rem .5rem">Price</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var line in _lines)
-                    {
-                        <tr>
-                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Manufacturer) ? "—" : line.Manufacturer)</td>
-                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Article) ? "—" : line.Article)</td>
-                            <td style="padding:.4rem .5rem">@(string.IsNullOrWhiteSpace(line.Name) ? "—" : line.Name)</td>
-                            <td style="padding:.4rem .5rem">@line.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
-                            <td style="padding:.4rem .5rem">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-
-        <div class="epc-sf-co-steps" aria-label="Checkout steps">
-            <div class="epc-sf-co-step">
-                <span class="epc-sf-co-step__n">1</span>
-                <div>
-                    <h3>Review cart</h3>
-                    <p>@_summary.Count line(s), @_checkedCount checked. <a href="@StorefrontSurfaceLinks.Cart">Cart</a></p>
-                </div>
-            </div>
-            <div class="epc-sf-co-step">
-                <span class="epc-sf-co-step__n">2</span>
-                <div>
-                    <h3>How to obtain</h3>
-                    <p>Choose delivery or pickup.</p>
-                    <p style="margin:.35rem 0 0"><a href="@StorefrontSurfaceLinks.CheckoutHowGet">Select delivery / pickup</a></p>
-                </div>
-            </div>
-            <div class="epc-sf-co-step">
-                <span class="epc-sf-co-step__n">3</span>
-                <div>
-                    <h3>Confirm &amp; pay</h3>
-                    <p>Review totals and place the order.</p>
-                    <p style="margin:.35rem 0 0">
-                        <a href="@StorefrontSurfaceLinks.CheckoutConfirm">Confirm order</a>
-                        ·
-                        <a href="@StorefrontSurfaceLinks.CheckoutLoginOffer">Guest / login offer</a>
-                    </p>
-                </div>
-            </div>
-        </div>
-        <p class="epc-sf-co-note">
-            Readiness: <strong>@_readiness</strong>. Payment completes on the confirm step.
-        </p>
-    }
 
 </StorefrontTenantChrome>
 
@@ -495,8 +426,8 @@
     private string _source = "n/a";
     private string _readiness = "n/a";
     private string _step = "";
-    private string _heroTitle = "Checkout readiness";
-    private string _heroLead = "Review your cart and continue to delivery and payment.";
+    private string _heroTitle = "Delivery / pickup";
+    private string _heroLead = "Choose how you want to receive this order.";
     private string _stepHeading = "";
     private string _stepHelp = "";
     private IReadOnlyList<ObtainModeOption> _obtainModes = EpcObtainModes.FallbackModes;
@@ -648,6 +579,10 @@
         {
             _step = "login_offer";
         }
+        else
+        {
+            _step = "how_get";
+        }
 
         (_heroTitle, _heroLead, _stepHeading, _stepHelp) = _step switch
         {
@@ -657,8 +592,8 @@
                 "Confirm & pay", "Review the cart and confirm the order."),
             "login_offer" => ("Guest checkout", "Continue without an account, or sign in / register.",
                 "Login offer", "Sign in, register, or continue as a guest."),
-            _ => ("Checkout readiness", "Review your cart and continue to delivery and payment.",
-                "", "")
+            _ => ("Delivery / pickup", "Choose how you want to receive this order.",
+                "How to obtain", "Pick courier delivery or warehouse collection.")
         };
     }
 
