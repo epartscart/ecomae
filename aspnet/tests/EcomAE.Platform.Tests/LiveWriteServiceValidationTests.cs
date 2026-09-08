@@ -3060,6 +3060,14 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(whtSettleDb.Succeeded);
         Assert.Equal("db", whtSettleDb.Code);
 
+        Assert.Equal(30, ErpEditLockHeartbeatWriteService.ClampTtl(0));
+        Assert.Equal(600, ErpEditLockHeartbeatWriteService.ClampTtl(900));
+        Assert.Equal(120, ErpEditLockHeartbeatWriteService.ClampTtl(120));
+        var editLockHbDb = await new ErpEditLockHeartbeatWriteService(new UnconfiguredConnections())
+            .HeartbeatAsync(new ErpEditLockHeartbeatWriteRequest("sales_order", "1", "tok", 120, 9));
+        Assert.False(editLockHbDb.Succeeded);
+        Assert.Equal("db", editLockHbDb.Code);
+
         var whtCodeInvalid = await new ErpWhtCodeSaveWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new ErpWhtCodeSaveWriteRequest());
         Assert.False(whtCodeInvalid.Succeeded);

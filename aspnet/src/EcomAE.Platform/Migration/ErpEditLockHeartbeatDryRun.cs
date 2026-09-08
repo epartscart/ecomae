@@ -1,26 +1,64 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>edit_lock_heartbeat</c>. Never UPDATE. PHP authoritative.</summary>
-public interface IErpEditLockHeartbeatDryRun { ErpEditLockHeartbeatDryRunResult Evaluate(ErpEditLockHeartbeatRequest request); }
+/// <summary>
+/// Dry-run envelope for PHP <c>edit_lock_heartbeat</c> / <c>epc_erp_edit_lock_heartbeat</c>
+/// when <c>confirmWrites</c> is omitted. Live UPDATE is
+/// <c>IErpEditLockHeartbeatWriteService</c>.
+/// </summary>
+public interface IErpEditLockHeartbeatDryRun
+{
+    ErpEditLockHeartbeatDryRunResult Evaluate(ErpEditLockHeartbeatRequest request);
+}
+
 public sealed class ErpEditLockHeartbeatDryRun : IErpEditLockHeartbeatDryRun
 {
     public ErpEditLockHeartbeatDryRunResult Evaluate(ErpEditLockHeartbeatRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET edit_lock_heartbeat is not implemented; PHP ajax_erp.php remains authoritative.", request);
+        {
+            return Refuse(
+                "dry-run-confirm-refused",
+                "confirm_writes_refused",
+                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                request);
+        }
+
         if (string.IsNullOrWhiteSpace(request.ResourceKey))
-            return Refuse("dry-run-invalid","invalid_request","resourceKey is required.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.ResourceKey,
-            ["ajax_erp.php?action=edit_lock_heartbeat resource=@resourceKey (NOT executed)"],
-            "ERP edit_lock_heartbeat payload validated; UPDATE blocked.",
-            "/CP/content/shop/finance/erp/ajax_erp.php?action=edit_lock_heartbeat");
+        {
+            return Refuse("dry-run-invalid", "invalid_request", "resourceKey is required.", request);
+        }
+
+        return new ErpEditLockHeartbeatDryRunResult(
+            "dry-run-validated", 0, true, false, false, "ok", true, request.ResourceKey,
+            ["UPDATE `epc_erp_edit_locks` heartbeat (NOT executed)"],
+            "ErpEditLockHeartbeat payload validated; write blocked until confirmWrites=true.",
+            "content/shop/finance/epc_erp_concurrency.php");
     }
-    private static ErpEditLockHeartbeatDryRunResult Refuse(string s,string c,string d,ErpEditLockHeartbeatRequest r)=>
-        new(s,0,true,false,true,c,false,r.ResourceKey,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=edit_lock_heartbeat");
+
+    private static ErpEditLockHeartbeatDryRunResult Refuse(string s, string c, string d, ErpEditLockHeartbeatRequest r) =>
+        new(s, 0, true, false, false, c, false, r.ResourceKey, [], d, "content/shop/finance/epc_erp_concurrency.php");
 }
-public sealed record ErpEditLockHeartbeatRequest(string? ResourceKey = null, bool ConfirmWrites = false);
-public sealed record ErpEditLockHeartbeatDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? ResourceKey,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+
+public sealed record ErpEditLockHeartbeatRequest(
+    string? ResourceKey = null,
+    bool ConfirmWrites = false,
+    string? EntityType = null,
+    string? EntityId = null,
+    string? LockToken = null,
+    int Ttl = 120);
+
+public sealed record ErpEditLockHeartbeatDryRunResult(
+    string Status, int Writes, bool WritesBlocked, bool CutoverAllowed, bool PhpAuthoritative,
+    string ValidationCode, bool WouldWrite, string? ResourceKey,
+    IReadOnlyList<string> SimulatedSql, string Detail, string PhpAjax)
 {
-    public object ToPayload(object session)=>new{ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{resourceKey=ResourceKey},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+    public object ToPayload(object session) => new
+    {
+        ok = true, surface = "erp", status = Status, writes = Writes, writesBlocked = WritesBlocked,
+        cutoverAllowed = CutoverAllowed, phpAuthoritative = PhpAuthoritative,
+        validation_code = ValidationCode, would_write = WouldWrite,
+        intended = new { action = "edit_lock_heartbeat", resourceKey = ResourceKey },
+        simulated = SimulatedSql, php_ajax = PhpAjax, session, note = Detail
+    };
 }

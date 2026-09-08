@@ -151,6 +151,15 @@
             <label>Reference <input type="text" name="reference" placeholder="ORD-…" /></label>
             <button type="submit" class="btn btn-sm btn-primary">Post order settlement</button>
         </form>
+        <form method="post" action="/erp/edit-lock/heartbeat" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/sales-orders-app" />
+            <label>Entity type <input name="entity_type" maxlength="48" placeholder="sales_order" style="width:9rem" /></label>
+            <label>Entity id <input name="entity_id" maxlength="64" style="width:8rem" /></label>
+            <label>Lock token <input name="lock_token" maxlength="40" style="width:10rem" /></label>
+            <label>TTL <input type="number" name="ttl" value="120" style="width:5rem" /></label>
+            <button type="submit" class="btn btn-sm btn-default">Refresh edit lock</button>
+        </form>
     }
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales order KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_orders.Count</div></div>

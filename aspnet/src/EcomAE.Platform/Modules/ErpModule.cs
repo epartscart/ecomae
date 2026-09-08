@@ -3893,8 +3893,8 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockAcquire, async (HttpContext context, ErpEditLockAcquireBody? body, ILegacySessionValidator validator, IErpEditLockAcquireDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpEditLockAcquireRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockHeartbeat, async (HttpContext context, ErpEditLockHeartbeatBody? body, ILegacySessionValidator validator, IErpEditLockHeartbeatDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpEditLockHeartbeatRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockHeartbeat, HandleEditLockHeartbeatAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpEditLockHeartbeat, HandleEditLockHeartbeatAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockRelease, async (HttpContext context, ErpEditLockReleaseBody? body, ILegacySessionValidator validator, IErpEditLockReleaseDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpEditLockReleaseRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPresenceHeartbeat, async (HttpContext context, ErpPresenceHeartbeatBody? body, ILegacySessionValidator validator, IErpPresenceHeartbeatDryRun dryRun, CancellationToken cancellationToken) =>
@@ -11772,6 +11772,62 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }
+    }
+
+    private static async Task<IResult> HandleEditLockHeartbeatAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpEditLockHeartbeatDryRun dryRun,
+        IErpEditLockHeartbeatWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders-app", "Admin ERP capability required for edit lock heartbeat.");
+        }
+
+        var resourceKey = "";
+        var entityType = "";
+        var entityId = "";
+        var lockToken = "";
+        var ttl = 120;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            resourceKey = ErpEditLockHeartbeatWriteService.FormRaw(form, "resourceKey", "resource_key");
+            entityType = ErpEditLockHeartbeatWriteService.FormRaw(form, "entity_type", "entityType");
+            entityId = ErpEditLockHeartbeatWriteService.FormRaw(form, "entity_id", "entityId");
+            lockToken = ErpEditLockHeartbeatWriteService.FormRaw(form, "lock_token", "lockToken");
+            ttl = ErpEditLockHeartbeatWriteService.FormInt(form, 120, "ttl", "ttlSeconds", "ttl_seconds");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+            confirm = ErpEditLockHeartbeatWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+            resourceKey = ErpEditLockHeartbeatWriteService.JsonText(root, "resourceKey", "resource_key");
+            entityType = ErpEditLockHeartbeatWriteService.JsonText(root, "entity_type", "entityType");
+            entityId = ErpEditLockHeartbeatWriteService.JsonText(root, "entity_id", "entityId");
+            lockToken = ErpEditLockHeartbeatWriteService.JsonText(root, "lock_token", "lockToken");
+            ttl = ErpEditLockHeartbeatWriteService.JsonInt(root, 120, "ttl", "ttlSeconds", "ttl_seconds");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpEditLockHeartbeatRequest(resourceKey, false, entityType, entityId, lockToken, ttl)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.HeartbeatAsync(
+            new ErpEditLockHeartbeatWriteRequest(entityType, entityId, lockToken, ttl, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/sales-orders-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, expires_at = written.Succeeded ? written.Id : 0, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleWhtCodeSaveAsync(

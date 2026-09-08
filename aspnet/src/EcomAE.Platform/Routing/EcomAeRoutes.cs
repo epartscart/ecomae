@@ -1628,7 +1628,9 @@ public static class EcomAeRoutes
     public const string ErpOnPremisesBackupDryRun = "/erp/on-premises/backup-dry-run";
     /// <summary>Wave B dry-run for PHP edit_lock_acquire (writes=0).</summary>
     public const string ErpAjaxEditLockAcquire = "/erp/ajax/edit-lock-acquire";
-    /// <summary>Wave B dry-run for PHP edit_lock_heartbeat (writes=0).</summary>
+    /// <summary>HTML form POST for PHP edit_lock_heartbeat. confirmWrites=true writes via IErpEditLockHeartbeatWriteService.</summary>
+    public const string ErpEditLockHeartbeat = "/erp/edit-lock/heartbeat";
+    /// <summary>Live PHP edit_lock_heartbeat ajax alias of <see cref="ErpEditLockHeartbeat"/>.</summary>
     public const string ErpAjaxEditLockHeartbeat = "/erp/ajax/edit-lock-heartbeat";
     /// <summary>Wave B dry-run for PHP edit_lock_release (writes=0).</summary>
     public const string ErpAjaxEditLockRelease = "/erp/ajax/edit-lock-release";

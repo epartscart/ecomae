@@ -303,6 +303,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("ErpReceivablesApp.razor", "/erp/customers/master-save"),
             ("ErpReceivablesApp.razor", "/erp/customers/settlement"),
             ("ErpSalesOrdersApp.razor", "/erp/orders/settlement"),
+            ("ErpSalesOrdersApp.razor", "/erp/edit-lock/heartbeat"),
             ("CpReturnsRmaApp.razor", "/erp/aftersales/rma-create"),
             ("ErpProductInfoApp.razor", "/erp/ajax/inv-create-item"),
             ("CpJewelleryRepairsApp.razor", "/erp/ajax/jw-repair-update-status"),
