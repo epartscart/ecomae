@@ -3174,6 +3174,33 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened marketing growth review. Notes are a short excerpt.</summary>
+    public const string SelectCpMarketingGrowthReviewDetail = """
+        SELECT `id`, IFNULL(`strategy_key`,'') AS strategy_key,
+               IFNULL(`review_type`,'') AS review_type,
+               IFNULL(`score`,0) AS score,
+               IFNULL(`created_at`,0) AS created_at,
+               IFNULL(`created_by`,0) AS created_by,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_marketing_reviews`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other reviews for the same strategy as the opened row.</summary>
+    public const string SelectCpMarketingGrowthStrategySiblings = """
+        SELECT `id`, IFNULL(`strategy_key`,'') AS strategy_key,
+               IFNULL(`review_type`,'') AS review_type,
+               IFNULL(`score`,0) AS score,
+               IFNULL(`created_at`,0) AS created_at,
+               IFNULL(`created_by`,0) AS created_by
+        FROM `epc_marketing_reviews`
+        WHERE `strategy_key` = @strategy_key AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>SOC 2 KPIs from epc_soc2_* (CREATE TABLE in epc_soc2_compliance.php).</summary>
     public const string SelectCpSoc2ComplianceStats = """
         SELECT

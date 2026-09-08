@@ -266,6 +266,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only marketing growth reviews (notes omitted).</summary>
     Task<CpMarketingGrowthDigestResult> BuildCpMarketingGrowthDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened marketing growth review (PHP <c>review_id</c>) plus strategy siblings. Notes excerpt only.</summary>
+    Task<CpMarketingGrowthReviewDetailResult> BuildCpMarketingGrowthReviewDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only SOC 2 controls (description/implementation omitted).</summary>
     Task<CpSoc2ComplianceDigestResult> BuildCpSoc2ComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -2810,6 +2810,22 @@ public sealed record CpMarketingGrowthDigestResult(
     string Source,
     string Message);
 
+public sealed record CpMarketingGrowthReviewDetail(
+    long Id,
+    string StrategyKey,
+    string ReviewType,
+    int Score,
+    long CreatedAt,
+    long CreatedBy,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record CpMarketingGrowthReviewDetailResult(
+    CpMarketingGrowthReviewDetail? Review,
+    IReadOnlyList<CpMarketingGrowthReviewDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpSoc2ComplianceSummary(
     int ControlCount,
     int ImplementedCount,
