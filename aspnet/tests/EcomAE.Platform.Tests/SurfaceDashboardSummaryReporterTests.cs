@@ -524,6 +524,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_dunning_log", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("`queue_id` = @id", LegacySurfaceDashboardSql.SelectCpCollectionsDunningLog, StringComparison.Ordinal);
         Assert.Contains("epc_promo_promotions", LegacySurfaceDashboardSql.SelectCpPromotions, StringComparison.Ordinal);
+        Assert.Contains("epc_acc_listings", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
+        Assert.DoesNotContain("image_url", LegacySurfaceDashboardSql.SelectCpAccessoriesRows, StringComparison.Ordinal);
+        Assert.Contains("description", LegacySurfaceDashboardSql.SelectCpAccessoriesListingDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpAccessoriesListingDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_acc_photos", LegacySurfaceDashboardSql.SelectCpAccessoriesPhotos, StringComparison.Ordinal);
+        Assert.Contains("`listing_id` = @id", LegacySurfaceDashboardSql.SelectCpAccessoriesPhotos, StringComparison.Ordinal);
         Assert.Contains("epc_crm_opportunities", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpCrmOpportunities, StringComparison.Ordinal);
         Assert.Contains("epc_tenant_feature_flags", LegacySurfaceDashboardSql.SelectCpIntegrationFeatureFlags, StringComparison.Ordinal);

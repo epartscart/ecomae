@@ -4067,6 +4067,43 @@ public sealed record CpAccessoriesSummary(int ListingCount, int PublishedCount, 
 public sealed record CpAccessoriesRowDigest(int Id, string Title, string Make, string Model, decimal Price, string Status);
 public sealed record CpAccessoriesDigestResult(CpAccessoriesSummary Summary, IReadOnlyList<CpAccessoriesRowDigest> Rows, int Count, string Source, string Message);
 
+public sealed record CpAccessoriesListingDetail(
+    long Id,
+    long CategoryId,
+    long SubcategoryId,
+    string Title,
+    string Description,
+    string Make,
+    string Model,
+    string Year,
+    string City,
+    string ConditionType,
+    decimal Price,
+    decimal ComparePrice,
+    string Currency,
+    string ImageUrl,
+    string ExternalUrl,
+    int PhotoCount,
+    bool Featured,
+    int StockQty,
+    string Status,
+    long CreatedAt,
+    long UpdatedAt);
+
+public sealed record CpAccessoriesPhotoDigest(
+    long Id,
+    long ListingId,
+    string FileName,
+    int SortOrder,
+    bool IsPrimary,
+    long CreatedAt);
+
+public sealed record CpAccessoriesListingDetailResult(
+    CpAccessoriesListingDetail? Listing,
+    IReadOnlyList<CpAccessoriesPhotoDigest> Photos,
+    string Source,
+    string Message);
+
 public sealed record CpSynonymsSummary(int ManufacturerCount, int SynonymCount, int OrphanCount, int MappedCount, string Source, string Message);
 public sealed record CpSynonymsRowDigest(string Manufacturer, string Synonym, int ManufacturerId);
 public sealed record CpSynonymsDigestResult(CpSynonymsSummary Summary, IReadOnlyList<CpSynonymsRowDigest> Rows, int Count, string Source, string Message);

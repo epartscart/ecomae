@@ -13192,6 +13192,80 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpAccessoriesListingDetailResult> BuildCpAccessoriesListingDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpAccessoriesListingDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAccessoriesListingDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpAccessoriesListingDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["category_id"] is DBNull ? 0 : reader["category_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["subcategory_id"] is DBNull ? 0 : reader["subcategory_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["make"] is DBNull ? string.Empty : reader["make"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["model"] is DBNull ? string.Empty : reader["model"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["year"] is DBNull ? string.Empty : reader["year"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["city"] is DBNull ? string.Empty : reader["city"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["condition_type"] is DBNull ? string.Empty : reader["condition_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["price"] is DBNull ? 0 : reader["price"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["compare_price"] is DBNull ? 0 : reader["compare_price"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["image_url"] is DBNull ? string.Empty : reader["image_url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["external_url"] is DBNull ? string.Empty : reader["external_url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["photo_count"] is DBNull ? 0 : reader["photo_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["featured"] is DBNull ? 0 : reader["featured"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["stock_qty"] is DBNull ? 0 : reader["stock_qty"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["created_at"] is DBNull ? 0 : reader["created_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["updated_at"] is DBNull ? 0 : reader["updated_at"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            var photos = new List<CpAccessoriesPhotoDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAccessoriesPhotos;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    photos.Add(new CpAccessoriesPhotoDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["listing_id"] is DBNull ? 0 : reader["listing_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["file_name"] is DBNull ? string.Empty : reader["file_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["is_primary"] is DBNull ? 0 : reader["is_primary"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["created_at"] is DBNull ? 0 : reader["created_at"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, photos, "database", header is null ? "Listing not found." : string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
 
     public async Task<CpSynonymsDigestResult> BuildCpSynonymsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {

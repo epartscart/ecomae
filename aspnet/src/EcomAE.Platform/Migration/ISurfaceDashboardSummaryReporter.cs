@@ -452,6 +452,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpStatisticsDigestResult> BuildCpStatisticsDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Accessories listings digest. Listing and photo filename writes are live-gated.</summary>
     Task<CpAccessoriesDigestResult> BuildCpAccessoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened accessory listing (PHP <c>listing_id=</c> detail) plus photos.</summary>
+    Task<CpAccessoriesListingDetailResult> BuildCpAccessoriesListingDetailAsync(long id, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: manufacturer synonyms digest (writes remain module-ajax dry-run).</summary>
     Task<CpSynonymsDigestResult> BuildCpSynonymsDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: SEO content KPIs (sitemap/robots; ping/warm remain PHP).</summary>
