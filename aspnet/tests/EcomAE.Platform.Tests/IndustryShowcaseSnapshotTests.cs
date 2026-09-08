@@ -47,6 +47,8 @@ public sealed class IndustryShowcaseSnapshotTests
         Assert.False(string.IsNullOrWhiteSpace(html));
         Assert.Contains("Automotive", html, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("industry", html, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ecomae-chrome-surface", html, StringComparison.Ordinal);
+        Assert.DoesNotContain("_framework/blazor", html, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("epc-static.php", html, StringComparison.OrdinalIgnoreCase);
     }
 

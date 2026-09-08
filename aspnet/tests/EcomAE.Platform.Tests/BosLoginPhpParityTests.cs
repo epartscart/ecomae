@@ -41,6 +41,7 @@ public sealed class BosLoginPhpParityTests
         Assert.Contains("id=\"bosLoginForm\"", text, StringComparison.Ordinal);
         Assert.Contains("id=\"bosLoginFormErp\"", text, StringComparison.Ordinal);
         Assert.Contains("bos-login__form-wrap--active", text, StringComparison.Ordinal);
+        Assert.Contains("epc-login-html-form", text, StringComparison.Ordinal);
 
         // Must not regress to hybrid stub / light-theme clutter
         Assert.DoesNotContain("LegacyAdminLoginForm", text, StringComparison.Ordinal);

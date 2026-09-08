@@ -168,7 +168,7 @@
                 <PhpOAuthLoginButtons Context="cp" ReturnUrl="/bos" Tone="dark"
                                       Heading="Continue with Google — credentials stay private" />
                 <LoginAntiAutofill />
-                <form class="bos-login__form" id="bosLoginForm" method="post" action="@EcomAeRoutes.BosLogin"
+                <form class="bos-login__form epc-login-html-form" id="bosLoginForm" method="post" action="@EcomAeRoutes.BosLogin"
                       autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                     <input type="hidden" name="surface" value="bos" />
                     <input type="hidden" name="redirect" value="/bos" />
@@ -221,7 +221,7 @@
                 </div>
                 <PhpOAuthLoginButtons Context="cp" ReturnUrl="/erp" Tone="dark"
                                       Heading="Continue with Google — credentials stay private" />
-                <form class="bos-login__form" id="bosLoginFormErp" method="post" action="@EcomAeRoutes.ErpLogin"
+                <form class="bos-login__form epc-login-html-form" id="bosLoginFormErp" method="post" action="@EcomAeRoutes.ErpLogin"
                       autocomplete="off" data-lpignore="true" data-1p-ignore="true" data-form-type="other">
                     <input type="hidden" name="surface" value="erp" />
                     <input type="hidden" name="redirect" value="/erp" />
