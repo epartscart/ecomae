@@ -3100,6 +3100,28 @@ public sealed class LiveWriteServiceValidationTests
             .IssueAsync(new ErpWhtCertificateWriteRequest(Id: 1));
         Assert.False(whtCertDb.Succeeded);
         Assert.Equal("db", whtCertDb.Code);
+
+        var hrEmpInvalid = await new ErpHrEmpSaveWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new ErpHrEmpSaveWriteRequest());
+        Assert.False(hrEmpInvalid.Succeeded);
+        Assert.Equal("invalid", hrEmpInvalid.Code);
+        Assert.Equal("Code and name are required", hrEmpInvalid.Message);
+
+        var hrEmpDb = await new ErpHrEmpSaveWriteService(new UnconfiguredConnections())
+            .SaveAsync(new ErpHrEmpSaveWriteRequest(Code: "E001", Name: "Ahmed"));
+        Assert.False(hrEmpDb.Succeeded);
+        Assert.Equal("db", hrEmpDb.Code);
+
+        var hrAttInvalid = await new ErpHrAttendanceWriteService(new ConfiguredNeverOpened())
+            .LogAsync(new ErpHrAttendanceWriteRequest());
+        Assert.False(hrAttInvalid.Succeeded);
+        Assert.Equal("invalid", hrAttInvalid.Code);
+        Assert.Equal("Select an employee", hrAttInvalid.Message);
+
+        var hrAttDb = await new ErpHrAttendanceWriteService(new UnconfiguredConnections())
+            .LogAsync(new ErpHrAttendanceWriteRequest(EmployeeId: 1, Hours: 8));
+        Assert.False(hrAttDb.Succeeded);
+        Assert.Equal("db", hrAttDb.Code);
     }
 
     [Fact]

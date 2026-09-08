@@ -3,8 +3,7 @@ using System.Globalization;
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_hr_leave_request</c> twin. Schema ensure, employee save,
-/// attendance, and expense save stay PHP.
+/// Live PHP <c>epc_hr_leave_request</c> twin. Schema ensure and attendance stay PHP.
 /// </summary>
 public interface IErpHrLeaveRequestWriteService
 {
