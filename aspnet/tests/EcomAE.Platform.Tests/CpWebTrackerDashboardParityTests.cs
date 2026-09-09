@@ -129,6 +129,36 @@ public class CpWebTrackerDashboardParityTests
             "aspnet/src/EcomAE.Platform/Migration/CpWebTrackerDashboardBuilder.cs"));
         Assert.Contains("OpenAsync(\"docpart\"", src, StringComparison.Ordinal);
         Assert.Contains("CommandTimeout = 12", src, StringComparison.Ordinal);
+        Assert.Contains("PickFreshestTrackerIndex", src, StringComparison.Ordinal);
+        Assert.Contains("MAX(`last_seen_at`)", src, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PickFreshestTracker_prefers_newer_last_seen_over_larger_historical_count()
+    {
+        var staleRegistry = new CpWebTrackerDashboardBuilder.TrackerProbe(Count: 80_000, MaxSeen: 1_755_216_000, InRange: 12_000); // ~2025-08-15
+        var freshShop = new CpWebTrackerDashboardBuilder.TrackerProbe(Count: 2_400, MaxSeen: 1_757_376_000, InRange: 2_400); // ~2025-09-09
+        var pick = CpWebTrackerDashboardBuilder.PickFreshestTrackerIndex([staleRegistry, freshShop]);
+        Assert.Equal(1, pick);
+    }
+
+    [Fact]
+    public void PickFreshestTracker_uses_in_range_then_count_when_last_seen_ties()
+    {
+        var a = new CpWebTrackerDashboardBuilder.TrackerProbe(10, 1_757_376_000, 2);
+        var b = new CpWebTrackerDashboardBuilder.TrackerProbe(8, 1_757_376_000, 8);
+        Assert.Equal(1, CpWebTrackerDashboardBuilder.PickFreshestTrackerIndex([a, b]));
+
+        var c = new CpWebTrackerDashboardBuilder.TrackerProbe(20, 1_757_376_000, 5);
+        var d = new CpWebTrackerDashboardBuilder.TrackerProbe(9, 1_757_376_000, 5);
+        Assert.Equal(0, CpWebTrackerDashboardBuilder.PickFreshestTrackerIndex([c, d]));
+    }
+
+    [Fact]
+    public void NormalizeUnixSeconds_divides_millisecond_timestamps()
+    {
+        Assert.Equal(1_757_376_000, CpWebTrackerDashboardBuilder.NormalizeUnixSeconds(1_757_376_000_000));
+        Assert.Equal(1_757_376_000, CpWebTrackerDashboardBuilder.NormalizeUnixSeconds(1_757_376_000));
     }
 
     private static string FindRepoRoot()

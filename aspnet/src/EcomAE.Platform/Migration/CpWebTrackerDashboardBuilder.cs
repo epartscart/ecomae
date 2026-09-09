@@ -8,7 +8,8 @@ namespace EcomAE.Platform.Migration;
 
 /// <summary>
 /// PHP-parity website tracker dashboard (epc_web_tracker_dashboard / session_detail / export_csv).
-/// Prefers platform/registry DB when it holds more sessions than the tenant DB.
+/// Prefers the tracker DB with the newest <c>last_seen_at</c> so a large historical
+/// copy cannot hide live beacons written to shop/docpart.
 /// </summary>
 public static class CpWebTrackerDashboardBuilder
 {
@@ -171,7 +172,7 @@ public static class CpWebTrackerDashboardBuilder
 
         try
         {
-            await using var connection = await OpenTrackerConnectionAsync(connections, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTrackerConnectionAsync(connections, fromUnix, toUnix, cancellationToken).ConfigureAwait(false);
             const string dbLabel = "tracker";
 
             var allSites = filters.IsSuper && (filters.SiteKey is "" or "_all");
@@ -249,7 +250,7 @@ public static class CpWebTrackerDashboardBuilder
 
         try
         {
-            await using var connection = await OpenTrackerConnectionAsync(connections, cancellationToken).ConfigureAwait(false);
+            await using var connection = await OpenTrackerConnectionAsync(connections, 0, 0, cancellationToken).ConfigureAwait(false);
             await using var cmd = connection.CreateCommand();
             cmd.CommandText = """
                 SELECT `id`, IFNULL(`session_uid`,'') AS session_uid, IFNULL(`site_key`,'') AS site_key,
@@ -394,100 +395,157 @@ public static class CpWebTrackerDashboardBuilder
         return sb.ToString();
     }
 
-    private static async Task<DbConnection> OpenTrackerConnectionAsync(
-        ITenantDbConnectionFactory connections,
-        CancellationToken cancellationToken)
+    /// <summary>
+    /// Score a tracker DB: newest <c>last_seen_at</c> wins over raw row count so a
+    /// large historical copy cannot hide live beacons written to shop/docpart.
+    /// </summary>
+    public readonly record struct TrackerProbe(long Count, long MaxSeen, long InRange);
+
+    public static int CompareTrackerProbe(TrackerProbe a, TrackerProbe b)
     {
-        DbConnection? registry = null;
-        DbConnection? tenant = null;
-        try
+        var c = a.MaxSeen.CompareTo(b.MaxSeen);
+        if (c != 0)
         {
-            registry = await connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            // ignore — fall back to tenant
+            return c;
         }
 
-        try
+        c = a.InRange.CompareTo(b.InRange);
+        if (c != 0)
         {
-            tenant = await connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            // ignore
+            return c;
         }
 
-        DbConnection? docpart = null;
-        try
-        {
-            docpart = await connections.OpenAsync("docpart", cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            // ignore — non-ePartsCart environments may not expose Model C
-        }
-
-        var regCount = registry is null ? -1 : await CountSessionsSafeAsync(registry, cancellationToken).ConfigureAwait(false);
-        var tenCount = tenant is null ? -1 : await CountSessionsSafeAsync(tenant, cancellationToken).ConfigureAwait(false);
-        var docCount = docpart is null ? -1 : await CountSessionsSafeAsync(docpart, cancellationToken).ConfigureAwait(false);
-        if (docpart is not null && docCount > tenCount)
-        {
-            if (tenant is not null)
-            {
-                await tenant.DisposeAsync().ConfigureAwait(false);
-            }
-
-            tenant = docpart;
-            tenCount = docCount;
-        }
-        else if (docpart is not null)
-        {
-            await docpart.DisposeAsync().ConfigureAwait(false);
-        }
-
-        if (registry is not null && regCount >= tenCount)
-        {
-            if (tenant is not null)
-            {
-                await tenant.DisposeAsync().ConfigureAwait(false);
-            }
-
-            return registry;
-        }
-
-        if (tenant is not null)
-        {
-            if (registry is not null)
-            {
-                await registry.DisposeAsync().ConfigureAwait(false);
-            }
-
-            return tenant;
-        }
-
-        if (registry is not null)
-        {
-            return registry;
-        }
-
-        throw new InvalidOperationException("No tracker database connection available.");
+        return a.Count.CompareTo(b.Count);
     }
 
-    private static async Task<long> CountSessionsSafeAsync(DbConnection connection, CancellationToken cancellationToken)
+    public static int PickFreshestTrackerIndex(IReadOnlyList<TrackerProbe> probes)
+    {
+        var best = -1;
+        for (var i = 0; i < probes.Count; i++)
+        {
+            if (probes[i].Count < 0)
+            {
+                continue;
+            }
+
+            if (best < 0 || CompareTrackerProbe(probes[i], probes[best]) > 0)
+            {
+                best = i;
+            }
+        }
+
+        return best;
+    }
+
+    public static Task<DbConnection> OpenPreferredTrackerConnectionAsync(
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => OpenTrackerConnectionAsync(connections, 0, 0, cancellationToken);
+
+    private static async Task<DbConnection> OpenTrackerConnectionAsync(
+        ITenantDbConnectionFactory connections,
+        long fromUnix,
+        long toUnix,
+        CancellationToken cancellationToken)
+    {
+        var opened = new List<DbConnection>();
+        var probes = new List<TrackerProbe>();
+
+        async Task TryOpen(Func<CancellationToken, Task<DbConnection>> open)
+        {
+            try
+            {
+                var conn = await open(cancellationToken).ConfigureAwait(false);
+                opened.Add(conn);
+                probes.Add(await ProbeSessionsSafeAsync(conn, fromUnix, toUnix, cancellationToken).ConfigureAwait(false));
+            }
+            catch
+            {
+                // ignore — other candidates may still work
+            }
+        }
+
+        await TryOpen(connections.OpenRegistryAsync).ConfigureAwait(false);
+        await TryOpen(ct => connections.OpenAsync(null, ct)).ConfigureAwait(false);
+        await TryOpen(ct => connections.OpenAsync("docpart", ct)).ConfigureAwait(false);
+
+        var pick = PickFreshestTrackerIndex(probes);
+        if (pick < 0)
+        {
+            foreach (var conn in opened)
+            {
+                await conn.DisposeAsync().ConfigureAwait(false);
+            }
+
+            throw new InvalidOperationException("No tracker database connection available.");
+        }
+
+        for (var i = 0; i < opened.Count; i++)
+        {
+            if (i != pick)
+            {
+                await opened[i].DisposeAsync().ConfigureAwait(false);
+            }
+        }
+
+        return opened[pick];
+    }
+
+    private static async Task<TrackerProbe> ProbeSessionsSafeAsync(
+        DbConnection connection,
+        long fromUnix,
+        long toUnix,
+        CancellationToken cancellationToken)
     {
         try
         {
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = "SELECT COUNT(*) FROM `epc_web_tracker_sessions`";
-            var o = await cmd.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            return Convert.ToInt64(o is DBNull or null ? 0 : o, CultureInfo.InvariantCulture);
+            if (fromUnix > 0 && toUnix > 0 && toUnix >= fromUnix)
+            {
+                cmd.CommandText = """
+                    SELECT COUNT(*) AS n,
+                           COALESCE(MAX(`last_seen_at`), 0) AS max_seen,
+                           COALESCE(SUM(CASE WHEN `last_seen_at` BETWEEN @from AND @to THEN 1 ELSE 0 END), 0) AS in_range
+                    FROM `epc_web_tracker_sessions`
+                    """;
+                var fromP = cmd.CreateParameter();
+                fromP.ParameterName = "@from";
+                fromP.Value = fromUnix;
+                cmd.Parameters.Add(fromP);
+                var toP = cmd.CreateParameter();
+                toP.ParameterName = "@to";
+                toP.Value = toUnix;
+                cmd.Parameters.Add(toP);
+            }
+            else
+            {
+                cmd.CommandText = """
+                    SELECT COUNT(*) AS n,
+                           COALESCE(MAX(`last_seen_at`), 0) AS max_seen,
+                           0 AS in_range
+                    FROM `epc_web_tracker_sessions`
+                    """;
+            }
+
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return new(0, 0, 0);
+            }
+
+            var count = Convert.ToInt64(reader["n"] is DBNull ? 0 : reader["n"], CultureInfo.InvariantCulture);
+            var maxSeen = NormalizeUnixSeconds(Convert.ToInt64(reader["max_seen"] is DBNull ? 0 : reader["max_seen"], CultureInfo.InvariantCulture));
+            var inRange = Convert.ToInt64(reader["in_range"] is DBNull ? 0 : reader["in_range"], CultureInfo.InvariantCulture);
+            return new(count, maxSeen, inRange);
         }
         catch
         {
-            return -1;
+            return new(-1, -1, -1);
         }
     }
+
+    internal static long NormalizeUnixSeconds(long value)
+        => value > 10_000_000_000L ? value / 1000L : value;
 
     private static string BuildSessionFilterSql(
         CpWebTrackerFilterQuery filters,
