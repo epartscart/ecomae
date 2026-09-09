@@ -223,6 +223,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpTenantFeaturesApp.razor", "/cp/tenant-features/write"),
             ("CpTenantsApp.razor", "/cp/tenants/write"),
             ("CpSocialHubApp.razor", "/cp/social-hub/write"),
+            ("CpInfoBlocksApp.razor", "/cp/info-blocks/write"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/save"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/add-line"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),

@@ -9858,9 +9858,98 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_info_blocks KPIs + blocks. Open ?block_id= loads a 280-char content excerpt plus placement siblings. PHP info blocks CMS remains authoritative."
+                note = "Read-only epc_platform_info_blocks KPIs + blocks. Open ?block_id= loads a 280-char content excerpt plus placement siblings. save_info_block POST /cp/info-blocks/write when confirmWrites=true. Delete stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpInfoBlocksWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpInfoBlocksWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Info-blocks write is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/info-blocks-app", "Admin CP capability required for info-blocks write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpInfoBlocksWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var blockKey = body.BlockKey;
+            var title = body.Title;
+            var scope = body.Scope;
+            var siteKey = body.SiteKey;
+            var placement = body.Placement;
+            var contentHtml = body.ContentHtml;
+            var locale = body.Locale;
+            var active = body.Active;
+            var sortOrder = body.SortOrder;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "epc_scp_action");
+                id = LiveWriteFormBinder.Long(form, "id");
+                blockKey = LiveWriteFormBinder.Text(form, "block_key", "blockKey");
+                title = LiveWriteFormBinder.Text(form, "title");
+                scope = LiveWriteFormBinder.Text(form, "scope");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                placement = LiveWriteFormBinder.Text(form, "placement");
+                contentHtml = LiveWriteFormBinder.Text(form, "content_html", "contentHtml");
+                locale = LiveWriteFormBinder.Text(form, "locale");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                sortOrder = LiveWriteFormBinder.Int(form, "sort_order", "sortOrder");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save_info_block";
+            }
+
+            if (confirm && key is "save_info_block" or "save")
+            {
+                var written = await writes.SaveAsync(
+                    new CpInfoBlockSaveRequest(id, blockKey, title, scope, siteKey, placement, contentHtml, locale, active, sortOrder),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/info-blocks-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_info_block" or "save",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Delete stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the info block.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelFreeTools, async (
             HttpContext context,
@@ -12252,6 +12341,19 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? FromName = null,
         string? FromEmail = null,
         bool ConfirmWrites = false);
+    private sealed record CpInfoBlocksWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? BlockKey = null,
+        string? Title = null,
+        string? Scope = null,
+        string? SiteKey = null,
+        string? Placement = null,
+        string? ContentHtml = null,
+        string? Locale = null,
+        bool Active = false,
+        int SortOrder = 0);
     private sealed record CpSocialHubWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

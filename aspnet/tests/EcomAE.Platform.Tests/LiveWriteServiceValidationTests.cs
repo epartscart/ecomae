@@ -1037,6 +1037,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(socialDb.Succeeded);
         Assert.Equal("db", socialDb.Code);
 
+        var infoBad = await new CpInfoBlocksWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpInfoBlockSaveRequest(0, "", "", "platform", "", "homepage", "", "en", true, 0));
+        Assert.False(infoBad.Succeeded);
+        Assert.Equal("invalid", infoBad.Code);
+
+        var infoDb = await new CpInfoBlocksWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpInfoBlockSaveRequest(0, "promo", "Summer", "platform", "", "homepage", "", "en", true, 0));
+        Assert.False(infoDb.Succeeded);
+        Assert.Equal("db", infoDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
