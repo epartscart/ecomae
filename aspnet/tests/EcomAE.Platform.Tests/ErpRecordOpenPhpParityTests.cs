@@ -3179,6 +3179,52 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void ProjectAccountingApp_OpenLoadsDetailExcerptAndSameProjectSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpProjectAccountingApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpPrjaRecognitionDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpPrjaBudgetDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpPrjaTxnDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"prja_rec_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"prja_budget_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"prja_txn_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("prja_rec_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("prja_budget_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("prja_txn_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"prja_rec_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("DetailExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-project siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Recognition stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/project-accounting/budgets/save", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/project-accounting/txns/add", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/project-accounting-app?prja_rec_id=5#erp-row-5",
+            ErpRecordOpen.Href("/erp/project-accounting-app", "prja_rec_id", 5));
+        Assert.Equal(
+            "/erp/project-accounting-app?prja_rec_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/project-accounting-app",
+                "/ERP/?epc_erp_shell=1&area=projects&tab=project_accounting&prja_rec_id=5"));
+        Assert.Equal("/erp/project-accounting-app?prja_budget_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/project-accounting-app", "prja_budget_id", 3));
+        Assert.Equal("/erp/project-accounting-app?prja_txn_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/project-accounting-app", "prja_txn_id", 4));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

@@ -903,6 +903,15 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened report schedule (Open key <c>rsched_id</c>) plus same-type siblings. recipients/body/subject/filters omitted.</summary>
     Task<ErpReportScheduleDetailResult> BuildErpReportScheduleDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened project budget (Open key <c>prja_budget_id</c>) plus same-project siblings. company_id is hidden from the list.</summary>
+    Task<ErpPrjaBudgetDetailResult> BuildErpPrjaBudgetDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened project transaction (Open key <c>prja_txn_id</c>) plus same-project siblings. company_id is hidden from the list.</summary>
+    Task<ErpPrjaTxnDetailResult> BuildErpPrjaTxnDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened recognition run (Open key <c>prja_rec_id</c>) plus same-project siblings. detail_json is a short excerpt.</summary>
+    Task<ErpPrjaRecognitionDetailResult> BuildErpPrjaRecognitionDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened attachment (Open key <c>attach_id</c>, remapped by <c>tab=doc_attachment</c>) plus same-type siblings. description is a 280-char excerpt. file_path omitted.</summary>

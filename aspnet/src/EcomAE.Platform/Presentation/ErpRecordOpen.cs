@@ -25,6 +25,7 @@ public static class ErpRecordOpen
         "supplier_id", "customer_id",
         "user_id", "contract_id", "staff_id", "payroll_id", "cgroup_id",
         "hrt_job_id", "applicant_id", "hrt_review_id", "rsched_id",
+        "prja_budget_id", "prja_txn_id", "prja_rec_id",
         "order_id", "pf_case",
         "case_id", "campaign_id",
         "warehouse_id", "rfq_id",

@@ -24451,6 +24451,216 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpPrjaBudgetDetailResult> BuildErpPrjaBudgetDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpPrjaBudgetDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaBudgetDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpPrjaBudgetDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "project_id"),
+                        ReadStr(reader, "category"),
+                        ReadDec(reader, "cost_budget"),
+                        ReadDec(reader, "revenue_budget"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Project budget not found.");
+            }
+
+            var siblings = new List<ErpPrjaBudgetDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaBudgetProjectSiblings;
+                AddParameter(cmd, "@project_id", header.ProjectId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "project_id"),
+                        ReadStr(reader, "category"),
+                        ReadDec(reader, "cost_budget"),
+                        ReadDec(reader, "revenue_budget"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpPrjaTxnDetailResult> BuildErpPrjaTxnDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpPrjaTxnDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaTxnDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpPrjaTxnDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "project_id"),
+                        ReadStr(reader, "txn_type"),
+                        ReadStr(reader, "category"),
+                        ReadStr(reader, "description"),
+                        ReadDec(reader, "amount"),
+                        ReadI64(reader, "txn_date"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Project transaction not found.");
+            }
+
+            var siblings = new List<ErpPrjaTxnDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaTxnProjectSiblings;
+                AddParameter(cmd, "@project_id", header.ProjectId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "project_id"),
+                        ReadStr(reader, "txn_type"),
+                        ReadStr(reader, "category"),
+                        ReadStr(reader, "description"),
+                        ReadDec(reader, "amount"),
+                        ReadI64(reader, "txn_date"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpPrjaRecognitionDetailResult> BuildErpPrjaRecognitionDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpPrjaRecognitionDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaRecognitionDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpPrjaRecognitionDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "project_id"),
+                        ReadStr(reader, "method"),
+                        ReadI64(reader, "as_of"),
+                        ReadDec(reader, "pct_complete"),
+                        ReadDec(reader, "recognized_revenue"),
+                        ReadDec(reader, "recognized_cost"),
+                        ReadDec(reader, "wip"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadI32(reader, "detail_len"),
+                        ReadStr(reader, "detail_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Recognition run not found.");
+            }
+
+            var siblings = new List<ErpPrjaRecognitionDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrjaRecognitionProjectSiblings;
+                AddParameter(cmd, "@project_id", header.ProjectId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "project_id"),
+                        ReadStr(reader, "method"),
+                        ReadI64(reader, "as_of"),
+                        ReadDec(reader, "pct_complete"),
+                        ReadDec(reader, "recognized_revenue"),
+                        ReadDec(reader, "recognized_cost"),
+                        ReadDec(reader, "wip"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
