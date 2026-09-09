@@ -23,13 +23,85 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/platform-governance-app")</p>
-                <p>Open a rule for a short description excerpt and other rules in the same category. Config JSON and rule writes stay on the Classic twin.</p>
+                <p>Open a rule for a short description excerpt and other rules in the same category. Save active and enforcement here. Title, description, config, seed, and schema-ensure stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/platform-governance-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedRule is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save rule</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/platform-governance/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "rule_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="save_rule" />
+                        <label>Rule key
+                            <input type="text" name="rule_key" value="@OpenedRuleKey" />
+                        </label>
+                        <label>Active
+                            <select name="active">
+                                @if (OpenedActive)
+                                {
+                                    <option value="1" selected>on</option>
+                                    <option value="0">off</option>
+                                }
+                                else
+                                {
+                                    <option value="1">on</option>
+                                    <option value="0" selected>off</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Enforcement
+                            <select name="enforcement">
+                                @if (OpenedEnforcement == "advisory")
+                                {
+                                    <option value="advisory" selected>advisory</option>
+                                }
+                                else
+                                {
+                                    <option value="advisory">advisory</option>
+                                }
+                                @if (OpenedEnforcement == "required")
+                                {
+                                    <option value="required" selected>required</option>
+                                }
+                                else
+                                {
+                                    <option value="required">required</option>
+                                }
+                                @if (OpenedEnforcement == "blocked")
+                                {
+                                    <option value="blocked" selected>blocked</option>
+                                }
+                                else
+                                {
+                                    <option value="blocked">blocked</option>
+                                }
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save rule</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Title, description, config, and seed stay Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Platform governance KPIs">
         <div class="kpi"><div class="lbl">Rules</div><div class="val">@_summary.RuleCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -181,6 +253,23 @@ else
     private long _openedId;
     private CpPlatformGovernanceRuleDetail? _openedRule;
     private IReadOnlyList<CpPlatformGovernanceRuleDigest> _openedSiblings = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    private string OpenedRuleKey => _openedRule is null || string.IsNullOrWhiteSpace(_openedRule.RuleKey)
+        ? ""
+        : _openedRule.RuleKey;
+
+    private bool OpenedActive => _openedRule?.Active == true;
+
+    private string OpenedEnforcement
+    {
+        get
+        {
+            var raw = (_openedRule?.Enforcement ?? string.Empty).Trim().ToLowerInvariant();
+            return raw is "advisory" or "required" or "blocked" ? raw : "required";
+        }
+    }
 
     private string OpenedCaption => _openedRule is null
         ? ""
@@ -202,6 +291,8 @@ else
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
