@@ -898,6 +898,15 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened performance review (Open key <c>hrt_review_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
     Task<ErpPerformanceReviewDetailResult> BuildErpPerformanceReviewDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpProductInfoDigestResult> BuildErpProductInfoDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened item master (Open key <c>pm_item_id</c>) plus same-type siblings. track_expiry is hidden from the list. notes/barcode omitted.</summary>
+    Task<ErpProductInfoItemDetailResult> BuildErpProductInfoItemDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened field definition (Open key <c>pm_field_id</c>) plus same-type siblings. options_json is a short excerpt.</summary>
+    Task<ErpProductInfoFieldDetailResult> BuildErpProductInfoFieldDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened variant (Open key <c>pm_variant_id</c>) plus same-item siblings. combo_json is a short excerpt.</summary>
+    Task<ErpProductInfoVariantDetailResult> BuildErpProductInfoVariantDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened report schedule (Open key <c>rsched_id</c>) plus same-type siblings. recipients/body/subject/filters omitted.</summary>
