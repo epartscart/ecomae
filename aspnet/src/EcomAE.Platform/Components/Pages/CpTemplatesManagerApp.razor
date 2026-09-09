@@ -24,7 +24,78 @@
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/templates-manager-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/templates-manager-app" IsAdmin="_isAdmin" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    @if (_opened is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @OpenedCaption
+                    <a class="btn btn-xs btn-default pull-right" href="@OpenedReturnHref">This row</a>
+                    <a class="btn btn-xs btn-default pull-right" href="@_listHref" style="margin-right:.35rem">Close</a>
+                </div>
+                <div class="panel-body">
+                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                        <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Caption</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Caption) ? "—" : _opened.Caption)</dd>
+                        <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
+                        <dt>Current</dt><dd>@_opened.Current.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Frontend</dt><dd>@_opened.IsFrontend.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Phone</dt><dd>@_opened.PhoneSupport.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Tablet</dt><dd>@_opened.TabletSupport.ToString(CultureInfo.InvariantCulture)</dd>
+                    </dl>
+                    <p class="text-muted" style="margin:.85rem 0 0">Switch current template stays on the Classic twin.</p>
+                    @if (!string.IsNullOrWhiteSpace(_opened.DataValueExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DataValueExcerpt</pre>
+                        @if (_opened.DataValueLen > _opened.DataValueExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_opened.DataValueExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.DataValueLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="margin:.85rem 0 0">No data_value excerpt yet.</p>
+                    }
+                    @if (_openedSiblings.Count > 0)
+                    {
+                        <p class="text-muted" style="margin:1rem 0 .4rem">Same-frontend siblings</p>
+                        <div class="table-responsive">
+                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Caption</th>
+                                        <th>Name</th>
+                                        <th>Current</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Caption) ? sib.Caption : "—")</td>
+                                            <td>@(!string.IsNullOrWhiteSpace(sib.Name) ? sib.Name : "—")</td>
+                                            <td>@sib.Current.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "tpl_id", sib.Id)">Open</a></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                    else
+                    {
+                        <p class="text-muted">No same-frontend siblings yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -40,23 +111,25 @@
                                 <th>Name</th>
                                 <th>Current</th>
                                 <th>Frontend</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                         @if (_rows.Count == 0)
                         {
-                            <tr><td colspan="5">No records yet.</td></tr>
+                            <tr><td colspan="6">No records yet.</td></tr>
                         }
                         else
                         {
                             @foreach (var row in _rows)
                             {
-                                <tr>
+                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                                     <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
                                     <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
                                     <td>@row.Current.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@row.IsFrontend.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "tpl_id", row.Id)">Open</a></td>
                                 </tr>
                             }
                         }
@@ -70,15 +143,32 @@
 
 @code {
     private const string _phpTab = "/CP/templates/templates_manager";
+    private const string _listHref = "/cp/templates-manager-app";
     private bool _isAdmin;
     private CpTemplatesManagerSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpTemplatesManagerRowDigest> _rows = [];
+    private long _openedId;
+    private CpTemplatesManagerDetail? _opened;
+    private IReadOnlyList<CpTemplatesManagerRowDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.Caption)
+            ? _opened.Caption
+            : (!string.IsNullOrWhiteSpace(_opened.Name)
+                ? _opened.Name
+                : ("Template #" + _opened.Id.ToString(CultureInfo.InvariantCulture))));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?tpl_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "tpl_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -89,5 +179,20 @@
         var result = await Dashboards.BuildCpTemplatesManagerDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Templates;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpTemplatesManagerDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Template;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
     }
 }

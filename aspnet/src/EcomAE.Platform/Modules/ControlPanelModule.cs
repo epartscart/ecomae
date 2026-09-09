@@ -8686,7 +8686,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only templates KPIs + templates (data_value JSON + FS delete). PHP Templates manager remains authoritative."
+                note = "Read-only templates KPIs + templates (data_value omitted on the list). Open ?tpl_id= loads a 280-char data_value excerpt. Switch current stays Classic. PHP Templates manager remains authoritative."
             });
         });
 

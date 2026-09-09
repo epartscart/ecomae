@@ -1583,7 +1583,7 @@ public static class PhpSurfaceLinkMap
         if (topLevel.Equals("templates_control", StringComparison.OrdinalIgnoreCase)
             || topLevel.Equals("templates", StringComparison.OrdinalIgnoreCase))
         {
-            return "/cp/templates-manager-app";
+            return ErpRecordOpen.PreserveRecordQuery("/cp/templates-manager-app", value);
         }
 
         if (topLevel.Equals("shop", StringComparison.OrdinalIgnoreCase))
@@ -1693,7 +1693,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/jewellery-retail-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/jewellery-retail-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/workflows-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/erp/workflows-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/erp/workflows-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/templates-manager-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

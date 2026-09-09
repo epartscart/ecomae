@@ -647,6 +647,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpLanguagesDigestResult> BuildCpLanguagesDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPluginsManagerDigestResult> BuildCpPluginsManagerDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpTemplatesManagerDigestResult> BuildCpTemplatesManagerDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened storefront/CP template (Open key <c>tpl_id</c>) plus same-frontend siblings. data_value is a short excerpt.</summary>
+    Task<CpTemplatesManagerDetailResult> BuildCpTemplatesManagerDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpDesignTokensDigestResult> BuildCpDesignTokensDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpSitemapDigestResult> BuildCpSitemapDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpFailoverStatusDigestResult> BuildCpFailoverStatusDigestAsync(int limit, CancellationToken cancellationToken = default);
