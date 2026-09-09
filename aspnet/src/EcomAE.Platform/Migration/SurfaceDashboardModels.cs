@@ -5636,6 +5636,22 @@ public sealed record CpPluginsManagerDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPluginsManagerDetail(
+    long Id,
+    string Caption,
+    int SortOrder,
+    int Activated,
+    int IsFrontend,
+    int ControlLock,
+    int DataValueLen,
+    string DataValueExcerpt);
+
+public sealed record CpPluginsManagerDetailResult(
+    CpPluginsManagerDetail? Plugin,
+    IReadOnlyList<CpPluginsManagerRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpTemplatesManagerSummary(
     int TemplateCount,
     int FrontendCount,

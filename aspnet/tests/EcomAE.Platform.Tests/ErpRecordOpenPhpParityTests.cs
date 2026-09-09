@@ -98,6 +98,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_workflow_builder?workflow_id=3", "/cp/workflows-app?workflow_id=3")]
     [InlineData("/CP/templates/templates_manager?tpl_id=4", "/cp/templates-manager-app?tpl_id=4")]
     [InlineData("/CP/templates_control?tpl_id=4", "/cp/templates-manager-app?tpl_id=4")]
+    [InlineData("/CP/plugins/plugins_manager?plugin_id=5", "/cp/plugins-manager-app?plugin_id=5")]
+    [InlineData("/CP/plugins_control?plugin_id=5", "/cp/plugins-manager-app?plugin_id=5")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -1903,6 +1905,44 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/templates-manager-app",
                 "/CP/templates_control?tpl_id=4"));
+    }
+
+    [Fact]
+    public void PluginsManagerApp_OpenLoadsDataValueExcerptAndKeepsClassicActivate()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpPluginsManagerApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpPluginsManagerDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"plugin_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("plugin_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"plugin_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("DataValueExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-frontend siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Activate or lock stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/plugins-manager-app?plugin_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/plugins-manager-app", "plugin_id", 5));
+        Assert.Equal(
+            "/cp/plugins-manager-app?plugin_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/plugins-manager-app",
+                "/CP/plugins/plugins_manager?plugin_id=5"));
+        Assert.Equal(
+            "/cp/plugins-manager-app?plugin_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/plugins-manager-app",
+                "/CP/plugins_control?plugin_id=5"));
     }
 
     [Fact]
