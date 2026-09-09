@@ -22,6 +22,9 @@ public sealed class CpDocumentControlCompanySaveWriteTests
         Assert.DoesNotContain("row_version", CpDocumentControlWriteService.FieldMax.Keys);
         Assert.Equal("eParts", CpDocumentControlWriteService.Clip("  eParts  ", 255));
         Assert.Equal(32, CpDocumentControlWriteService.Clip(new string('t', 40), 32).Length);
+        Assert.Equal("invoice", CpDocumentControlWriteService.NormalizeTemplateCode(" invoice "));
+        Assert.Contains("title", CpDocumentControlWriteService.TemplateFieldMax.Keys);
+        Assert.DoesNotContain("code", CpDocumentControlWriteService.TemplateFieldMax.Keys);
     }
 
     [Fact]
@@ -33,7 +36,10 @@ public sealed class CpDocumentControlCompanySaveWriteTests
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_company\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_template\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"legal_name\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"code\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"title\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"trn\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
@@ -52,6 +58,7 @@ public sealed class CpDocumentControlCompanySaveWriteTests
         Assert.Contains("ajax_document_control.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("save_company", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("save_template", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -64,8 +71,11 @@ public sealed class CpDocumentControlCompanySaveWriteTests
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpDocumentControlWriteService.cs"));
         Assert.Contains("epc_dc_save_company", service, StringComparison.Ordinal);
+        Assert.Contains("epc_dc_save_template", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_document_company`", service, StringComparison.Ordinal);
+        Assert.Contains("UPDATE `epc_document_templates`", service, StringComparison.Ordinal);
+        Assert.Contains("save_template", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);

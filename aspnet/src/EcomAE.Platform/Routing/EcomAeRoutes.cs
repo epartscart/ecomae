@@ -152,7 +152,7 @@ public static class EcomAeRoutes
     public const string ControlPanelDocumentControl = "/cp/document-control";
     /// <summary>CP document control Blazor list (JSON digest remains <see cref="ControlPanelDocumentControl"/>).</summary>
     public const string ControlPanelDocumentControlApp = "/cp/document-control-app";
-    /// <summary>CP document-control save_company. <c>confirmWrites=true</c> twins PHP ajax_document_control.php. Logo upload stays Classic.</summary>
+    /// <summary>CP document-control save_company / save_template. <c>confirmWrites=true</c> twins PHP ajax_document_control.php. Logo upload stays Classic.</summary>
     public const string CpDocumentControlWrite = "/cp/document-control/write";
     /// <summary>CP delivery/obtaining modes (parameters_values omitted).</summary>
     public const string ControlPanelDeliveryMethods = "/cp/delivery-methods";

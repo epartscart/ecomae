@@ -4,14 +4,18 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_document_control.php</c> twin of <c>epc_dc_save_company</c>.
-/// Logo upload, templates, attachments, and send stay Classic. Schema-ensure stays Classic.
+/// Live PHP <c>ajax_document_control.php</c> twin of <c>epc_dc_save_company</c> and <c>epc_dc_save_template</c>.
+/// Logo upload, attachments, and send stay Classic. Schema-ensure stays Classic.
 /// This service does not invent a send.
 /// </summary>
 public interface ICpDocumentControlWriteService
 {
     Task<ErpSimpleWriteResult> SaveCompanyAsync(
         CpDocumentCompanySaveRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveTemplateAsync(
+        CpDocumentTemplateSaveRequest request,
         CancellationToken cancellationToken = default);
 }
 
@@ -31,6 +35,17 @@ public sealed record CpDocumentCompanySaveRequest(
     string? BankName,
     string? BankIban,
     string? LegalFooter,
+    IReadOnlySet<string>? PostedFields);
+
+public sealed record CpDocumentTemplateSaveRequest(
+    string? Code,
+    string? Title,
+    string? Description,
+    string? HeaderHtml,
+    string? BodyHtml,
+    string? FooterHtml,
+    string? CssExtra,
+    bool Active,
     IReadOnlySet<string>? PostedFields);
 
 public sealed class CpDocumentControlWriteService : ICpDocumentControlWriteService
@@ -53,6 +68,16 @@ public sealed class CpDocumentControlWriteService : ICpDocumentControlWriteServi
         ["legal_footer"] = 4000,
     };
 
+    public static readonly IReadOnlyDictionary<string, int> TemplateFieldMax = new Dictionary<string, int>(StringComparer.Ordinal)
+    {
+        ["title"] = 120,
+        ["description"] = 255,
+        ["header_html"] = 200_000,
+        ["body_html"] = 200_000,
+        ["footer_html"] = 200_000,
+        ["css_extra"] = 16_000,
+    };
+
     private readonly IErpWriteConnectionFactory _connections;
 
     public CpDocumentControlWriteService(IErpWriteConnectionFactory connections)
@@ -65,6 +90,15 @@ public sealed class CpDocumentControlWriteService : ICpDocumentControlWriteServi
         var value = (raw ?? string.Empty).Trim();
         return value.Length <= max ? value : value[..max];
     }
+
+    public static string ClipRaw(string? raw, int max)
+    {
+        var value = raw ?? string.Empty;
+        return value.Length <= max ? value : value[..max];
+    }
+
+    public static string NormalizeTemplateCode(string? code)
+        => Clip(code, 32);
 
     public async Task<ErpSimpleWriteResult> SaveCompanyAsync(
         CpDocumentCompanySaveRequest request,
@@ -145,6 +179,81 @@ public sealed class CpDocumentControlWriteService : ICpDocumentControlWriteServi
         catch (DbException)
         {
             return ErpSimpleWriteResult.Fail("db", "Document-control company table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> SaveTemplateAsync(
+        CpDocumentTemplateSaveRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        var code = NormalizeTemplateCode(request.Code);
+        if (code.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Template code required");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var posted = request.PostedFields;
+        var values = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["title"] = Clip(request.Title, TemplateFieldMax["title"]),
+            ["description"] = Clip(request.Description, TemplateFieldMax["description"]),
+            ["header_html"] = ClipRaw(request.HeaderHtml, TemplateFieldMax["header_html"]),
+            ["body_html"] = ClipRaw(request.BodyHtml, TemplateFieldMax["body_html"]),
+            ["footer_html"] = ClipRaw(request.FooterHtml, TemplateFieldMax["footer_html"]),
+            ["css_extra"] = ClipRaw(request.CssExtra, TemplateFieldMax["css_extra"]),
+            ["active"] = request.Active ? 1 : 0,
+        };
+
+        var sets = new List<string>();
+        var args = new List<object?>();
+        foreach (var (column, value) in values)
+        {
+            if (posted is not null && !posted.Contains(column))
+            {
+                continue;
+            }
+
+            sets.Add("`" + column + "`=?");
+            args.Add(value);
+        }
+
+        if (sets.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "No template fields to save.");
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        sets.Add("`updated_at`=?");
+        args.Add(now);
+        args.Add(code);
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var exists = await ErpDb.LongAsync(
+                connection, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_document_templates` WHERE `code`=?"),
+                cancellationToken, code).ConfigureAwait(false);
+            if (exists <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Template was not found — create stays Classic.");
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("UPDATE `epc_document_templates` SET " + string.Join(", ", sets) + " WHERE `code`=?"),
+                cancellationToken,
+                args.ToArray()).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Template saved", 0);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Document-control template table is missing — schema-ensure stays Classic.");
         }
     }
 
