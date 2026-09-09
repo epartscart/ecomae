@@ -2911,6 +2911,38 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void ContractsApp_OpenLoadsBodyAndOcrExcerptsAndSameStatusSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpContractsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpContractDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"contract_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("contract_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"contract_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("BodyExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("OcrExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Signature hashes stay off this pane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/contracts-app?contract_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/contracts-app", "contract_id", 4));
+        Assert.Equal(
+            "/erp/contracts-app?contract_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/contracts-app",
+                "/ERP/?epc_erp_shell=1&area=sales&tab=contracts&contract_id=4"));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

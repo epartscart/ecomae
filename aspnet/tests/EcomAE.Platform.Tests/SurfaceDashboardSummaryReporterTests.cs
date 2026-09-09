@@ -796,6 +796,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_contracts", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("body_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("ocr_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_contracts", LegacySurfaceDashboardSql.SelectErpContractDetail, StringComparison.Ordinal);
+        Assert.Contains("body_excerpt", LegacySurfaceDashboardSql.SelectErpContractDetail, StringComparison.Ordinal);
+        Assert.Contains("ocr_excerpt", LegacySurfaceDashboardSql.SelectErpContractDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`body_text`,''), 280)", LegacySurfaceDashboardSql.SelectErpContractDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`ocr_text`,''), 280)", LegacySurfaceDashboardSql.SelectErpContractDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("body_excerpt", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
+        Assert.DoesNotContain("ocr_excerpt", LegacySurfaceDashboardSql.SelectErpContractStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("signature_hash", LegacySurfaceDashboardSql.SelectErpContractDetail, StringComparison.Ordinal);
         Assert.Contains("epc_erp_opening_batches", LegacySurfaceDashboardSql.SelectErpOpeningBatches, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpOpeningBatches, StringComparison.Ordinal);
         Assert.DoesNotContain("meta_json", LegacySurfaceDashboardSql.SelectErpOpeningBatches, StringComparison.Ordinal);

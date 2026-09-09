@@ -838,6 +838,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only contracts register (PHP <c>epc_erp_contracts</c>; body/OCR omitted).</summary>
     Task<ErpContractsListResult> ListErpContractsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened contract (Open key <c>contract_id</c>) plus same-status siblings. body_text and ocr_text are short excerpts.</summary>
+    Task<ErpContractDetailResult> BuildErpContractDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only opening-balance batches (PHP <c>epc_erp_opening_batches</c>).</summary>
     Task<ErpOpeningListResult> ListErpOpeningBatchesAsync(int limit, CancellationToken cancellationToken = default);
 
