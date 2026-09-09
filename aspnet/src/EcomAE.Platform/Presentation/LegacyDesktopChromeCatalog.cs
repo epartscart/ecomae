@@ -139,9 +139,14 @@ public static class LegacyDesktopChromeCatalog
     private static readonly IReadOnlyDictionary<string, string[]> CpNavCategoryMap =
         new Dictionary<string, string[]>(StringComparer.OrdinalIgnoreCase)
         {
-            ["Commerce"] = ["Shop / OMS", "Prices & Catalogue"],
+            ["Commerce"] = ["Shop / OMS"],
+            ["Catalogue"] = ["Prices & Catalogue"],
             ["Customers"] = ["Customers / CRM"],
-            ["Documents"] = ["Content / CMS"],
+            ["Users"] = [],
+            ["Documents"] = [],
+            ["Content"] = ["Content / CMS"],
+            ["System"] = [],
+            ["Modules"] = [],
             ["ERP"] = ["ERP / Modules", "ERP / Finance", "ERP / External Reporting", "ERP / Tax & VAT"],
             ["Purchase"] = ["Procurement"],
             ["Channels"] = ["Channels / Marketplace"],
@@ -186,6 +191,27 @@ public static class LegacyDesktopChromeCatalog
                 .Where(f => includeSuperOnly || !IsSuperOnlyCpLink(f.Href, f.Group))
                 .Where(f => jewelleryIndustry || !IsJewelleryCpLink(f))
                 .ToList();
+
+            foreach (var extra in PhpLegacyGroupParityLinks(nav.Label))
+            {
+                if (!includeSuperOnly && IsSuperOnlyCpLink(extra.Href, extra.Group))
+                {
+                    continue;
+                }
+
+                if (!jewelleryIndustry && IsJewelleryCpLink(extra))
+                {
+                    continue;
+                }
+
+                if (links.Any(l => string.Equals(l.Href, extra.Href, StringComparison.OrdinalIgnoreCase)
+                                   && string.Equals(l.Label, extra.Label, StringComparison.OrdinalIgnoreCase)))
+                {
+                    continue;
+                }
+
+                links.Add(extra);
+            }
 
             if (string.Equals(nav.Label, "Commerce", StringComparison.OrdinalIgnoreCase))
             {
@@ -427,6 +453,8 @@ public static class LegacyDesktopChromeCatalog
         "finance" or "payments" => "fa-credit-card",
         "integrations" => "fa-plug",
         "portal" or "settings" or "setup" or "system" => "fa-cog",
+        "modules" or "plugins" => "fa-cubes",
+        "users" => "fa-users",
         "platform" => "fa-sitemap",
         "operator" => "fa-shield",
         _ => "fa-folder-o",
@@ -436,8 +464,13 @@ public static class LegacyDesktopChromeCatalog
     public static string? CpGroupSubtitle(string label) => label switch
     {
         "Commerce" => "Orders, catalogue & prices",
+        "Catalogue" => "Products, stock & lists",
         "Customers" => "Clients, user accounts & CRM",
+        "Users" => "Accounts, groups & registration",
         "Documents" => "Invoices & PDFs",
+        "Content" => "Pages, menus & files",
+        "System" => "Config, SMS & languages",
+        "Modules" => "Modules, plugins & templates",
         "ERP" => "Finance, VAT & reports",
         "Purchase" => "Purchasing & suppliers",
         "Channels" => "Marketplaces & feeds",
@@ -461,6 +494,315 @@ public static class LegacyDesktopChromeCatalog
            || label.Equals("Portal", StringComparison.OrdinalIgnoreCase)
            || label.Equals("Platform", StringComparison.OrdinalIgnoreCase)
            || label.Equals("Operator", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>
+    /// PHP <c>control_items</c> from the epartscart / docpart leftover + primary groups.
+    /// Catalog stores PHP <c>/CP/…</c> hrefs; chrome rewrites via <see cref="PhpSurfaceLinkMap.AspNetPrimaryHref"/>.
+    /// Source: <c>content/files/epc_cache/epc_cp_menu_rows_v1_docpart.json</c>.
+    /// </summary>
+    public static IReadOnlyList<PhpModuleCatalog.ModuleLink> PhpLegacyGroupParityLinks(string label)
+    {
+        if (label.Equals("System", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("cp-config", "Config", "/CP/control/config", "fa-wrench", "System"),
+                new("cp-guideline", "CP guideline", "/CP/control/cp-guideline", "fa-book", "System"),
+                new("sms-gateways", "SMS gateways", "/CP/control/sms-operatory", "fa-mobile-alt", "System"),
+                new("email-settings", "Email settings", "/CP/control/config?need_config_group=3", "fa-envelope", "System"),
+                new("communications", "Communications", "/CP/control/communications", "fa-mail-bulk", "System"),
+                new("notifications", "Notifications", "/CP/control/notifications_settings", "fa-envelope-open-text", "System"),
+                new("server-ip", "Server IP", "/content/usefull/ip.php", "fa-network-wired", "System"),
+                new("languages", "Languages", "/CP/lang", "fa-language", "System"),
+                new("umapi-settings", "UMAPI settings", "/CP/control/config?need_config_group=13", "fa-key", "System"),
+            ];
+        }
+
+        if (label.Equals("Modules", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("modules-manager", "Modules manager", "/CP/modules/modules_manager", "fa-cubes", "Modules"),
+                new("plugins-manager", "Plugins manager", "/CP/plugins/plugins_manager", "fa-puzzle-piece", "Modules"),
+                new("templates-manager", "Templates manager", "/CP/templates/templates_manager", "fa-palette", "Modules"),
+                new("debug-console", "Debug", "/CP/system/debug", "fa-bug", "Modules"),
+                new("industry-packs", "Industry packs", "/CP/packs/packs_manager", "fa-compact-disc", "Modules"),
+                new("pack-setup", "Pack setup", "/CP/packs/setup", "fa-upload", "Modules"),
+            ];
+        }
+
+        if (label.Equals("Documents", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("document-control", "Document control", "/CP/shop/document_control/document_control", "fa-file-invoice", "Documents"),
+            ];
+        }
+
+        if (label.Equals("Users", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("user-groups", "User groups", "/CP/users/usergroups", "fa-users", "Users"),
+                new("user-manager", "User manager", "/CP/users/usermanager", "fa-user-alt", "Users"),
+                new("add-user", "Add user", "/CP/users/usermanager/user", "fa-user-plus", "Users"),
+                new("customer-approvals", "Customer approvals", "/CP/users/customer_approvals", "fa-user-check", "Users"),
+                new("registration-options", "Registration options", "/CP/users/registracionnye-varianty", "fa-users-cog", "Users"),
+                new("registration-fields", "Registration fields", "/CP/users/polya-registracii", "fa-address-card", "Users"),
+            ];
+        }
+
+        if (label.Equals("Content", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("content-tree", "Content tree", "/CP/content/content_tree", "fa-sitemap", "Content"),
+                new("content-manager", "Content manager", "/CP/content/content_manager", "fa-copy", "Content"),
+                new("additional-texts", "Additional texts", "/CP/content/dopolnitelnye-teksty", "fa-paperclip", "Content"),
+                new("sitemap", "Sitemap", "/CP/content/sitemap", "fa-sitemap", "Content"),
+                new("file-manager", "File manager", "/CP/filemanager", "fa-folder-open", "Content"),
+                new("menus", "Menus", "/CP/menu/menu_manager", "fa-paste", "Content"),
+                new("slider-banners", "Slider / banners", "/CP/content/slider", "fa-film", "Content"),
+                new("structure-dumps", "Structure dumps", "/CP/content/structure_dumps", "fa-code-branch", "Content"),
+            ];
+        }
+
+        if (label.Equals("Catalogue", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("catalogue-editor", "Catalogue editor", "/CP/shop/catalogue/catalogue_editor", "fa-sitemap", "Catalogue"),
+                new("catalogue-products", "Products", "/CP/shop/catalogue/products", "fa-boxes", "Catalogue"),
+                new("catalogue-stock", "Stock", "/CP/shop/logistics/stock", "fa-pallet", "Catalogue"),
+                new("line-lists", "Line lists", "/CP/shop/catalogue/line_lists", "fa-list-alt", "Catalogue"),
+                new("tree-lists", "Tree lists", "/CP/shop/catalogue/tree_lists", "fa-tree", "Catalogue"),
+                new("special-searches", "Special searches", "/CP/shop/catalogue/specialnye-poiski", "fa-indent", "Catalogue"),
+                new("homepage-products", "Homepage products", "/CP/shop/catalogue/tovary-na-glavnoj", "fa-tags", "Catalogue"),
+                new("related-products", "Related products", "/CP/shop/catalogue/soputstvuyushhie-tovary", "fa-link", "Catalogue"),
+                new("data-transfer", "Data transfer", "/CP/shop/perenos-dannyx", "fa-code", "Catalogue"),
+                new("customer-reviews", "Customer reviews", "/CP/shop/catalogue/otzyvy-pokupatelej", "fa-comments", "Catalogue"),
+            ];
+        }
+
+        if (label.Equals("Commerce", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("geo-nodes", "Geo / regions", "/CP/shop/geo/nodes", "fa-globe-americas", "Commerce"),
+                new("offices", "Offices", "/CP/shop/logistics/offices", "fa-store", "Commerce"),
+                new("storages", "Storages", "/CP/shop/logistics/storages", "fa-warehouse", "Commerce"),
+                new("oms-orders-php", "Orders", "/CP/shop/orders/orders", "fa-shopping-cart", "Commerce"),
+                new("order-statuses", "Order statuses", "/CP/shop/orders/statuses", "fa-exclamation-triangle", "Commerce"),
+                new("order-items", "Order items", "/CP/shop/orders/items", "fa-shapes", "Commerce"),
+                new("quote-requests", "Quote requests", "/CP/shop/quote-requests", "fa-file-text-o", "Commerce"),
+                new("abandoned-carts", "Abandoned carts", "/CP/shop/orders/carts", "fa-shopping-cart", "Commerce"),
+                new("account-operations", "Account operations", "/CP/shop/finance/account_operations", "fa-money-check-alt", "Commerce"),
+                new("prices", "Prices", "/CP/shop/prices", "fa-file-excel", "Commerce"),
+                new("price-management", "Price management", "/CP/shop/price-management", "fa-tags", "Commerce"),
+                new("currency-rates", "Currency rates", "/CP/shop/finance/nastrojka-kursov-valyut", "fa-ruble-sign", "Commerce"),
+                new("shop-statistics", "Shop statistics", "/CP/shop/statistika", "fa-chart-line", "Commerce"),
+                new("sao-statuses", "SAO statuses", "/CP/shop/orders/sao_states_statuses_link", "fa-sliders-h", "Commerce"),
+                new("manufacturer-synonyms", "Manufacturer synonyms", "/CP/shop/manufacturers_synonyms", "fa-equals", "Commerce"),
+                new("crosses", "Crosses", "/CP/shop/crosses", "fa-random", "Commerce"),
+                new("demand-countries", "Demand countries", "/CP/shop/demand_countries", "fa-globe-africa", "Commerce"),
+                new("search-tabs", "Search tabs", "/CP/shop/taby-poiska", "fa-folder", "Commerce"),
+                new("prices-send", "Send prices", "/CP/shop/prices_send", "fa-paper-plane", "Commerce"),
+                new("downloadable-price-lists", "Downloadable price lists", "/CP/shop/prices/prajs-listy-dlya-skachivaniya", "fa-file-csv", "Commerce"),
+                new("online-kassy", "Online cash registers", "/CP/shop/onlajn-kassy", "fa-receipt", "Commerce"),
+                new("returns-manager", "Returns", "/CP/shop/returns-manager", "fa-arrow-left", "Commerce"),
+                new("cash-book", "Cash book", "/CP/shop/cash", "fa-book", "Commerce"),
+                new("system-requests", "System requests", "/CP/requests", "fa-bolt", "Commerce"),
+                new("product-filters", "Product filters", "/CP/shop/filter", "fa-filter", "Commerce"),
+            ];
+        }
+
+        if (label.Equals("Channels", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("channels", "Channels", "/CP/shop/channels/channels", "fa-plug", "Channels"),
+                new("channels-guide", "Channels guide", "/CP/shop/channels/guide", "fa-book", "Channels"),
+            ];
+        }
+
+        if (label.Equals("Payments", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("payments", "Payments", "/CP/shop/payments/payments", "fa-credit-card", "Payments"),
+                new("payments-guide", "Payments guide", "/CP/shop/payments/payments/guide", "fa-book", "Payments"),
+            ];
+        }
+
+        if (label.Equals("Logistics", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("logistics-hub", "Logistics", "/CP/shop/logistics", "fa-th-large", "Logistics"),
+                new("carriers", "Carriers", "/CP/shop/logistics/carriers", "fa-shipping-fast", "Logistics"),
+                new("logistics-guide", "Logistics guide", "/CP/shop/logistics/guide", "fa-book", "Logistics"),
+                new("obtain-methods", "Obtain methods", "/CP/shop/logistics/sposoby-polucheniya", "fa-truck", "Logistics"),
+                new("logistics-orders", "Orders", "/CP/shop/orders/orders", "fa-shopping-cart", "Logistics"),
+                new("whatsapp-guide", "WhatsApp guide", "/CP/shop/orders/whatsapp-guide", "fab fa-whatsapp", "Logistics"),
+            ];
+        }
+
+        if (label.Equals("ERP", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("erp-shell", "ERP", "/CP/shop/finance/erp?epc_erp_shell=1", "fa-ship", "ERP"),
+                new("erp-guide", "ERP guide", "/CP/shop/finance/erp/guide?epc_erp_shell=1", "fa-book", "ERP"),
+                new("custom-shipping-guide", "Custom shipping guide", "/CP/shop/finance/erp/custom-shipping-guide?epc_erp_shell=1", "fa-book", "ERP"),
+                new("uae-tax", "UAE tax compliance", "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1", "fa-gavel", "ERP"),
+            ];
+        }
+
+        if (label.Equals("AI", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("parts-agent-chats", "Parts Agent chats", "/CP/shop/parts_agent_chats", "fa-robot", "AI"),
+            ];
+        }
+
+        if (label.Equals("Purchase", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("procurement", "Procurement", "/CP/shop/procurement/procurement", "fa-truck-loading", "Purchase"),
+            ];
+        }
+
+        if (label.Equals("Customers", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("customer-mgmt", "Customer management", "/CP/shop/customer_mgmt/customer_mgmt", "fa-address-book", "Customers"),
+            ];
+        }
+
+        if (label.Equals("Marketing", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("marketing", "Marketing", "/CP/shop/marketing/marketing", "fa-bullhorn", "Marketing"),
+            ];
+        }
+
+        if (label.Equals("Portal", StringComparison.OrdinalIgnoreCase))
+        {
+            return
+            [
+                new("industry-settings", "Industry settings", "/CP/control/portal/industry_settings", "fa-sliders-h", "Portal"),
+                new("auto-price", "Auto price", "/CP/control/portal/epc_auto_price_engine?tab=discover", "fa-magic", "Portal"),
+                new("pos-terminal", "POS terminal", "/CP/shop/pos/terminal", "fa-cash-register", "Portal"),
+                new("page-builder", "Visual page editor", "/CP/control/portal/epc_visual_page_editor", "fa-magic", "Portal"),
+                new("social-hub", "Social media hub", "/CP/control/portal/epc_social_media_hub", "fa-share-alt", "Portal"),
+                new("marketing-broadcast", "Marketing broadcast", "/CP/control/portal/epc_marketing_broadcast", "fa-bullhorn", "Portal"),
+            ];
+        }
+
+        return [];
+    }
+
+    /// <summary>PHP leftover groups whose <c>control_items</c> we pin into tenant chrome.</summary>
+    public static readonly IReadOnlyList<string> PhpLegacyParityGroupLabels =
+    [
+        "Commerce", "Customers", "Documents", "ERP", "Purchase", "Channels", "Logistics",
+        "System", "Catalogue", "Content", "Users", "Modules",
+        "AI", "Marketing", "Payments", "Portal",
+    ];
+
+    private static IReadOnlyDictionary<string, HashSet<string>>? _legacyNavKeyGroups;
+
+    /// <summary>
+    /// ASP.NET rewrite of a leftover PHP href → the topnav group(s) that own it.
+    /// Shared leftovers (OMS orders in Commerce + Logistics) list both owners.
+    /// </summary>
+    public static IReadOnlyDictionary<string, HashSet<string>> PhpLegacyNavKeyGroups()
+    {
+        if (_legacyNavKeyGroups is not null)
+        {
+            return _legacyNavKeyGroups;
+        }
+
+        var map = new Dictionary<string, HashSet<string>>(StringComparer.OrdinalIgnoreCase);
+        foreach (var groupLabel in PhpLegacyParityGroupLabels)
+        {
+            foreach (var link in PhpLegacyGroupParityLinks(groupLabel))
+            {
+                var key = PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href);
+                if (string.IsNullOrWhiteSpace(key)
+                    || key.Equals("/cp", StringComparison.OrdinalIgnoreCase)
+                    || key.Equals("/erp", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                if (!map.TryGetValue(key, out var owners))
+                {
+                    owners = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+                    map[key] = owners;
+                }
+
+                owners.Add(groupLabel);
+            }
+        }
+
+        _legacyNavKeyGroups = map;
+        return map;
+    }
+
+    public static bool PhpLegacyAllowsHrefInGroup(string? href, string label)
+    {
+        if (string.IsNullOrWhiteSpace(href))
+        {
+            return true;
+        }
+
+        var key = PhpSurfaceLinkMap.AspNetPrimaryHref(href);
+        if (!PhpLegacyNavKeyGroups().TryGetValue(key, out var owners) || owners.Count == 0)
+        {
+            return true;
+        }
+
+        return owners.Contains(label);
+    }
+
+    public static bool IsPhpUsersGroupHref(string? href)
+    {
+        var h = href ?? string.Empty;
+        return h.Contains("/users/usergroups", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/users/usermanager", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/users/polya-registracii", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/users/registracionnye", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/users/customer_approvals", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/cp/users-app", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/cp/groups-app", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("user-groups", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("user-manager", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("registration-fields", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("registration-options", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsPhpCatalogueHref(string? href)
+    {
+        var h = href ?? string.Empty;
+        return h.Contains("/shop/catalogue", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/cp/product-catalogue", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/shop/logistics/stock", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/erp/inventory-stock", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/shop/perenos-dannyx", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("/cp/data-transfer", StringComparison.OrdinalIgnoreCase);
+    }
+
+    public static bool IsPhpDocumentsHref(string? href)
+    {
+        var h = href ?? string.Empty;
+        return h.Contains("document_control", StringComparison.OrdinalIgnoreCase)
+               || h.Contains("document-control", StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>
     /// ERP topnav: categories → area columns → tabs (mirrors <c>epc_erp_render_top_nav</c>).
@@ -602,6 +944,12 @@ public static class LegacyDesktopChromeCatalog
         var g = f.Group ?? "";
         var linkHref = f.Href ?? string.Empty;
 
+        // PHP leftover items stay in their DB group (offices → Commerce, stock → Catalogue).
+        if (!PhpLegacyAllowsHrefInGroup(linkHref, label))
+        {
+            return false;
+        }
+
         // Explicit brochure category map (Shop / OMS → Commerce). Do not use loose
         // Label.Contains("Commerce") — that incorrectly matched ERP "Retail and commerce".
         if (CpNavCategoryMap.TryGetValue(label, out var categories))
@@ -610,6 +958,12 @@ public static class LegacyDesktopChromeCatalog
             {
                 if (g.Equals(cat, StringComparison.OrdinalIgnoreCase))
                 {
+                    if (label.Equals("Customers", StringComparison.OrdinalIgnoreCase)
+                        && IsPhpUsersGroupHref(linkHref))
+                    {
+                        return false;
+                    }
+
                     return true;
                 }
             }
@@ -620,9 +974,30 @@ public static class LegacyDesktopChromeCatalog
                     || linkHref.Contains("/cp/orders", StringComparison.OrdinalIgnoreCase)
                     || linkHref.Contains("/cp/abandoned-carts", StringComparison.OrdinalIgnoreCase)
                     || linkHref.Contains("/cp/returns-rma", StringComparison.OrdinalIgnoreCase)
-                    || linkHref.Contains("/cp/quote-requests", StringComparison.OrdinalIgnoreCase)
-                    || linkHref.Contains("/cp/product-catalogue", StringComparison.OrdinalIgnoreCase)
-                    || linkHref.Contains("/cp/price-lists", StringComparison.OrdinalIgnoreCase)))
+                    || linkHref.Contains("/cp/quote-requests", StringComparison.OrdinalIgnoreCase)))
+            {
+                return true;
+            }
+
+            if (label.Equals("Catalogue", StringComparison.OrdinalIgnoreCase)
+                && IsPhpCatalogueHref(linkHref))
+            {
+                return true;
+            }
+
+            if (label.Equals("Users", StringComparison.OrdinalIgnoreCase))
+            {
+                return IsPhpUsersGroupHref(linkHref);
+            }
+
+            if (label.Equals("Customers", StringComparison.OrdinalIgnoreCase)
+                && g.Equals("Customers / CRM", StringComparison.OrdinalIgnoreCase))
+            {
+                return !IsPhpUsersGroupHref(linkHref);
+            }
+
+            if (label.Equals("Documents", StringComparison.OrdinalIgnoreCase)
+                && IsPhpDocumentsHref(linkHref))
             {
                 return true;
             }
