@@ -20,11 +20,20 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/config-sandbox-app")</p>
-                <p>Open a snapshot for a short config excerpt and change keys. Full config, old/new values, promote, and discard stay on the Classic twin.</p>
+                <p>Open a snapshot for a short config excerpt and change keys. Promote or discard an active snapshot here. Create, apply-change, rollback, and full config stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/config-sandbox-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedSnap is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -59,6 +68,28 @@
                     else
                     {
                         <p class="text-muted">No config excerpt yet.</p>
+                    }
+                    @if (_isAdmin && string.Equals(_openedSnap.Status, "active", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form method="post" action="/cp/config-sandbox/write" class="well" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <input type="hidden" name="action" value="promote" />
+                            <input type="hidden" name="id" value="@_openedSnap.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-default">Promote</button>
+                        </form>
+                        <form method="post" action="/cp/config-sandbox/write" class="well" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <input type="hidden" name="action" value="discard" />
+                            <input type="hidden" name="id" value="@_openedSnap.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-default">Discard</button>
+                        </form>
+                        <p class="help-block" style="margin:.75rem 0 0">Create, apply-change, and rollback stay Classic.</p>
+                    }
+                    else if (_isAdmin)
+                    {
+                        <p class="help-block" style="margin:.75rem 0 0">Create, apply-change, and rollback stay Classic.</p>
                     }
                 </div>
             </div>
@@ -162,6 +193,12 @@
     private long _openedId;
     private CpConfigSandboxSnapshotDetail? _openedSnap;
     private IReadOnlyList<CpConfigSandboxChangeDigest> _openedChanges = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    private string OpenedReturnHref => _openedId > 0
+        ? ErpRecordOpen.Href(_listHref, "snapshot_id", _openedId)
+        : _listHref;
 
     private string OpenedCaption => _openedSnap is null
         ? ""
@@ -176,6 +213,8 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "snapshot_id");
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
