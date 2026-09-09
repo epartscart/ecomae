@@ -296,7 +296,7 @@ public sealed class StorefrontRegisterWriteService : IStorefrontRegisterWriteSer
                     true,
                     "ok",
                     "ok",
-                    "Account created. Sign in to continue. Confirmation e-mail and SMS stay Classic — this page does not invent a send.",
+                    "Account created. Sign in to continue. This page does not invent a send — confirm your e-mail or phone from your profile after you sign in.",
                     userId,
                     writes);
             }
