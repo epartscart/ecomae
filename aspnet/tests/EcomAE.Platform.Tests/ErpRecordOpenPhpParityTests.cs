@@ -102,6 +102,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/plugins_control?plugin_id=5", "/cp/plugins-manager-app?plugin_id=5")]
     [InlineData("/CP/content/sitemap?sm_id=4", "/cp/sitemap-app?sm_id=4")]
     [InlineData("/CP/shop/pricing?plist_id=4", "/cp/price-lists-app?plist_id=4")]
+    [InlineData("/CP/shop/bulk_upload?upload_id=6", "/cp/bulk-upload-app?upload_id=6")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2016,6 +2017,47 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/price-lists-app",
                 "/CP/shop/pricing?plist_id=4"));
+    }
+
+    [Fact]
+    public void BulkUploadApp_OpenLoadsNotesResultAndCsvExcerptsAndKeepsClassicWrites()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpBulkUploadApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpBulkUploadDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"upload_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("upload_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"upload_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("ResultExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("CsvExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-priority siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("File bodies omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("process_upload", razor, StringComparison.Ordinal);
+        Assert.Contains("mark_reviewed", razor, StringComparison.Ordinal);
+        Assert.Contains("create_quote", razor, StringComparison.Ordinal);
+        Assert.Contains("add_to_cart", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpCpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-bulk-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/bulk-upload-app?upload_id=6#erp-row-6",
+            ErpRecordOpen.Href("/cp/bulk-upload-app", "upload_id", 6));
+        Assert.Equal(
+            "/cp/bulk-upload-app?upload_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/bulk-upload-app",
+                "/CP/shop/bulk_upload?upload_id=6"));
     }
 
     [Fact]

@@ -20398,6 +20398,89 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpBulkUploadDetailResult> BuildCpBulkUploadDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpBulkUploadDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpBulkUploadDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpBulkUploadDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["file_name"] is DBNull ? string.Empty : reader["file_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["priority"] is DBNull ? string.Empty : reader["priority"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["source"] is DBNull ? string.Empty : reader["source"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["user_id"] is DBNull ? 0 : reader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["uploaded_count"] is DBNull ? 0 : reader["uploaded_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["available_count"] is DBNull ? 0 : reader["available_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["cross_count"] is DBNull ? 0 : reader["cross_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["short_count"] is DBNull ? 0 : reader["short_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["notfound_count"] is DBNull ? 0 : reader["notfound_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["shop_quote_id"] is DBNull ? 0 : reader["shop_quote_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["crm_quote_id"] is DBNull ? 0 : reader["crm_quote_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["cart_added_count"] is DBNull ? 0 : reader["cart_added_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["result_len"] is DBNull ? 0 : reader["result_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["result_excerpt"] is DBNull ? string.Empty : reader["result_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["csv_len"] is DBNull ? 0 : reader["csv_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["csv_excerpt"] is DBNull ? string.Empty : reader["csv_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Bulk upload not found.");
+            }
+
+            var siblings = new List<CpBulkUploadRowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpBulkUploadPrioritySiblings;
+                AddParameter(cmd, "@priority", header.Priority);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpBulkUploadRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["file_name"] is DBNull ? string.Empty : reader["file_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["priority"] is DBNull ? string.Empty : reader["priority"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["uploaded_count"] is DBNull ? 0 : reader["uploaded_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["available_count"] is DBNull ? 0 : reader["available_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["cross_count"] is DBNull ? 0 : reader["cross_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["short_count"] is DBNull ? 0 : reader["short_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["notfound_count"] is DBNull ? 0 : reader["notfound_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpTenantEmailDigestResult> BuildCpTenantEmailDigestAsync(CancellationToken cancellationToken = default)
     {
         var empty = new CpTenantEmailSummary(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, "migration", "TenantRegistry DB is not configured.");

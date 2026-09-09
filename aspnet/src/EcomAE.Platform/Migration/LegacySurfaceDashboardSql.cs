@@ -6749,6 +6749,39 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened bulk-upload history row. result_json, csv_result, and cp_notes are short excerpts. File bodies omitted. process/review/quote/cart stay Classic.</summary>
+    public const string SelectCpBulkUploadDetail = """
+        SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`priority`,'') AS priority,
+               IFNULL(`source`,'') AS source, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`uploaded_count`,0) AS uploaded_count, IFNULL(`available_count`,0) AS available_count,
+               IFNULL(`cross_count`,0) AS cross_count, IFNULL(`short_count`,0) AS short_count,
+               IFNULL(`notfound_count`,0) AS notfound_count,
+               IFNULL(`shop_quote_id`,0) AS shop_quote_id, IFNULL(`crm_quote_id`,0) AS crm_quote_id,
+               IFNULL(`cart_added_count`,0) AS cart_added_count,
+               IFNULL(`created_at`,'') AS created_at, IFNULL(`updated_at`,'') AS updated_at,
+               CHAR_LENGTH(IFNULL(`cp_notes`,'')) AS notes_len,
+               LEFT(IFNULL(`cp_notes`,''), 280) AS notes_excerpt,
+               CHAR_LENGTH(IFNULL(`result_json`,'')) AS result_len,
+               LEFT(IFNULL(`result_json`,''), 280) AS result_excerpt,
+               CHAR_LENGTH(IFNULL(`csv_result`,'')) AS csv_len,
+               LEFT(IFNULL(`csv_result`,''), 280) AS csv_excerpt
+        FROM `epc_bulk_upload_history`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other bulk-upload rows with the same priority. result_json/csv_result/cp_notes omitted.</summary>
+    public const string SelectCpBulkUploadPrioritySiblings = """
+        SELECT `id`, IFNULL(`file_name`,'') AS file_name, IFNULL(`priority`,'') AS priority,
+               IFNULL(`uploaded_count`,0) AS uploaded_count, IFNULL(`available_count`,0) AS available_count,
+               IFNULL(`cross_count`,0) AS cross_count, IFNULL(`short_count`,0) AS short_count,
+               IFNULL(`notfound_count`,0) AS notfound_count, IFNULL(`created_at`,'') AS created_at
+        FROM `epc_bulk_upload_history`
+        WHERE IFNULL(`priority`,'') = @priority AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>epc_erp_workflow_list</c> KPIs from <c>epc_erp_workflow_tasks</c>.</summary>
     public const string SelectErpWorkflowTaskStats = """
         SELECT

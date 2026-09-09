@@ -739,6 +739,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only CP bulk-upload history (PHP bulk_upload_hub; file bodies omitted).</summary>
     Task<CpBulkUploadDigestResult> BuildCpBulkUploadDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened bulk-upload history row (Open key <c>upload_id</c>) plus same-priority siblings. result_json, csv_result, and cp_notes are short excerpts. File bodies omitted.</summary>
+    Task<CpBulkUploadDetailResult> BuildCpBulkUploadDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only tenant SMTP settings (password/username omitted).</summary>
     Task<CpTenantEmailDigestResult> BuildCpTenantEmailDigestAsync(CancellationToken cancellationToken = default);
 
