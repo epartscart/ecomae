@@ -1082,6 +1082,26 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(commSetDb.Succeeded);
         Assert.Equal("db", commSetDb.Code);
 
+        var priceCfgBad = await new CpPriceConfigsWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpPriceConfigSaveRequest(0, "", "platform", "", "all", "", 0, 0, "AED", 100, true, ""));
+        Assert.False(priceCfgBad.Succeeded);
+        Assert.Equal("invalid", priceCfgBad.Code);
+
+        var priceCfgDb = await new CpPriceConfigsWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpPriceConfigSaveRequest(0, "Default markup", "platform", "", "all", "", 5, 0, "AED", 100, true, ""));
+        Assert.False(priceCfgDb.Succeeded);
+        Assert.Equal("db", priceCfgDb.Code);
+
+        var priceCfgDelBad = await new CpPriceConfigsWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(priceCfgDelBad.Succeeded);
+        Assert.Equal("invalid", priceCfgDelBad.Code);
+
+        var priceCfgDelDb = await new CpPriceConfigsWriteService(new UnconfiguredConnections())
+            .DeleteAsync(5);
+        Assert.False(priceCfgDelDb.Succeeded);
+        Assert.Equal("db", priceCfgDelDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

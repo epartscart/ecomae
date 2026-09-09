@@ -192,6 +192,10 @@ public static class EcomAeRoutes
     public const string ControlPanelPriceLists = "/cp/price-lists";
     /// <summary>CP price lists Blazor list (JSON digest remains <see cref="ControlPanelPriceLists"/>).</summary>
     public const string ControlPanelPriceListsApp = "/cp/price-lists-app";
+    /// <summary>Super-CP price generation configs (markup rules). Distinct from tenant shop price lists.</summary>
+    public const string ControlPanelPriceConfigsApp = "/cp/price-configs-app";
+    /// <summary>Super-CP price-config save/delete. <c>confirmWrites=true</c> twins PHP epc_scp_price_config_save / epc_scp_price_config_delete. Schema-ensure stays Classic.</summary>
+    public const string CpPriceConfigsWrite = "/cp/price-configs/write";
     /// <summary>PHP prices_manager Docpart lists (shop_docpart_prices), not epc_pl_lists.</summary>
     public const string ControlPanelDocpartPriceLists = "/cp/docpart-price-lists";
     /// <summary>CP auto-price rules (config_json/notes/meta omitted).</summary>

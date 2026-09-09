@@ -169,7 +169,7 @@ public static class PhpSurfaceLinkMap
         ("control/portal/epc_boc_warehouse_control", "/cp/warehouse-wms-app"),
         ("control/portal/epc_boc_vendor_control", "/erp/suppliers-app"),
         ("control/portal/epc_boc_command_center", "/cp/control"),
-        ("control/portal/epc_super_cp_price_configs", "/cp/price-lists-app"),
+        ("control/portal/epc_super_cp_price_configs", "/cp/price-configs-app"),
         ("control/portal/epc_tenant_config", "/cp/tenant-config-app"),
         ("control/portal/epc_design_tokens", "/cp/design-tokens-app"),
         ("control/portal/epc_config_sandbox", "/cp/config-sandbox-app"),
@@ -1712,6 +1712,7 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/plugins-manager-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/sitemap-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/price-lists-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/price-configs-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/bulk-upload-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/fixed-assets-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/stock-transfers-app", StringComparison.OrdinalIgnoreCase)
