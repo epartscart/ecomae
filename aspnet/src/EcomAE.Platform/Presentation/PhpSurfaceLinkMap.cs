@@ -264,6 +264,7 @@ public static class PhpSurfaceLinkMap
         ("shop/prices", "/cp/prices-upload-app"),
         ("modules/modules_manager", "/cp/modules-app"),
         ("content/content_manager", "/cp/pages-app"),
+        ("menu/menu_edit", "/cp/menus-app"),
         ("menu/menu_manager", "/cp/menus-app"),
         ("general_pages/epc_metabase_embed", "/cp/metabase-app"),
         ("general_pages/epc_ai_service", "/cp/ai-service-app"),
@@ -1550,7 +1551,7 @@ public static class PhpSurfaceLinkMap
 
         if (topLevel.Equals("menu", StringComparison.OrdinalIgnoreCase))
         {
-            return "/cp/menus-app";
+            return ErpRecordOpen.PreserveRecordQuery("/cp/menus-app", value);
         }
 
         if (topLevel.Equals("filemanager", StringComparison.OrdinalIgnoreCase)
@@ -1666,7 +1667,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/product-filters-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/geo-regions-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/delivery-methods-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/pages-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/pages-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/menus-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

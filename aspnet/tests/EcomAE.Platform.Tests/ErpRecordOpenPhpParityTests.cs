@@ -75,6 +75,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/logistics/sposoby-polucheniya/sposob-polucheniya?obtaining_mode_id=4", "/cp/delivery-methods-app?obtaining_mode_id=4")]
     [InlineData("/CP/content/content_manager/content?content_id=12", "/cp/pages-app?content_id=12")]
     [InlineData("/CP/content/edit_content?content_id=12", "/cp/pages-app?content_id=12")]
+    [InlineData("/CP/menu/menu_edit?menu_id=3", "/cp/menus-app?menu_id=3")]
+    [InlineData("/CP/menu/menu_manager?menu_id=3", "/cp/menus-app?menu_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1382,6 +1384,38 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/pages-app",
                 "/CP/content/content_manager/content?content_id=12"));
+    }
+
+    [Fact]
+    public void MenusApp_OpenLoadsStructureExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpMenusApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"menu_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"menu_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpMenusDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No structure excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-frontend siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/menus/write", text, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-users-workspace", text, StringComparison.Ordinal);
+        Assert.Contains("menu_id=", text, StringComparison.Ordinal);
+        Assert.Contains("_selected", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/menus-app?menu_id=3#erp-row-3",
+            ErpRecordOpen.Href("/cp/menus-app", "menu_id", 3));
+        Assert.Equal(
+            "/cp/menus-app?menu_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/menus-app",
+                "/CP/menu/menu_edit?menu_id=3"));
     }
 
     [Fact]

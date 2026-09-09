@@ -3883,7 +3883,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Menu metadata + structure summary (raw structure JSON omitted). Create/update/delete POST /cp/menus/write when confirmWrites=true. Drag-tree UX stays PHP."
+                note = "Menu metadata + structure summary. Open ?menu_id= loads 280-char structure excerpt. Full tree omitted. Create/update/delete POST /cp/menus/write when confirmWrites=true. Drag-tree UX stays PHP."
             });
         });
 
