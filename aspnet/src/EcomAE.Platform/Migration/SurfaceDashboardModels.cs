@@ -7449,6 +7449,50 @@ public sealed record ErpMultiEntityListResult(
     string Source,
     string Message);
 
+public sealed record ErpEntityMemberDigest(
+    long Id,
+    long GroupId,
+    string SiteKey,
+    string EntityName,
+    decimal OwnershipPct,
+    string LocalCurrency,
+    string Consolidation);
+
+public sealed record ErpEntityGroupDetail(
+    long Id,
+    string GroupCode,
+    string GroupName,
+    string ParentEntity,
+    string BaseCurrency,
+    string FiscalYearEnd,
+    string Status,
+    string CreatedAt);
+
+public sealed record ErpEntityGroupDetailResult(
+    ErpEntityGroupDetail? Group,
+    IReadOnlyList<ErpEntityMemberDigest> Members,
+    IReadOnlyList<ErpEntityGroupDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpIntercompanyTxnDetail(
+    long Id,
+    long GroupId,
+    string FromSiteKey,
+    string ToSiteKey,
+    decimal Amount,
+    string Currency,
+    string DescriptionExcerpt,
+    int DescriptionLen,
+    string Status,
+    string CreatedAt);
+
+public sealed record ErpIntercompanyTxnDetailResult(
+    ErpIntercompanyTxnDetail? Txn,
+    IReadOnlyList<ErpIntercompanyTxnDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_fx_rates</c>.</summary>
 public sealed record ErpFxRateDigest(
     long Id,

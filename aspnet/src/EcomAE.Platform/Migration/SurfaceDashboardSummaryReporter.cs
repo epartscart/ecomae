@@ -25508,6 +25508,166 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpEntityGroupDetailResult> BuildErpEntityGroupDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpEntityGroupDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpEntityGroupDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpEntityGroupDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "group_code"),
+                        ReadStr(reader, "group_name"),
+                        ReadStr(reader, "parent_entity"),
+                        ReadStr(reader, "base_currency"),
+                        ReadStr(reader, "fiscal_year_end"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "created_at"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], [], "database", "Entity group not found.");
+            }
+
+            var members = new List<ErpEntityMemberDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpEntityGroupMembers;
+                AddParameter(cmd, "@group_id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    members.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "group_id"),
+                        ReadStr(reader, "site_key"),
+                        ReadStr(reader, "entity_name"),
+                        ReadDec(reader, "ownership_pct"),
+                        ReadStr(reader, "local_currency"),
+                        ReadStr(reader, "consolidation")));
+                }
+            }
+
+            var siblings = new List<ErpEntityGroupDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpEntityGroupStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "group_code"),
+                        ReadStr(reader, "group_name"),
+                        ReadStr(reader, "parent_entity"),
+                        ReadStr(reader, "base_currency"),
+                        ReadStr(reader, "fiscal_year_end"),
+                        ReadStr(reader, "status"),
+                        ReadI32(reader, "member_count")));
+                }
+            }
+
+            return new(header, members, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpIntercompanyTxnDetailResult> BuildErpIntercompanyTxnDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpIntercompanyTxnDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpIntercompanyTxnDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpIntercompanyTxnDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "group_id"),
+                        ReadStr(reader, "from_site_key"),
+                        ReadStr(reader, "to_site_key"),
+                        ReadDec(reader, "amount"),
+                        ReadStr(reader, "currency"),
+                        ReadStr(reader, "description_excerpt"),
+                        ReadI32(reader, "description_len"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "created_at"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Inter-company transaction not found.");
+            }
+
+            var siblings = new List<ErpIntercompanyTxnDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpIntercompanyTxnStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "group_id"),
+                        ReadStr(reader, "from_site_key"),
+                        ReadStr(reader, "to_site_key"),
+                        ReadDec(reader, "amount"),
+                        ReadStr(reader, "currency"),
+                        string.Empty,
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "created_at")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpMultiCurrencyGlListResult> ListErpMultiCurrencyGlAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

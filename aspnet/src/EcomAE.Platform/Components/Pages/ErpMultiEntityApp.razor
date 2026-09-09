@@ -13,9 +13,12 @@
 <PageTitle>Multi-entity · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Multi-entity" BreadcrumbArea="Finance" BreadcrumbTab="Multi-entity">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/multi-entity-app" IsAdmin="_isAdmin" />
 
-    <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Group, member, inter-company, and eliminate write here." />
-    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <PhpErpModulePageHeader Title="Multi-entity consolidation" Subtitle="Open a group for created time and members. Open an inter-company row for the note. Group, member, inter-company, and eliminate write here. Consolidated trial balance stays Classic." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
@@ -90,6 +93,127 @@
         <div class="kpi"><div class="lbl">Pending IC</div><div class="val">@_pendingIc.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_openedGroup is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedGroupCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedGroupReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>Group id</dt><dd>@_openedGroup.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.GroupCode) ? "—" : _openedGroup.GroupCode)</dd>
+                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.GroupName) ? "—" : _openedGroup.GroupName)</dd>
+                <dt>Parent</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.ParentEntity) ? "—" : _openedGroup.ParentEntity)</dd>
+                <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.BaseCurrency) ? "—" : _openedGroup.BaseCurrency)</dd>
+                <dt>FY end</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.FiscalYearEnd) ? "—" : _openedGroup.FiscalYearEnd)</dd>
+                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.Status) ? "—" : _openedGroup.Status)</dd>
+                <dt>Created</dt><dd>@(string.IsNullOrWhiteSpace(_openedGroup.CreatedAt) ? "—" : _openedGroup.CreatedAt)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance stays Classic.</p>
+            @if (_openedMembers.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Members</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Site</th><th>Name</th><th class="text-right">Own %</th><th>Method</th></tr></thead>
+                    <tbody>
+                        @foreach (var mem in _openedMembers)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(mem.SiteKey) ? "—" : mem.SiteKey)</td>
+                                <td>@(string.IsNullOrWhiteSpace(mem.EntityName) ? "—" : mem.EntityName)</td>
+                                <td class="text-right">@mem.OwnershipPct.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(mem.Consolidation) ? "—" : mem.Consolidation)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No members yet.</p>
+            }
+            @if (_openedGroupSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Code</th><th>Name</th><th>Status</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var sib in _openedGroupSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.GroupCode) ? "—" : sib.GroupCode)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.GroupName) ? "—" : sib.GroupName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "me_group_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-status siblings yet.</p>
+            }
+        </div>
+    }
+
+    @if (_openedIc is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedIcCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedIcReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>Txn id</dt><dd>@_openedIc.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Group</dt><dd>@(_openedIc.GroupId > 0 ? _openedIc.GroupId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>From</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.FromSiteKey) ? "—" : _openedIc.FromSiteKey)</dd>
+                <dt>To</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.ToSiteKey) ? "—" : _openedIc.ToSiteKey)</dd>
+                <dt>Amount</dt><dd>@_openedIc.Amount.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.Currency) ? "—" : _openedIc.Currency)</dd>
+                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.Status) ? "—" : _openedIc.Status)</dd>
+                <dt>When</dt><dd>@(string.IsNullOrWhiteSpace(_openedIc.CreatedAt) ? "—" : _openedIc.CreatedAt)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Group, member, inter-company, and eliminate write here. Consolidated trial balance stays Classic.</p>
+            @if (!string.IsNullOrWhiteSpace(_openedIc.DescriptionExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedIc.DescriptionExcerpt</pre>
+                @if (_openedIc.DescriptionLen > _openedIc.DescriptionExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_openedIc.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedIc.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No note excerpt yet.</p>
+            }
+            @if (_openedIcSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>From</th><th>To</th><th>Amount</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var sib in _openedIcSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.FromSiteKey) ? "—" : sib.FromSiteKey)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.ToSiteKey) ? "—" : sib.ToSiteKey)</td>
+                                <td>@sib.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "me_ic_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-status siblings yet.</p>
+            }
+        </div>
+    }
+
     <h2 style="font-size:16px;">Entity groups</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -103,7 +227,7 @@
                 {
                     @foreach (var row in _groups)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedGroupId)">
                             <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.GroupCode) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.GroupCode)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.GroupName) ? "—" : row.GroupName)</td>
@@ -112,6 +236,7 @@
                             <td class="text-right">@row.MemberCount.ToString(CultureInfo.InvariantCulture)</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>
+                                <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "me_group_id", row.Id)">Open</a>
                                 @if (_isAdmin)
                                 {
                                     <form method="post" action="/erp/multi-entity/write" style="display:inline;margin:0">
@@ -133,20 +258,21 @@
     <h2 style="font-size:16px;">Inter-company transactions</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>From</th><th>To</th><th class="text-right">Amount</th><th>Currency</th><th>Status</th><th>When</th></tr></thead>
+            <thead><tr><th>From</th><th>To</th><th class="text-right">Amount</th><th>Currency</th><th>Status</th><th>When</th><th></th></tr></thead>
             <tbody>
-                @if (_ic.Count == 0) { <tr><td colspan="6">No inter-company transactions yet.</td></tr> }
+                @if (_ic.Count == 0) { <tr><td colspan="7">No inter-company transactions yet.</td></tr> }
                 else
                 {
                     @foreach (var row in _ic)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedIcId)">
                             <td>@(string.IsNullOrWhiteSpace(row.FromSiteKey) ? "—" : row.FromSiteKey)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.ToSiteKey) ? "—" : row.ToSiteKey)</td>
                             <td class="text-right">@row.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Currency) ? "—" : row.Currency)</td>
                             <td><span class="label label-default">@row.Status</span></td>
                             <td>@(string.IsNullOrWhiteSpace(row.CreatedAt) ? "—" : row.CreatedAt)</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "me_ic_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -155,12 +281,14 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>.
+        Source: @_source. Distinct from CP consolidations (<code>epc_cons_*</code>). Digest: <code>/erp/multi-entity</code>. Consolidated trial balance stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=multi_entity";
+    private const string _listHref = "/erp/multi-entity-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpEntityGroupDigest> _groups = [];
     private IReadOnlyList<ErpIntercompanyTxnDigest> _ic = [];
@@ -172,11 +300,46 @@
     private string _message = "";
     private string _flash = "";
     private bool _flashOk;
+    private long _openedGroupId;
+    private long _openedIcId;
+    private ErpEntityGroupDetail? _openedGroup;
+    private ErpIntercompanyTxnDetail? _openedIc;
+    private IReadOnlyList<ErpEntityMemberDigest> _openedMembers = [];
+    private IReadOnlyList<ErpEntityGroupDigest> _openedGroupSiblings = [];
+    private IReadOnlyList<ErpIntercompanyTxnDigest> _openedIcSiblings = [];
+
+    private long _openedId => _openedGroupId > 0 ? _openedGroupId : _openedIcId;
+
+    private bool OpenedFound => _openedGroup is not null || _openedIc is not null;
+
+    private string OpenedGroupReturnHref => _openedGroupId > 0
+        ? _listHref + "?me_group_id=" + _openedGroupId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
+
+    private string OpenedIcReturnHref => _openedIcId > 0
+        ? _listHref + "?me_ic_id=" + _openedIcId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
+
+    private string OpenedGroupCaption => _openedGroup is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_openedGroup.GroupName)
+            ? ("Group #" + _openedGroup.Id.ToString(CultureInfo.InvariantCulture))
+            : _openedGroup.GroupName)
+            + (string.IsNullOrWhiteSpace(_openedGroup.GroupCode) ? "" : (" · " + _openedGroup.GroupCode));
+
+    private string OpenedIcCaption => _openedIc is null
+        ? ""
+        : ("IC #" + _openedIc.Id.ToString(CultureInfo.InvariantCulture)
+            + (string.IsNullOrWhiteSpace(_openedIc.FromSiteKey) ? "" : (" · " + _openedIc.FromSiteKey)));
+
+    private string OpenedCaption => _openedGroup is not null ? OpenedGroupCaption : OpenedIcCaption;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedGroupId = ErpRecordOpen.ReadId(ctx.Request, "me_group_id");
+        _openedIcId = ErpRecordOpen.ReadId(ctx.Request, "me_ic_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         var ok = ctx.Request.Query["ok"].ToString();
@@ -198,5 +361,44 @@
         _pendingIc = result.PendingIcCount;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedGroupId > 0)
+        {
+            var detail = await Dashboards.BuildErpEntityGroupDetailAsync(_openedGroupId, ctx.RequestAborted);
+            _openedGroup = detail.Group;
+            _openedMembers = detail.Members;
+            _openedGroupSiblings = detail.Siblings;
+            if (_openedGroup is not null)
+            {
+                var openedList = _groups.FirstOrDefault(g => g.Id == _openedGroupId);
+                if (openedList is not null)
+                {
+                    _groups = new[] { openedList }.Concat(_groups.Where(g => g.Id != _openedGroupId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
+
+        if (_openedIcId > 0)
+        {
+            var detail = await Dashboards.BuildErpIntercompanyTxnDetailAsync(_openedIcId, ctx.RequestAborted);
+            _openedIc = detail.Txn;
+            _openedIcSiblings = detail.Siblings;
+            if (_openedIc is not null)
+            {
+                var openedList = _ic.FirstOrDefault(t => t.Id == _openedIcId);
+                if (openedList is not null)
+                {
+                    _ic = new[] { openedList }.Concat(_ic.Where(t => t.Id != _openedIcId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message) && _openedGroup is null)
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
