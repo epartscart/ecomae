@@ -6606,6 +6606,31 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened delivery note. notes is a short excerpt. pdf_path omitted. Create stays Classic.</summary>
+    public const string SelectErpDeliveryNoteDetail = """
+        SELECT `id`, IFNULL(`note_no`,'') AS note_no, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`carrier`,'') AS carrier, IFNULL(`tracking_no`,'') AS tracking_no,
+               IFNULL(`status`,'') AS status, IFNULL(`shipped_at`,0) AS shipped_at,
+               IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_delivery_notes`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other delivery notes with the same status. notes and pdf_path omitted.</summary>
+    public const string SelectErpDeliveryNoteStatusSiblings = """
+        SELECT `id`, IFNULL(`note_no`,'') AS note_no, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`carrier`,'') AS carrier, IFNULL(`tracking_no`,'') AS tracking_no,
+               IFNULL(`status`,'') AS status, IFNULL(`shipped_at`,0) AS shipped_at,
+               IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_delivery_notes`
+        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP supplier RFQs (description omitted) — PHP epc_erp_rfq.</summary>
     public const string SelectErpRfqs = """
         SELECT `id`, IFNULL(`rfq_no`,'') AS rfq_no, IFNULL(`supplier_id`,0) AS supplier_id,

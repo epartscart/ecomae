@@ -745,6 +745,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectErpRfqStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpRfqStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpRfqStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_delivery_notes", LegacySurfaceDashboardSql.SelectErpDeliveryNotes, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpDeliveryNotes, StringComparison.Ordinal);
+        Assert.DoesNotContain("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNotes, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpDeliveryNoteDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpDeliveryNoteDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNoteDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_payroll_runs", LegacySurfaceDashboardSql.SelectErpPayrollRuns, StringComparison.Ordinal);
         Assert.Contains("epc_erp_print_templates", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
         Assert.Contains("epc_erp_order_recommendations", LegacySurfaceDashboardSql.SelectErpOrderRecommendations, StringComparison.Ordinal);
