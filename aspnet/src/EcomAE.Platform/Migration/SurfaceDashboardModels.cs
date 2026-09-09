@@ -6899,6 +6899,26 @@ public sealed record ErpMarketingListResult(
     string Source,
     string Message);
 
+public sealed record ErpMarketingCampaignDetail(
+    long Id,
+    string Name,
+    string Channel,
+    decimal Budget,
+    decimal Spent,
+    int Leads,
+    string Status,
+    long TimeStart,
+    long TimeEnd,
+    long TimeCreated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpMarketingCampaignDetailResult(
+    ErpMarketingCampaignDetail? Campaign,
+    IReadOnlyList<ErpMarketingCampaignDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_payroll_runs</c> (notes omitted).</summary>
 public sealed record ErpPayrollRunDigest(
     long Id,
