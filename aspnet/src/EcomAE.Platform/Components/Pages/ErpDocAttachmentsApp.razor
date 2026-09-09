@@ -13,7 +13,8 @@
 <PageTitle>Document attachments · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Document attachments" BreadcrumbArea="Documents" BreadcrumbTab="Attachments">
-    <PhpErpModulePageHeader Title="Document attachments" Subtitle="Files linked to invoices, POs and journals. Uploads stay dry-run." PhpTabHref="@_phpTab" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+    <PhpErpModulePageHeader Title="Document attachments" Subtitle="Open a row for the description excerpt and uploaded time. Uploads stay dry-run." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Attachment KPIs">
@@ -33,25 +34,76 @@
         </form>
     }
 
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>File</dt><dd>@(string.IsNullOrWhiteSpace(_opened.FileName) ? "—" : _opened.FileName)</dd>
+                <dt>Entity</dt><dd>@(string.IsNullOrWhiteSpace(_opened.EntityType) ? "—" : _opened.EntityType)</dd>
+                <dt>Entity id</dt><dd>@(_opened.EntityId > 0 ? _opened.EntityId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.MimeType) ? "—" : _opened.MimeType)</dd>
+                <dt>Size</dt><dd>@_opened.FileSize.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Uploader</dt><dd>@(_opened.UploadedBy > 0 ? _opened.UploadedBy.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Uploaded by</dt><dd>@(string.IsNullOrWhiteSpace(_opened.UploadedByName) ? "—" : _opened.UploadedByName)</dd>
+                <dt>Uploaded</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
+                <dt>Description</dt><dd>@(string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt) ? "—" : _opened.DescriptionExcerpt)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Storage location omitted. Uploads stay dry-run.</p>
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Entity</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.FileName) ? "—" : sib.FileName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.EntityType) ? "—" : sib.EntityType)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "attach_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-type siblings yet.</p>
+            }
+        </div>
+    }
+
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>File</th><th>Entity</th><th>Entity id</th><th>Type</th><th class="text-right">Size</th><th>Uploaded by</th></tr></thead>
+            <thead><tr><th>File</th><th>Entity</th><th>Entity id</th><th>Type</th><th class="text-right">Size</th><th>Uploaded by</th><th></th></tr></thead>
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No attachments yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No attachments yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _rows)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.FileName) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.FileName)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.EntityType) ? "—" : row.EntityType)</td>
                             <td>@(row.EntityId > 0 ? row.EntityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(string.IsNullOrWhiteSpace(row.MimeType) ? "—" : row.MimeType)</td>
                             <td class="text-right">@row.FileSize.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.UploadedByName) ? "—" : row.UploadedByName)</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "attach_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -60,13 +112,14 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. File paths omitted. Dry-run: <code>document_upload</code> — writes=0.
+        Source: @_source. Storage location omitted. Dry-run: <code>document_upload</code> — writes=0.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=doc_attachment";
+    private const string _listHref = "/erp/doc-attachments-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpDocAttachmentDigest> _rows = [];
     private int _count, _entityTypes;
@@ -74,11 +127,25 @@
     private string _message = "";
     private string _formCode = "";
     private string _formResult = "";
+    private long _openedId;
+    private ErpDocAttachmentDetail? _opened;
+    private IReadOnlyList<ErpDocAttachmentDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.FileName)
+            ? _opened.FileName
+            : ("Attachment #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?attach_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "attach_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
@@ -89,6 +156,27 @@
         _entityTypes = result.EntityTypeCount;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpDocAttachmentDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Attachment;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 
     private void OnSave()

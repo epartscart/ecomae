@@ -7582,6 +7582,25 @@ public sealed record ErpDocAttachmentsDigestResult(
     IReadOnlyList<ErpDocAttachmentDigest> Attachments,
     int Count, int EntityTypeCount, string Source, string Message);
 
+public sealed record ErpDocAttachmentDetail(
+    long Id,
+    string EntityType,
+    long EntityId,
+    string FileName,
+    int FileSize,
+    string MimeType,
+    string DescriptionExcerpt,
+    int DescriptionLen,
+    long UploadedBy,
+    string UploadedByName,
+    long TimeCreated);
+
+public sealed record ErpDocAttachmentDetailResult(
+    ErpDocAttachmentDetail? Attachment,
+    IReadOnlyList<ErpDocAttachmentDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpInventoryReportCategoryDigest(
     long Id, long ParentId, string Code, string Name, int Level, int SortOrder, bool IsActive, long TimeCreated);
 

@@ -23520,6 +23520,79 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpDocAttachmentDetailResult> BuildErpDocAttachmentDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpDocAttachmentDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpDocAttachmentDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpDocAttachmentDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "entity_type"),
+                        ReadI64(reader, "entity_id"),
+                        ReadStr(reader, "file_name"),
+                        ReadI32(reader, "file_size"),
+                        ReadStr(reader, "mime_type"),
+                        ReadStr(reader, "description_excerpt"),
+                        ReadI32(reader, "description_len"),
+                        ReadI64(reader, "uploaded_by"),
+                        ReadStr(reader, "uploaded_by_name"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Attachment row not found.");
+            }
+
+            var siblings = new List<ErpDocAttachmentDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpDocAttachmentTypeSiblings;
+                AddParameter(cmd, "@entity_type", header.EntityType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpDocAttachmentDigest(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "entity_type"),
+                        ReadI64(reader, "entity_id"),
+                        ReadStr(reader, "file_name"),
+                        ReadI32(reader, "file_size"),
+                        ReadStr(reader, "mime_type"),
+                        "",
+                        ReadStr(reader, "uploaded_by_name"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpInventoryReportDigestResult> BuildErpInventoryReportDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
