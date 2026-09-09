@@ -26,7 +26,7 @@ public sealed class CpPaymentsActivateWriteTests
         Assert.Equal("pending", CpPaymentsWriteService.SanitizeSettlementStatus("pending"));
         Assert.Equal("paidout", CpPaymentsWriteService.SanitizeSettlementStatus("paid-out!"));
         Assert.Equal("paid_out", CpPaymentsWriteService.SanitizeSettlementStatus("paid_out!"));
-        Assert.Equal(string.Empty, CpPaymentsWriteService.SanitizeSettlementStatus("PAID_OUT"));
+        Assert.Equal("_", CpPaymentsWriteService.SanitizeSettlementStatus("PAID_OUT"));
         Assert.Equal(string.Empty, CpPaymentsWriteService.SanitizeSettlementStatus("!!!"));
     }
 
