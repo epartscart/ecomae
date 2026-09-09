@@ -6567,7 +6567,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_document_templates (HTML/bank secrets omitted). save_company POST /cp/document-control/write when confirmWrites=true. Logo upload and print stay Classic."
+                note = "Read-only epc_document_templates (HTML/bank secrets omitted). save_company / save_template POST /cp/document-control/write when confirmWrites=true. Logo upload and print stay Classic."
             });
         });
         endpoints.MapPost(EcomAeRoutes.CpDocumentControlWrite, async (
@@ -6600,8 +6600,17 @@ public sealed class ControlPanelModule : ISurfaceModule
             var bankName = body.BankName;
             var bankIban = body.BankIban;
             var legalFooter = body.LegalFooter;
+            var templateCode = body.Code;
+            var templateTitle = body.Title;
+            var templateDescription = body.Description;
+            var headerHtml = body.HeaderHtml;
+            var bodyHtml = body.BodyHtml;
+            var footerHtml = body.FooterHtml;
+            var cssExtra = body.CssExtra;
+            var templateActive = body.Active;
             var confirm = body.ConfirmWrites;
             HashSet<string>? posted = null;
+            HashSet<string>? templatePosted = null;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -6621,6 +6630,14 @@ public sealed class ControlPanelModule : ISurfaceModule
                 bankName = LiveWriteFormBinder.Text(form, "bank_name", "bankName");
                 bankIban = LiveWriteFormBinder.Text(form, "bank_iban", "bankIban");
                 legalFooter = LiveWriteFormBinder.Text(form, "legal_footer", "legalFooter");
+                templateCode = LiveWriteFormBinder.Text(form, "code", "template_code", "templateCode");
+                templateTitle = LiveWriteFormBinder.Text(form, "title");
+                templateDescription = LiveWriteFormBinder.Text(form, "description");
+                headerHtml = LiveWriteFormBinder.Text(form, "header_html", "headerHtml");
+                bodyHtml = LiveWriteFormBinder.Text(form, "body_html", "bodyHtml");
+                footerHtml = LiveWriteFormBinder.Text(form, "footer_html", "footerHtml");
+                cssExtra = LiveWriteFormBinder.Text(form, "css_extra", "cssExtra");
+                templateActive = LiveWriteFormBinder.Flag(form, "active");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
                 posted = new HashSet<string>(StringComparer.Ordinal);
                 foreach (var fieldName in CpDocumentControlWriteService.FieldMax.Keys)
@@ -6629,6 +6646,20 @@ public sealed class ControlPanelModule : ISurfaceModule
                     {
                         posted.Add(fieldName);
                     }
+                }
+
+                templatePosted = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var fieldName in CpDocumentControlWriteService.TemplateFieldMax.Keys)
+                {
+                    if (form.ContainsKey(fieldName))
+                    {
+                        templatePosted.Add(fieldName);
+                    }
+                }
+
+                if (form.ContainsKey("active"))
+                {
+                    templatePosted.Add("active");
                 }
             }
 
@@ -6648,17 +6679,34 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "save_template" or "dc_save_template")
+            {
+                var written = await writes.SaveTemplateAsync(
+                    new CpDocumentTemplateSaveRequest(
+                        templateCode, templateTitle, templateDescription, headerHtml, bodyHtml, footerHtml, cssExtra,
+                        templateActive, templatePosted),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/document-control-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "save_company" or "dc_save_company",
+                wouldWrite = key is "save_company" or "dc_save_company" or "save_template" or "dc_save_template",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Logo upload stays Classic."
-                    : "Dry-run. Set confirmWrites=true to save the company profile.",
+                    ? "Logo upload and attachments stay Classic."
+                    : key is "save_template" or "dc_save_template"
+                        ? "Dry-run. Set confirmWrites=true to save the template."
+                        : "Dry-run. Set confirmWrites=true to save the company profile.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -11874,7 +11922,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? LogoPath = null,
         string? BankName = null,
         string? BankIban = null,
-        string? LegalFooter = null);
+        string? LegalFooter = null,
+        string? Code = null,
+        string? Title = null,
+        string? Description = null,
+        string? HeaderHtml = null,
+        string? BodyHtml = null,
+        string? FooterHtml = null,
+        string? CssExtra = null,
+        bool Active = false);
     private sealed record CpModulesWriteBody(
         string? Action = null,
         long ModuleId = 0,

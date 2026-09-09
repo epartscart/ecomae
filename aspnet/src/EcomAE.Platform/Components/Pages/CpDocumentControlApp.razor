@@ -20,7 +20,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/document-control-app")</p>
-                <p>Save the company profile here. Logo upload, templates, and attachments stay Classic. This page does not invent a send.</p>
+                <p>Save the company profile here. Save a template title here. Logo upload and attachments stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -67,6 +67,29 @@
                 </div>
             </div>
         </div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save template</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/document-control/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/cp/document-control-app" />
+                        <input type="hidden" name="action" value="save_template" />
+                        <label>Code <input type="text" name="code" maxlength="32" /></label>
+                        <label>Title <input type="text" name="title" maxlength="120" /></label>
+                        <label>Description <input type="text" name="description" maxlength="255" /></label>
+                        <label>Active
+                            <select name="active">
+                                <option value="1" selected>active</option>
+                                <option value="0">inactive</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-sm">Save template</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">HTML bodies stay Classic so a title save does not wipe them.</p>
+                </div>
+            </div>
+        </div>
     }
 
     <div class="col-lg-12">
@@ -102,7 +125,35 @@
                             <td>@(string.IsNullOrWhiteSpace(t.Category) ? "—" : t.Category)</td>
                             <td>@(t.Active ? "yes" : "no")</td>
                             <td>@t.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
+                            <td>
+                                @if (_isAdmin && !string.IsNullOrWhiteSpace(t.Code))
+                                {
+                                    <form method="post" action="/cp/document-control/write" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:end">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="/cp/document-control-app" />
+                                        <input type="hidden" name="action" value="save_template" />
+                                        <input type="hidden" name="code" value="@t.Code" />
+                                        <input type="text" name="title" maxlength="120" value="@t.Title" />
+                                        <select name="active">
+                                            @if (t.Active)
+                                            {
+                                                <option value="1" selected>active</option>
+                                                <option value="0">inactive</option>
+                                            }
+                                            else
+                                            {
+                                                <option value="1">active</option>
+                                                <option value="0" selected>inactive</option>
+                                            }
+                                        </select>
+                                        <button type="submit" class="btn btn-xs btn-primary">Save</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a>
+                                }
+                            </td>
                         </tr>
                     }
                 }

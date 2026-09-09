@@ -912,6 +912,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(dcCompanyDb.Succeeded);
         Assert.Equal("db", dcCompanyDb.Code);
 
+        Assert.Equal("invoice", CpDocumentControlWriteService.NormalizeTemplateCode(" invoice "));
+
+        var dcTemplateBad = await new CpDocumentControlWriteService(new ConfiguredNeverOpened())
+            .SaveTemplateAsync(new CpDocumentTemplateSaveRequest("", "Invoice", "", "", "", "", "", true, null));
+        Assert.False(dcTemplateBad.Succeeded);
+        Assert.Equal("invalid", dcTemplateBad.Code);
+
+        var dcTemplateDb = await new CpDocumentControlWriteService(new UnconfiguredConnections())
+            .SaveTemplateAsync(new CpDocumentTemplateSaveRequest("invoice", "Invoice", "", "", "", "", "", true, null));
+        Assert.False(dcTemplateDb.Succeeded);
+        Assert.Equal("db", dcTemplateDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
