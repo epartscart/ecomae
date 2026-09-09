@@ -22,8 +22,12 @@ public sealed class CpCrmActivityToggleWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"action\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"toggle_activity\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_activity\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"done\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"activity_type\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"related_type\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"due_date\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
@@ -40,6 +44,7 @@ public sealed class CpCrmActivityToggleWriteTests
         Assert.Contains("ajax_crm.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("toggle_activity", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("save_activity", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -50,11 +55,14 @@ public sealed class CpCrmActivityToggleWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpCrmActivityWriteService", module, StringComparison.Ordinal);
         Assert.Contains("ToggleDoneAsync", module, StringComparison.Ordinal);
+        Assert.Contains("SaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmActivityWriteService.cs"));
         Assert.Contains("epc_crm_toggle_activity_done", service, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_save_activity", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_crm_activities`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_crm_activities`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);

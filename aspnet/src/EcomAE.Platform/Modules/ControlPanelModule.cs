@@ -7632,6 +7632,12 @@ public sealed class ControlPanelModule : ISurfaceModule
             var action = body.Action;
             var id = body.Id;
             var done = body.Done;
+            var activityType = body.ActivityType;
+            var relatedType = body.RelatedType;
+            var relatedId = body.RelatedId;
+            var dueDate = body.DueDate;
+            var ownerUserId = body.OwnerUserId;
+            var notes = body.Notes;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -7639,7 +7645,18 @@ public sealed class ControlPanelModule : ISurfaceModule
                 action = LiveWriteFormBinder.Text(form, "action");
                 id = LiveWriteFormBinder.Long(form, "id", "activity_id", "activityId");
                 done = LiveWriteFormBinder.Flag(form, "done");
+                activityType = LiveWriteFormBinder.Text(form, "activity_type", "activityType");
+                relatedType = LiveWriteFormBinder.Text(form, "related_type", "relatedType");
+                relatedId = LiveWriteFormBinder.Long(form, "related_id", "relatedId");
+                dueDate = LiveWriteFormBinder.Text(form, "due_date", "dueDate");
+                ownerUserId = LiveWriteFormBinder.Long(form, "owner_user_id", "ownerUserId");
+                notes = LiveWriteFormBinder.Text(form, "notes");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (ownerUserId <= 0)
+            {
+                ownerUserId = session.UserId;
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -7657,17 +7674,34 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "save_activity" or "crm_save_activity")
+            {
+                var written = await writes.SaveAsync(
+                    new CpCrmActivitySaveRequest(
+                        id, activityType, relatedType, relatedId, dueDate, done, ownerUserId, notes),
+                    cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/cp/crm-activities-app?activity_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/crm-activities-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "toggle_activity" or "crm_toggle_activity",
+                wouldWrite = key is "toggle_activity" or "crm_toggle_activity" or "save_activity" or "crm_save_activity",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Create activity stays Classic."
-                    : "Dry-run. Set confirmWrites=true to toggle the activity.",
+                    ? "Quote email and send stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the activity or toggle done.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -11251,7 +11285,13 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long Id = 0,
-        bool Done = false);
+        bool Done = false,
+        string? ActivityType = null,
+        string? RelatedType = null,
+        long RelatedId = 0,
+        string? DueDate = null,
+        long OwnerUserId = 0,
+        string? Notes = null);
     private sealed record CpCrmTicketsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

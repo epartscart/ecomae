@@ -20,7 +20,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Mark an activity done or reopen it here. Create stays Classic. This page does not invent a send.</p>
+                <p>Create, save, or mark an activity done here. Quote email stays Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -74,7 +74,69 @@
                     }
                     @if (_isAdmin)
                     {
-                        <form method="post" action="/cp/crm/activities/write" style="margin:1rem 0 0">
+                        <form method="post" action="/cp/crm/activities/write" style="margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "activity_id", _openedActivity.Id)" />
+                            <input type="hidden" name="action" value="save_activity" />
+                            <input type="hidden" name="id" value="@_openedActivity.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Type
+                                <select name="activity_type">
+                                    @foreach (var t in _activityTypes)
+                                    {
+                                        @if (string.Equals(t, _openedActivity.ActivityType, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@t" selected>@t</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@t">@t</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Related
+                                <select name="related_type">
+                                    @foreach (var t in _relatedTypes)
+                                    {
+                                        @if (string.Equals(t, _openedActivity.RelatedType, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@t" selected>@t</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@t">@t</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Related id <input type="text" name="related_id" inputmode="numeric" value="@_openedActivity.RelatedId.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Due <input type="text" name="due_date" value="@FormatDueInput(_openedActivity.DueDate)" /></label>
+                            <label>Done
+                                <select name="done">
+                                    @if (_openedActivity.Done != 0)
+                                    {
+                                        <option value="1" selected>yes</option>
+                                        <option value="0">no</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="1">yes</option>
+                                        <option value="0" selected>no</option>
+                                    }
+                                </select>
+                            </label>
+                            @if (_openedActivity.NotesLen > _openedActivity.NotesExcerpt.Length)
+                            {
+                                <p class="text-muted" style="flex-basis:100%;margin:0">Full notes stay on the Classic twin. Leave notes blank here to keep them.</p>
+                                <label>Notes <input type="text" name="notes" /></label>
+                            }
+                            else
+                            {
+                                <label>Notes <input type="text" name="notes" value="@_openedActivity.NotesExcerpt" /></label>
+                            }
+                            <button type="submit" class="btn btn-primary btn-sm">Save activity</button>
+                        </form>
+                        <form method="post" action="/cp/crm/activities/write" style="margin:.75rem 0 0">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "activity_id", _openedActivity.Id)" />
                             <input type="hidden" name="action" value="toggle_activity" />
@@ -131,6 +193,50 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">New activity</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/crm/activities/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="save_activity" />
+                        <input type="hidden" name="id" value="0" />
+                        <label>Type
+                            <select name="activity_type">
+                                <option value="task" selected>task</option>
+                                <option value="call">call</option>
+                                <option value="email">email</option>
+                                <option value="meeting">meeting</option>
+                                <option value="note">note</option>
+                            </select>
+                        </label>
+                        <label>Related
+                            <select name="related_type">
+                                <option value="lead" selected>lead</option>
+                                <option value="opportunity">opportunity</option>
+                                <option value="user">user</option>
+                            </select>
+                        </label>
+                        <label>Related id <input type="text" name="related_id" inputmode="numeric" value="0" /></label>
+                        <label>Due <input type="text" name="due_date" /></label>
+                        <label>Done
+                            <select name="done">
+                                <option value="0" selected>no</option>
+                                <option value="1">yes</option>
+                            </select>
+                        </label>
+                        <label>Notes <input type="text" name="notes" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Create activity</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Quote email stays Classic.</p>
                 </div>
             </div>
         </div>
@@ -200,6 +306,13 @@
     private long _openedId;
     private CpCrmActivitiesDetail? _openedActivity;
     private IReadOnlyList<CpCrmActivitiesActivityDigest> _openedSiblings = [];
+    private static readonly string[] _activityTypes = ["call", "email", "meeting", "note", "task"];
+    private static readonly string[] _relatedTypes = ["lead", "opportunity", "user"];
+
+    private static string FormatDueInput(long unix)
+        => unix <= 0
+            ? ""
+            : DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
 
     private string OpenedCaption => _openedActivity is null
         ? ""
