@@ -693,15 +693,15 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(carrierDb.Succeeded);
         Assert.Equal("db", carrierDb.Code);
 
-        var convInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
+        var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
-        Assert.False(convInvalid.Succeeded);
-        Assert.Equal("invalid", convInvalid.Code);
+        Assert.False(crmConvInvalid.Succeeded);
+        Assert.Equal("invalid", crmConvInvalid.Code);
 
-        var convDb = await new CpCrmConvertWriteService(new UnconfiguredConnections())
+        var crmConvDb = await new CpCrmConvertWriteService(new UnconfiguredConnections())
             .ConvertLeadAsync(3, 1);
-        Assert.False(convDb.Succeeded);
-        Assert.Equal("db", convDb.Code);
+        Assert.False(crmConvDb.Succeeded);
+        Assert.Equal("db", crmConvDb.Code);
 
         var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
             .AssignAsync(0, 1, 1);
