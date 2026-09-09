@@ -260,7 +260,7 @@ public static class EcomAeRoutes
     public const string CpCrmTicketsWrite = "/cp/crm/tickets/write";
     /// <summary>CRM save_quote. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Accept and quote email stay Classic.</summary>
     public const string CpCrmQuotesWrite = "/cp/crm/quotes/write";
-    /// <summary>CRM save_project. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Project tasks stay Classic.</summary>
+    /// <summary>CRM save_project / save_project_task. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Quote email stays Classic.</summary>
     public const string CpCrmProjectsWrite = "/cp/crm/projects/write";
     /// <summary>CP marketing growth (task/KPI/review; notes omitted).</summary>
     public const string ControlPanelMarketingGrowth = "/cp/marketing-growth";

@@ -21,6 +21,11 @@ public sealed class CpCrmProjectSaveWriteTests
         Assert.DoesNotContain("draft", CpCrmProjectWriteService.Statuses);
         Assert.Equal("planned", CpCrmProjectWriteService.NormalizeStatus("nope"));
         Assert.Equal("Project", CpCrmProjectWriteService.NormalizeName(""));
+        Assert.Contains("todo", CpCrmProjectWriteService.TaskStatuses);
+        Assert.Contains("doing", CpCrmProjectWriteService.TaskStatuses);
+        Assert.Equal("todo", CpCrmProjectWriteService.NormalizeTaskStatus("nope"));
+        Assert.Equal("Task", CpCrmProjectWriteService.NormalizeTaskTitle(""));
+        Assert.Equal(0m, CpCrmProjectWriteService.NormalizeHours(-3));
         Assert.Equal(0, CpCrmProjectWriteService.ParseDate(""));
         Assert.True(CpCrmProjectWriteService.ParseDate("2026-09-09") > 0);
     }
@@ -34,7 +39,10 @@ public sealed class CpCrmProjectSaveWriteTests
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_project\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_project_task\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"name\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"project_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"hours_est\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"progress_pct\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
@@ -52,6 +60,7 @@ public sealed class CpCrmProjectSaveWriteTests
         Assert.Contains("ajax_crm.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("save_project", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("save_project_task", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -64,8 +73,12 @@ public sealed class CpCrmProjectSaveWriteTests
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmProjectWriteService.cs"));
         Assert.Contains("epc_crm_save_project", service, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_save_project_task", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_crm_projects`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_crm_project_tasks`", service, StringComparison.Ordinal);
+        Assert.Contains("save_project_task", module, StringComparison.Ordinal);
+        Assert.Contains("crm_save_project_task", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);

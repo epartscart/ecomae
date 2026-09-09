@@ -7937,13 +7937,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                        ?? new();
             var action = body.Action;
             var id = body.Id;
+            var projectId = body.ProjectId > 0 ? body.ProjectId : body.Id;
             var name = body.Name;
+            var title = body.Title;
             var opportunityId = body.OpportunityId;
             var orderId = body.OrderId;
             var status = body.Status;
             var progressPct = body.ProgressPct;
+            var hoursEst = body.HoursEst;
             var startDate = body.StartDate;
             var endDate = body.EndDate;
+            var dueDate = body.DueDate;
             var ownerUserId = body.OwnerUserId;
             var notes = body.Notes;
             var confirm = body.ConfirmWrites;
@@ -7952,13 +7956,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 action = LiveWriteFormBinder.Text(form, "action");
                 id = LiveWriteFormBinder.Long(form, "id", "project_id", "projectId");
+                projectId = LiveWriteFormBinder.Long(form, "project_id", "projectId", "id");
                 name = LiveWriteFormBinder.Text(form, "name");
+                title = LiveWriteFormBinder.Text(form, "title");
                 opportunityId = LiveWriteFormBinder.Long(form, "opportunity_id", "opportunityId", "opp_id");
                 orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
                 status = LiveWriteFormBinder.Text(form, "status");
                 progressPct = LiveWriteFormBinder.Int(form, "progress_pct", "progressPct");
+                hoursEst = LiveWriteFormBinder.Dec(form, "hours_est", "hoursEst");
                 startDate = LiveWriteFormBinder.Text(form, "start_date", "startDate");
                 endDate = LiveWriteFormBinder.Text(form, "end_date", "endDate");
+                dueDate = LiveWriteFormBinder.Text(form, "due_date", "dueDate");
                 ownerUserId = LiveWriteFormBinder.Long(form, "owner_user_id", "ownerUserId");
                 notes = LiveWriteFormBinder.Text(form, "notes");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
@@ -7992,17 +8000,32 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "save_project_task" or "crm_save_project_task")
+            {
+                var written = await writes.SaveTaskAsync(
+                    new CpCrmProjectTaskSaveRequest(projectId, title, status, progressPct, hoursEst, dueDate),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/crm-opportunities-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "save_project" or "crm_save_project",
+                wouldWrite = key is "save_project" or "crm_save_project" or "save_project_task" or "crm_save_project_task",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Project tasks stay Classic."
-                    : "Dry-run. Set confirmWrites=true to save the project.",
+                    ? "Quote email stays Classic."
+                    : key is "save_project_task" or "crm_save_project_task"
+                        ? "Dry-run. Set confirmWrites=true to add the project task."
+                        : "Dry-run. Set confirmWrites=true to save the project.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -11540,13 +11563,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long Id = 0,
+        long ProjectId = 0,
         string? Name = null,
+        string? Title = null,
         long OpportunityId = 0,
         long OrderId = 0,
         string? Status = null,
         int ProgressPct = 0,
+        decimal HoursEst = 0,
         string? StartDate = null,
         string? EndDate = null,
+        string? DueDate = null,
         long OwnerUserId = 0,
         string? Notes = null);
     private sealed record CpCrmQuotesWriteBody(

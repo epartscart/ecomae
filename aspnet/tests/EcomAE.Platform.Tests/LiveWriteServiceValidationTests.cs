@@ -865,6 +865,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(projSaveDb.Succeeded);
         Assert.Equal("db", projSaveDb.Code);
 
+        Assert.Equal("todo", CpCrmProjectWriteService.NormalizeTaskStatus("nope"));
+        Assert.Equal("Task", CpCrmProjectWriteService.NormalizeTaskTitle(""));
+
+        var projTaskBad = await new CpCrmProjectWriteService(new ConfiguredNeverOpened())
+            .SaveTaskAsync(new CpCrmProjectTaskSaveRequest(0, "Wire", "todo", 0, 1, ""));
+        Assert.False(projTaskBad.Succeeded);
+        Assert.Equal("invalid", projTaskBad.Code);
+
+        var projTaskDb = await new CpCrmProjectWriteService(new UnconfiguredConnections())
+            .SaveTaskAsync(new CpCrmProjectTaskSaveRequest(3, "Wire", "todo", 0, 1, ""));
+        Assert.False(projTaskDb.Succeeded);
+        Assert.Equal("db", projTaskDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
