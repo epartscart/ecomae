@@ -1112,6 +1112,26 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(wfToggleDb.Succeeded);
         Assert.Equal("db", wfToggleDb.Code);
 
+        var pbiBad = await new CpPowerBiWriteService(new ConfiguredNeverOpened())
+            .SaveConfigAsync(new CpPowerBiSaveConfigRequest("", "", "", "", "", "", "none", ""));
+        Assert.False(pbiBad.Succeeded);
+        Assert.Equal("invalid", pbiBad.Code);
+
+        var pbiDb = await new CpPowerBiWriteService(new UnconfiguredConnections())
+            .SaveConfigAsync(new CpPowerBiSaveConfigRequest("epartscart", "ws", "", "", "", "", "none", ""));
+        Assert.False(pbiDb.Succeeded);
+        Assert.Equal("db", pbiDb.Code);
+
+        var pbiRepBad = await new CpPowerBiWriteService(new ConfiguredNeverOpened())
+            .AddReportAsync(new CpPowerBiAddReportRequest("", "r1", "Sales", "", "finance", ""));
+        Assert.False(pbiRepBad.Succeeded);
+        Assert.Equal("invalid", pbiRepBad.Code);
+
+        var pbiRepDb = await new CpPowerBiWriteService(new UnconfiguredConnections())
+            .AddReportAsync(new CpPowerBiAddReportRequest("epartscart", "r1", "Sales", "", "finance", ""));
+        Assert.False(pbiRepDb.Succeeded);
+        Assert.Equal("db", pbiRepDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
