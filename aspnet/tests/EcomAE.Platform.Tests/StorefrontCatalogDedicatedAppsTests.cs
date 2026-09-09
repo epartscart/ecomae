@@ -235,6 +235,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("class=\"hpanel\"", currencies, StringComparison.Ordinal);
         Assert.Contains("/cp/currencies/set-rate", currencies, StringComparison.Ordinal);
         Assert.Contains("/cp/currencies/set-available", currencies, StringComparison.Ordinal);
+        Assert.Contains("/cp/currencies/schedule-save", currencies, StringComparison.Ordinal);
         Assert.Contains("Classic twin", currencies, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP twin", currencies, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-cu-hero", currencies, StringComparison.Ordinal);

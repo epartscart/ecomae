@@ -6007,7 +6007,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "shop_currencies digest. Rate POST /cp/currencies/set-rate and available POST /cp/currencies/set-available when confirmWrites=true. Live FX stays PHP."
+                note = "shop_currencies digest. Rate POST /cp/currencies/set-rate, available POST /cp/currencies/set-available, and schedule POST /cp/currencies/schedule-save when confirmWrites=true. Live FX pull stays Classic."
             });
         });
         endpoints.MapPost(EcomAeRoutes.CpCurrenciesSetRate, async (
@@ -6105,6 +6105,55 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCurrenciesScheduleSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin CP capability required for FX schedule.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCurrenciesScheduleSaveBody>(context, cancellationToken)
+                       ?? new();
+            var enabled = body.Enabled;
+            var timezone = body.Timezone;
+            var hour = body.Hour;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                enabled = LiveWriteFormBinder.Flag(form, "enabled", "fx_live_auto_enabled") ? 1 : 0;
+                timezone = LiveWriteFormBinder.Text(form, "timezone", "tz");
+                hour = form["hour"].ToString().Trim().Length == 0 ? 2 : LiveWriteFormBinder.Int(form, "hour");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the FX schedule on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveScheduleAsync(enabled, timezone, hour, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/currencies-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelApiClients, async (
@@ -12949,6 +12998,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         int Available = -1,
         string? ShopCurrency = null,
         bool ConfirmWrites = false);
+    private sealed record CpCurrenciesScheduleSaveBody(
+        bool ConfirmWrites = false,
+        int Enabled = 0,
+        string? Timezone = null,
+        int Hour = 2);
     private sealed record CpPricesEditWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

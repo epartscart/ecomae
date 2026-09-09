@@ -20,7 +20,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Save one ISO rate or mark currencies available here when confirmWrites is set. Live FX pull stays on the Classic twin.</p>
+                <p>Save one ISO rate, mark currencies available, or save the nightly FX schedule here when confirmWrites is set. Live FX pull stays on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -55,6 +55,20 @@
             </label>
             <button type="submit">Set available</button>
         </form>
+        <form method="post" action="/cp/currencies/schedule-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+            <label>Nightly FX
+                <select name="enabled">
+                    <option value="1" selected>on</option>
+                    <option value="0">off</option>
+                </select>
+            </label>
+            <label>Timezone <input type="text" name="timezone" maxlength="64" value="Asia/Dubai" /></label>
+            <label>Hour <input type="number" name="hour" min="0" max="23" value="2" required style="width:5rem" /></label>
+            <button type="submit">Save schedule</button>
+        </form>
+        <p class="help-block" style="margin:0 0 1rem">Live FX pull, apply, and run-now stay Classic. This page does not invent a send.</p>
     }
 
     <div class="col-lg-12">

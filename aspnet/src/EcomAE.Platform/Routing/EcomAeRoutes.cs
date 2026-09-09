@@ -94,6 +94,8 @@ public static class EcomAeRoutes
     public const string CpCurrenciesSetRate = "/cp/currencies/set-rate";
     /// <summary>PHP currencies_turning.php <c>available_currencies</c>. <c>confirmWrites=true</c> writes <c>shop_currencies.available</c>.</summary>
     public const string CpCurrenciesSetAvailable = "/cp/currencies/set-available";
+    /// <summary>PHP <c>schedule_save</c> / <c>epc_currency_live_schedule_save</c>. <c>confirmWrites=true</c> UPSERTs nightly FX keys. Apply / run-now stay Classic.</summary>
+    public const string CpCurrenciesScheduleSave = "/cp/currencies/schedule-save";
     public const string ControlPanelApiClients = "/cp/api-clients";
     /// <summary>CP API clients Blazor list (JSON digest remains <see cref="ControlPanelApiClients"/>; key hashes never returned).</summary>
     public const string ControlPanelApiClientsApp = "/cp/api-clients-app";

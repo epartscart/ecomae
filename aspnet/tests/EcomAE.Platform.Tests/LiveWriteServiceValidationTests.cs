@@ -1420,6 +1420,23 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ccyAvailDb.Succeeded);
         Assert.Equal("db", ccyAvailDb.Code);
 
+        var ccySchedTz = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
+            .SaveScheduleAsync(1, "Not/AZone", 2);
+        Assert.False(ccySchedTz.Succeeded);
+        Assert.Equal("invalid", ccySchedTz.Code);
+
+        var ccySchedHour = await new CpCurrencyWriteService(new ConfiguredNeverOpened())
+            .SaveScheduleAsync(1, "UTC", 24);
+        Assert.False(ccySchedHour.Succeeded);
+        Assert.Equal("invalid", ccySchedHour.Code);
+
+        var ccySchedDb = await new CpCurrencyWriteService(new UnconfiguredConnections())
+            .SaveScheduleAsync(1, "UTC", 2);
+        Assert.False(ccySchedDb.Succeeded);
+        Assert.Equal("db", ccySchedDb.Code);
+        Assert.False(ccyAvailDb.Succeeded);
+        Assert.Equal("db", ccyAvailDb.Code);
+
         var meCode = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
             .CreateGroupAsync("BAD CODE", "HoldCo", "", "AED", "12-31");
         Assert.False(meCode.Succeeded);

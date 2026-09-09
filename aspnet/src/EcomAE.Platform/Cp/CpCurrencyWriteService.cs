@@ -1,10 +1,15 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
-/// <summary>Live PHP <c>currencies_turning.php</c> rate and available-flag UPDATE twins. Live FX stays PHP.</summary>
+/// <summary>
+/// Live PHP <c>currencies_turning.php</c> rate / available-flag UPDATE twins
+/// and <c>epc_currency_live_schedule_save</c> UPSERT of nightly FX schedule keys.
+/// Live FX pull / apply / run-now stay Classic. This service does not invent a send.
+/// </summary>
 public interface ICpCurrencyWriteService
 {
     Task<ErpSimpleWriteResult> SetRateAsync(string? isoCode, decimal rate, CancellationToken cancellationToken = default);
@@ -13,6 +18,12 @@ public interface ICpCurrencyWriteService
         string? isoCodes,
         int available,
         string? shopCurrency,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveScheduleAsync(
+        int enabled,
+        string? timezone,
+        int hour,
         CancellationToken cancellationToken = default);
 }
 
@@ -113,6 +124,86 @@ public sealed class CpCurrencyWriteService : ICpCurrencyWriteService
             writes,
             writes);
     }
+
+    public async Task<ErpSimpleWriteResult> SaveScheduleAsync(
+        int enabled,
+        string? timezone,
+        int hour,
+        CancellationToken cancellationToken = default)
+    {
+        var tz = NormalizeTimezone(timezone);
+        if (!IsValidTimezone(tz))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid timezone");
+        }
+
+        if (hour < 0 || hour > 23)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Hour must be 0–23");
+        }
+
+        var flag = enabled == 1 ? 1 : 0;
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await UpsertSettingAsync(connection, "fx_live_auto_enabled", flag.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+            await UpsertSettingAsync(connection, "fx_live_auto_timezone", tz, cancellationToken).ConfigureAwait(false);
+            await UpsertSettingAsync(connection, "fx_live_auto_hour", hour.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "FX schedule saved.", 0, 3);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Price settings table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP empty timezone falls back to <c>Asia/Dubai</c>.</summary>
+    public static string NormalizeTimezone(string? raw)
+    {
+        var tz = (raw ?? string.Empty).Trim();
+        return tz.Length == 0 ? "Asia/Dubai" : tz.Length > 64 ? tz[..64] : tz;
+    }
+
+    /// <summary>PHP <c>date_default_timezone_set</c> accept/reject for IANA ids.</summary>
+    public static bool IsValidTimezone(string? timezone)
+    {
+        var tz = (timezone ?? string.Empty).Trim();
+        if (tz.Length == 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            return TimeZoneInfo.TryFindSystemTimeZoneById(tz, out _);
+        }
+        catch (TimeZoneNotFoundException)
+        {
+            return false;
+        }
+        catch (InvalidTimeZoneException)
+        {
+            return false;
+        }
+    }
+
+    private static Task<int> UpsertSettingAsync(
+        DbConnection connection,
+        string key,
+        string value,
+        CancellationToken cancellationToken)
+        => ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT INTO `epc_price_settings` (`setting_key`, `setting_value`) VALUES (?, ?) ON DUPLICATE KEY UPDATE `setting_value` = VALUES(`setting_value`)"),
+            cancellationToken,
+            key, value);
 
     public static IReadOnlyList<string> ParseIsoList(string? raw)
     {
