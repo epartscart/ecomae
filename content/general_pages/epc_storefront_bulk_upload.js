@@ -8,6 +8,7 @@
 
     var checkUrl = root.getAttribute('data-check-url') || '/storefront/bulk-upload/check';
     var crossUrl = root.getAttribute('data-cross-url') || '/storefront/bulk-upload/cross';
+    var historyUrl = root.getAttribute('data-history-url') || '/storefront/bulk-upload/history-update';
     var addUrl = root.getAttribute('data-add-url') || '/storefront/bulk-upload/add-selected';
     var cartUrl = root.getAttribute('data-cart-url') || '/storefront/cart-app';
     var maxBytes = 8 * 1024 * 1024;
@@ -108,6 +109,22 @@
         var bar = $('epc_bulk_cross_progress_bar');
         if (box) { box.hidden = true; box.style.display = 'none'; }
         if (bar) { bar.style.width = '0%'; }
+    }
+    function saveCurrentHistory() {
+        if (!currentUploadId) { return Promise.resolve(false); }
+        var body = new URLSearchParams({
+            confirmWrites: 'true',
+            upload_id: String(currentUploadId),
+            summary: JSON.stringify(recalcSummary()),
+            rows: JSON.stringify(bulkResults),
+            csv: lastCsv || ''
+        });
+        return fetch(historyUrl, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8' },
+            body: body.toString(),
+            credentials: 'same-origin'
+        }).then(function (r) { return r.json(); }).then(function (r) { return !!(r && r.status); }).catch(function () { return false; });
     }
     function render(data) {
         bulkResults = data.rows || [];
@@ -301,6 +318,7 @@
             fetchCrossForRow(idx).then(function (ok) {
                 if (!ok) { showBanner('Cross check error or no cross result.', false); }
                 render({ rows: bulkResults, summary: recalcSummary(), csv: lastCsv, upload_id: currentUploadId });
+                saveCurrentHistory();
             }).finally(function () {
                 btn.disabled = false;
                 btn.textContent = 'Fetch cross availability';
@@ -339,6 +357,7 @@
                     if (btn) { btn.innerHTML = originalText; }
                     setCrossProgress(indexes.length, indexes.length, 0);
                     render({ rows: bulkResults, summary: recalcSummary(), csv: lastCsv, upload_id: currentUploadId });
+                    saveCurrentHistory();
                     return;
                 }
                 startWorkers();

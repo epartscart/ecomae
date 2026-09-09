@@ -127,6 +127,9 @@ public sealed class StorefrontBulkUploadParityTests
         Assert.Contains("Recent bulk upload history", text, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontBulkUploadHistoryAsync", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontBulkUploadCheck", text, StringComparison.Ordinal);
+        Assert.Contains("StorefrontBulkUploadHistoryUpdate", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"true\"", text, StringComparison.Ordinal);
         Assert.Contains("epc_storefront_bulk_upload.js", text, StringComparison.Ordinal);
         Assert.Contains("id=\"epc_bulk_process_progress\" style=\"display:none\"", text, StringComparison.Ordinal);
         Assert.Contains("Customer login required", text, StringComparison.Ordinal);
@@ -140,6 +143,7 @@ public sealed class StorefrontBulkUploadParityTests
     public void RoutesAndAssets_ExposeCheckCrossSample()
     {
         Assert.Equal("/storefront/bulk-upload/check", EcomAeRoutes.StorefrontBulkUploadCheck);
+        Assert.Equal("/storefront/bulk-upload/history-update", EcomAeRoutes.StorefrontBulkUploadHistoryUpdate);
         Assert.Equal("/storefront/bulk-upload/cross", EcomAeRoutes.StorefrontBulkUploadCross);
         Assert.Equal("/storefront/bulk-upload/add-selected", EcomAeRoutes.StorefrontBulkUploadAddSelected);
         Assert.Equal("/storefront/bulk-upload/sample.csv", EcomAeRoutes.StorefrontBulkUploadSample);
@@ -156,8 +160,11 @@ public sealed class StorefrontBulkUploadParityTests
     {
         var js = File.ReadAllText(Find("content/general_pages/epc_storefront_bulk_upload.js"));
         Assert.Contains("/storefront/bulk-upload/check", js, StringComparison.Ordinal);
+        Assert.Contains("/storefront/bulk-upload/history-update", js, StringComparison.Ordinal);
         Assert.Contains("/storefront/bulk-upload/cross", js, StringComparison.Ordinal);
         Assert.Contains("/storefront/bulk-upload/add-selected", js, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", js, StringComparison.Ordinal);
+        Assert.Contains("saveCurrentHistory", js, StringComparison.Ordinal);
         Assert.Contains("bulk_file", js, StringComparison.Ordinal);
         Assert.DoesNotContain("ajax_process.php", js, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", js, StringComparison.Ordinal);

@@ -731,7 +731,7 @@ public sealed class StorefrontModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_bulk_upload_history. Process/cross/cart writes remain PHP ajax_process."
+                note = "Read-only epc_bulk_upload_history. Check INSERT and history-update write here when confirmWrites=true. CP review / quote stay Classic."
             });
         });
 
@@ -745,6 +745,7 @@ public sealed class StorefrontModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             IStorefrontBulkUploadCheckService checker,
+            IStorefrontBulkUploadHistoryWriteService history,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -772,16 +773,102 @@ public sealed class StorefrontModule : ISurfaceModule
 
             await using var stream = file.OpenReadStream();
             var result = await checker.ProcessAsync(stream, file.FileName, form["priority"].ToString(), cancellationToken);
+            var uploadId = result.UploadId;
+            var historyNote = result.Message;
+            if (result.Status && LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                var saved = await history.SaveAsync(
+                    session.UserId,
+                    session.Kind == LegacySessionKind.Admin,
+                    new StorefrontBulkUploadHistorySaveRequest(
+                        file.FileName,
+                        form["priority"].ToString(),
+                        result.Summary,
+                        result.Rows,
+                        result.Csv,
+                        LiveWriteFormBinder.Int(form, "adminGroupId", "admin_group_id")),
+                    cancellationToken);
+                if (saved.Ok)
+                {
+                    uploadId = (int)saved.UploadId;
+                }
+                else
+                {
+                    historyNote = saved.Message;
+                }
+            }
+
             return Results.Json(new
             {
                 status = result.Status,
-                message = result.Message,
+                message = historyNote,
                 rows = result.Rows,
                 summary = result.Summary,
                 csv = result.Csv,
-                upload_id = result.UploadId,
+                upload_id = uploadId,
                 source = result.Source
             }, statusCode: result.Status ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.StorefrontBulkUploadHistoryUpdate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontBulkUploadHistoryWriteService history,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!CanBulkUpload(session))
+            {
+                return Unauthorized("Please log in first.");
+            }
+
+            var uploadId = 0L;
+            var summaryJson = "";
+            var rowsJson = "";
+            var csv = "";
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                uploadId = LiveWriteFormBinder.Long(form, "uploadId", "upload_id");
+                summaryJson = LiveWriteFormBinder.Text(form, "summary");
+                rowsJson = LiveWriteFormBinder.Text(form, "rows");
+                csv = LiveWriteFormBinder.Text(form, "csv");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontBulkUploadHistoryUpdateBody>(context, cancellationToken)
+                    ?? new StorefrontBulkUploadHistoryUpdateBody();
+                confirm = body.ConfirmWrites;
+                uploadId = body.UploadId ?? 0;
+                summaryJson = body.Summary ?? "";
+                rowsJson = body.Rows ?? "";
+                csv = body.Csv ?? "";
+            }
+
+            if (!confirm)
+            {
+                return Results.Json(new { status = false, message = "Set confirmWrites=true to update bulk-upload history." }, statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            if (!StorefrontBulkUploadHistoryWriteService.TryParseSummary(summaryJson, 0, out var summary)
+                || string.IsNullOrWhiteSpace(rowsJson))
+            {
+                return Results.Json(new { status = false, message = "History update data is invalid." }, statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var written = await history.UpdateAsync(
+                session.UserId,
+                session.Kind == LegacySessionKind.Admin,
+                new StorefrontBulkUploadHistoryUpdateRequest(uploadId, summary, rowsJson, csv),
+                cancellationToken);
+            return Results.Json(new
+            {
+                status = written.Ok,
+                message = written.Message,
+                upload_id = written.UploadId
+            }, statusCode: written.Ok ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
         }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.StorefrontBulkUploadCross, async (
@@ -2644,6 +2731,12 @@ public sealed class StorefrontModule : ISurfaceModule
     private sealed record StorefrontGetArticleListBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record StorefrontBulkUploadHistoryUpdateBody(
+        [property: JsonPropertyName("upload_id")] long? UploadId = null,
+        string? Summary = null,
+        string? Rows = null,
+        string? Csv = null,
+        bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadAddSelectedBody(
         IReadOnlyList<StorefrontBulkUploadCartItem>? Items,
         bool ConfirmWrites = true);
