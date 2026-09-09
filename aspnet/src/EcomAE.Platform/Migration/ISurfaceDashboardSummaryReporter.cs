@@ -173,6 +173,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only CRM KPIs + leads (email/phone/notes omitted).</summary>
     Task<CpCrmBoardDigestResult> BuildCpCrmBoardDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened CRM lead (Open key <c>lead_id</c>) plus same-status siblings. notes is a short excerpt; email/phone omitted.</summary>
+    Task<CpCrmLeadDetailResult> BuildCpCrmLeadDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only document templates (HTML/bank secrets omitted).</summary>
     Task<CpDocumentControlDigestResult> BuildCpDocumentControlDigestAsync(int limit, CancellationToken cancellationToken = default);
 

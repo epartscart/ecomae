@@ -6198,7 +6198,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_* KPIs + leads (email/phone/notes omitted). CRM UX remains PHP crm_main."
+                note = "Read-only epc_crm_* KPIs + leads (email/phone/notes omitted on the list). Open ?lead_id= loads a 280-char notes excerpt. CRM UX remains PHP crm_main."
             });
         });
 

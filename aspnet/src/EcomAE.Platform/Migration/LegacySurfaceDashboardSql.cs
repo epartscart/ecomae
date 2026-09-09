@@ -1884,6 +1884,30 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened CRM lead. notes is a short excerpt; email/phone omitted.</summary>
+    public const string SelectCpCrmLeadsDetail = """
+        SELECT `id`, IFNULL(`company`,'') AS title, IFNULL(`contact_name`,'') AS contact_name,
+               IFNULL(`status`,'') AS status, IFNULL(`source`,'') AS source,
+               IFNULL(`owner_user_id`,0) AS owner_id, IFNULL(`expected_value`,0) AS amount,
+               IFNULL(`time_created`,0) AS created_at, IFNULL(`time_updated`,0) AS updated_at,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_crm_leads`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other CRM leads with the same status. notes/email/phone omitted.</summary>
+    public const string SelectCpCrmLeadsStatusSiblings = """
+        SELECT `id`, IFNULL(`company`,'') AS title, IFNULL(`status`,'') AS status,
+               IFNULL(`source`,'') AS source, IFNULL(`owner_user_id`,0) AS owner_id,
+               IFNULL(`expected_value`,0) AS amount, IFNULL(`time_updated`,0) AS updated_at
+        FROM `epc_crm_leads`
+        WHERE IFNULL(`active`,0)=1 AND `status` = @status AND `id` <> @id
+        ORDER BY `time_updated` DESC, `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectCpDocumentCompanyName = """
         SELECT IFNULL(`trade_name`, IFNULL(`legal_name`, '')) AS company_name
         FROM `epc_document_company`
