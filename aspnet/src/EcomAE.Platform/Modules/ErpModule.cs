@@ -10399,7 +10399,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_quotes KPIs + quotations (notes omitted). PHP sales proposals/quotations shell remains authoritative."
+                note = "Open ?quote_id= loads 280-char notes excerpt; same-status siblings. PHP sales proposals/quotations shell remains authoritative."
             });
         });
 

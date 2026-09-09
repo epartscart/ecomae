@@ -2726,6 +2726,28 @@ public sealed record ErpSalesQuotationsDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpSalesQuotationDetail(
+    long Id,
+    long OpportunityId,
+    long LeadId,
+    long CustomerUserId,
+    string QuoteNumber,
+    string Status,
+    string CurrencyCode,
+    decimal Subtotal,
+    long ShopOrderId,
+    long TimeCreated,
+    long TimeUpdated,
+    bool Active,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpSalesQuotationDetailResult(
+    ErpSalesQuotationDetail? Quotation,
+    IReadOnlyList<ErpSalesQuotationDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpWorkspaceFavoritesSummary(
     int ShortcutCount,
     int PinnedCount,

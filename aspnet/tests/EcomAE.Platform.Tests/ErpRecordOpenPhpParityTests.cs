@@ -107,6 +107,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=fixed_assets&tab=fixed_assets&epc_erp_shell=1&asset_id=4", "/erp/fixed-assets-app?asset_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inv_groups&transfer_id=5", "/erp/stock-transfers-app?transfer_id=5")]
     [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=inv_groups&epc_erp_shell=1&transfer_id=5", "/erp/stock-transfers-app?transfer_id=5")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=proposals&quote_id=6", "/erp/sales-quotations-app?quote_id=6")]
+    [InlineData("/CP/shop/finance/erp?area=sales&tab=proposals&epc_erp_shell=1&quote_id=6", "/erp/sales-quotations-app?quote_id=6")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2134,6 +2136,42 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/stock-transfers-app",
                 "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inv_groups&transfer_id=5"));
+    }
+
+    [Fact]
+    public void SalesQuotationsApp_OpenLoadsNotesExcerptAndKeepsErpChrome()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesQuotationsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpSalesQuotationDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"quote_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("quote_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"quote_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("TimeUpdated", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Line bodies omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("Convert and expiry stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/sales-quotations-app?quote_id=6#erp-row-6",
+            ErpRecordOpen.Href("/erp/sales-quotations-app", "quote_id", 6));
+        Assert.Equal(
+            "/erp/sales-quotations-app?quote_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/sales-quotations-app",
+                "/ERP/?epc_erp_shell=1&area=sales&tab=proposals&quote_id=6"));
     }
 
     [Fact]

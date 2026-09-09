@@ -3374,6 +3374,34 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened sales quotation. notes is a short excerpt. Line bodies omitted. Convert/expiry stay Classic.</summary>
+    public const string SelectErpSalesQuotationDetail = """
+        SELECT `id`, IFNULL(`opportunity_id`,0) AS opportunity_id, IFNULL(`lead_id`,0) AS lead_id,
+               IFNULL(`customer_user_id`,0) AS customer_user_id, IFNULL(`quote_number`,'') AS quote_number,
+               IFNULL(`status`,'') AS status, IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`subtotal`,0) AS subtotal, IFNULL(`shop_order_id`,0) AS shop_order_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated,
+               IFNULL(`active`,0) AS active,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_crm_quotes`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other sales quotations with the same status. notes omitted.</summary>
+    public const string SelectErpSalesQuotationStatusSiblings = """
+        SELECT `id`, IFNULL(`opportunity_id`,0) AS opportunity_id, IFNULL(`lead_id`,0) AS lead_id,
+               IFNULL(`customer_user_id`,0) AS customer_user_id, IFNULL(`quote_number`,'') AS quote_number,
+               IFNULL(`status`,'') AS status, IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`subtotal`,0) AS subtotal, IFNULL(`shop_order_id`,0) AS shop_order_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`active`,0) AS active
+        FROM `epc_crm_quotes`
+        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Workspace favorites / shortcut KPIs.</summary>
     public const string SelectErpWorkspaceFavoriteStats = """
         SELECT
