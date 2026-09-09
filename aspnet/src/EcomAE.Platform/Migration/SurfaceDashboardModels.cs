@@ -682,6 +682,22 @@ public sealed record ErpWarehouseListResult(
     string Source,
     string Message);
 
+public sealed record ErpWarehouseDetail(
+    long Id,
+    long StorageId,
+    string Code,
+    string Name,
+    bool Active,
+    long TimeCreated,
+    int NameLen,
+    string NameExcerpt);
+
+public sealed record ErpWarehouseDetailResult(
+    ErpWarehouseDetail? Warehouse,
+    IReadOnlyList<ErpWarehouseDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>Inventory item offered by the SO/PO line pickers, mirroring the PHP <c>epc_erp_inv_items</c> select.</summary>
 public sealed record ErpInventoryItemPickerDigest(
     long Id,

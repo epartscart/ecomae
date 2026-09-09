@@ -10231,7 +10231,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP warehouses digest. PHP epc_erp_inv_warehouses remains authoritative."
+                note = "Read-only ERP warehouses digest. Open ?warehouse_id= loads a 280-char name excerpt plus same-active siblings. Virtual-warehouse create/transfer stay on their tab."
             });
         });
 
