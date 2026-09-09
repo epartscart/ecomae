@@ -11627,7 +11627,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP expense reports digest. PHP epc_erp_expense_reports remains authoritative."
+                note = "Open ?expense_id= loads 280-char notes excerpt; same-status siblings. PHP epc_erp_expense_reports remain authoritative."
             });
         });
 

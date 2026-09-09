@@ -6787,6 +6787,32 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened expense report. notes is a short excerpt. Save stays Classic.</summary>
+    public const string SelectErpExpenseReportDetail = """
+        SELECT `id`, IFNULL(`report_no`,'') AS report_no, IFNULL(`staff_user_id`,0) AS staff_user_id,
+               IFNULL(`title`,'') AS title, IFNULL(`total_amount`,0) AS total_amount,
+               IFNULL(`status`,'') AS status, IFNULL(`period_from`,0) AS period_from,
+               IFNULL(`period_to`,0) AS period_to, IFNULL(`cash_entry_id`,0) AS cash_entry_id,
+               IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_expense_reports`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other expense reports with the same status. notes omitted.</summary>
+    public const string SelectErpExpenseReportStatusSiblings = """
+        SELECT `id`, IFNULL(`report_no`,'') AS report_no, IFNULL(`staff_user_id`,0) AS staff_user_id,
+               IFNULL(`title`,'') AS title, IFNULL(`total_amount`,0) AS total_amount,
+               IFNULL(`status`,'') AS status, IFNULL(`period_from`,0) AS period_from,
+               IFNULL(`period_to`,0) AS period_to, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_expense_reports`
+        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
+        ORDER BY `time_updated` DESC
+        LIMIT 50
+        """;
+
     public const string SelectCpOfficesStats = """
         SELECT
             (SELECT COUNT(*) FROM `shop_offices`) AS office_count,

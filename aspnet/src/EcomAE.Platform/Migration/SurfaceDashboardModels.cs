@@ -6392,6 +6392,26 @@ public sealed record ErpExpenseReportListResult(
     string Source,
     string Message);
 
+public sealed record ErpExpenseReportDetail(
+    long Id,
+    string ReportNo,
+    long StaffUserId,
+    string Title,
+    decimal TotalAmount,
+    string Status,
+    long PeriodFrom,
+    long PeriodTo,
+    long CashEntryId,
+    long TimeUpdated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpExpenseReportDetailResult(
+    ErpExpenseReportDetail? Report,
+    IReadOnlyList<ErpExpenseReportDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpOfficesSummary(
     int OfficeCount,
     int MappedStorageCount,
