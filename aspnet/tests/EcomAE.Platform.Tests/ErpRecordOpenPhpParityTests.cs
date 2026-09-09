@@ -21,6 +21,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=overview&tab=shortcut_icons&favorite_id=20", "/erp/workspace-favorites-app?favorite_id=20")]
     [InlineData("/CP/shop/finance/erp?area=overview&tab=favorites&epc_erp_shell=1&favorite_id=20", "/erp/workspace-favorites-app?favorite_id=20")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=vendors&supplier_id=8", "/erp/suppliers-app?supplier_id=8")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ap&tab=payables&supplier_id=8", "/erp/payables-app?supplier_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=overview&tab=processflow&pf_case=11", "/erp/process-flow-tasks-app?pf_case=11")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&rq=4", "/erp/purchase-requests-app?rq=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&req_id=4", "/erp/purchase-requests-app?req_id=4")]
@@ -467,6 +468,41 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void PayablesApp_OpenLoadsTrnCurrencyAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpPayablesApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpSupplierDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"supplier_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("supplier_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(\"/erp/payables-app\", \"supplier_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("TrnExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("CurrencyCode", razor, StringComparison.Ordinal);
+        Assert.Contains("same-currency siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("contact_email", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("contact_phone", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("iban", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/payables-app?supplier_id=6#erp-row-6",
+            ErpRecordOpen.Href("/erp/payables-app", "supplier_id", 6));
+        Assert.Equal(
+            "/erp/payables-app?supplier_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/payables-app",
+                "/ERP/?epc_erp_shell=1&area=ap&tab=payables&supplier_id=6"));
+    }
+
+    [Fact]
     public void GlJournalsApp_OpenLoadsNoteReferenceAndSiblings()
     {
         var root = FindRepoRoot();
@@ -509,6 +545,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("ErpContractsApp.razor", "contract_id")]
     [InlineData("ErpReceivablesApp.razor", "customer_id")]
     [InlineData("ErpSuppliersApp.razor", "supplier_id")]
+    [InlineData("ErpPayablesApp.razor", "supplier_id")]
     public void TransactionalApps_RowOpenIsRecordUrl(string fileName, string param)
     {
         var root = FindRepoRoot();
