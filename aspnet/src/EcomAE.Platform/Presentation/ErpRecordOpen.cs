@@ -28,6 +28,7 @@ public static class ErpRecordOpen
         "prja_budget_id", "prja_txn_id", "prja_rec_id",
         "pm_item_id", "pm_field_id", "pm_variant_id",
         "invrep_cat_id", "invrep_snap_id",
+        "me_group_id", "me_ic_id",
         "order_id", "pf_case",
         "case_id", "campaign_id",
         "warehouse_id", "rfq_id",

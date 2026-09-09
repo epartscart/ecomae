@@ -3316,6 +3316,48 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void MultiEntityApp_OpenLoadsCreatedMembersNoteAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpMultiEntityApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpEntityGroupDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpIntercompanyTxnDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"me_group_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"me_ic_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("me_group_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("me_ic_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"me_group_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"me_ic_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("CreatedAt", razor, StringComparison.Ordinal);
+        Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Consolidated trial balance stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/multi-entity/write", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/multi-entity-app?me_group_id=6#erp-row-6",
+            ErpRecordOpen.Href("/erp/multi-entity-app", "me_group_id", 6));
+        Assert.Equal(
+            "/erp/multi-entity-app?me_group_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/multi-entity-app",
+                "/ERP/?epc_erp_shell=1&area=finance&tab=multi_entity&me_group_id=6"));
+        Assert.Equal("/erp/multi-entity-app?me_ic_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/multi-entity-app", "me_ic_id", 4));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

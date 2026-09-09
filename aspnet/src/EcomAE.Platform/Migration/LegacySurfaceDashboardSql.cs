@@ -9131,6 +9131,80 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened entity group (Open key <c>me_group_id</c>). created_at is hidden from the list.</summary>
+    public const string SelectErpEntityGroupDetail = """
+        SELECT `id`, IFNULL(`group_code`,'') AS group_code,
+               IFNULL(`group_name`,'') AS group_name,
+               IFNULL(`parent_entity`,'') AS parent_entity,
+               IFNULL(`base_currency`,'AED') AS base_currency,
+               IFNULL(`fiscal_year_end`,'12-31') AS fiscal_year_end,
+               IFNULL(`status`,'active') AS status,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at
+        FROM `epc_entity_groups`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other groups with the same status. created_at omitted.</summary>
+    public const string SelectErpEntityGroupStatusSiblings = """
+        SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,
+               IFNULL(g.`group_name`,'') AS group_name,
+               IFNULL(g.`parent_entity`,'') AS parent_entity,
+               IFNULL(g.`base_currency`,'AED') AS base_currency,
+               IFNULL(g.`fiscal_year_end`,'12-31') AS fiscal_year_end,
+               IFNULL(g.`status`,'active') AS status,
+               IFNULL((SELECT COUNT(*) FROM `epc_entity_members` m WHERE m.`group_id` = g.`id`),0) AS member_count
+        FROM `epc_entity_groups` g
+        WHERE IFNULL(g.`status`,'active') = @status AND g.`id` <> @id
+        ORDER BY g.`id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Members of the opened entity group. Hidden from the group list.</summary>
+    public const string SelectErpEntityGroupMembers = """
+        SELECT `id`, IFNULL(`group_id`,0) AS group_id,
+               IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`entity_name`,'') AS entity_name,
+               IFNULL(`ownership_pct`,0) AS ownership_pct,
+               IFNULL(`local_currency`,'AED') AS local_currency,
+               IFNULL(`consolidation`,'full') AS consolidation
+        FROM `epc_entity_members`
+        WHERE `group_id` = @group_id
+        ORDER BY `id`
+        LIMIT 50
+        """;
+
+    /// <summary>Opened inter-company txn (Open key <c>me_ic_id</c>). description is hidden from the list table.</summary>
+    public const string SelectErpIntercompanyTxnDetail = """
+        SELECT `id`, IFNULL(`group_id`,0) AS group_id,
+               IFNULL(`from_site_key`,'') AS from_site_key,
+               IFNULL(`to_site_key`,'') AS to_site_key,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'AED') AS currency,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               IFNULL(`status`,'pending') AS status,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at
+        FROM `epc_intercompany_txns`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other inter-company txns with the same status. description omitted.</summary>
+    public const string SelectErpIntercompanyTxnStatusSiblings = """
+        SELECT `id`, IFNULL(`group_id`,0) AS group_id,
+               IFNULL(`from_site_key`,'') AS from_site_key,
+               IFNULL(`to_site_key`,'') AS to_site_key,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`status`,'pending') AS status,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at
+        FROM `epc_intercompany_txns`
+        WHERE IFNULL(`status`,'pending') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>epc_fx_rates</c>.</summary>
     public const string SelectErpFxRates = """
         SELECT `id`, IFNULL(`base_currency`,'AED') AS base_currency,

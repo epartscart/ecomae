@@ -948,6 +948,12 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only multi-entity groups + IC txns (PHP <c>epc_entity_groups</c>).</summary>
     Task<ErpMultiEntityListResult> ListErpMultiEntityAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened entity group (Open key <c>me_group_id</c>) plus members and same-status siblings. created_at is hidden from the list.</summary>
+    Task<ErpEntityGroupDetailResult> BuildErpEntityGroupDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened inter-company txn (Open key <c>me_ic_id</c>) plus same-status siblings. description is a short excerpt hidden from the list table.</summary>
+    Task<ErpIntercompanyTxnDetailResult> BuildErpIntercompanyTxnDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only FX rates + multi-currency GL entries (PHP <c>epc_fx_rates</c>).</summary>
     Task<ErpMultiCurrencyGlListResult> ListErpMultiCurrencyGlAsync(int limit, CancellationToken cancellationToken = default);
 }
