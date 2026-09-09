@@ -2088,13 +2088,46 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new CpLogisticsWriteRequest(action, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.CpPaymentsWrite, async (HttpContext context, CpPaymentsWriteBody? body, ILegacySessionValidator validator, ICpPaymentsWriteDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpPaymentsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPaymentsWriteDryRun dryRun,
+            ICpPaymentsWriteService writes,
+            CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpPaymentsWriteBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpPaymentsWriteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/payment-gateways-app", "Admin CP capability required for payment write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPaymentsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var handler = body.Handler;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                handler = LiveWriteFormBinder.Text(form, "handler", "payment_handler", "paymentHandler");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "activate")
+            {
+                var written = await writes.ActivateAsync(handler, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/payment-gateways-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpPaymentsWriteRequest(action, confirm)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpWorkshopWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9842,7 +9875,7 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpPacksDeleteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpChannelsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Code = null, int? Enabled = null);
     private sealed record CpLogisticsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Code = null);
-    private sealed record CpPaymentsWriteBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpPaymentsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Handler = null);
     private sealed record CpWorkshopWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
