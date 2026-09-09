@@ -60,21 +60,21 @@
     @if (_isAdmin)
     {
         <form method="post" action="/erp/uae-tax/fta-fetch" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
-            <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+            <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/erp/uae-tax-compliance-app")" />
             <input type="hidden" name="confirmWrites" value="true" />
             <label><input type="checkbox" name="force" value="1" /> Force refetch (ignore 24h cache)</label>
             <button type="submit" class="btn btn-primary btn-sm">Fetch FTA legislation</button>
         </form>
         <p class="text-muted" style="margin:0 0 1rem;">Pulls tax.gov.ae legislation.aspx (VAT, CT, e-invoicing, excise, procedures) into <code>epc_uae_tax_legislation_items</code>. Cached 24 hours unless Force is ticked.</p>
         <form method="post" action="/erp/uae-tax/legislation/ask" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
-            <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+            <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/erp/uae-tax-compliance-app")" />
             <input type="hidden" name="confirmWrites" value="true" />
             <label>Question <input class="form-control input-sm" type="text" name="question" required maxlength="500" style="width:28rem;" /></label>
             <button type="submit" class="btn btn-primary btn-sm">Ask legislation</button>
         </form>
         <p class="text-muted" style="margin:0 0 1rem;">Search + extract from the stored FTA library. Indicative only; confirm with a tax advisor and FTA EmaraTax.</p>
         <form method="post" action="/erp/uae-tax/legislation/regen" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0 0 1rem;">
-            <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+            <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/erp/uae-tax-compliance-app")" />
             <input type="hidden" name="confirmWrites" value="true" />
             <button type="submit" class="btn btn-default btn-sm">Regen summaries</button>
         </form>
@@ -216,7 +216,7 @@
     </div>
 
 <form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="/cp/uae-tax-compliance-app" />
+                <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/cp/uae-tax-compliance-app")" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>From <input class="form-control input-sm" type="date" name="date_from" /></label>
                 <label>To <input class="form-control input-sm" type="date" name="date_to" /></label>
@@ -228,7 +228,7 @@
 
 <ErpPhpCreateWell Title="Checklist step">
 <form method="post" action="/erp/uae-tax/legislation/checklist/set" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="/erp/uae-tax-compliance-app" />
+                <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/erp/uae-tax-compliance-app")" />
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>Item key <input class="form-control input-sm" name="item_key" required style="width:180px;" /></label>
                 <label>Action key <input class="form-control input-sm" name="action_key" required style="width:160px;" /></label>
