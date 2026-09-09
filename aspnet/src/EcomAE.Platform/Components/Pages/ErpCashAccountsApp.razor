@@ -255,7 +255,7 @@
                 <dt>Office</dt><dd>@(_openedDetail.OfficeId > 0 ? _openedDetail.OfficeId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Office cash, petty cash, and forecast write here. Account create stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Office cash, petty cash, and forecast write here. Writes stay Classic for account create.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.BankNameExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">bank-name excerpt</p>
@@ -446,7 +446,7 @@
             "petty_cash" => "Small cash floats with custodian and linked cash account.",
             "cash_forecast" => "Opening balance plus dated inflows and outflows.",
             "bank_setup" => "Bank account names, currencies and opening balances.",
-            _ => "Open a cash account for the bank-name excerpt and office. Office cash, petty cash, and forecast write here. Account create stays Classic."
+            _ => "Open a cash account for the bank-name excerpt and office. Office cash, petty cash, and forecast write here. Writes stay Classic for account create."
         };
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
