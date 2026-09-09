@@ -486,6 +486,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPluginsManager = "/cp/plugins-manager";
     /// <summary>CP Plugins manager Blazor list (JSON digest remains <see cref="ControlPanelPluginsManager"/>).</summary>
     public const string ControlPanelPluginsManagerApp = "/cp/plugins-manager-app";
+    /// <summary>PHP <c>plugins_manager.php</c> <c>plugins_action_type=activated</c>. <c>confirmWrites=true</c> toggles <c>plugins.activated</c>. Delete, lock, and 2FA plugin 10 activate stay Classic.</summary>
+    public const string ControlPanelPluginsActivate = "/cp/plugins-manager/activate";
     public const string ControlPanelTemplatesManager = "/cp/templates-manager";
     /// <summary>CP Templates manager Blazor list (JSON digest remains <see cref="ControlPanelTemplatesManager"/>).</summary>
     public const string ControlPanelTemplatesManagerApp = "/cp/templates-manager-app";
