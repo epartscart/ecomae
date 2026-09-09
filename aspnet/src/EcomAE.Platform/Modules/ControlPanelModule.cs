@@ -8483,9 +8483,64 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_notifications + epc_notification_prefs KPIs + notifications. Open ?notif_id= loads a 280-char body excerpt plus category siblings. metadata omitted. PHP notification settings remain authoritative."
+                note = "Read-only epc_notifications + epc_notification_prefs KPIs + notifications. Open ?notif_id= loads a 280-char body excerpt plus category siblings. metadata omitted. Channel toggle POST /cp/notifications/toggle when confirmWrites=true. Template edit, factory restore, and send stay Classic."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.ControlPanelNotificationsToggle, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpNotificationSettingsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/notifications-app", "Admin CP capability required for notification channel toggle.");
+            }
+
+            long notificationId = 0;
+            string? type = null;
+            var setSend = 0;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                notificationId = LiveWriteFormBinder.Long(form, "notification_id", "notificationId");
+                type = LiveWriteFormBinder.Text(form, "type");
+                setSend = LiveWriteFormBinder.Int(form, "set_send", "setSend");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpNotificationToggleBody>(context, cancellationToken) ?? new();
+                notificationId = body.NotificationId;
+                type = body.Type;
+                setSend = body.SetSend;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to toggle the notification channel.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ToggleAsync(new CpNotificationToggleRequest(notificationId, type, setSend), cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelNotificationsApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelPortalSettings, async (
             HttpContext context,
@@ -10677,4 +10732,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         int FlagValue = 0,
         bool ConfirmWrites = false);
     private sealed record CpTemplatesSetCurrentBody(long TemplateId = 0, bool ConfirmWrites = false);
+    private sealed record CpNotificationToggleBody(
+        long NotificationId = 0,
+        string? Type = null,
+        int SetSend = 0,
+        bool ConfirmWrites = false);
 }

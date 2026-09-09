@@ -640,6 +640,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Opened notification (PHP <c>notif_id</c>) plus category siblings. Body excerpt only; metadata omitted.</summary>
     Task<CpNotificationsDetailResult> BuildCpNotificationsDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>PHP <c>notifications_settings</c> email/SMS flags. Template bodies omitted.</summary>
+    Task<CpNotificationSettingsDigestResult> BuildCpNotificationSettingsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpPortalSettingsDigestResult> BuildCpPortalSettingsDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpDataMigrationsDigestResult> BuildCpDataMigrationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

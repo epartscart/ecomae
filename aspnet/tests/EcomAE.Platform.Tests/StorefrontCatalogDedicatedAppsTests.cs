@@ -195,6 +195,8 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("epc-cn-hero", notify, StringComparison.Ordinal);
         Assert.Contains("epc-cn-quick", notify, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", notify, StringComparison.Ordinal);
+        Assert.Contains("/cp/notifications/toggle", notify, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", notify, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", notify, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w20-hero", notify, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w20-kpis", notify, StringComparison.Ordinal);

@@ -5410,6 +5410,21 @@ public sealed record CpNotificationsDetailResult(
     string Source,
     string Message);
 
+/// <summary>PHP <c>notifications_settings</c> channel flags. Template HTML/SMS text omitted.</summary>
+public sealed record CpNotificationSettingDigest(
+    long Id,
+    string Name,
+    int EmailOn,
+    int SmsOn,
+    int ForeseenEmail,
+    int ForeseenSms);
+
+public sealed record CpNotificationSettingsDigestResult(
+    IReadOnlyList<CpNotificationSettingDigest> Settings,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpPortalSettingsSummary(
     int SiteCount,
     int IndustryCount,

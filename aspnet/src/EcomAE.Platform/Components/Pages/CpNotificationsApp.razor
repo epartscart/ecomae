@@ -36,7 +36,7 @@
     <div class="col-lg-12 epc-cn" id="epc-cn-notify-root">
         <div class="epc-cn-hero">
             <h3>Notification settings</h3>
-            <p>Turn e-mail and SMS on or off for each shop event, edit message templates, and restore factory text when needed. Delivery itself is configured under Communications, SMTP, and SMS Operators. Template toggle writes stay on the Classic twin — this page does not invent a send.</p>
+            <p>Turn e-mail and SMS on or off for each shop event. Channel toggles write here. Edit message templates and restore factory text stay on the Classic twin. Delivery itself is configured under Communications, SMTP, and SMS Operators. This page does not invent a send.</p>
             <div class="epc-cn-hero__actions">
                 <a class="btn btn-sm btn-primary" href="/cp/communications-test-app">Communications</a>
                 <a class="btn btn-sm" href="/cp/sms-whatsapp-app">SMS operators</a>
@@ -60,7 +60,7 @@
             </a>
             <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
                 <strong>Edit templates</strong>
-                <span>Channel toggles and factory restore stay on the Classic twin.</span>
+                <span>Template text and factory restore stay on the Classic twin.</span>
             </a>
         </div>
 
@@ -68,10 +68,95 @@
             <h4>How to use this page</h4>
             <ol class="epc-cn-steps">
                 <li><strong>Scan digest</strong>Unread and channel counts come from tenant notification tables.</li>
+                <li><strong>Toggle channels</strong>Enable or disable e-mail and SMS for events that support them.</li>
                 <li><strong>Edit a template</strong>Open the Classic twin to change subject, HTML body, or SMS text.</li>
                 <li><strong>Restore defaults</strong>Factory reset stays on the Classic twin.</li>
                 <li><strong>Verify send</strong>Test from Classic Communications so SMTP / SMS credentials are confirmed.</li>
             </ol>
+        </div>
+    </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Shop event channels</div>
+            <div class="panel-body">
+                <p class="help-block">@(_isAdmin ? $"{_settings.Count} events. Template HTML and SMS text stay off this list." : "Sign in to load channel flags.")</p>
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Name</th>
+                                <th>E-mail</th>
+                                <th>SMS</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (!_isAdmin)
+                        {
+                            <tr><td colspan="4">Sign in for live data.</td></tr>
+                        }
+                        else if (_settings.Count == 0)
+                        {
+                            <tr><td colspan="4">No notification settings yet.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var s in _settings)
+                            {
+                                <tr>
+                                    <td>@s.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
+                                    <td>
+                                        @if (s.ForeseenEmail == 0)
+                                        {
+                                            <span class="text-muted">n/a</span>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" action="/cp/notifications/toggle" style="display:inline">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="/cp/notifications-app" />
+                                                <input type="hidden" name="notification_id" value="@s.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <input type="hidden" name="type" value="email" />
+                                                <input type="hidden" name="set_send" value="@(s.EmailOn == 0 ? "1" : "0")" />
+                                                <button type="submit" class="btn btn-xs @(s.EmailOn == 0 ? "btn-primary" : "btn-default")">@(s.EmailOn == 0 ? "Enable e-mail" : "Disable e-mail")</button>
+                                            </form>
+                                        }
+                                    </td>
+                                    <td>
+                                        @if (s.ForeseenSms == 0)
+                                        {
+                                            <span class="text-muted">n/a</span>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" action="/cp/notifications/toggle" style="display:inline">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="/cp/notifications-app" />
+                                                <input type="hidden" name="notification_id" value="@s.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <input type="hidden" name="type" value="sms" />
+                                                <input type="hidden" name="set_send" value="@(s.SmsOn == 0 ? "1" : "0")" />
+                                                <button type="submit" class="btn btn-xs @(s.SmsOn == 0 ? "btn-primary" : "btn-default")">@(s.SmsOn == 0 ? "Enable SMS" : "Disable SMS")</button>
+                                            </form>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/notifications-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
@@ -214,7 +299,10 @@
     private const string _phpTab = "/CP/control/notifications_settings";
     private const string _listHref = "/cp/notifications-app";
     private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
     private CpNotificationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private IReadOnlyList<CpNotificationSettingDigest> _settings = [];
     private IReadOnlyList<CpNotificationsRowDigest> _rows = [];
     private string _message = "";
     private long _openedId;
@@ -234,6 +322,8 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "notif_id");
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -246,6 +336,8 @@
         _summary = result.Summary;
         _rows = result.Notifications;
         _message = result.Message;
+        var settings = await Dashboards.BuildCpNotificationSettingsDigestAsync(200, ctx.RequestAborted);
+        _settings = settings.Settings;
 
         if (_openedId > 0)
         {

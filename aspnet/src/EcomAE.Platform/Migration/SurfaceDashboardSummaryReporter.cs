@@ -17346,6 +17346,41 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpNotificationSettingsDigestResult> BuildCpNotificationSettingsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpNotificationSettingDigest>();
+            await using var list = connection.CreateCommand();
+            list.CommandText = LegacySurfaceDashboardSql.SelectCpNotificationSettings;
+            AddParameter(list, "@limit", safeLimit);
+            await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpNotificationSettingDigest(
+                    Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt32(reader["email_on"] is DBNull ? 0 : reader["email_on"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["sms_on"] is DBNull ? 0 : reader["sms_on"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["foreseen_email"] is DBNull ? 0 : reader["foreseen_email"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["foreseen_sms"] is DBNull ? 0 : reader["foreseen_sms"], CultureInfo.InvariantCulture)));
+            }
+
+            return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPortalSettingsDigestResult> BuildCpPortalSettingsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
