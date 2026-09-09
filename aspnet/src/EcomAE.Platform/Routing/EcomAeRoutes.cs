@@ -146,6 +146,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrmBoard = "/cp/crm-board";
     /// <summary>CP CRM Blazor board (JSON digest remains <see cref="ControlPanelCrmBoard"/>).</summary>
     public const string ControlPanelCrmBoardApp = "/cp/crm-board-app";
+    /// <summary>CRM convert_lead. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Quote email stays Classic.</summary>
+    public const string CpCrmLeadConvert = "/cp/crm/leads/convert";
     /// <summary>CP document control templates (HTML/bank secrets omitted).</summary>
     public const string ControlPanelDocumentControl = "/cp/document-control";
     /// <summary>CP document control Blazor list (JSON digest remains <see cref="ControlPanelDocumentControl"/>).</summary>

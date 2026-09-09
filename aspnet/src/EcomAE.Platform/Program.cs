@@ -924,6 +924,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingGrowthWriteService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmOpportunityWriteService, EcomAE.Platform.Cp.CpCrmOpportunityWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmActivityWriteService, EcomAE.Platform.Cp.CpCrmActivityWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmTicketWriteService, EcomAE.Platform.Cp.CpCrmTicketWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmConvertWriteService, EcomAE.Platform.Cp.CpCrmConvertWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Platform.Cp.CpWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWorkshopWriteService, EcomAE.Platform.Storefront.StorefrontWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();

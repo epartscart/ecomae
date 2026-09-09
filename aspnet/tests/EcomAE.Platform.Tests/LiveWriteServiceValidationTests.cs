@@ -763,6 +763,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(tixDb.Succeeded);
         Assert.Equal("db", tixDb.Code);
 
+        var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
+            .ConvertLeadAsync(0, 1);
+        Assert.False(crmConvInvalid.Succeeded);
+        Assert.Equal("invalid", crmConvInvalid.Code);
+
+        var crmConvDb = await new CpCrmConvertWriteService(new UnconfiguredConnections())
+            .ConvertLeadAsync(3, 1);
+        Assert.False(crmConvDb.Succeeded);
+        Assert.Equal("db", crmConvDb.Code);
+
         var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
             .AssignAsync(0, 1, 1);
         Assert.False(wsAssign.Succeeded);

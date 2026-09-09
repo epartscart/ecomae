@@ -22,7 +22,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Save a lead here. Convert, quote email, schema-ensure, and send stay Classic. This page does not invent a send.</p>
+                <p>Save a lead here. Convert a lead to an opportunity here. Email and phone stay omitted. Quote email stays Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -96,6 +96,13 @@
                             </label>
                             <label>Amount <input type="text" name="expected_value" inputmode="decimal" value="@_opened.Amount.ToString(CultureInfo.InvariantCulture)" /></label>
                             <button type="submit" class="btn btn-primary btn-sm">Save lead</button>
+                        </form>
+                        <form method="post" action="/cp/crm/leads/convert" style="margin:.75rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "lead_id", _opened.Id)" />
+                            <input type="hidden" name="action" value="convert_lead" />
+                            <input type="hidden" name="lead_id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-primary btn-sm">Convert to opportunity</button>
                         </form>
                     }
                     @if (_openedSiblings.Count > 0)
@@ -216,9 +223,9 @@
     private string _source = "n/a";
     private string _message = "";
     private string _listHref = "/cp/crm-board-app";
-    private long _openedId;
     private string _flashOk = "";
     private string _flashErr = "";
+    private long _openedId;
     private CpCrmLeadDetail? _opened;
     private IReadOnlyList<CpCrmLeadDigest> _openedSiblings = [];
     private static readonly string[] _leadStatuses = ["new", "contacted", "qualified", "unqualified", "converted"];
