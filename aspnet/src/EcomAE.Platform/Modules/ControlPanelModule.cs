@@ -3829,7 +3829,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Modules digest. Create/edit/delete/activate POST /cp/modules/write when confirmWrites=true."
+                note = "Modules digest. Open ?module_id= loads 280-char body excerpt. Full HTML omitted. Create/edit/delete/activate POST /cp/modules/write when confirmWrites=true."
             });
         });
 

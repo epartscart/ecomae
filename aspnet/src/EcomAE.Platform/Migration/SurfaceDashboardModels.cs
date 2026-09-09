@@ -564,6 +564,27 @@ public sealed record CpModuleListResult(
     string Source,
     string Message);
 
+public sealed record CpModuleDetail(
+    int Id,
+    string Caption,
+    bool Activated,
+    bool IsFrontend,
+    bool IsPrototype,
+    bool ControlAvailable,
+    string ContentType,
+    string Position,
+    bool ShowCaption,
+    int SortOrder,
+    bool ForAll,
+    int BodyLen,
+    string BodyExcerpt);
+
+public sealed record CpModuleDetailResult(
+    CpModuleDetail? Module,
+    IReadOnlyList<CpModuleDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpConfigItemMetaDigest(
     string Name,
     string Caption,

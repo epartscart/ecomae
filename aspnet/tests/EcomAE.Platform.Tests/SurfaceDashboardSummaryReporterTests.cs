@@ -729,6 +729,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpOfficesDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`users`", LegacySurfaceDashboardSql.SelectCpOfficesCitySiblings, StringComparison.Ordinal);
         Assert.Contains("`city` = @city", LegacySurfaceDashboardSql.SelectCpOfficesCitySiblings, StringComparison.Ordinal);
+        Assert.Contains("FROM `modules`", LegacySurfaceDashboardSql.SelectCpModules, StringComparison.Ordinal);
+        Assert.DoesNotContain("`content`", LegacySurfaceDashboardSql.SelectCpModules, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(t.`value`, ''), 280)", LegacySurfaceDashboardSql.SelectCpModulesDetail, StringComparison.Ordinal);
+        Assert.Contains("m.`id` = @id", LegacySurfaceDashboardSql.SelectCpModulesDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`content`", LegacySurfaceDashboardSql.SelectCpModulesPositionSiblings, StringComparison.Ordinal);
+        Assert.Contains("`position` = @position", LegacySurfaceDashboardSql.SelectCpModulesPositionSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_platform_governance_rules", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
