@@ -736,6 +736,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpPaymentBatchDetailResult> BuildErpPaymentBatchDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpFiscalPeriodListResult> ListErpFiscalPeriodsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpAgendaEventListResult> ListErpAgendaEventsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened agenda event (Open key <c>event_id</c>, remapped by <c>tab=agenda</c>) plus same-type siblings. notes is a short excerpt.</summary>
+    Task<ErpAgendaEventDetailResult> BuildErpAgendaEventDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpExpenseReportListResult> ListErpExpenseReportsAsync(int limit, CancellationToken cancellationToken = default);
 

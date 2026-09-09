@@ -6359,6 +6359,27 @@ public sealed record ErpAgendaEventListResult(
     string Source,
     string Message);
 
+public sealed record ErpAgendaEventDetail(
+    long Id,
+    string Title,
+    string EventType,
+    long StartAt,
+    long EndAt,
+    bool AllDay,
+    string EntityType,
+    long EntityId,
+    long AssignedUserId,
+    string Location,
+    long TimeCreated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpAgendaEventDetailResult(
+    ErpAgendaEventDetail? Event,
+    IReadOnlyList<ErpAgendaEventDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpDocumentDigest(
     long Id,
     string EntityType,

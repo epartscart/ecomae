@@ -6764,6 +6764,33 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened agenda event. notes is a short excerpt. Add event writes on this page.</summary>
+    public const string SelectErpAgendaEventDetail = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`event_type`,'') AS event_type,
+               IFNULL(`start_at`,0) AS start_at, IFNULL(`end_at`,0) AS end_at,
+               IFNULL(`all_day`,0) AS all_day,
+               IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`assigned_user_id`,0) AS assigned_user_id,
+               IFNULL(`location`,'') AS location, IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_agenda_events`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other agenda events with the same type. notes omitted.</summary>
+    public const string SelectErpAgendaEventTypeSiblings = """
+        SELECT `id`, IFNULL(`title`,'') AS title, IFNULL(`event_type`,'') AS event_type,
+               IFNULL(`start_at`,0) AS start_at, IFNULL(`end_at`,0) AS end_at,
+               IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`location`,'') AS location, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_agenda_events`
+        WHERE IFNULL(`event_type`,'') = @event_type AND `id` <> @id
+        ORDER BY `start_at` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP documents library (notes/path omitted) — PHP epc_erp_documents.</summary>
     public const string SelectErpDocuments = """
         SELECT `id`, IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
