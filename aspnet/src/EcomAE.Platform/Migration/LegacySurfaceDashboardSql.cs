@@ -3241,7 +3241,25 @@ public static class LegacySurfaceDashboardSql
     }
 
     /// <summary>
-    /// Cross-table match: prefer indexed <c>article_search</c>/<c>analog_search</c> when probed.
+    /// PHP <c>EPC_CROSS_LOCAL_MAX</c> — storefront returns every unique brand+article cross
+    /// (ASAKASHI/C110J is 700+), not a 120/600-row sample.
+    /// </summary>
+    public const int StorefrontCrossSearchMax = 5000;
+
+    /// <summary>PHP <c>EPC_CROSS_CROSSBASE_MAX</c>.</summary>
+    public const int StorefrontCrossbaseParseMax = 2500;
+
+    /// <summary>PHP <c>EPC_CROSS_STOCK_MAX</c>.</summary>
+    public const int StorefrontCrossStockMax = 2000;
+
+    /// <summary>PHP <c>EPC_CROSS_STOCK_BATCH</c>.</summary>
+    public const int StorefrontCrossStockBatch = 400;
+
+    /// <summary>
+    /// Combined OR match — small candidate walks only. Heavy CHPU cross-search must use
+    /// <see cref="StorefrontCrossArticleSideMatchSql"/> + <see cref="StorefrontCrossAnalogSideMatchSql"/>
+    /// (PHP <c>epc_cross_load_local_references</c> two equality queries). OR on a large
+    /// analogs table times out (C110J live: "Command Timeout expired" → 0 references).
     /// </summary>
     public static string StorefrontCrossArticleMatchSql(bool hasAnalogsSearchColumns = false)
     {
@@ -3253,6 +3271,28 @@ public static class LegacySurfaceDashboardSql
         var art = DocpartNormalizeArticleExpr("IFNULL(`article`, '')");
         var analog = DocpartNormalizeArticleExpr("IFNULL(`analog`, '')");
         return $"({art} = @article OR {analog} = @article)";
+    }
+
+    /// <summary>PHP direct query 1: <c>article_search = ?</c> (or REPLACE fallback).</summary>
+    public static string StorefrontCrossArticleSideMatchSql(bool hasAnalogsSearchColumns = false)
+    {
+        if (hasAnalogsSearchColumns)
+        {
+            return "`article_search` = @article";
+        }
+
+        return $"{DocpartNormalizeArticleExpr("IFNULL(`article`, '')")} = @article";
+    }
+
+    /// <summary>PHP direct query 2: <c>analog_search = ?</c> (or REPLACE fallback).</summary>
+    public static string StorefrontCrossAnalogSideMatchSql(bool hasAnalogsSearchColumns = false)
+    {
+        if (hasAnalogsSearchColumns)
+        {
+            return "`analog_search` = @article";
+        }
+
+        return $"{DocpartNormalizeArticleExpr("IFNULL(`analog`, '')")} = @article";
     }
 
     /// <summary>

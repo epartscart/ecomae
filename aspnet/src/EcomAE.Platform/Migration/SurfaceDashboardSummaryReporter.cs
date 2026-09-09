@@ -3190,8 +3190,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         CancellationToken cancellationToken = default,
         bool includeCrossbase = false)
     {
-        // PHP local path loads hundreds of CP analogs in one indexed query — keep that shape for ~1s paint.
-        var safeLimit = Math.Clamp(limit, 1, 600);
+        // PHP ajax_epc_cross_search: every unique brand+article (EPC_CROSS_LOCAL_MAX=5000).
+        // ASAKASHI/C110J is 700+ on Classic — a 600 clamp hid the rest of the interchange list.
+        var safeLimit = Math.Clamp(limit, 1, LegacySurfaceDashboardSql.StorefrontCrossSearchMax);
         var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
         var brandNorm = (brand ?? string.Empty).Trim().ToUpperInvariant();
         if (string.IsNullOrWhiteSpace(normalized))
@@ -3208,72 +3209,35 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
             var hasAnalogsSearch = await ProbeAnalogsSearchColumnsAsync(connection, cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            // Heavy articles (ASAKASHI/C110J) regularly need >2s on shop_docpart analogs —
-            // a 2s CommandTimeout returned empty refs ("Command Timeout expired") after republish.
-            command.CommandTimeout = 10;
-            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs.Replace(
-                "{CROSS_MATCH}",
-                LegacySurfaceDashboardSql.StorefrontCrossArticleMatchSql(hasAnalogsSearch),
-                StringComparison.Ordinal);
-            AddParameter(command, "@article", normalized);
-            AddParameter(command, "@limit", Math.Min(safeLimit * 8, 5000));
 
-            // When merging crossbase.ru, reserve slots so CP local cannot crowd out every crossbase row
-            // (AISIN/DT068: local ⊇ crossbase overlap → zero source=crossbase without a reserve).
-            var maxLocal = includeCrossbase
-                ? Math.Max(24, (int)Math.Floor(safeLimit * 0.65))
-                : safeLimit;
-
+            // PHP epc_cross_load_local_references: two equality queries, never OR.
+            // OR article_search=x OR analog_search=x + LIMIT 4800 times out on C110J
+            // ("Command Timeout expired") and the whole payload (incl. crossbase) was empty.
             var localRows = new List<StorefrontCrossRefDigest>();
             var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
             var selfBrandCompact = CompactStorefrontBrand(brandNorm);
-            // Dispose the reader before crossbase HTTP + stock batch reuse this connection
-            // (MySqlConnector: "This MySqlConnection is already in use").
-            await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
-            {
-                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false) && localRows.Count < maxLocal)
-                {
-                    var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    var crossBrand = Convert.ToString(reader["cross_brand"] is DBNull ? string.Empty : reader["cross_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    var crossArticle = Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty;
-                    var sourceNorm = PriceLookupRequest.NormalizeArticle(sourceArticle);
-                    var crossNorm = PriceLookupRequest.NormalizeArticle(crossArticle);
-                    string partnerBrand;
-                    string partnerArticle;
-                    if (sourceNorm == normalized && crossNorm != string.Empty)
-                    {
-                        partnerBrand = crossBrand;
-                        partnerArticle = crossArticle;
-                    }
-                    else if (crossNorm == normalized && sourceNorm != string.Empty)
-                    {
-                        partnerBrand = sourceBrand;
-                        partnerArticle = sourceArticle;
-                    }
-                    else
-                    {
-                        continue;
-                    }
-
-                    var partnerNorm = PriceLookupRequest.NormalizeArticle(partnerArticle);
-                    // Skip the searched brand+article itself.
-                    if (partnerNorm == normalized
-                        && (selfBrandCompact.Length == 0 || CompactStorefrontBrand(partnerBrand) == selfBrandCompact))
-                    {
-                        continue;
-                    }
-
-                    var key = partnerBrand.Trim().ToUpperInvariant() + "|" + partnerNorm;
-                    if (!seen.Add(key))
-                    {
-                        continue;
-                    }
-
-                    localRows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false, "cp"));
-                }
-            }
+            var articleSideLimit = hasAnalogsSearch ? Math.Min(safeLimit, 2500) : 120;
+            var analogSideLimit = hasAnalogsSearch ? Math.Min(safeLimit, 2500) : 400;
+            await AppendStorefrontCrossPairsAsync(
+                connection,
+                LegacySurfaceDashboardSql.StorefrontCrossArticleSideMatchSql(hasAnalogsSearch),
+                normalized,
+                selfBrandCompact,
+                articleSideLimit,
+                hasAnalogsSearch ? 10 : 2,
+                localRows,
+                seen,
+                cancellationToken).ConfigureAwait(false);
+            await AppendStorefrontCrossPairsAsync(
+                connection,
+                LegacySurfaceDashboardSql.StorefrontCrossAnalogSideMatchSql(hasAnalogsSearch),
+                normalized,
+                selfBrandCompact,
+                analogSideLimit,
+                hasAnalogsSearch ? 10 : 2,
+                localRows,
+                seen,
+                cancellationToken).ConfigureAwait(false);
 
             var localCount = localRows.Count;
             var rows = new List<StorefrontCrossRefDigest>(localRows);
@@ -3281,13 +3245,28 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var source = "aspnet-cross-local";
 
             // PHP ajax_epc_cross_search merges crossbase.ru after local CP — opt-in so first paint stays fast.
+            // Local timeout/empty must NOT skip this: C110J's 700+ is the CP + crossbase union.
             if (includeCrossbase)
             {
-                var room = Math.Max(0, safeLimit - rows.Count);
-                var loadCap = Math.Max(room, Math.Min(safeLimit, 200));
-                var (crossbaseRefs, _) = await CrossbaseReferenceLoader
-                    .LoadAsync(normalized, loadCap, cancellationToken)
-                    .ConfigureAwait(false);
+                IReadOnlyList<StorefrontCrossRefDigest> crossbaseRefs = [];
+                try
+                {
+                    var room = Math.Max(0, safeLimit - rows.Count);
+                    var loadCap = Math.Min(
+                        LegacySurfaceDashboardSql.StorefrontCrossbaseParseMax,
+                        Math.Max(room, Math.Min(safeLimit, LegacySurfaceDashboardSql.StorefrontCrossbaseParseMax)));
+                    (crossbaseRefs, _) = await CrossbaseReferenceLoader
+                        .LoadAsync(normalized, loadCap, cancellationToken, timeoutMs: 12000)
+                        .ConfigureAwait(false);
+                }
+                catch (OperationCanceledException)
+                {
+                    throw;
+                }
+                catch
+                {
+                    crossbaseRefs = [];
+                }
 
                 // Prefer showing distinct crossbase rows: when still over capacity, drop trailing CP locals.
                 var uniqueCrossbase = new List<StorefrontCrossRefDigest>();
@@ -3359,8 +3338,21 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             // PHP epc_cross_load_stock_for_references — one batched prices_data probe so CHPU
             // is not blank when the typed OE has no warehouse row but crosses do.
-            var stock = await LoadStorefrontCrossStockAsync(connection, rows, cancellationToken)
-                .ConfigureAwait(false);
+            List<StorefrontCrossStockDigest> stock = [];
+            try
+            {
+                stock = await LoadStorefrontCrossStockAsync(connection, rows, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (OperationCanceledException)
+            {
+                throw;
+            }
+            catch
+            {
+                // Keep the interchange list even if the stock batch times out.
+            }
+
             if (stock.Count > 0)
             {
                 var stockKeys = new HashSet<string>(
@@ -3391,7 +3383,97 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
         catch (Exception ex)
         {
+            // Never wipe a partial interchange list (local or crossbase) because stock/SQL failed.
             return new(normalized, brandNorm, [], [], 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
+    /// <summary>
+    /// PHP <c>epc_cross_load_local_references</c> one-side equality query.
+    /// Swallows timeout so the other side / crossbase merge can still paint C110J.
+    /// Dispose each analog reader before stock/crossbase reuse this connection
+    /// (MySqlConnector: "This MySqlConnection is already in use").
+    /// </summary>
+    private async Task AppendStorefrontCrossPairsAsync(
+        DbConnection connection,
+        string matchSql,
+        string normalized,
+        string selfBrandCompact,
+        int sideLimit,
+        int commandTimeoutSeconds,
+        List<StorefrontCrossRefDigest> rows,
+        HashSet<string> seen,
+        CancellationToken cancellationToken)
+    {
+        if (sideLimit <= 0 || string.IsNullOrWhiteSpace(matchSql))
+        {
+            return;
+        }
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandTimeout = Math.Clamp(commandTimeoutSeconds, 1, 15);
+            command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs.Replace(
+                "{CROSS_MATCH}",
+                matchSql,
+                StringComparison.Ordinal);
+            AddParameter(command, "@article", normalized);
+            AddParameter(command, "@limit", sideLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var sourceBrand = Convert.ToString(reader["source_brand"] is DBNull ? string.Empty : reader["source_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var sourceArticle = Convert.ToString(reader["source_article"] is DBNull ? string.Empty : reader["source_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var crossBrand = Convert.ToString(reader["cross_brand"] is DBNull ? string.Empty : reader["cross_brand"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var crossArticle = Convert.ToString(reader["cross_article"] is DBNull ? string.Empty : reader["cross_article"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var sourceNorm = PriceLookupRequest.NormalizeArticle(sourceArticle);
+                var crossNorm = PriceLookupRequest.NormalizeArticle(crossArticle);
+                string partnerBrand;
+                string partnerArticle;
+                if (sourceNorm == normalized && crossNorm != string.Empty)
+                {
+                    partnerBrand = crossBrand;
+                    partnerArticle = crossArticle;
+                }
+                else if (crossNorm == normalized && sourceNorm != string.Empty)
+                {
+                    partnerBrand = sourceBrand;
+                    partnerArticle = sourceArticle;
+                }
+                else
+                {
+                    continue;
+                }
+
+                var partnerNorm = PriceLookupRequest.NormalizeArticle(partnerArticle);
+                if (partnerNorm.Length == 0)
+                {
+                    continue;
+                }
+
+                if (partnerNorm == normalized
+                    && (selfBrandCompact.Length == 0 || CompactStorefrontBrand(partnerBrand) == selfBrandCompact))
+                {
+                    continue;
+                }
+
+                var key = partnerBrand.Trim().ToUpperInvariant() + "|" + partnerNorm;
+                if (!seen.Add(key))
+                {
+                    continue;
+                }
+
+                rows.Add(new StorefrontCrossRefDigest(partnerBrand.Trim(), partnerArticle.Trim(), false, "cp"));
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            throw;
+        }
+        catch
+        {
+            // One analog side timed out — keep the other side / continue to crossbase.
         }
     }
 
@@ -3404,8 +3486,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         IReadOnlyList<StorefrontCrossRefDigest> references,
         CancellationToken cancellationToken)
     {
-        const int stockMax = 80;
-        const int batchSize = 40;
+        const int stockMax = LegacySurfaceDashboardSql.StorefrontCrossStockMax;
+        const int batchSize = LegacySurfaceDashboardSql.StorefrontCrossStockBatch;
         var norms = new List<string>();
         var seenNorm = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var reference in references)
@@ -3417,7 +3499,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             norms.Add(norm);
-            if (norms.Count >= 160)
+            if (norms.Count >= LegacySurfaceDashboardSql.StorefrontCrossStockMax)
             {
                 break;
             }
@@ -3444,7 +3526,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                   AND IFNULL(d.`price`, 0) > 0
                   AND IFNULL(d.`exist`, 0) > 0
                 ORDER BY d.`manufacturer`, d.`article`
-                LIMIT 250
+                LIMIT 800
                 """;
             BindArticleCandidates(command, batch);
 

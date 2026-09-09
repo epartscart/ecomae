@@ -26,7 +26,7 @@ public static class CrossbaseReferenceLoader
     {
         var client = new HttpClient
         {
-            Timeout = TimeSpan.FromSeconds(3),
+            Timeout = TimeSpan.FromSeconds(20),
         };
         client.DefaultRequestHeaders.UserAgent.ParseAdd("EcomAE-Crossbase/1.0 (+https://www.epartscart.com)");
         return client;
@@ -35,7 +35,8 @@ public static class CrossbaseReferenceLoader
     public static async Task<(IReadOnlyList<StorefrontCrossRefDigest> Refs, int ReportedTotal)> LoadAsync(
         string article,
         int maxRefs,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        int timeoutMs = 2500)
     {
         var normalized = PriceLookupRequest.NormalizeArticle(article ?? string.Empty);
         if (string.IsNullOrWhiteSpace(normalized) || maxRefs <= 0)
@@ -46,7 +47,7 @@ public static class CrossbaseReferenceLoader
         var html = ReadDiskCache(normalized);
         if (string.IsNullOrWhiteSpace(html))
         {
-            html = await FetchRemoteHtmlAsync(normalized, cancellationToken).ConfigureAwait(false);
+            html = await FetchRemoteHtmlAsync(normalized, cancellationToken, timeoutMs).ConfigureAwait(false);
             if (!string.IsNullOrWhiteSpace(html) && html.Length > 400)
             {
                 TryWriteDiskCache(normalized, html);
@@ -238,12 +239,15 @@ public static class CrossbaseReferenceLoader
         }
     }
 
-    private static async Task<string> FetchRemoteHtmlAsync(string normalized, CancellationToken cancellationToken)
+    private static async Task<string> FetchRemoteHtmlAsync(
+        string normalized,
+        CancellationToken cancellationToken,
+        int timeoutMs = 2500)
     {
         try
         {
             using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-            cts.CancelAfter(TimeSpan.FromMilliseconds(2500));
+            cts.CancelAfter(TimeSpan.FromMilliseconds(Math.Clamp(timeoutMs, 500, 20000)));
             var url = "https://crossbase.ru/cross/?q=" + Uri.EscapeDataString(normalized);
             using var response = await Http.GetAsync(url, cts.Token).ConfigureAwait(false);
             if (!response.IsSuccessStatusCode)
