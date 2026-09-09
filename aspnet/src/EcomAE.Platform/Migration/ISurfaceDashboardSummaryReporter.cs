@@ -762,6 +762,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only on-premises license registry (notes/fingerprint/ip omitted; license keys masked).</summary>
     Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened on-premises license (Open key <c>license_id</c>) plus same-status siblings. notes is a short excerpt. fingerprint/ip/modules_json and raw license_key omitted.</summary>
+    Task<OnPremisesLicenseDetailResult> BuildOnPremisesLicenseDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpDeliveryNoteListResult> ListErpDeliveryNotesAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened delivery note (Open key <c>delivery_note_id</c>) plus same-status siblings. notes is a short excerpt. pdf_path omitted.</summary>

@@ -21036,6 +21036,77 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<OnPremisesLicenseDetailResult> BuildOnPremisesLicenseDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            OnPremisesLicenseDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectOnPremisesLicenseDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new OnPremisesLicenseDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "customer_name"),
+                        ReadStr(reader, "tier"),
+                        ReadI32(reader, "users_max"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "hostname"),
+                        ReadI64(reader, "issued_at"),
+                        ReadI64(reader, "activated_at"),
+                        ReadI64(reader, "last_seen_at"),
+                        ReadI64(reader, "expires_at"),
+                        ReadStr(reader, "notes_excerpt"),
+                        ReadI32(reader, "notes_len"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "License not found.");
+            }
+
+            var siblings = new List<OnPremisesLicenseSiblingDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectOnPremisesLicenseStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new OnPremisesLicenseSiblingDigest(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "customer_name"),
+                        ReadStr(reader, "tier"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "hostname"),
+                        ReadI64(reader, "expires_at")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpDeliveryNoteListResult> ListErpDeliveryNotesAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

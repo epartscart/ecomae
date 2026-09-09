@@ -6271,6 +6271,34 @@ public sealed record OnPremisesLicenseListResult(
     string Source,
     string Message);
 
+public sealed record OnPremisesLicenseDetail(
+    long Id,
+    string CustomerName,
+    string Tier,
+    int UsersMax,
+    string Status,
+    string Hostname,
+    long IssuedAt,
+    long ActivatedAt,
+    long LastSeenAt,
+    long ExpiresAt,
+    string NotesExcerpt,
+    int NotesLen);
+
+public sealed record OnPremisesLicenseSiblingDigest(
+    long Id,
+    string CustomerName,
+    string Tier,
+    string Status,
+    string Hostname,
+    long ExpiresAt);
+
+public sealed record OnPremisesLicenseDetailResult(
+    OnPremisesLicenseDetail? License,
+    IReadOnlyList<OnPremisesLicenseSiblingDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpStatisticsSummary(int OrderCount, int QueryCount, int UniqueArticles, int ActiveDays, string Source, string Message);
 public sealed record CpStatisticsRowDigest(string Article, string Brand, int Hits, long LastSeen);
 public sealed record CpStatisticsDigestResult(CpStatisticsSummary Summary, IReadOnlyList<CpStatisticsRowDigest> Rows, int Count, string Source, string Message);

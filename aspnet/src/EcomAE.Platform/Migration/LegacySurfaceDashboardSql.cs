@@ -7043,6 +7043,33 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened on-premises license (Open key <c>license_id</c>). notes is a short excerpt. fingerprint/ip/modules_json and raw license_key omitted.</summary>
+    public const string SelectOnPremisesLicenseDetail = """
+        SELECT `id`, IFNULL(`customer_name`, '') AS customer_name, IFNULL(`tier`, '') AS tier,
+               IFNULL(`users_max`, 0) AS users_max, IFNULL(`status`, '') AS status,
+               IFNULL(`hostname`, '') AS hostname,
+               IFNULL(`issued_at`, 0) AS issued_at,
+               IFNULL(`activated_at`, 0) AS activated_at,
+               IFNULL(`last_seen_at`, 0) AS last_seen_at,
+               IFNULL(`expires_at`, 0) AS expires_at,
+               LEFT(IFNULL(`notes`, ''), 280) AS notes_excerpt,
+               CHAR_LENGTH(IFNULL(`notes`, '')) AS notes_len
+        FROM `epc_onprem_licenses`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other licenses with the same status. notes/fingerprint/ip omitted.</summary>
+    public const string SelectOnPremisesLicenseStatusSiblings = """
+        SELECT `id`, IFNULL(`customer_name`, '') AS customer_name, IFNULL(`tier`, '') AS tier,
+               IFNULL(`status`, '') AS status, IFNULL(`hostname`, '') AS hostname,
+               IFNULL(`expires_at`, 0) AS expires_at
+        FROM `epc_onprem_licenses`
+        WHERE IFNULL(`status`, '') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP delivery notes (notes/pdf omitted) — PHP epc_erp_delivery_notes.</summary>
     public const string SelectErpDeliveryNotes = """
         SELECT `id`, IFNULL(`note_no`,'') AS note_no, IFNULL(`order_id`,0) AS order_id,
