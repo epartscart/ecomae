@@ -1487,7 +1487,7 @@ public static class PhpSurfaceLinkMap
         // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
         if (value.Contains("uae-tax-compliance", StringComparison.OrdinalIgnoreCase))
         {
-            return "/cp/uae-tax-compliance-app";
+            return ErpRecordOpen.PreserveRecordQuery("/cp/uae-tax-compliance-app", value);
         }
 
         // PHP warehouse edit uses ?id=. Open key is storage_id — do not add generic id to RecordQueryKeys.
@@ -1673,7 +1673,9 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/menus-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/product-catalogue-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/offices-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/modules-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/modules-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

@@ -555,6 +555,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_uae_tax_legislation_items", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("erp_summary", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`erp_summary`,''), 280)", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("compliance_actions_json", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("passport", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("erp_summary", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsCategorySiblings, StringComparison.Ordinal);
+        Assert.Contains("@tax_category", LegacySurfaceDashboardSql.SelectCpUaeTaxItemsCategorySiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_pm_budgets", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectCpBudgets, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`note`,''), 280)", LegacySurfaceDashboardSql.SelectCpBudgetsDetail, StringComparison.Ordinal);

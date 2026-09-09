@@ -2299,6 +2299,34 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened UAE tax legislation item. erp_summary is a short excerpt; pdf_url/passport/compliance_actions_json omitted.</summary>
+    public const string SelectCpUaeTaxItemsDetail = """
+        SELECT `id`, IFNULL(`slug`,'') AS slug, IFNULL(`title`,'') AS title,
+               IFNULL(`issue_date`,'') AS issue_date, IFNULL(`publish_date`,'') AS publish_date,
+               IFNULL(`category`,'') AS category, IFNULL(`tax_category`,'') AS tax_category,
+               IFNULL(`pattern_key`,'') AS pattern_key,
+               IFNULL(`is_new`,0) AS is_new, IFNULL(`is_updated`,0) AS is_updated,
+               IFNULL(`time_synced`,0) AS time_synced,
+               CHAR_LENGTH(IFNULL(`erp_summary`,'')) AS summary_len,
+               LEFT(IFNULL(`erp_summary`,''), 280) AS summary_excerpt
+        FROM `epc_uae_tax_legislation_items`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other legislation items in the same tax_category. erp_summary/pdf/passport omitted.</summary>
+    public const string SelectCpUaeTaxItemsCategorySiblings = """
+        SELECT `id`, IFNULL(`slug`,'') AS slug, IFNULL(`title`,'') AS title,
+               IFNULL(`issue_date`,'') AS issue_date, IFNULL(`category`,'') AS category,
+               IFNULL(`tax_category`,'') AS tax_category,
+               IFNULL(`is_new`,0) AS is_new, IFNULL(`is_updated`,0) AS is_updated,
+               IFNULL(`time_synced`,0) AS time_synced
+        FROM `epc_uae_tax_legislation_items`
+        WHERE `tax_category` = @tax_category AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Budget KPIs — omits note text.</summary>
     public const string SelectCpBudgetStats = """
         SELECT

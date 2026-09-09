@@ -83,6 +83,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/logistics/offices?office_id=2", "/cp/offices-app?office_id=2")]
     [InlineData("/CP/modules/module?module_id=4", "/cp/modules-app?module_id=4")]
     [InlineData("/CP/modules/modules_manager?module_id=4", "/cp/modules-app?module_id=4")]
+    [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1&leg_id=4", "/cp/uae-tax-compliance-app?leg_id=4")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1518,6 +1520,52 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/modules-app",
                 "/CP/modules/module?module_id=4"));
+    }
+
+    [Fact]
+    public void UaeTaxApp_OpenLoadsSummaryExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpUaeTaxComplianceApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"leg_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"leg_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpUaeTaxComplianceDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No ERP summary excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-category siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/uae-tax/fta-fetch", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/uae-tax/legislation/ask", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/uae-tax/legislation/regen", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/uae-tax/ct-adjustments/save", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/uae-tax/legislation/checklist/set", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.Contains("leg_id=", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-uae-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("pdf_url", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("compliance_actions_json", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/uae-tax-compliance-app?leg_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/uae-tax-compliance-app", "leg_id", 4));
+        Assert.Equal(
+            "/erp/uae-tax-compliance-app?leg_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/uae-tax-compliance-app",
+                "/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4"));
+        Assert.Equal(
+            "/cp/uae-tax-compliance-app?leg_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/uae-tax-compliance-app",
+                "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1&leg_id=4"));
     }
 
     [Fact]

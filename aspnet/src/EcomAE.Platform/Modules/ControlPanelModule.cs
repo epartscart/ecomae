@@ -6610,7 +6610,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_uae_tax_legislation_items KPIs + items (erp_summary/compliance_actions_json/pdf_url/passport omitted). PHP uae-tax-compliance remains authoritative."
+                note = "Read-only epc_uae_tax_legislation_items KPIs + items. Open ?leg_id= loads 280-char erp_summary excerpt. pdf_url/passport/compliance_actions_json omitted. FTA fetch/ask/regen/CT/checklist write when confirmWrites=true."
             });
         });
 

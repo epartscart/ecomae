@@ -1856,6 +1856,27 @@ public sealed record CpUaeTaxComplianceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpUaeTaxItemDetail(
+    long Id,
+    string Slug,
+    string Title,
+    string IssueDate,
+    string PublishDate,
+    string Category,
+    string TaxCategory,
+    string PatternKey,
+    bool IsNew,
+    bool IsUpdated,
+    long TimeSynced,
+    int SummaryLen,
+    string SummaryExcerpt);
+
+public sealed record CpUaeTaxItemDetailResult(
+    CpUaeTaxItemDetail? Item,
+    IReadOnlyList<CpUaeTaxItemDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpBudgetsSummary(
     int BudgetCount,
     int ActiveBudgets,

@@ -224,6 +224,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only UAE tax legislation (erp_summary/pdf/passport omitted).</summary>
     Task<CpUaeTaxComplianceDigestResult> BuildCpUaeTaxComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened UAE tax legislation item (Open key <c>leg_id</c>) plus same-tax_category siblings. erp_summary is a short excerpt; pdf_url/passport/compliance_actions_json omitted.</summary>
+    Task<CpUaeTaxItemDetailResult> BuildCpUaeTaxComplianceDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only budgets (note omitted).</summary>
     Task<CpBudgetsDigestResult> BuildCpBudgetsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
