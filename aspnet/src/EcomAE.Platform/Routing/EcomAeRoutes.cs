@@ -570,6 +570,8 @@ public static class EcomAeRoutes
     public const string ControlPanelSocialHubApp = "/cp/social-hub-app";
     public const string ControlPanelTenantFeatures = "/cp/tenant-features";
     public const string ControlPanelTenantFeaturesApp = "/cp/tenant-features-app";
+    /// <summary>Super-CP save_feature_flags. <c>confirmWrites=true</c> twins PHP ajax_integrations.php. Schema-ensure stays Classic.</summary>
+    public const string CpTenantFeaturesWrite = "/cp/tenant-features/write";
     public const string ControlPanelCustomerBoard = "/cp/customer-board";
     public const string ControlPanelCustomerBoardApp = "/cp/customer-board-app";
     public const string ControlPanelFulfillmentQueue = "/cp/fulfillment-queue";
