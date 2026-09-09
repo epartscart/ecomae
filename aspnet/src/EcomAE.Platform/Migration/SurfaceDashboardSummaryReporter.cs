@@ -20703,6 +20703,84 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpThreeWayMatchDetailResult> BuildErpThreeWayMatchDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpThreeWayMatchDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpThreeWayMatchDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpThreeWayMatchDetail(
+                        Convert.ToInt64(reader["po_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["po_no"] is DBNull ? string.Empty : reader["po_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["po_status"] is DBNull ? string.Empty : reader["po_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["supplier_id"] is DBNull ? 0 : reader["supplier_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["po_total"] is DBNull ? 0m : reader["po_total"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["approved_at"] is DBNull ? 0 : reader["approved_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["received_at"] is DBNull ? 0 : reader["received_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["purchase_id"] is DBNull ? 0 : reader["purchase_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["invoice_total"] is DBNull ? 0m : reader["invoice_total"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["purchase_status"] is DBNull ? string.Empty : reader["purchase_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Purchase order not found.");
+            }
+
+            var siblings = new List<ErpThreeWayMatchDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpThreeWayMatchStatusSiblings;
+                AddParameter(cmd, "@status", header.PoStatus);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpThreeWayMatchDigest(
+                        Convert.ToInt64(reader["po_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["po_no"] is DBNull ? string.Empty : reader["po_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["po_status"] is DBNull ? string.Empty : reader["po_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["po_total"] is DBNull ? 0m : reader["po_total"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["purchase_id"] is DBNull ? 0 : reader["purchase_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["invoice_total"] is DBNull ? 0m : reader["invoice_total"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["purchase_status"] is DBNull ? string.Empty : reader["purchase_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

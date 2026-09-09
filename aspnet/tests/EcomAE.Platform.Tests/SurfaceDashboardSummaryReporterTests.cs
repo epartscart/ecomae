@@ -490,6 +490,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_inv_warehouses", LegacySurfaceDashboardSql.SelectErpWarehouseDetail, StringComparison.Ordinal);
         Assert.Contains("name_excerpt", LegacySurfaceDashboardSql.SelectErpWarehouseDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectErpWarehouseDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_purchase_orders", LegacySurfaceDashboardSql.SelectErpThreeWayMatch, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_purchase_orders", LegacySurfaceDashboardSql.SelectErpThreeWayMatchDetail, StringComparison.Ordinal);
+        Assert.Contains("notes_excerpt", LegacySurfaceDashboardSql.SelectErpThreeWayMatchDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(po.`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpThreeWayMatchDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("notes_excerpt", LegacySurfaceDashboardSql.SelectErpThreeWayMatch, StringComparison.Ordinal);
+        Assert.DoesNotContain("notes_excerpt", LegacySurfaceDashboardSql.SelectErpThreeWayMatchStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("password", LegacySurfaceDashboardSql.SelectErpThreeWayMatchDetail, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("secret", LegacySurfaceDashboardSql.SelectErpThreeWayMatchDetail, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("epc_erp_sales_orders", LegacySurfaceDashboardSql.SelectErpSalesOrders, StringComparison.Ordinal);
         Assert.Contains("epc_boc_audit", LegacySurfaceDashboardSql.SelectBosAuditLog, StringComparison.Ordinal);
         Assert.Contains("shop_storages", LegacySurfaceDashboardSql.SelectCpStorages, StringComparison.Ordinal);

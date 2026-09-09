@@ -6874,6 +6874,38 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened three-way match PO. notes is a short excerpt. Writes stay Classic.</summary>
+    public const string SelectErpThreeWayMatchDetail = """
+        SELECT po.`id` AS po_id, IFNULL(po.`po_no`,'') AS po_no, IFNULL(po.`status`,'') AS po_status,
+               IFNULL(po.`title`,'') AS title, IFNULL(po.`supplier_id`,0) AS supplier_id,
+               IFNULL(po.`total_amount`,0) AS po_total, IFNULL(po.`order_id`,0) AS order_id,
+               IFNULL(po.`approved_at`,0) AS approved_at, IFNULL(po.`received_at`,0) AS received_at,
+               IFNULL(p.`id`,0) AS purchase_id, IFNULL(p.`invoice_number`,'') AS invoice_number,
+               IFNULL(p.`total_amount`,0) AS invoice_total, IFNULL(p.`status`,'') AS purchase_status,
+               (SELECT COUNT(*) FROM `epc_erp_po_receipts` r WHERE r.`po_id` = po.`id`) AS receipt_count,
+               CHAR_LENGTH(IFNULL(po.`notes`,'')) AS notes_len,
+               LEFT(IFNULL(po.`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_purchase_orders` po
+        LEFT JOIN `epc_erp_purchases` p ON p.`id` = po.`purchase_id` OR (po.`order_id` > 0 AND p.`order_id` = po.`order_id`)
+        WHERE po.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other three-way match POs with the same status. notes omitted.</summary>
+    public const string SelectErpThreeWayMatchStatusSiblings = """
+        SELECT po.`id` AS po_id, IFNULL(po.`po_no`,'') AS po_no, IFNULL(po.`status`,'') AS po_status,
+               IFNULL(po.`total_amount`,0) AS po_total,
+               IFNULL(p.`id`,0) AS purchase_id, IFNULL(p.`invoice_number`,'') AS invoice_number,
+               IFNULL(p.`total_amount`,0) AS invoice_total, IFNULL(p.`status`,'') AS purchase_status,
+               (SELECT COUNT(*) FROM `epc_erp_po_receipts` r WHERE r.`po_id` = po.`id`) AS receipt_count
+        FROM `epc_erp_purchase_orders` po
+        LEFT JOIN `epc_erp_purchases` p ON p.`id` = po.`purchase_id` OR (po.`order_id` > 0 AND p.`order_id` = po.`order_id`)
+        WHERE po.`status` IN ('approved', 'partial', 'received')
+          AND IFNULL(po.`status`,'') = @status AND po.`id` <> @id
+        ORDER BY po.`id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP contacts (address/notes omitted) — PHP epc_erp_contacts.</summary>
     /// <summary>ERP contacts list — address/notes/currency omitted. Email/phone stay on the list only.</summary>
     public const string SelectErpContacts = """
