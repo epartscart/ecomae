@@ -9830,7 +9830,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_comm_settings + epc_platform_internal_tasks. Open ?task_id= loads a 280-char description excerpt plus category siblings. save_task / delete_task POST /cp/platform-communication/write when confirmWrites=true. Notification policy and schema-ensure stay Classic."
+                note = "Read-only epc_platform_comm_settings + epc_platform_internal_tasks. Open ?task_id= loads a 280-char description excerpt plus category siblings. save_task / delete_task / save_comm_settings POST /cp/platform-communication/write when confirmWrites=true. SMTP and schema-ensure stay Classic."
             });
         });
 
@@ -9870,6 +9870,15 @@ public sealed class ControlPanelModule : ISurfaceModule
             var status = body.Status;
             var priority = body.Priority;
             var dueAt = body.DueAt;
+            var fromName = body.FromName;
+            var fromEmail = body.FromEmail;
+            var replyTo = body.ReplyTo;
+            var digestHour = body.DigestHourUtc;
+            var notifyOnboard = body.NotifyTenantOnboard;
+            var notifyDns = body.NotifyTenantDnsLive;
+            var notifyDemo = body.NotifyDemoExpiry;
+            var notifyTask = body.NotifyTaskAssigned;
+            var notifyDigest = body.NotifyDailyDigest;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -9885,6 +9894,15 @@ public sealed class ControlPanelModule : ISurfaceModule
                 status = LiveWriteFormBinder.Text(form, "status");
                 priority = LiveWriteFormBinder.Text(form, "priority");
                 dueAt = LiveWriteFormBinder.Long(form, "due_at", "dueAt");
+                fromName = LiveWriteFormBinder.Text(form, "notify_from_name", "fromName");
+                fromEmail = LiveWriteFormBinder.Text(form, "notify_from_email", "fromEmail");
+                replyTo = LiveWriteFormBinder.Text(form, "notify_reply_to", "replyTo");
+                digestHour = LiveWriteFormBinder.Text(form, "digest_hour_utc", "digestHourUtc");
+                notifyOnboard = LiveWriteFormBinder.Flag(form, "notify_tenant_onboard");
+                notifyDns = LiveWriteFormBinder.Flag(form, "notify_tenant_dns_live");
+                notifyDemo = LiveWriteFormBinder.Flag(form, "notify_demo_expiry");
+                notifyTask = LiveWriteFormBinder.Flag(form, "notify_task_assigned");
+                notifyDigest = LiveWriteFormBinder.Flag(form, "notify_daily_digest");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -9918,17 +9936,30 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "save_comm_settings" or "save_settings")
+            {
+                var written = await writes.SaveSettingsAsync(
+                    new CpPlatformCommunicationSaveSettingsRequest(fromName, fromEmail, replyTo, digestHour, notifyOnboard, notifyDns, notifyDemo, notifyTask, notifyDigest),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/platform-communication-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "save_task" or "save" or "delete_task" or "delete",
+                wouldWrite = key is "save_task" or "save" or "delete_task" or "delete" or "save_comm_settings" or "save_settings",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Notification policy stay Classic."
-                    : "Dry-run. Set confirmWrites=true to save or delete the task.",
+                    ? "SMTP stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the notification policy or a task.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -12477,7 +12508,16 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Category = null,
         string? Status = null,
         string? Priority = null,
-        long DueAt = 0);
+        long DueAt = 0,
+        string? FromName = null,
+        string? FromEmail = null,
+        string? ReplyTo = null,
+        string? DigestHourUtc = null,
+        bool NotifyTenantOnboard = false,
+        bool NotifyTenantDnsLive = false,
+        bool NotifyDemoExpiry = false,
+        bool NotifyTaskAssigned = false,
+        bool NotifyDailyDigest = false);
     private sealed record CpSocialHubWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
