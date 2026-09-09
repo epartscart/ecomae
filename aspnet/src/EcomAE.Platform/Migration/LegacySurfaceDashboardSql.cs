@@ -4266,6 +4266,32 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened jewellery karat. description is a short excerpt.</summary>
+    public const string SelectCpJewelleryMastersKaratDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`karat_code`,'') AS karat_code,
+               IFNULL(`std_purity`,0) AS std_purity, IFNULL(`range_from`,0) AS range_from,
+               IFNULL(`range_to`,0) AS range_to, IFNULL(`sp_gravity`,0) AS sp_gravity,
+               IFNULL(`pos_rate_min_max`,0) AS pos_rate_min_max,
+               IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `epc_jewel_karat_master`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other karats with the same division. description omitted.</summary>
+    public const string SelectCpJewelleryMastersDivisionSiblings = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`karat_code`,'') AS karat_code,
+               IFNULL(`std_purity`,0) AS std_purity, IFNULL(`range_from`,0) AS range_from,
+               IFNULL(`range_to`,0) AS range_to, IFNULL(`sp_gravity`,0) AS sp_gravity,
+               IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at
+        FROM `epc_jewel_karat_master`
+        WHERE `division` = @division AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Consolidation KPIs from epc_cons_* (CREATE TABLE in epc_erp_consolidation.php).</summary>
     public const string SelectCpConsolidationsStats = """
         SELECT

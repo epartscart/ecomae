@@ -14,6 +14,8 @@
 <PhpChromeStyles Surface="erp" />
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_spec.Title" BreadcrumbArea="Jewellery" BreadcrumbTab="@_spec.Label">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@_appPath" IsAdmin="_isAdmin" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -24,6 +26,62 @@
         <div class="kpi"><div class="lbl">Diamonds</div><div class="val">@_summary.DiamondCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Karat</dt><dd>@(string.IsNullOrWhiteSpace(_opened.KaratCode) ? "—" : _opened.KaratCode)</dd>
+                <dt>Division</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Division) ? "—" : _opened.Division)</dd>
+                <dt>STD. Purity</dt><dd>@_opened.StdPurity.ToString("N6", CultureInfo.InvariantCulture)</dd>
+                <dt>Range from</dt><dd>@_opened.RangeFrom.ToString("N6", CultureInfo.InvariantCulture)</dd>
+                <dt>Range to</dt><dd>@_opened.RangeTo.ToString("N6", CultureInfo.InvariantCulture)</dd>
+                <dt>Sp gravity</dt><dd>@_opened.SpGravity.ToString("N4", CultureInfo.InvariantCulture)</dd>
+                <dt>POS rate</dt><dd>@_opened.PosRateMinMax.ToString("N2", CultureInfo.InvariantCulture)</dd>
+            </dl>
+            @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
+            {
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DescriptionExcerpt</pre>
+                @if (_opened.DescriptionLen > _opened.DescriptionExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No description excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-division siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Karat</th>
+                            <th>Division</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.KaratCode) ? "—" : sib.KaratCode)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Division) ? "—" : sib.Division)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "karat_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-division siblings yet.</p>
+            }
+        </div>
+    }
+
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.MasterTabs" />
 
     @if (_isAdmin && _tab == "jw_karat")
@@ -31,7 +89,7 @@
         <ErpPhpCreateWell Title="Add / Edit Karat">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -55,7 +113,7 @@
         @if (_rows.Count == 0)
         {
             <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSeedForm" style="margin-bottom:10px;">
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <button type="submit" class="btn btn-success btn-sm">Seed defaults</button>
             </form>
         }
@@ -64,7 +122,7 @@
     {
         <ErpPhpCreateWell Title="Rate provider">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="jw_gold_rate_refresh" />
                 <label>Provider
                     <select class="form-control input-sm" name="code">
@@ -79,7 +137,7 @@
         <ErpPhpCreateWell Title="Set manual rate">
             <form method="post" action="/erp/gold-rate/set" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="source" value="manual" />
                 <label>Karat <input class="form-control input-sm" name="karat" value="24K" /></label>
                 <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="3" /></label>
@@ -103,7 +161,7 @@
         <ErpPhpCreateWell Title="Create scheme">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -133,7 +191,7 @@
         <ErpPhpCreateWell Title="Enroll customer">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemeEnrollForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Scheme id <input class="form-control input-sm" name="scheme_id" type="number" min="1" required /></label>
                 <label>Customer <input class="form-control input-sm" name="customer_name" placeholder="Aisha" /></label>
                 <label>Instalment <input class="form-control input-sm" name="installment_amount" type="number" step="0.01" value="0" /></label>
@@ -144,7 +202,7 @@
         <ErpPhpCreateWell Title="Pay instalment">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryGoldSchemePayForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Enrollment id <input class="form-control input-sm" name="enrollment_id" type="number" min="1" required /></label>
                 <label>Amount <input class="form-control input-sm" name="amount" type="number" step="0.01" value="0" /></label>
                 <label>Mode <input class="form-control input-sm" name="payment_mode" value="cash" /></label>
@@ -159,7 +217,7 @@
         <ErpPhpCreateWell Title="Add / Edit Rate type">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryRateTypeSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -184,7 +242,7 @@
         <ErpPhpCreateWell Title="Add / Edit Currency">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryCurrencySaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -205,7 +263,7 @@
         <ErpPhpCreateWell Title="Add / Edit Diamond">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryDiamondSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -228,7 +286,7 @@
         <ErpPhpCreateWell Title="Add / Edit Design">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryDesignSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -248,7 +306,7 @@
         <ErpPhpCreateWell Title="Add / Edit Pearl">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryPearlSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -270,7 +328,7 @@
         <ErpPhpCreateWell Title="Add / Edit Color stone">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryColorStoneSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -292,7 +350,7 @@
         <ErpPhpCreateWell Title="Create tag">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryTagCreateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -312,7 +370,7 @@
         <ErpPhpCreateWell Title="Sell tag">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryTagSellForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Tag id <input class="form-control input-sm" name="tag_id" type="number" min="1" required /></label>
                 <label>Invoice id <input class="form-control input-sm" name="invoice_id" type="number" min="0" value="0" /></label>
                 <label>Salesman id <input class="form-control input-sm" name="salesman_id" type="number" min="0" value="0" /></label>
@@ -325,7 +383,7 @@
         <ErpPhpCreateWell Title="Generate barcode">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryBarcodeGenerateForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -344,7 +402,7 @@
     {
         <ErpPhpCreateWell Title="Seed jewellery defaults">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryKaratSeedForm">
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <button type="submit" class="btn btn-success btn-sm">Seed sample data</button>
             </form>
         </ErpPhpCreateWell>
@@ -353,7 +411,7 @@
     {
         <ErpPhpCreateWell Title="@("New " + _spec.Label)">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@(_tab + "_save")" />
                 <label>Code <input class="form-control input-sm" name="code" required /></label>
                 <label>Name <input class="form-control input-sm" name="name" /></label>
@@ -370,6 +428,10 @@
                     {
                         <th>@col</th>
                     }
+                    @if (_tab == "jw_karat")
+                    {
+                        <th></th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -377,19 +439,20 @@
                 {
                     @foreach (var row in _karatDisplay)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Row.Id, _openedId)">
                             <td>@row.No</td>
                             <td><strong>@(string.IsNullOrWhiteSpace(row.Row.KaratCode) ? "—" : row.Row.KaratCode)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Row.KaratCode) ? "—" : row.Row.KaratCode + " Karat")</td>
                             <td>@row.Row.StdPurity.ToString("N6", CultureInfo.InvariantCulture)</td>
                             <td>@row.Row.SpGravity.ToString("N4", CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Row.Division) ? "—" : row.Row.Division)</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "karat_id", row.Row.Id)">Open</a></td>
                         </tr>
                     }
                 }
                 else
                 {
-                    <tr><td colspan="@_spec.Columns.Count" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
+                    <tr><td colspan="@(_spec.Columns.Count + (_tab == "jw_karat" ? 1 : 0))" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
                 }
             </tbody>
         </table>
@@ -416,8 +479,22 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
+    private string _listHref = "/cp/jewellery-masters-app";
+    private long _openedId;
+    private CpJewelleryMastersKaratDetail? _opened;
+    private IReadOnlyList<CpJewelleryMastersKaratDigest> _openedSiblings = [];
 
     private sealed record KaratRow(string No, CpJewelleryMastersKaratDigest Row);
+
+    private string OpenedCaption =>
+        !string.IsNullOrWhiteSpace(_opened?.KaratCode)
+            ? _opened.KaratCode
+            : (_openedId > 0 ? ("Karat #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+
+    private string ReturnHref =>
+        _openedId > 0
+            ? _listHref + "?karat_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+            : _returnHere;
 
     protected override async Task OnInitializedAsync()
     {
@@ -427,6 +504,8 @@
         _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             ? "/erp/jewellery-masters-app"
             : "/cp/jewellery-masters-app";
+        _listHref = _appPath;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "karat_id");
         _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
         _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.MasterTabs, "jw_karat");
         _ok = ctx.Request.Query["ok"].ToString();
@@ -449,5 +528,11 @@
         _karatDisplay = _rows.Select((r, i) => new KaratRow((i + 1).ToString(CultureInfo.InvariantCulture), r)).ToList();
         _source = result.Source;
         _message = result.Message;
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpJewelleryMastersDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Karat;
+            _openedSiblings = detail.Siblings;
+        }
     }
 }
