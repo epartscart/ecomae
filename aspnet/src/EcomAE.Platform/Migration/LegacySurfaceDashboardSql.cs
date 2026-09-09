@@ -869,6 +869,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened GL journal (Open key <c>journal_id</c>). Note excerpt and reference are hidden from the list.</summary>
+    public const string SelectErpGlJournalDetail = """
+        SELECT j.`id`, IFNULL(j.`journal_no`, '') AS journal_no, j.`journal_date`,
+               IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,
+               IF(j.`active` = 1, 'posted', 'void') AS status,
+               (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit,
+               IFNULL(j.`reference`, '') AS reference,
+               LEFT(IFNULL(j.`description`, ''), 280) AS description_excerpt,
+               CHAR_LENGTH(IFNULL(j.`description`, '')) AS description_len,
+               IFNULL(j.`admin_id`, 0) AS admin_id,
+               IFNULL(j.`time_created`, 0) AS time_created
+        FROM `epc_erp_gl_journals` j
+        WHERE j.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other GL journals with the same source. Note excerpt and reference omitted.</summary>
+    public const string SelectErpGlJournalSourceSiblings = """
+        SELECT j.`id`, IFNULL(j.`journal_no`, '') AS journal_no, j.`journal_date`,
+               IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,
+               IF(j.`active` = 1, 'posted', 'void') AS status,
+               (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit
+        FROM `epc_erp_gl_journals` j
+        WHERE j.`active` = 1
+          AND IFNULL(j.`source_type`, '') = @source_type
+          AND j.`id` <> @id
+        ORDER BY j.`journal_date` DESC, j.`id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectCpModules = """
         SELECT `id`, IFNULL(`caption`, '') AS caption, `activated`, `is_frontend`,
                `is_prototype`, `control_available`
