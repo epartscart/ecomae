@@ -937,6 +937,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(apToggleDb.Succeeded);
         Assert.Equal("db", apToggleDb.Code);
 
+        var apDeleteBad = await new CpAutoPriceWriteService(new ConfiguredNeverOpened())
+            .DeleteSourceAsync(0, "");
+        Assert.False(apDeleteBad.Succeeded);
+        Assert.Equal("invalid", apDeleteBad.Code);
+
+        var apDeleteDb = await new CpAutoPriceWriteService(new UnconfiguredConnections())
+            .DeleteSourceAsync(3, "");
+        Assert.False(apDeleteDb.Succeeded);
+        Assert.Equal("db", apDeleteDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

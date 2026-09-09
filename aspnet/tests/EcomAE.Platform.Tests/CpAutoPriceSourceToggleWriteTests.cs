@@ -33,6 +33,7 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"toggle_discovery_source\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"delete_discovery_source\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
@@ -50,6 +51,7 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("ajax_auto_price.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("toggle_discovery_source", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("delete_discovery_source", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -62,8 +64,11 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpAutoPriceWriteService.cs"));
         Assert.Contains("epc_disc_source_toggle", service, StringComparison.Ordinal);
+        Assert.Contains("epc_disc_source_delete", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_discovery_sources`", service, StringComparison.Ordinal);
+        Assert.Contains("DELETE FROM `epc_discovery_sources`", service, StringComparison.Ordinal);
+        Assert.Contains("delete_discovery_source", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
