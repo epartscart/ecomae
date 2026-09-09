@@ -5,14 +5,19 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_auto_price.php</c> twin of <c>epc_disc_source_toggle</c>.
-/// Add/delete, crawl, compare-run, and send stay Classic. Schema-ensure stays Classic.
+/// Live PHP <c>ajax_auto_price.php</c> twin of <c>epc_disc_source_toggle</c> and <c>epc_disc_source_delete</c>.
+/// Add, crawl, compare-run, and send stay Classic. Schema-ensure stays Classic.
 /// This service does not invent a send.
 /// </summary>
 public interface ICpAutoPriceWriteService
 {
     Task<ErpSimpleWriteResult> ToggleSourceAsync(
         CpAutoPriceSourceToggleRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteSourceAsync(
+        long id,
+        string? siteKey,
         CancellationToken cancellationToken = default);
 }
 
@@ -93,6 +98,68 @@ public sealed class CpAutoPriceWriteService : ICpAutoPriceWriteService
                 ErpDb.Positional("UPDATE `epc_discovery_sources` SET `enabled`=?, `updated_at`=? WHERE `id`=?"),
                 cancellationToken, next, now, request.Id).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Source updated", request.Id);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Discovery-source table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteSourceAsync(
+        long id,
+        string? siteKey,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Source id required");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var wantSite = NormalizeSiteKey(siteKey);
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var exists = await ErpDb.LongAsync(
+                connection, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_discovery_sources` WHERE `id`=?"),
+                cancellationToken, id).ConfigureAwait(false);
+            if (exists <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Only custom tenant sources can be deleted");
+            }
+
+            if (wantSite.Length > 0)
+            {
+                var rowSite = (await ErpDb.StringAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT `site_key` FROM `epc_discovery_sources` WHERE `id`=?"),
+                    cancellationToken, id) ?? string.Empty).Trim();
+                if (!string.Equals(rowSite, wantSite, StringComparison.Ordinal))
+                {
+                    return ErpSimpleWriteResult.Fail("not_found", "Only custom tenant sources can be deleted");
+                }
+            }
+
+            var custom = await ErpDb.LongAsync(
+                connection, null,
+                ErpDb.Positional("SELECT `created_by_tenant` FROM `epc_discovery_sources` WHERE `id`=?"),
+                cancellationToken, id).ConfigureAwait(false);
+            if (custom <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("forbidden", "Only custom tenant sources can be deleted");
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("DELETE FROM `epc_discovery_sources` WHERE `id`=?"),
+                cancellationToken, id).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Custom source removed", id);
         }
         catch (DbException)
         {

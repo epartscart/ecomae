@@ -7064,7 +7064,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_auto_price_rules KPIs + rules. Open ?aprice_id= loads 280-char notes excerpt. config_json omitted. toggle_discovery_source POST /cp/auto-price/write when confirmWrites=true. Add/delete and compare-run stay Classic."
+                note = "Read-only epc_auto_price_rules KPIs + rules. Open ?aprice_id= loads 280-char notes excerpt. config_json omitted. toggle_discovery_source / delete_discovery_source POST /cp/auto-price/write when confirmWrites=true. Add and compare-run stay Classic."
             });
         });
         endpoints.MapPost(EcomAeRoutes.CpAutoPriceWrite, async (
@@ -7111,17 +7111,31 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "delete_discovery_source" or "apai_delete_discovery_source")
+            {
+                var written = await writes.DeleteSourceAsync(id, siteKey, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/auto-price-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "toggle_discovery_source" or "apai_toggle_discovery_source",
+                wouldWrite = key is "toggle_discovery_source" or "apai_toggle_discovery_source"
+                    or "delete_discovery_source" or "apai_delete_discovery_source",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Add, delete, and compare-run stay Classic."
-                    : "Dry-run. Set confirmWrites=true to toggle the discovery source.",
+                    ? "Add and compare-run stay Classic."
+                    : key is "delete_discovery_source" or "apai_delete_discovery_source"
+                        ? "Dry-run. Set confirmWrites=true to delete the custom source."
+                        : "Dry-run. Set confirmWrites=true to toggle the discovery source.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });

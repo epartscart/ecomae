@@ -21,7 +21,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Open a row for the 280-character notes excerpt (<code>?aprice_id=</code>). Toggle a discovery source here. Add, delete, and compare-run stay Classic. This page does not invent a send.</p>
+                <p>Open a row for the 280-character notes excerpt (<code>?aprice_id=</code>). Toggle or delete a custom discovery source here. Add and compare-run stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -64,7 +64,23 @@
                         </label>
                         <button type="submit" class="btn btn-primary btn-sm">Update source</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Add, delete, and compare-run stay Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Add and compare-run stay Classic.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Delete custom source</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/auto-price/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "aprice_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="delete_discovery_source" />
+                        <label>Source <input type="text" name="id" inputmode="numeric" value="0" /></label>
+                        <label>Site key <input type="text" name="site_key" /></label>
+                        <button type="submit" class="btn btn-danger btn-sm">Delete custom source</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Built-in sources stay. Add and compare-run stay Classic.</p>
                 </div>
             </div>
         </div>
