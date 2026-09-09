@@ -4828,6 +4828,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened jewellery stock verification. remarks is a short excerpt.</summary>
+    public const string SelectCpJewelleryStockVerificationDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
+               IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`verified_by`,'') AS verified_by,
+               IFNULL(`location`,'') AS location, IFNULL(`metal_stone`,'') AS metal_stone,
+               IFNULL(`division`,'') AS division, IFNULL(`total_pcs`,0) AS total_pcs,
+               IFNULL(`scanned_pcs`,0) AS scanned_pcs, IFNULL(`remaining_pcs`,0) AS remaining_pcs,
+               IFNULL(`status`,'') AS status, IFNULL(`created_by`,'') AS created_by,
+               CHAR_LENGTH(IFNULL(`remarks`,'')) AS remarks_len,
+               LEFT(IFNULL(`remarks`,''), 280) AS remarks_excerpt
+        FROM `epc_jewel_stock_verification`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other stock verifications with the same status. remarks omitted.</summary>
+    public const string SelectCpJewelleryStockVerificationStatusSiblings = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
+               IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`location`,'') AS location,
+               IFNULL(`total_pcs`,0) AS total_pcs, IFNULL(`scanned_pcs`,0) AS scanned_pcs,
+               IFNULL(`remaining_pcs`,0) AS remaining_pcs, IFNULL(`status`,'') AS status,
+               IFNULL(`created_by`,'') AS created_by
+        FROM `epc_jewel_stock_verification`
+        WHERE `status` = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
 
 
     /// <summary>Tax external reporting KPIs from epc_cmp_rules + staging/audit (CREATE TABLE unused cluster).</summary>

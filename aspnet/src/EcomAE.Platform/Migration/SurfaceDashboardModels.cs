@@ -4359,6 +4359,31 @@ public sealed record CpJewelleryStockVerificationDigestResult(
     int Count,
     string Source,
     string Message);
+
+public sealed record CpJewelleryStockVerificationDetail(
+    long Id,
+    long CompanyId,
+    string Branch,
+    string VocType,
+    string VocDate,
+    long VocNo,
+    string VerifiedBy,
+    string Location,
+    string MetalStone,
+    string Division,
+    int TotalPcs,
+    int ScannedPcs,
+    int RemainingPcs,
+    string Status,
+    string CreatedBy,
+    int RemarksLen,
+    string RemarksExcerpt);
+
+public sealed record CpJewelleryStockVerificationDetailResult(
+    CpJewelleryStockVerificationDetail? Verification,
+    IReadOnlyList<CpJewelleryStockVerificationRowDigest> Siblings,
+    string Source,
+    string Message);
 public sealed record CpTaxExternalReportingSummary(
     int RuleCount,
     int ActiveCount,
