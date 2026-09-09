@@ -31,7 +31,7 @@ public static class SurfacePayloadContractCatalog
         Contract("cp", "/cp/groups", "cp/content/users/ groups", "admin-cp",
             ["ok", "surface", "groups", "count", "source", "message", "session", "note"],
             ["id", "value", "forBackend", "forGuests", "forRegistrated", "unblocked", "parent", "level"],
-            ["groups ACL digest"],
+            ["groups ACL digest", "Open ?ugroup_id= loads 280-char description excerpt"],
             "cp/templates/bootstrap_admin/desktop.php"),
         Contract("cp", "/cp/modules", "cp modules registry", "admin-cp",
             ["ok", "surface", "modules", "count", "source", "message", "session", "note"],
