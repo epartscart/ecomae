@@ -718,6 +718,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(crmDb.Succeeded);
         Assert.Equal("db", crmDb.Code);
 
+        var mktInvalid = await new CpMarketingGrowthWriteService(new ConfiguredNeverOpened())
+            .SaveReviewAsync("", "weekly", 3, "", 1);
+        Assert.False(mktInvalid.Succeeded);
+        Assert.Equal("invalid", mktInvalid.Code);
+
+        var mktDb = await new CpMarketingGrowthWriteService(new UnconfiguredConnections())
+            .SaveReviewAsync("seo", "weekly", 3, "", 1);
+        Assert.False(mktDb.Succeeded);
+        Assert.Equal("db", mktDb.Code);
+
         var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
             .AssignAsync(0, 1, 1);
         Assert.False(wsAssign.Succeeded);
