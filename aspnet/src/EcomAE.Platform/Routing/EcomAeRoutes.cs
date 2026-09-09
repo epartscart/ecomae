@@ -440,6 +440,8 @@ public static class EcomAeRoutes
     public const string ControlPanelFreeTools = "/cp/free-tools";
     /// <summary>CP Free tools Blazor list (JSON digest remains <see cref="ControlPanelFreeTools"/>).</summary>
     public const string ControlPanelFreeToolsApp = "/cp/free-tools-app";
+    /// <summary>Super-CP free-tools toggle. <c>confirmWrites=true</c> twins PHP ajax_epc_free_tools_admin.php. Schema-ensure and send stay Classic.</summary>
+    public const string CpFreeToolsWrite = "/cp/free-tools/write";
     public const string ControlPanelConfigSandbox = "/cp/config-sandbox";
     /// <summary>CP Config sandbox Blazor list (JSON digest remains <see cref="ControlPanelConfigSandbox"/>).</summary>
     public const string ControlPanelConfigSandboxApp = "/cp/config-sandbox-app";

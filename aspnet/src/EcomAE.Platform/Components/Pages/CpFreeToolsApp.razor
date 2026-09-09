@@ -23,7 +23,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/free-tools-app")</p>
-                <p>Open an account for last-login and saved-tool titles. Tokens, passwords, and save payloads stay on the Classic twin.</p>
+                <p>Open an account for last-login and saved-tool titles. Toggle a public tool on or off here. Tokens, passwords, save payloads, and send stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -37,6 +37,57 @@
         <div class="kpi"><div class="lbl">Active (30d)</div><div class="val">@_summary.ActiveAccountCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Opened saves</div><div class="val">@_openedSaves.Count.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Toggle public tool</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/free-tools/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "account_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="toggle" />
+                        <label>Tool
+                            <select name="tool">
+                                <option value="vat">VAT / GST Return</option>
+                                <option value="ct">Corporate Tax</option>
+                                <option value="payroll">Payroll &amp; Gratuity</option>
+                                <option value="ifrs">IFRS Financials</option>
+                                <option value="einvoice">Electronic Invoicing</option>
+                                <option value="extreport">External Reporting</option>
+                                <option value="customs">Customs &amp; Logistics</option>
+                                <option value="insurance">Insurance</option>
+                                <option value="docexpiry">Document Expiry</option>
+                                <option value="valuation">Business Valuation</option>
+                                <option value="finmodel">Financial Model</option>
+                                <option value="taxkit">Tax Worldwide Kit</option>
+                                <option value="hrcompliance">HR Compliance Worldwide</option>
+                                <option value="workflow">Approval Workflow</option>
+                            </select>
+                        </label>
+                        <label>Active
+                            <select name="active">
+                                <option value="1" selected>on</option>
+                                <option value="0">off</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-sm">Update tool</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     @if (_openedAccount is not null)
     {
@@ -167,6 +218,8 @@ else
     private long _openedId;
     private CpFreeToolsAccountDetail? _openedAccount;
     private IReadOnlyList<CpFreeToolsSaveDigest> _openedSaves = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     private string OpenedCaption => _openedAccount is null
         ? ""
@@ -188,6 +241,8 @@ else
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         if (!_isAdmin)
         {
             return; // guest browse — Sign in for live data
