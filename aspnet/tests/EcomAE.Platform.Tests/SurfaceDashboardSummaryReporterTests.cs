@@ -940,6 +940,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`stone_details`", LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairStatusSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("`customer_phone`", LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("`narration`", LegacySurfaceDashboardSql.SelectCpJewelleryVouchers, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`narration`,''), 280)", LegacySurfaceDashboardSql.SelectCpJewelleryVoucherDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpJewelleryVoucherDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`customer_name`", LegacySurfaceDashboardSql.SelectCpJewelleryVoucherDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`mobile`", LegacySurfaceDashboardSql.SelectCpJewelleryVoucherDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`remarks`", LegacySurfaceDashboardSql.SelectCpJewelleryVoucherDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`narration`", LegacySurfaceDashboardSql.SelectCpJewelleryVoucherStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectCpJewelleryVoucherStatusSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
         Assert.Contains("@division", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);

@@ -92,6 +92,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_verification&epc_erp_shell=1&verify_id=4", "/erp/jewellery-stock-verification-app?tab=jw_stock_verification&verify_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs&repair_id=5", "/erp/jewellery-repairs-app?tab=jw_repairs&repair_id=5")]
     [InlineData("/CP/shop/finance/erp?area=service_mgmt&tab=jw_repairs&epc_erp_shell=1&repair_id=5", "/erp/jewellery-repairs-app?tab=jw_repairs&repair_id=5")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=jw_retail_sales&voc_id=6", "/erp/jewellery-retail-app?tab=jw_retail_sales&voc_id=6")]
+    [InlineData("/CP/shop/finance/erp?area=sales&tab=jw_retail_sales&epc_erp_shell=1&voc_id=6", "/erp/jewellery-retail-app?tab=jw_retail_sales&voc_id=6")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -1773,6 +1775,51 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/jewellery-repairs-app",
                 "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repairs&epc_erp_shell=1&repair_id=5"));
+    }
+
+    [Fact]
+    public void JewelleryRetailApp_OpenLoadsNarrationExcerptAndOmitsPii()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryRetailApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpJewelleryVoucherDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"voc_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("voc_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"voc_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NarrationExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("PartyCode", razor, StringComparison.Ordinal);
+        Assert.Contains("Salesman", razor, StringComparison.Ordinal);
+        Assert.Contains("Customer PII omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ErpJewelleryVoucherSaveForm", razor, StringComparison.Ordinal);
+        Assert.Contains("Save voucher", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.CustomerName", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Mobile", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Email", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/jewellery-retail-app?voc_id=6#erp-row-6",
+            ErpRecordOpen.Href("/cp/jewellery-retail-app", "voc_id", 6));
+        Assert.Equal(
+            "/erp/jewellery-retail-app?voc_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/jewellery-retail-app",
+                "/ERP/?epc_erp_shell=1&area=sales&tab=jw_retail_sales&voc_id=6"));
+        Assert.Equal(
+            "/cp/jewellery-retail-app?voc_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/jewellery-retail-app",
+                "/CP/shop/finance/erp?area=sales&tab=jw_retail_sales&epc_erp_shell=1&voc_id=6"));
     }
 
     [Fact]

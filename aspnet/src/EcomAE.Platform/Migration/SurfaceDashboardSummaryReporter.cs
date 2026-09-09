@@ -8077,6 +8077,82 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpJewelleryVoucherDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryVoucherDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpJewelleryVoucherDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["voc_type"] is DBNull ? string.Empty : reader["voc_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["voc_date"] is DBNull ? string.Empty : reader["voc_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["voc_no"] is DBNull ? 0 : reader["voc_no"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["party_name"] is DBNull ? string.Empty : reader["party_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["party_code"] is DBNull ? string.Empty : reader["party_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["salesman"] is DBNull ? string.Empty : reader["salesman"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["branch"] is DBNull ? string.Empty : reader["branch"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["net_amount"] is DBNull ? 0 : reader["net_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["vat_amount"] is DBNull ? 0 : reader["vat_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_with_vat"] is DBNull ? 0 : reader["total_with_vat"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["narration_len"] is DBNull ? 0 : reader["narration_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["narration_excerpt"] is DBNull ? string.Empty : reader["narration_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Voucher not found.");
+            }
+
+            var siblings = new List<CpJewelleryVoucherDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryVoucherStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpJewelleryVoucherDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["voc_type"] is DBNull ? string.Empty : reader["voc_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["voc_date"] is DBNull ? string.Empty : reader["voc_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["voc_no"] is DBNull ? 0 : reader["voc_no"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["party_name"] is DBNull ? string.Empty : reader["party_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["net_amount"] is DBNull ? 0 : reader["net_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["vat_amount"] is DBNull ? 0 : reader["vat_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_with_vat"] is DBNull ? 0 : reader["total_with_vat"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPriceListsDigestResult> BuildCpPriceListsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

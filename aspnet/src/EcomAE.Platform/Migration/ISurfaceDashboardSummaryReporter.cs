@@ -218,6 +218,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
     Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened jewellery retail voucher (Open key <c>voc_id</c>) plus same-status siblings. narration is a short excerpt. PII omitted.</summary>
+    Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only price lists (stats_json/error_text/stored_relpath omitted).</summary>
     Task<CpPriceListsDigestResult> BuildCpPriceListsDigestAsync(int limit, CancellationToken cancellationToken = default);
     /// <summary>PHP <c>prices_manager.php</c> Docpart lists (<c>shop_docpart_prices</c> + linked warehouses).</summary>
