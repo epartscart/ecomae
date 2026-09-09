@@ -6130,6 +6130,29 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened office. users is a short excerpt; description/timetable omitted.</summary>
+    public const string SelectCpOfficesDetail = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`city`,'') AS city,
+               IFNULL(`address`,'') AS address, IFNULL(`phone`,'') AS phone,
+               IFNULL(`country`,'') AS country, IFNULL(`region`,'') AS region,
+               IFNULL(`email`,'') AS email, IFNULL(`coordinates`,'') AS coordinates,
+               CHAR_LENGTH(IFNULL(`users`,'')) AS users_len,
+               LEFT(IFNULL(`users`,''), 280) AS users_excerpt
+        FROM `shop_offices`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other offices in the same city. users omitted.</summary>
+    public const string SelectCpOfficesCitySiblings = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`city`,'') AS city,
+               IFNULL(`address`,'') AS address, IFNULL(`phone`,'') AS phone
+        FROM `shop_offices`
+        WHERE `city` = @city AND `id` <> @id
+        ORDER BY `id` ASC
+        LIMIT 50
+        """;
+
     /// <summary>PHP workshop_main_page / epc_ws_dashboard KPIs (phone/email/notes omitted).</summary>
     public const string SelectCpWorkshopStats = """
         SELECT
