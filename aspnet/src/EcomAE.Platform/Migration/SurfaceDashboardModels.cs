@@ -6761,6 +6761,7 @@ public sealed record CpTenantEmailSummary(
     string Host,
     string Port,
     string Encryption,
+    string Username,
     string FromName,
     string FromEmail,
     bool HasPassword,

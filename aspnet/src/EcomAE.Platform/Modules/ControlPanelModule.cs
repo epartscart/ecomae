@@ -4135,6 +4135,127 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ControlPanelTenantEmailSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTenantEmailWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/tenant-email-app", "Admin CP capability required for SMTP save.");
+            }
+
+            var useTenant = false;
+            string? host = null;
+            string? port = null;
+            string? encryption = null;
+            string? username = null;
+            string? password = null;
+            string? fromName = null;
+            string? fromEmail = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                useTenant = LiveWriteFormBinder.Flag(form, "use_tenant_smtp", "useTenantSmtp");
+                host = LiveWriteFormBinder.Text(form, "smtp_host", "smtpHost");
+                port = LiveWriteFormBinder.Text(form, "smtp_port", "smtpPort");
+                encryption = LiveWriteFormBinder.Text(form, "smtp_encryption", "smtpEncryption");
+                username = LiveWriteFormBinder.Text(form, "smtp_username", "smtpUsername");
+                password = LiveWriteFormBinder.Text(form, "smtp_password", "smtpPassword");
+                fromName = LiveWriteFormBinder.Text(form, "from_name", "fromName");
+                fromEmail = LiveWriteFormBinder.Text(form, "from_email", "fromEmail");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTenantEmailSaveBody>(context, cancellationToken) ?? new();
+                useTenant = body.UseTenantSmtp;
+                host = body.SmtpHost;
+                port = body.SmtpPort;
+                encryption = body.SmtpEncryption;
+                username = body.SmtpUsername;
+                password = body.SmtpPassword;
+                fromName = body.FromName;
+                fromEmail = body.FromEmail;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save tenant SMTP.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveAsync(
+                new CpTenantEmailSaveRequest(useTenant, host, port, encryption, username, password, fromName, fromEmail),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelTenantEmailApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ControlPanelTenantEmailTest, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTenantEmailWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/tenant-email-app", "Admin CP capability required for SMTP test.");
+            }
+
+            string? testTo = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                testTo = LiveWriteFormBinder.Text(form, "test_to", "testTo");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTenantEmailTestBody>(context, cancellationToken) ?? new();
+                testTo = body.TestTo;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to send the test email.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SendTestAsync(testTo, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelTenantEmailApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpOfficesWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -10167,6 +10288,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         int Hidden = 0,
         int BgLineColor = 0,
         bool ConfirmWrites = false);
+    private sealed record CpTenantEmailSaveBody(
+        bool UseTenantSmtp = false,
+        string? SmtpHost = null,
+        string? SmtpPort = null,
+        string? SmtpEncryption = null,
+        string? SmtpUsername = null,
+        string? SmtpPassword = null,
+        string? FromName = null,
+        string? FromEmail = null,
+        bool ConfirmWrites = false);
+    private sealed record CpTenantEmailTestBody(string? TestTo = null, bool ConfirmWrites = false);
     private sealed record CpStoragesMembershipBody(long OfficeId = 0, string? StoragesList = null, bool ConfirmWrites = false);
     private sealed record CpOfficesWriteBody(
         string? Action = null,

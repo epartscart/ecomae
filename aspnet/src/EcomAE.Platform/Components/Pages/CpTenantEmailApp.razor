@@ -20,10 +20,19 @@
                 <a class="btn btn-xs btn-default pull-right" href="/cp/integrations-app" style="margin-right:.4rem">Integrations</a>
             </div>
             <div class="panel-body">
-                <p>This tenant’s outgoing mail for OTP and order notifications. Username and password never returned. Save and send-test stay on the Classic twin — this page does not invent a send.</p>
+                <p>This tenant’s outgoing mail for OTP and order notifications. Password is never returned. Save and send-test write here.</p>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
 
     @if (!_isAdmin)
     {
@@ -40,6 +49,110 @@
         </div>
     </div>
 
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <form method="post" action="/cp/tenant-email/save" class="well">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/tenant-email-app" />
+                <div class="checkbox">
+                    <label>
+                        @if (_summary.UseTenantSmtp)
+                        {
+                            <input type="checkbox" name="use_tenant_smtp" value="true" checked />
+                        }
+                        else
+                        {
+                            <input type="checkbox" name="use_tenant_smtp" value="true" />
+                        }
+                        Use tenant SMTP (override platform default)
+                    </label>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>SMTP host</label>
+                            <input type="text" class="form-control" name="smtp_host" value="@_summary.Host" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Port</label>
+                            <input type="text" class="form-control" name="smtp_port" value="@(string.IsNullOrWhiteSpace(_summary.Port) ? "587" : _summary.Port)" />
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="form-group">
+                            <label>Encryption</label>
+                            <select class="form-control" name="smtp_encryption">
+                                @if (_enc == "ssl")
+                                {
+                                    <option value="tls">TLS</option>
+                                    <option value="ssl" selected>SSL</option>
+                                    <option value="">None</option>
+                                }
+                                else if (_enc != "tls")
+                                {
+                                    <option value="tls">TLS</option>
+                                    <option value="ssl">SSL</option>
+                                    <option value="" selected>None</option>
+                                }
+                                else
+                                {
+                                    <option value="tls" selected>TLS</option>
+                                    <option value="ssl">SSL</option>
+                                    <option value="">None</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Username</label>
+                            <input type="text" class="form-control" name="smtp_username" value="@_summary.Username" autocomplete="off" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>Password @if (_summary.HasPassword) { <span class="text-muted">(saved)</span> }</label>
+                            <input type="password" class="form-control" name="smtp_password" placeholder="Leave blank to keep current" autocomplete="new-password" />
+                        </div>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>From name</label>
+                            <input type="text" class="form-control" name="from_name" value="@_summary.FromName" />
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label>From email</label>
+                            <input type="email" class="form-control" name="from_email" value="@_summary.FromEmail" />
+                        </div>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-success"><i class="fa fa-save"></i> Save SMTP</button>
+            </form>
+        </div>
+
+        <div class="col-lg-12">
+            <form method="post" action="/cp/tenant-email/test" class="well" style="max-width:520px">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/tenant-email-app" />
+                <h4 style="margin-top:0">Test send</h4>
+                <div class="form-group">
+                    <label>Send test to</label>
+                    <input type="email" class="form-control" name="test_to" value="@_testTo" required />
+                </div>
+                <button type="submit" class="btn btn-primary"><i class="fa fa-paper-plane"></i> Send test email</button>
+            </form>
+        </div>
+    }
+
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Tenant mail settings</div>
@@ -51,6 +164,8 @@
                     <dd>@(string.IsNullOrWhiteSpace(_summary.Host) ? _host : _summary.Host)</dd>
                     <dt>Port / encryption</dt>
                     <dd>@(string.IsNullOrWhiteSpace(_summary.Port) ? "—" : _summary.Port) / @(string.IsNullOrWhiteSpace(_summary.Encryption) ? "—" : _summary.Encryption)</dd>
+                    <dt>Username</dt>
+                    <dd>@(string.IsNullOrWhiteSpace(_summary.Username) ? "—" : _summary.Username)</dd>
                     <dt>From name</dt>
                     <dd>@(string.IsNullOrWhiteSpace(_summary.FromName) ? "—" : _summary.FromName)</dd>
                     <dt>From email</dt>
@@ -70,7 +185,11 @@
     private const string _phpTab = "/CP/control/portal/epc_tenant_email_settings";
     private bool _isAdmin;
     private string _host = "—";
-    private CpTenantEmailSummary _summary = new(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, "n/a", "");
+    private string _enc = "tls";
+    private string _testTo = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpTenantEmailSummary _summary = new(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, "n/a", "");
 
     protected override async Task OnInitializedAsync()
     {
@@ -81,8 +200,15 @@
         }
 
         _host = string.IsNullOrWhiteSpace(ctx.Request.Host.Host) ? "—" : ctx.Request.Host.Host;
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!string.IsNullOrWhiteSpace(session.Email))
+        {
+            _testTo = session.Email;
+        }
+
         if (!_isAdmin)
         {
             return;
@@ -90,5 +216,6 @@
 
         var result = await Dashboards.BuildCpTenantEmailDigestAsync(ctx.RequestAborted);
         _summary = result.Summary;
+        _enc = string.IsNullOrWhiteSpace(_summary.Encryption) ? "tls" : _summary.Encryption.Trim().ToLowerInvariant();
     }
 }

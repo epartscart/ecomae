@@ -21660,7 +21660,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     public async Task<CpTenantEmailDigestResult> BuildCpTenantEmailDigestAsync(CancellationToken cancellationToken = default)
     {
-        var empty = new CpTenantEmailSummary(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, "migration", "TenantRegistry DB is not configured.");
+        var empty = new CpTenantEmailSummary(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false, "migration", "TenantRegistry DB is not configured.");
         if (!_connections.IsConfigured)
         {
             return new(empty, "migration", empty.Message);
@@ -21688,6 +21688,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var host = string.Empty;
         var port = string.Empty;
         var encryption = string.Empty;
+        var username = string.Empty;
         var fromName = string.Empty;
         var fromEmail = string.Empty;
         var hasPassword = false;
@@ -21705,6 +21706,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     host = ReadJsonString(smtp, "smtp_host");
                     port = ReadJsonString(smtp, "smtp_port");
                     encryption = ReadJsonString(smtp, "smtp_encryption");
+                    username = ReadJsonString(smtp, "smtp_username");
                     fromName = ReadJsonString(smtp, "from_name");
                     fromEmail = ReadJsonString(smtp, "from_email");
                     hasPassword = !string.IsNullOrWhiteSpace(ReadJsonString(smtp, "smtp_password"));
@@ -21712,12 +21714,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
             catch (System.Text.Json.JsonException ex)
             {
-                return new(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false,
+                return new(false, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, false,
                     "database-error", $"integrations_json.smtp parse failed: {ex.Message}");
             }
         }
 
-        return new(useTenant, host, port, encryption, fromName, fromEmail, hasPassword, source, message);
+        return new(useTenant, host, port, encryption, username, fromName, fromEmail, hasPassword, source, message);
     }
 
     public async Task<ErpWorkflowTasksDigestResult> BuildErpWorkflowTasksDigestAsync(int limit, CancellationToken cancellationToken = default)

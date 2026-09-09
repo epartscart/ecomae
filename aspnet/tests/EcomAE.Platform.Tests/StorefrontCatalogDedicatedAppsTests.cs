@@ -134,7 +134,9 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("class=\"hpanel\"", email, StringComparison.Ordinal);
         Assert.Contains("well well-sm", email, StringComparison.Ordinal);
         Assert.Contains("This tenant", email, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("does not invent a send", email, StringComparison.Ordinal);
+        Assert.Contains("/cp/tenant-email/save", email, StringComparison.Ordinal);
+        Assert.Contains("/cp/tenant-email/test", email, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", email, StringComparison.Ordinal);
         Assert.Contains("/CP/control/portal/epc_tenant_email_settings", email, StringComparison.Ordinal);
         Assert.DoesNotContain("SuperCpHostGate", email, StringComparison.Ordinal);
         Assert.DoesNotContain("Deploy targets", email, StringComparison.Ordinal);

@@ -424,6 +424,10 @@ public static class EcomAeRoutes
     public const string ControlPanelPortalSettingsApp = "/cp/portal-settings-app";
     /// <summary>Tenant-local SMTP / email settings shell (PHP epc_tenant_email_settings).</summary>
     public const string ControlPanelTenantEmailApp = "/cp/tenant-email-app";
+    /// <summary>PHP <c>save_tenant_smtp</c>. <c>confirmWrites=true</c> writes <c>integrations_json.smtp</c>.</summary>
+    public const string ControlPanelTenantEmailSave = "/cp/tenant-email/save";
+    /// <summary>PHP <c>test_tenant_smtp</c>. <c>confirmWrites=true</c> sends via saved tenant SMTP.</summary>
+    public const string ControlPanelTenantEmailTest = "/cp/tenant-email/test";
     public const string ControlPanelDataMigrations = "/cp/data-migrations";
     /// <summary>CP Data migrations Blazor list (JSON digest remains <see cref="ControlPanelDataMigrations"/>).</summary>
     public const string ControlPanelDataMigrationsApp = "/cp/data-migrations-app";
