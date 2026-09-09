@@ -1746,6 +1746,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "delete_lead" or "crm_delete_lead")
+            {
+                var written = await writes.DeleteLeadAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/crm-board-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(dryRun.Evaluate(new CpCrmActionRequest(action, confirm)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
@@ -6471,7 +6482,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_* KPIs + leads (email/phone omitted on the list). Open ?lead_id= loads a 280-char notes excerpt. save_lead POST /cp/crm/action and convert_lead POST /cp/crm/leads/convert when confirmWrites=true. Quote email stays Classic."
+                note = "Read-only epc_crm_* KPIs + leads (email/phone omitted on the list). Open ?lead_id= loads a 280-char notes excerpt. save_lead / delete_lead POST /cp/crm/action and convert_lead POST /cp/crm/leads/convert when confirmWrites=true. Quote email stays Classic."
             });
         });
 

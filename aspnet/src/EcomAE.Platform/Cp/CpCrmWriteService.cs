@@ -4,8 +4,8 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_crm.php</c> <c>save_lead</c> twin of <c>epc_crm_save_lead</c>.
-/// Schema-ensure, convert, quote email, and send stay Classic.
+/// Live PHP <c>ajax_crm.php</c> twins of <c>epc_crm_save_lead</c> and <c>epc_crm_delete_lead</c>.
+/// Quote email and send stay Classic. Schema-ensure stays Classic.
 /// This service does not invent a send.
 /// </summary>
 public interface ICpCrmWriteService
@@ -21,6 +21,10 @@ public interface ICpCrmWriteService
         long ownerUserId,
         decimal expectedValue,
         string? notes,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteLeadAsync(
+        long id,
         CancellationToken cancellationToken = default);
 }
 
@@ -155,6 +159,43 @@ public sealed class CpCrmWriteService : ICpCrmWriteService
                 owner, value, rowNotes, now, now);
             var created = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Lead saved", created);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "CRM lead table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteLeadAsync(
+        long id,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Lead id is invalid.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    """
+                    UPDATE `epc_crm_leads`
+                    SET `active`=0, `time_updated`=?
+                    WHERE `id`=?
+                    """),
+                cancellationToken,
+                now, id);
+            return ErpSimpleWriteResult.Ok("Lead deleted", id);
         }
         catch (DbException)
         {

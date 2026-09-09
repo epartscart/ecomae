@@ -22,7 +22,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Save a lead here. Convert a lead to an opportunity here. Email and phone stay omitted. Quote email stays Classic. This page does not invent a send.</p>
+                <p>Save or deactivate a lead here. Convert a lead to an opportunity here. Email and phone stay omitted. Quote email stays Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -103,6 +103,13 @@
                             <input type="hidden" name="action" value="convert_lead" />
                             <input type="hidden" name="lead_id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
                             <button type="submit" class="btn btn-primary btn-sm">Convert to opportunity</button>
+                        </form>
+                        <form method="post" action="/cp/crm/action" style="margin:.75rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_listHref" />
+                            <input type="hidden" name="action" value="delete_lead" />
+                            <input type="hidden" name="id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-default btn-sm">Deactivate lead</button>
                         </form>
                     }
                     @if (_openedSiblings.Count > 0)
