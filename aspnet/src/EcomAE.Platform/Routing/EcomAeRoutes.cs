@@ -140,6 +140,8 @@ public static class EcomAeRoutes
     public const string ControlPanelSmsWhatsapp = "/cp/sms-whatsapp";
     /// <summary>CP SMS/WhatsApp Blazor list (JSON digest remains <see cref="ControlPanelSmsWhatsapp"/>).</summary>
     public const string ControlPanelSmsWhatsappApp = "/cp/sms-whatsapp-app";
+    /// <summary>PHP <c>sms_turning.php</c> <c>save_action</c>. <c>confirmWrites=true</c> activates one operator or deactivates all. Blank <c>parameters_values</c> keeps saved secrets.</summary>
+    public const string ControlPanelSmsWhatsappActivate = "/cp/sms-whatsapp/activate";
     /// <summary>CP CRM board KPIs + leads metadata (email/phone/notes omitted).</summary>
     public const string ControlPanelCrmBoard = "/cp/crm-board";
     /// <summary>CP CRM Blazor board (JSON digest remains <see cref="ControlPanelCrmBoard"/>).</summary>

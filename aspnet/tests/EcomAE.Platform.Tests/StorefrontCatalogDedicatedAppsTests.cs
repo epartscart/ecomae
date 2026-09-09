@@ -126,6 +126,10 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("PhpReferenceOnlyHref", sms, StringComparison.Ordinal);
         Assert.Contains("/CP/control/sms_turning", sms, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", sms, StringComparison.Ordinal);
+        Assert.Contains("/cp/sms-whatsapp/activate", sms, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", sms, StringComparison.Ordinal);
+        Assert.Contains("name=\"system_id\"", sms, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", sms, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-sms-hero", sms, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-sms-kpis", sms, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", sms, StringComparison.Ordinal);
