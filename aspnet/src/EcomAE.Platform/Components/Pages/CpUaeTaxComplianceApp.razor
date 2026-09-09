@@ -24,11 +24,13 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/uae-tax-compliance-app")</p>
-                <p>Save tourist VAT, CT adjustments, and checklist status here. Fetch FTA legislation to ingest VAT, Corporate Tax, e-invoicing, and excise instruments into this library. Ask the stored library or regen summaries without leaving this page.</p>
+                <p>Open a row for the 280-character ERP summary excerpt. Save tourist VAT, CT adjustments, and checklist status here. Fetch FTA legislation to ingest VAT, Corporate Tax, e-invoicing, and excise instruments into this library. Ask the stored library or regen summaries without leaving this page. PDF excerpts stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/uae-tax-compliance-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/uae-tax-compliance-app" IsAdmin="_isAdmin" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -79,47 +81,138 @@
         <p class="text-muted" style="margin:0 0 1rem;">Rebuilds ERP summaries and checklists from stored FTA titles. PDF excerpts stay on the Classic twin.</p>
     }
 
-    <p class="help-block">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture) legislation items · @_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture) VAT advance rows · @_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture) VAT refund rows.</p>
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="UAE tax KPIs">
+        <div class="kpi"><div class="lbl">Legislation</div><div class="val">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">VAT advance</div><div class="val">@_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">VAT refunds</div><div class="val">@_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
 
-    <div class="table-responsive">
-        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Slug</th>
-                    <th>Title</th>
-                    <th>Issue date</th>
-                    <th>Category</th>
-                    <th>Tax category</th>
-                    <th>New</th>
-                    <th>Updated</th>
-                    <th>Synced</th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_items.Count == 0)
-                {
-                    <tr><td colspan="9">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var i in _items)
+    @if (_opened is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @OpenedCaption
+                    <a class="btn btn-xs btn-default pull-right" href="@_listHref">Close</a>
+                </div>
+                <div class="panel-body">
+                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                        <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Slug</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Slug) ? "—" : _opened.Slug)</dd>
+                        <dt>Issue date</dt><dd>@(string.IsNullOrWhiteSpace(_opened.IssueDate) ? "—" : _opened.IssueDate)</dd>
+                        <dt>Publish date</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PublishDate) ? "—" : _opened.PublishDate)</dd>
+                        <dt>Category</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Category) ? "—" : _opened.Category)</dd>
+                        <dt>Tax category</dt><dd>@(string.IsNullOrWhiteSpace(_opened.TaxCategory) ? "—" : _opened.TaxCategory)</dd>
+                        <dt>Pattern</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PatternKey) ? "—" : _opened.PatternKey)</dd>
+                        <dt>Flags</dt><dd>@(_opened.IsNew ? "new" : "—") · @(_opened.IsUpdated ? "updated" : "—")</dd>
+                    </dl>
+                    @if (!string.IsNullOrWhiteSpace(_opened.SummaryExcerpt))
                     {
-                        <tr>
-                            <td><strong>@i.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(i.Slug) ? "—" : i.Slug)</td>
-                            <td>@(string.IsNullOrWhiteSpace(i.Title) ? "—" : i.Title)</td>
-                            <td>@(string.IsNullOrWhiteSpace(i.IssueDate) ? "—" : i.IssueDate)</td>
-                            <td>@(string.IsNullOrWhiteSpace(i.Category) ? "—" : i.Category)</td>
-                            <td>@(string.IsNullOrWhiteSpace(i.TaxCategory) ? "—" : i.TaxCategory)</td>
-                            <td>@(i.IsNew ? "yes" : "no")</td>
-                            <td>@(i.IsUpdated ? "yes" : "no")</td>
-                            <td>@(i.TimeSynced > 0 ? i.TimeSynced.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                        </tr>
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.SummaryExcerpt</pre>
+                        @if (_opened.SummaryLen > _opened.SummaryExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_opened.SummaryExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.SummaryLen.ToString(CultureInfo.InvariantCulture) chars). PDF excerpts stay on the Classic twin.</p>
+                        }
                     }
-                }
-            </tbody>
-        </table>
+                    else
+                    {
+                        <p class="text-muted" style="margin:.85rem 0 0">No ERP summary excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Same tax category</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Title</th>
+                                    <th>Tax category</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="4">No same-category siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(sib.Title) ? "—" : sib.Title)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(sib.TaxCategory) ? "—" : sib.TaxCategory)</td>
+                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "leg_id", sib.Id)">Open</a></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Legislation items</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Slug</th>
+                                <th>Title</th>
+                                <th>Issue date</th>
+                                <th>Category</th>
+                                <th>Tax category</th>
+                                <th>New</th>
+                                <th>Updated</th>
+                                <th>Synced</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (!_isAdmin)
+                            {
+                                <tr><td colspan="10">Sign in for live data.</td></tr>
+                            }
+                            else if (_items.Count == 0)
+                            {
+                                <tr><td colspan="10">No records yet.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var i in _items)
+                                {
+                                    <tr id="erp-row-@i.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(i.Id, _openedId)">
+                                        <td><strong>@i.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                                        <td>@(string.IsNullOrWhiteSpace(i.Slug) ? "—" : i.Slug)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(i.Title) ? "—" : i.Title)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(i.IssueDate) ? "—" : i.IssueDate)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(i.Category) ? "—" : i.Category)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(i.TaxCategory) ? "—" : i.TaxCategory)</td>
+                                        <td>@(i.IsNew ? "yes" : "no")</td>
+                                        <td>@(i.IsUpdated ? "yes" : "no")</td>
+                                        <td>@(i.TimeSynced > 0 ? i.TimeSynced.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "leg_id", i.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
 <form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
@@ -162,12 +255,26 @@
     private IReadOnlyList<CpUaeTaxItemDigest> _items = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _listHref = "/cp/uae-tax-compliance-app";
+    private long _openedId;
+    private CpUaeTaxItemDetail? _opened;
+    private IReadOnlyList<CpUaeTaxItemDigest> _openedSiblings = [];
+
+    private string OpenedCaption =>
+        !string.IsNullOrWhiteSpace(_opened?.Title)
+            ? _opened.Title
+            : (_openedId > 0 ? ("Legislation #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var path = ctx.Request.Path.Value;
+        _listHref = string.Equals(path, "/erp/uae-tax-compliance-app", StringComparison.OrdinalIgnoreCase)
+            ? "/erp/uae-tax-compliance-app"
+            : "/cp/uae-tax-compliance-app";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "leg_id");
         _tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim();
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
@@ -184,5 +291,11 @@
         _items = result.Items;
         _source = result.Source;
         _message = result.Message;
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpUaeTaxComplianceDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Item;
+            _openedSiblings = detail.Siblings;
+        }
     }
 }

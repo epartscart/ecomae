@@ -8307,6 +8307,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpUaeTaxItemDetailResult> BuildCpUaeTaxComplianceDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpUaeTaxItemDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpUaeTaxItemsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpUaeTaxItemDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["slug"] is DBNull ? string.Empty : reader["slug"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["issue_date"] is DBNull ? string.Empty : reader["issue_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["publish_date"] is DBNull ? string.Empty : reader["publish_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["tax_category"] is DBNull ? string.Empty : reader["tax_category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["pattern_key"] is DBNull ? string.Empty : reader["pattern_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["is_new"] is DBNull ? 0 : reader["is_new"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["is_updated"] is DBNull ? 0 : reader["is_updated"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["time_synced"] is DBNull ? 0 : reader["time_synced"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["summary_len"] is DBNull ? 0 : reader["summary_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["summary_excerpt"] is DBNull ? string.Empty : reader["summary_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Legislation item not found.");
+            }
+
+            var siblings = new List<CpUaeTaxItemDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpUaeTaxItemsCategorySiblings;
+                AddParameter(cmd, "@tax_category", header.TaxCategory);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpUaeTaxItemDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["slug"] is DBNull ? string.Empty : reader["slug"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["issue_date"] is DBNull ? string.Empty : reader["issue_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["category"] is DBNull ? string.Empty : reader["category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["tax_category"] is DBNull ? string.Empty : reader["tax_category"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["is_new"] is DBNull ? 0 : reader["is_new"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["is_updated"] is DBNull ? 0 : reader["is_updated"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["time_synced"] is DBNull ? 0 : reader["time_synced"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpBudgetsDigestResult> BuildCpBudgetsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
