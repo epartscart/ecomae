@@ -739,6 +739,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpExpenseReportListResult> ListErpExpenseReportsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened expense report (Open key <c>expense_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
+    Task<ErpExpenseReportDetailResult> BuildErpExpenseReportDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only shop_offices + storage/geo maps (PHP offices.php).</summary>
     Task<CpOfficesDigestResult> BuildCpOfficesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
