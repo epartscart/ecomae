@@ -11411,7 +11411,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP delivery notes digest. PHP epc_erp_delivery_notes remains authoritative."
+                note = "Open ?delivery_note_id= loads 280-char notes excerpt; same-status siblings. PDF path omitted. PHP epc_erp_delivery_notes / delivery_note_create remain authoritative."
             });
         });
 

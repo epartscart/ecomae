@@ -6193,6 +6193,25 @@ public sealed record ErpDeliveryNoteListResult(
     string Source,
     string Message);
 
+public sealed record ErpDeliveryNoteDetail(
+    long Id,
+    string NoteNo,
+    long OrderId,
+    string Carrier,
+    string TrackingNo,
+    string Status,
+    long ShippedAt,
+    long DeliveredAt,
+    long TimeCreated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpDeliveryNoteDetailResult(
+    ErpDeliveryNoteDetail? Note,
+    IReadOnlyList<ErpDeliveryNoteDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpRfqDigest(
     long Id,
     string RfqNo,

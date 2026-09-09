@@ -721,6 +721,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<OnPremisesLicenseListResult> ListOnPremisesLicensesAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<ErpDeliveryNoteListResult> ListErpDeliveryNotesAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened delivery note (Open key <c>delivery_note_id</c>) plus same-status siblings. notes is a short excerpt. pdf_path omitted.</summary>
+    Task<ErpDeliveryNoteDetailResult> BuildErpDeliveryNoteDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpRfqListResult> ListErpRfqsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened supplier RFQ (Open key <c>rfq_id</c>) plus same-status siblings. description is a short excerpt.</summary>
