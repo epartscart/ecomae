@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
@@ -23,13 +24,66 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/tenant-features-app")</p>
+                <p>Save per-tenant feature flags here. Schema-ensure stays on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/tenant-features-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
 
     <p class="help-block">@_siteCount.ToString(CultureInfo.InvariantCulture) Sites · @_flagCount.ToString(CultureInfo.InvariantCulture) Flags · @_enabledCount.ToString(CultureInfo.InvariantCulture) Enabled · @_disabledCount.ToString(CultureInfo.InvariantCulture) Disabled.</p>
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save feature flags</div>
+                <div class="panel-body">
+                    <form method="get" action="/cp/tenant-features-app" class="form-inline" style="margin-bottom:1rem">
+                        <label>Tenant
+                            <input type="text" class="form-control input-sm" name="site_key" value="@_selectedSite" />
+                        </label>
+                        <button type="submit" class="btn btn-default btn-sm">Load</button>
+                    </form>
+                    <form method="post" action="/cp/tenant-features/write" class="well">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                        <input type="hidden" name="action" value="save_feature_flags" />
+                        <input type="hidden" name="site_key" value="@_selectedSite" />
+                        <div class="row">
+                            @foreach (var feat in _saveable)
+                            {
+                                var on = FeatureOn(feat.Key, feat.DefaultEnabled);
+                                <div class="col-md-4 col-sm-6" style="margin-bottom:10px">
+                                    <label class="checkbox" style="font-weight:normal">
+                                        @if (on)
+                                        {
+                                            <input type="checkbox" name="features_@feat.Key" value="1" checked />
+                                        }
+                                        else
+                                        {
+                                            <input type="checkbox" name="features_@feat.Key" value="1" />
+                                        }
+                                        @feat.Label
+                                    </label>
+                                </div>
+                            }
+                        </div>
+                        <button type="submit" class="btn btn-success">Save feature flags</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -71,7 +125,7 @@
         </div>
     </div>
 
-    <div class="epc-nw-note">Super CP host only. Flag saves remain portal_integrations/save_feature_flags dry-run.</div>
+    <div class="epc-nw-note">Super CP host only. tenant_registry is not saved here.</div>
 
 </PhpCpDesktopChrome>
 }
@@ -95,6 +149,27 @@ else
     private IReadOnlyList<CpTenantFeaturesRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _selectedSite = "";
+    private readonly IReadOnlyList<CpIntegrationsHubCatalogEntry> _saveable = CpTenantFeaturesWriteService.SaveableCatalog;
+
+    private string ReturnHref => string.IsNullOrWhiteSpace(_selectedSite)
+        ? "/cp/tenant-features-app"
+        : "/cp/tenant-features-app?site_key=" + Uri.EscapeDataString(_selectedSite);
+
+    private bool FeatureOn(string featureKey, bool fallback)
+    {
+        if (string.IsNullOrWhiteSpace(_selectedSite))
+        {
+            return fallback;
+        }
+
+        var row = _rows.FirstOrDefault(r =>
+            string.Equals(r.SiteKey, _selectedSite, StringComparison.OrdinalIgnoreCase)
+            && string.Equals(r.FeatureKey, featureKey, StringComparison.OrdinalIgnoreCase));
+        return row is null ? fallback : row.Enabled;
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -104,6 +179,10 @@ else
         {
             return;
         }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _selectedSite = CpTenantFeaturesWriteService.NormalizeSiteKey(ctx.Request.Query["site_key"].ToString());
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -120,5 +199,9 @@ else
         _rows = result.Rows;
         _source = result.Source;
         _message = result.Message;
+        if (_selectedSite.Length == 0)
+        {
+            _selectedSite = _rows.Select(r => r.SiteKey).FirstOrDefault(s => !string.IsNullOrWhiteSpace(s)) ?? "";
+        }
     }
 }

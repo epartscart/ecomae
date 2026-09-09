@@ -1007,6 +1007,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(mobileDb.Succeeded);
         Assert.Equal("db", mobileDb.Code);
 
+        var featBad = await new CpTenantFeaturesWriteService(new ConfiguredNeverOpened())
+            .SaveFlagsAsync(new CpTenantFeaturesSaveRequest("", new Dictionary<string, bool> { ["email_smtp"] = true }));
+        Assert.False(featBad.Succeeded);
+        Assert.Equal("invalid", featBad.Code);
+
+        var featDb = await new CpTenantFeaturesWriteService(new UnconfiguredConnections())
+            .SaveFlagsAsync(new CpTenantFeaturesSaveRequest("epartscart", new Dictionary<string, bool> { ["email_smtp"] = true }));
+        Assert.False(featDb.Succeeded);
+        Assert.Equal("db", featDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

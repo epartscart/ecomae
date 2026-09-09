@@ -10977,10 +10977,93 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_tenant_feature_flags matrix. save_feature_flags remains portal_integrations dry-run. Super-only Blazor app."
+                note = "Read-only epc_tenant_feature_flags matrix. save_feature_flags POST /cp/tenant-features/write when confirmWrites=true. Schema-ensure stays Classic."
             });
         });
 
+        endpoints.MapPost(EcomAeRoutes.CpTenantFeaturesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTenantFeaturesWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Tenant features write is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/tenant-features-app", "Admin CP capability required for tenant-features write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTenantFeaturesWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var siteKey = body.SiteKey;
+            var features = new Dictionary<string, bool>(StringComparer.Ordinal);
+            if (body.Features is not null)
+            {
+                foreach (var pair in body.Features)
+                {
+                    features[pair.Key] = pair.Value;
+                }
+            }
+
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                foreach (var key in CpTenantFeaturesWriteService.SaveableKeys)
+                {
+                    features[key] = LiveWriteFormBinder.Flag(form, "features_" + key, "features[" + key + "]");
+                }
+            }
+
+            var keyAction = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(keyAction))
+            {
+                keyAction = "save_feature_flags";
+            }
+
+            if (confirm && keyAction is "save_feature_flags" or "feat_save")
+            {
+                var written = await writes.SaveFlagsAsync(
+                    new CpTenantFeaturesSaveRequest(siteKey, features),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/tenant-features-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = keyAction is "save_feature_flags" or "feat_save",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Schema-ensure stays Classic."
+                    : "Dry-run. Set confirmWrites=true to save feature flags.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelCustomerBoard, async (
             HttpContext context,
@@ -12024,6 +12107,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? FromName = null,
         string? FromEmail = null,
         bool ConfirmWrites = false);
+    private sealed record CpTenantFeaturesWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        Dictionary<string, bool>? Features = null);
     private sealed record CpMobileAppsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
