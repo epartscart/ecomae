@@ -16,8 +16,8 @@
 
 
     
-    <PhpErpModulePageHeader Title="Invoices" Subtitle="Customer invoices with status, totals, and order links." PhpTabHref="@_phpTab" />
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedInvoice is not null)" Caption="@OpenedCaption" ListHref="/erp/invoices-app" />
+    <PhpErpModulePageHeader Title="Invoices" Subtitle="Open an invoice for the payment-terms excerpt, VAT, and amount due. Writes stay Classic." PhpTabHref="@_phpTab" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/invoices-app" />
     <p class="text-muted" style="margin:0 0 10px;">
         <a href="/erp/sales-orders-app">Sales orders</a>
         · <a href="/erp/invoices-app">Invoices</a>
@@ -39,6 +39,76 @@
         <div class="kpi"><div class="lbl">Open</div><div class="val">@_open</div></div>
         <div class="kpi"><div class="lbl">Total incl. VAT</div><div class="val">@_totalInclVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
+
+    @if (_openedDetail is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="/erp/invoices-app">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>Invoice id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Invoice #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.InvoiceNumber) ? "—" : _openedDetail.InvoiceNumber)</dd>
+                <dt>Category</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.DocCategory) ? "—" : _openedDetail.DocCategory)</dd>
+                <dt>Customer</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.CustomerEmail) ? ("user " + _openedDetail.UserId.ToString(CultureInfo.InvariantCulture)) : _openedDetail.CustomerEmail)</dd>
+                <dt>Order</dt><dd>@(_openedDetail.OrderId > 0 ? _openedDetail.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Issued</dt><dd>@FormatTime(_openedDetail.IssueDate)</dd>
+                <dt>Due</dt><dd>@FormatTime(_openedDetail.PaymentDueDate)</dd>
+                <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.CurrencyCode) ? "—" : _openedDetail.CurrencyCode)</dd>
+                <dt>Ex VAT</dt><dd>@_openedDetail.SubtotalExVat.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>VAT</dt><dd>@_openedDetail.TotalVat.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Total</dt><dd>@_openedDetail.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Paid</dt><dd>@_openedDetail.PaidAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Amount due</dt><dd>@_openedDetail.AmountDue.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Status) ? "—" : _openedDetail.Status)</dd>
+                <dt>Validated</dt><dd>@(_openedDetail.ValidationOk ? "yes" : "no")</dd>
+                <dt>ASP</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.AspName) ? "—" : _openedDetail.AspName)</dd>
+                <dt>ASP ref</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.AspReference) ? "—" : _openedDetail.AspReference)</dd>
+                <dt>FTA</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.FtaReportStatus) ? "—" : _openedDetail.FtaReportStatus)</dd>
+                <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
+                <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
+                <dt>Submitted</dt><dd>@FormatTime(_openedDetail.TimeSubmitted)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Writes stay Classic.</p>
+            @if (!string.IsNullOrWhiteSpace(_openedDetail.PaymentTermsExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">payment-terms excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedDetail.PaymentTermsExcerpt</pre>
+                @if (_openedDetail.PaymentTermsLen > _openedDetail.PaymentTermsExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_openedDetail.PaymentTermsExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedDetail.PaymentTermsLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No payment-terms excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Invoice #</th><th>Customer</th><th class="text-right">Total</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.InvoiceNumber) ? "—" : sib.InvoiceNumber)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.CustomerEmail) ? ("user " + sib.UserId.ToString(CultureInfo.InvariantCulture)) : sib.CustomerEmail)</td>
+                                <td class="text-right">@sib.TotalInclVat.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href("/erp/invoices-app", "inv_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-status siblings yet.</p>
+            }
+        </div>
+    }
 
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -92,9 +162,21 @@
     private string _message = "";
     private long _openedId;
     private ErpInvoiceDigest? _openedInvoice;
-    private string OpenedCaption => _openedInvoice is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedInvoice.InvoiceNumber) ? $"Invoice #{_openedInvoice.Id}" : _openedInvoice.InvoiceNumber) + " · " + _openedInvoice.Status;
+    private ErpInvoiceDetail? _openedDetail;
+    private IReadOnlyList<ErpInvoiceDigest> _openedSiblings = [];
+
+    private bool OpenedFound => _openedDetail is not null || _openedInvoice is not null;
+
+    private string OpenedReturnHref => _openedId > 0
+        ? "/erp/invoices-app?inv_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : "/erp/invoices-app";
+
+    private string OpenedCaption => _openedDetail is not null
+        ? (string.IsNullOrWhiteSpace(_openedDetail.InvoiceNumber) ? ("Invoice #" + _openedDetail.Id.ToString(CultureInfo.InvariantCulture)) : _openedDetail.InvoiceNumber)
+            + (string.IsNullOrWhiteSpace(_openedDetail.DocCategory) ? "" : (" · " + _openedDetail.DocCategory))
+        : _openedInvoice is null
+            ? ""
+            : (string.IsNullOrWhiteSpace(_openedInvoice.InvoiceNumber) ? $"Invoice #{_openedInvoice.Id}" : _openedInvoice.InvoiceNumber) + " · " + _openedInvoice.Status;
 
     protected override async Task OnInitializedAsync()
     {
@@ -129,6 +211,16 @@
         else if (_openedInvoice is not null)
         {
             _visible = new[] { _openedInvoice }.Concat(_visible.Where(i => i.Id != _openedId)).ToList();
+        }
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpInvoiceDetailAsync(_openedId, ctx.RequestAborted);
+            _openedDetail = detail.Invoice;
+            _openedSiblings = detail.Siblings;
+            if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
         }
         _open = _invoices.Count(IsOpenInvoice);
         _totalInclVat = _visible.Sum(i => i.TotalInclVat);

@@ -75,6 +75,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpInvoiceListResult> ListErpInvoicesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened e-invoice (Open key <c>inv_id</c>) plus same-status siblings. payment_terms/VAT/due are hidden from the list.</summary>
+    Task<ErpInvoiceDetailResult> BuildErpInvoiceDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpGlJournalListResult> ListErpGlJournalsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened GL journal (Open key <c>journal_id</c>) plus same-source siblings. Note excerpt and reference are hidden from the list.</summary>

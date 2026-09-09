@@ -556,6 +556,39 @@ public sealed record ErpInvoiceListResult(
     string Source,
     string Message);
 
+public sealed record ErpInvoiceDetail(
+    long Id,
+    string InvoiceNumber,
+    long OrderId,
+    int UserId,
+    string CustomerEmail,
+    string DocCategory,
+    long IssueDate,
+    long PaymentDueDate,
+    string CurrencyCode,
+    string PaymentTermsExcerpt,
+    int PaymentTermsLen,
+    decimal SubtotalExVat,
+    decimal TotalVat,
+    decimal TotalInclVat,
+    decimal PaidAmount,
+    decimal AmountDue,
+    string Status,
+    bool ValidationOk,
+    string AspName,
+    string AspReference,
+    string FtaReportStatus,
+    int AdminId,
+    long TimeCreated,
+    long TimeUpdated,
+    long TimeSubmitted);
+
+public sealed record ErpInvoiceDetailResult(
+    ErpInvoiceDetail? Invoice,
+    IReadOnlyList<ErpInvoiceDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpGlJournalDigest(
     long Id,
     string JournalNo,

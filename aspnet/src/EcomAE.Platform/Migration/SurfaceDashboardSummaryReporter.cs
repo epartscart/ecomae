@@ -2300,6 +2300,92 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpInvoiceDetailResult> BuildErpInvoiceDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpInvoiceDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvoiceDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpInvoiceDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "invoice_number"),
+                        ReadI64(reader, "order_id"),
+                        ReadI32(reader, "user_id"),
+                        ReadStr(reader, "customer_email"),
+                        ReadStr(reader, "doc_category"),
+                        ReadI64(reader, "issue_date"),
+                        ReadI64(reader, "payment_due_date"),
+                        ReadStr(reader, "currency_code"),
+                        ReadStr(reader, "payment_terms_excerpt"),
+                        ReadI32(reader, "payment_terms_len"),
+                        ReadDec(reader, "subtotal_ex_vat"),
+                        ReadDec(reader, "total_vat"),
+                        ReadDec(reader, "total_incl_vat"),
+                        ReadDec(reader, "paid_amount"),
+                        ReadDec(reader, "amount_due"),
+                        ReadStr(reader, "status"),
+                        ReadI32(reader, "validation_ok") == 1,
+                        ReadStr(reader, "asp_name"),
+                        ReadStr(reader, "asp_reference"),
+                        ReadStr(reader, "fta_report_status"),
+                        ReadI32(reader, "admin_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadI64(reader, "time_updated"),
+                        ReadI64(reader, "time_submitted"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Invoice not found.");
+            }
+
+            var siblings = new List<ErpInvoiceDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInvoiceStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "invoice_number"),
+                        ReadI64(reader, "order_id"),
+                        ReadI32(reader, "user_id"),
+                        ReadStr(reader, "customer_email"),
+                        ReadI64(reader, "issue_date"),
+                        ReadStr(reader, "status"),
+                        ReadDec(reader, "total_incl_vat")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpGlJournalListResult> ListErpGlJournalsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
