@@ -279,7 +279,7 @@
         {
             _orders = new[] { _openedOrder }.Concat(_orders.Where(o => o.Id != _openedId)).ToList();
         }
-        _items = (await Dashboards.ListErpInventoryItemsForPickerAsync(1000, ctx.RequestAborted)).Items;
+        _items = (await Dashboards.ListErpInventoryItemsForPickerAsync(ErpFirstPaint.PickerLimit, ctx.RequestAborted)).Items;
         _open = _orders.Count(o => !string.Equals(o.Status, "closed", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "cancelled", StringComparison.OrdinalIgnoreCase)
             && !string.Equals(o.Status, "canceled", StringComparison.OrdinalIgnoreCase)

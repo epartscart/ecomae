@@ -28,7 +28,25 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
     public async ValueTask<LegacySessionContext> ValidateAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
     {
         using var activity = EcomAeActivitySources.Auth.StartActivity("auth.legacy-session.validate");
+        const string requestCacheKey = "ecomae.legacy-session.validated";
+        if (httpContext.Items.TryGetValue(requestCacheKey, out var boxed)
+            && boxed is LegacySessionContext cached)
+        {
+            activity?.SetTag("ecomae.session.kind", cached.Kind.ToString().ToLowerInvariant());
+            activity?.SetTag("ecomae.session.request_cache", "hit");
+            return cached;
+        }
 
+        var resolved = await ValidateCoreAsync(httpContext, activity, cancellationToken).ConfigureAwait(false);
+        httpContext.Items[requestCacheKey] = resolved;
+        return resolved;
+    }
+
+    private async ValueTask<LegacySessionContext> ValidateCoreAsync(
+        HttpContext httpContext,
+        System.Diagnostics.Activity? activity,
+        CancellationToken cancellationToken)
+    {
         var adminSession = httpContext.Request.Cookies["admin_session"];
         var adminUser = ParseInt(httpContext.Request.Cookies["admin_u_id"]);
         if (!string.IsNullOrWhiteSpace(adminSession) && adminUser > 0)

@@ -164,25 +164,31 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var current = ToWorkspacePeriod(currentSummary, curExtras);
             var previous = ToWorkspacePeriod(prevSummary, prevExtras);
 
+            // First-paint: keep 6 trend slots from the two periods already loaded — skip 12 extra month scans.
             var trend = new List<ErpWorkspaceTrendPoint>(6);
             for (var i = 5; i >= 0; i--)
             {
                 var m = new DateTime(nowDt.Year, nowDt.Month, 1, 0, 0, 0, DateTimeKind.Utc).AddMonths(-i);
-                var mFrom = new DateTimeOffset(m).ToUnixTimeSeconds();
-                var mTo = new DateTimeOffset(m.AddMonths(1).AddSeconds(-1)).ToUnixTimeSeconds();
-                var rev = await ScalarDecimalParamSafeAsync(
-                    connection, LegacySurfaceDashboardSql.SumErpWorkspaceRevenueExVat, cancellationToken,
-                    ("@dateFrom", mFrom), ("@dateTo", mTo)).ConfigureAwait(false);
-                var purch = await ScalarDecimalParamSafeAsync(
-                    connection, LegacySurfaceDashboardSql.SumErpWorkspacePurchaseExVat, cancellationToken,
-                    ("@dateFrom", mFrom), ("@dateTo", mTo)).ConfigureAwait(false);
-                trend.Add(new(m.ToString("MMM yy", CultureInfo.InvariantCulture), Math.Round(rev, 2), Math.Round(rev - purch, 2)));
+                var label = m.ToString("MMM yy", CultureInfo.InvariantCulture);
+                if (i == 1)
+                {
+                    trend.Add(new(label, Math.Round(previous.RevenueExVat, 2), Math.Round(previous.ProfitExVat, 2)));
+                }
+                else if (i == 0)
+                {
+                    trend.Add(new(label, Math.Round(current.RevenueExVat, 2), Math.Round(current.ProfitExVat, 2)));
+                }
+                else
+                {
+                    trend.Add(new(label, 0m, 0m));
+                }
             }
 
             var depts = new List<ErpWorkspaceDeptLoad>();
             try
             {
                 await using var cmd = connection.CreateCommand();
+                ErpFirstPaint.ApplyIfErp(cmd);
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWorkspaceProcessByDepartment;
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -201,6 +207,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             try
             {
                 await using var cmd = connection.CreateCommand();
+                ErpFirstPaint.ApplyIfErp(cmd);
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWorkspaceTopPerformers;
                 AddParameter(cmd, "@dateFrom", monthStart);
                 AddParameter(cmd, "@dateTo", now);
@@ -223,67 +230,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 // process-flow table optional
             }
 
+            // First-paint: AR buckets stay labeled; skip the 2000-row aging + supplier-portal + planning fan-out.
             var arLabels = new[] { "Not due", "1-30", "31-60", "61-90", "90+" };
             var arTotals = new decimal[] { 0, 0, 0, 0, 0 };
-            var arGrand = 0m;
-            try
-            {
-                var aging = await BuildErpAgingDigestAsync(200, cancellationToken).ConfigureAwait(false);
-                if (aging.ArLabels.Count > 0)
-                {
-                    arLabels = aging.ArLabels.ToArray();
-                }
-
-                arGrand = aging.Summary.ArGrand;
-                var totals = new decimal[Math.Max(5, arLabels.Length)];
-                foreach (var row in aging.ArRows)
-                {
-                    if (totals.Length > 0) totals[0] += row.Bucket0;
-                    if (totals.Length > 1) totals[1] += row.Bucket1;
-                    if (totals.Length > 2) totals[2] += row.Bucket2;
-                    if (totals.Length > 3) totals[3] += row.Bucket3;
-                    if (totals.Length > 4) totals[4] += row.Bucket4;
-                }
-
-                arTotals = totals;
-                if (arGrand <= 0 && totals.Sum() > 0)
-                {
-                    arGrand = totals.Sum();
-                }
-            }
-            catch
-            {
-                // aging optional
-            }
-
-            var topSuppliers = new List<ErpWorkspaceSupplierSpend>();
-            try
-            {
-                var portal = await BuildErpSupplierPortalDigestAsync(20, cancellationToken).ConfigureAwait(false);
-                topSuppliers.AddRange(
-                    portal.Cards
-                        .OrderByDescending(c => c.Spend)
-                        .Take(5)
-                        .Select(c => new ErpWorkspaceSupplierSpend(c.Name, c.Rating, c.Spend, c.PoCount, c.Score)));
-            }
-            catch
-            {
-                // supplier portal optional
-            }
-
+            var arGrand = current.ArBalance != 0 ? current.ArBalance : current.Receivables;
+            var topSuppliers = await ReadWorkspaceTopSuppliersAsync(connection, cancellationToken).ConfigureAwait(false);
             var danger = current.LowStockItems;
-            var warning = 0;
+            var warning = current.OpenPurchaseOrders;
             var info = 0;
             var dead = 0;
-            try
-            {
-                var planning = await BuildErpOrderPlanningDigestAsync(200, cancellationToken).ConfigureAwait(false);
-                warning = planning.PendingCount;
-            }
-            catch
-            {
-                // planning optional
-            }
 
             var alerts = new ErpWorkspacePlanningAlerts(danger, warning, info, dead, danger + warning + info + dead);
             var commerce = await ReadInsightsCommerceAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -341,20 +296,33 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     {
         var requested = ErpHostContext.ActiveCompanyIdFromQuery(_httpContextAccessor?.HttpContext?.Request);
         var ids = new List<int>();
-        try
+        if (ErpFirstPaint.TryGetRequestCache(
+                _httpContextAccessor?.HttpContext,
+                ErpFirstPaint.CompaniesCacheKey + ":50",
+                out ErpCompaniesDigestResult? cachedCompanies)
+            && cachedCompanies is not null)
         {
-            await using var cmd = connection.CreateCommand();
-            cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCompanies;
-            AddParameter(cmd, "@limit", 50);
-            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                ids.Add(Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture));
-            }
+            ids.AddRange(cachedCompanies.Companies.Select(c => (int)c.Id));
         }
-        catch
+
+        if (ids.Count == 0)
         {
-            // companies table optional — PHP resolve returns 0 (unscoped)
+            try
+            {
+                await using var cmd = connection.CreateCommand();
+                ErpFirstPaint.ApplyIfErp(cmd);
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCompanies;
+                AddParameter(cmd, "@limit", 50);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    ids.Add(Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture));
+                }
+            }
+            catch
+            {
+                // companies table optional — PHP resolve returns 0 (unscoped)
+            }
         }
 
         if (!await HasGlJournalCompanyIdAsync(connection, cancellationToken).ConfigureAwait(false))
@@ -445,6 +413,38 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         return new(ordersToday, ordersWeek, ordersPrev, open, products, clients, returns, vin, warehouses, prices);
     }
 
+    private static async Task<List<ErpWorkspaceSupplierSpend>> ReadWorkspaceTopSuppliersAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpWorkspaceSupplierSpend>();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(cmd);
+            cmd.CommandText = LegacySurfaceDashboardSql.SelectErpWorkspaceTopSupplierSpend;
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var spend = Convert.ToDecimal(reader["spend"] is DBNull ? 0m : reader["spend"], CultureInfo.InvariantCulture);
+                var poCount = Convert.ToInt32(reader["po_count"] is DBNull ? 0 : reader["po_count"], CultureInfo.InvariantCulture);
+                if (string.IsNullOrWhiteSpace(name) && spend <= 0)
+                {
+                    continue;
+                }
+
+                rows.Add(new(name, "", Math.Round(spend, 2), poCount, 0m));
+            }
+        }
+        catch
+        {
+            // purchase-order table optional
+        }
+
+        return rows;
+    }
+
     private static ErpWorkspacePeriodKpis ToWorkspacePeriod(
         ErpDashboardSummary s,
         (decimal PurchaseExVat, decimal RevenueExVat, decimal SalesInclVat, decimal DueOrders, int CompletedOrders, int ConfirmedSo, int OpenPo, int InvoicesDue, int Busy, int Headcount, int ProcessDone, decimal GlNetProfit) x)
@@ -494,6 +494,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        ErpFirstPaint.ApplyIfErp(command);
         command.CommandText = LegacySurfaceDashboardSql.SelectErpDashboardSummaryBatch;
         AddParameter(command, "@dateFrom", monthStart);
         AddParameter(command, "@dateTo", now);
@@ -3540,6 +3541,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     /// </summary>
     private Task<DbConnection> OpenTenantShopAsync(CancellationToken cancellationToken)
     {
+        ErpFirstPaint.Observe(_httpContextAccessor?.HttpContext);
         if (IsEpartsCartRequest())
         {
             return _connections.OpenAsync("docpart", cancellationToken);
@@ -5904,7 +5906,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     public async Task<ErpInventoryItemPickerResult> ListErpInventoryItemsForPickerAsync(int limit, CancellationToken cancellationToken = default)
     {
-        var safeLimit = Math.Clamp(limit, 1, 1000);
+        var safeLimit = Math.Clamp(ErpFirstPaint.ClampList(limit), 1, ErpFirstPaint.PickerLimit);
         if (!_connections.IsConfigured)
         {
             return new([], 0, "migration", "TenantRegistry DB is not configured.");
@@ -8036,6 +8038,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     public async Task<ErpCompaniesDigestResult> BuildErpCompaniesDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
+        var http = _httpContextAccessor?.HttpContext;
+        ErpFirstPaint.Observe(http);
+        var cacheKey = ErpFirstPaint.CompaniesCacheKey + ":" + Math.Clamp(limit, 1, 200).ToString(CultureInfo.InvariantCulture);
+        if (ErpFirstPaint.TryGetRequestCache(http, cacheKey, out ErpCompaniesDigestResult? cached)
+            && cached is not null)
+        {
+            return cached;
+        }
+
         var safeLimit = Math.Clamp(limit, 1, 200);
         if (!_connections.IsConfigured)
         {
@@ -8050,6 +8061,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 await using (var packCmd = connection.CreateCommand())
                 {
+                    ErpFirstPaint.ApplyIfErp(packCmd);
                     packCmd.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyIndustryPacks;
                     await using var packReader = await packCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                     while (await packReader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -8086,7 +8098,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(rows, rows.Count, "database", string.Empty);
+            var result = new ErpCompaniesDigestResult(rows, rows.Count, "database", string.Empty);
+            ErpFirstPaint.SetRequestCache(http, cacheKey, result);
+            return result;
         }
         catch (Exception ex)
         {
@@ -15553,6 +15567,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private static async Task<int> ScalarIntAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        ErpFirstPaint.ApplyIfErp(command);
         command.CommandText = sql;
         var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
         return Convert.ToInt32(value ?? 0, CultureInfo.InvariantCulture);
@@ -15575,6 +15590,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var command = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(command);
             command.CommandText = sql;
             AddParameter(command, "@userId", userId);
             var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -15591,6 +15607,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var command = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(command);
             command.CommandText = sql;
             var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             return Convert.ToDecimal(value ?? 0m, CultureInfo.InvariantCulture);
@@ -15610,6 +15627,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var command = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(command);
             command.CommandText = sql;
             foreach (var (name, value) in parameters)
             {
@@ -15634,6 +15652,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var command = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(command);
             command.CommandText = sql;
             foreach (var (name, value) in parameters)
             {
@@ -15659,6 +15678,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var command = connection.CreateCommand();
+            ErpFirstPaint.ApplyIfErp(command);
             command.CommandText = sql;
             foreach (var (name, value) in parameters)
             {
@@ -15699,6 +15719,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
     private static void AddParameter(DbCommand command, string name, object value)
     {
+        ErpFirstPaint.ApplyIfErp(command);
+        value = ErpFirstPaint.ClampLimitValue(name, value);
         var parameter = command.CreateParameter();
         parameter.ParameterName = name;
         parameter.Value = value;

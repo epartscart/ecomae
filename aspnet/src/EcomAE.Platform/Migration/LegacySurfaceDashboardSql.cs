@@ -1320,7 +1320,7 @@ public static class LegacySurfaceDashboardSql
         LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
         WHERE d.`active` = 1 AND d.`status` <> 'cancelled'
           AND d.`doc_category` IN ('tax_invoice','commercial_invoice')
-        LIMIT 2000
+        LIMIT 200
         """;
 
     /// <summary>Report-center / aging: AP outstanding from purchases.</summary>
@@ -1333,7 +1333,7 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_erp_purchases` p
         LEFT JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
         WHERE p.`active` = 1 AND p.`status` <> 'draft'
-        LIMIT 2000
+        LIMIT 200
         """;
 
     /// <summary>Inventory aging value by item (age from last inbound movement).</summary>
@@ -1348,7 +1348,7 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_erp_inv_stock` st
         INNER JOIN `epc_erp_inv_items` it ON it.`id` = st.`item_id` AND it.`active` = 1
         WHERE st.`qty_on_hand` > 0
-        LIMIT 2000
+        LIMIT 200
         """;
 
     /// <summary>PHP <c>epc_erp_receivables</c> — customer AR (email is the PHP AR identifier).</summary>
@@ -7400,6 +7400,19 @@ public const string SelectCpOpsGuidesStats = """
         WHERE `active` = 1
         ORDER BY `name` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Workspace home first-paint: top 5 supplier spend, no full-portal scan.</summary>
+    public const string SelectErpWorkspaceTopSupplierSpend = """
+        SELECT IFNULL(s.`name`, '') AS name,
+               IFNULL(SUM(p.`total_amount`), 0) AS spend,
+               COUNT(*) AS po_count
+        FROM `epc_erp_purchase_orders` p
+        LEFT JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
+        WHERE p.`active` = 1
+        GROUP BY p.`supplier_id`, s.`name`
+        ORDER BY spend DESC
+        LIMIT 5
         """;
 
     public const string SelectErpSupplierPortalPoAgg = """

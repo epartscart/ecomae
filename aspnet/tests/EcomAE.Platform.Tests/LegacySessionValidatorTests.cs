@@ -144,6 +144,24 @@ public sealed class LegacySessionValidatorTests
     }
 
     [Fact]
+    public async Task ValidateAsync_MemoizesResultOnTheSameHttpContext()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Host = new HostString("www.ecomae.com");
+        context.Request.Headers.Cookie = "admin_session=abc; admin_u_id=42";
+        var store = new CountingSessionStore();
+        var validator = new DbBackedLegacySessionValidator(store);
+
+        var first = await validator.ValidateAsync(context);
+        var second = await validator.ValidateAsync(context);
+
+        Assert.Equal(LegacySessionKind.Admin, first.Kind);
+        Assert.Same(first, second);
+        Assert.Equal(1, store.AdminExistsCalls);
+        Assert.Equal(1, store.IdentityCalls);
+    }
+
+    [Fact]
     public async Task ValidateCustomerAsync_PrefersCustomerCookiesWhenAdminAlsoPresent()
     {
         var context = new DefaultHttpContext();
@@ -221,6 +239,28 @@ public sealed class LegacySessionValidatorTests
                 _adminExists
                     ? new LegacyAdminIdentity("admin@example.com", [3], _hasBackend)
                     : null);
+    }
+
+    private sealed class CountingSessionStore : ILegacySessionStore
+    {
+        public bool IsConfigured => true;
+        public int AdminExistsCalls { get; private set; }
+        public int IdentityCalls { get; private set; }
+
+        public Task<bool> AdminSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+        {
+            AdminExistsCalls++;
+            return Task.FromResult(true);
+        }
+
+        public Task<bool> CustomerSessionExistsAsync(string sessionToken, int userId, CancellationToken cancellationToken = default)
+            => Task.FromResult(false);
+
+        public Task<LegacyAdminIdentity?> GetAdminIdentityAsync(int userId, CancellationToken cancellationToken = default)
+        {
+            IdentityCalls++;
+            return Task.FromResult<LegacyAdminIdentity?>(new LegacyAdminIdentity("admin@example.com", [3], true));
+        }
     }
 
     private sealed class DualSessionStore : ILegacySessionStore
