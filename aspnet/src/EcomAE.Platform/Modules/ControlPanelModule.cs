@@ -7404,9 +7404,68 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_activities KPIs + rows. Open ?activity_id= loads a 280-char notes excerpt plus related siblings. Notes omitted from the list. PHP CRM activities remain authoritative."
+                note = "Read-only epc_crm_activities KPIs + rows. Open ?activity_id= loads a 280-char notes excerpt plus related siblings. toggle_activity POST /cp/crm/activities/write when confirmWrites=true. Create stays Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpCrmActivitiesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmActivityWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-activities-app", "Admin CP or ERP capability required for CRM activity write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmActivitiesWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var done = body.Done;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "activity_id", "activityId");
+                done = LiveWriteFormBinder.Flag(form, "done");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "toggle_activity" or "crm_toggle_activity")
+            {
+                var written = await writes.ToggleDoneAsync(id, done, cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/cp/crm-activities-app?activity_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/crm-activities-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "toggle_activity" or "crm_toggle_activity",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Create activity stays Classic."
+                    : "Dry-run. Set confirmWrites=true to toggle the activity.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelAuthMfa, async (
             HttpContext context,
@@ -10348,6 +10407,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? MenuList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
+    private sealed record CpCrmActivitiesWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        bool Done = false);
     private sealed record CpModulesWriteBody(
         string? Action = null,
         long ModuleId = 0,
