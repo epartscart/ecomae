@@ -6307,6 +6307,27 @@ public sealed record ErpPaymentBatchListResult(
     string Source,
     string Message);
 
+public sealed record ErpPaymentBatchDetail(
+    long Id,
+    string BatchNo,
+    string BatchType,
+    long AccountId,
+    string AccountName,
+    decimal TotalAmount,
+    int LineCount,
+    string Status,
+    long ExecutionDate,
+    long TimeCreated,
+    long TimeUpdated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpPaymentBatchDetailResult(
+    ErpPaymentBatchDetail? Batch,
+    IReadOnlyList<ErpPaymentBatchDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpFiscalPeriodDigest(
     long Id,
     string YearMonth,

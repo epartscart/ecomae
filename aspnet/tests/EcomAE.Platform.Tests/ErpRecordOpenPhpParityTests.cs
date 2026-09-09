@@ -115,6 +115,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=purchasing&tab=rfq&epc_erp_shell=1&rfq_id=8", "/erp/rfq-app?rfq_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=delivery_notes&delivery_note_id=9", "/erp/delivery-notes-app?delivery_note_id=9")]
     [InlineData("/CP/shop/finance/erp?area=sales&tab=delivery_notes&epc_erp_shell=1&delivery_note_id=9", "/erp/delivery-notes-app?delivery_note_id=9")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=banking&tab=payment_batches&batch_id=10", "/erp/payment-batches-app?batch_id=10")]
+    [InlineData("/CP/shop/finance/erp?area=banking&tab=payment_batches&epc_erp_shell=1&batch_id=10", "/erp/payment-batches-app?batch_id=10")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2284,6 +2286,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/delivery-notes-app",
                 "/ERP/?epc_erp_shell=1&area=sales&tab=delivery_notes&delivery_note_id=9"));
+    }
+
+    [Fact]
+    public void PaymentBatchesApp_OpenLoadsNotesExcerptAndKeepsErpChrome()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpPaymentBatchesApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpPaymentBatchDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"batch_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("batch_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"batch_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Save stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/payment-batches-app?batch_id=10#erp-row-10",
+            ErpRecordOpen.Href("/erp/payment-batches-app", "batch_id", 10));
+        Assert.Equal(
+            "/erp/payment-batches-app?batch_id=10",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/payment-batches-app",
+                "/ERP/?epc_erp_shell=1&area=banking&tab=payment_batches&batch_id=10"));
     }
 
     [Fact]

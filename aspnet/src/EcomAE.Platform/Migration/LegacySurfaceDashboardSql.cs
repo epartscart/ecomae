@@ -6712,6 +6712,35 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened payment batch. notes is a short excerpt. Save stays Classic.</summary>
+    public const string SelectErpPaymentBatchDetail = """
+        SELECT b.`id`, IFNULL(b.`batch_no`,'') AS batch_no, IFNULL(b.`batch_type`,'') AS batch_type,
+               IFNULL(b.`account_id`,0) AS account_id, IFNULL(a.`name`,'') AS account_name,
+               IFNULL(b.`total_amount`,0) AS total_amount, IFNULL(b.`line_count`,0) AS line_count,
+               IFNULL(b.`status`,'') AS status, IFNULL(b.`execution_date`,0) AS execution_date,
+               IFNULL(b.`time_created`,0) AS time_created, IFNULL(b.`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(b.`notes`,'')) AS notes_len,
+               LEFT(IFNULL(b.`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_payment_batches` b
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = b.`account_id`
+        WHERE b.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other payment batches with the same status. notes omitted.</summary>
+    public const string SelectErpPaymentBatchStatusSiblings = """
+        SELECT b.`id`, IFNULL(b.`batch_no`,'') AS batch_no, IFNULL(b.`batch_type`,'') AS batch_type,
+               IFNULL(b.`account_id`,0) AS account_id, IFNULL(a.`name`,'') AS account_name,
+               IFNULL(b.`total_amount`,0) AS total_amount, IFNULL(b.`line_count`,0) AS line_count,
+               IFNULL(b.`status`,'') AS status, IFNULL(b.`execution_date`,0) AS execution_date,
+               IFNULL(b.`time_updated`,0) AS time_updated
+        FROM `epc_erp_payment_batches` b
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = b.`account_id`
+        WHERE IFNULL(b.`status`,'') = @status AND b.`id` <> @id
+        ORDER BY b.`time_updated` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP fiscal periods peek — PHP epc_erp_periods (period_close).</summary>
     public const string SelectErpFiscalPeriods = """
         SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
