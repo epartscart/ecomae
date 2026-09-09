@@ -491,6 +491,8 @@ public static class EcomAeRoutes
     public const string ControlPanelTemplatesManager = "/cp/templates-manager";
     /// <summary>CP Templates manager Blazor list (JSON digest remains <see cref="ControlPanelTemplatesManager"/>).</summary>
     public const string ControlPanelTemplatesManagerApp = "/cp/templates-manager-app";
+    /// <summary>PHP <c>templates_manager.php</c> <c>set_current</c>. <c>confirmWrites=true</c> sets one current template per frontend/backend group. Delete and generate_style stay Classic.</summary>
+    public const string ControlPanelTemplatesSetCurrent = "/cp/templates-manager/set-current";
     public const string ControlPanelDesignTokens = "/cp/design-tokens";
     /// <summary>CP Design tokens Blazor list (JSON digest remains <see cref="ControlPanelDesignTokens"/>).</summary>
     public const string ControlPanelDesignTokensApp = "/cp/design-tokens-app";

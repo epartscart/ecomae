@@ -20,12 +20,21 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Installed storefront and CP templates. Switch current template stays on the Classic twin.</p>
+                <p>Installed storefront and CP templates. Set current writes here. Delete and style generate stay on the Classic twin.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/templates-manager-app" IsAdmin="_isAdmin" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
 
     @if (_opened is not null)
     {
@@ -46,7 +55,19 @@
                         <dt>Phone</dt><dd>@_opened.PhoneSupport.ToString(CultureInfo.InvariantCulture)</dd>
                         <dt>Tablet</dt><dd>@_opened.TabletSupport.ToString(CultureInfo.InvariantCulture)</dd>
                     </dl>
-                    <p class="text-muted" style="margin:.85rem 0 0">Switch current template stays on the Classic twin.</p>
+                    @if (_opened.Current != 0)
+                    {
+                        <p class="text-muted" style="margin:.85rem 0 0">This is the current template. Delete stays on the Classic twin.</p>
+                    }
+                    else
+                    {
+                        <form method="post" action="/cp/templates-manager/set-current" class="form-inline" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <input type="hidden" name="template_id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-sm btn-primary">Set current</button>
+                        </form>
+                    }
                     @if (!string.IsNullOrWhiteSpace(_opened.DataValueExcerpt))
                     {
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DataValueExcerpt</pre>
@@ -112,12 +133,13 @@
                                 <th>Current</th>
                                 <th>Frontend</th>
                                 <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                         @if (_rows.Count == 0)
                         {
-                            <tr><td colspan="6">No records yet.</td></tr>
+                            <tr><td colspan="7">No records yet.</td></tr>
                         }
                         else
                         {
@@ -130,6 +152,21 @@
                                     <td>@row.Current.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@row.IsFrontend.ToString(CultureInfo.InvariantCulture)</td>
                                     <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "tpl_id", row.Id)">Open</a></td>
+                                    <td>
+                                        @if (row.Current != 0)
+                                        {
+                                            <span class="text-muted">Current</span>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" action="/cp/templates-manager/set-current" style="display:inline">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="@_listHref" />
+                                                <input type="hidden" name="template_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <button type="submit" class="btn btn-xs btn-primary">Set current</button>
+                                            </form>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }
@@ -145,6 +182,8 @@
     private const string _phpTab = "/CP/templates/templates_manager";
     private const string _listHref = "/cp/templates-manager-app";
     private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
     private CpTemplatesManagerSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpTemplatesManagerRowDigest> _rows = [];
     private long _openedId;
@@ -169,6 +208,8 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "tpl_id");
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

@@ -1938,7 +1938,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"tpl_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("DataValueExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("same-frontend siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Switch current template stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("Delete and style generate stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/templates-manager/set-current", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"template_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
