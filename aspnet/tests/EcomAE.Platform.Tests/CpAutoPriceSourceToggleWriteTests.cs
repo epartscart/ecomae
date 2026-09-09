@@ -31,6 +31,13 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.True(CpAutoPriceWriteService.IsOwnStorefrontDomain("www.epartscart.com", "shop.local"));
         Assert.True(CpAutoPriceWriteService.IsOwnStorefrontDomain("shop.local", "shop.local"));
         Assert.False(CpAutoPriceWriteService.IsOwnStorefrontDomain("parts.example.com", "shop.local"));
+        Assert.Equal(24, CpAutoPriceWriteService.ClampSkipHours(null));
+        Assert.Equal(1, CpAutoPriceWriteService.ClampSkipHours(0));
+        Assert.Equal(168, CpAutoPriceWriteService.ClampSkipHours(200));
+        var skipped = CpAutoPriceWriteService.MergeSkipConfig("{\"login_url\":\"/in\"}", 1700000000);
+        Assert.Contains("\"crawl_skip_until\":1700000000", skipped, StringComparison.Ordinal);
+        Assert.Contains("\"crawl_skip_manual\":1", skipped, StringComparison.Ordinal);
+        Assert.Contains("\"login_url\":\"/in\"", skipped, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -44,7 +51,9 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("value=\"toggle_discovery_source\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"delete_discovery_source\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"add_discovery_source\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"skip_source\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"domain\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"hours\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
@@ -65,6 +74,7 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("add_discovery_source", write.Notes, StringComparison.Ordinal);
         Assert.Contains("toggle_discovery_source", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("skip_source", write.Notes, StringComparison.Ordinal);
         Assert.Contains("delete_discovery_source", write.Notes, StringComparison.Ordinal);
     }
 
@@ -79,12 +89,14 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpAutoPriceWriteService.cs"));
         Assert.Contains("epc_disc_source_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_disc_source_toggle", service, StringComparison.Ordinal);
+        Assert.Contains("epc_disc_source_set_skip", service, StringComparison.Ordinal);
         Assert.Contains("epc_disc_source_delete", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_discovery_sources`", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_discovery_sources`", service, StringComparison.Ordinal);
         Assert.Contains("DELETE FROM `epc_discovery_sources`", service, StringComparison.Ordinal);
         Assert.Contains("add_discovery_source", module, StringComparison.Ordinal);
+        Assert.Contains("skip_source", module, StringComparison.Ordinal);
         Assert.Contains("delete_discovery_source", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);

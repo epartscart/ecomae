@@ -962,6 +962,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(apAddDb.Succeeded);
         Assert.Equal("db", apAddDb.Code);
 
+        var apSkipBad = await new CpAutoPriceWriteService(new ConfiguredNeverOpened())
+            .SkipSourceAsync(new CpAutoPriceSourceSkipRequest(0, "epartscart", 24));
+        Assert.False(apSkipBad.Succeeded);
+        Assert.Equal("invalid", apSkipBad.Code);
+
+        var apSkipDb = await new CpAutoPriceWriteService(new UnconfiguredConnections())
+            .SkipSourceAsync(new CpAutoPriceSourceSkipRequest(3, "epartscart", 24));
+        Assert.False(apSkipDb.Succeeded);
+        Assert.Equal("db", apSkipDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

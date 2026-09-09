@@ -1,4 +1,6 @@
 using System.Data.Common;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
@@ -7,7 +9,7 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>ajax_auto_price.php</c> twin of <c>epc_disc_source_save</c> (add),
-/// <c>epc_disc_source_toggle</c>, and <c>epc_disc_source_delete</c>.
+/// <c>epc_disc_source_toggle</c>, <c>epc_disc_source_set_skip</c>, and <c>epc_disc_source_delete</c>.
 /// Auth password, login test, crawl, compare-run, and send stay Classic. Schema-ensure stays Classic.
 /// This service does not invent a send.
 /// </summary>
@@ -19,6 +21,10 @@ public interface ICpAutoPriceWriteService
 
     Task<ErpSimpleWriteResult> ToggleSourceAsync(
         CpAutoPriceSourceToggleRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SkipSourceAsync(
+        CpAutoPriceSourceSkipRequest request,
         CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> DeleteSourceAsync(
@@ -40,6 +46,11 @@ public sealed record CpAutoPriceSourceAddRequest(
     bool? Enabled,
     int? Priority,
     string? RequestHost);
+
+public sealed record CpAutoPriceSourceSkipRequest(
+    long Id,
+    string? SiteKey,
+    int? Hours);
 
 public sealed class CpAutoPriceWriteService : ICpAutoPriceWriteService
 {
@@ -143,6 +154,28 @@ public sealed class CpAutoPriceWriteService : ICpAutoPriceWriteService
     public static int AddEnabled(bool? requested) => requested is false ? 0 : 1;
 
     public static int AddPriority(int? requested) => requested ?? 100;
+
+    /// <summary>PHP <c>max(1, min(168, (int)($_POST['hours'] ?? 24)))</c>.</summary>
+    public static int ClampSkipHours(int? hours)
+        => Math.Clamp(hours ?? 24, 1, 168);
+
+    public static string MergeSkipConfig(string? rawJson, long skipUntilUnix)
+    {
+        JsonObject obj;
+        try
+        {
+            obj = JsonNode.Parse(string.IsNullOrWhiteSpace(rawJson) ? "{}" : rawJson) as JsonObject
+                  ?? new JsonObject();
+        }
+        catch (JsonException)
+        {
+            obj = new JsonObject();
+        }
+
+        obj["crawl_skip_until"] = skipUntilUnix;
+        obj["crawl_skip_manual"] = 1;
+        return obj.ToJsonString();
+    }
 
     private static IEnumerable<string> OwnStorefrontHosts(string? requestHost)
     {
@@ -306,6 +339,55 @@ public sealed class CpAutoPriceWriteService : ICpAutoPriceWriteService
                 ErpDb.Positional("UPDATE `epc_discovery_sources` SET `enabled`=?, `updated_at`=? WHERE `id`=?"),
                 cancellationToken, next, now, request.Id).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Source updated", request.Id);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Discovery-source table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> SkipSourceAsync(
+        CpAutoPriceSourceSkipRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.Id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "source_id required");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var siteKey = NormalizeSiteKey(request.SiteKey);
+        var hours = ClampSkipHours(request.Hours);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var skipUntil = now + (hours * 3600L);
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var exists = await ErpDb.LongAsync(
+                connection, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_discovery_sources` WHERE `id`=? AND `site_key`=?"),
+                cancellationToken, request.Id, siteKey).ConfigureAwait(false);
+            if (exists <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Source not found");
+            }
+
+            var raw = await ErpDb.StringAsync(
+                connection, null,
+                ErpDb.Positional("SELECT `config_json` FROM `epc_discovery_sources` WHERE `id`=?"),
+                cancellationToken, request.Id).ConfigureAwait(false);
+            var nextJson = MergeSkipConfig(raw, skipUntil);
+
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("UPDATE `epc_discovery_sources` SET `config_json`=?, `updated_at`=? WHERE `id`=?"),
+                cancellationToken, nextJson, now, request.Id).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Source skipped for " + hours.ToString(System.Globalization.CultureInfo.InvariantCulture) + "h", request.Id);
         }
         catch (DbException)
         {
