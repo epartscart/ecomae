@@ -9830,9 +9830,109 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_comm_settings + epc_platform_internal_tasks. Open ?task_id= loads a 280-char description excerpt plus category siblings. PHP super CP communication remains authoritative."
+                note = "Read-only epc_platform_comm_settings + epc_platform_internal_tasks. Open ?task_id= loads a 280-char description excerpt plus category siblings. save_task / delete_task POST /cp/platform-communication/write when confirmWrites=true. Notification policy and schema-ensure stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpPlatformCommunicationWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPlatformCommunicationWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Platform-communication write is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/platform-communication-app", "Admin CP capability required for platform-communication write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPlatformCommunicationWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var title = body.Title;
+            var description = body.Description;
+            var assignedTo = body.AssignedTo;
+            var assignedEmail = body.AssignedEmail;
+            var siteKey = body.SiteKey;
+            var category = body.Category;
+            var status = body.Status;
+            var priority = body.Priority;
+            var dueAt = body.DueAt;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "epc_scp_action");
+                id = LiveWriteFormBinder.Long(form, "id");
+                title = LiveWriteFormBinder.Text(form, "title");
+                description = LiveWriteFormBinder.Text(form, "description");
+                assignedTo = LiveWriteFormBinder.Long(form, "assigned_to", "assignedTo");
+                assignedEmail = LiveWriteFormBinder.Text(form, "assigned_email", "assignedEmail");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                category = LiveWriteFormBinder.Text(form, "category");
+                status = LiveWriteFormBinder.Text(form, "status");
+                priority = LiveWriteFormBinder.Text(form, "priority");
+                dueAt = LiveWriteFormBinder.Long(form, "due_at", "dueAt");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save_task";
+            }
+
+            if (confirm && key is "delete_task" or "delete")
+            {
+                var written = await writes.DeleteTaskAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/platform-communication-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "save_task" or "save")
+            {
+                var written = await writes.SaveTaskAsync(
+                    new CpPlatformCommunicationSaveTaskRequest(id, title, description, assignedTo, assignedEmail, siteKey, category, status, priority, dueAt, session.UserId),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/platform-communication-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_task" or "save" or "delete_task" or "delete",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Notification policy stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save or delete the task.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelInfoBlocks, async (
             HttpContext context,
@@ -12365,6 +12465,19 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Locale = null,
         bool Active = false,
         int SortOrder = 0);
+    private sealed record CpPlatformCommunicationWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? Title = null,
+        string? Description = null,
+        long AssignedTo = 0,
+        string? AssignedEmail = null,
+        string? SiteKey = null,
+        string? Category = null,
+        string? Status = null,
+        string? Priority = null,
+        long DueAt = 0);
     private sealed record CpSocialHubWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

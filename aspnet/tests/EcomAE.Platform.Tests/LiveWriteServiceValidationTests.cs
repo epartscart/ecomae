@@ -1057,6 +1057,26 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(infoDelDb.Succeeded);
         Assert.Equal("db", infoDelDb.Code);
 
+        var commBad = await new CpPlatformCommunicationWriteService(new ConfiguredNeverOpened())
+            .SaveTaskAsync(new CpPlatformCommunicationSaveTaskRequest(0, "", "", 0, "", "", "support", "open", "normal", 0, 1));
+        Assert.False(commBad.Succeeded);
+        Assert.Equal("invalid", commBad.Code);
+
+        var commDb = await new CpPlatformCommunicationWriteService(new UnconfiguredConnections())
+            .SaveTaskAsync(new CpPlatformCommunicationSaveTaskRequest(0, "Follow up", "", 0, "", "platform", "support", "open", "normal", 0, 1));
+        Assert.False(commDb.Succeeded);
+        Assert.Equal("db", commDb.Code);
+
+        var commDelBad = await new CpPlatformCommunicationWriteService(new ConfiguredNeverOpened())
+            .DeleteTaskAsync(0);
+        Assert.False(commDelBad.Succeeded);
+        Assert.Equal("invalid", commDelBad.Code);
+
+        var commDelDb = await new CpPlatformCommunicationWriteService(new UnconfiguredConnections())
+            .DeleteTaskAsync(4);
+        Assert.False(commDelDb.Succeeded);
+        Assert.Equal("db", commDelDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
