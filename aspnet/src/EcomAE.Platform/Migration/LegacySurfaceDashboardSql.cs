@@ -6297,6 +6297,29 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened plugin. data_value is a short excerpt. Activate/lock stays Classic.</summary>
+    public const string SelectCpPluginsManagerDetail = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order,
+        IFNULL(`activated`,0) AS activated, IFNULL(`is_frontend`,0) AS is_frontend,
+        IFNULL(`control_lock`,0) AS control_lock,
+        CHAR_LENGTH(IFNULL(`data_value`,'')) AS data_value_len,
+        LEFT(IFNULL(`data_value`,''), 280) AS data_value_excerpt
+        FROM `plugins`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other plugins with the same is_frontend flag. data_value omitted.</summary>
+    public const string SelectCpPluginsManagerFrontendSiblings = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`order`,0) AS sort_order,
+        IFNULL(`activated`,0) AS activated, IFNULL(`is_frontend`,0) AS is_frontend,
+        IFNULL(`control_lock`,0) AS control_lock
+        FROM `plugins`
+        WHERE `is_frontend` = @is_frontend AND `id` <> @id
+        ORDER BY `order` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     /// <summary>Wave 22 templates-manager KPIs (templates).</summary>
     public const string SelectCpTemplatesManagerStats = """
         SELECT

@@ -8658,7 +8658,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only plugins KPIs + plugins (data_value JSON + filesystem delete side-effects). PHP Plugins manager remains authoritative."
+                note = "Read-only plugins KPIs + plugins (data_value omitted on the list). Open ?plugin_id= loads a 280-char data_value excerpt. Activate/lock stay Classic. PHP Plugins manager remains authoritative."
             });
         });
 
