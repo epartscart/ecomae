@@ -73,6 +73,13 @@ public sealed class PhpProductPathRedirectMiddleware
             return Redirect(context, "/blockchain/verify" + query);
         }
 
+        // Public beacon ingest — stay on Kestrel (do not 302 POST to a browse route).
+        if (path.Equals("/epc-web-tracker-collect.php", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/epc-web-tracker-collect", StringComparison.OrdinalIgnoreCase))
+        {
+            return _next(context);
+        }
+
         if (PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(combined, out var aspNet)
             && !string.Equals(aspNet, combined, StringComparison.Ordinal))
         {

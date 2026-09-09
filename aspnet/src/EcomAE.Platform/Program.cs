@@ -672,6 +672,8 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVinRequestWrite
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontQuoteWriteService, EcomAE.Platform.Storefront.StorefrontQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGarageWriteService, EcomAE.Platform.Storefront.StorefrontGarageWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCustomerWriteService, EcomAE.Platform.Storefront.StorefrontCustomerWriteService>();
+builder.Services.AddSingleton<EcomAE.Platform.Migration.CpWebTrackerCollectRateLimiter>();
+builder.Services.AddScoped<EcomAE.Platform.Migration.ICpWebTrackerCollectService, EcomAE.Platform.Migration.CpWebTrackerCollectService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollWriteService, EcomAE.Platform.Erp.ErpPayrollWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollPayWriteService, EcomAE.Platform.Erp.ErpPayrollPayWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPayrollUpdateDaysWriteService, EcomAE.Platform.Erp.ErpPayrollUpdateDaysWriteService>();
