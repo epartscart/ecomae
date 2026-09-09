@@ -14,7 +14,7 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="On-Premises" BreadcrumbArea="Platform" BreadcrumbTab="On-Premises">
 
     <PhpErpModulePageHeader Title="On-Premises Deployment"
-                            Subtitle="Open a license for the notes excerpt and issued times. Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate stays Classic."
+                            Subtitle="Open a license for the notes excerpt and issued times. Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate and health stay Classic."
                             PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/on-premises-app" />
@@ -38,7 +38,7 @@
                 <dt>Last seen</dt><dd>@FormatTime(_openedDetail.LastSeenAt)</dd>
                 <dt>Expires</dt><dd>@FormatTime(_openedDetail.ExpiresAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate stays Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Fingerprint, IP, and modules stay omitted. License keys stay masked. Activate and health stay Classic.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">Notes excerpt</p>
