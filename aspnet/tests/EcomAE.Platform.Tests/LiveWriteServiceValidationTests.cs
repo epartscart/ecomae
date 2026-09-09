@@ -992,6 +992,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(ftDb.Succeeded);
         Assert.Equal("db", ftDb.Code);
 
+        var govBad = await new CpPlatformGovernanceWriteService(new ConfiguredNeverOpened())
+            .SaveRuleAsync(new CpPlatformGovernanceSaveRuleRequest("", true, "required"));
+        Assert.False(govBad.Succeeded);
+        Assert.Equal("invalid", govBad.Code);
+
+        var govDb = await new CpPlatformGovernanceWriteService(new UnconfiguredConnections())
+            .SaveRuleAsync(new CpPlatformGovernanceSaveRuleRequest("data_retention", true, "required"));
+        Assert.False(govDb.Succeeded);
+        Assert.Equal("db", govDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

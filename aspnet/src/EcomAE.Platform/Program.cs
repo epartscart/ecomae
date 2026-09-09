@@ -933,6 +933,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpDocumentControlWriteService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAutoPriceWriteService, EcomAE.Platform.Cp.CpAutoPriceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpBulkUploadWriteService, EcomAE.Platform.Cp.CpBulkUploadWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFreeToolsWriteService, EcomAE.Platform.Cp.CpFreeToolsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformGovernanceWriteService, EcomAE.Platform.Cp.CpPlatformGovernanceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmConvertWriteService, EcomAE.Platform.Cp.CpCrmConvertWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Platform.Cp.CpWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWorkshopWriteService, EcomAE.Platform.Storefront.StorefrontWorkshopWriteService>();

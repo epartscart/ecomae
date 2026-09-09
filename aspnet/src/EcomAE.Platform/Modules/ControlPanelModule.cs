@@ -7670,9 +7670,79 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_governance_rules. Open ?rule_id= loads a 280-char description excerpt plus category siblings. config_json omitted. PHP epc_platform_governance remains authoritative."
+                note = "Read-only epc_platform_governance_rules. Open ?rule_id= loads a 280-char description excerpt plus category siblings. config_json omitted. save_rule POST /cp/platform-governance/write when confirmWrites=true. Schema-ensure stays Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpPlatformGovernanceWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPlatformGovernanceWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Platform governance write is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/platform-governance-app", "Admin CP capability required for platform-governance write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPlatformGovernanceWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var ruleKey = body.RuleKey;
+            var active = body.Active;
+            var enforcement = body.Enforcement;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                ruleKey = LiveWriteFormBinder.Text(form, "rule_key", "ruleKey");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                enforcement = LiveWriteFormBinder.Text(form, "enforcement");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_rule" or "gov_save_rule")
+            {
+                var written = await writes.SaveRuleAsync(
+                    new CpPlatformGovernanceSaveRuleRequest(ruleKey, active, enforcement),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/platform-governance-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_rule" or "gov_save_rule",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Title, description, and seed stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the governance rule.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelEinvoiceDocuments, async (
             HttpContext context,
@@ -12252,4 +12322,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false,
         string? Tool = null,
         bool Active = false);
+    private sealed record CpPlatformGovernanceWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? RuleKey = null,
+        bool Active = false,
+        string? Enforcement = null);
 }

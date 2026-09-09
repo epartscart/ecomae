@@ -248,6 +248,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPlatformGovernance = "/cp/platform-governance";
     /// <summary>CP platform governance Blazor list (JSON digest remains <see cref="ControlPanelPlatformGovernance"/>).</summary>
     public const string ControlPanelPlatformGovernanceApp = "/cp/platform-governance-app";
+    /// <summary>Super-CP governance save_rule. <c>confirmWrites=true</c> twins PHP ajax_platform_governance.php. Seed and schema-ensure stay Classic.</summary>
+    public const string CpPlatformGovernanceWrite = "/cp/platform-governance/write";
     /// <summary>CP e-invoice documents (payload JSON/XML omitted).</summary>
     public const string ControlPanelEinvoiceDocuments = "/cp/einvoice-documents";
     /// <summary>CP e-invoice documents Blazor list (JSON digest remains <see cref="ControlPanelEinvoiceDocuments"/>).</summary>
