@@ -6618,6 +6618,33 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened supplier RFQ. description is a short excerpt. Save stays Classic.</summary>
+    public const string SelectErpRfqDetail = """
+        SELECT `id`, IFNULL(`rfq_no`,'') AS rfq_no, IFNULL(`supplier_id`,0) AS supplier_id,
+               IFNULL(`title`,'') AS title, IFNULL(`amount_est`,0) AS amount_est,
+               IFNULL(`currency_code`,'AED') AS currency_code, IFNULL(`status`,'') AS status,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`time_created`,0) AS time_created, IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `epc_erp_rfq`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other supplier RFQs with the same status. description omitted.</summary>
+    public const string SelectErpRfqStatusSiblings = """
+        SELECT `id`, IFNULL(`rfq_no`,'') AS rfq_no, IFNULL(`supplier_id`,0) AS supplier_id,
+               IFNULL(`title`,'') AS title, IFNULL(`amount_est`,0) AS amount_est,
+               IFNULL(`currency_code`,'AED') AS currency_code, IFNULL(`status`,'') AS status,
+               IFNULL(`due_date`,0) AS due_date, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_rfq`
+        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP three-way match rows — PHP epc_erp_three_way_match_rows.</summary>
     public const string SelectErpThreeWayMatch = """
         SELECT po.`id` AS po_id, IFNULL(po.`po_no`,'') AS po_no, IFNULL(po.`status`,'') AS po_status,

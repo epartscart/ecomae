@@ -11438,7 +11438,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP RFQ digest. PHP epc_erp_rfq remains authoritative."
+                note = "Open ?rfq_id= loads 280-char description excerpt; same-status siblings. PHP epc_erp_rfq / save_rfq remain authoritative."
             });
         });
 

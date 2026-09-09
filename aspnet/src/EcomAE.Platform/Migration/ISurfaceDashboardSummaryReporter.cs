@@ -722,6 +722,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpDeliveryNoteListResult> ListErpDeliveryNotesAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpRfqListResult> ListErpRfqsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened supplier RFQ (Open key <c>rfq_id</c>) plus same-status siblings. description is a short excerpt.</summary>
+    Task<ErpRfqDetailResult> BuildErpRfqDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpThreeWayMatchListResult> ListErpThreeWayMatchAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpPaymentBatchListResult> ListErpPaymentBatchesAsync(int limit, CancellationToken cancellationToken = default);
