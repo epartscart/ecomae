@@ -930,7 +930,7 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>COA with current balance (PHP <c>epc_erp_gl_list_coa</c> signed balance).</summary>
+    /// <summary>COA with current balance (PHP <c>epc_erp_gl_list_coa</c> signed balance). description/system_flag/time_created omitted.</summary>
     public const string SelectErpCoaAccounts = """
         SELECT a.`id`, IFNULL(a.`code`, '') AS code, IFNULL(a.`name`, '') AS name,
                IFNULL(a.`account_type`, '') AS account_type, IFNULL(a.`normal_side`, '') AS normal_side,
@@ -953,6 +953,32 @@ public static class LegacySurfaceDashboardSql
         WHERE a.`active` = 1
         ORDER BY a.`code` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened COA account. description is a short excerpt. Balance stays on the list. account_id remapped by tab=coa.</summary>
+    public const string SelectErpCoaAccountDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`account_type`,'') AS account_type, IFNULL(`normal_side`,'') AS normal_side,
+               IFNULL(`parent_id`,0) AS parent_id, IFNULL(`opening_balance`,0) AS opening_balance,
+               IFNULL(`system_flag`,0) AS system_flag, IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `epc_erp_coa_accounts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other COA accounts with the same type. description omitted.</summary>
+    public const string SelectErpCoaAccountTypeSiblings = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`account_type`,'') AS account_type, IFNULL(`normal_side`,'') AS normal_side,
+               IFNULL(`parent_id`,0) AS parent_id, IFNULL(`opening_balance`,0) AS opening_balance,
+               0 AS balance, `active`
+        FROM `epc_erp_coa_accounts`
+        WHERE IFNULL(`account_type`,'') = @account_type AND `id` <> @id
+        ORDER BY `code` ASC
+        LIMIT 50
         """;
 
     public const string SelectErpWarehouses = """

@@ -10204,7 +10204,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only chart-of-accounts digest. PHP epc_erp_coa remains authoritative."
+                note = "Read-only chart-of-accounts digest. Open ?account_id= loads 280-char description excerpt. Remapped by tab=coa. PHP epc_erp_coa remains authoritative."
             });
         });
 

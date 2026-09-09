@@ -476,6 +476,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_einvoice_documents", LegacySurfaceDashboardSql.SelectErpInvoices, StringComparison.Ordinal);
         Assert.Contains("config_items", LegacySurfaceDashboardSql.SelectCpConfigItemsMeta, StringComparison.Ordinal);
         Assert.Contains("epc_erp_coa_accounts", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
+        Assert.DoesNotContain("system_flag", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
+        Assert.DoesNotContain("time_created", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`description`,''), 280)", LegacySurfaceDashboardSql.SelectErpCoaAccountDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpCoaAccountDetail, StringComparison.Ordinal);
+        Assert.Contains("system_flag", LegacySurfaceDashboardSql.SelectErpCoaAccountDetail, StringComparison.Ordinal);
+        Assert.Contains("time_created", LegacySurfaceDashboardSql.SelectErpCoaAccountDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectErpCoaAccountTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("@account_type", LegacySurfaceDashboardSql.SelectErpCoaAccountTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpCoaAccountTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_warehouses", LegacySurfaceDashboardSql.SelectErpWarehouses, StringComparison.Ordinal);
         Assert.Contains("epc_erp_sales_orders", LegacySurfaceDashboardSql.SelectErpSalesOrders, StringComparison.Ordinal);
         Assert.Contains("epc_boc_audit", LegacySurfaceDashboardSql.SelectBosAuditLog, StringComparison.Ordinal);

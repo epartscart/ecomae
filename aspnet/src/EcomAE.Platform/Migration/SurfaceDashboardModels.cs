@@ -648,6 +648,26 @@ public sealed record ErpCoaAccountListResult(
     string Source,
     string Message);
 
+public sealed record ErpCoaAccountDetail(
+    long Id,
+    string Code,
+    string Name,
+    string AccountType,
+    string NormalSide,
+    long ParentId,
+    decimal OpeningBalance,
+    bool SystemFlag,
+    bool Active,
+    long TimeCreated,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record ErpCoaAccountDetailResult(
+    ErpCoaAccountDetail? Account,
+    IReadOnlyList<ErpCoaAccountDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpWarehouseDigest(
     long Id,
     long StorageId,

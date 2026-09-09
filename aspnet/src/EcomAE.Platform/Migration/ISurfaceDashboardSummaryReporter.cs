@@ -88,6 +88,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpCoaAccountListResult> ListErpCoaAccountsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened COA account (Open key <c>account_id</c>, remapped by <c>tab=coa</c>) plus same-type siblings. description is a short excerpt.</summary>
+    Task<ErpCoaAccountDetailResult> BuildErpCoaAccountDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpWarehouseListResult> ListErpWarehousesAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<ErpSalesOrderListResult> ListErpSalesOrdersAsync(int limit, CancellationToken cancellationToken = default);
