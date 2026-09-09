@@ -76,6 +76,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpModuleListResult> ListCpModulesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened module (PHP <c>module_id</c>) plus same-position siblings. Body is a short excerpt.</summary>
+    Task<CpModuleDetailResult> BuildCpModulesDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<CpConfigItemMetaListResult> ListCpConfigItemsMetaAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<BosFleetReadinessResult> BuildBosFleetReadinessAsync(CancellationToken cancellationToken = default);

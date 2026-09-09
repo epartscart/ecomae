@@ -81,6 +81,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/catalogue/products?product_id=8", "/cp/product-catalogue-app?product_id=8")]
     [InlineData("/CP/shop/logistics/offices/office?office_id=2", "/cp/offices-app?office_id=2")]
     [InlineData("/CP/shop/logistics/offices?office_id=2", "/cp/offices-app?office_id=2")]
+    [InlineData("/CP/modules/module?module_id=4", "/cp/modules-app?module_id=4")]
+    [InlineData("/CP/modules/modules_manager?module_id=4", "/cp/modules-app?module_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1485,6 +1487,37 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/offices-app",
                 "/CP/shop/logistics/offices/office?office_id=2"));
+    }
+
+    [Fact]
+    public void ModulesApp_OpenLoadsBodyExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpModulesApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"module_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"module_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpModulesDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No body excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-position siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/modules/write", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.Contains("module_id=", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/modules-app?module_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/modules-app", "module_id", 4));
+        Assert.Equal(
+            "/cp/modules-app?module_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/modules-app",
+                "/CP/modules/module?module_id=4"));
     }
 
     [Fact]

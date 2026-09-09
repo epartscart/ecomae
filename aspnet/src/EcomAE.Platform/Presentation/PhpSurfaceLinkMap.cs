@@ -109,6 +109,7 @@ public static class PhpSurfaceLinkMap
         ("content/edit_content", "/cp/pages-app"),
         ("content/content_manager", "/cp/pages-app"),
         ("modules_control", "/cp/modules-app"),
+        ("modules/module", "/cp/modules-app"),
         ("modules/modules_manager", "/cp/modules-app"),
         ("control/communications", "/cp/communications-test-app"),
         ("control/sms-operatory", "/cp/sms-whatsapp-app"),
@@ -262,6 +263,7 @@ public static class PhpSurfaceLinkMap
         ("shop/pos", "/cp/pos-overview-app"),
         ("shop/crosses", "/cp/crosses-app"),
         ("shop/prices", "/cp/prices-upload-app"),
+        ("modules/module", "/cp/modules-app"),
         ("modules/modules_manager", "/cp/modules-app"),
         ("content/content_manager", "/cp/pages-app"),
         ("menu/menu_edit", "/cp/menus-app"),
@@ -1563,7 +1565,7 @@ public static class PhpSurfaceLinkMap
         if (topLevel.Equals("modules_control", StringComparison.OrdinalIgnoreCase)
             || topLevel.Equals("modules", StringComparison.OrdinalIgnoreCase))
         {
-            return "/cp/modules-app";
+            return ErpRecordOpen.PreserveRecordQuery("/cp/modules-app", value);
         }
 
         if (topLevel.Equals("packs_control", StringComparison.OrdinalIgnoreCase)
@@ -1670,7 +1672,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/pages-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/menus-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/product-catalogue-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/offices-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/offices-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/modules-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

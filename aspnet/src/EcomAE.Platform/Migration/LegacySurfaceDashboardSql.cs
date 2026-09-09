@@ -855,6 +855,50 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened module. Body is a short excerpt; full HTML and data JSON omitted.</summary>
+    public const string SelectCpModulesDetail = """
+        SELECT m.`id`, IFNULL(m.`caption`, '') AS caption, m.`activated`, m.`is_frontend`,
+               m.`is_prototype`, m.`control_available`,
+               IFNULL(m.`content_type`, '') AS content_type,
+               IFNULL(m.`position`, '') AS position,
+               IFNULL(m.`show_caption`, 0) AS show_caption,
+               IFNULL(m.`order`, 0) AS sort_order,
+               IFNULL(m.`for_all`, 0) AS for_all,
+               CASE
+                 WHEN IFNULL(m.`content_type`, '') = 'php' THEN CHAR_LENGTH(IFNULL(m.`content`, ''))
+                 ELSE IFNULL((
+                     SELECT CHAR_LENGTH(IFNULL(t.`value`, ''))
+                     FROM `lang_text_strings_translation` t
+                     WHERE t.`str_key` = CAST(m.`content` AS CHAR)
+                     ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                     LIMIT 1
+                 ), CHAR_LENGTH(IFNULL(m.`content`, '')))
+               END AS body_len,
+               CASE
+                 WHEN IFNULL(m.`content_type`, '') = 'php' THEN LEFT(IFNULL(m.`content`, ''), 280)
+                 ELSE IFNULL((
+                     SELECT LEFT(IFNULL(t.`value`, ''), 280)
+                     FROM `lang_text_strings_translation` t
+                     WHERE t.`str_key` = CAST(m.`content` AS CHAR)
+                     ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                     LIMIT 1
+                 ), LEFT(IFNULL(m.`content`, ''), 280))
+               END AS body_excerpt
+        FROM `modules` m
+        WHERE m.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other non-prototype modules in the same position. Body omitted.</summary>
+    public const string SelectCpModulesPositionSiblings = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption, `activated`, `is_frontend`,
+               `is_prototype`, `control_available`
+        FROM `modules`
+        WHERE `is_prototype` = 0 AND `position` = @position AND `id` <> @id
+        ORDER BY `id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectCpConfigItemsMeta = """
         SELECT `name`, IFNULL(`caption`, '') AS caption, IFNULL(`type`, '') AS type,
                IFNULL(`config_group`, '') AS config_group, `visible`, `order`
