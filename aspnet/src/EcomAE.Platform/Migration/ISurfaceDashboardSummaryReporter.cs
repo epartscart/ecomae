@@ -473,6 +473,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only CRM/sales quotations (notes omitted).</summary>
     Task<ErpSalesQuotationsDigestResult> BuildErpSalesQuotationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened sales quotation (Open key <c>quote_id</c>) plus same-status siblings. notes is a short excerpt. Line bodies omitted.</summary>
+    Task<ErpSalesQuotationDetailResult> BuildErpSalesQuotationDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only ERP workspace favorites/shortcuts.</summary>
     Task<ErpWorkspaceFavoritesDigestResult> BuildErpWorkspaceFavoritesDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -720,6 +720,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpStockTransferStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_crm_quotes", LegacySurfaceDashboardSql.SelectErpSalesQuotations, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpSalesQuotations, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpSalesQuotationDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpSalesQuotationDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_user_shortcuts", LegacySurfaceDashboardSql.SelectErpWorkspaceFavorites, StringComparison.Ordinal);
         Assert.Contains("epc_erp_staff_profiles", LegacySurfaceDashboardSql.SelectErpStaffProfiles, StringComparison.Ordinal);
         Assert.Contains("epc_erp_contracts", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
