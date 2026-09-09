@@ -905,6 +905,13 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(expenseSaveDb.Succeeded);
         Assert.Equal("db", expenseSaveDb.Code);
 
+        Assert.Equal("eParts", CpDocumentControlWriteService.Clip("  eParts  ", 255));
+
+        var dcCompanyDb = await new CpDocumentControlWriteService(new UnconfiguredConnections())
+            .SaveCompanyAsync(new CpDocumentCompanySaveRequest(0, "Co", "", "", "", "", "", "", "", "", "", "", "", "", "", null));
+        Assert.False(dcCompanyDb.Succeeded);
+        Assert.Equal("db", dcCompanyDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
