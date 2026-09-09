@@ -3391,6 +3391,40 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened fixed asset. note is a short excerpt. Schema ensure stays Classic.</summary>
+    public const string SelectErpFixedAssetDetail = """
+        SELECT `id`, IFNULL(`asset_code`,'') AS asset_code, IFNULL(`name`,'') AS name,
+               IFNULL(`category_id`,0) AS category_id, IFNULL(`acquisition_date`,'') AS acquisition_date,
+               IFNULL(`cost`,0) AS cost, IFNULL(`salvage_value`,0) AS salvage_value,
+               IFNULL(`useful_life_months`,0) AS useful_life_months,
+               IFNULL(`depreciation_method`,'') AS depreciation_method,
+               IFNULL(`accumulated_depreciation`,0) AS accumulated_depreciation,
+               IFNULL(`book_value`,0) AS book_value, IFNULL(`location`,'') AS location,
+               IFNULL(`tracking_id`,'') AS tracking_id, IFNULL(`serial_no`,'') AS serial_no,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`note`,'')) AS note_len,
+               LEFT(IFNULL(`note`,''), 280) AS note_excerpt
+        FROM `epc_erp_fa_assets`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other fixed assets with the same status. note omitted.</summary>
+    public const string SelectErpFixedAssetStatusSiblings = """
+        SELECT `id`, IFNULL(`asset_code`,'') AS asset_code, IFNULL(`name`,'') AS name,
+               IFNULL(`category_id`,0) AS category_id, IFNULL(`acquisition_date`,'') AS acquisition_date,
+               IFNULL(`cost`,0) AS cost, IFNULL(`salvage_value`,0) AS salvage_value,
+               IFNULL(`useful_life_months`,0) AS useful_life_months,
+               IFNULL(`depreciation_method`,'') AS depreciation_method,
+               IFNULL(`accumulated_depreciation`,0) AS accumulated_depreciation,
+               IFNULL(`book_value`,0) AS book_value, IFNULL(`location`,'') AS location,
+               IFNULL(`status`,'') AS status, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_fa_assets`
+        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Page builder layout KPIs — omits layout_json/brand_json.</summary>
     public const string SelectCpPageBuilderStats = """
         SELECT
