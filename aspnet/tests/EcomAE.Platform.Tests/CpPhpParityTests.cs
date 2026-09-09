@@ -276,6 +276,7 @@ public sealed class CpPhpParityTests
     [InlineData("CpCustomerBoardApp.razor")]
     [InlineData("CpSsoSamlApp.razor")]
     [InlineData("CpEventBusApp.razor")]
+    [InlineData("CpPriceConfigsApp.razor")]
     public void NextWaveSuperOnlyApps_HaveSuperCpHostGate(string file)
     {
         var text = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/" + file));
@@ -289,6 +290,7 @@ public sealed class CpPhpParityTests
     [InlineData("/cp/customer-board-app")]
     [InlineData("/cp/sso-saml-app")]
     [InlineData("/cp/event-bus-app")]
+    [InlineData("/cp/price-configs-app")]
     public void NextWaveSuperOnlyApps_AreSuperOnlyChromeLinks(string href)
     {
         Assert.True(LegacyDesktopChromeCatalog.IsSuperOnlyCpLink(href));

@@ -425,7 +425,9 @@ public static class LegacyDesktopChromeCatalog
             || h.Contains("/cp/platform-communication-app", StringComparison.OrdinalIgnoreCase)
             || h.Contains("epc_super_cp_communication", StringComparison.OrdinalIgnoreCase)
             || h.Contains("/cp/info-blocks-app", StringComparison.OrdinalIgnoreCase)
-            || h.Contains("epc_super_cp_info_blocks", StringComparison.OrdinalIgnoreCase))
+            || h.Contains("epc_super_cp_info_blocks", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("/cp/price-configs-app", StringComparison.OrdinalIgnoreCase)
+            || h.Contains("epc_super_cp_price_configs", StringComparison.OrdinalIgnoreCase))
         {
             return true;
         }

@@ -10093,6 +10093,113 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.CpPriceConfigsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPriceConfigsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Price-config write is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/price-configs-app", "Admin CP capability required for price-config write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPriceConfigsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var name = body.Name;
+            var scope = body.Scope;
+            var siteKey = body.SiteKey;
+            var clientType = body.ClientType;
+            var clientRef = body.ClientRef;
+            var markupPercent = body.MarkupPercent;
+            var markupFixed = body.MarkupFixed;
+            var currency = body.Currency;
+            var priority = body.Priority;
+            var active = body.Active;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "epc_scp_action");
+                id = LiveWriteFormBinder.Long(form, "id");
+                name = LiveWriteFormBinder.Text(form, "name");
+                scope = LiveWriteFormBinder.Text(form, "scope");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                clientType = LiveWriteFormBinder.Text(form, "client_type", "clientType");
+                clientRef = LiveWriteFormBinder.Text(form, "client_ref", "clientRef");
+                markupPercent = LiveWriteFormBinder.Dec(form, "markup_percent", "markupPercent");
+                markupFixed = LiveWriteFormBinder.Dec(form, "markup_fixed", "markupFixed");
+                currency = LiveWriteFormBinder.Text(form, "currency");
+                var priorityRaw = LiveWriteFormBinder.Text(form, "priority");
+                priority = string.IsNullOrWhiteSpace(priorityRaw)
+                    ? 1
+                    : LiveWriteFormBinder.Int(form, "priority");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save_price_config";
+            }
+
+            if (confirm && key is "delete_price_config" or "delete")
+            {
+                var written = await writes.DeleteAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/price-configs-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "save_price_config" or "save")
+            {
+                var written = await writes.SaveAsync(
+                    new CpPriceConfigSaveRequest(id, name, scope, siteKey, clientType, clientRef, markupPercent, markupFixed, currency, priority, active, notes),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/price-configs-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_price_config" or "save" or "delete_price_config" or "delete",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Unknown price-config action."
+                    : "Dry-run. Set confirmWrites=true to save or delete the price config.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelFreeTools, async (
             HttpContext context,
             int? limit,
@@ -12496,6 +12603,21 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Locale = null,
         bool Active = false,
         int SortOrder = 0);
+    private sealed record CpPriceConfigsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? Name = null,
+        string? Scope = null,
+        string? SiteKey = null,
+        string? ClientType = null,
+        string? ClientRef = null,
+        decimal MarkupPercent = 0,
+        decimal MarkupFixed = 0,
+        string? Currency = null,
+        int Priority = 100,
+        bool Active = false,
+        string? Notes = null);
     private sealed record CpPlatformCommunicationWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

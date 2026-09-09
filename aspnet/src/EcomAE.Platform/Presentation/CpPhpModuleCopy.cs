@@ -47,6 +47,8 @@ public static class CpPhpModuleCopy
             return "Abandoned carts: recover checkout sessions that never completed.";
         if (path.Contains("/promotions", StringComparison.OrdinalIgnoreCase))
             return "Promotions and discount campaigns.";
+        if (path.Contains("/price-configs", StringComparison.OrdinalIgnoreCase))
+            return "Platform markup rules for catalogue, price lists, and API clients.";
         if (path.Contains("/price-lists", StringComparison.OrdinalIgnoreCase) || path.Contains("/prices-", StringComparison.OrdinalIgnoreCase))
             return "Price lists and supplier price upload.";
         if (path.Contains("/purchase-requests", StringComparison.OrdinalIgnoreCase))
