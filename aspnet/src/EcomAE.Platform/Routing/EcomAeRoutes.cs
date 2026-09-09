@@ -252,6 +252,8 @@ public static class EcomAeRoutes
     public const string ControlPanelMarketingGrowth = "/cp/marketing-growth";
     /// <summary>CP marketing growth Blazor list (JSON digest remains <see cref="ControlPanelMarketingGrowth"/>).</summary>
     public const string ControlPanelMarketingGrowthApp = "/cp/marketing-growth-app";
+    /// <summary>CP marketing growth save_review. <c>confirmWrites=true</c> twins PHP ajax_marketing.php. Task / KPI stay Classic.</summary>
+    public const string CpMarketingGrowthWrite = "/cp/marketing-growth/write";
     /// <summary>CP SOC 2 compliance controls (description/implementation omitted).</summary>
     public const string ControlPanelSoc2Compliance = "/cp/soc2-compliance";
     /// <summary>CP SOC 2 Blazor list (JSON digest remains <see cref="ControlPanelSoc2Compliance"/>).</summary>

@@ -7040,9 +7040,72 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_marketing_* KPIs + reviews. Open ?review_id= loads a 280-char notes excerpt plus strategy siblings. PHP marketing growth / campaigns hub remains authoritative."
+                note = "Read-only epc_marketing_* KPIs + reviews. Open ?review_id= loads a 280-char notes excerpt plus strategy siblings. save_review POST /cp/marketing-growth/write when confirmWrites=true. Task and KPI writes stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpMarketingGrowthWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpMarketingGrowthWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/marketing-growth-app", "Admin CP capability required for marketing growth write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpMarketingGrowthWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var strategyKey = body.StrategyKey;
+            var reviewType = body.ReviewType;
+            var score = body.Score;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                strategyKey = LiveWriteFormBinder.Text(form, "strategy_key", "strategyKey", "strategy");
+                reviewType = LiveWriteFormBinder.Text(form, "review_type", "reviewType");
+                score = LiveWriteFormBinder.Int(form, "score");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_review" or "mkt_save_review")
+            {
+                var written = await writes.SaveReviewAsync(
+                    strategyKey, reviewType, score, notes, session.UserId, cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/cp/marketing-growth-app?review_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/marketing-growth-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_review" or "mkt_save_review",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Task and KPI writes stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save a review.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSoc2Compliance, async (
             HttpContext context,
@@ -10348,6 +10411,13 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? MenuList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
+    private sealed record CpMarketingGrowthWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? StrategyKey = null,
+        string? ReviewType = null,
+        int Score = 0,
+        string? Notes = null);
     private sealed record CpModulesWriteBody(
         string? Action = null,
         long ModuleId = 0,
