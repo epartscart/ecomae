@@ -224,6 +224,8 @@ public static class EcomAeRoutes
     public const string ControlPanelWorkflows = "/cp/workflows";
     /// <summary>CP workflows Blazor list (JSON digest remains <see cref="ControlPanelWorkflows"/>).</summary>
     public const string ControlPanelWorkflowsApp = "/cp/workflows-app";
+    /// <summary>CP workflow activate/deactivate. <c>confirmWrites=true</c> twins PHP epc_workflow_toggle. Tick / execute stay Classic.</summary>
+    public const string CpWorkflowsWrite = "/cp/workflows/write";
     /// <summary>CP purchase requisitions (justification/decision_note omitted).</summary>
     public const string ControlPanelPurchaseRequests = "/cp/purchase-requests";
     /// <summary>CP purchase requests Blazor list (JSON digest remains <see cref="ControlPanelPurchaseRequests"/>).</summary>

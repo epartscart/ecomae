@@ -7536,9 +7536,80 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_workflows KPIs + workflows (trigger_config/description omitted). Open ?workflow_id= loads a 280-char description excerpt. PHP workflow automation shell remains authoritative."
+                note = "Read-only epc_workflows KPIs + workflows (trigger_config/description omitted). Open ?workflow_id= loads a 280-char description excerpt. toggle POST /cp/workflows/write when confirmWrites=true. Tick / execute stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpWorkflowsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpWorkflowsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/workflows-app", "Admin CP capability required for workflow toggle.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpWorkflowsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var active = body.Active;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "sub_action");
+                id = LiveWriteFormBinder.Long(form, "id", "workflow_id", "workflowId");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "toggle";
+            }
+
+            if (key is "activate" or "enable")
+            {
+                active = true;
+                key = "toggle";
+            }
+            else if (key is "deactivate" or "disable")
+            {
+                active = false;
+                key = "toggle";
+            }
+
+            if (confirm && key is "toggle")
+            {
+                var written = await writes.ToggleAsync(id, active, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/workflows-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "toggle",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Tick / execute stay Classic."
+                    : "Dry-run. Set confirmWrites=true to enable or disable the workflow.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelPurchaseRequests, async (
             HttpContext context,
@@ -12491,6 +12562,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ImagesList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
+    private sealed record CpWorkflowsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        bool Active = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(

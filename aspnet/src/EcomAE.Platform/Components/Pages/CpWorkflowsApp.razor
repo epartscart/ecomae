@@ -178,7 +178,27 @@
                     <dt>Runs</dt><dd>@_opened.RunCount.ToString(CultureInfo.InvariantCulture)</dd>
                     <dt>Last status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.LastRunStatus) ? "—" : _opened.LastRunStatus)</dd>
                 </dl>
-                <p class="text-muted" style="margin:.85rem 0 0">trigger_config omitted.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">trigger_config omitted. Tick / execute stay Classic. This page does not invent a send.</p>
+                @if (_isAdmin)
+                {
+                    <form method="post" action="/cp/workflows/write" class="well" style="margin:.85rem 0 0">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                        <input type="hidden" name="action" value="toggle" />
+                        <input type="hidden" name="id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+                        @if (_opened.Active)
+                        {
+                            <input type="hidden" name="active" value="0" />
+                            <button type="submit" class="btn btn-default">Disable workflow</button>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="active" value="1" />
+                            <button type="submit" class="btn btn-default">Enable workflow</button>
+                        }
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
+                }
                 @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
                 {
                     <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DescriptionExcerpt</pre>
