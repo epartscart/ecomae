@@ -6890,7 +6890,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_catalogue_products KPIs + products (safe columns). PHP catalogue editor remains authoritative."
+                note = "Read-only shop_catalogue_products KPIs + products (safe columns). Open ?product_id= loads 280-char product-text excerpt. Full HTML omitted. PHP catalogue editor remains authoritative."
             });
         });
 

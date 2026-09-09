@@ -2730,6 +2730,24 @@ public sealed record CpProductCatalogueDigestResult(
     string Source,
     string Message);
 
+public sealed record CpProductCatalogueDetail(
+    long Id,
+    long CategoryId,
+    string Caption,
+    string Alias,
+    bool PublishedFlag,
+    string RobotsTag,
+    decimal MinLimit,
+    bool MinLimitEnable,
+    int TextLen,
+    string TextExcerpt);
+
+public sealed record CpProductCatalogueDetailResult(
+    CpProductCatalogueDetail? Product,
+    IReadOnlyList<CpProductCatalogueDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpPlatformGovernanceSummary(
     int RuleCount,
     int ActiveCount,

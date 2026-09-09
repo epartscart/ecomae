@@ -3213,6 +3213,51 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened catalogue product. Product text is a short excerpt; full HTML omitted.</summary>
+    public const string SelectCpProductCatalogueDetail = """
+        SELECT p.`id`, IFNULL(p.`category_id`,0) AS category_id,
+               IFNULL(p.`caption`,'') AS caption, IFNULL(p.`alias`,'') AS alias,
+               IFNULL(p.`published_flag`,0) AS published_flag,
+               IFNULL(p.`robots_tag`,'') AS robots_tag,
+               IFNULL(p.`min_limit`,0) AS min_limit,
+               IFNULL(p.`min_limit_enable`,0) AS min_limit_enable,
+               IFNULL((
+                   SELECT CHAR_LENGTH(IFNULL(t.`value`, ''))
+                   FROM `shop_products_text` tx
+                   INNER JOIN `lang_text_strings_translation` t
+                     ON t.`str_key` = CAST(tx.`content` AS CHAR)
+                   WHERE tx.`product_id` = p.`id`
+                   ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                   LIMIT 1
+               ), CHAR_LENGTH(IFNULL((
+                   SELECT tx.`content` FROM `shop_products_text` tx WHERE tx.`product_id` = p.`id` LIMIT 1
+               ), ''))) AS text_len,
+               IFNULL((
+                   SELECT LEFT(IFNULL(t.`value`, ''), 280)
+                   FROM `shop_products_text` tx
+                   INNER JOIN `lang_text_strings_translation` t
+                     ON t.`str_key` = CAST(tx.`content` AS CHAR)
+                   WHERE tx.`product_id` = p.`id`
+                   ORDER BY CASE WHEN t.`lang_code` = 'en' THEN 0 ELSE 1 END, t.`lang_code`
+                   LIMIT 1
+               ), LEFT(IFNULL((
+                   SELECT tx.`content` FROM `shop_products_text` tx WHERE tx.`product_id` = p.`id` LIMIT 1
+               ), ''), 280)) AS text_excerpt
+        FROM `shop_catalogue_products` p
+        WHERE p.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other products in the same category. Product text omitted.</summary>
+    public const string SelectCpProductCatalogueCategorySiblings = """
+        SELECT `id`, IFNULL(`category_id`,0) AS category_id, IFNULL(`caption`,'') AS caption,
+               IFNULL(`alias`,'') AS alias, IFNULL(`published_flag`,0) AS published_flag
+        FROM `shop_catalogue_products`
+        WHERE `category_id` = @category_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Platform governance KPIs — omits description/config_json.</summary>
     public const string SelectCpPlatformGovernanceStats = """
         SELECT
