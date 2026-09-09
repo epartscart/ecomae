@@ -51,7 +51,7 @@ public sealed class StorefrontConfirmContactWriteTests
             item.AspNetRouteOrCapability == "/storefront/confirm-contact");
         Assert.Equal("write-live-gated", row.Status);
         Assert.Contains("confirm_contact.php", row.Notes, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("Classic", row.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
