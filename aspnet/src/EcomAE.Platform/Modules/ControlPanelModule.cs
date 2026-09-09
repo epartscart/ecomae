@@ -1679,8 +1679,75 @@ public sealed class ControlPanelModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpPortalDeploySite, async (HttpContext context, CpPortalDeploySiteBody? body, ILegacySessionValidator validator, ICpPortalDeploySiteDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalDeploySiteBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalDeploySiteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.CpCrmAction, async (HttpContext context, CpCrmActionBody? body, ILegacySessionValidator validator, ICpCrmActionDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpCrmActionBody(null,false); return Results.Ok(dryRun.Evaluate(new CpCrmActionRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpCrmAction, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmActionDryRun dryRun,
+            ICpCrmWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-board-app", "Admin CP or ERP capability required for CRM write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmActionBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var company = body.Company;
+            var contactName = body.ContactName;
+            var email = body.Email;
+            var phone = body.Phone;
+            var source = body.Source;
+            var status = body.Status;
+            var ownerUserId = body.OwnerUserId;
+            var expectedValue = body.ExpectedValue;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "lead_id", "leadId");
+                company = LiveWriteFormBinder.Text(form, "company");
+                contactName = LiveWriteFormBinder.Text(form, "contact_name", "contactName");
+                email = LiveWriteFormBinder.Text(form, "email");
+                phone = LiveWriteFormBinder.Text(form, "phone");
+                source = LiveWriteFormBinder.Text(form, "source");
+                status = LiveWriteFormBinder.Text(form, "status");
+                ownerUserId = LiveWriteFormBinder.Long(form, "owner_user_id", "ownerUserId", "owner");
+                expectedValue = LiveWriteFormBinder.Dec(form, "expected_value", "expectedValue", "amount");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_lead" or "crm_save_lead")
+            {
+                var owner = ownerUserId;
+                if (id <= 0 && owner <= 0)
+                {
+                    owner = session.UserId;
+                }
+
+                var written = await writes.SaveLeadAsync(
+                    id, company, contactName, email, phone, source, status, owner, expectedValue, notes, cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/cp/crm-board-app?lead_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/crm-board-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(dryRun.Evaluate(new CpCrmActionRequest(action, confirm)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.CpModuleAjaxWriteCatalog, (ICpModuleAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
         endpoints.MapPost(EcomAeRoutes.CpModuleAjaxWriteRegistryDryRun, async (
@@ -9818,7 +9885,19 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ReceiptFooter = null);
     private sealed record CpPortalSaveSettingsBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPortalDeploySiteBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpCrmActionBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpCrmActionBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? Company = null,
+        string? ContactName = null,
+        string? Email = null,
+        string? Phone = null,
+        string? Source = null,
+        string? Status = null,
+        long OwnerUserId = 0,
+        decimal ExpectedValue = 0,
+        string? Notes = null);
     private sealed record CpModuleAjaxWriteRegistryBody(bool ConfirmWrites = false);
     private sealed record CpModuleAjaxWriteDedicatedBody(bool ConfirmWrites = false);
     private sealed record CpLangSetIsCustomBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, int IsCustom = -1);

@@ -1889,7 +1889,7 @@ public static class EcomAeRoutes
     public const string CpPortalSaveSettings = "/cp/portal/save-settings";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=deploy_site (writes=0).</summary>
     public const string CpPortalDeploySite = "/cp/portal/deploy-site";
-    /// <summary>Wave B dry-run for PHP cp/content/shop/crm/ajax_crm.php (writes=0).</summary>
+    /// <summary>CRM save_lead. <c>confirmWrites=true</c> + action=save_lead is the live twin of PHP ajax_crm.php. Convert / quote email stay Classic.</summary>
     public const string CpCrmAction = "/cp/crm/action";
     /// <summary>Wave C catalog of CP module ajax write surfaces (procurement/document_control/customer_mgmt/auto_price/CRM).</summary>
     public const string CpModuleAjaxWriteCatalog = "/cp/module-ajax/writes/catalog";
