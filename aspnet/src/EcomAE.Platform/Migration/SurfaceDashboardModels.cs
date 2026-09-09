@@ -7802,6 +7802,58 @@ public sealed record ErpProjectAccountingDigestResult(
     IReadOnlyList<ErpPrjaRecognitionDigest> Recognitions,
     int Count, int TxnCount, int RecognitionCount, string Source, string Message);
 
+public sealed record ErpPrjaBudgetDetail(
+    long Id,
+    long ProjectId,
+    string Category,
+    decimal CostBudget,
+    decimal RevenueBudget,
+    long CompanyId,
+    long TimeCreated);
+
+public sealed record ErpPrjaBudgetDetailResult(
+    ErpPrjaBudgetDetail? Budget,
+    IReadOnlyList<ErpPrjaBudgetDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpPrjaTxnDetail(
+    long Id,
+    long ProjectId,
+    string TxnType,
+    string Category,
+    string Description,
+    decimal Amount,
+    long TxnDate,
+    long CompanyId,
+    long TimeCreated);
+
+public sealed record ErpPrjaTxnDetailResult(
+    ErpPrjaTxnDetail? Txn,
+    IReadOnlyList<ErpPrjaTxnDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpPrjaRecognitionDetail(
+    long Id,
+    long ProjectId,
+    string Method,
+    long AsOf,
+    decimal PctComplete,
+    decimal RecognizedRevenue,
+    decimal RecognizedCost,
+    decimal Wip,
+    long CompanyId,
+    long TimeCreated,
+    int DetailLen,
+    string DetailExcerpt);
+
+public sealed record ErpPrjaRecognitionDetailResult(
+    ErpPrjaRecognitionDetail? Recognition,
+    IReadOnlyList<ErpPrjaRecognitionDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpDocAttachmentDigest(
     long Id, string EntityType, long EntityId, string FileName, int FileSize, string MimeType,
     string Description, string UploadedByName, long TimeCreated);

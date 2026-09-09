@@ -8450,6 +8450,96 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened project budget. company_id is hidden from the list.</summary>
+    public const string SelectErpPrjaBudgetDetail = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`cost_budget`,0) AS cost_budget,
+               IFNULL(`revenue_budget`,0) AS revenue_budget,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_budget`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other budgets on the same project.</summary>
+    public const string SelectErpPrjaBudgetProjectSiblings = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`cost_budget`,0) AS cost_budget,
+               IFNULL(`revenue_budget`,0) AS revenue_budget,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_budget`
+        WHERE IFNULL(`project_id`,0) = @project_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Opened project transaction. company_id is hidden from the list.</summary>
+    public const string SelectErpPrjaTxnDetail = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`txn_type`,'cost') AS txn_type,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`txn_date`,0) AS txn_date,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_txn`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other transactions on the same project.</summary>
+    public const string SelectErpPrjaTxnProjectSiblings = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`txn_type`,'cost') AS txn_type,
+               IFNULL(`category`,'general') AS category,
+               IFNULL(`description`,'') AS description,
+               IFNULL(`amount`,0) AS amount,
+               IFNULL(`txn_date`,0) AS txn_date,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_txn`
+        WHERE IFNULL(`project_id`,0) = @project_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Opened recognition run. detail_json is a short excerpt.</summary>
+    public const string SelectErpPrjaRecognitionDetail = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`method`,'poc') AS method,
+               IFNULL(`as_of`,0) AS as_of,
+               IFNULL(`pct_complete`,0) AS pct_complete,
+               IFNULL(`recognized_revenue`,0) AS recognized_revenue,
+               IFNULL(`recognized_cost`,0) AS recognized_cost,
+               IFNULL(`wip`,0) AS wip,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`detail_json`,'')) AS detail_len,
+               LEFT(IFNULL(`detail_json`,''), 280) AS detail_excerpt
+        FROM `epc_prja_recognition`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other recognition runs on the same project. detail_json omitted.</summary>
+    public const string SelectErpPrjaRecognitionProjectSiblings = """
+        SELECT `id`, IFNULL(`project_id`,0) AS project_id,
+               IFNULL(`method`,'poc') AS method,
+               IFNULL(`as_of`,0) AS as_of,
+               IFNULL(`pct_complete`,0) AS pct_complete,
+               IFNULL(`recognized_revenue`,0) AS recognized_revenue,
+               IFNULL(`recognized_cost`,0) AS recognized_cost,
+               IFNULL(`wip`,0) AS wip,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_prja_recognition`
+        WHERE IFNULL(`project_id`,0) = @project_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpDocAttachments = """
         SELECT `id`, IFNULL(`entity_type`,'') AS entity_type,
                IFNULL(`entity_id`,0) AS entity_id,
