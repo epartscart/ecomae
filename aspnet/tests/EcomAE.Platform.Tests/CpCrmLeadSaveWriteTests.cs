@@ -18,9 +18,9 @@ public sealed class CpCrmLeadSaveWriteTests
     {
         Assert.Equal("Acme", CpCrmWriteService.Clip("  Acme  ", 255));
         Assert.Equal("12345", CpCrmWriteService.Clip("1234567890", 5));
-        Assert.True(CpCrmWriteService.LeadStatuses.Contains("new"));
-        Assert.True(CpCrmWriteService.LeadStatuses.Contains("converted"));
-        Assert.False(CpCrmWriteService.LeadStatuses.Contains("won"));
+        Assert.Contains("new", CpCrmWriteService.LeadStatuses);
+        Assert.Contains("converted", CpCrmWriteService.LeadStatuses);
+        Assert.DoesNotContain("won", CpCrmWriteService.LeadStatuses);
     }
 
     [Fact]
