@@ -7451,7 +7451,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_marketing_* KPIs + reviews. Open ?review_id= loads a 280-char notes excerpt plus strategy siblings. save_review POST /cp/marketing-growth/write when confirmWrites=true. Task and KPI writes stay Classic."
+                note = "Read-only epc_marketing_* KPIs + reviews. Open ?review_id= loads a 280-char notes excerpt plus strategy siblings. save_review / toggle_task / save_kpi POST /cp/marketing-growth/write when confirmWrites=true. Schema-ensure stays Classic."
             });
         });
 
@@ -7474,6 +7474,11 @@ public sealed class ControlPanelModule : ISurfaceModule
             var reviewType = body.ReviewType;
             var score = body.Score;
             var notes = body.Notes;
+            var taskKey = body.TaskKey;
+            var kpiKey = body.KpiKey;
+            var value = body.Value;
+            var note = body.Note;
+            var done = body.IsDone;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -7483,6 +7488,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 reviewType = LiveWriteFormBinder.Text(form, "review_type", "reviewType");
                 score = LiveWriteFormBinder.Int(form, "score");
                 notes = LiveWriteFormBinder.Text(form, "notes");
+                taskKey = LiveWriteFormBinder.Text(form, "task_key", "taskKey");
+                kpiKey = LiveWriteFormBinder.Text(form, "kpi_key", "kpiKey");
+                value = LiveWriteFormBinder.Text(form, "value");
+                note = LiveWriteFormBinder.Text(form, "note");
+                done = LiveWriteFormBinder.Flag(form, "is_done", "done");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -7502,17 +7512,40 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "toggle_task" or "mkt_toggle_task")
+            {
+                var written = await writes.ToggleTaskAsync(strategyKey, taskKey, done, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/marketing-growth-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "save_kpi" or "mkt_save_kpi")
+            {
+                var written = await writes.SaveKpiAsync(
+                    strategyKey, kpiKey, value, note, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/marketing-growth-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "save_review" or "mkt_save_review",
+                wouldWrite = key is "save_review" or "mkt_save_review" or "toggle_task" or "mkt_toggle_task" or "save_kpi" or "mkt_save_kpi",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Task and KPI writes stay Classic."
-                    : "Dry-run. Set confirmWrites=true to save a review.",
+                    ? "Schema-ensure stays Classic."
+                    : "Dry-run. Set confirmWrites=true to save a review, toggle a task, or record a KPI.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -11297,7 +11330,12 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? StrategyKey = null,
         string? ReviewType = null,
         int Score = 0,
-        string? Notes = null);
+        string? Notes = null,
+        string? TaskKey = null,
+        string? KpiKey = null,
+        string? Value = null,
+        string? Note = null,
+        bool IsDone = false);
     private sealed record CpCrmOpportunitiesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

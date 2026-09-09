@@ -728,6 +728,28 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(mktDb.Succeeded);
         Assert.Equal("db", mktDb.Code);
 
+        var mktTaskInvalid = await new CpMarketingGrowthWriteService(new ConfiguredNeverOpened())
+            .ToggleTaskAsync("seo", "", true);
+        Assert.False(mktTaskInvalid.Succeeded);
+        Assert.Equal("invalid", mktTaskInvalid.Code);
+        Assert.Equal("Invalid task", mktTaskInvalid.Message);
+
+        var mktTaskDb = await new CpMarketingGrowthWriteService(new UnconfiguredConnections())
+            .ToggleTaskAsync("seo", "audit_titles", true);
+        Assert.False(mktTaskDb.Succeeded);
+        Assert.Equal("db", mktTaskDb.Code);
+
+        var mktKpiInvalid = await new CpMarketingGrowthWriteService(new ConfiguredNeverOpened())
+            .SaveKpiAsync("invented", "monthly_sessions", "10", "", 1);
+        Assert.False(mktKpiInvalid.Succeeded);
+        Assert.Equal("invalid", mktKpiInvalid.Code);
+        Assert.Equal("Invalid KPI", mktKpiInvalid.Message);
+
+        var mktKpiDb = await new CpMarketingGrowthWriteService(new UnconfiguredConnections())
+            .SaveKpiAsync("seo", "indexed_pages", "12", "note", 1);
+        Assert.False(mktKpiDb.Succeeded);
+        Assert.Equal("db", mktKpiDb.Code);
+
         var oppInvalid = await new CpCrmOpportunityWriteService(new ConfiguredNeverOpened())
             .UpdateStageAsync(0, "won");
         Assert.False(oppInvalid.Succeeded);
