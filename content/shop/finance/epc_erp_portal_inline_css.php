@@ -22,7 +22,10 @@ body.epc-erp-standalone{
   font-family:"Open Sans","Helvetica Neue",Helvetica,Arial,sans-serif;font-size:14px;
   margin:0;min-height:100vh;
   -webkit-font-smoothing:antialiased;
-  overflow-x:hidden;
+  overflow-x:auto;
+}
+body.epc-erp-standalone:has(.epc-erp-shell--layout){
+  overflow-x:auto;
 }
 body.epc-erp-standalone a{color:var(--ep-accent-2);}
 body.epc-erp-standalone a:hover,body.epc-erp-standalone a:focus{color:#7dd3fc;text-decoration:none;}

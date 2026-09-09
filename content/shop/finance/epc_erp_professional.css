@@ -130,6 +130,8 @@ body.epc-erp-cp-shell {
 	align-items: stretch;
 	min-height: calc(100vh - 64px);
 	position: relative;
+	min-width: 0;
+	max-width: 100%;
 }
 
 /* Sidebar */
@@ -519,6 +521,10 @@ body.epc-erp-cp-shell {
 	padding: 10px 20px 24px;
 	flex: 1;
 	color: #1e293b;
+	min-width: 0;
+	max-width: 100%;
+	overflow-x: auto;
+	box-sizing: border-box;
 }
 
 /* Guard against invisible text: light chrome (standalone portal body,
@@ -1250,9 +1256,11 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 }
 .epc-d365-fieldgrid {
 	display: grid;
-	grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+	grid-template-columns: repeat(auto-fit, minmax(min(100%, 200px), 1fr));
 	gap: 4px 24px;
 	margin-bottom: 14px;
+	max-width: 100%;
+	min-width: 0;
 }
 .epc-d365-field { padding: 4px 0; }
 .epc-d365-field .lbl { display: block; font-size: 11px; color: var(--d365-ink-soft); margin-bottom: 2px; }
@@ -1324,11 +1332,13 @@ body.epc-cp-shell .epc-cp-content-inner .epc-erp-form-inline .form-control {
 .epc-d365-pill--muted { background: #f3f2f1; color: #605e5c; border-color: #e1dfdd; }
 
 /* ── FactBox rail + layout ── */
-.epc-d365-split { display: flex; align-items: flex-start; gap: 16px; }
-.epc-d365-split-main { flex: 1 1 auto; min-width: 0; }
+.epc-d365-split { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 16px; max-width: 100%; min-width: 0; }
+.epc-d365-split-main { flex: 1 1 auto; min-width: 0; overflow-x: auto; }
 .epc-d365-factbox {
-	flex: 0 0 280px;
-	width: 280px;
+	flex: 1 1 240px;
+	width: min(280px, 100%);
+	max-width: 100%;
+	box-sizing: border-box;
 	border: 1px solid var(--d365-line);
 	border-radius: 2px;
 	background: #fff;

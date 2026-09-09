@@ -19,6 +19,32 @@ public sealed class ErpModulePhpLookParityTests
         Assert.Contains(".epc-erp-cp-shell .hpanel", css, StringComparison.Ordinal);
         Assert.Contains(".epc-erp-cp-shell .epc-erp-content-body", css, StringComparison.Ordinal);
         Assert.Contains("background-image: none", css, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-right-clip", css, StringComparison.Ordinal);
+        Assert.Contains("overflow-x: auto", css, StringComparison.Ordinal);
+        Assert.Contains("minmax(min(100%, 200px), 1fr)", css, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ChromeAndTheme_DoNotForceViewportWidthThatClipsRightFields()
+    {
+        var chrome = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor"));
+        Assert.Contains("epc-erp-right-clip", chrome, StringComparison.Ordinal);
+        Assert.DoesNotContain("calc(100% - 1.5rem)", chrome, StringComparison.Ordinal);
+        Assert.Contains("overflow-x:auto", chrome, StringComparison.Ordinal);
+
+        var portal = File.ReadAllText(FindRepoFile("content/shop/finance/epc_erp_portal.css"));
+        Assert.Contains("min-width: 0", portal, StringComparison.Ordinal);
+        Assert.Contains("overflow-x: auto", portal, StringComparison.Ordinal);
+        Assert.Contains(":has(.epc-erp-shell--layout) .epc-erp-main", portal, StringComparison.Ordinal);
+
+        var professional = File.ReadAllText(FindRepoFile("content/shop/finance/epc_erp_professional.css"));
+        Assert.Contains("minmax(min(100%, 200px), 1fr)", professional, StringComparison.Ordinal);
+        Assert.Contains(".epc-d365-split { display: flex; align-items: flex-start; flex-wrap: wrap;", professional, StringComparison.Ordinal);
+
+        var assets = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Presentation/LegacyPresentationAssets.cs"));
+        Assert.Contains("epc_erp_aspnet_module_parity.css?v=20260909clip", assets, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -7,6 +7,8 @@ body.epc-erp-standalone {
 	min-height: 100vh;
 	display: flex;
 	flex-direction: column;
+	min-width: 0;
+	overflow-x: auto;
 }
 
 .epc-erp-topbar {
@@ -67,9 +69,15 @@ body.epc-erp-standalone {
 	flex: 1;
 	max-width: 1400px;
 	width: 100%;
+	min-width: 0;
 	margin: 0 auto;
 	padding: 20px 16px 32px;
 	box-sizing: border-box;
+}
+/* Layout shell uses the full viewport; a 1400px measure clips the right field rail. */
+body.epc-erp-standalone:has(.epc-erp-shell--layout) .epc-erp-main {
+	max-width: none;
+	padding: 0;
 }
 
 .epc-erp-foot {
