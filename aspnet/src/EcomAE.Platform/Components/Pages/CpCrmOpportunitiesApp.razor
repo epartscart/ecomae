@@ -221,7 +221,33 @@
                         <label>Notes <input type="text" name="notes" /></label>
                         <button type="submit" class="btn btn-primary btn-sm">Create project</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Project tasks stay Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Quote email stays Classic.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">New project task</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/crm/projects/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "opp_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="save_project_task" />
+                        <label>Project <input type="text" name="project_id" inputmode="numeric" value="0" /></label>
+                        <label>Title <input type="text" name="title" maxlength="255" /></label>
+                        <label>Status
+                            <select name="status">
+                                <option value="todo" selected>todo</option>
+                                <option value="doing">doing</option>
+                                <option value="done">done</option>
+                            </select>
+                        </label>
+                        <label>Progress % <input type="text" name="progress_pct" inputmode="numeric" value="0" /></label>
+                        <label>Hours <input type="text" name="hours_est" inputmode="decimal" value="0" /></label>
+                        <label>Due <input type="text" name="due_date" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Add task</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Quote email stays Classic.</p>
                 </div>
             </div>
         </div>
