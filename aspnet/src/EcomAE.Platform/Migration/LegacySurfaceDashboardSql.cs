@@ -740,6 +740,32 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened supplier (Open key <c>supplier_id</c>). TRN/currency are hidden from the list. email/phone and add-if-missing columns omitted.</summary>
+    public const string SelectErpSupplierDetail = """
+        SELECT `id`, IFNULL(`name`, '') AS name,
+               IFNULL(`storage_id`, 0) AS storage_id,
+               LEFT(IFNULL(`trn`, ''), 280) AS trn_excerpt,
+               CHAR_LENGTH(IFNULL(`trn`, '')) AS trn_len,
+               IFNULL(`currency_code`, '') AS currency_code,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_suppliers`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other suppliers with the same currency. TRN omitted.</summary>
+    public const string SelectErpSupplierCurrencySiblings = """
+        SELECT s.`id`, s.`name`, s.`storage_id`,
+            IFNULL((SELECT SUM(`amount`) FROM `epc_erp_supplier_accounting`
+                    WHERE `supplier_id` = s.`id` AND `active` = 1 AND `is_credit` = 1), 0)
+            - IFNULL((SELECT SUM(`amount`) FROM `epc_erp_supplier_accounting`
+                    WHERE `supplier_id` = s.`id` AND `active` = 1 AND `is_credit` = 0), 0) AS balance
+        FROM `epc_erp_suppliers` s
+        WHERE IFNULL(s.`currency_code`, '') = @currency_code AND s.`id` <> @id AND s.`active` = 1
+        ORDER BY s.`name` ASC, s.`id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectErpPurchases = """
         SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
                p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`

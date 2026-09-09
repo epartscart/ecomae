@@ -368,6 +368,21 @@ public sealed record ErpSupplierListResult(
     string Source,
     string Message);
 
+public sealed record ErpSupplierDetail(
+    long Id,
+    string Name,
+    long StorageId,
+    string TrnExcerpt,
+    int TrnLen,
+    string CurrencyCode,
+    long TimeCreated);
+
+public sealed record ErpSupplierDetailResult(
+    ErpSupplierDetail? Supplier,
+    IReadOnlyList<ErpSupplierDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpPurchaseDigest(
     long Id,
     long SupplierId,

@@ -1624,6 +1624,70 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpSupplierDetailResult> BuildErpSupplierDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpSupplierDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpSupplierDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "storage_id"),
+                        ReadStr(reader, "trn_excerpt"),
+                        ReadI32(reader, "trn_len"),
+                        ReadStr(reader, "currency_code"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Supplier not found.");
+            }
+
+            var siblings = new List<ErpSupplierDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierCurrencySiblings;
+                AddParameter(cmd, "@currency_code", header.CurrencyCode);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "storage_id"),
+                        ReadDec(reader, "balance")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
