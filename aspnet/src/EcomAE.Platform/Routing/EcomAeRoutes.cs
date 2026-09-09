@@ -2164,6 +2164,10 @@ public static class EcomAeRoutes
     public const string StorefrontCheckoutApp = "/storefront/checkout-app";
     /// <summary>Customer registration (PHP regform twin; writes remain PHP register.php).</summary>
     public const string StorefrontRegisterApp = "/storefront/register-app";
+    /// <summary>Public workshop book. <c>confirmWrites=true</c> is the live twin of PHP ajax_workshop_public.php action=book.</summary>
+    public const string StorefrontWorkshopBook = "/storefront/workshop/book";
+    /// <summary>Staff workshop appointment. <c>confirmWrites=true</c> inserts <c>epc_ws_appointments</c>.</summary>
+    public const string StorefrontWorkshopAppointment = "/storefront/workshop/appointment";
     /// <summary>Storefront checkout readiness JSON digest over authenticated cart.</summary>
     public const string StorefrontCheckout = "/storefront/checkout";
     /// <summary>Cart qty write. <c>confirmWrites=true</c> is the live type-2 twin of PHP ajax_change_count_need.php.</summary>

@@ -1,8 +1,12 @@
 @page "/storefront/auto-workshop-app"
 @page "/en/storefront/auto-workshop-app"
+@page "/en/auto-workshop"
+@page "/auto-workshop"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
 @inject IHttpContextAccessor Http
+@inject IStorefrontWorkshopWriteService Workshop
 
 <PageTitle>Repair workshop · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
@@ -28,11 +32,20 @@
                 <div><strong>3. Repair &amp; QC</strong><p style="color:#64748b;margin:.25rem 0 0">Bay and technician assigned before handover.</p></div>
                 <div><strong>4. Ready</strong><p style="color:#64748b;margin:.25rem 0 0">Collect the vehicle; the invoice stays with the job.</p></div>
             </div>
+            @if (!string.IsNullOrWhiteSpace(_flashOk))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_flashErr))
+            {
+                <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+            }
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:1rem">
                 <div class="panel panel-primary">
                     <div class="panel-heading">Book a service</div>
                     <div class="panel-body">
                         <form id="book" method="post" action="@PhpWorkshopPortal.BookWriteHref">
+                            <input type="hidden" name="confirmWrites" value="true" />
                             <label for="customer_name">Your name *</label>
                             <input id="customer_name" class="form-control" name="customer_name" required />
                             <label for="customer_phone">Phone *</label>
@@ -56,11 +69,11 @@
                 <div class="panel panel-primary">
                     <div class="panel-heading">Track your job</div>
                     <div class="panel-body">
-                        <form id="track" method="post" action="@PhpWorkshopPortal.TrackWriteHref">
+                        <form id="track" method="get" action="@PhpWorkshopPortal.TrackWriteHref">
                             <label for="ref">Job number or plate *</label>
-                            <input id="ref" class="form-control" name="ref" required placeholder="WS-… or D-12345" />
+                            <input id="ref" class="form-control" name="ref" required placeholder="WS-… or D-12345" value="@Ref" />
                             <label for="phone">Phone (optional)</label>
-                            <input id="phone" class="form-control" name="phone" placeholder="+971…" />
+                            <input id="phone" class="form-control" name="phone" placeholder="+971…" value="@Phone" />
                             <button type="submit" class="btn btn-ar btn-primary" style="margin-top:10px;">Check status</button>
                             <p style="margin:1rem 0 0;color:#64748b;font-size:.85rem">
                                 Need parts while you wait?
@@ -68,18 +81,57 @@
                                 <a href="@StorefrontSurfaceLinks.LaximoVin">OEM catalog</a>
                             </p>
                         </form>
+                        @if (_lookedUp)
+                        {
+                            @if (_track is not null)
+                            {
+                                <article style="margin-top:1rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;padding:1rem">
+                                    <p style="margin:0 0 .35rem;font-weight:700">@_track.JobNo</p>
+                                    <p style="margin:0 0 .35rem;color:#334155">@_track.Status · @_track.Plate</p>
+                                    <p style="margin:0;color:#334155">@_track.CustomerName · @_track.Make @_track.Model</p>
+                                </article>
+                            }
+                            else
+                            {
+                                <p style="margin-top:1rem;color:#b45309">@(_trackMessage.Length > 0 ? _trackMessage : "No job found for that reference.")</p>
+                            }
+                        }
                     </div>
                 </div>
             </div>
+            <p style="margin:1rem 0 0;color:#64748b;font-size:.85rem">This page does not invent a send. Keep the job number from booking to track status.</p>
         </div>
     </section>
 </StorefrontTenantChrome>
 
 @code {
     private string _brand = "eParts Cart";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private bool _lookedUp;
+    private string _trackMessage = "";
+    private StorefrontWorkshopTrackDigest? _track;
 
-    protected override void OnInitialized()
+    [SupplyParameterFromQuery(Name = "ref")]
+    public string? Ref { get; set; }
+
+    [SupplyParameterFromQuery(Name = "phone")]
+    public string? Phone { get; set; }
+
+    protected override async Task OnInitializedAsync()
     {
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        var ctx = Http.HttpContext;
+        _flashOk = ctx?.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx?.Request.Host.Host);
+        if (string.IsNullOrWhiteSpace(Ref))
+        {
+            return;
+        }
+
+        _lookedUp = true;
+        var result = await Workshop.TrackAsync(Ref, Phone, ctx?.RequestAborted ?? default);
+        _track = result.Job;
+        _trackMessage = result.Message ?? string.Empty;
     }
 }

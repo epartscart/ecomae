@@ -1979,6 +1979,96 @@ public sealed class StorefrontModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new StorefrontNewsletterSubscribeRequest(email, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontWorkshopBook, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontWorkshopWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontWorkshopBookBody>(context, cancellationToken)
+                       ?? new();
+            var confirm = body.ConfirmWrites;
+            var request = ToWorkshopBook(body);
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                request = FromWorkshopForm(form);
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    cutoverAllowed = false,
+                    validation_code = "confirm",
+                    message = "Set confirmWrites=true to book the workshop job.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.BookAsync(request, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/auto-workshop-app",
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontWorkshopAppointment, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontWorkshopWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin && !session.HasBackendAccess)
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/storefront/garage-app",
+                    "Workshop staff session required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontWorkshopBookBody>(context, cancellationToken)
+                       ?? new();
+            var confirm = body.ConfirmWrites;
+            var request = ToWorkshopBook(body);
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                request = FromWorkshopForm(form);
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    cutoverAllowed = false,
+                    validation_code = "confirm",
+                    message = "Set confirmWrites=true to create the appointment.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.BookAppointmentAsync(request, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/storefront/garage-manager-app",
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontAddEvaluation, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2668,6 +2758,45 @@ public sealed class StorefrontModule : ISurfaceModule
         [property: JsonPropertyName("json_params")] string? JsonParams = null,
         [property: JsonPropertyName("check_hash")] string? CheckHash = null);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
+
+    private sealed record StorefrontWorkshopBookBody(
+        string? CustomerName = null,
+        string? CustomerPhone = null,
+        string? CustomerEmail = null,
+        string? Plate = null,
+        string? Vin = null,
+        string? Make = null,
+        string? Model = null,
+        string? Year = null,
+        string? Complaint = null,
+        int Odometer = 0,
+        bool ConfirmWrites = false);
+
+    private static StorefrontWorkshopBookRequest ToWorkshopBook(StorefrontWorkshopBookBody body)
+        => new(
+            body.CustomerName,
+            body.CustomerPhone,
+            body.CustomerEmail,
+            body.Plate,
+            body.Vin,
+            body.Make,
+            body.Model,
+            body.Year,
+            body.Complaint,
+            body.Odometer);
+
+    private static StorefrontWorkshopBookRequest FromWorkshopForm(IFormCollection form)
+        => new(
+            LiveWriteFormBinder.Text(form, "customer_name", "customerName"),
+            LiveWriteFormBinder.Text(form, "customer_phone", "customerPhone"),
+            LiveWriteFormBinder.Text(form, "customer_email", "customerEmail"),
+            LiveWriteFormBinder.Text(form, "plate"),
+            LiveWriteFormBinder.Text(form, "vin"),
+            LiveWriteFormBinder.Text(form, "make"),
+            LiveWriteFormBinder.Text(form, "model"),
+            LiveWriteFormBinder.Text(form, "year"),
+            LiveWriteFormBinder.Text(form, "complaint"),
+            LiveWriteFormBinder.Int(form, "odometer"));
     private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false, string? Text = null);
     private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false, long OrderId = 0, string? PayHandler = null);
     private sealed record StorefrontCheckOrderNotAuthorizedBody(long OrderId, bool ConfirmWrites = false);
