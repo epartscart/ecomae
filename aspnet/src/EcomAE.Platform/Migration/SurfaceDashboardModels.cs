@@ -2088,6 +2088,24 @@ public sealed record CpWorkflowsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpWorkflowDetail(
+    long Id,
+    string SiteKey,
+    string Name,
+    string TriggerType,
+    bool Active,
+    int Version,
+    int RunCount,
+    string LastRunStatus,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record CpWorkflowDetailResult(
+    CpWorkflowDetail? Workflow,
+    IReadOnlyList<CpWorkflowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpPurchaseRequestsSummary(
     int ReqCount,
     int DraftCount,

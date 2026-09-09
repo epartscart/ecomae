@@ -2549,6 +2549,31 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened workflow. description is a short excerpt. trigger_config omitted.</summary>
+    public const string SelectCpWorkflowDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`name`,'') AS name,
+               IFNULL(`trigger_type`,'') AS trigger_type, IFNULL(`active`,0) AS active,
+               IFNULL(`version`,0) AS version, IFNULL(`run_count`,0) AS run_count,
+               IFNULL(`last_run_status`,'') AS last_run_status,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `epc_workflows`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other workflows with the same trigger type. description/trigger_config omitted.</summary>
+    public const string SelectCpWorkflowTriggerSiblings = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`name`,'') AS name,
+               IFNULL(`trigger_type`,'') AS trigger_type, IFNULL(`active`,0) AS active,
+               IFNULL(`version`,0) AS version, IFNULL(`run_count`,0) AS run_count,
+               IFNULL(`last_run_status`,'') AS last_run_status
+        FROM `epc_workflows`
+        WHERE `trigger_type` = @trigger_type AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Purchase requisition KPIs — omits justification/decision notes.</summary>
     public const string SelectCpPurchaseRequestStats = """
         SELECT
