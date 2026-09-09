@@ -266,6 +266,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only product catalogue (shop_catalogue_products).</summary>
     Task<CpProductCatalogueDigestResult> BuildCpProductCatalogueDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened catalogue product (PHP <c>product_id</c>) plus same-category siblings. Product text is a short excerpt.</summary>
+    Task<CpProductCatalogueDetailResult> BuildCpProductCatalogueDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only platform governance rules (description/config_json omitted).</summary>
     Task<CpPlatformGovernanceDigestResult> BuildCpPlatformGovernanceDigestAsync(int limit, CancellationToken cancellationToken = default);
 

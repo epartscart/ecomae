@@ -717,6 +717,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("brand_json", LegacySurfaceDashboardSql.SelectCpPageBuilderLayoutDetail, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpPageBuilderLayoutDetail, StringComparison.Ordinal);
         Assert.Contains("shop_catalogue_products", LegacySurfaceDashboardSql.SelectCpProductCatalogue, StringComparison.Ordinal);
+        Assert.DoesNotContain("shop_products_text", LegacySurfaceDashboardSql.SelectCpProductCatalogue, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(t.`value`, ''), 280)", LegacySurfaceDashboardSql.SelectCpProductCatalogueDetail, StringComparison.Ordinal);
+        Assert.Contains("p.`id` = @id", LegacySurfaceDashboardSql.SelectCpProductCatalogueDetail, StringComparison.Ordinal);
+        Assert.Contains("shop_products_text", LegacySurfaceDashboardSql.SelectCpProductCatalogueDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("shop_products_text", LegacySurfaceDashboardSql.SelectCpProductCatalogueCategorySiblings, StringComparison.Ordinal);
+        Assert.Contains("`category_id` = @category_id", LegacySurfaceDashboardSql.SelectCpProductCatalogueCategorySiblings, StringComparison.Ordinal);
         Assert.Contains("epc_platform_governance_rules", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpPlatformGovernanceRules, StringComparison.Ordinal);
