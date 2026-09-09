@@ -1077,6 +1077,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(commDelDb.Succeeded);
         Assert.Equal("db", commDelDb.Code);
 
+        var commSetDb = await new CpPlatformCommunicationWriteService(new UnconfiguredConnections())
+            .SaveSettingsAsync(new CpPlatformCommunicationSaveSettingsRequest("Ops", "ops@ecomae.com", "", "6", true, true, true, true, false));
+        Assert.False(commSetDb.Succeeded);
+        Assert.Equal("db", commSetDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

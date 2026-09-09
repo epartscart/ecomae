@@ -23,7 +23,10 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Equal("in_progress", CpPlatformCommunicationWriteService.NormalizeStatus("in_progress"));
         Assert.Equal("normal", CpPlatformCommunicationWriteService.NormalizePriority(""));
         Assert.Equal("urgent", CpPlatformCommunicationWriteService.NormalizePriority("urgent"));
+        Assert.Equal("6", CpPlatformCommunicationWriteService.NormalizeDigestHour(""));
+        Assert.Equal("23", CpPlatformCommunicationWriteService.NormalizeDigestHour("99"));
         Assert.Contains("onboarding", CpPlatformCommunicationWriteService.Categories.Keys);
+        Assert.Contains("notify_daily_digest", CpPlatformCommunicationWriteService.DefaultSettings.Keys);
     }
 
     [Fact]
@@ -36,6 +39,9 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_task\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"delete_task\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_comm_settings\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"notify_from_name\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"notify_tenant_onboard\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"title\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"description\"", razor, StringComparison.Ordinal);
         Assert.Contains("Leave blank to keep current description", razor, StringComparison.Ordinal);
@@ -66,12 +72,15 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Contains("ICpPlatformCommunicationWriteService", module, StringComparison.Ordinal);
         Assert.Contains("save_task", module, StringComparison.Ordinal);
         Assert.Contains("delete_task", module, StringComparison.Ordinal);
+        Assert.Contains("save_comm_settings", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPlatformCommunicationWriteService.cs"));
         Assert.Contains("epc_scp_task_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_scp_task_delete", service, StringComparison.Ordinal);
+        Assert.Contains("epc_scp_comm_settings_save", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_platform_internal_tasks`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_platform_comm_settings`", service, StringComparison.Ordinal);
         Assert.Contains("DELETE FROM `epc_platform_internal_tasks`", service, StringComparison.Ordinal);
         Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
