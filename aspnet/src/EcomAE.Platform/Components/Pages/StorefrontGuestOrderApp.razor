@@ -46,12 +46,11 @@
                         }
                         <p style="margin:0;color:#334155;font-weight:700">Sum @_order.Sum.ToString("0.00", CultureInfo.InvariantCulture)</p>
                     </article>
-                    <form method="post" action="@PhpCustomerWrites.GuestOrderWriteHref" style="margin-top:.85rem">
+                    <form method="get" action="@PhpCustomerWrites.GuestOrderWriteHref" style="margin-top:.85rem">
                         <input type="hidden" name="order_id" value="@_order.Id.ToString(CultureInfo.InvariantCulture)" />
-                        <input type="hidden" name="email_not_auth" value="@EmailNotAuth" />
-                        <input type="hidden" name="phone_not_auth" value="@PhoneNotAuth" />
                         <button type="submit" style="padding:.55rem 1rem;border:1px solid #0f766e;border-radius:.45rem;background:#fff;color:#0f766e;font-weight:700;cursor:pointer">Continue to pay</button>
                     </form>
+                    <p style="margin:.65rem 0 0;color:#64748b;font-size:.85rem">Continue to pay opens the payment page. Sign in to create a payment operation. This page does not invent a live card capture.</p>
                 }
                 else
                 {

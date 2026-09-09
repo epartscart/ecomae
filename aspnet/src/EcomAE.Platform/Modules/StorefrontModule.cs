@@ -1767,7 +1767,7 @@ public sealed class StorefrontModule : ISurfaceModule
                 var dest = written.Ok && written.OrderId > 0
                     ? (shopper.IsSignedIn
                         ? "/storefront/orders-app?order_id=" + written.OrderId.ToString(CultureInfo.InvariantCulture)
-                        : "/storefront/checkout-app?step=confirm&order_id=" + written.OrderId.ToString(CultureInfo.InvariantCulture))
+                        : StorefrontGuestSessionService.GuestOrderSuccessHref(written.OrderId, email, phone))
                     : "/storefront/checkout-app?step=confirm";
                 return LiveWriteFormBinder.Complete(
                     context,

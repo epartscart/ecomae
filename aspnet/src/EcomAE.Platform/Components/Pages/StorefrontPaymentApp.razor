@@ -36,9 +36,9 @@
             {
                 <div class="panel panel-primary">
                     <div class="panel-body">
-                        <p style="margin:0 0 .75rem">Sign in to continue payment, or track a guest order first.</p>
+                        <p style="margin:0 0 .75rem">@(string.IsNullOrWhiteSpace(OrderId) ? "Sign in to continue payment, or track a guest order first." : ("Order #" + OrderId + " — sign in to create a payment operation. This page does not invent a live card capture."))</p>
                         <a class="btn btn-ar btn-primary" href="@StorefrontSurfaceLinks.Login">Sign in</a>
-                        <a class="btn btn-ar btn-default" href="@StorefrontAspNetCanonical.GuestOrder">Guest order</a>
+                        <a class="btn btn-ar btn-default" href="@GuestOrderHref">Guest order</a>
                     </div>
                 </div>
             }
@@ -98,6 +98,10 @@
 
     [SupplyParameterFromQuery(Name = "order_id")]
     public string? OrderId { get; set; }
+
+    private string GuestOrderHref => string.IsNullOrWhiteSpace(OrderId)
+        ? StorefrontAspNetCanonical.GuestOrder
+        : StorefrontAspNetCanonical.GuestOrder + "?order_id=" + Uri.EscapeDataString(OrderId);
 
     protected override async Task OnInitializedAsync()
     {

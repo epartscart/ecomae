@@ -486,11 +486,13 @@ public sealed class LiveTenantIndustryParityTests
         Assert.Contains("`user_id` = 0", LegacySurfaceDashboardSql.SelectGuestOrder, StringComparison.Ordinal);
         Assert.Contains("GetStorefrontGuestOrderAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
         Assert.Contains("PhpCustomerWrites.GuestOrderWriteHref", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("method=\"get\"", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor")), StringComparison.Ordinal);
         Assert.Contains("BuildCpOfficesDigestAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontOfficesApp.razor")), StringComparison.Ordinal);
         Assert.Contains("LookupVinAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor")), StringComparison.Ordinal);
         Assert.DoesNotContain("@page \"/en/katalog-laximo\"", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListStorefrontGenuineBrandsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAvailableBrandsApp.razor")), StringComparison.Ordinal);
-        Assert.StartsWith("/php-reference/", PhpCustomerWrites.GuestOrderWriteHref);
+        Assert.Equal("/storefront/payment-app", PhpCustomerWrites.GuestOrderWriteHref);
     }
 
     [Fact]
