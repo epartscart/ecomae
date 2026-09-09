@@ -1979,6 +1979,55 @@ public sealed class StorefrontModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new StorefrontNewsletterSubscribeRequest(email, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontConfirmContact, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontConfirmContactWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontConfirmContactBody>(context, cancellationToken)
+                       ?? new();
+            var confirm = body.ConfirmWrites;
+            var userId = body.UserId;
+            var type = body.Type;
+            var code = body.Code;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                userId = LiveWriteFormBinder.Long(form, "u_id", "userId", "user_id");
+                type = LiveWriteFormBinder.Text(form, "type");
+                code = LiveWriteFormBinder.Text(form, "code");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    cutoverAllowed = false,
+                    validation_code = "confirm",
+                    message = "Set confirmWrites=true to confirm the contact.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.ConfirmAsync(
+                new StorefrontConfirmContactWriteRequest(userId, type, code),
+                cancellationToken);
+            var dest = "/storefront/confirm-contact-app?u_id=" + userId.ToString(CultureInfo.InvariantCulture)
+                       + "&type=" + Uri.EscapeDataString(string.IsNullOrWhiteSpace(type) ? "email" : type);
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontAddEvaluation, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2668,6 +2717,12 @@ public sealed class StorefrontModule : ISurfaceModule
         [property: JsonPropertyName("json_params")] string? JsonParams = null,
         [property: JsonPropertyName("check_hash")] string? CheckHash = null);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
+
+    private sealed record StorefrontConfirmContactBody(
+        long UserId = 0,
+        string? Type = null,
+        string? Code = null,
+        bool ConfirmWrites = false);
     private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false, string? Text = null);
     private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false, long OrderId = 0, string? PayHandler = null);
     private sealed record StorefrontCheckOrderNotAuthorizedBody(long OrderId, bool ConfirmWrites = false);
