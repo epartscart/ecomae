@@ -6623,11 +6623,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 legalFooter = LiveWriteFormBinder.Text(form, "legal_footer", "legalFooter");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
                 posted = new HashSet<string>(StringComparer.Ordinal);
-                foreach (var key in CpDocumentControlWriteService.FieldMax.Keys)
+                foreach (var fieldName in CpDocumentControlWriteService.FieldMax.Keys)
                 {
-                    if (form.ContainsKey(key))
+                    if (form.ContainsKey(fieldName))
                     {
-                        posted.Add(key);
+                        posted.Add(fieldName);
                     }
                 }
             }
