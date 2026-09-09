@@ -6201,9 +6201,106 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_power_bi_config + epc_power_bi_reports metadata. Open ?pbi_id= loads a 280-char notes excerpt plus category siblings. Configure/embed writes remain PHP epc_power_bi."
+                note = "Read-only epc_power_bi_config + epc_power_bi_reports metadata. Open ?pbi_id= loads a 280-char notes excerpt plus category siblings. save_config / add_report POST /cp/power-bi/write when confirmWrites=true. Embed token mint stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpPowerBiWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPowerBiWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/power-bi-app", "Admin CP capability required for Power BI write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPowerBiWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var siteKey = body.SiteKey;
+            var workspaceId = body.WorkspaceId;
+            var azureTenantId = body.AzureTenantId;
+            var defaultReportId = body.DefaultReportId;
+            var defaultDatasetId = body.DefaultDatasetId;
+            var embedUrl = body.EmbedUrl;
+            var embedMode = body.EmbedMode;
+            var notes = body.Notes;
+            var reportId = body.ReportId;
+            var reportName = body.ReportName;
+            var datasetId = body.DatasetId;
+            var category = body.Category;
+            var reportEmbedUrl = body.ReportEmbedUrl;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "epc_pbi_action");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                workspaceId = LiveWriteFormBinder.Text(form, "workspace_id", "workspaceId");
+                azureTenantId = LiveWriteFormBinder.Text(form, "azure_tenant_id", "azureTenantId");
+                defaultReportId = LiveWriteFormBinder.Text(form, "default_report_id", "defaultReportId");
+                defaultDatasetId = LiveWriteFormBinder.Text(form, "default_dataset_id", "defaultDatasetId");
+                embedUrl = LiveWriteFormBinder.Text(form, "embed_url", "embedUrl");
+                embedMode = LiveWriteFormBinder.Text(form, "embed_mode", "embedMode");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                reportId = LiveWriteFormBinder.Text(form, "report_id", "reportId");
+                reportName = LiveWriteFormBinder.Text(form, "report_name", "reportName");
+                datasetId = LiveWriteFormBinder.Text(form, "dataset_id", "datasetId");
+                category = LiveWriteFormBinder.Text(form, "category");
+                reportEmbedUrl = LiveWriteFormBinder.Text(form, "report_embed_url", "reportEmbedUrl");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save_config";
+            }
+
+            if (confirm && key is "save_config" or "save")
+            {
+                var written = await writes.SaveConfigAsync(
+                    new CpPowerBiSaveConfigRequest(siteKey, workspaceId, azureTenantId, defaultReportId, defaultDatasetId, embedUrl, embedMode, notes),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/power-bi-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "add_report" or "register_report")
+            {
+                var written = await writes.AddReportAsync(
+                    new CpPowerBiAddReportRequest(siteKey, reportId, reportName, datasetId, category, reportEmbedUrl ?? embedUrl),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/power-bi-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_config" or "save" or "add_report" or "register_report",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Embed token mint stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save Power BI config or register a report.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelMobileApps, async (
             HttpContext context,
@@ -12567,6 +12664,22 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false,
         long Id = 0,
         bool Active = false);
+    private sealed record CpPowerBiWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? WorkspaceId = null,
+        string? AzureTenantId = null,
+        string? DefaultReportId = null,
+        string? DefaultDatasetId = null,
+        string? EmbedUrl = null,
+        string? EmbedMode = null,
+        string? Notes = null,
+        string? ReportId = null,
+        string? ReportName = null,
+        string? DatasetId = null,
+        string? Category = null,
+        string? ReportEmbedUrl = null);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(

@@ -101,6 +101,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPowerBi = "/cp/power-bi";
     /// <summary>CP Power BI Blazor list (JSON digest remains <see cref="ControlPanelPowerBi"/>).</summary>
     public const string ControlPanelPowerBiApp = "/cp/power-bi-app";
+    /// <summary>Power BI save_config / add_report. <c>confirmWrites=true</c> twins PHP epc_power_bi_configure / epc_power_bi_register_report. Embed token mint stays Classic.</summary>
+    public const string CpPowerBiWrite = "/cp/power-bi/write";
     /// <summary>CP mobile apps config from integrations_json (push secrets never returned).</summary>
     public const string ControlPanelMobileApps = "/cp/mobile-apps";
     /// <summary>CP mobile apps Blazor summary (JSON digest remains <see cref="ControlPanelMobileApps"/>).</summary>
