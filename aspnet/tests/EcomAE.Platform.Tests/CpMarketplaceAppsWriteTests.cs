@@ -18,6 +18,10 @@ public sealed class CpMarketplaceAppsWriteTests
     {
         Assert.Equal("eparts-cart", CpMarketplaceAppsWriteService.NormalizeSiteKey(" eParts-Cart! "));
         Assert.Equal("epartscart", CpMarketplaceAppsWriteService.NormalizeSiteKey("ePartsCart"));
+        Assert.Equal(5, CpMarketplaceAppsWriteService.ClampRating(null));
+        Assert.Equal(1, CpMarketplaceAppsWriteService.ClampRating(0));
+        Assert.Equal(5, CpMarketplaceAppsWriteService.ClampRating(6));
+        Assert.Equal(3, CpMarketplaceAppsWriteService.ClampRating(3));
     }
 
     [Fact]
@@ -30,6 +34,8 @@ public sealed class CpMarketplaceAppsWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"install\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"uninstall\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"add_review\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"review_text\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
@@ -57,19 +63,22 @@ public sealed class CpMarketplaceAppsWriteTests
         Assert.Contains("ICpMarketplaceAppsWriteService", module, StringComparison.Ordinal);
         Assert.Contains("\"install\"", module, StringComparison.Ordinal);
         Assert.Contains("\"uninstall\"", module, StringComparison.Ordinal);
+        Assert.Contains("\"add_review\"", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpMarketplaceAppsWriteService.cs"));
         Assert.Contains("epc_marketplace_install", service, StringComparison.Ordinal);
         Assert.Contains("epc_marketplace_uninstall", service, StringComparison.Ordinal);
+        Assert.Contains("epc_marketplace_add_review", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_marketplace_installs`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_marketplace_reviews`", service, StringComparison.Ordinal);
         Assert.Contains("`status`='uninstalled'", service, StringComparison.Ordinal);
         Assert.Contains("`downloads`=`downloads`+1", service, StringComparison.Ordinal);
+        Assert.Contains("`avg_rating`", service, StringComparison.Ordinal);
         Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("epc_marketplace_reviews", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

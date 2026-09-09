@@ -1237,6 +1237,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(mktUninstDb.Succeeded);
         Assert.Equal("db", mktUninstDb.Code);
 
+        var mktRevBad = await new CpMarketplaceAppsWriteService(new ConfiguredNeverOpened())
+            .AddReviewAsync(new CpMarketplaceReviewRequest(0, "epartscart", 5, "ok", "text", "Ada"));
+        Assert.False(mktRevBad.Succeeded);
+        Assert.Equal("invalid", mktRevBad.Code);
+
+        var mktRevSiteBad = await new CpMarketplaceAppsWriteService(new ConfiguredNeverOpened())
+            .AddReviewAsync(new CpMarketplaceReviewRequest(4, "", 5, "ok", "text", "Ada"));
+        Assert.False(mktRevSiteBad.Succeeded);
+        Assert.Equal("invalid", mktRevSiteBad.Code);
+
+        var mktRevDb = await new CpMarketplaceAppsWriteService(new UnconfiguredConnections())
+            .AddReviewAsync(new CpMarketplaceReviewRequest(4, "epartscart", 5, "ok", "text", "Ada"));
+        Assert.False(mktRevDb.Succeeded);
+        Assert.Equal("db", mktRevDb.Code);
+
         var tokBad = await new CpDesignTokensWriteService(new ConfiguredNeverOpened())
             .SaveAsync(new CpDesignTokenSaveRequest("", "brand_primary", "#111"));
         Assert.False(tokBad.Succeeded);

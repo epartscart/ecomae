@@ -20,7 +20,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/marketplace-apps-app")</p>
-                <p>Open an app for a short description excerpt, installs, and review titles. Install or uninstall here. Review, config, and seed stay on the Classic twin. This page does not invent a send.</p>
+                <p>Open an app for a short description excerpt, installs, and review titles. Install, uninstall, or add a review here. Config and seed stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -99,7 +99,7 @@
                             </div>
                             <button type="submit" class="btn btn-default">Uninstall</button>
                         </form>
-                        <p class="help-block" style="margin:.75rem 0 0">Review, config, and seed stay Classic.</p>
+                        <p class="help-block" style="margin:.75rem 0 0">Config and seed stay Classic.</p>
                     }
                 </div>
             </div>
@@ -185,6 +185,42 @@
                             </tbody>
                         </table>
                     </div>
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="/cp/marketplace-apps/write" class="well" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <input type="hidden" name="action" value="add_review" />
+                            <input type="hidden" name="app_id" value="@_openedApp.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <div class="form-group">
+                                <label>Site key</label>
+                                <input type="text" class="form-control" name="site_key" />
+                            </div>
+                            <div class="form-group">
+                                <label>Rating</label>
+                                <select class="form-control" name="rating">
+                                    <option value="5" selected>5</option>
+                                    <option value="4">4</option>
+                                    <option value="3">3</option>
+                                    <option value="2">2</option>
+                                    <option value="1">1</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Title</label>
+                                <input type="text" class="form-control" name="title" maxlength="128" />
+                            </div>
+                            <div class="form-group">
+                                <label>Review</label>
+                                <textarea class="form-control" name="review_text" rows="3" maxlength="512"></textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Reviewer</label>
+                                <input type="text" class="form-control" name="reviewer_name" maxlength="128" />
+                            </div>
+                            <button type="submit" class="btn btn-default">Add review</button>
+                        </form>
+                    }
                 </div>
             </div>
         </div>

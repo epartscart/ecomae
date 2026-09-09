@@ -10822,7 +10822,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_marketplace_apps/installs/reviews KPIs + apps. Open ?app_id= loads a 280-char description excerpt plus installs/reviews. features/config/review_text omitted. install / uninstall POST /cp/marketplace-apps/write when confirmWrites=true. Review, config, and seed stay Classic."
+                note = "Read-only epc_marketplace_apps/installs/reviews KPIs + apps. Open ?app_id= loads a 280-char description excerpt plus installs/reviews. features/config omitted. install / uninstall / add_review POST /cp/marketplace-apps/write when confirmWrites=true. Config and seed stay Classic."
             });
         });
 
@@ -10843,6 +10843,10 @@ public sealed class ControlPanelModule : ISurfaceModule
             var action = body.Action;
             var appId = body.AppId;
             var siteKey = body.SiteKey;
+            var rating = body.Rating;
+            var title = body.Title;
+            var reviewText = body.ReviewText;
+            var reviewerName = body.ReviewerName;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -10850,6 +10854,10 @@ public sealed class ControlPanelModule : ISurfaceModule
                 action = LiveWriteFormBinder.Text(form, "action");
                 appId = LiveWriteFormBinder.Long(form, "app_id", "id");
                 siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                rating = LiveWriteFormBinder.IntOrNull(form, "rating");
+                title = LiveWriteFormBinder.Text(form, "title");
+                reviewText = LiveWriteFormBinder.Text(form, "review_text", "reviewText");
+                reviewerName = LiveWriteFormBinder.Text(form, "reviewer_name", "reviewerName");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -10881,17 +10889,30 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "add_review" or "review")
+            {
+                var written = await writes.AddReviewAsync(
+                    new CpMarketplaceReviewRequest(appId, siteKey, rating, title, reviewText, reviewerName),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/marketplace-apps-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "install" or "uninstall",
+                wouldWrite = key is "install" or "uninstall" or "add_review" or "review",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Review, config, and seed stay Classic."
-                    : "Dry-run. Set confirmWrites=true to install or uninstall a marketplace app.",
+                    ? "Config and seed stay Classic."
+                    : "Dry-run. Set confirmWrites=true to install, uninstall, or add a marketplace review.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -13139,7 +13160,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long AppId = 0,
-        string? SiteKey = null);
+        string? SiteKey = null,
+        int? Rating = null,
+        string? Title = null,
+        string? ReviewText = null,
+        string? ReviewerName = null);
     private sealed record CpDesignTokensWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
