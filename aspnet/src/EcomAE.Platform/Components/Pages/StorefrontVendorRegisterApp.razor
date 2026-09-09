@@ -86,7 +86,7 @@
                     <input type="text" name="vendor_full" required maxlength="255" placeholder="S-UAE Trading" />
 
                     <label class="epc-vp__check">
-                        <input type="checkbox" name="vat_registered" value="1" id="epc_vat_registered" @if (_vatDefault) { <text>checked</text> } />
+                        <input type="checkbox" name="vat_registered" value="1" id="epc_vat_registered" checked />
                         VAT registered in the UAE
                     </label>
 
@@ -204,7 +204,6 @@
     private string _authoritiesJson = "{}";
     private string _flashOk = "";
     private string _flashErr = "";
-    private bool _vatDefault = true;
 
     protected override void OnInitialized()
     {
