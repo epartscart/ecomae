@@ -1102,6 +1102,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(priceCfgDelDb.Succeeded);
         Assert.Equal("db", priceCfgDelDb.Code);
 
+        var wfToggleBad = await new CpWorkflowsWriteService(new ConfiguredNeverOpened())
+            .ToggleAsync(0, true);
+        Assert.False(wfToggleBad.Succeeded);
+        Assert.Equal("invalid", wfToggleBad.Code);
+
+        var wfToggleDb = await new CpWorkflowsWriteService(new UnconfiguredConnections())
+            .ToggleAsync(3, true);
+        Assert.False(wfToggleDb.Succeeded);
+        Assert.Equal("db", wfToggleDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
