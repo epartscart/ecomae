@@ -1157,6 +1157,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(mbDashDb.Succeeded);
         Assert.Equal("db", mbDashDb.Code);
 
+        var cartDelBad = await new CpAbandonedCartsWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(cartDelBad.Succeeded);
+        Assert.Equal("invalid", cartDelBad.Code);
+
+        var cartDelDb = await new CpAbandonedCartsWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(cartDelDb.Succeeded);
+        Assert.Equal("db", cartDelDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
