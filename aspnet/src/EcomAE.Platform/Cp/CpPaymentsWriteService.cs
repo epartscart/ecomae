@@ -7,7 +7,7 @@ namespace EcomAE.Platform.Cp;
 /// Live PHP <c>ajax_payments.php</c> <c>activate</c> twin of <c>epc_payment_set_active</c>.
 /// Clears every <c>shop_payment_systems.active</c> then sets the named handler.
 /// <c>save_config</c>, accounts, seed, and settlement stay Classic (credentials / filesystem).
-/// Does not invent a send.
+/// This service does not invent a send.
 /// </summary>
 public interface ICpPaymentsWriteService
 {

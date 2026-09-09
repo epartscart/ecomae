@@ -19,7 +19,7 @@
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <PhpCpModulePageHeader Title="Payment Gateways"
-                           Subtitle="Set the default checkout rail here. API keys, settlement accounts, seed, and send-test stay Classic. Does not invent a send."
+                           Subtitle="Set the default checkout rail here. API keys, settlement accounts, seed, and send-test stay Classic. This page does not invent a send."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="@ConfigureHref(0)">Configure</a>
         <a class="ghost" href="#epc-pay-accounts">Accounts</a>
@@ -149,7 +149,7 @@
                         </form>
                     }
                     <p style="margin:.85rem 0 0;font-size:.86rem;color:#475569;">
-                        API keys, settlement mapping, seed, and send-test stay Classic. Does not invent a send.
+                        API keys, settlement mapping, seed, and send-test stay Classic. This page does not invent a send.
                         <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}?id={_selected.Id.ToString(CultureInfo.InvariantCulture)}")">Classic configure</a>
                     </p>
                 </div>
