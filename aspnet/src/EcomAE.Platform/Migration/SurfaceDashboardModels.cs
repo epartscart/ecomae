@@ -6342,6 +6342,26 @@ public sealed record ErpFiscalPeriodListResult(
     string Source,
     string Message);
 
+public sealed record ErpFiscalPeriodDetail(
+    long Id,
+    string YearMonth,
+    string Status,
+    bool SoftClosed,
+    bool Locked,
+    long ClosedBy,
+    long ClosedAt,
+    long LockedBy,
+    long LockedAt,
+    long TimeUpdated,
+    int NoteLen,
+    string NoteExcerpt);
+
+public sealed record ErpFiscalPeriodDetailResult(
+    ErpFiscalPeriodDetail? Period,
+    IReadOnlyList<ErpFiscalPeriodDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpAgendaEventDigest(
     long Id,
     string Title,

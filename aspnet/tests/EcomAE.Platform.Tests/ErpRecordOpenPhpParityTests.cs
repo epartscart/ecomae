@@ -128,6 +128,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=opening&batch_id=15", "/erp/opening-app?batch_id=15")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances&batch_id=15", "/erp/opening-app?batch_id=15")]
     [InlineData("/CP/shop/finance/erp?area=finance&tab=opening&epc_erp_shell=1&batch_id=15", "/erp/opening-app?batch_id=15")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=year_end&period_id=16", "/erp/period-close-app?period_id=16")]
+    [InlineData("/CP/shop/finance/erp?area=finance&tab=year_end&epc_erp_shell=1&period_id=16", "/erp/period-close-app?period_id=16")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2513,6 +2515,44 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/opening-app",
                 "/ERP/?epc_erp_shell=1&area=finance&tab=opening&batch_id=15"));
+    }
+
+    [Fact]
+    public void PeriodCloseApp_OpenLoadsNoteExcerptAndOmitsChecklist()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpPeriodCloseApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpFiscalPeriodDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"period_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("period_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"period_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NoteExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Checklist JSON omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("Reopen and status writes stay here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/periods/soft-close", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/fy-reopen", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("checklist_json", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/period-close-app?period_id=16#erp-row-16",
+            ErpRecordOpen.Href("/erp/period-close-app", "period_id", 16));
+        Assert.Equal(
+            "/erp/period-close-app?period_id=16",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/period-close-app",
+                "/ERP/?epc_erp_shell=1&area=finance&tab=year_end&period_id=16"));
     }
 
     [Fact]

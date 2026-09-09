@@ -6741,7 +6741,7 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT 50
         """;
 
-    /// <summary>ERP fiscal periods peek — PHP epc_erp_periods (period_close).</summary>
+    /// <summary>ERP fiscal periods peek — PHP epc_erp_periods (period_close). note/checklist omitted.</summary>
     public const string SelectErpFiscalPeriods = """
         SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
                CASE WHEN IFNULL(`status`,'') IN ('soft_close','locked') THEN 1 ELSE 0 END AS soft_closed,
@@ -6750,6 +6750,33 @@ public const string SelectCpOpsGuidesStats = """
         FROM `epc_erp_periods`
         ORDER BY `year_month` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened fiscal period. note is a short excerpt. checklist_json omitted. Writes stay on this page.</summary>
+    public const string SelectErpFiscalPeriodDetail = """
+        SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
+               CASE WHEN IFNULL(`status`,'') IN ('soft_close','locked') THEN 1 ELSE 0 END AS soft_closed,
+               CASE WHEN IFNULL(`status`,'') = 'locked' THEN 1 ELSE 0 END AS locked,
+               IFNULL(`closed_by`,0) AS closed_by, IFNULL(`closed_at`,0) AS closed_at,
+               IFNULL(`locked_by`,0) AS locked_by, IFNULL(`locked_at`,0) AS locked_at,
+               IFNULL(`updated_at`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`note`,'')) AS note_len,
+               LEFT(IFNULL(`note`,''), 280) AS note_excerpt
+        FROM `epc_erp_periods`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other fiscal periods with the same status. note and checklist_json omitted.</summary>
+    public const string SelectErpFiscalPeriodStatusSiblings = """
+        SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
+               CASE WHEN IFNULL(`status`,'') IN ('soft_close','locked') THEN 1 ELSE 0 END AS soft_closed,
+               CASE WHEN IFNULL(`status`,'') = 'locked' THEN 1 ELSE 0 END AS locked,
+               IFNULL(`updated_at`,0) AS time_updated
+        FROM `epc_erp_periods`
+        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
+        ORDER BY `year_month` DESC
+        LIMIT 50
         """;
 
 
