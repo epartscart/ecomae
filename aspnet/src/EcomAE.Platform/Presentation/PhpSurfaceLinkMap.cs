@@ -111,6 +111,8 @@ public static class PhpSurfaceLinkMap
         ("modules_control", "/cp/modules-app"),
         ("modules/module", "/cp/modules-app"),
         ("modules/modules_manager", "/cp/modules-app"),
+        ("control/cp-guideline", "/cp/ops-guides-app"),
+        ("cp-guideline", "/cp/ops-guides-app"),
         ("control/communications", "/cp/communications-test-app"),
         ("control/sms-operatory", "/cp/sms-whatsapp-app"),
         ("sms-operatory", "/cp/sms-whatsapp-app"),
@@ -1482,6 +1484,18 @@ public static class PhpSurfaceLinkMap
         if (OperatorGuidesCatalog.TryMapPhpPath(value, out var guideHref))
         {
             return guideHref;
+        }
+
+        // PHP System leftover config panes — before the generic control/config marker.
+        var configGroup = ExtractQuery(value, "need_config_group");
+        if (configGroup == "13")
+        {
+            return "/cp/config-items-app";
+        }
+
+        if (configGroup == "3")
+        {
+            return "/cp/tenant-email-app";
         }
 
         // UAE tax lives under /finance/erp/… but must NOT be swallowed by the ERP shell remap.
