@@ -2943,6 +2943,42 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void StaffApp_OpenLoadsUserIdCreatedTimeAndSameDepartmentSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpStaffApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpStaffProfileDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"staff_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("staff_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"staff_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("UserId", razor, StringComparison.Ordinal);
+        Assert.Contains("TimeCreated", razor, StringComparison.Ordinal);
+        Assert.Contains("same-department siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("email/phone stay off this pane", razor, StringComparison.Ordinal);
+        Assert.Contains("Writes stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/staff-app?staff_id=6#erp-row-6",
+            ErpRecordOpen.Href("/erp/staff-app", "staff_id", 6));
+        Assert.Equal(
+            "/erp/staff-app?staff_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/staff-app",
+                "/ERP/?epc_erp_shell=1&area=hr&tab=staff&staff_id=6"));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

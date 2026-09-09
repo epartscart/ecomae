@@ -10766,7 +10766,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_staff_profiles. PHP staff tab / ajax_erp.php remain authoritative."
+                note = "Read-only epc_erp_staff_profiles. Open ?staff_id= loads user id and created time plus same-department siblings. email/phone omitted from the Open pane. Writes stay Classic."
             });
         });
 

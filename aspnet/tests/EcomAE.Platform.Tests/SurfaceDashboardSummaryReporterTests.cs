@@ -793,6 +793,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@surface", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteSurfaceSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteSurfaceSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_staff_profiles", LegacySurfaceDashboardSql.SelectErpStaffProfiles, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_staff_profiles", LegacySurfaceDashboardSql.SelectErpStaffProfileDetail, StringComparison.Ordinal);
+        Assert.Contains("time_created", LegacySurfaceDashboardSql.SelectErpStaffProfileDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpStaffProfileDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`email`", LegacySurfaceDashboardSql.SelectErpStaffProfileDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`phone`", LegacySurfaceDashboardSql.SelectErpStaffProfileDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("photo_url", LegacySurfaceDashboardSql.SelectErpStaffProfileDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`email`", LegacySurfaceDashboardSql.SelectErpStaffDepartmentSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("`phone`", LegacySurfaceDashboardSql.SelectErpStaffDepartmentSiblings, StringComparison.Ordinal);
+        Assert.Contains("@department", LegacySurfaceDashboardSql.SelectErpStaffDepartmentSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_contracts", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("body_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("ocr_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
