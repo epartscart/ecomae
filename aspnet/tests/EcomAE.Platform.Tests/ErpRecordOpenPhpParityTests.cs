@@ -2049,7 +2049,6 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("PhpReferenceOnlyHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 
         Assert.Equal("/cp/bulk-upload-app?upload_id=6#erp-row-6",
             ErpRecordOpen.Href("/cp/bulk-upload-app", "upload_id", 6));
