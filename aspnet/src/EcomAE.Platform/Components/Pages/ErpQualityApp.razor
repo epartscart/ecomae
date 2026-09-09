@@ -13,7 +13,8 @@
 <PageTitle>Quality · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Quality" BreadcrumbArea="Operations" BreadcrumbTab="Quality">
-    <PhpErpModulePageHeader Title="Quality management" Subtitle="Enterprise test plans, quality orders (inspection results &amp; verdict) and non-conformance (NCR) with corrective actions." PhpTabHref="@_phpTab" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+    <PhpErpModulePageHeader Title="Quality management" Subtitle="Open an NCR for the corrective-action excerpt and closed time. NCR update writes here." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -89,7 +90,7 @@
         </div>
         <ErpPhpCreateWell Title="Update non-conformance">
 <form method="post" action="/erp/quality/ncr-update" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
-                    <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=ncr" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                     <input type="hidden" name="confirmWrites" value="true" />
                     <label>Id <input class="form-control input-sm" name="id" placeholder="NCR id" style="width:90px;" /></label>
                     <label>Status
@@ -140,7 +141,7 @@
         {
             <ErpPhpCreateWell Title="Raise non-conformance">
                 <form method="post" action="@EcomAeRoutes.ErpQualityNcrCreateForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
-                    <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=ncr" />
+                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
                     <select name="order_id" class="form-control input-sm">
                         <option value="0">(standalone)</option>
                         @foreach (var o in _orders)
@@ -165,21 +166,72 @@
                 </form>
             </ErpPhpCreateWell>
         }
+        @if (_opened is not null)
+        {
+            <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+                <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                    <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                    <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+                </p>
+                <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                    <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                    <dt>Order</dt><dd>@(_opened.OrderId > 0 ? _opened.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                    <dt>Title</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Title) ? "—" : _opened.Title)</dd>
+                    <dt>Severity</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Severity) ? "—" : _opened.Severity)</dd>
+                    <dt>Disposition</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Disposition) ? "—" : _opened.Disposition.Replace('_', ' '))</dd>
+                    <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
+                    <dt>Corrective action</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ActionExcerpt) ? "—" : _opened.ActionExcerpt)</dd>
+                    <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
+                    <dt>Closed</dt><dd>@FormatTime(_opened.TimeClosed)</dd>
+                </dl>
+                <p class="text-muted" style="margin:.85rem 0 0">NCR update writes stay here. Order create/record and NCR create stay Classic.</p>
+                @if (_openedSiblings.Count > 0)
+                {
+                    <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>#</th>
+                                <th>Title</th>
+                                <th>Status</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var sib in _openedSiblings)
+                            {
+                                <tr>
+                                    <td>NCR-@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(sib.Title) ? "—" : sib.Title)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
+                                    <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "ncr_id", sib.Id)">Open</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                else
+                {
+                    <p class="text-muted">No same-status siblings yet.</p>
+                }
+            </div>
+        }
         <div class="epc-erp-table-wrap">
             <table class="table table-bordered table-condensed table-epc epc-erp-table">
-                <thead><tr><th>#</th><th>Title</th><th>Severity</th><th>Disposition</th><th>Status</th></tr></thead>
+                <thead><tr><th>#</th><th>Title</th><th>Severity</th><th>Disposition</th><th>Status</th><th></th></tr></thead>
                 <tbody>
-                    @if (_ncrs.Count == 0) { <tr><td colspan="5" class="text-muted">No non-conformances.</td></tr> }
+                    @if (_ncrs.Count == 0) { <tr><td colspan="6" class="text-muted">No non-conformances.</td></tr> }
                     else
                     {
                         @foreach (var row in _ncrs)
                         {
-                            <tr>
+                            <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                                 <td><strong>NCR-@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                                 <td>@(string.IsNullOrWhiteSpace(row.Title) ? "—" : row.Title)</td>
                                 <td><span class="label label-default">@row.Severity</span></td>
                                 <td>@(string.IsNullOrWhiteSpace(row.Disposition) ? "—" : row.Disposition.Replace('_', ' '))</td>
                                 <td><span class="label label-default">@row.Status</span></td>
+                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "ncr_id", row.Id)">Open</a></td>
                             </tr>
                         }
                     }
@@ -264,13 +316,14 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Live: <code>qm_ncr_update</code>. Order create/record and NCR create stay Classic.
+        Source: @_source. Live: <code>qm_ncr_update</code>. Open ?ncr_id= loads the corrective-action excerpt. Order create/record and NCR create stay Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=operations&tab=quality";
+    private const string _listHref = "/erp/quality-app?qv=ncr";
     private static readonly IReadOnlyList<(string Key, string Label)> _views =
         [("orders", "Quality orders"), ("plans", "Test plans"), ("ncr", "Non-conformance")];
     private bool _isAdmin;
@@ -285,13 +338,30 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
+    private long _openedId;
+    private ErpQmNcrDetail? _opened;
+    private IReadOnlyList<ErpQmNcrDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.Title)
+            ? _opened.Title
+            : ("NCR #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "&ncr_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "ncr_id");
         var qv = ctx.Request.Query["qv"].ToString();
-        _view = qv is "plans" or "ncr" or "orders" ? qv : "orders";
+        // Open an NCR even when the orders or plans view is in the query.
+        _view = _openedId > 0 || qv is "ncr"
+            ? "ncr"
+            : (qv is "plans" or "orders" ? qv : "orders");
         _ = long.TryParse(ctx.Request.Query["plan_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out _selPlan);
         _ = long.TryParse(ctx.Request.Query["order_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out _selOrder);
         _ok = ctx.Request.Query["ok"].ToString();
@@ -311,5 +381,26 @@
         _failed = _orders.Count(o => string.Equals(o.Verdict, "fail", StringComparison.OrdinalIgnoreCase));
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpQualityNcrDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Ncr;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _ncrs.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _ncrs = new[] { openedList }.Concat(_ncrs.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 }

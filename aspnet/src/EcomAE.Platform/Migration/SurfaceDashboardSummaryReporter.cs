@@ -23017,6 +23017,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpQmNcrDetailResult> BuildErpQualityNcrDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpQmNcrDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpQmNcrDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpQmNcrDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "order_id"),
+                        ReadStr(reader, "title"),
+                        ReadStr(reader, "severity"),
+                        ReadStr(reader, "disposition"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "action_excerpt"),
+                        ReadI32(reader, "action_len"),
+                        ReadI64(reader, "time_created"),
+                        ReadI64(reader, "time_closed"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "NCR row not found.");
+            }
+
+            var siblings = new List<ErpQmNcrDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpQmNcrStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpQmNcrDigest(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "order_id"),
+                        ReadStr(reader, "title"),
+                        ReadStr(reader, "severity"),
+                        ReadStr(reader, "disposition"),
+                        ReadStr(reader, "status"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpRfidDigestResult> BuildErpRfidDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

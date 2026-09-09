@@ -853,6 +853,10 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpOrderPlanningDigestResult> BuildErpOrderPlanningDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpProcurementCategoriesDigestResult> BuildErpProcurementCategoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened NCR (Open key <c>ncr_id</c>, remapped by <c>qv=ncr</c>) plus same-status siblings. Surfaces 280-char corrective-action excerpt and time_closed hidden from the list.</summary>
+    Task<ErpQmNcrDetailResult> BuildErpQualityNcrDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpRfidDigestResult> BuildErpRfidDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened RFID scan session (Open key <c>session_id</c>, remapped by <c>tab=rfid</c>) plus same-status siblings. Reader IP/TID omitted.</summary>

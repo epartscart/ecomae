@@ -7426,6 +7426,24 @@ public sealed record ErpQmPlanDigest(long Id, string Code, string Name, bool Act
 public sealed record ErpQmOrderDigest(long Id, long PlanId, string RefType, string RefId, long ItemId, decimal Qty, string Status, string Verdict, long TimeCreated);
 public sealed record ErpQmNcrDigest(long Id, long OrderId, string Title, string Severity, string Disposition, string Status, long TimeCreated);
 
+public sealed record ErpQmNcrDetail(
+    long Id,
+    long OrderId,
+    string Title,
+    string Severity,
+    string Disposition,
+    string Status,
+    string ActionExcerpt,
+    int ActionLen,
+    long TimeCreated,
+    long TimeClosed);
+
+public sealed record ErpQmNcrDetailResult(
+    ErpQmNcrDetail? Ncr,
+    IReadOnlyList<ErpQmNcrDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpQualityDigestResult(
     IReadOnlyList<ErpQmPlanDigest> Plans,
     IReadOnlyList<ErpQmOrderDigest> Orders,

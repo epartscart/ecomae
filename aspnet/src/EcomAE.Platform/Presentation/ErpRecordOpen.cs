@@ -30,7 +30,7 @@ public static class ErpRecordOpen
         "quote_id", "transfer_id",
         "period_id", "favorite_id",
         "batch_id", "expense_id",
-        "expense_report_id", "recon_line_id", "movement_id", "inv_forecast_id",
+        "expense_report_id", "recon_line_id", "movement_id", "inv_forecast_id", "ncr_id",
         "delivery_note_id", "document_id",
         "asset_id", "contact_id",
         "event_id", "template_id",
