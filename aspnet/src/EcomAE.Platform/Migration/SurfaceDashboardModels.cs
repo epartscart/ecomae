@@ -7529,6 +7529,46 @@ public sealed record ErpMultiCurrencyGlListResult(
     string Source,
     string Message);
 
+public sealed record ErpFxRateDetail(
+    long Id,
+    string BaseCurrency,
+    string TargetCurrency,
+    decimal Rate,
+    decimal InverseRate,
+    string Source,
+    string EffectiveDate,
+    string CreatedAt);
+
+public sealed record ErpFxRateDetailResult(
+    ErpFxRateDetail? Rate,
+    IReadOnlyList<ErpFxRateDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpGlCurrencyEntryDetail(
+    long Id,
+    string SiteKey,
+    string JournalRef,
+    string AccountCode,
+    string AccountName,
+    string EntryDate,
+    string TxnCurrency,
+    decimal TxnAmount,
+    decimal FxRate,
+    string BaseCurrency,
+    decimal BaseAmount,
+    string EntryType,
+    string DescriptionExcerpt,
+    int DescriptionLen,
+    bool Revalued,
+    decimal RevalGainLoss);
+
+public sealed record ErpGlCurrencyEntryDetailResult(
+    ErpGlCurrencyEntryDetail? Entry,
+    IReadOnlyList<ErpGlCurrencyEntryDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_print_templates</c> (HTML/CSS bodies omitted).</summary>
 public sealed record ErpPrintTemplateDigest(
     long Id,

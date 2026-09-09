@@ -25739,6 +25739,157 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpFxRateDetailResult> BuildErpFxRateDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpFxRateDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpFxRateDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpFxRateDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "base_currency"),
+                        ReadStr(reader, "target_currency"),
+                        ReadDec(reader, "rate"),
+                        ReadDec(reader, "inverse_rate"),
+                        ReadStr(reader, "source"),
+                        ReadStr(reader, "effective_date"),
+                        ReadStr(reader, "created_at"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "FX rate not found.");
+            }
+
+            var siblings = new List<ErpFxRateDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpFxRatePairSiblings;
+                AddParameter(cmd, "@base_currency", header.BaseCurrency);
+                AddParameter(cmd, "@target_currency", header.TargetCurrency);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "base_currency"),
+                        ReadStr(reader, "target_currency"),
+                        ReadDec(reader, "rate"),
+                        ReadDec(reader, "inverse_rate"),
+                        ReadStr(reader, "source"),
+                        ReadStr(reader, "effective_date")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpGlCurrencyEntryDetailResult> BuildErpGlCurrencyEntryDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpGlCurrencyEntryDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpGlCurrencyEntryDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpGlCurrencyEntryDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "site_key"),
+                        ReadStr(reader, "journal_ref"),
+                        ReadStr(reader, "account_code"),
+                        ReadStr(reader, "account_name"),
+                        ReadStr(reader, "entry_date"),
+                        ReadStr(reader, "txn_currency"),
+                        ReadDec(reader, "txn_amount"),
+                        ReadDec(reader, "fx_rate"),
+                        ReadStr(reader, "base_currency"),
+                        ReadDec(reader, "base_amount"),
+                        ReadStr(reader, "entry_type"),
+                        ReadStr(reader, "description_excerpt"),
+                        ReadI32(reader, "description_len"),
+                        ReadI32(reader, "revalued") == 1,
+                        ReadDec(reader, "reval_gain_loss"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Currency journal entry not found.");
+            }
+
+            var siblings = new List<ErpGlCurrencyEntryDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpGlCurrencyEntryTypeSiblings;
+                AddParameter(cmd, "@entry_type", header.EntryType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "journal_ref"),
+                        ReadStr(reader, "account_code"),
+                        ReadStr(reader, "account_name"),
+                        ReadStr(reader, "entry_date"),
+                        ReadStr(reader, "txn_currency"),
+                        ReadDec(reader, "txn_amount"),
+                        ReadDec(reader, "fx_rate"),
+                        ReadStr(reader, "base_currency"),
+                        ReadDec(reader, "base_amount"),
+                        ReadStr(reader, "entry_type"),
+                        ReadI32(reader, "revalued") == 1,
+                        ReadDec(reader, "reval_gain_loss")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     private static string ReadStr(System.Data.Common.DbDataReader reader, string column)
         => Convert.ToString(reader[column] is DBNull ? string.Empty : reader[column], CultureInfo.InvariantCulture) ?? string.Empty;
 

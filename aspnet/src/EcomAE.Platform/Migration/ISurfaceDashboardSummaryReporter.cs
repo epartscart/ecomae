@@ -956,6 +956,12 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only FX rates + multi-currency GL entries (PHP <c>epc_fx_rates</c>).</summary>
     Task<ErpMultiCurrencyGlListResult> ListErpMultiCurrencyGlAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened FX rate (Open key <c>mcgl_rate_id</c>) plus same-pair siblings. created time is hidden from the list.</summary>
+    Task<ErpFxRateDetailResult> BuildErpFxRateDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened currency journal (Open key <c>mcgl_entry_id</c>) plus same-type siblings. Note excerpt and site are hidden from the list table.</summary>
+    Task<ErpGlCurrencyEntryDetailResult> BuildErpGlCurrencyEntryDetailAsync(long id, CancellationToken cancellationToken = default);
 }
 
 

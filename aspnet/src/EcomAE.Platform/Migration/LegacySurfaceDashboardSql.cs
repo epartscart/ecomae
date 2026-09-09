@@ -9218,6 +9218,36 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened FX rate (Open key <c>mcgl_rate_id</c>). created time is hidden from the list.</summary>
+    public const string SelectErpFxRateDetail = """
+        SELECT `id`, IFNULL(`base_currency`,'AED') AS base_currency,
+               IFNULL(`target_currency`,'') AS target_currency,
+               IFNULL(`rate`,0) AS rate,
+               IFNULL(`inverse_rate`,0) AS inverse_rate,
+               IFNULL(`source`,'manual') AS source,
+               IFNULL(DATE_FORMAT(`effective_date`, '%Y-%m-%d'),'') AS effective_date,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at
+        FROM `epc_fx_rates`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other FX rates for the same pair. created time omitted.</summary>
+    public const string SelectErpFxRatePairSiblings = """
+        SELECT `id`, IFNULL(`base_currency`,'AED') AS base_currency,
+               IFNULL(`target_currency`,'') AS target_currency,
+               IFNULL(`rate`,0) AS rate,
+               IFNULL(`inverse_rate`,0) AS inverse_rate,
+               IFNULL(`source`,'manual') AS source,
+               IFNULL(DATE_FORMAT(`effective_date`, '%Y-%m-%d'),'') AS effective_date
+        FROM `epc_fx_rates`
+        WHERE IFNULL(`base_currency`,'AED') = @base_currency
+          AND IFNULL(`target_currency`,'') = @target_currency
+          AND `id` <> @id
+        ORDER BY `effective_date` DESC, `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>epc_gl_currency_entries</c>.</summary>
     public const string SelectErpGlCurrencyEntries = """
         SELECT `id`, IFNULL(`journal_ref`,'') AS journal_ref,
@@ -9235,6 +9265,48 @@ public const string SelectCpOpsGuidesStats = """
         FROM `epc_gl_currency_entries`
         ORDER BY `entry_date` DESC, `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened currency journal (Open key <c>mcgl_entry_id</c>). Note excerpt and site are hidden from the list table.</summary>
+    public const string SelectErpGlCurrencyEntryDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`journal_ref`,'') AS journal_ref,
+               IFNULL(`account_code`,'') AS account_code,
+               IFNULL(`account_name`,'') AS account_name,
+               IFNULL(DATE_FORMAT(`entry_date`, '%Y-%m-%d'),'') AS entry_date,
+               IFNULL(`txn_currency`,'') AS txn_currency,
+               IFNULL(`txn_amount`,0) AS txn_amount,
+               IFNULL(`fx_rate`,0) AS fx_rate,
+               IFNULL(`base_currency`,'AED') AS base_currency,
+               IFNULL(`base_amount`,0) AS base_amount,
+               IFNULL(`entry_type`,'debit') AS entry_type,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               IFNULL(`revalued`,0) AS revalued,
+               IFNULL(`reval_gain_loss`,0) AS reval_gain_loss
+        FROM `epc_gl_currency_entries`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other currency journals with the same type. Note excerpt and site omitted.</summary>
+    public const string SelectErpGlCurrencyEntryTypeSiblings = """
+        SELECT `id`, IFNULL(`journal_ref`,'') AS journal_ref,
+               IFNULL(`account_code`,'') AS account_code,
+               IFNULL(`account_name`,'') AS account_name,
+               IFNULL(DATE_FORMAT(`entry_date`, '%Y-%m-%d'),'') AS entry_date,
+               IFNULL(`txn_currency`,'') AS txn_currency,
+               IFNULL(`txn_amount`,0) AS txn_amount,
+               IFNULL(`fx_rate`,0) AS fx_rate,
+               IFNULL(`base_currency`,'AED') AS base_currency,
+               IFNULL(`base_amount`,0) AS base_amount,
+               IFNULL(`entry_type`,'debit') AS entry_type,
+               IFNULL(`revalued`,0) AS revalued,
+               IFNULL(`reval_gain_loss`,0) AS reval_gain_loss
+        FROM `epc_gl_currency_entries`
+        WHERE IFNULL(`entry_type`,'debit') = @entry_type AND `id` <> @id
+        ORDER BY `entry_date` DESC, `id` DESC
+        LIMIT 50
         """;
 
 }
