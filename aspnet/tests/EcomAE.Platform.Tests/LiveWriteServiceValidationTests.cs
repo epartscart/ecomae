@@ -878,6 +878,20 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(projTaskDb.Succeeded);
         Assert.Equal("db", projTaskDb.Code);
 
+        Assert.Equal("draft", CpCrmContractWriteService.NormalizeStatus("nope"));
+        Assert.Equal("monthly", CpCrmContractWriteService.NormalizeInterval("weekly"));
+        Assert.Equal("Contract", CpCrmContractWriteService.NormalizeTitle(""));
+
+        var contractSaveBad = await new CpCrmContractWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCrmContractSaveRequest(-1, 1, "Retainer", 10, "monthly", "", "draft", ""));
+        Assert.False(contractSaveBad.Succeeded);
+        Assert.Equal("invalid", contractSaveBad.Code);
+
+        var contractSaveDb = await new CpCrmContractWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpCrmContractSaveRequest(0, 1, "Retainer", 10, "monthly", "", "draft", ""));
+        Assert.False(contractSaveDb.Succeeded);
+        Assert.Equal("db", contractSaveDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
