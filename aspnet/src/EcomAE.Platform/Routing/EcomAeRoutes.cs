@@ -2164,6 +2164,8 @@ public static class EcomAeRoutes
     public const string StorefrontCheckoutApp = "/storefront/checkout-app";
     /// <summary>Customer registration (PHP regform twin; writes remain PHP register.php).</summary>
     public const string StorefrontRegisterApp = "/storefront/register-app";
+    /// <summary>Vendor self-register. <c>confirmWrites=true</c> is the live twin of PHP vendor_register.php.</summary>
+    public const string StorefrontVendorRegister = "/storefront/vendor/register";
     /// <summary>Storefront checkout readiness JSON digest over authenticated cart.</summary>
     public const string StorefrontCheckout = "/storefront/checkout";
     /// <summary>Cart qty write. <c>confirmWrites=true</c> is the live type-2 twin of PHP ajax_change_count_need.php.</summary>

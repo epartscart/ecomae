@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// PHP <c>content/shop/vendor/*</c> twins — storefront vendor portal (no CP).
-/// Writes stay on the PHP compare archive.
+/// Vendor register INSERT is ASP.NET-live. Upload / forgot-password send stay Classic.
 /// </summary>
 public static class PhpVendorPortal
 {
@@ -31,7 +31,7 @@ public static class PhpVendorPortal
         _ => string.Empty,
     };
 
-    public static string RegisterWriteHref => "/php-reference/en/vendor/register";
+    public static string RegisterWriteHref => "/storefront/vendor/register";
     public static string UploadWriteHref => "/php-reference/en/vendor/upload";
     public static string ForgotWriteHref => "/php-reference/en/users/forgot_password";
     public static string ConfirmWriteHref => "/php-reference/en/users/confirm_contact";

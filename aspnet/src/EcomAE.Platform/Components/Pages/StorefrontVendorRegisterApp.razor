@@ -26,8 +26,18 @@
                     <strong>UAE e-invoicing (FTA / PINT-AE)</strong>
                     Seller tax invoices require legal name, 15-digit TRN (when VAT-registered), trade licence identifier, Peppol electronic address, and full UAE address with emirate.
                 </div>
+                @if (!string.IsNullOrWhiteSpace(_flashOk))
+                {
+                    <div class="epc-vp__alert epc-vp__alert--ok">@_flashOk</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_flashErr))
+                {
+                    <div class="epc-vp__alert epc-vp__alert--err">@_flashErr</div>
+                }
+                <p class="epc-vp__lead">This page does not invent a send — sign in after you create the account to upload prices.</p>
 
                 <form method="post" action="@PhpVendorPortal.RegisterWriteHref" class="epc-vp__form" autocomplete="on" id="epc-vendor-register-form">
+                    <input type="hidden" name="confirmWrites" value="true" />
                     <div class="epc-vp__top-actions">
                         <button type="submit" class="epc-vp__btn">Create vendor account</button>
                     </div>
@@ -76,7 +86,7 @@
                     <input type="text" name="vendor_full" required maxlength="255" placeholder="S-UAE Trading" />
 
                     <label class="epc-vp__check">
-                        <input type="checkbox" name="vat_registered" value="1" id="epc_vat_registered" checked />
+                        <input type="checkbox" name="vat_registered" value="1" id="epc_vat_registered" @if (_vatDefault) { <text>checked</text> } />
                         VAT registered in the UAE
                     </label>
 
@@ -192,10 +202,16 @@
 @code {
     private string _brand = "eParts Cart";
     private string _authoritiesJson = "{}";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private bool _vatDefault = true;
 
     protected override void OnInitialized()
     {
-        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(Http.HttpContext?.Request.Host.Host);
+        var ctx = Http.HttpContext;
+        _flashOk = ctx?.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx?.Request.Query["err"].ToString() ?? "";
+        _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx?.Request.Host.Host);
         var map = new Dictionary<string, string>();
         foreach (var emirate in PhpVendorPortal.Emirates)
         {

@@ -1979,6 +1979,113 @@ public sealed class StorefrontModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new StorefrontNewsletterSubscribeRequest(email, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontVendorRegister, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontVendorRegisterWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontVendorRegisterBody>(context, cancellationToken)
+                       ?? new();
+            var confirm = body.ConfirmWrites;
+            var email = body.Email;
+            var password = body.Password;
+            var password2 = body.Password2;
+            var contactName = body.ContactName;
+            var jobTitle = body.ContactJobTitle;
+            var phone = body.Phone;
+            var billingEmail = body.BillingEmail;
+            var vendorFull = body.VendorFull;
+            var vendorShort = body.VendorShort;
+            var legalName = body.LegalName;
+            var vatRegistered = body.VatRegistered;
+            var trn = body.Trn;
+            var legalRegNo = body.LegalRegNo;
+            var legalRegType = body.LegalRegType;
+            var authority = body.AuthorityName;
+            var address1 = body.AddressLine1;
+            var address2 = body.AddressLine2;
+            var city = body.City;
+            var emirate = body.Emirate;
+            var postal = body.PostalCode;
+            var country = body.CountryCode;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                email = LiveWriteFormBinder.Text(form, "email");
+                password = LiveWriteFormBinder.Text(form, "password");
+                password2 = LiveWriteFormBinder.Text(form, "password2");
+                contactName = LiveWriteFormBinder.Text(form, "contact_name", "contactName");
+                jobTitle = LiveWriteFormBinder.Text(form, "contact_job_title", "contactJobTitle");
+                phone = LiveWriteFormBinder.Text(form, "phone");
+                billingEmail = LiveWriteFormBinder.Text(form, "billing_email", "billingEmail");
+                vendorFull = LiveWriteFormBinder.Text(form, "vendor_full", "vendorFull");
+                vendorShort = LiveWriteFormBinder.Text(form, "vendor_short", "vendorShort");
+                legalName = LiveWriteFormBinder.Text(form, "legal_name", "legalName");
+                vatRegistered = LiveWriteFormBinder.Flag(form, "vat_registered", "vatRegistered");
+                trn = LiveWriteFormBinder.Text(form, "trn");
+                legalRegNo = LiveWriteFormBinder.Text(form, "legal_reg_no", "legalRegNo");
+                legalRegType = LiveWriteFormBinder.Text(form, "legal_reg_type", "legalRegType");
+                authority = LiveWriteFormBinder.Text(form, "authority_name", "authorityName");
+                address1 = LiveWriteFormBinder.Text(form, "address_line1", "addressLine1");
+                address2 = LiveWriteFormBinder.Text(form, "address_line2", "addressLine2");
+                city = LiveWriteFormBinder.Text(form, "city");
+                emirate = LiveWriteFormBinder.Text(form, "emirate");
+                postal = LiveWriteFormBinder.Text(form, "postal_code", "postalCode");
+                country = LiveWriteFormBinder.Text(form, "country_code", "countryCode");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    cutoverAllowed = false,
+                    validation_code = "confirm",
+                    message = "Set confirmWrites=true to create the vendor account on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.RegisterAsync(
+                new StorefrontVendorRegisterWriteRequest(
+                    email,
+                    password,
+                    password2,
+                    contactName,
+                    jobTitle,
+                    phone,
+                    billingEmail,
+                    vendorFull,
+                    vendorShort,
+                    legalName,
+                    vatRegistered,
+                    trn,
+                    legalRegNo,
+                    legalRegType,
+                    authority,
+                    address1,
+                    address2,
+                    city,
+                    emirate,
+                    postal,
+                    country),
+                cancellationToken);
+            var dest = written.Ok
+                ? "/storefront/vendor-app?registered=1"
+                : "/storefront/vendor-register-app";
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontAddEvaluation, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2668,6 +2775,30 @@ public sealed class StorefrontModule : ISurfaceModule
         [property: JsonPropertyName("json_params")] string? JsonParams = null,
         [property: JsonPropertyName("check_hash")] string? CheckHash = null);
     private sealed record StorefrontNewsletterSubscribeBody(string? Email, bool ConfirmWrites = false);
+
+    private sealed record StorefrontVendorRegisterBody(
+        string? Email = null,
+        string? Password = null,
+        string? Password2 = null,
+        string? ContactName = null,
+        string? ContactJobTitle = null,
+        string? Phone = null,
+        string? BillingEmail = null,
+        string? VendorFull = null,
+        string? VendorShort = null,
+        string? LegalName = null,
+        bool VatRegistered = false,
+        string? Trn = null,
+        string? LegalRegNo = null,
+        string? LegalRegType = null,
+        string? AuthorityName = null,
+        string? AddressLine1 = null,
+        string? AddressLine2 = null,
+        string? City = null,
+        string? Emirate = null,
+        string? PostalCode = null,
+        string? CountryCode = null,
+        bool ConfirmWrites = false);
     private sealed record StorefrontAddEvaluationBody(long ProductId, int Rating = 5, bool ConfirmWrites = false, string? Text = null);
     private sealed record StorefrontCreateOperationBody(decimal Amount, string? Kind, bool ConfirmWrites = false, long OrderId = 0, string? PayHandler = null);
     private sealed record StorefrontCheckOrderNotAuthorizedBody(long OrderId, bool ConfirmWrites = false);
