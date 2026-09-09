@@ -143,6 +143,9 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=common&tab=contacts&epc_erp_shell=1&contact_id=17", "/erp/contacts-app?contact_id=17")]
     [InlineData("/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup&contact_id=17", "/erp/contacts-app?tab=ar_setup&contact_id=17")]
     [InlineData("/CP/shop/finance/erp?area=ar&tab=ar_setup&epc_erp_shell=1&contact_id=17", "/erp/contacts-app?tab=ar_setup&contact_id=17")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=ledger&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=movements&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
+    [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=ledger&epc_erp_shell=1&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/finance/erp?area=inventory&tab=rfid&epc_erp_shell=1&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
@@ -2781,6 +2784,47 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/bank-reconciliation-app?tab=bank_instruments",
                 "/ERP/?epc_erp_shell=1&area=banking&tab=bank_instruments"));
+    }
+
+    [Fact]
+    public void StockMovementsApp_OpenLoadsNoteExcerptAndRemapsByTab()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpStockMovementsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpInventoryMovementDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"movement_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("movement_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"movement_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NoteExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("BatchNo", razor, StringComparison.Ordinal);
+        Assert.Contains("TotalCost", razor, StringComparison.Ordinal);
+        Assert.Contains("same-warehouse siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Writes stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/stock-movements-app?movement_id=22#erp-row-22",
+            ErpRecordOpen.Href("/erp/stock-movements-app", "movement_id", 22));
+        Assert.Equal(
+            "/erp/stock-movements-app?movement_id=22",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/stock-movements-app",
+                "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=ledger&movement_id=22"));
+        Assert.Equal(
+            "/erp/inventory-stock-app?warehouse_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/inventory-stock-app",
+                "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory&warehouse_id=3"));
     }
 
     [Fact]

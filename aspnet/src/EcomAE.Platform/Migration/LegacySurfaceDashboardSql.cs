@@ -1272,6 +1272,43 @@ public static class LegacySurfaceDashboardSql
         SELECT COUNT(*) FROM `epc_erp_inv_movements` WHERE `active` = 1
         """;
 
+    /// <summary>Opened inventory movement (Open key <c>movement_id</c>). note is a 280-char excerpt. Surfaces batch_no + total_cost hidden from the list table.</summary>
+    public const string SelectErpInventoryMovementDetail = """
+        SELECT m.`id`, IFNULL(m.`movement_type`, '') AS movement_type,
+               IFNULL(m.`warehouse_id`, 0) AS warehouse_id, IFNULL(m.`item_id`, 0) AS item_id,
+               IFNULL(m.`qty`, 0) AS qty, IFNULL(m.`unit_cost`, 0) AS unit_cost,
+               IFNULL(m.`total_cost`, 0) AS total_cost, IFNULL(m.`batch_no`, '') AS batch_no,
+               IFNULL(m.`expiry_date`, '') AS expiry_date,
+               IFNULL(m.`transfer_warehouse_id`, 0) AS transfer_warehouse_id,
+               IFNULL(m.`reference`, '') AS reference, IFNULL(m.`movement_date`, 0) AS movement_date,
+               IFNULL(i.`sku`, '') AS sku, IFNULL(i.`name`, '') AS item_name,
+               IFNULL(w.`name`, '') AS warehouse_name,
+               CHAR_LENGTH(IFNULL(m.`note`,'')) AS note_len,
+               LEFT(IFNULL(m.`note`,''), 280) AS note_excerpt
+        FROM `epc_erp_inv_movements` m
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = m.`item_id`
+        LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = m.`warehouse_id`
+        WHERE m.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other movements in the same warehouse. note omitted.</summary>
+    public const string SelectErpInventoryMovementWarehouseSiblings = """
+        SELECT m.`id`, IFNULL(m.`movement_type`, '') AS movement_type,
+               IFNULL(m.`warehouse_id`, 0) AS warehouse_id, IFNULL(m.`item_id`, 0) AS item_id,
+               IFNULL(m.`qty`, 0) AS qty, IFNULL(m.`unit_cost`, 0) AS unit_cost,
+               IFNULL(m.`total_cost`, 0) AS total_cost, IFNULL(m.`batch_no`, '') AS batch_no,
+               IFNULL(m.`reference`, '') AS reference, IFNULL(m.`movement_date`, 0) AS movement_date,
+               IFNULL(i.`sku`, '') AS sku, IFNULL(i.`name`, '') AS item_name,
+               IFNULL(w.`name`, '') AS warehouse_name
+        FROM `epc_erp_inv_movements` m
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = m.`item_id`
+        LEFT JOIN `epc_erp_inv_warehouses` w ON w.`id` = m.`warehouse_id`
+        WHERE IFNULL(m.`warehouse_id`, 0) = @warehouse_id AND m.`id` <> @id AND m.`active` = 1
+        ORDER BY m.`id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Report-center / aging: AR outstanding from einvoice documents (bucketed in reporter).</summary>
     public const string SelectErpAgingArDocuments = """
         SELECT d.`user_id`, IFNULL(u.`email`, '') AS email,

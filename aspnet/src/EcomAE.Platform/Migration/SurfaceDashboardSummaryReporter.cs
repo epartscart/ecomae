@@ -11006,6 +11006,93 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpInventoryMovementDetailResult> BuildErpInventoryMovementDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpInventoryMovementDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryMovementDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpInventoryMovementDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["movement_type"] is DBNull ? string.Empty : reader["movement_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["warehouse_id"] is DBNull ? 0 : reader["warehouse_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["item_id"] is DBNull ? 0 : reader["item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["item_name"] is DBNull ? string.Empty : reader["item_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["warehouse_name"] is DBNull ? string.Empty : reader["warehouse_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["qty"] is DBNull ? 0m : reader["qty"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["unit_cost"] is DBNull ? 0m : reader["unit_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_cost"] is DBNull ? 0m : reader["total_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["batch_no"] is DBNull ? string.Empty : reader["batch_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["expiry_date"] is DBNull ? string.Empty : reader["expiry_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["transfer_warehouse_id"] is DBNull ? 0 : reader["transfer_warehouse_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reference"] is DBNull ? string.Empty : reader["reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["movement_date"] is DBNull ? 0 : reader["movement_date"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["note_len"] is DBNull ? 0 : reader["note_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["note_excerpt"] is DBNull ? string.Empty : reader["note_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Movement not found.");
+            }
+
+            var siblings = new List<ErpInventoryMovementDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings;
+                AddParameter(cmd, "@warehouse_id", header.WarehouseId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var movementType = Convert.ToString(reader["movement_type"] is DBNull ? string.Empty : reader["movement_type"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var qty = Convert.ToDecimal(reader["qty"] is DBNull ? 0m : reader["qty"], CultureInfo.InvariantCulture);
+                    siblings.Add(new ErpInventoryMovementDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        movementType,
+                        Convert.ToInt64(reader["warehouse_id"] is DBNull ? 0 : reader["warehouse_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["item_id"] is DBNull ? 0 : reader["item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["sku"] is DBNull ? string.Empty : reader["sku"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["item_name"] is DBNull ? string.Empty : reader["item_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["warehouse_name"] is DBNull ? string.Empty : reader["warehouse_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        qty,
+                        0m,
+                        Convert.ToDecimal(reader["unit_cost"] is DBNull ? 0m : reader["unit_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_cost"] is DBNull ? 0m : reader["total_cost"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["batch_no"] is DBNull ? string.Empty : reader["batch_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["reference"] is DBNull ? string.Empty : reader["reference"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["movement_date"] is DBNull ? 0 : reader["movement_date"], CultureInfo.InvariantCulture),
+                        0m));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPageBuilderDigestResult> BuildCpPageBuilderDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

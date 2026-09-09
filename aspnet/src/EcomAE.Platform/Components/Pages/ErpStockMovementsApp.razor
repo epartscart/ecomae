@@ -14,11 +14,10 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Stock movements" BreadcrumbArea="Inventory & Fulfilment" BreadcrumbTab="Movements">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/stock-movements-app" IsAdmin="_isAdmin" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    
-    <PhpErpModulePageHeader Title="Stock movement ledger" Subtitle="Stock movement ledger by warehouse and item." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Stock movement ledger" Subtitle="Open a row for the 280-character note excerpt, batch, and total cost. Writes stay on the Classic twin." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
-
 
     <div class="epc-erp-kpi epc-erp-stat-row">
         <div class="kpi"><div class="lbl">Movements</div><div class="val">@_summary.MovementCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -28,24 +27,93 @@
         <div class="kpi"><div class="lbl">Qty out</div><div class="val">@_summary.TotalOutQty.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Date</dt><dd>@FormatTime(_opened.MovementDate)</dd>
+                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.MovementType) ? "—" : _opened.MovementType)</dd>
+                <dt>Warehouse</dt><dd>@(string.IsNullOrWhiteSpace(_opened.WarehouseName) ? (_opened.WarehouseId > 0 ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : "—") : _opened.WarehouseName)</dd>
+                <dt>SKU</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Sku) ? "—" : _opened.Sku)</dd>
+                <dt>Item</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ItemName) ? "—" : _opened.ItemName)</dd>
+                <dt>Qty</dt><dd>@_opened.Qty.ToString("N3", CultureInfo.InvariantCulture)</dd>
+                <dt>Unit cost</dt><dd>@_opened.UnitCost.ToString("N4", CultureInfo.InvariantCulture)</dd>
+                <dt>Total cost</dt><dd>@_opened.TotalCost.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Batch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BatchNo) ? "—" : _opened.BatchNo)</dd>
+                <dt>Expiry</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ExpiryDate) ? "—" : _opened.ExpiryDate)</dd>
+                <dt>Transfer WH</dt><dd>@(_opened.TransferWarehouseId > 0 ? _opened.TransferWarehouseId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Ref</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Reference) ? "—" : _opened.Reference)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Writes stay on the Classic twin.</p>
+            @if (!string.IsNullOrWhiteSpace(_opened.NoteExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.NoteExcerpt</pre>
+                @if (_opened.NoteLen > _opened.NoteExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.NoteExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NoteLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No note excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-warehouse siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>SKU</th>
+                            <th>Qty</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.MovementType) ? "—" : sib.MovementType)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Sku) ? "—" : sib.Sku)</td>
+                                <td>@sib.Qty.ToString("N3", CultureInfo.InvariantCulture)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "movement_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-warehouse siblings yet.</p>
+            }
+        </div>
+    }
+
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
             <thead>
                 <tr>
                     <th>Id</th><th>Date</th><th>Type</th><th>Warehouse</th><th>SKU</th><th>Item</th>
                     <th>Qty</th><th>Signed</th><th>Unit cost</th><th>Balance</th><th>Ref</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_movements.Count == 0)
                 {
-                    <tr><td colspan="11">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="12">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var m in _movements)
                     {
-                        <tr>
+                        <tr id="erp-row-@m.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(m.Id, _openedId)">
                             <td>@m.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@m.MovementDate.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@m.MovementType</td>
@@ -57,6 +125,7 @@
                             <td>@m.UnitCost.ToString("N4", CultureInfo.InvariantCulture)</td>
                             <td>@m.RunningBalance.ToString("N3", CultureInfo.InvariantCulture)</td>
                             <td>@m.Reference</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "movement_id", m.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -64,20 +133,37 @@
         </table>
     </div>
 
-    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">Source: @_summary.Source. Ledger view for record_movement and transfers.</div>
+    <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">Source: @_summary.Source. Ledger view for record_movement and transfers. Writes stay on the Classic twin.</div>
 </PhpErpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=ledger";
+    private const string _listHref = "/erp/stock-movements-app";
     private bool _isAdmin;
     private string _message = "";
     private ErpInventoryMovementsSummary _summary = new(0, 0, 0, 0, 0, "migration", string.Empty);
     private IReadOnlyList<ErpInventoryMovementDigest> _movements = [];
-    private readonly string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
+    private long _openedId;
+    private ErpInventoryMovementDetail? _opened;
+    private IReadOnlyList<ErpInventoryMovementDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.Sku)
+            ? _opened.Sku + " #" + _opened.Id.ToString(CultureInfo.InvariantCulture)
+            : (!string.IsNullOrWhiteSpace(_opened.Reference)
+                ? _opened.Reference
+                : ("Movement #" + _opened.Id.ToString(CultureInfo.InvariantCulture))));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?movement_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "movement_id");
         var session = await Sessions.ValidateAsync(ctx);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -88,5 +174,26 @@
         _summary = result.Summary;
         _movements = result.Movements;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpInventoryMovementDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Movement;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _movements.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _movements = new[] { openedList }.Concat(_movements.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 }
