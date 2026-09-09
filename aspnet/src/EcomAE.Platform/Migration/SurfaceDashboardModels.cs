@@ -2662,6 +2662,24 @@ public sealed record ErpBankReconciliationDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpBankReconciliationLineDetail(
+    long Id,
+    long AccountId,
+    long LineDate,
+    string Description,
+    string Reference,
+    decimal Amount,
+    int Direction,
+    long MatchedEntryId,
+    string ImportBatch,
+    long TimeCreated);
+
+public sealed record ErpBankReconciliationLineDetailResult(
+    ErpBankReconciliationLineDetail? Line,
+    IReadOnlyList<ErpBankStatementLineDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpStockTransfersSummary(
     int TransferCount,
     int DraftCount,
