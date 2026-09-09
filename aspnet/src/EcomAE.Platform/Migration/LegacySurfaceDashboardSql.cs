@@ -4533,6 +4533,38 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened credit limit. notes/hold_reason are short excerpts.</summary>
+    public const string SelectCpCreditLimitsDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`credit_limit`,0) AS credit_limit, IFNULL(`balance_used`,0) AS balance_used,
+               IFNULL(`currency`,'') AS currency, IFNULL(`status`,'') AS status,
+               IFNULL(`risk_score`,0) AS risk_score, IFNULL(`payment_terms`,'') AS payment_terms,
+               IFNULL(`updated_at`,'') AS updated_at,
+               IFNULL(`approved_by`,0) AS approved_by,
+               IFNULL(CAST(`last_review` AS CHAR),'') AS last_review,
+               IFNULL(CAST(`next_review` AS CHAR),'') AS next_review,
+               CHAR_LENGTH(IFNULL(`hold_reason`,'')) AS hold_reason_len,
+               LEFT(IFNULL(`hold_reason`,''), 280) AS hold_reason_excerpt,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_credit_limits`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other credit limits with the same status. notes/hold_reason omitted.</summary>
+    public const string SelectCpCreditLimitsStatusSiblings = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`credit_limit`,0) AS credit_limit, IFNULL(`balance_used`,0) AS balance_used,
+               IFNULL(`currency`,'') AS currency, IFNULL(`status`,'') AS status,
+               IFNULL(`risk_score`,0) AS risk_score, IFNULL(`payment_terms`,'') AS payment_terms,
+               IFNULL(`updated_at`,'') AS updated_at
+        FROM `epc_credit_limits`
+        WHERE `status` = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Insurance KPIs from epc_erp_ins_* (CREATE TABLE in epc_erp_insurance.php).</summary>
     public const string SelectCpInsuranceComplianceStats = """
         SELECT

@@ -7573,7 +7573,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_credit_* KPIs + limits (notes omitted). PHP credit limit engine remains authoritative."
+                note = "Read-only epc_credit_* KPIs + limits. Open ?credit_id= loads 280-char notes/hold_reason excerpts plus same-status siblings. Set-limit writes when confirmWrites=true."
             });
         });
 

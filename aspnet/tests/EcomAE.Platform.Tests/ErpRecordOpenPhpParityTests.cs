@@ -87,6 +87,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
     [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
+    [InlineData("/CP/shop/finance/epc_credit_limit?credit_id=7", "/cp/credit-limits-app?credit_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1636,6 +1637,41 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/groups-app",
                 "/CP/users/usergroups?ugroup_id=3"));
+    }
+
+    [Fact]
+    public void CreditLimitsApp_OpenLoadsNotesExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpCreditLimitsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"credit_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"credit_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpCreditLimitsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No notes excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-status siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/credit-limits/set", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.Contains("credit_id=", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/credit-limits-app?credit_id=7#erp-row-7",
+            ErpRecordOpen.Href("/cp/credit-limits-app", "credit_id", 7));
+        Assert.Equal(
+            "/cp/credit-limits-app?credit_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/credit-limits-app",
+                "/CP/shop/finance/epc_credit_limit?credit_id=7"));
     }
 
     [Fact]
