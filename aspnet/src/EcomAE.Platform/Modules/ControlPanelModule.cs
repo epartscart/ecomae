@@ -10725,9 +10725,78 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_config_snapshots + epc_sandbox_changes. Open ?snapshot_id= loads a 280-char config excerpt plus change keys. old_value/new_value omitted. PHP config sandbox remains authoritative."
+                note = "Read-only epc_config_snapshots + epc_sandbox_changes. Open ?snapshot_id= loads a 280-char config excerpt plus change keys. old_value/new_value omitted. promote / discard POST /cp/config-sandbox/write when confirmWrites=true. Create, apply-change, and rollback stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpConfigSandboxWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpConfigSandboxWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/config-sandbox-app", "Admin CP capability required for config-sandbox write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpConfigSandboxWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "snapshot_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "promote";
+            }
+
+            if (confirm && key is "promote")
+            {
+                var written = await writes.PromoteAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/config-sandbox-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "discard")
+            {
+                var written = await writes.DiscardAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/config-sandbox-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "promote" or "discard",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Create, apply-change, and rollback stay Classic."
+                    : "Dry-run. Set confirmWrites=true to promote or discard an active snapshot.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelMarketplaceApps, async (
             HttpContext context,
@@ -12927,6 +12996,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Schedule = null,
         string? Format = null,
         bool Active = false);
+    private sealed record CpConfigSandboxWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(

@@ -1192,6 +1192,26 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(nlDelDb.Succeeded);
         Assert.Equal("db", nlDelDb.Code);
 
+        var sandPromoteBad = await new CpConfigSandboxWriteService(new ConfiguredNeverOpened())
+            .PromoteAsync(0);
+        Assert.False(sandPromoteBad.Succeeded);
+        Assert.Equal("invalid", sandPromoteBad.Code);
+
+        var sandPromoteDb = await new CpConfigSandboxWriteService(new UnconfiguredConnections())
+            .PromoteAsync(3);
+        Assert.False(sandPromoteDb.Succeeded);
+        Assert.Equal("db", sandPromoteDb.Code);
+
+        var sandDiscardBad = await new CpConfigSandboxWriteService(new ConfiguredNeverOpened())
+            .DiscardAsync(0);
+        Assert.False(sandDiscardBad.Succeeded);
+        Assert.Equal("invalid", sandDiscardBad.Code);
+
+        var sandDiscardDb = await new CpConfigSandboxWriteService(new UnconfiguredConnections())
+            .DiscardAsync(3);
+        Assert.False(sandDiscardDb.Succeeded);
+        Assert.Equal("db", sandDiscardDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

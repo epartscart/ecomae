@@ -469,6 +469,8 @@ public static class EcomAeRoutes
     public const string ControlPanelConfigSandbox = "/cp/config-sandbox";
     /// <summary>CP Config sandbox Blazor list (JSON digest remains <see cref="ControlPanelConfigSandbox"/>).</summary>
     public const string ControlPanelConfigSandboxApp = "/cp/config-sandbox-app";
+    /// <summary>Config sandbox promote / discard. <c>confirmWrites=true</c> twins PHP epc_sandbox_promote / epc_sandbox_discard. Create, apply-change, and rollback stay Classic.</summary>
+    public const string CpConfigSandboxWrite = "/cp/config-sandbox/write";
     public const string ControlPanelMarketplaceApps = "/cp/marketplace-apps";
     /// <summary>CP Marketplace apps Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceApps"/>).</summary>
     public const string ControlPanelMarketplaceAppsApp = "/cp/marketplace-apps-app";
