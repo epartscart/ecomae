@@ -6525,7 +6525,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_pl_lists KPIs + lists (stats_json/error_text/stored_relpath omitted). PHP commerce profiles remain authoritative."
+                note = "Open ?plist_id= loads 280-char stats/error excerpts; stored_relpath omitted; same-active siblings. PHP commerce profiles remain authoritative."
             });
         });
 

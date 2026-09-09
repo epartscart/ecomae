@@ -1833,6 +1833,25 @@ public sealed record CpPriceListsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpPriceListDetail(
+    long Id,
+    string Code,
+    string Name,
+    string Currency,
+    long CustomerId,
+    int Priority,
+    bool Active,
+    int StatsLen,
+    string StatsExcerpt,
+    int ErrorLen,
+    string ErrorExcerpt);
+
+public sealed record CpPriceListDetailResult(
+    CpPriceListDetail? List,
+    IReadOnlyList<CpPriceListDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>shop_docpart_prices</c> row for the CP prices-upload manager.</summary>
 public sealed record CpDocpartPriceListDigest(
     long Id,
