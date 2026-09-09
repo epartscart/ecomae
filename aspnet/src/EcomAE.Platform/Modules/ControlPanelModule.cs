@@ -11490,9 +11490,73 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_settings (brand_*) KPIs + tokens (setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs). PHP Design tokens remains authoritative."
+                note = "Read-only epc_settings (brand_*) KPIs + tokens. setting_value omitted from the list. save POST /cp/design-tokens/write when confirmWrites=true. CSS emit stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpDesignTokensWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpDesignTokensWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/design-tokens-app", "Admin CP capability required for design-tokens write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpDesignTokensWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var siteKey = body.SiteKey;
+            var settingKey = body.SettingKey;
+            var settingValue = body.SettingValue;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                settingKey = LiveWriteFormBinder.Text(form, "setting_key", "settingKey");
+                settingValue = LiveWriteFormBinder.Text(form, "setting_value", "settingValue");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save";
+            }
+
+            if (confirm && key is "save" or "save_token")
+            {
+                var written = await writes.SaveAsync(
+                    new CpDesignTokenSaveRequest(siteKey, settingKey, settingValue),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/design-tokens-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save" or "save_token",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "CSS emit stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save a design token.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSitemap, async (
             HttpContext context,
@@ -13076,6 +13140,12 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false,
         long AppId = 0,
         string? SiteKey = null);
+    private sealed record CpDesignTokensWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? SettingKey = null,
+        string? SettingValue = null);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(
