@@ -873,6 +873,13 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened recommendation (Open key <c>opl_rec_id</c>, remapped by <c>tab=order_planning</c> / <c>master_planning</c>) plus same-status siblings. Surfaces item id and time_updated hidden from the list table.</summary>
     Task<ErpOrderRecommendationDetailResult> BuildErpOrderPlanningRecommendationDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpProcurementCategoriesDigestResult> BuildErpProcurementCategoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened procurement category (Open key <c>proc_cat_id</c>) plus same-parent siblings. company_id is hidden from the list.</summary>
+    Task<ErpProcCategoryDetailResult> BuildErpProcCategoryDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened procurement policy (Open key <c>proc_pol_id</c>) plus same-category siblings. company_id and created time are hidden from the list.</summary>
+    Task<ErpProcPolicyDetailResult> BuildErpProcPolicyDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened NCR (Open key <c>ncr_id</c>, remapped by <c>qv=ncr</c>) plus same-status siblings. Surfaces 280-char corrective-action excerpt and time_closed hidden from the list.</summary>

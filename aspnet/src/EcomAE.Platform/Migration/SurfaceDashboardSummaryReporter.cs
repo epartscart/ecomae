@@ -23559,6 +23559,141 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpProcCategoryDetailResult> BuildErpProcCategoryDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpProcCategoryDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProcCategoryDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpProcCategoryDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "code"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "parent_id"),
+                        ReadStr(reader, "default_account"),
+                        ReadI32(reader, "active") == 1,
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Procurement category not found.");
+            }
+
+            var siblings = new List<ErpProcCategoryDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProcCategoryParentSiblings;
+                AddParameter(cmd, "@parent_id", header.ParentId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "code"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "parent_id"),
+                        ReadStr(reader, "default_account"),
+                        ReadI32(reader, "active") == 1,
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpProcPolicyDetailResult> BuildErpProcPolicyDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpProcPolicyDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProcPolicyDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpProcPolicyDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "category_id"),
+                        ReadDec(reader, "approval_threshold"),
+                        ReadStr(reader, "preferred_vendor"),
+                        ReadI32(reader, "active") == 1,
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Procurement policy not found.");
+            }
+
+            var siblings = new List<ErpProcPolicyDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProcPolicyCategorySiblings;
+                AddParameter(cmd, "@category_id", header.CategoryId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "category_id"),
+                        ReadDec(reader, "approval_threshold"),
+                        ReadStr(reader, "preferred_vendor"),
+                        ReadI32(reader, "active") == 1));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

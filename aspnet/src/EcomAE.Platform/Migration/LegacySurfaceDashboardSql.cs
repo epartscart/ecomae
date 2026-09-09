@@ -7990,6 +7990,59 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened procurement category (Open key <c>proc_cat_id</c>). company_id is hidden from the list.</summary>
+    public const string SelectErpProcCategoryDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`default_account`,'') AS default_account,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_category`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other categories with the same parent. company_id omitted.</summary>
+    public const string SelectErpProcCategoryParentSiblings = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`default_account`,'') AS default_account,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_category`
+        WHERE IFNULL(`parent_id`,0) = @parent_id AND `id` <> @id
+        ORDER BY `code`, `id`
+        LIMIT 50
+        """;
+
+    /// <summary>Opened procurement policy (Open key <c>proc_pol_id</c>). company_id and created time are hidden from the list.</summary>
+    public const string SelectErpProcPolicyDetail = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`approval_threshold`,0) AS approval_threshold,
+               IFNULL(`preferred_vendor`,'') AS preferred_vendor,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_proc_policy`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other policies for the same category. company_id omitted.</summary>
+    public const string SelectErpProcPolicyCategorySiblings = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`approval_threshold`,0) AS approval_threshold,
+               IFNULL(`preferred_vendor`,'') AS preferred_vendor,
+               IFNULL(`active`,1) AS active
+        FROM `epc_proc_policy`
+        WHERE IFNULL(`category_id`,0) = @category_id AND `id` <> @id
+        ORDER BY `name`, `id`
+        LIMIT 50
+        """;
+
     public const string SelectErpQmPlans = """
         SELECT p.`id`, IFNULL(p.`code`,'') AS code, IFNULL(p.`name`,'') AS name,
                IFNULL(p.`active`,1) AS active, IFNULL(p.`time_updated`,0) AS time_updated,

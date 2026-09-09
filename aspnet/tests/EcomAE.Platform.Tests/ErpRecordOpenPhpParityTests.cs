@@ -3405,6 +3405,50 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void ProcurementCategoriesApp_OpenLoadsCompanyAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpProcurementCategoriesApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpProcCategoryDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpProcPolicyDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"proc_cat_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"proc_pol_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("proc_cat_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("proc_pol_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"proc_cat_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"proc_pol_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("CompanyId", razor, StringComparison.Ordinal);
+        Assert.Contains("same-parent siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("same-category siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ErpProcurementCategorySave", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpProcurementPolicySave", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/procurement-categories-app?proc_cat_id=7#erp-row-7",
+            ErpRecordOpen.Href("/erp/procurement-categories-app", "proc_cat_id", 7));
+        Assert.Equal(
+            "/erp/procurement-categories-app?proc_cat_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/procurement-categories-app",
+                "/ERP/?epc_erp_shell=1&area=purchasing&tab=procurement_categories&proc_cat_id=7"));
+        Assert.Equal("/erp/procurement-categories-app?proc_pol_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/procurement-categories-app", "proc_pol_id", 4));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();
