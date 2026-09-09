@@ -98,6 +98,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpSalesOrderListResult> ListErpSalesOrdersAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened sales order (Open key <c>so_id</c>) plus same-status siblings. notes/title/VAT are hidden from the list.</summary>
+    Task<ErpSalesOrderDetailResult> BuildErpSalesOrderDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpInventoryItemPickerResult> ListErpInventoryItemsForPickerAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<CpMenuListResult> ListCpMenusAsync(int limit, CancellationToken cancellationToken = default);

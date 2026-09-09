@@ -2793,6 +2793,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpSalesOrderDetailResult> BuildErpSalesOrderDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpSalesOrderDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrderDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpSalesOrderDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "so_no"),
+                        ReadI32(reader, "customer_user_id"),
+                        ReadI32(reader, "contact_id"),
+                        ReadStr(reader, "title"),
+                        ReadDec(reader, "amount_ex_vat"),
+                        ReadDec(reader, "vat_amount"),
+                        ReadDec(reader, "total_amount"),
+                        ReadStr(reader, "status"),
+                        ReadI32(reader, "sales_invoice_id"),
+                        ReadStr(reader, "notes_excerpt"),
+                        ReadI32(reader, "notes_len"),
+                        ReadI32(reader, "admin_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadI64(reader, "time_updated"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Sales order not found.");
+            }
+
+            var siblings = new List<ErpSalesOrderDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSalesOrderStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "so_no"),
+                        ReadI32(reader, "customer_user_id"),
+                        ReadDec(reader, "total_amount"),
+                        ReadStr(reader, "status"),
+                        ReadI64(reader, "time_created"),
+                        []));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default)
         => SearchStorefrontPartsAsync(article, null, limit, cancellationToken);
 
