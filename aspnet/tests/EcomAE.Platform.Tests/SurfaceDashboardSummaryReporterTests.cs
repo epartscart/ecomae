@@ -556,6 +556,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("mobile", LegacySurfaceDashboardSql.SelectCpJewelleryVouchers, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("epc_pl_lists", LegacySurfaceDashboardSql.SelectCpPriceLists, StringComparison.Ordinal);
         Assert.DoesNotContain("stats_json", LegacySurfaceDashboardSql.SelectCpPriceLists, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`stats_json`,''), 280)", LegacySurfaceDashboardSql.SelectCpPriceListDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`error_text`,''), 280)", LegacySurfaceDashboardSql.SelectCpPriceListDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpPriceListDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("stored_relpath", LegacySurfaceDashboardSql.SelectCpPriceListDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("stats_json", LegacySurfaceDashboardSql.SelectCpPriceListActiveSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("error_text", LegacySurfaceDashboardSql.SelectCpPriceListActiveSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("stored_relpath", LegacySurfaceDashboardSql.SelectCpPriceListActiveSiblings, StringComparison.Ordinal);
+        Assert.Contains("@active", LegacySurfaceDashboardSql.SelectCpPriceListActiveSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpPriceListActiveSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_auto_price_rules", LegacySurfaceDashboardSql.SelectCpAutoPriceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpAutoPriceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpAutoPriceRules, StringComparison.Ordinal);

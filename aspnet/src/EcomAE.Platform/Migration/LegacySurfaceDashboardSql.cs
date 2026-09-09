@@ -2334,6 +2334,31 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened price list. stats_json and error_text are short excerpts. stored_relpath omitted. CSV import stays Classic.</summary>
+    public const string SelectCpPriceListDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`currency`,'') AS currency, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`priority`,0) AS priority, IFNULL(`active`,0) AS active,
+               CHAR_LENGTH(IFNULL(`stats_json`,'')) AS stats_len,
+               LEFT(IFNULL(`stats_json`,''), 280) AS stats_excerpt,
+               CHAR_LENGTH(IFNULL(`error_text`,'')) AS error_len,
+               LEFT(IFNULL(`error_text`,''), 280) AS error_excerpt
+        FROM `epc_pl_lists`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other price lists with the same active flag. stats_json/error_text/stored_relpath omitted.</summary>
+    public const string SelectCpPriceListActiveSiblings = """
+        SELECT `id`, IFNULL(`code`,'') AS code, IFNULL(`name`,'') AS name,
+               IFNULL(`currency`,'') AS currency, IFNULL(`customer_id`,0) AS customer_id,
+               IFNULL(`priority`,0) AS priority, IFNULL(`active`,0) AS active
+        FROM `epc_pl_lists`
+        WHERE IFNULL(`active`,0) = @active AND `id` <> @id
+        ORDER BY `priority` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     /// <summary>Auto-price KPIs — omits config_json/notes/meta.</summary>
     public const string SelectCpAutoPriceStats = """
         SELECT
