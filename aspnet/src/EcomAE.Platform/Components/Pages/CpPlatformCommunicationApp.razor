@@ -2,8 +2,10 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -20,13 +22,124 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/platform-communication-app")</p>
-                <p>Open a task for a short description excerpt and other tasks in the same category. Task writes stay on the Classic twin.</p>
+                <p>Open a task for a short description excerpt and other tasks in the same category. Super-CP admins can save or delete a task here. Notification policy and schema-ensure stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/platform-communication-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedTask is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    @if (_isAdmin && _isSuper)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">@(_openedTask is not null ? "Edit task" : "New internal task")</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/platform-communication/write" class="well">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "task_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="save_task" />
+                        <input type="hidden" name="id" value="@FormId.ToString(CultureInfo.InvariantCulture)" />
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" name="title" value="@OpenedTitle" />
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-control" name="description" rows="3"></textarea>
+                            <p class="help-block">Leave blank to keep current description. The list only shows a 280-char excerpt.</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <select class="form-control" name="category">
+                                @foreach (var item in CpPlatformCommunicationWriteService.Categories)
+                                {
+                                    @if (OpenedCategory == item.Key)
+                                    {
+                                        <option value="@item.Key" selected>@item.Value</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Key">@item.Value</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Priority</label>
+                            <select class="form-control" name="priority">
+                                @foreach (var item in CpPlatformCommunicationWriteService.Priorities)
+                                {
+                                    @if (OpenedPriority == item.Key)
+                                    {
+                                        <option value="@item.Key" selected>@item.Value</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Key">@item.Value</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Status</label>
+                            <select class="form-control" name="status">
+                                @foreach (var item in CpPlatformCommunicationWriteService.Statuses)
+                                {
+                                    @if (OpenedStatus == item.Key)
+                                    {
+                                        <option value="@item.Key" selected>@item.Value</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Key">@item.Value</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Site key</label>
+                            <input type="text" class="form-control" name="site_key" value="@OpenedSiteKey" />
+                        </div>
+                        <div class="form-group">
+                            <label>Assigned to (user id)</label>
+                            <input type="number" class="form-control" name="assigned_to" value="@OpenedAssignedTo.ToString(CultureInfo.InvariantCulture)" />
+                        </div>
+                        <div class="form-group">
+                            <label>Assigned email</label>
+                            <input type="text" class="form-control" name="assigned_email" value="@OpenedAssignedEmail" />
+                        </div>
+                        <div class="form-group">
+                            <label>Due at (unix)</label>
+                            <input type="number" class="form-control" name="due_at" value="@OpenedDueAt.ToString(CultureInfo.InvariantCulture)" />
+                        </div>
+                        <button type="submit" class="btn btn-default">Save task</button>
+                    </form>
+                    @if (_openedTask is not null)
+                    {
+                        <form method="post" action="/cp/platform-communication/write" class="well" style="margin-top:1rem">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_listHref" />
+                            <input type="hidden" name="action" value="delete_task" />
+                            <input type="hidden" name="id" value="@FormId.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-default">Delete task</button>
+                        </form>
+                    }
+                    <p class="help-block" style="margin:.75rem 0 0">Notification policy stay Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Platform communication KPIs">
         <div class="kpi"><div class="lbl">Tasks</div><div class="val">@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -162,13 +275,26 @@
     private const string _phpTab = "/CP/control/portal/epc_super_cp_communication";
     private const string _listHref = "/cp/platform-communication-app";
     private bool _isAdmin;
+    private bool _isSuper;
     private CpPlatformCommunicationSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPlatformCommunicationRowDigest> _rows = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private long _openedId;
     private CpPlatformCommunicationTaskDetail? _openedTask;
     private IReadOnlyList<CpPlatformCommunicationRowDigest> _openedSiblings = [];
+
+    private long FormId => _openedTask?.Id ?? 0;
+    private string OpenedTitle => _openedTask?.Title ?? "";
+    private string OpenedCategory => CpPlatformCommunicationWriteService.NormalizeCategory(_openedTask?.Category);
+    private string OpenedPriority => CpPlatformCommunicationWriteService.NormalizePriority(_openedTask?.Priority);
+    private string OpenedStatus => CpPlatformCommunicationWriteService.NormalizeStatus(_openedTask?.Status);
+    private string OpenedSiteKey => _openedTask?.SiteKey ?? "";
+    private long OpenedAssignedTo => _openedTask?.AssignedTo ?? 0;
+    private string OpenedAssignedEmail => _openedTask?.AssignedEmail ?? "";
+    private long OpenedDueAt => _openedTask?.DueAt ?? 0;
 
     private string OpenedCaption => _openedTask is null
         ? ""
@@ -183,6 +309,9 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "task_id");
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
