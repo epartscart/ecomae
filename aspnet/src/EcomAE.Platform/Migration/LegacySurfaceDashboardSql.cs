@@ -2222,6 +2222,34 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened jewellery retail voucher. narration is a short excerpt. PII/remarks omitted.</summary>
+    public const string SelectCpJewelleryVoucherDetail = """
+        SELECT `id`, IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`party_name`,'') AS party_name,
+               IFNULL(`party_code`,'') AS party_code, IFNULL(`salesman`,'') AS salesman,
+               IFNULL(`status`,'') AS status, IFNULL(`branch`,'') AS branch,
+               IFNULL(`net_amount`,0) AS net_amount, IFNULL(`vat_amount`,0) AS vat_amount,
+               IFNULL(`total_with_vat`,0) AS total_with_vat,
+               CHAR_LENGTH(IFNULL(`narration`,'')) AS narration_len,
+               LEFT(IFNULL(`narration`,''), 280) AS narration_excerpt
+        FROM `epc_jewel_voucher`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other jewellery vouchers with the same status. narration/remarks/PII omitted.</summary>
+    public const string SelectCpJewelleryVoucherStatusSiblings = """
+        SELECT `id`, IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,
+               IFNULL(`voc_no`,0) AS voc_no, IFNULL(`party_name`,'') AS party_name,
+               IFNULL(`status`,'') AS status,
+               IFNULL(`net_amount`,0) AS net_amount, IFNULL(`vat_amount`,0) AS vat_amount,
+               IFNULL(`total_with_vat`,0) AS total_with_vat
+        FROM `epc_jewel_voucher`
+        WHERE `status` = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>
     /// PHP <c>prices_manager.php</c> — Docpart supplier lists (<c>shop_docpart_prices</c>),
     /// not <c>epc_pl_lists</c> commerce profiles.

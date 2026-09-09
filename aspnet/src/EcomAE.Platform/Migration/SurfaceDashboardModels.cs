@@ -1788,6 +1788,28 @@ public sealed record CpJewelleryRetailDigestResult(
     string Source,
     string Message);
 
+public sealed record CpJewelleryVoucherDetail(
+    long Id,
+    string VocType,
+    string VocDate,
+    long VocNo,
+    string PartyName,
+    string PartyCode,
+    string Salesman,
+    string Status,
+    string Branch,
+    decimal NetAmount,
+    decimal VatAmount,
+    decimal TotalWithVat,
+    int NarrationLen,
+    string NarrationExcerpt);
+
+public sealed record CpJewelleryVoucherDetailResult(
+    CpJewelleryVoucherDetail? Voucher,
+    IReadOnlyList<CpJewelleryVoucherDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpPriceListsSummary(
     int ActiveLists,
     int PriceRows,
