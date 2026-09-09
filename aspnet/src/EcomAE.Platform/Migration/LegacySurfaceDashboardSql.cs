@@ -823,6 +823,32 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened cash/bank account (Open key <c>account_id</c>). bank_name/office are hidden from the list. account_number and add-if-missing columns omitted.</summary>
+    public const string SelectErpCashAccountDetail = """
+        SELECT `id`, IFNULL(`name`, '') AS name,
+               IFNULL(`account_type`, '') AS account_type,
+               IFNULL(`currency_code`, '') AS currency_code,
+               IFNULL(`opening_balance`, 0) AS opening_balance,
+               LEFT(IFNULL(`bank_name`, ''), 280) AS bank_name_excerpt,
+               CHAR_LENGTH(IFNULL(`bank_name`, '')) AS bank_name_len,
+               IFNULL(`office_id`, 0) AS office_id,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_cash_bank_accounts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other cash/bank accounts with the same type. bank_name omitted.</summary>
+    public const string SelectErpCashAccountTypeSiblings = """
+        SELECT `id`, IFNULL(`name`, '') AS name, IFNULL(`account_type`, '') AS account_type,
+               IFNULL(`currency_code`, '') AS currency_code,
+               IFNULL(`opening_balance`, 0) AS opening_balance
+        FROM `epc_erp_cash_bank_accounts`
+        WHERE IFNULL(`account_type`, '') = @account_type AND `id` <> @id AND `active` = 1
+        ORDER BY `name` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectStorefrontUserCore = """
         SELECT `user_id`, `email`, `email_confirmed`, `phone`, `phone_confirmed`, `reg_variant`
         FROM `users`

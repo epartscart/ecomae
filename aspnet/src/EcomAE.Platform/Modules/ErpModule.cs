@@ -1371,7 +1371,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP cash/bank accounts digest. PHP epc_erp_list_cash_accounts remains authoritative."
+                note = "Read-only ERP cash/bank accounts digest. Open ?account_id= loads a 280-char bank-name excerpt and office plus same-type siblings. Writes stay Classic for account create."
             });
         });
 

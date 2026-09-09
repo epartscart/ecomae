@@ -69,6 +69,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpCashAccountListResult> ListErpCashAccountsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened cash/bank account (Open key <c>account_id</c>) plus same-type siblings. bank_name is hidden from the list.</summary>
+    Task<ErpCashAccountDetailResult> BuildErpCashAccountDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<StorefrontProfileResult> BuildStorefrontProfileAsync(int userId, CancellationToken cancellationToken = default);
 
     /// <summary>PHP <c>editform.php</c> <c>reg_variants</c> + <c>reg_fields</c> (main_flag=0).</summary>
