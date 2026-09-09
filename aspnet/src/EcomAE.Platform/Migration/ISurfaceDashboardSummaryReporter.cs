@@ -90,6 +90,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpMenuListResult> ListCpMenusAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened menu (PHP <c>menu_id</c>) plus same-frontend siblings. Structure is a short excerpt.</summary>
+    Task<CpMenuDetailResult> BuildCpMenusDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<CpPageListResult> ListCpPagesAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened content page (PHP <c>content_id</c>) plus same-parent siblings. Body is a short excerpt.</summary>

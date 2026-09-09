@@ -937,6 +937,27 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened menu. Structure is a short excerpt; full tree omitted.</summary>
+    public const string SelectCpMenusDetail = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption, `is_frontend`,
+               IFNULL(`menu_ul_class`, '') AS menu_ul_class, IFNULL(`menu_ul_id`, '') AS menu_ul_id,
+               CHAR_LENGTH(IFNULL(`structure`, '')) AS structure_len,
+               LEFT(IFNULL(`structure`, ''), 280) AS structure_excerpt
+        FROM `menu`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other menus with the same frontend flag. Structure omitted.</summary>
+    public const string SelectCpMenusFrontendSiblings = """
+        SELECT `id`, IFNULL(`caption`, '') AS caption, `is_frontend`,
+               IFNULL(`menu_ul_class`, '') AS menu_ul_class, IFNULL(`menu_ul_id`, '') AS menu_ul_id
+        FROM `menu`
+        WHERE `is_frontend` = @is_frontend AND `id` <> @id
+        ORDER BY `id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectCpPages = """
         SELECT `id`, IFNULL(`value`, '') AS caption, IFNULL(`url`, '') AS url,
                IFNULL(`alias`, '') AS alias, `is_frontend`, IFNULL(`published_flag`, 0) AS published_flag,

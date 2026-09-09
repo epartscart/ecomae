@@ -680,6 +680,21 @@ public sealed record CpMenuListResult(
     string Source,
     string Message);
 
+public sealed record CpMenuDetail(
+    int Id,
+    string Caption,
+    bool IsFrontend,
+    string MenuUlClass,
+    string MenuUlId,
+    int StructureLen,
+    string StructureExcerpt);
+
+public sealed record CpMenuDetailResult(
+    CpMenuDetail? Menu,
+    IReadOnlyList<CpMenuDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpPageDigest(
     int Id,
     string Caption,
