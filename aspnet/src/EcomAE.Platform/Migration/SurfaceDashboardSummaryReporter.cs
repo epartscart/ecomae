@@ -18132,6 +18132,73 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpSitemapDetailResult> BuildCpSitemapDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpSitemapDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSitemapDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpSitemapDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["alias"] is DBNull ? string.Empty : reader["alias"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["value_lang_id"] is DBNull ? 0 : reader["value_lang_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["is_frontend"] is DBNull ? 0 : reader["is_frontend"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["published_flag"] is DBNull ? 0 : reader["published_flag"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["url"] is DBNull ? string.Empty : reader["url"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["title_tag"] is DBNull ? string.Empty : reader["title_tag"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["content_len"] is DBNull ? 0 : reader["content_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["content_excerpt"] is DBNull ? string.Empty : reader["content_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Sitemap page not found.");
+            }
+
+            var siblings = new List<CpSitemapRowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpSitemapPublishedSiblings;
+                AddParameter(cmd, "@published_flag", header.PublishedFlag);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpSitemapRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["alias"] is DBNull ? string.Empty : reader["alias"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["value_lang_id"] is DBNull ? 0 : reader["value_lang_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["is_frontend"] is DBNull ? 0 : reader["is_frontend"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["published_flag"] is DBNull ? 0 : reader["published_flag"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpFailoverStatusDigestResult> BuildCpFailoverStatusDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

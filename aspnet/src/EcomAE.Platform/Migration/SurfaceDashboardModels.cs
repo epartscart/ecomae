@@ -5735,6 +5735,23 @@ public sealed record CpSitemapDigestResult(
     string Source,
     string Message);
 
+public sealed record CpSitemapDetail(
+    long Id,
+    string Alias,
+    long ValueLangId,
+    int IsFrontend,
+    int PublishedFlag,
+    string Url,
+    string TitleTag,
+    int ContentLen,
+    string ContentExcerpt);
+
+public sealed record CpSitemapDetailResult(
+    CpSitemapDetail? Page,
+    IReadOnlyList<CpSitemapRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpFailoverStatusSummary(
     int ModeFilePresent,
     int StatusJsonPresent,

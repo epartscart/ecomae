@@ -8742,7 +8742,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only content + shop_catalogue_categories + shop_catalogue_products KPIs + pages (sitemap.xml file artifact (generation remains PHP); content HTML omitted). PHP Sitemap remains authoritative."
+                note = "Read-only content + shop_catalogue_categories + shop_catalogue_products KPIs + pages (content HTML omitted on the list). Open ?sm_id= loads a 280-char content excerpt. Rebuild stays Classic. PHP Sitemap remains authoritative."
             });
         });
 

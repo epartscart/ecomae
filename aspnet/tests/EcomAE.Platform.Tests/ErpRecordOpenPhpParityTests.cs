@@ -100,6 +100,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/templates_control?tpl_id=4", "/cp/templates-manager-app?tpl_id=4")]
     [InlineData("/CP/plugins/plugins_manager?plugin_id=5", "/cp/plugins-manager-app?plugin_id=5")]
     [InlineData("/CP/plugins_control?plugin_id=5", "/cp/plugins-manager-app?plugin_id=5")]
+    [InlineData("/CP/content/sitemap?sm_id=4", "/cp/sitemap-app?sm_id=4")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -1943,6 +1944,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/plugins-manager-app",
                 "/CP/plugins_control?plugin_id=5"));
+    }
+
+    [Fact]
+    public void SitemapApp_OpenLoadsContentExcerptAndKeepsClassicRebuild()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpSitemapApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpSitemapDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"sm_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("sm_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"sm_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ContentExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-published siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Rebuild stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("content_id", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w22-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/sitemap-app?sm_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/sitemap-app", "sm_id", 4));
+        Assert.Equal(
+            "/cp/sitemap-app?sm_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/sitemap-app",
+                "/CP/content/sitemap?sm_id=4"));
     }
 
     [Fact]

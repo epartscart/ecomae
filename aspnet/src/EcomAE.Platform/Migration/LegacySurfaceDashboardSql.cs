@@ -6393,6 +6393,27 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened sitemap content URL. content HTML is a short excerpt. Rebuild stays Classic.</summary>
+    public const string SelectCpSitemapDetail = """
+        SELECT `id`, IFNULL(`alias`,'') AS alias, IFNULL(`value`,0) AS value_lang_id,
+        IFNULL(`is_frontend`,0) AS is_frontend, IFNULL(`published_flag`,0) AS published_flag,
+        IFNULL(`url`,'') AS url, IFNULL(`title_tag`,'') AS title_tag,
+        CHAR_LENGTH(IFNULL(`content`,'')) AS content_len,
+        LEFT(IFNULL(`content`,''), 280) AS content_excerpt
+        FROM `content`
+        WHERE `id` = @id AND IFNULL(`is_frontend`,0)=1
+        LIMIT 1
+        """;
+
+    /// <summary>Other frontend content URLs with the same published flag. content HTML omitted.</summary>
+    public const string SelectCpSitemapPublishedSiblings = """
+        SELECT `id`, IFNULL(`alias`,'') AS alias, IFNULL(`value`,0) AS value_lang_id,
+        IFNULL(`is_frontend`,0) AS is_frontend, IFNULL(`published_flag`,0) AS published_flag
+        FROM `content`
+        WHERE IFNULL(`is_frontend`,0)=1 AND IFNULL(`published_flag`,0) = @published_flag AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
 
     // ---- Wave 23 ops guides / remaining surfaces ----
 public const string SelectCpOpsGuidesStats = """
