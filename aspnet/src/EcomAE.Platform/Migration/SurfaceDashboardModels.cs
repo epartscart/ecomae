@@ -5660,6 +5660,23 @@ public sealed record CpTemplatesManagerDigestResult(
     string Source,
     string Message);
 
+public sealed record CpTemplatesManagerDetail(
+    long Id,
+    string Caption,
+    string Name,
+    int Current,
+    int IsFrontend,
+    int PhoneSupport,
+    int TabletSupport,
+    int DataValueLen,
+    string DataValueExcerpt);
+
+public sealed record CpTemplatesManagerDetailResult(
+    CpTemplatesManagerDetail? Template,
+    IReadOnlyList<CpTemplatesManagerRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpDesignTokensSummary(
     int TokenCount,
     int TenantCount,

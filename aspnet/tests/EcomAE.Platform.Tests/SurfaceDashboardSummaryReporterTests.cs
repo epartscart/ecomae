@@ -956,6 +956,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpWorkflowTriggerSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("trigger_config", LegacySurfaceDashboardSql.SelectCpWorkflowTriggerSiblings, StringComparison.Ordinal);
         Assert.Contains("@trigger_type", LegacySurfaceDashboardSql.SelectCpWorkflowTriggerSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("data_value", LegacySurfaceDashboardSql.SelectCpTemplatesManagerRows, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`data_value`,''), 280)", LegacySurfaceDashboardSql.SelectCpTemplatesManagerDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpTemplatesManagerDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("data_value", LegacySurfaceDashboardSql.SelectCpTemplatesManagerFrontendSiblings, StringComparison.Ordinal);
+        Assert.Contains("@is_frontend", LegacySurfaceDashboardSql.SelectCpTemplatesManagerFrontendSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpTemplatesManagerFrontendSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
         Assert.Contains("@division", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);

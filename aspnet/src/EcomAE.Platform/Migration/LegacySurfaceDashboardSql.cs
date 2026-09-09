@@ -6317,6 +6317,29 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened storefront/CP template. data_value is a short excerpt. Switch current stays Classic.</summary>
+    public const string SelectCpTemplatesManagerDetail = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`name`,'') AS name,
+        IFNULL(`current`,0) AS current_flag, IFNULL(`is_frontend`,0) AS is_frontend,
+        IFNULL(`phone_support`,0) AS phone_support, IFNULL(`tablet_support`,0) AS tablet_support,
+        CHAR_LENGTH(IFNULL(`data_value`,'')) AS data_value_len,
+        LEFT(IFNULL(`data_value`,''), 280) AS data_value_excerpt
+        FROM `templates`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other templates with the same is_frontend flag. data_value omitted.</summary>
+    public const string SelectCpTemplatesManagerFrontendSiblings = """
+        SELECT `id`, IFNULL(`caption`,'') AS caption, IFNULL(`name`,'') AS name,
+        IFNULL(`current`,0) AS current_flag, IFNULL(`is_frontend`,0) AS is_frontend,
+        IFNULL(`phone_support`,0) AS phone_support, IFNULL(`tablet_support`,0) AS tablet_support
+        FROM `templates`
+        WHERE `is_frontend` = @is_frontend AND `id` <> @id
+        ORDER BY `current` DESC, `id` ASC
+        LIMIT 50
+        """;
+
     public const string CountCpDesignTokensTokenCount = "SELECT COUNT(*) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'";
     public const string CountCpDesignTokensTenantCount = "SELECT COUNT(DISTINCT IFNULL(`site_key`,'')) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'";
     public const string CountCpDesignTokensWhiteLabelCount = "SELECT COUNT(*) FROM `epc_settings` WHERE `setting_key`='white_label_login' AND IFNULL(`setting_value`,'') NOT IN ('','0','false')";
