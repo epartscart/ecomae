@@ -86,8 +86,7 @@ public class CpTenantEmailWriteTests
     {
         var src = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
         Assert.Contains("smtp_username", src);
-        Assert.Contains("HasPassword", src);
-        Assert.DoesNotContain("smtp_password\") ?? string.Empty;", src);
+        Assert.Contains("hasPassword = !string.IsNullOrWhiteSpace(ReadJsonString(smtp, \"smtp_password\"))", src);
     }
 
     private static string FindRepoRoot()
@@ -95,7 +94,8 @@ public class CpTenantEmailWriteTests
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
         while (dir is not null)
         {
-            if (File.Exists(Path.Combine(dir.FullName, "aspnet", "EcomAE.Platform.sln")))
+            if (File.Exists(Path.Combine(dir.FullName, "aspnet", "src", "EcomAE.Platform", "EcomAE.Platform.csproj"))
+                || File.Exists(Path.Combine(dir.FullName, "aspnet", "EcomAE.Platform.sln")))
             {
                 return dir.FullName;
             }
@@ -103,6 +103,6 @@ public class CpTenantEmailWriteTests
             dir = dir.Parent;
         }
 
-        throw new DirectoryNotFoundException("repo root");
+        throw new DirectoryNotFoundException("repo root from " + AppContext.BaseDirectory);
     }
 }
