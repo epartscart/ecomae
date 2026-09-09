@@ -2132,7 +2132,9 @@ public static class EcomAeRoutes
     public const string StorefrontBulkUploadApp = "/storefront/bulk-upload-app";
     /// <summary>Customer bulk-upload history digest.</summary>
     public const string StorefrontBulkUploadHistory = "/storefront/bulk-upload/history";
-    /// <summary>Live Excel/CSV price check (PHP ajax_process twin — no history INSERT).</summary>
+    /// <summary>PHP ajax_process history_update. <c>confirmWrites=true</c> updates <c>epc_bulk_upload_history</c>.</summary>
+    public const string StorefrontBulkUploadHistoryUpdate = "/storefront/bulk-upload/history-update";
+    /// <summary>Live Excel/CSV price check. <c>confirmWrites=true</c> also INSERTs <c>epc_bulk_upload_history</c>.</summary>
     public const string StorefrontBulkUploadCheck = "/storefront/bulk-upload/check";
     /// <summary>Live cross-availability check for one bulk-upload row.</summary>
     public const string StorefrontBulkUploadCross = "/storefront/bulk-upload/cross";

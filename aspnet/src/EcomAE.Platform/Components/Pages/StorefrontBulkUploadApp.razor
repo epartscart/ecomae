@@ -89,6 +89,7 @@
          id="epc-bulk-wrap"
          data-check-url="@EcomAeRoutes.StorefrontBulkUploadCheck"
          data-cross-url="@EcomAeRoutes.StorefrontBulkUploadCross"
+         data-history-url="@EcomAeRoutes.StorefrontBulkUploadHistoryUpdate"
          data-add-url="@EcomAeRoutes.StorefrontBulkUploadAddSelected"
          data-cart-url="@StorefrontSurfaceLinks.Cart">
         <div class="epc-bulk-hero">
@@ -124,6 +125,7 @@
             <div class="epc-bulk-panel">
                 <div id="epc_bulk_banner" class="epc-bulk-banner" hidden></div>
                 <form id="epc_bulk_form" method="post" action="@EcomAeRoutes.StorefrontBulkUploadCheck" enctype="multipart/form-data">
+                    <input type="hidden" name="confirmWrites" value="true" />
                     <div class="epc-bulk-grid">
                         <div>
                             <label for="epc_bulk_file">Excel / CSV file</label>
@@ -238,7 +240,7 @@
             </div>
 
             <div id="epc_bulk_results"></div>
-            <script src="/platform-assets/epc_storefront_bulk_upload.js?v=20260904bulk2" defer></script>
+            <script src="/platform-assets/epc_storefront_bulk_upload.js?v=20260909bulkhist" defer></script>
         }
     </div>
 </StorefrontTenantChrome>

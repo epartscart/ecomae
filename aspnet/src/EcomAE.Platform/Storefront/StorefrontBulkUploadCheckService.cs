@@ -5,7 +5,7 @@ namespace EcomAE.Platform.Storefront;
 /// <summary>
 /// Storefront Excel / CSV price check — PHP <c>content/shop/bulk_upload/ajax_process.php</c> twin.
 /// Matches warehouse offers through <see cref="ISurfaceDashboardSummaryReporter.SearchStorefrontPartsAsync"/>.
-/// History INSERT stays on the PHP ajax when the shop DB is not configured here.
+/// History INSERT runs on the check POST when <c>confirmWrites=true</c>.
 /// </summary>
 public interface IStorefrontBulkUploadCheckService
 {
