@@ -7232,6 +7232,24 @@ public sealed record ErpOrderPipelineListResult(
     string Source,
     string Message);
 
+public sealed record ErpOrderPipelineLogDetail(
+    long Id,
+    string SiteKey,
+    long OrderId,
+    string Step,
+    string Status,
+    string ErrorMessage,
+    int DurationMs,
+    string CreatedAt,
+    string DetailsExcerpt,
+    int DetailsLen);
+
+public sealed record ErpOrderPipelineLogDetailResult(
+    ErpOrderPipelineLogDetail? Log,
+    IReadOnlyList<ErpOrderPipelineLogDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_inventory_forecast</c>.</summary>
 public sealed record ErpInventoryForecastDigest(
     long Id,

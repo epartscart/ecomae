@@ -8312,6 +8312,37 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened pipeline log (Open key <c>pipeline_log_id</c>). details is a 280-char excerpt — never the full JSON.</summary>
+    public const string SelectErpOrderPipelineLogDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`step`,'') AS step,
+               IFNULL(`status`,'pending') AS status,
+               IFNULL(`error_message`,'') AS error_message,
+               IFNULL(`duration_ms`,0) AS duration_ms,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at,
+               CHAR_LENGTH(IFNULL(CAST(`details` AS CHAR),'')) AS details_len,
+               LEFT(IFNULL(CAST(`details` AS CHAR),''), 280) AS details_excerpt
+        FROM `epc_order_erp_log`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other log rows for the same shop order. details omitted.</summary>
+    public const string SelectErpOrderPipelineLogOrderSiblings = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key,
+               IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`step`,'') AS step,
+               IFNULL(`status`,'pending') AS status,
+               IFNULL(`error_message`,'') AS error_message,
+               IFNULL(`duration_ms`,0) AS duration_ms,
+               IFNULL(DATE_FORMAT(`created_at`, '%Y-%m-%d %H:%i:%s'),'') AS created_at
+        FROM `epc_order_erp_log`
+        WHERE IFNULL(`order_id`,0) = @order_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>epc_inventory_forecast</c>.</summary>
     public const string SelectErpInventoryForecast = """
         SELECT `id`, IFNULL(`sku`,'') AS sku,

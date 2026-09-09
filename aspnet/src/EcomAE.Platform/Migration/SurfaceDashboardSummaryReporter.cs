@@ -23645,6 +23645,77 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpOrderPipelineLogDetailResult> BuildErpOrderPipelineLogDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpOrderPipelineLogDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpOrderPipelineLogDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpOrderPipelineLogDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "site_key"),
+                        Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "step"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "error_message"),
+                        Convert.ToInt32(reader["duration_ms"] is DBNull ? 0 : reader["duration_ms"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "created_at"),
+                        ReadStr(reader, "details_excerpt"),
+                        Convert.ToInt32(reader["details_len"] is DBNull ? 0 : reader["details_len"], CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Pipeline log row not found.");
+            }
+
+            var siblings = new List<ErpOrderPipelineLogDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpOrderPipelineLogOrderSiblings;
+                AddParameter(cmd, "@order_id", header.OrderId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpOrderPipelineLogDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "site_key"),
+                        Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "step"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "error_message"),
+                        Convert.ToInt32(reader["duration_ms"] is DBNull ? 0 : reader["duration_ms"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "created_at")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpInventoryForecastListResult> ListErpInventoryForecastAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

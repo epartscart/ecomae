@@ -149,6 +149,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/epc_inventory_forecast?inv_forecast_id=23", "/erp/inventory-forecast-app?inv_forecast_id=23")]
     [InlineData("/ERP/?epc_erp_shell=1&area=production&tab=quality&ncr_id=24", "/erp/quality-app?ncr_id=24")]
     [InlineData("/CP/shop/finance/erp?area=production&tab=quality&epc_erp_shell=1&ncr_id=24", "/erp/quality-app?ncr_id=24")]
+    [InlineData("/CP/shop/finance/epc_order_erp_pipeline?pipeline_log_id=25", "/erp/order-pipeline-app?pipeline_log_id=25")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/finance/erp?area=inventory&tab=rfid&epc_erp_shell=1&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
@@ -2914,6 +2915,46 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/quality-app",
                 "/ERP/?epc_erp_shell=1&area=production&tab=quality&order_id=5"));
+    }
+
+    [Fact]
+    public void OrderPipelineApp_OpenLoadsDetailsExcerptAndKeepsExecutionPhp()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpOrderPipelineApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpOrderPipelineLogDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"pipeline_log_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("pipeline_log_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"pipeline_log_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("DetailsExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-order siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Full details JSON omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("Pipeline execution stays PHP", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/order-pipeline-app?pipeline_log_id=25#erp-row-25",
+            ErpRecordOpen.Href("/erp/order-pipeline-app", "pipeline_log_id", 25));
+        Assert.Equal(
+            "/erp/order-pipeline-app?pipeline_log_id=25",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/order-pipeline-app",
+                "/CP/shop/finance/epc_order_erp_pipeline?pipeline_log_id=25"));
+        Assert.Equal(
+            "/erp/sales-orders-app?order_id=42",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/sales-orders-app",
+                "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders&order_id=42"));
     }
 
     [Fact]

@@ -521,6 +521,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
         Assert.Contains("@warehouse_id", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_order_erp_log", LegacySurfaceDashboardSql.SelectErpOrderPipelineLog, StringComparison.Ordinal);
+        Assert.DoesNotContain("details", LegacySurfaceDashboardSql.SelectErpOrderPipelineLog, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(CAST(`details` AS CHAR),''), 280)", LegacySurfaceDashboardSql.SelectErpOrderPipelineLogDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpOrderPipelineLogDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("details", LegacySurfaceDashboardSql.SelectErpOrderPipelineLogOrderSiblings, StringComparison.Ordinal);
+        Assert.Contains("@order_id", LegacySurfaceDashboardSql.SelectErpOrderPipelineLogOrderSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpOrderPipelineLogOrderSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_inventory_forecast", LegacySurfaceDashboardSql.SelectErpInventoryForecast, StringComparison.Ordinal);
         Assert.DoesNotContain("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecast, StringComparison.Ordinal);
         Assert.Contains("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
