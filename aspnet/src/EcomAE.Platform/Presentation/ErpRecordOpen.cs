@@ -23,7 +23,7 @@ public static class ErpRecordOpen
         "purchase_id", "journal_id",
         "entry_id", "account_id",
         "supplier_id", "customer_id",
-        "user_id", "contract_id", "staff_id", "payroll_id",
+        "user_id", "contract_id", "staff_id", "payroll_id", "cgroup_id",
         "order_id", "pf_case",
         "case_id", "campaign_id",
         "warehouse_id", "rfq_id",

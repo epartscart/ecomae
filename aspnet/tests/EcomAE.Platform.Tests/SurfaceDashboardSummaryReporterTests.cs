@@ -951,6 +951,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpRecruitmentJobs, StringComparison.Ordinal);
         Assert.Contains("epc_customer_groups", LegacySurfaceDashboardSql.SelectErpCustomerGroups, StringComparison.Ordinal);
         Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectErpCustomerGroups, StringComparison.Ordinal);
+        Assert.Contains("epc_customer_groups", LegacySurfaceDashboardSql.SelectErpCustomerGroupDetail, StringComparison.Ordinal);
+        Assert.Contains("description_excerpt", LegacySurfaceDashboardSql.SelectErpCustomerGroupDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(g.`description`,''), 280)", LegacySurfaceDashboardSql.SelectErpCustomerGroupDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("description_excerpt", LegacySurfaceDashboardSql.SelectErpCustomerGroups, StringComparison.Ordinal);
+        Assert.DoesNotContain("description_excerpt", LegacySurfaceDashboardSql.SelectErpCustomerGroupTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("@group_type", LegacySurfaceDashboardSql.SelectErpCustomerGroupTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_hrt_review", LegacySurfaceDashboardSql.SelectErpPerformanceReviews, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpPerformanceReviews, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.SelectErpProductInfoItems, StringComparison.Ordinal);

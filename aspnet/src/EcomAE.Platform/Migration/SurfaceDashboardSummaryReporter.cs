@@ -23882,6 +23882,83 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpCustomerGroupDetailResult> BuildErpCustomerGroupDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpCustomerGroupDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCustomerGroupDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpCustomerGroupDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "group_code"),
+                        ReadStr(reader, "group_name"),
+                        ReadStr(reader, "group_type"),
+                        ReadDec(reader, "discount_pct"),
+                        ReadDec(reader, "credit_limit"),
+                        ReadI32(reader, "payment_terms_days"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "price_list_id"),
+                        ReadI32(reader, "member_count"),
+                        ReadI32(reader, "is_active") == 1,
+                        ReadI64(reader, "time_created"),
+                        ReadI32(reader, "description_len"),
+                        ReadStr(reader, "description_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Customer group not found.");
+            }
+
+            var siblings = new List<ErpCustomerGroupDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCustomerGroupTypeSiblings;
+                AddParameter(cmd, "@group_type", header.GroupType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "group_code"),
+                        ReadStr(reader, "group_name"),
+                        ReadStr(reader, "group_type"),
+                        ReadDec(reader, "discount_pct"),
+                        ReadDec(reader, "credit_limit"),
+                        ReadI32(reader, "payment_terms_days"),
+                        ReadI32(reader, "member_count"),
+                        ReadI32(reader, "is_active") == 1,
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpPerformanceDigestResult> BuildErpPerformanceDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

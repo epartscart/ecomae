@@ -8165,6 +8165,43 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened customer group. description is a short excerpt.</summary>
+    public const string SelectErpCustomerGroupDetail = """
+        SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,
+               IFNULL(g.`group_name`,'') AS group_name,
+               IFNULL(g.`group_type`,'general') AS group_type,
+               IFNULL(g.`discount_pct`,0) AS discount_pct,
+               IFNULL(g.`credit_limit`,0) AS credit_limit,
+               IFNULL(g.`payment_terms_days`,30) AS payment_terms_days,
+               IFNULL(g.`company_id`,0) AS company_id,
+               IFNULL(g.`price_list_id`,0) AS price_list_id,
+               IFNULL(g.`is_active`,1) AS is_active,
+               IFNULL(g.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_customer_group_members` m WHERE m.`group_id` = g.`id`),0) AS member_count,
+               CHAR_LENGTH(IFNULL(g.`description`,'')) AS description_len,
+               LEFT(IFNULL(g.`description`,''), 280) AS description_excerpt
+        FROM `epc_customer_groups` g
+        WHERE g.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other customer groups of the same type. description omitted.</summary>
+    public const string SelectErpCustomerGroupTypeSiblings = """
+        SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,
+               IFNULL(g.`group_name`,'') AS group_name,
+               IFNULL(g.`group_type`,'general') AS group_type,
+               IFNULL(g.`discount_pct`,0) AS discount_pct,
+               IFNULL(g.`credit_limit`,0) AS credit_limit,
+               IFNULL(g.`payment_terms_days`,30) AS payment_terms_days,
+               IFNULL(g.`is_active`,1) AS is_active,
+               IFNULL(g.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_customer_group_members` m WHERE m.`group_id` = g.`id`),0) AS member_count
+        FROM `epc_customer_groups` g
+        WHERE IFNULL(g.`group_type`,'general') = @group_type AND g.`id` <> @id
+        ORDER BY g.`group_name`, g.`id`
+        LIMIT 50
+        """;
+
     public const string SelectErpPerformanceReviews = """
         SELECT `id`, IFNULL(`employee_id`,0) AS employee_id,
                IFNULL(`employee_name`,'') AS employee_name,
