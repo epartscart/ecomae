@@ -502,6 +502,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@interface_type", LegacySurfaceDashboardSql.SelectCpStoragesInterfaceSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_purchase_orders", LegacySurfaceDashboardSql.SelectErpPurchaseOrders, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SelectErpInventoryStockSummary, StringComparison.Ordinal);
+        Assert.Contains("LIMIT 200", LegacySurfaceDashboardSql.SelectErpAgingArDocuments, StringComparison.Ordinal);
+        Assert.Contains("LIMIT 200", LegacySurfaceDashboardSql.SelectErpAgingApDocuments, StringComparison.Ordinal);
+        Assert.Contains("LIMIT 200", LegacySurfaceDashboardSql.SelectErpAgingInventoryRows, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_purchase_orders", LegacySurfaceDashboardSql.SelectErpWorkspaceTopSupplierSpend, StringComparison.Ordinal);
+        Assert.Contains("LIMIT 5", LegacySurfaceDashboardSql.SelectErpWorkspaceTopSupplierSpend, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_warehouses", LegacySurfaceDashboardSql.SelectErpInventoryStockRows, StringComparison.Ordinal);
         Assert.Contains("reorder_level", LegacySurfaceDashboardSql.SelectErpInventoryLowStockRows, StringComparison.Ordinal);
