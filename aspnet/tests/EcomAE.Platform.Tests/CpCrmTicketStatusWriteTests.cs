@@ -34,8 +34,11 @@ public sealed class CpCrmTicketStatusWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"action\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"update_ticket_status\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_ticket\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"status\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"subject\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"customer_user_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/tickets/reply", razor, StringComparison.Ordinal);
@@ -53,6 +56,7 @@ public sealed class CpCrmTicketStatusWriteTests
         Assert.Contains("ajax_crm.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("update_ticket_status", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("save_ticket", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -63,11 +67,14 @@ public sealed class CpCrmTicketStatusWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpCrmTicketWriteService", module, StringComparison.Ordinal);
         Assert.Contains("UpdateStatusAsync", module, StringComparison.Ordinal);
+        Assert.Contains("SaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmTicketWriteService.cs"));
         Assert.Contains("epc_crm_save_ticket", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_crm_tickets`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_crm_tickets`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_crm_ticket_messages`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);

@@ -793,6 +793,20 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(tixDb.Succeeded);
         Assert.Equal("db", tixDb.Code);
 
+        Assert.Equal("open", CpCrmTicketWriteService.NormalizeStatus("nope"));
+        Assert.Equal("normal", CpCrmTicketWriteService.NormalizePriority("medium"));
+        Assert.Equal("Support request", CpCrmTicketWriteService.NormalizeSubject(""));
+
+        var tixSaveBad = await new CpCrmTicketWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCrmTicketSaveRequest(-1, 0, 0, "Help", "open", "normal", 1, "", 1));
+        Assert.False(tixSaveBad.Succeeded);
+        Assert.Equal("invalid", tixSaveBad.Code);
+
+        var tixSaveDb = await new CpCrmTicketWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpCrmTicketSaveRequest(0, 0, 0, "Help", "open", "normal", 1, "", 1));
+        Assert.False(tixSaveDb.Succeeded);
+        Assert.Equal("db", tixSaveDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

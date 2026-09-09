@@ -7726,6 +7726,10 @@ public sealed class ControlPanelModule : ISurfaceModule
             var status = body.Status;
             var priority = body.Priority;
             var message = body.Message;
+            var subject = body.Subject;
+            var customerUserId = body.CustomerUserId;
+            var orderId = body.OrderId;
+            var assignedUserId = body.AssignedUserId;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -7735,7 +7739,16 @@ public sealed class ControlPanelModule : ISurfaceModule
                 status = LiveWriteFormBinder.Text(form, "status");
                 priority = LiveWriteFormBinder.Text(form, "priority");
                 message = LiveWriteFormBinder.Text(form, "message");
+                subject = LiveWriteFormBinder.Text(form, "subject");
+                customerUserId = LiveWriteFormBinder.Long(form, "customer_user_id", "customerUserId");
+                orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+                assignedUserId = LiveWriteFormBinder.Long(form, "assigned_user_id", "assignedUserId");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (assignedUserId <= 0)
+            {
+                assignedUserId = session.UserId;
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -7753,17 +7766,34 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "save_ticket" or "crm_save_ticket")
+            {
+                var written = await writes.SaveAsync(
+                    new CpCrmTicketSaveRequest(
+                        id, customerUserId, orderId, subject, status, priority, assignedUserId, message, session.UserId),
+                    cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/cp/crm-tickets-app?ticket_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/crm-tickets-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "update_ticket_status" or "crm_update_ticket_status",
+                wouldWrite = key is "update_ticket_status" or "crm_update_ticket_status" or "save_ticket" or "crm_save_ticket",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Schema-ensure stays Classic."
-                    : "Dry-run. Set confirmWrites=true to update the ticket.",
+                    ? "File attachments and send stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the ticket or update status.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -11298,7 +11328,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         long Id = 0,
         string? Status = null,
         string? Priority = null,
-        string? Message = null);
+        string? Message = null,
+        string? Subject = null,
+        long CustomerUserId = 0,
+        long OrderId = 0,
+        long AssignedUserId = 0);
     private sealed record CpCrmLeadConvertBody(
         string? Action = null,
         bool ConfirmWrites = false,
