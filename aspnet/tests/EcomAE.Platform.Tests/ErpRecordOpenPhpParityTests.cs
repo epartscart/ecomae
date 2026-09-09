@@ -2877,6 +2877,40 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void ThreeWayMatchApp_OpenLoadsNotesExcerptAndSameStatusSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpThreeWayMatchApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpThreeWayMatchDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"po_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("po_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"po_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Writes stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/three-way-match-app?po_id=9#erp-row-9",
+            ErpRecordOpen.Href("/erp/three-way-match-app", "po_id", 9));
+        Assert.Equal(
+            "/erp/three-way-match-app?po_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/three-way-match-app",
+                "/ERP/?epc_erp_shell=1&area=purchasing&tab=three_way_match&po_id=9"));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

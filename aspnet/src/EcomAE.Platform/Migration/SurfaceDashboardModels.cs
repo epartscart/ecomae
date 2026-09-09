@@ -6383,6 +6383,30 @@ public sealed record ErpThreeWayMatchListResult(
     string Source,
     string Message);
 
+public sealed record ErpThreeWayMatchDetail(
+    long PoId,
+    string PoNo,
+    string PoStatus,
+    string Title,
+    long SupplierId,
+    decimal PoTotal,
+    long OrderId,
+    long ApprovedAt,
+    long ReceivedAt,
+    long PurchaseId,
+    string InvoiceNumber,
+    decimal InvoiceTotal,
+    string PurchaseStatus,
+    int ReceiptCount,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpThreeWayMatchDetailResult(
+    ErpThreeWayMatchDetail? Match,
+    IReadOnlyList<ErpThreeWayMatchDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpContactDigest(
     long Id,
     string PartyType,

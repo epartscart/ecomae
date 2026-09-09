@@ -747,6 +747,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened supplier RFQ (Open key <c>rfq_id</c>) plus same-status siblings. description is a short excerpt.</summary>
     Task<ErpRfqDetailResult> BuildErpRfqDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpThreeWayMatchListResult> ListErpThreeWayMatchAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened three-way match PO (Open key <c>po_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
+    Task<ErpThreeWayMatchDetailResult> BuildErpThreeWayMatchDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened contact (Open key <c>contact_id</c>) plus same-city siblings. notes is a short excerpt; email/phone omitted.</summary>

@@ -11465,7 +11465,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP three-way match digest. PHP epc_erp_three_way_match_rows remains authoritative."
+                note = "Read-only ERP three-way match digest. Open ?po_id= loads a 280-char notes excerpt plus same-status siblings. Writes stay Classic."
             });
         });
 
