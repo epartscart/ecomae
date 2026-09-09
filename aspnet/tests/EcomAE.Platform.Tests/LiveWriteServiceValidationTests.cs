@@ -1132,6 +1132,31 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(pbiRepDb.Succeeded);
         Assert.Equal("db", pbiRepDb.Code);
 
+        var mbBad = await new CpMetabaseWriteService(new ConfiguredNeverOpened())
+            .SaveConfigAsync(new CpMetabaseSaveConfigRequest("", "https://mb.example"));
+        Assert.False(mbBad.Succeeded);
+        Assert.Equal("invalid", mbBad.Code);
+
+        var mbDb = await new CpMetabaseWriteService(new UnconfiguredConnections())
+            .SaveConfigAsync(new CpMetabaseSaveConfigRequest("epartscart", "https://mb.example"));
+        Assert.False(mbDb.Succeeded);
+        Assert.Equal("db", mbDb.Code);
+
+        var mbDashBad = await new CpMetabaseWriteService(new ConfiguredNeverOpened())
+            .AddDashboardAsync(new CpMetabaseAddDashboardRequest("", 12, "Sales", "finance"));
+        Assert.False(mbDashBad.Succeeded);
+        Assert.Equal("invalid", mbDashBad.Code);
+
+        var mbDashIdBad = await new CpMetabaseWriteService(new ConfiguredNeverOpened())
+            .AddDashboardAsync(new CpMetabaseAddDashboardRequest("epartscart", 0, "Sales", "finance"));
+        Assert.False(mbDashIdBad.Succeeded);
+        Assert.Equal("invalid", mbDashIdBad.Code);
+
+        var mbDashDb = await new CpMetabaseWriteService(new UnconfiguredConnections())
+            .AddDashboardAsync(new CpMetabaseAddDashboardRequest("epartscart", 12, "Sales", "finance"));
+        Assert.False(mbDashDb.Succeeded);
+        Assert.Equal("db", mbDashDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

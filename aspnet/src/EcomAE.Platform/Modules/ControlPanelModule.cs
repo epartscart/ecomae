@@ -6433,9 +6433,90 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_metabase_config + epc_metabase_dashboards. Open ?mb_id= loads site URL plus category siblings. secret_key never returned. Writes remain PHP epc_metabase_embed."
+                note = "Read-only epc_metabase_config + epc_metabase_dashboards. Open ?mb_id= loads site URL plus category siblings. secret_key never returned. save_config / add_dashboard POST /cp/metabase/write when confirmWrites=true. Secret and JWT embed stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpMetabaseWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpMetabaseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/metabase-app", "Admin CP capability required for Metabase write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpMetabaseWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var siteKey = body.SiteKey;
+            var metabaseUrl = body.MetabaseUrl;
+            var dashboardId = body.DashboardId;
+            var dashboardName = body.DashboardName;
+            var category = body.Category;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action", "epc_mb_action");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                metabaseUrl = LiveWriteFormBinder.Text(form, "metabase_url", "metabaseUrl");
+                dashboardId = LiveWriteFormBinder.Int(form, "dashboard_id", "dashboardId");
+                dashboardName = LiveWriteFormBinder.Text(form, "dashboard_name", "dashboardName");
+                category = LiveWriteFormBinder.Text(form, "category");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save_config";
+            }
+
+            if (confirm && key is "save_config" or "save" or "configure")
+            {
+                var written = await writes.SaveConfigAsync(
+                    new CpMetabaseSaveConfigRequest(siteKey, metabaseUrl),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/metabase-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "add_dashboard" or "register_dashboard")
+            {
+                var written = await writes.AddDashboardAsync(
+                    new CpMetabaseAddDashboardRequest(siteKey, (int)dashboardId, dashboardName, category),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/metabase-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_config" or "save" or "configure" or "add_dashboard" or "register_dashboard",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Secret and JWT embed stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save Metabase URL or register a dashboard.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelNlReporting, async (
             HttpContext context,
@@ -12680,6 +12761,14 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? DatasetId = null,
         string? Category = null,
         string? ReportEmbedUrl = null);
+    private sealed record CpMetabaseWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? MetabaseUrl = null,
+        long DashboardId = 0,
+        string? DashboardName = null,
+        string? Category = null);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(

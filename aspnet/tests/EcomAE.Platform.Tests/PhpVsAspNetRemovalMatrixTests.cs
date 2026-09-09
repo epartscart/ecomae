@@ -228,6 +228,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPriceConfigsApp.razor", "/cp/price-configs/write"),
             ("CpWorkflowsApp.razor", "/cp/workflows/write"),
             ("CpPowerBiApp.razor", "/cp/power-bi/write"),
+            ("CpMetabaseApp.razor", "/cp/metabase/write"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/save"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/add-line"),
             ("CpPurchaseRequestsApp.razor", "/erp/procurement/requisitions/submit"),
