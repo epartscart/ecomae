@@ -12,8 +12,11 @@
 <PageTitle>Staff · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Staff" BreadcrumbArea="People" BreadcrumbTab="Staff">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/staff-app" IsAdmin="_isAdmin" />
 
-    <PhpErpModulePageHeader Title="Staff &amp; departments" Subtitle="Each department has its own ERP tabs and workflow queue. Dashboard centres (CEO, CFO, Sales, …) are controlled by staff profile — sales cannot see profit." PhpTabHref="@_phpTab" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <PhpErpModulePageHeader Title="Staff &amp; departments" Subtitle="Open a row for user id, created time, and same-department siblings. email/phone stay off the Open pane. Writes stay Classic." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Staff KPIs">
@@ -45,6 +48,55 @@
         </div>
     </div>
 
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>Staff id</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>User id</dt><dd>@(_opened.UserId > 0 ? _opened.UserId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.DisplayName) ? "—" : _opened.DisplayName)</dd>
+                <dt>Department</dt><dd>@ErpStaffDepartmentCatalog.NameFor(_opened.DepartmentCode)</dd>
+                <dt>Job title</dt><dd>@(string.IsNullOrWhiteSpace(_opened.JobTitle) ? "—" : _opened.JobTitle)</dd>
+                <dt>Status</dt><dd>@(_opened.Active ? "active" : "inactive")</dd>
+                <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">email/phone stay off this pane. Writes stay Classic.</p>
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-department siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Job title</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.DisplayName) ? "—" : sib.DisplayName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.JobTitle) ? "—" : sib.JobTitle)</td>
+                                <td>@(sib.Active ? "active" : "inactive")</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "staff_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-department siblings yet.</p>
+            }
+        </div>
+    }
+
     <div class="hpanel epc-erp-section">
         <div class="panel-heading hbuilt"><i class="fa fa-users"></i> Staff directory &amp; dashboard centres</div>
         <div class="panel-body">
@@ -60,18 +112,19 @@
                     <th>Login e-mail</th>
                     <th>Phone</th>
                     <th>Status</th>
+                    <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_staff.Count == 0)
                 {
-                    <tr><td colspan="7" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No staff — run staff setup on the shop database." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="8" class="text-muted">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No staff — run staff setup on the shop database." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _staff)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.DisplayName) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.DisplayName)</strong></td>
                             <td>@ErpStaffDepartmentCatalog.NameFor(row.DepartmentCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.JobTitle) ? "—" : row.JobTitle)</td>
@@ -79,6 +132,7 @@
                             <td><code>@(string.IsNullOrWhiteSpace(row.Email) ? "—" : row.Email)</code></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
                             <td><span class="label label-default">@(row.Active ? "active" : "inactive")</span></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "staff_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -96,6 +150,7 @@
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=hr&tab=staff";
+    private const string _listHref = "/erp/staff-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpStaffProfileDigest> _staff = [];
     private int _count;
@@ -104,11 +159,26 @@
     private IReadOnlyList<ErpWorkflowTaskDigest> _workflowTasks = [];
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private ErpStaffProfileDetail? _opened;
+    private IReadOnlyList<ErpStaffProfileDigest> _openedSiblings = [];
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?staff_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_opened.DisplayName)
+            ? ("Staff #" + _opened.Id.ToString(CultureInfo.InvariantCulture))
+            : _opened.DisplayName)
+            + (string.IsNullOrWhiteSpace(_opened.DepartmentCode) ? "" : (" · " + ErpStaffDepartmentCatalog.NameFor(_opened.DepartmentCode)));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "staff_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin)
@@ -126,6 +196,31 @@
         var wf = await Dashboards.BuildErpWorkflowTasksDigestAsync(200, ctx.RequestAborted);
         _workflowTasks = wf.Tasks;
         _openTasks = wf.Summary.OpenCount;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpStaffProfileDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Staff;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _staff.FirstOrDefault(s => s.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _staff = new[] { openedList }.Concat(_staff.Where(s => s.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 
     private int OpenTasksFor(string departmentCode)

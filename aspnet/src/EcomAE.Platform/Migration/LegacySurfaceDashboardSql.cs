@@ -7583,6 +7583,33 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened staff profile. email/phone omitted. Optional location/photo columns not selected.</summary>
+    public const string SelectErpStaffProfileDetail = """
+        SELECT p.`id`, IFNULL(p.`user_id`,0) AS user_id,
+               IFNULL(p.`department_code`,'') AS department_code,
+               IFNULL(p.`display_name`,'') AS display_name,
+               IFNULL(p.`job_title`,'') AS job_title,
+               IFNULL(p.`active`,1) AS active,
+               IFNULL(p.`time_created`,0) AS time_created
+        FROM `epc_erp_staff_profiles` p
+        WHERE p.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other staff in the same department. email/phone omitted.</summary>
+    public const string SelectErpStaffDepartmentSiblings = """
+        SELECT p.`id`, IFNULL(p.`user_id`,0) AS user_id,
+               IFNULL(p.`department_code`,'') AS department_code,
+               IFNULL(p.`display_name`,'') AS display_name,
+               IFNULL(p.`job_title`,'') AS job_title,
+               IFNULL(p.`active`,1) AS active,
+               IFNULL(p.`time_created`,0) AS time_created
+        FROM `epc_erp_staff_profiles` p
+        WHERE IFNULL(p.`department_code`,'') = @department AND p.`id` <> @id
+        ORDER BY p.`display_name`, p.`id`
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>epc_erp_hr_list</c> — notes omitted; bank account last-4 only.</summary>
     public const string SelectErpHrRecords = """
         SELECT h.`id`, IFNULL(h.`staff_profile_id`,0) AS staff_profile_id,

@@ -832,6 +832,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only staff profiles (PHP <c>epc_erp_staff_profiles</c>; writes remain PHP).</summary>
     Task<ErpStaffListResult> ListErpStaffAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened staff profile (Open key <c>staff_id</c>) plus same-department siblings. email/phone omitted.</summary>
+    Task<ErpStaffProfileDetailResult> BuildErpStaffProfileDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only HR salary/leave rows (PHP <c>epc_erp_hr_list</c>; notes omitted).</summary>
     Task<ErpHrListResult> ListErpHrRecordsAsync(int limit, CancellationToken cancellationToken = default);
 

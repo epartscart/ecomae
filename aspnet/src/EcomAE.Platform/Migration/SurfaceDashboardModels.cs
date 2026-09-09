@@ -7117,6 +7117,21 @@ public sealed record ErpStaffListResult(
     string Source,
     string Message);
 
+public sealed record ErpStaffProfileDetail(
+    long Id,
+    long UserId,
+    string DepartmentCode,
+    string DisplayName,
+    string JobTitle,
+    bool Active,
+    long TimeCreated);
+
+public sealed record ErpStaffProfileDetailResult(
+    ErpStaffProfileDetail? Staff,
+    IReadOnlyList<ErpStaffProfileDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_hr_list</c> (notes omitted; bank last-4).</summary>
 public sealed record ErpHrRecordDigest(
     long Id,
