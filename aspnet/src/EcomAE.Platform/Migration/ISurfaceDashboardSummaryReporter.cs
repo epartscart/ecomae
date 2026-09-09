@@ -730,6 +730,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpRfqDetailResult> BuildErpRfqDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpThreeWayMatchListResult> ListErpThreeWayMatchAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened contact (Open key <c>contact_id</c>) plus same-city siblings. notes is a short excerpt; email/phone omitted.</summary>
+    Task<ErpContactDetailResult> BuildErpContactDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpPaymentBatchListResult> ListErpPaymentBatchesAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened payment batch (Open key <c>batch_id</c>) plus same-status siblings. notes is a short excerpt.</summary>

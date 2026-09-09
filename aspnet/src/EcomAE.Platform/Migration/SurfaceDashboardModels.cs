@@ -6289,6 +6289,30 @@ public sealed record ErpContactListResult(
     string Source,
     string Message);
 
+public sealed record ErpContactDetail(
+    long Id,
+    string PartyType,
+    string Name,
+    string Company,
+    string Trn,
+    string Address,
+    string City,
+    string CountryCode,
+    string CurrencyCode,
+    long LinkedUserId,
+    long LinkedSupplierId,
+    bool Active,
+    long TimeCreated,
+    long TimeUpdated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpContactDetailResult(
+    ErpContactDetail? Contact,
+    IReadOnlyList<ErpContactDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpPaymentBatchDigest(
     long Id,
     string BatchNo,
