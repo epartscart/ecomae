@@ -947,6 +947,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(apDeleteDb.Succeeded);
         Assert.Equal("db", apDeleteDb.Code);
 
+        var apAddBad = await new CpAutoPriceWriteService(new ConfiguredNeverOpened())
+            .AddSourceAsync(new CpAutoPriceSourceAddRequest(0, "", "", "", null, null, ""));
+        Assert.False(apAddBad.Succeeded);
+        Assert.Equal("invalid", apAddBad.Code);
+
+        var apAddOwn = await new CpAutoPriceWriteService(new ConfiguredNeverOpened())
+            .AddSourceAsync(new CpAutoPriceSourceAddRequest(0, "https://www.epartscart.com/shop", "", "", null, null, ""));
+        Assert.False(apAddOwn.Succeeded);
+        Assert.Equal("forbidden", apAddOwn.Code);
+
+        var apAddDb = await new CpAutoPriceWriteService(new UnconfiguredConnections())
+            .AddSourceAsync(new CpAutoPriceSourceAddRequest(0, "parts.example.com", "Example", "", true, 100, "cp.local"));
+        Assert.False(apAddDb.Succeeded);
+        Assert.Equal("db", apAddDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

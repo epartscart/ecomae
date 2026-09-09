@@ -7064,7 +7064,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_auto_price_rules KPIs + rules. Open ?aprice_id= loads 280-char notes excerpt. config_json omitted. toggle_discovery_source / delete_discovery_source POST /cp/auto-price/write when confirmWrites=true. Add and compare-run stay Classic."
+                note = "Read-only epc_auto_price_rules KPIs + rules. Open ?aprice_id= loads 280-char notes excerpt. config_json omitted. add_discovery_source / toggle_discovery_source / delete_discovery_source POST /cp/auto-price/write when confirmWrites=true. Compare-run stays Classic."
             });
         });
         endpoints.MapPost(EcomAeRoutes.CpAutoPriceWrite, async (
@@ -7085,6 +7085,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             var id = body.Id;
             var siteKey = body.SiteKey;
             var enabled = body.Enabled;
+            var domain = body.Domain;
+            var label = body.Label;
+            var priority = body.Priority;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -7092,12 +7095,35 @@ public sealed class ControlPanelModule : ISurfaceModule
                 action = LiveWriteFormBinder.Text(form, "action");
                 id = LiveWriteFormBinder.Long(form, "id", "source_id", "sourceId");
                 siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                domain = LiveWriteFormBinder.Text(form, "domain");
+                label = LiveWriteFormBinder.Text(form, "label");
+                priority = LiveWriteFormBinder.IntOrNull(form, "priority");
                 var enabledRaw = LiveWriteFormBinder.Text(form, "enabled");
                 enabled = enabledRaw.Length == 0 ? null : LiveWriteFormBinder.Flag(form, "enabled");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
             var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "add_discovery_source" or "apai_add_discovery_source")
+            {
+                var written = await writes.AddSourceAsync(
+                    new CpAutoPriceSourceAddRequest(
+                        id,
+                        domain,
+                        label,
+                        siteKey,
+                        enabled,
+                        priority,
+                        context.Request.Host.Host),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/auto-price-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             if (confirm && key is "toggle_discovery_source" or "apai_toggle_discovery_source")
             {
                 var written = await writes.ToggleSourceAsync(
@@ -7126,16 +7152,19 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "toggle_discovery_source" or "apai_toggle_discovery_source"
+                wouldWrite = key is "add_discovery_source" or "apai_add_discovery_source"
+                    or "toggle_discovery_source" or "apai_toggle_discovery_source"
                     or "delete_discovery_source" or "apai_delete_discovery_source",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Add and compare-run stay Classic."
-                    : key is "delete_discovery_source" or "apai_delete_discovery_source"
-                        ? "Dry-run. Set confirmWrites=true to delete the custom source."
-                        : "Dry-run. Set confirmWrites=true to toggle the discovery source.",
+                    ? "Compare-run stays Classic."
+                    : key is "add_discovery_source" or "apai_add_discovery_source"
+                        ? "Dry-run. Set confirmWrites=true to save the custom source."
+                        : key is "delete_discovery_source" or "apai_delete_discovery_source"
+                            ? "Dry-run. Set confirmWrites=true to delete the custom source."
+                            : "Dry-run. Set confirmWrites=true to toggle the discovery source.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -12009,7 +12038,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false,
         long Id = 0,
         string? SiteKey = null,
-        bool? Enabled = null);
+        bool? Enabled = null,
+        string? Domain = null,
+        string? Label = null,
+        int? Priority = null);
     private sealed record CpModulesWriteBody(
         string? Action = null,
         long ModuleId = 0,
