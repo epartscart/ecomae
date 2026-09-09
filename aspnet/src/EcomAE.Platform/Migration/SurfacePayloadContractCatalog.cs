@@ -496,7 +496,7 @@ public static class SurfacePayloadContractCatalog
         Contract("cp", "/cp/design-tokens", "epc_settings (brand_*)", "admin-cp",
             ["ok", "surface", "summary", "tokens", "count", "source", "message", "session", "note"],
             ["tokenCount", "tenantCount", "whiteLabelCount", "updatedRecentCount", "source", "message"],
-            ["Design tokens KPIs + tokens", "setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs", "PHP Design tokens remains authoritative"],
+            ["Design tokens KPIs + tokens", "setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs", "save POST /cp/design-tokens/write when confirmWrites=true; CSS emit stay Classic"],
             "cp/templates/bootstrap_admin/desktop.php"),
         Contract("cp", "/cp/sitemap", "content + shop_catalogue_categories + shop_catalogue_products", "admin-cp",
             ["ok", "surface", "summary", "pages", "count", "source", "message", "session", "note"],
@@ -1168,7 +1168,8 @@ public static class SurfacePayloadContractCatalog
         new("cp", "plugins-manager activate write", "/cp/plugins-manager/activate", "write-live-gated", "POST PHP plugins_manager.php plugins_action_type=activated; confirmWrites=true writes ASP.NET; delete, filesystem remove, lock, and 2FA plugin 10 activate stay PHP."),
         new("cp", "templates-manager Blazor list", "/cp/templates-manager-app", "digest-wired-awaiting-dual-sample", "Open ?tpl_id= loads 280-char data_value excerpt; same-frontend siblings; set current POST /cp/templates-manager/set-current when confirmWrites=true; delete and generate_style stay Classic."),
         new("cp", "templates-manager set-current write", "/cp/templates-manager/set-current", "write-live-gated", "POST PHP templates_manager.php set_current; confirmWrites=true writes ASP.NET; delete and generate_style stay PHP."),
-        new("cp", "design-tokens Blazor list", "/cp/design-tokens-app", "presentation-shell-scaffolded", "Read UI over /cp/design-tokens digest; setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs; PHP Design tokens remains authoritative; tenant chrome stays PHP."),
+        new("cp", "design-tokens Blazor list", "/cp/design-tokens-app", "presentation-shell-scaffolded", "Read UI over /cp/design-tokens digest; setting_value omitted from the list; save POST /cp/design-tokens/write when confirmWrites=true; CSS emit stay Classic; tenant chrome stays PHP."),
+        new("cp", "design-tokens save write", "/cp/design-tokens/write", "write-live-gated", "POST PHP epc_design_tokens.php epc_design_tokens_save; confirmWrites=true UPSERT epc_settings for allowlisted brand_* / white_label_login. CSS emit and schema-ensure stay Classic."),
         new("cp", "sitemap Blazor list", "/cp/sitemap-app", "digest-wired-awaiting-dual-sample", "Open ?sm_id= loads 280-char content excerpt; same-published siblings; rebuild stays Classic; tenant chrome stays PHP."),
 
         new("cp", "failover-status Blazor list", "/cp/failover-status-app", "presentation-shell-scaffolded", "Read UI over /cp/failover-status digest; secrets inside failover config; PHP Failover status remains authoritative; tenant chrome stays PHP."),

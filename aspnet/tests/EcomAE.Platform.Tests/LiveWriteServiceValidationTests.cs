@@ -1237,6 +1237,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(mktUninstDb.Succeeded);
         Assert.Equal("db", mktUninstDb.Code);
 
+        var tokBad = await new CpDesignTokensWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpDesignTokenSaveRequest("", "brand_primary", "#111"));
+        Assert.False(tokBad.Succeeded);
+        Assert.Equal("invalid", tokBad.Code);
+
+        var tokKeyBad = await new CpDesignTokensWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpDesignTokenSaveRequest("epartscart", "smtp_password", "x"));
+        Assert.False(tokKeyBad.Succeeded);
+        Assert.Equal("invalid", tokKeyBad.Code);
+
+        var tokDb = await new CpDesignTokensWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpDesignTokenSaveRequest("epartscart", "brand_primary", "#111"));
+        Assert.False(tokDb.Succeeded);
+        Assert.Equal("db", tokDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
