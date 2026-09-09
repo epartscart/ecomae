@@ -6169,9 +6169,61 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only sms_api + epc_whatsapp_notify_log (parameters_values/tokens/raw phone omitted). Configure/send remains PHP."
+                note = "Read-only sms_api + epc_whatsapp_notify_log (parameters_values/tokens/raw phone omitted). Activate POST /cp/sms-whatsapp/activate when confirmWrites=true. Send-test stays on Communications."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.ControlPanelSmsWhatsappActivate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpSmsWhatsappWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/sms-whatsapp-app", "Admin CP capability required for SMS activate.");
+            }
+
+            long systemId = 0;
+            string? parametersValues = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                systemId = LiveWriteFormBinder.Long(form, "system_id", "systemId");
+                parametersValues = LiveWriteFormBinder.Text(form, "parameters_values", "parametersValues");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSmsActivateBody>(context, cancellationToken) ?? new();
+                systemId = body.SystemId;
+                parametersValues = body.ParametersValues;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to activate or deactivate the SMS operator.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ActivateAsync(new CpSmsActivateRequest(systemId, parametersValues), cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelSmsWhatsappApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelCrmBoard, async (
@@ -10372,5 +10424,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Ids = null,
         string? ModulesList = null,
         string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpSmsActivateBody(
+        long SystemId = 0,
+        string? ParametersValues = null,
         bool ConfirmWrites = false);
 }
