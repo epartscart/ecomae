@@ -330,7 +330,7 @@
         : _listHref;
 
     private string OpenedReturnHref => _openedId > 0
-        ? ErpRecordOpen.Href(_listHref, "warehouse_id", _openedId)
+        ? _listHref + "?warehouse_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
         : OpenedListHref;
 
     private string OpenedCaption => _opened is null
