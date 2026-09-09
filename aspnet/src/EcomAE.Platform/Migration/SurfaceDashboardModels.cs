@@ -7945,6 +7945,40 @@ public sealed record ErpInventoryReportDigestResult(
     IReadOnlyList<ErpInventoryReportSnapshotDigest> Snapshots,
     int Count, int SnapshotCount, decimal TotalValue, string Source, string Message);
 
+public sealed record ErpInventoryReportCategoryDetail(
+    long Id,
+    long ParentId,
+    string Code,
+    string Name,
+    int Level,
+    int SortOrder,
+    bool IsActive,
+    long CompanyId,
+    long TimeCreated);
+
+public sealed record ErpInventoryReportCategoryDetailResult(
+    ErpInventoryReportCategoryDetail? Category,
+    IReadOnlyList<ErpInventoryReportCategoryDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpInventoryReportSnapshotDetail(
+    long Id,
+    string SnapshotDate,
+    long CategoryId,
+    int TotalSkus,
+    decimal TotalQty,
+    decimal TotalValue,
+    decimal AvgAgeDays,
+    long CompanyId,
+    long TimeCreated);
+
+public sealed record ErpInventoryReportSnapshotDetailResult(
+    ErpInventoryReportSnapshotDetail? Snapshot,
+    IReadOnlyList<ErpInventoryReportSnapshotDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>erp_dashboard_netsuite.php</c> period pulse (current or prior equal-length window).</summary>
 public sealed record ErpWorkspacePeriodKpis(
     decimal CashPosition,

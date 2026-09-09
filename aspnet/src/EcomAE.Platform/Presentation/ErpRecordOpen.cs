@@ -27,6 +27,7 @@ public static class ErpRecordOpen
         "hrt_job_id", "applicant_id", "hrt_review_id", "rsched_id",
         "prja_budget_id", "prja_txn_id", "prja_rec_id",
         "pm_item_id", "pm_field_id", "pm_variant_id",
+        "invrep_cat_id", "invrep_snap_id",
         "order_id", "pf_case",
         "case_id", "campaign_id",
         "warehouse_id", "rfq_id",

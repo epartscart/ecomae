@@ -3275,6 +3275,47 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void InventoryReportApp_OpenLoadsCompanyIdAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryReportApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpInventoryReportCategoryDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpInventoryReportSnapshotDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"invrep_cat_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"invrep_snap_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("invrep_cat_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("invrep_snap_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"invrep_cat_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"invrep_snap_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("CompanyId", razor, StringComparison.Ordinal);
+        Assert.Contains("same-level siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("same-category siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Snapshot generate stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/inventory-report-app?invrep_cat_id=8#erp-row-8",
+            ErpRecordOpen.Href("/erp/inventory-report-app", "invrep_cat_id", 8));
+        Assert.Equal(
+            "/erp/inventory-report-app?invrep_cat_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/inventory-report-app",
+                "/ERP/?epc_erp_shell=1&area=inventory&tab=inventory_report&invrep_cat_id=8"));
+        Assert.Equal("/erp/inventory-report-app?invrep_snap_id=5#erp-row-5",
+            ErpRecordOpen.Href("/erp/inventory-report-app", "invrep_snap_id", 5));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();
