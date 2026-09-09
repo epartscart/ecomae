@@ -6198,9 +6198,66 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_* KPIs + leads (email/phone/notes omitted on the list). Open ?lead_id= loads a 280-char notes excerpt. CRM UX remains PHP crm_main."
+                note = "Read-only epc_crm_* KPIs + leads (email/phone omitted on the list). Open ?lead_id= loads a 280-char notes excerpt. convert_lead POST /cp/crm/leads/convert when confirmWrites=true. Quote email stays Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpCrmLeadConvert, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmConvertWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-board-app", "Admin CP or ERP capability required for CRM convert.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmLeadConvertBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var leadId = body.LeadId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                leadId = LiveWriteFormBinder.Long(form, "lead_id", "id", "leadId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "convert_lead" or "crm_convert_lead")
+            {
+                var written = await writes.ConvertLeadAsync(leadId, session.UserId, cancellationToken);
+                var dest = leadId > 0
+                    ? "/cp/crm-board-app?lead_id=" + leadId.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/crm-board-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, lead_id = leadId, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "convert_lead" or "crm_convert_lead",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Quote email stays Classic."
+                    : "Dry-run. Set confirmWrites=true to convert the lead.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelDocumentControl, async (
             HttpContext context,
@@ -10348,6 +10405,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? MenuList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
+    private sealed record CpCrmLeadConvertBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long LeadId = 0);
     private sealed record CpModulesWriteBody(
         string? Action = null,
         long ModuleId = 0,
