@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
 
@@ -15,6 +16,12 @@ public interface ICpSmsWhatsappWriteService
 public sealed class CpSmsWhatsappWriteService : ICpSmsWhatsappWriteService
 {
     public const int ParametersValuesMaxLength = 32_768;
+
+    private static readonly JsonSerializerOptions CompactJson = new()
+    {
+        Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
+        WriteIndented = false,
+    };
 
     private readonly IErpWriteConnectionFactory _connections;
 
@@ -57,7 +64,7 @@ public sealed class CpSmsWhatsappWriteService : ICpSmsWhatsappWriteService
                 return true;
             }
 
-            json = JsonSerializer.Serialize(doc.RootElement);
+            json = JsonSerializer.Serialize(doc.RootElement, CompactJson);
             return true;
         }
         catch (JsonException)

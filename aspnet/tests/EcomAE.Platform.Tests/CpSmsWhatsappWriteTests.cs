@@ -1,4 +1,5 @@
 using EcomAE.Platform.Cp;
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Routing;
 using Xunit;
 
@@ -89,6 +90,15 @@ public class CpSmsWhatsappWriteTests
         Assert.False(CpSmsWhatsappWriteService.TryNormalizeParametersValues("[1]", out json, out error));
         Assert.Null(json);
         Assert.Contains("object", error, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Catalog_marks_activate_write_live_gated()
+    {
+        var row = SurfacePayloadContractCatalog.Functions.First(item =>
+            item.AspNetRouteOrCapability == "/cp/sms-whatsapp/activate");
+        Assert.Equal("write-live-gated", row.Status);
+        Assert.Contains("parameters_values", row.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
