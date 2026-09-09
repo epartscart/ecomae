@@ -919,4 +919,61 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platfo
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpChannelWriteService, EcomAE.Platform.Cp.CpChannelWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLogisticsWriteService, EcomAE.Platform.Cp.CpLogisticsWriteService>();
 
-builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmOpportunityWriteService, EcomAE.Platform.Cp.CpCrmOpportunityWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmActivityWriteService, EcomAE.Platform.Cp.CpCrmActivityWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Platform.Cp.CpWorkshopWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCollectionsDunningWriteService, EcomAE.Platform.Cp.CpCollectionsDunningWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueWriteService, EcomAE.Platform.Cp.CpCatalogueWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLineListWriteService, EcomAE.Platform.Cp.CpLineListWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTreeListWriteService, EcomAE.Platform.Cp.CpTreeListWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSkuMediaWriteService, EcomAE.Platform.Cp.CpSkuMediaWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMainPageProductsWriteService, EcomAE.Platform.Cp.CpMainPageProductsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSpecialSearchWriteService, EcomAE.Platform.Cp.CpSpecialSearchWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueEditorWriteService, EcomAE.Platform.Cp.CpCatalogueEditorWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueProductWriteService, EcomAE.Platform.Cp.CpCatalogueProductWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueReviewWriteService, EcomAE.Platform.Cp.CpCatalogueReviewWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueProductsDeleteService, EcomAE.Platform.Cp.CpCatalogueProductsDeleteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAccessoriesPhotoWriteService, EcomAE.Platform.Cp.CpAccessoriesPhotoWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAccessoriesListingWriteService, EcomAE.Platform.Cp.CpAccessoriesListingWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAccessoriesTaxonomyWriteService, EcomAE.Platform.Cp.CpAccessoriesTaxonomyWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpManufacturerSynonymWriteService, EcomAE.Platform.Cp.CpManufacturerSynonymWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrossWriteService, EcomAE.Platform.Cp.CpCrossWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditWriteService, EcomAE.Platform.Cp.CpPricesEditWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyWriteService, EcomAE.Platform.Cp.CpCurrencyWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnWriteService, EcomAE.Platform.Cp.CpReturnWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTaxToolkitWriteService, EcomAE.Platform.Cp.CpTaxToolkitWriteService>();
+builder.Services.AddSingleton<ICpTaxToolkitInstallDryRun, CpTaxToolkitInstallDryRun>();
+builder.Services.AddSingleton<ICpTaxToolkitAssignDryRun, CpTaxToolkitAssignDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPoApprovalWriteService, EcomAE.Platform.Cp.CpPoApprovalWriteService>();
+builder.Services.AddSingleton<IStorefrontGarageNotepadAddDryRun, StorefrontGarageNotepadAddDryRun>();
+builder.Services.AddSingleton<IStorefrontQuoteSubmitDryRun, StorefrontQuoteSubmitDryRun>();
+builder.Services.AddSingleton<IStorefrontQuoteAcceptDryRun, StorefrontQuoteAcceptDryRun>();
+builder.Services.AddSingleton<IStorefrontQuoteAddItemDryRun, StorefrontQuoteAddItemDryRun>();
+builder.Services.AddSingleton<IStorefrontQuoteAddManualDryRun, StorefrontQuoteAddManualDryRun>();
+builder.Services.AddSingleton<IStorefrontGarageSetActiveDryRun, StorefrontGarageSetActiveDryRun>();
+builder.Services.AddSingleton<IStorefrontGarageDeleteDryRun, StorefrontGarageDeleteDryRun>();
+builder.Services.AddSingleton<IStorefrontGarageCheckCarDryRun, StorefrontGarageCheckCarDryRun>();
+builder.Services.AddSingleton<IStorefrontCheckoutCreateDryRun, StorefrontCheckoutCreateDryRun>();
+builder.Services.AddSingleton<IStorefrontOrderSendMessageDryRun, StorefrontOrderSendMessageDryRun>();
+builder.Services.AddSingleton<IPythonSidecarCatalogReporter, PythonSidecarCatalogReporter>();
+builder.Services.AddRouting(options => options.LowercaseUrls = true);
+builder.Services.AddResponseCompression(options =>
+{
+    options.EnableForHttps = true;
+    options.Providers.Add<BrotliCompressionProvider>();
+    options.Providers.Add<GzipCompressionProvider>();
+    options.MimeTypes = ResponseCompressionDefaults.MimeTypes.Concat(
+    [
+        "application/json",
+        "application/javascript",
+        "text/css",
+        "text/html",
+        "text/plain",
+        "text/json",
+        "image/svg+xml"
+    ]);
+});
+builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
+builder.Services.AddHealthChecks();

@@ -694,17 +694,17 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("db", carrierDb.Code);
 
 
-        var oppInvalid = await new CpCrmOpportunityWriteService(new ConfiguredNeverOpened())
-            .UpdateStageAsync(0, "won");
-        Assert.False(oppInvalid.Succeeded);
-        Assert.Equal("invalid", oppInvalid.Code);
+        var actInvalid = await new CpCrmActivityWriteService(new ConfiguredNeverOpened())
+            .ToggleDoneAsync(0, true);
+        Assert.False(actInvalid.Succeeded);
+        Assert.Equal("invalid", actInvalid.Code);
 
-        var oppStage = await new CpCrmOpportunityWriteService(new ConfiguredNeverOpened())
-            .UpdateStageAsync(3, "nope");
-        Assert.False(oppStage.Succeeded);
-        Assert.Equal("invalid", oppStage.Code);
+        var actDb = await new CpCrmActivityWriteService(new UnconfiguredConnections())
+            .ToggleDoneAsync(3, true);
+        Assert.False(actDb.Succeeded);
+        Assert.Equal("db", actDb.Code);
 
-        var oppDb = await new CpCrmOpportunityWriteService(new UnconfiguredConnections())
-            .UpdateStageAsync(3, "won");
-        Assert.False(oppDb.Succeeded);
-        Assert.Equal("db", oppDb.Code);
+        var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
+            .AssignAsync(0, 1, 1);
+        Assert.False(wsAssign.Succeeded);
+        Assert.Equal("invalid", wsAssign.Code);

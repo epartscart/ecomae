@@ -310,6 +310,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrmActivities = "/cp/crm-activities";
     /// <summary>CP CRM activities Blazor list (JSON digest remains <see cref="ControlPanelCrmActivities"/>).</summary>
     public const string ControlPanelCrmActivitiesApp = "/cp/crm-activities-app";
+    /// <summary>CRM toggle_activity. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Create stays Classic.</summary>
+    public const string CpCrmActivitiesWrite = "/cp/crm/activities/write";
     /// <summary>CP auth MFA enrollment/policy (secrets/hashes omitted).</summary>
     public const string ControlPanelAuthMfa = "/cp/auth-mfa";
     /// <summary>CP auth MFA Blazor list (JSON digest remains <see cref="ControlPanelAuthMfa"/>).</summary>
