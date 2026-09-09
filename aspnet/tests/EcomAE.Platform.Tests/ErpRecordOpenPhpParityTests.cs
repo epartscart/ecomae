@@ -1672,7 +1672,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("value=\"add_line\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"create_appointment\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"convert_appointment\"", razor, StringComparison.Ordinal);
-        Assert.Contains("confirmWrites=true", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-scp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("epc-scp-table-card", razor, StringComparison.Ordinal);
