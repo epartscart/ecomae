@@ -48,7 +48,7 @@ public sealed class StorefrontHowGetCookieTests
     {
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/StorefrontModule.cs"));
         Assert.Contains("StorefrontHowGetCookie.ReadRaw", module, StringComparison.Ordinal);
-        Assert.Contains("HowGetCookieJson", module, StringComparison.Ordinal);
+        Assert.Contains("howGetJson", module, StringComparison.Ordinal);
         Assert.Contains("how_get_json", module, StringComparison.Ordinal);
         Assert.Contains("ready-for-confirm", module, StringComparison.Ordinal);
         Assert.DoesNotContain("Obtain/confirm/payment writes remain PHP", module, StringComparison.Ordinal);
