@@ -121,6 +121,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=people&tab=expense_reports&epc_erp_shell=1&expense_id=11", "/erp/expense-reports-app?expense_id=11")]
     [InlineData("/ERP/?epc_erp_shell=1&area=common&tab=agenda&event_id=12", "/erp/agenda-app?event_id=12")]
     [InlineData("/CP/shop/finance/erp?area=common&tab=agenda&epc_erp_shell=1&event_id=12", "/erp/agenda-app?event_id=12")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=common&tab=documents&document_id=13", "/erp/documents-app?document_id=13")]
+    [InlineData("/CP/shop/finance/erp?area=common&tab=documents&epc_erp_shell=1&document_id=13", "/erp/documents-app?document_id=13")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2394,6 +2396,43 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/agenda-app",
                 "/ERP/?epc_erp_shell=1&area=common&tab=agenda&event_id=12"));
+    }
+
+    [Fact]
+    public void DocumentsApp_OpenLoadsNotesExcerptAndOmitsFilePath()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpDocumentsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpDocumentDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"document_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("document_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"document_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-category siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("File path omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("Upload stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("file_path", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("FilePath", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/documents-app?document_id=13#erp-row-13",
+            ErpRecordOpen.Href("/erp/documents-app", "document_id", 13));
+        Assert.Equal(
+            "/erp/documents-app?document_id=13",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/documents-app",
+                "/ERP/?epc_erp_shell=1&area=common&tab=documents&document_id=13"));
     }
 
     [Fact]

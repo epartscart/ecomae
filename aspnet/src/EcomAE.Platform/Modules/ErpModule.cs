@@ -11600,7 +11600,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP documents digest. PHP epc_erp_documents remains authoritative."
+                note = "Read-only ERP documents digest. Open ?document_id= loads a 280-char notes excerpt. file_path omitted. PHP epc_erp_documents remains authoritative."
             });
         });
 

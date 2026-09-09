@@ -6396,6 +6396,25 @@ public sealed record ErpDocumentListResult(
     string Source,
     string Message);
 
+public sealed record ErpDocumentDetail(
+    long Id,
+    string EntityType,
+    long EntityId,
+    string DocCategory,
+    string FileName,
+    long FileSize,
+    string MimeType,
+    string VersionNote,
+    long TimeCreated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpDocumentDetailResult(
+    ErpDocumentDetail? Document,
+    IReadOnlyList<ErpDocumentDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpExpenseReportDigest(
     long Id,
     string ReportNo,

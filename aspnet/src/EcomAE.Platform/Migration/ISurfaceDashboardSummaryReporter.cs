@@ -740,6 +740,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened agenda event (Open key <c>event_id</c>, remapped by <c>tab=agenda</c>) plus same-type siblings. notes is a short excerpt.</summary>
     Task<ErpAgendaEventDetailResult> BuildErpAgendaEventDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened document (Open key <c>document_id</c>, remapped by <c>tab=documents</c>) plus same-category siblings. notes is a short excerpt; file_path omitted.</summary>
+    Task<ErpDocumentDetailResult> BuildErpDocumentDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpExpenseReportListResult> ListErpExpenseReportsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened expense report (Open key <c>expense_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
