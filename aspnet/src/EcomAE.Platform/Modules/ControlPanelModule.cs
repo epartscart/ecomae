@@ -6984,7 +6984,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_jewel_repair KPIs + repairs (mobile/email/tel/remarks/narration omitted). PHP service_mgmt jw_repairs remains authoritative."
+                note = "Read-only epc_jewel_repair KPIs + repairs (mobile/email/tel/remarks/narration omitted). Open ?repair_id= loads a 280-char narration excerpt. PHP service_mgmt jw_repairs remains authoritative."
             });
         });
 

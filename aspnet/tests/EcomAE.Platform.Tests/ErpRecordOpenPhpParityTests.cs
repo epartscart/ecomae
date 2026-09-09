@@ -90,6 +90,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=jewellery&tab=jw_karat&karat_id=3", "/erp/jewellery-masters-app?tab=jw_karat&karat_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification&verify_id=4", "/erp/jewellery-stock-verification-app?tab=jw_stock_verification&verify_id=4")]
     [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_verification&epc_erp_shell=1&verify_id=4", "/erp/jewellery-stock-verification-app?tab=jw_stock_verification&verify_id=4")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs&repair_id=5", "/erp/jewellery-repairs-app?tab=jw_repairs&repair_id=5")]
+    [InlineData("/CP/shop/finance/erp?area=service_mgmt&tab=jw_repairs&epc_erp_shell=1&repair_id=5", "/erp/jewellery-repairs-app?tab=jw_repairs&repair_id=5")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -1724,6 +1726,53 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/jewellery-stock-verification-app",
                 "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_verification&epc_erp_shell=1&verify_id=4"));
+    }
+
+    [Fact]
+    public void JewelleryRepairsApp_OpenLoadsNarrationExcerptAndOmitsPhone()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryRepairsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpJewelleryRepairDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"repair_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("repair_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"repair_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NarrationExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("StoneDetailsExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("Phone omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ErpJewelleryRepairCreateForm", razor, StringComparison.Ordinal);
+        Assert.Contains("Create repair", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryRepairReceiptSaveForm", razor, StringComparison.Ordinal);
+        Assert.Contains("Save repair receipt", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("jw-status-row", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("Sample seed stays Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Phone", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.CustomerPhone", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Mobile", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/jewellery-repairs-app?repair_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/jewellery-repairs-app", "repair_id", 5));
+        Assert.Equal(
+            "/erp/jewellery-repairs-app?repair_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/jewellery-repairs-app",
+                "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs&repair_id=5"));
+        Assert.Equal(
+            "/cp/jewellery-repairs-app?repair_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/jewellery-repairs-app",
+                "/CP/shop/finance/erp?area=service_mgmt&tab=jw_repairs&epc_erp_shell=1&repair_id=5"));
     }
 
     [Fact]
