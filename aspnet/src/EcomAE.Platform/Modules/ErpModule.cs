@@ -10795,7 +10795,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_erp_contracts (body/OCR omitted). Save on POST /erp/contracts/save when confirmWrites=true. Sign and OCR stay PHP."
+                note = "epc_erp_contracts (body/OCR omitted from the list). Open ?contract_id= loads 280-char body and OCR excerpts plus same-status siblings. Save / sign / OCR write here when confirmWrites=true. Schema-ensure stays Classic."
             });
         });
 

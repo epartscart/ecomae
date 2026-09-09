@@ -7160,6 +7160,30 @@ public sealed record ErpContractsListResult(
     string Source,
     string Message);
 
+public sealed record ErpContractDetail(
+    long Id,
+    string Code,
+    string Title,
+    string Counterparty,
+    decimal ContractValue,
+    string Currency,
+    long StartDate,
+    long EndDate,
+    string Status,
+    int Version,
+    long TimeCreated,
+    long TimeUpdated,
+    int BodyLen,
+    string BodyExcerpt,
+    int OcrLen,
+    string OcrExcerpt);
+
+public sealed record ErpContractDetailResult(
+    ErpContractDetail? Contract,
+    IReadOnlyList<ErpContractDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_opening_batches</c> (line meta omitted).</summary>
 public sealed record ErpOpeningBatchDigest(
     long Id,

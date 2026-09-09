@@ -7619,6 +7619,46 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened contract. body_text and ocr_text are short excerpts. Signature hashes omitted.</summary>
+    public const string SelectErpContractDetail = """
+        SELECT `id`, IFNULL(`code`,'') AS code,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`counterparty`,'') AS counterparty,
+               IFNULL(`contract_value`,0) AS contract_value,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`end_date`,0) AS end_date,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`version`,1) AS version,
+               IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`body_text`,'')) AS body_len,
+               LEFT(IFNULL(`body_text`,''), 280) AS body_excerpt,
+               CHAR_LENGTH(IFNULL(`ocr_text`,'')) AS ocr_len,
+               LEFT(IFNULL(`ocr_text`,''), 280) AS ocr_excerpt
+        FROM `epc_erp_contracts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other contracts with the same status. body/OCR omitted.</summary>
+    public const string SelectErpContractStatusSiblings = """
+        SELECT `id`, IFNULL(`code`,'') AS code,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`counterparty`,'') AS counterparty,
+               IFNULL(`contract_value`,0) AS contract_value,
+               IFNULL(`currency`,'AED') AS currency,
+               IFNULL(`start_date`,0) AS start_date,
+               IFNULL(`end_date`,0) AS end_date,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`version`,1) AS version,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_contracts`
+        WHERE IFNULL(`status`,'draft') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP opening-balance batches + line totals (note/meta_json omitted).</summary>
     public const string SelectErpOpeningBatches = """
         SELECT b.`id`, IFNULL(b.`module`,'combined') AS module,
