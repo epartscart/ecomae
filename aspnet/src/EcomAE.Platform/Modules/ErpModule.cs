@@ -11573,7 +11573,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP agenda digest. PHP epc_erp_agenda_events remains authoritative."
+                note = "Read-only ERP agenda digest. Open ?event_id= loads a 280-char notes excerpt. PHP epc_erp_agenda_events remains authoritative."
             });
         });
 

@@ -20416,6 +20416,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpAgendaEventDetailResult> BuildErpAgendaEventDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpAgendaEventDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpAgendaEventDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpAgendaEventDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["event_type"] is DBNull ? string.Empty : reader["event_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["start_at"] is DBNull ? 0 : reader["start_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["end_at"] is DBNull ? 0 : reader["end_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["all_day"] is DBNull ? 0 : reader["all_day"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToString(reader["entity_type"] is DBNull ? string.Empty : reader["entity_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["entity_id"] is DBNull ? 0 : reader["entity_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["assigned_user_id"] is DBNull ? 0 : reader["assigned_user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["location"] is DBNull ? string.Empty : reader["location"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Agenda event not found.");
+            }
+
+            var siblings = new List<ErpAgendaEventDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpAgendaEventTypeSiblings;
+                AddParameter(cmd, "@event_type", header.EventType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpAgendaEventDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["title"] is DBNull ? string.Empty : reader["title"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["event_type"] is DBNull ? string.Empty : reader["event_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["start_at"] is DBNull ? 0 : reader["start_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["end_at"] is DBNull ? 0 : reader["end_at"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["entity_type"] is DBNull ? string.Empty : reader["entity_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["entity_id"] is DBNull ? 0 : reader["entity_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["location"] is DBNull ? string.Empty : reader["location"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
