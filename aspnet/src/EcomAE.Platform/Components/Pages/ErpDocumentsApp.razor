@@ -14,16 +14,80 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Documents" BreadcrumbArea="Document Control" BreadcrumbTab="Documents">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/documents-app" IsAdmin="_isAdmin" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    
-    <PhpErpModulePageHeader Title="Documents" Subtitle="Document register and attachments." PhpTabHref="@_phpTab" />
-
+    <PhpErpModulePageHeader Title="Documents" Subtitle="Open a row for the 280-character notes excerpt. File path omitted. Upload stays on the Classic twin." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Documents KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_docs.Count</div></div>
         <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
         <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
+
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>File</dt><dd>@(string.IsNullOrWhiteSpace(_opened.FileName) ? "—" : _opened.FileName)</dd>
+                <dt>Category</dt><dd>@(string.IsNullOrWhiteSpace(_opened.DocCategory) ? "—" : _opened.DocCategory)</dd>
+                <dt>Entity</dt><dd>@(string.IsNullOrWhiteSpace(_opened.EntityType) ? "—" : _opened.EntityType)</dd>
+                <dt>Entity id</dt><dd>@(_opened.EntityId > 0 ? _opened.EntityId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Size</dt><dd>@(_opened.FileSize > 0 ? _opened.FileSize.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>MIME</dt><dd>@(string.IsNullOrWhiteSpace(_opened.MimeType) ? "—" : _opened.MimeType)</dd>
+                <dt>Version</dt><dd>@(string.IsNullOrWhiteSpace(_opened.VersionNote) ? "—" : _opened.VersionNote)</dd>
+                <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">File path omitted. Upload stays on the Classic twin.</p>
+            @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.NotesExcerpt</pre>
+                @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-category siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>File</th>
+                            <th>Category</th>
+                            <th>Entity</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.FileName) ? "—" : sib.FileName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.DocCategory) ? "—" : sib.DocCategory)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.EntityType) ? "—" : sib.EntityType)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "document_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-category siblings yet.</p>
+            }
+        </div>
+    }
 
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -47,14 +111,14 @@
                 {
                     @foreach (var row in _docs)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.FileName) ? $"#{row.Id}" : row.FileName)</strong></td>
                             <td><span class="label label-default">@row.DocCategory</span></td>
                             <td><span class="label label-default">@row.EntityType</span></td>
                             <td>@(row.EntityId > 0 ? row.EntityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@(row.FileSize > 0 ? row.FileSize.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@FormatTime(row.TimeCreated)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/documents-app", "document_id", row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "document_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -71,17 +135,32 @@
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=documents";
+    private const string _listHref = "/erp/documents-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpDocumentDigest> _docs = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private ErpDocumentDetail? _opened;
+    private IReadOnlyList<ErpDocumentDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.FileName)
+            ? _opened.FileName
+            : ("Document #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?document_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "document_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -94,6 +173,21 @@
         _docs = result.Documents;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpDocumentDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Document;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _docs.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _docs = new[] { openedList }.Concat(_docs.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
     }
 
     private static string FormatTime(long unix)

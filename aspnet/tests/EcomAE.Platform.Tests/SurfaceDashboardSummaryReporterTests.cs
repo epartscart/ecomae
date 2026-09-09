@@ -776,6 +776,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpAgendaEventTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("@event_type", LegacySurfaceDashboardSql.SelectErpAgendaEventTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpAgendaEventTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_documents", LegacySurfaceDashboardSql.SelectErpDocuments, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpDocuments, StringComparison.Ordinal);
+        Assert.DoesNotContain("file_path", LegacySurfaceDashboardSql.SelectErpDocuments, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpDocumentDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpDocumentDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("file_path", LegacySurfaceDashboardSql.SelectErpDocumentDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpDocumentCategorySiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("file_path", LegacySurfaceDashboardSql.SelectErpDocumentCategorySiblings, StringComparison.Ordinal);
+        Assert.Contains("@doc_category", LegacySurfaceDashboardSql.SelectErpDocumentCategorySiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpDocumentCategorySiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_payroll_runs", LegacySurfaceDashboardSql.SelectErpPayrollRuns, StringComparison.Ordinal);
         Assert.Contains("epc_erp_print_templates", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
         Assert.Contains("epc_erp_order_recommendations", LegacySurfaceDashboardSql.SelectErpOrderRecommendations, StringComparison.Ordinal);

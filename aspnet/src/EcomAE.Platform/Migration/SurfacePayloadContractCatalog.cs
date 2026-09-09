@@ -1329,6 +1329,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "payment_batches Blazor list", "/erp/payment-batches-app", "digest-wired-awaiting-dual-sample", "Open ?batch_id= loads 280-char notes excerpt; same-status siblings; payment_batch_save stays Classic; tenant chrome stays PHP."),
         new("erp", "expense_reports Blazor list", "/erp/expense-reports-app", "digest-wired-awaiting-dual-sample", "Open ?expense_id= loads 280-char notes excerpt; same-status siblings; save stays Classic; tenant chrome stays PHP."),
         new("erp", "agenda Blazor list", "/erp/agenda-app", "digest-wired-awaiting-dual-sample", "Open ?event_id= loads 280-char notes excerpt; same-type siblings; add event writes here; schema ensure stays PHP; tenant chrome stays PHP."),
+        new("erp", "documents Blazor list", "/erp/documents-app", "digest-wired-awaiting-dual-sample", "Open ?document_id= loads 280-char notes excerpt; file_path omitted; same-category siblings; upload stays Classic; tenant chrome stays PHP."),
         new("erp", "period_close Blazor list", "/erp/period-close-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/fiscal-periods digest; PHP period_list / year_end remain authoritative."),
         new("erp", "module shell", "/erp/module-app", "presentation-shell-scaffolded", "Generic ASP.NET shell for residual PHP erp_tabs_* without dedicated list UI; writes remain PHP."),
         new("erp", "tab coverage board", "/erp/tab-coverage", "parity-board", "Full PHP erp_tabs_* → ASP.NET app map; cutoverAllowed=false; PHP authoritative."),

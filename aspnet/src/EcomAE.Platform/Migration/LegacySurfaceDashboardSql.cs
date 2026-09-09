@@ -6803,6 +6803,33 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened document. notes is a short excerpt. file_path never selected. Upload stays Classic.</summary>
+    public const string SelectErpDocumentDetail = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`doc_category`,'') AS doc_category, IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size, IFNULL(`mime_type`,'') AS mime_type,
+               IFNULL(`version_note`,'') AS version_note, IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_documents`
+        WHERE `id` = @id AND IFNULL(`active`,1) = 1
+        LIMIT 1
+        """;
+
+    /// <summary>Other documents in the same category. notes and file_path omitted.</summary>
+    public const string SelectErpDocumentCategorySiblings = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type, IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`doc_category`,'') AS doc_category, IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size, IFNULL(`mime_type`,'') AS mime_type,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_documents`
+        WHERE IFNULL(`active`,1) = 1
+          AND IFNULL(`doc_category`,'') = @doc_category
+          AND `id` <> @id
+        ORDER BY `time_created` DESC
+        LIMIT 50
+        """;
+
     /// <summary>ERP expense reports (notes omitted) — PHP epc_erp_expense_reports.</summary>
     public const string SelectErpExpenseReports = """
         SELECT `id`, IFNULL(`report_no`,'') AS report_no, IFNULL(`staff_user_id`,0) AS staff_user_id,
