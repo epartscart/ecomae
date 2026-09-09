@@ -7429,6 +7429,16 @@ public sealed record ErpOrderPlanningDigestResult(
     IReadOnlyList<ErpPlanningParamDigest> Params,
     int Count, int PendingCount, decimal PendingValue, string Source, string Message);
 
+public sealed record ErpOrderRecommendationDetail(
+    long Id, long ItemId, string Sku, string ItemName, long WarehouseId,
+    decimal Roq, decimal OrderValue, string Status, string Supplier, long OrderedPoId, long TimeUpdated);
+
+public sealed record ErpOrderRecommendationDetailResult(
+    ErpOrderRecommendationDetail? Recommendation,
+    IReadOnlyList<ErpOrderRecommendationDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpProcCategoryDigest(
     long Id, string Code, string Name, long ParentId, string DefaultAccount, bool Active, long TimeCreated);
 

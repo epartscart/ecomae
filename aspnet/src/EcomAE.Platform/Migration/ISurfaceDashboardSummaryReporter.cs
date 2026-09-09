@@ -851,6 +851,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpPrintTemplateDetailResult> BuildErpPrintTemplateDetailAsync(long id, CancellationToken cancellationToken = default);
 
     Task<ErpOrderPlanningDigestResult> BuildErpOrderPlanningDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened recommendation (Open key <c>opl_rec_id</c>, remapped by <c>tab=order_planning</c> / <c>master_planning</c>) plus same-status siblings. Surfaces item id and time_updated hidden from the list table.</summary>
+    Task<ErpOrderRecommendationDetailResult> BuildErpOrderPlanningRecommendationDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpProcurementCategoriesDigestResult> BuildErpProcurementCategoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default);
 

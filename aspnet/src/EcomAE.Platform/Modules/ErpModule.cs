@@ -10924,7 +10924,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for order-planning digest.");
             var result = await dashboards.BuildErpOrderPlanningDigestAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", recommendations = result.Recommendations, @params = result.Params, count = result.Count, pendingCount = result.PendingCount, pendingValue = result.PendingValue, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_erp_order_recommendations + planning params. PHP order_planning remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", recommendations = result.Recommendations, @params = result.Params, count = result.Count, pendingCount = result.PendingCount, pendingValue = result.PendingValue, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Open ?opl_rec_id= for item id and time_updated. PHP order_planning confirm/draft-PO/autoplan remain authoritative." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpProcurementCategories, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>

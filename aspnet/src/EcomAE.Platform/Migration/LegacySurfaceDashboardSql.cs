@@ -7707,6 +7707,40 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    public const string SelectErpOrderRecommendationDetail = """
+        SELECT r.`id`, IFNULL(r.`item_id`,0) AS item_id,
+               IFNULL(i.`sku`,'') AS sku,
+               IFNULL(i.`name`,'') AS item_name,
+               IFNULL(r.`warehouse_id`,0) AS warehouse_id,
+               IFNULL(r.`roq`,0) AS roq,
+               IFNULL(r.`order_value`,0) AS order_value,
+               IFNULL(r.`status`,'pending') AS status,
+               IFNULL(r.`supplier`,'') AS supplier,
+               IFNULL(r.`ordered_po_id`,0) AS ordered_po_id,
+               IFNULL(r.`time_updated`,0) AS time_updated
+        FROM `epc_erp_order_recommendations` r
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = r.`item_id`
+        WHERE r.`id` = @id
+        LIMIT 1
+        """;
+
+    public const string SelectErpOrderRecommendationStatusSiblings = """
+        SELECT r.`id`, IFNULL(r.`item_id`,0) AS item_id,
+               IFNULL(i.`sku`,'') AS sku,
+               IFNULL(i.`name`,'') AS item_name,
+               IFNULL(r.`warehouse_id`,0) AS warehouse_id,
+               IFNULL(r.`roq`,0) AS roq,
+               IFNULL(r.`order_value`,0) AS order_value,
+               IFNULL(r.`status`,'pending') AS status,
+               IFNULL(r.`supplier`,'') AS supplier,
+               IFNULL(r.`ordered_po_id`,0) AS ordered_po_id
+        FROM `epc_erp_order_recommendations` r
+        LEFT JOIN `epc_erp_inv_items` i ON i.`id` = r.`item_id`
+        WHERE IFNULL(r.`status`,'pending') = @status AND r.`id` <> @id
+        ORDER BY r.`id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpPlanningParams = """
         SELECT `item_id`, `warehouse_id`,
                IFNULL(`lead_time_days`,30) AS lead_time_days,
