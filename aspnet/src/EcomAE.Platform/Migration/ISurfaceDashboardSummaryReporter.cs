@@ -476,6 +476,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only fixed assets register (note omitted).</summary>
     Task<ErpFixedAssetsDigestResult> BuildErpFixedAssetsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened fixed asset (Open key <c>asset_id</c>) plus same-status siblings. note is a short excerpt.</summary>
+    Task<ErpFixedAssetDetailResult> BuildErpFixedAssetDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only process-flow cases from PHP <c>epc_pf_cases</c> (writes remain PHP).</summary>
     Task<ErpProcessFlowTasksDigestResult> BuildErpProcessFlowTasksDigestAsync(int limit, CancellationToken cancellationToken = default);
 

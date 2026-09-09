@@ -10455,7 +10455,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_fa_assets KPIs + assets (note omitted). PHP fixed_assets tab remains authoritative."
+                note = "Open ?asset_id= loads 280-char note excerpt; same-status siblings. PHP fixed_assets tab remains authoritative."
             });
         });
 

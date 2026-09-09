@@ -2763,6 +2763,32 @@ public sealed record ErpFixedAssetsDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpFixedAssetDetail(
+    long Id,
+    string AssetCode,
+    string Name,
+    long CategoryId,
+    string AcquisitionDate,
+    decimal Cost,
+    decimal SalvageValue,
+    int UsefulLifeMonths,
+    string DepreciationMethod,
+    decimal AccumulatedDepreciation,
+    decimal BookValue,
+    string Location,
+    string TrackingId,
+    string SerialNo,
+    string Status,
+    long TimeCreated,
+    int NoteLen,
+    string NoteExcerpt);
+
+public sealed record ErpFixedAssetDetailResult(
+    ErpFixedAssetDetail? Asset,
+    IReadOnlyList<ErpFixedAssetDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>Process-flow case KPIs from PHP <c>epc_pf_cases</c> (digest route keeps -tasks stem).</summary>
 public sealed record ErpProcessFlowTasksSummary(
     int TaskCount,

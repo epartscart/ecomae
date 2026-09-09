@@ -751,6 +751,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("custom_css", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
         Assert.Contains("epc_erp_fa_assets", LegacySurfaceDashboardSql.SelectErpFixedAssets, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpFixedAssets, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`note`,''), 280)", LegacySurfaceDashboardSql.SelectErpFixedAssetDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpFixedAssetDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpFixedAssetStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpFixedAssetStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpFixedAssetStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_page_builder_layouts", LegacySurfaceDashboardSql.SelectCpPageBuilderLayouts, StringComparison.Ordinal);
         Assert.DoesNotContain("layout_json", LegacySurfaceDashboardSql.SelectCpPageBuilderLayouts, StringComparison.Ordinal);
         Assert.DoesNotContain("brand_json", LegacySurfaceDashboardSql.SelectCpPageBuilderLayouts, StringComparison.Ordinal);
