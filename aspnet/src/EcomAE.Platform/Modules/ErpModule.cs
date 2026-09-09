@@ -10427,7 +10427,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_user_shortcuts KPIs + favorites. PHP ERP/CP dashboard shortcuts remain authoritative."
+                note = "Read-only epc_user_shortcuts KPIs + favorites. Open ?favorite_id= loads target URL, icon class, and icon color. PHP ERP/CP dashboard shortcuts remain authoritative."
             });
         });
 

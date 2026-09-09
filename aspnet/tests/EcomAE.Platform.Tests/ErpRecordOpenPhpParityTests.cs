@@ -14,6 +14,9 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=coa&account_id=19", "/erp/coa-accounts-app?account_id=19")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=chart_of_accounts&account_id=19", "/erp/coa-accounts-app?account_id=19")]
     [InlineData("/CP/shop/finance/erp?area=finance&tab=coa&epc_erp_shell=1&account_id=19", "/erp/coa-accounts-app?account_id=19")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=overview&tab=favorites&favorite_id=20", "/erp/workspace-favorites-app?favorite_id=20")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=overview&tab=shortcut_icons&favorite_id=20", "/erp/workspace-favorites-app?favorite_id=20")]
+    [InlineData("/CP/shop/finance/erp?area=overview&tab=favorites&epc_erp_shell=1&favorite_id=20", "/erp/workspace-favorites-app?favorite_id=20")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=vendors&supplier_id=8", "/erp/suppliers-app?supplier_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=overview&tab=processflow&pf_case=11", "/erp/process-flow-tasks-app?pf_case=11")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&rq=4", "/erp/purchase-requests-app?rq=4")]
@@ -2692,6 +2695,45 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/cash-accounts-app",
                 "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank&account_id=5"));
+    }
+
+    [Fact]
+    public void WorkspaceFavoritesApp_OpenLoadsUrlIconAndColor()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpWorkspaceFavoritesApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpWorkspaceFavoriteDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"favorite_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("favorite_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"favorite_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("TargetUrl", razor, StringComparison.Ordinal);
+        Assert.Contains("IconClass", razor, StringComparison.Ordinal);
+        Assert.Contains("IconColor", razor, StringComparison.Ordinal);
+        Assert.Contains("same-surface siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Favourite and shortcut writes stay here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/erp-fav-add", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/shortcut-add", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/shortcut-delete", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/workspace-favorites-app?favorite_id=20#erp-row-20",
+            ErpRecordOpen.Href("/erp/workspace-favorites-app", "favorite_id", 20));
+        Assert.Equal(
+            "/erp/workspace-favorites-app?favorite_id=20",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/workspace-favorites-app",
+                "/ERP/?epc_erp_shell=1&area=overview&tab=favorites&favorite_id=20"));
     }
 
     [Fact]
