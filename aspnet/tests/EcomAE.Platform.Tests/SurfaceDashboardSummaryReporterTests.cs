@@ -721,6 +721,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("payment_gateways", string.Join(",", CpIntegrationsHubCatalog.All.Select(x => x.Key)), StringComparison.Ordinal);
 
         Assert.Contains("epc_erp_bank_statement_lines", LegacySurfaceDashboardSql.SelectErpBankReconciliationLines, StringComparison.Ordinal);
+        Assert.Contains("line_date", LegacySurfaceDashboardSql.SelectErpBankReconciliationLineDetail, StringComparison.Ordinal);
+        Assert.Contains("time_created", LegacySurfaceDashboardSql.SelectErpBankReconciliationLineDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpBankReconciliationLineDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("line_date", LegacySurfaceDashboardSql.SelectErpBankReconciliationAccountSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("time_created", LegacySurfaceDashboardSql.SelectErpBankReconciliationAccountSiblings, StringComparison.Ordinal);
+        Assert.Contains("@account_id", LegacySurfaceDashboardSql.SelectErpBankReconciliationAccountSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpBankReconciliationAccountSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_warehouse_transfers", LegacySurfaceDashboardSql.SelectErpStockTransfers, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpStockTransfers, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpStockTransferDetail, StringComparison.Ordinal);

@@ -3325,6 +3325,30 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened bank statement line (Open key <c>recon_line_id</c>). Surfaces line_date + time_created hidden from the list table. No extra secret columns.</summary>
+    public const string SelectErpBankReconciliationLineDetail = """
+        SELECT `id`, IFNULL(`account_id`,0) AS account_id, IFNULL(`line_date`,0) AS line_date,
+               IFNULL(`description`,'') AS description, IFNULL(`reference`,'') AS reference,
+               IFNULL(`amount`,0) AS amount, IFNULL(`direction`,0) AS direction,
+               IFNULL(`matched_entry_id`,0) AS matched_entry_id, IFNULL(`import_batch`,'') AS import_batch,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_bank_statement_lines`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other statement lines on the same account. line_date and time_created omitted.</summary>
+    public const string SelectErpBankReconciliationAccountSiblings = """
+        SELECT `id`, IFNULL(`account_id`,0) AS account_id,
+               IFNULL(`description`,'') AS description, IFNULL(`reference`,'') AS reference,
+               IFNULL(`amount`,0) AS amount, IFNULL(`direction`,0) AS direction,
+               IFNULL(`matched_entry_id`,0) AS matched_entry_id, IFNULL(`import_batch`,'') AS import_batch
+        FROM `epc_erp_bank_statement_lines`
+        WHERE IFNULL(`account_id`,0) = @account_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Stock transfer KPIs — omits notes.</summary>
     public const string SelectErpStockTransferStats = """
         SELECT

@@ -10343,7 +10343,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_bank_statement_lines KPIs + lines. PHP bank_recon tab remains authoritative."
+                note = "Read-only epc_erp_bank_statement_lines KPIs + lines. Open ?recon_line_id= loads line_date and time_created. PHP bank_recon tab remains authoritative."
             });
         });
 

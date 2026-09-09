@@ -467,6 +467,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened bank statement line (Open key <c>recon_line_id</c>, remapped by <c>tab=bank_recon</c>) plus same-account siblings. Surfaces line_date + time_created hidden from the list table.</summary>
+    Task<ErpBankReconciliationLineDetailResult> BuildErpBankReconciliationLineDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only warehouse stock transfers (notes omitted).</summary>
     Task<ErpStockTransfersDigestResult> BuildErpStockTransfersDigestAsync(int limit, CancellationToken cancellationToken = default);
 
