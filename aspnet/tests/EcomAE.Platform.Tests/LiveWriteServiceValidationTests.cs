@@ -1167,6 +1167,31 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(cartDelDb.Succeeded);
         Assert.Equal("db", cartDelDb.Code);
 
+        var nlBad = await new CpNlReportingWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpNlReportingSaveRequest(0, "", "Sales", "", "custom", "manual", "csv", true));
+        Assert.False(nlBad.Succeeded);
+        Assert.Equal("invalid", nlBad.Code);
+
+        var nlNameBad = await new CpNlReportingWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpNlReportingSaveRequest(0, "epartscart", "", "", "custom", "manual", "csv", true));
+        Assert.False(nlNameBad.Succeeded);
+        Assert.Equal("invalid", nlNameBad.Code);
+
+        var nlDb = await new CpNlReportingWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpNlReportingSaveRequest(0, "epartscart", "Sales", "", "custom", "manual", "csv", true));
+        Assert.False(nlDb.Succeeded);
+        Assert.Equal("db", nlDb.Code);
+
+        var nlDelBad = await new CpNlReportingWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(nlDelBad.Succeeded);
+        Assert.Equal("invalid", nlDelBad.Code);
+
+        var nlDelDb = await new CpNlReportingWriteService(new UnconfiguredConnections())
+            .DeleteAsync(4);
+        Assert.False(nlDelDb.Succeeded);
+        Assert.Equal("db", nlDelDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

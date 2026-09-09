@@ -6541,9 +6541,94 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_report_definitions metadata. Open ?report_id= loads a 280-char query excerpt plus runs. recipients/parameters omitted. Generate/schedule writes stay PHP."
+                note = "Read-only epc_report_definitions metadata. Open ?report_id= loads a 280-char query excerpt plus runs. recipients/parameters omitted. save / delete POST /cp/nl-reporting/write when confirmWrites=true. Query and generate stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpNlReportingWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpNlReportingWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/nl-reporting-app", "Admin CP capability required for NL reporting write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpNlReportingWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var siteKey = body.SiteKey;
+            var name = body.Name;
+            var description = body.Description;
+            var reportType = body.ReportType;
+            var schedule = body.Schedule;
+            var format = body.Format;
+            var active = body.Active;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "report_id");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                name = LiveWriteFormBinder.Text(form, "name");
+                description = LiveWriteFormBinder.Text(form, "description");
+                reportType = LiveWriteFormBinder.Text(form, "report_type", "reportType");
+                schedule = LiveWriteFormBinder.Text(form, "schedule");
+                format = LiveWriteFormBinder.Text(form, "format");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save";
+            }
+
+            if (confirm && key is "save" or "save_definition")
+            {
+                var written = await writes.SaveAsync(
+                    new CpNlReportingSaveRequest(id, siteKey, name, description, reportType, schedule, format, active || id <= 0),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/nl-reporting-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "delete" or "delete_definition" or "deactivate")
+            {
+                var written = await writes.DeleteAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/nl-reporting-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save" or "save_definition" or "delete" or "delete_definition" or "deactivate",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Query template, recipients, and generate stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save or deactivate a report definition.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelMarketingBroadcast, async (
             HttpContext context,
@@ -12831,6 +12916,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long Id = 0);
+    private sealed record CpNlReportingWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? SiteKey = null,
+        string? Name = null,
+        string? Description = null,
+        string? ReportType = null,
+        string? Schedule = null,
+        string? Format = null,
+        bool Active = false);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(

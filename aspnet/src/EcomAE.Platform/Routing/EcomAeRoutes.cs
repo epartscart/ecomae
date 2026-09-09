@@ -116,10 +116,12 @@ public static class EcomAeRoutes
     public const string ControlPanelMetabaseApp = "/cp/metabase-app";
     /// <summary>Metabase save_config / add_dashboard. <c>confirmWrites=true</c> twins PHP epc_metabase_configure (URL only) / epc_metabase_register_dashboard. Secret and JWT embed stay Classic.</summary>
     public const string CpMetabaseWrite = "/cp/metabase/write";
-    /// <summary>CP NL reporting definitions metadata (query/recipients payloads omitted; writes remain PHP).</summary>
+    /// <summary>CP NL reporting definitions metadata (query/recipients payloads omitted).</summary>
     public const string ControlPanelNlReporting = "/cp/nl-reporting";
     /// <summary>CP NL reporting Blazor list (JSON digest remains <see cref="ControlPanelNlReporting"/>).</summary>
     public const string ControlPanelNlReportingApp = "/cp/nl-reporting-app";
+    /// <summary>NL definition save / delete. <c>confirmWrites=true</c> twins PHP epc_nlr_create_definition / metadata update / epc_nlr_delete_definition. Query, recipients, and generate stay Classic.</summary>
+    public const string CpNlReportingWrite = "/cp/nl-reporting/write";
     /// <summary>CP marketing broadcast campaigns metadata (bodies omitted; send remains PHP).</summary>
     public const string ControlPanelMarketingBroadcast = "/cp/marketing-broadcast";
     /// <summary>CP marketing broadcast Blazor list (JSON digest remains <see cref="ControlPanelMarketingBroadcast"/>).</summary>
