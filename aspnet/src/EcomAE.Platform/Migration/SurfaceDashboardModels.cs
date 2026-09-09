@@ -335,6 +335,27 @@ public sealed record CpGroupListResult(
     string Source,
     string Message);
 
+public sealed record CpGroupDetail(
+    int Id,
+    string Value,
+    bool ForBackend,
+    bool ForGuests,
+    bool ForRegistrated,
+    bool Unblocked,
+    int Parent,
+    int Level,
+    int ChildCount,
+    bool ForPercentage,
+    int SortOrder,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record CpGroupDetailResult(
+    CpGroupDetail? Group,
+    IReadOnlyList<CpGroupDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpSupplierDigest(
     long Id,
     string Name,
