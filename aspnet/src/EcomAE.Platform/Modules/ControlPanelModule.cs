@@ -8030,6 +8030,76 @@ public sealed class ControlPanelModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCrmContractsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmContractWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM contract write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmContractsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var customerUserId = body.CustomerUserId;
+            var title = body.Title;
+            var amount = body.Amount;
+            var billingInterval = body.BillingInterval;
+            var nextBillingDate = body.NextBillingDate;
+            var status = body.Status;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "contract_id", "contractId");
+                customerUserId = LiveWriteFormBinder.Long(form, "customer_user_id", "customerUserId");
+                title = LiveWriteFormBinder.Text(form, "title");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                billingInterval = LiveWriteFormBinder.Text(form, "billing_interval", "billingInterval");
+                nextBillingDate = LiveWriteFormBinder.Text(form, "next_billing_date", "nextBillingDate");
+                status = LiveWriteFormBinder.Text(form, "status");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_contract" or "crm_save_contract")
+            {
+                var written = await writes.SaveAsync(
+                    new CpCrmContractSaveRequest(
+                        id, customerUserId, title, amount, billingInterval, nextBillingDate, status, notes),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/crm-opportunities-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_contract" or "crm_save_contract",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Quote email stays Classic."
+                    : "Dry-run. Set confirmWrites=true to save the contract.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSoc2Compliance, async (
             HttpContext context,
@@ -11575,6 +11645,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? EndDate = null,
         string? DueDate = null,
         long OwnerUserId = 0,
+        string? Notes = null);
+    private sealed record CpCrmContractsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        long CustomerUserId = 0,
+        string? Title = null,
+        decimal Amount = 0,
+        string? BillingInterval = null,
+        string? NextBillingDate = null,
+        string? Status = null,
         string? Notes = null);
     private sealed record CpCrmQuotesWriteBody(
         string? Action = null,
