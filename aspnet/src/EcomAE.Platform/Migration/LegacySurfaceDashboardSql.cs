@@ -7805,6 +7805,46 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened payroll run. note is a short excerpt. Bank details omitted.</summary>
+    public const string SelectErpPayrollRunDetail = """
+        SELECT r.`id`, IFNULL(r.`period_label`,'') AS period_label,
+               IFNULL(r.`period_start`,0) AS period_start,
+               IFNULL(r.`period_end`,0) AS period_end,
+               IFNULL(r.`status`,'draft') AS status,
+               IFNULL(r.`total_gross`,0) AS total_gross,
+               IFNULL(r.`total_deductions`,0) AS total_deductions,
+               IFNULL(r.`total_net`,0) AS total_net,
+               IFNULL(r.`cash_account_id`,0) AS cash_account_id,
+               IFNULL(r.`cash_entry_id`,0) AS cash_entry_id,
+               IFNULL(r.`paid_at`,0) AS paid_at,
+               IFNULL(r.`created_by`,0) AS created_by,
+               IFNULL(r.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_payroll_lines` l WHERE l.`run_id` = r.`id`),0) AS employee_count,
+               CHAR_LENGTH(IFNULL(r.`note`,'')) AS note_len,
+               LEFT(IFNULL(r.`note`,''), 280) AS note_excerpt
+        FROM `epc_erp_payroll_runs` r
+        WHERE r.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other payroll runs with the same status. note omitted.</summary>
+    public const string SelectErpPayrollRunStatusSiblings = """
+        SELECT r.`id`, IFNULL(r.`period_label`,'') AS period_label,
+               IFNULL(r.`period_start`,0) AS period_start,
+               IFNULL(r.`period_end`,0) AS period_end,
+               IFNULL(r.`status`,'draft') AS status,
+               IFNULL(r.`total_gross`,0) AS total_gross,
+               IFNULL(r.`total_deductions`,0) AS total_deductions,
+               IFNULL(r.`total_net`,0) AS total_net,
+               IFNULL(r.`paid_at`,0) AS paid_at,
+               IFNULL(r.`time_created`,0) AS time_created,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_payroll_lines` l WHERE l.`run_id` = r.`id`),0) AS employee_count
+        FROM `epc_erp_payroll_runs` r
+        WHERE IFNULL(r.`status`,'draft') = @status AND r.`id` <> @id
+        ORDER BY r.`period_start` DESC, r.`id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP print designer templates — HTML/CSS bodies omitted.</summary>
     public const string SelectErpPrintTemplates = """
         SELECT `id`, IFNULL(`doc_type`,'') AS doc_type,

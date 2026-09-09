@@ -23182,6 +23182,86 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpPayrollRunDetailResult> BuildErpPayrollRunDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpPayrollRunDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPayrollRunDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpPayrollRunDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "period_label"),
+                        Convert.ToInt64(reader["period_start"] is DBNull ? 0 : reader["period_start"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["period_end"] is DBNull ? 0 : reader["period_end"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "status"),
+                        Convert.ToInt32(reader["employee_count"] is DBNull ? 0 : reader["employee_count"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_gross"] is DBNull ? 0m : reader["total_gross"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_deductions"] is DBNull ? 0m : reader["total_deductions"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_net"] is DBNull ? 0m : reader["total_net"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["cash_account_id"] is DBNull ? 0 : reader["cash_account_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["cash_entry_id"] is DBNull ? 0 : reader["cash_entry_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["paid_at"] is DBNull ? 0 : reader["paid_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["created_by"] is DBNull ? 0 : reader["created_by"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["note_len"] is DBNull ? 0 : reader["note_len"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "note_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Payroll run not found.");
+            }
+
+            var siblings = new List<ErpPayrollRunDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPayrollRunStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpPayrollRunDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "period_label"),
+                        Convert.ToInt64(reader["period_start"] is DBNull ? 0 : reader["period_start"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["period_end"] is DBNull ? 0 : reader["period_end"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "status"),
+                        Convert.ToInt32(reader["employee_count"] is DBNull ? 0 : reader["employee_count"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_gross"] is DBNull ? 0m : reader["total_gross"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_deductions"] is DBNull ? 0m : reader["total_deductions"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["total_net"] is DBNull ? 0m : reader["total_net"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["paid_at"] is DBNull ? 0 : reader["paid_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpPrintTemplatesListResult> ListErpPrintTemplatesAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

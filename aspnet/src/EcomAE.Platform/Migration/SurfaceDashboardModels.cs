@@ -7306,6 +7306,30 @@ public sealed record ErpPayrollListResult(
     string Source,
     string Message);
 
+public sealed record ErpPayrollRunDetail(
+    long Id,
+    string PeriodLabel,
+    long PeriodStart,
+    long PeriodEnd,
+    string Status,
+    int EmployeeCount,
+    decimal TotalGross,
+    decimal TotalDeductions,
+    decimal TotalNet,
+    long CashAccountId,
+    long CashEntryId,
+    long PaidAt,
+    long CreatedBy,
+    long TimeCreated,
+    int NoteLen,
+    string NoteExcerpt);
+
+public sealed record ErpPayrollRunDetailResult(
+    ErpPayrollRunDetail? Run,
+    IReadOnlyList<ErpPayrollRunDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_order_erp_log</c> (details JSON omitted).</summary>
 public sealed record ErpOrderPipelineLogDigest(
     long Id,

@@ -2979,6 +2979,43 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void PayrollApp_OpenLoadsNoteExcerptAndSameStatusSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpPayrollApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpPayrollRunDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"payroll_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("payroll_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"payroll_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NoteExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Bank details stay off this pane", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/payroll/generate", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/payroll-approve", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/payroll/pay", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/payroll-app?payroll_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/payroll-app", "payroll_id", 3));
+        Assert.Equal(
+            "/erp/payroll-app?payroll_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/payroll-app",
+                "/ERP/?epc_erp_shell=1&area=hr&tab=payroll&payroll_id=3"));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

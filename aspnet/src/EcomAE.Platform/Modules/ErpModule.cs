@@ -10885,7 +10885,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_payroll_runs. PHP payroll tab remains authoritative."
+                note = "epc_erp_payroll_runs (note omitted from the list). Open ?payroll_id= loads a 280-char note excerpt plus same-status siblings. Generate / approve / pay write here when confirmWrites=true. Bank details stay off the Open pane."
             });
         });
 
