@@ -12,7 +12,9 @@
 <PageTitle>RFID · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="RFID" BreadcrumbArea="Inventory" BreadcrumbTab="RFID">
-    <PhpErpModulePageHeader Title="RFID System" Subtitle="RFID-based inventory management — tag products, bulk scan for stocktaking, real-time tracking, and anti-theft gates." PhpTabHref="@_phpTab" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <PhpErpModulePageHeader Title="RFID System" Subtitle="Open a scan session for completed time, unexpected count, and the scanner numeric id. Reader IP/TID omitted. Register, start, and scan write here." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -41,6 +43,62 @@
         </div>
     </div>
 
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SessionType) ? "—" : _opened.SessionType)</dd>
+                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
+                <dt>Warehouse</dt><dd>@(_opened.WarehouseId > 0 ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Zone</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Zone) ? "—" : _opened.Zone)</dd>
+                <dt>Scanned</dt><dd>@_opened.TotalScanned.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Expected</dt><dd>@_opened.TotalExpected.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Found</dt><dd>@_opened.TotalFound.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Missing</dt><dd>@_opened.TotalMissing.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Unexpected</dt><dd>@_opened.TotalUnexpected.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Scanner</dt><dd>@(_opened.ScannedBy > 0 ? _opened.ScannedBy.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Scanner name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ScannedByName) ? "—" : _opened.ScannedByName)</dd>
+                <dt>Started</dt><dd>@FormatTime(_opened.TimeStarted)</dd>
+                <dt>Completed</dt><dd>@FormatTime(_opened.TimeCompleted)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Reader IP/TID omitted. Register, start, and scan write here.</p>
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Type</th>
+                            <th>Zone</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.SessionType) ? "—" : sib.SessionType)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Zone) ? "—" : sib.Zone)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "session_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-status siblings yet.</p>
+            }
+        </div>
+    }
+
     <div class="epc-erp-section" id="recent-scans">
         <h4><i class="fa fa-list"></i> Recent scans</h4>
         <div class="epc-erp-table-wrap">
@@ -56,7 +114,7 @@
                         @foreach (var row in _sessions)
                         {
                             var disc = row.TotalScanned - row.TotalExpected;
-                            <tr>
+                            <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                                 <td>@(row.TimeStarted > 0 ? DateTimeOffset.FromUnixTimeSeconds(row.TimeStarted).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "—")</td>
                                 <td>@(string.IsNullOrWhiteSpace(row.Zone) ? "—" : row.Zone)</td>
                                 <td>@row.TotalScanned.ToString(CultureInfo.InvariantCulture)</td>
@@ -66,7 +124,7 @@
                                     else { <span class="text-success">0</span> }
                                 </td>
                                 <td>—</td>
-                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/rfid-app", "session_id", row.Id)">Details</a></td>
+                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "session_id", row.Id)">Open</a></td>
                             </tr>
                         }
                     }
@@ -79,7 +137,7 @@
     {
         <form method="post" action="/erp/rfid/register" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/rfid-app" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>EPC <input name="rfid_epc" required maxlength="100" /></label>
             <label>TID <input name="rfid_tid" maxlength="100" /></label>
             <label>SKU <input name="sku" maxlength="100" /></label>
@@ -90,7 +148,7 @@
         </form>
         <form method="post" action="/erp/rfid/start-session" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/rfid-app" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>Type
                 <select name="session_type">
                     <option value="stocktake">stocktake</option>
@@ -105,7 +163,7 @@
         </form>
         <form method="post" action="/erp/rfid/scan" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/rfid-app" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>Session <input type="number" name="session_id" min="1" required style="width:6rem" /></label>
             <label>EPC <input name="rfid_epc" required maxlength="100" /></label>
             <label>RSSI <input type="number" name="rssi" style="width:5rem" /></label>
@@ -189,6 +247,7 @@
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory&tab=rfid";
+    private const string _listHref = "/erp/rfid-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpRfidTagDigest> _tags = [];
     private IReadOnlyList<ErpRfidSessionDigest> _sessions = [];
@@ -197,6 +256,19 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
+    private long _openedId;
+    private ErpRfidSessionDetail? _opened;
+    private IReadOnlyList<ErpRfidSessionDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.SessionType)
+            ? _opened.SessionType + " #" + _opened.Id.ToString(CultureInfo.InvariantCulture)
+            : ("Session #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?session_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
@@ -204,6 +276,7 @@
         if (ctx is null) return;
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "session_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
@@ -217,5 +290,26 @@
         _missing = _sessions.Sum(s => s.TotalMissing);
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpRfidSessionDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Session;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _sessions.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _sessions = new[] { openedList }.Concat(_sessions.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
+    }
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
 }

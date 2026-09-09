@@ -22753,6 +22753,84 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpRfidSessionDetailResult> BuildErpRfidSessionDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpRfidSessionDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpRfidSessionDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpRfidSessionDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "session_type"),
+                        ReadI64(reader, "warehouse_id"),
+                        ReadStr(reader, "zone"),
+                        ReadI32(reader, "total_scanned"),
+                        ReadI32(reader, "total_expected"),
+                        ReadI32(reader, "total_found"),
+                        ReadI32(reader, "total_missing"),
+                        ReadI32(reader, "total_unexpected"),
+                        ReadI64(reader, "scanned_by"),
+                        ReadStr(reader, "scanned_by_name"),
+                        ReadStr(reader, "status"),
+                        ReadI64(reader, "time_started"),
+                        ReadI64(reader, "time_completed"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Session not found.");
+            }
+
+            var siblings = new List<ErpRfidSessionDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpRfidSessionStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpRfidSessionDigest(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "session_type"),
+                        ReadI64(reader, "warehouse_id"),
+                        ReadStr(reader, "zone"),
+                        ReadI32(reader, "total_scanned"),
+                        ReadI32(reader, "total_expected"),
+                        ReadI32(reader, "total_found"),
+                        ReadI32(reader, "total_missing"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "scanned_by_name"),
+                        ReadI64(reader, "time_started")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpRecruitmentDigestResult> BuildErpRecruitmentDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
