@@ -20,7 +20,7 @@ public sealed class PartsChpuOffersLatencyTests
         Assert.Contains("data-enhance-nav=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("epcRunChpuPriceSearchBootstrap", text, StringComparison.Ordinal);
         Assert.Contains("data-ssr-offers", text, StringComparison.Ordinal);
-        Assert.Contains("fetchCross(200,", text, StringComparison.Ordinal);
+        Assert.Contains("fetchCross(800,", text, StringComparison.Ordinal);
         Assert.Contains("include_crossbase=1", text, StringComparison.Ordinal);
         Assert.DoesNotContain("return pollOne(p3);", text, StringComparison.Ordinal);
     }

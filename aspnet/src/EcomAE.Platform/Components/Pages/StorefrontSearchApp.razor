@@ -1165,7 +1165,7 @@
       stockKeys[compactBrand(s.brand) + '|' + compactArt(s.article_norm || s.article)] = 1;
     });
     if (stockBox) {
-      var stockHtml = stock.slice(0, 40).map(function (s) {
+      var stockHtml = stock.slice(0, 200).map(function (s) {
         var b = s.brand || '';
         var a = s.article || s.article_norm || '';
         return '<li><a href="' + partsHref(b, a) + '" data-enhance-nav="false">' + esc(b) + ' ' + esc(a) + '</a>' +
@@ -1186,7 +1186,7 @@
       }
       var shown = 0;
       var html = [];
-      var showLimit = opts.showAll ? 600 : 200;
+      var showLimit = opts.showAll ? 5000 : refs.length;
       var seenKeys = Object.create(null);
       for (var i = 0; i < refs.length && shown < showLimit; i++) {
         var ref = refs[i];
@@ -1256,15 +1256,16 @@
         throw err;
       });
     }
-    return fetchCross(200, 12000, false)
+    return fetchCross(800, 20000, false)
       .then(function (data) {
         if (!applyCrossSearchPayload(data, { force: true })) {
           var loading = document.getElementById('epc-cross-loading');
           if (loading) loading.textContent = 'Cross search unavailable — showing local manufacturer aliases only.';
         }
         // Background: full local + crossbase (cache/HTTP). Never blocks warehouse rows.
-        return fetchCross(600, 20000, true)
-          .then(function (full) { applyCrossSearchPayload(full, { force: true }); })
+        // PHP ajax_epc_cross_search cap is 5000 — C110J is 700+ and must all land on the page.
+        return fetchCross(5000, 60000, true)
+          .then(function (full) { applyCrossSearchPayload(full, { force: true, showAll: true }); })
           .catch(function () {});
       })
       .catch(function () {
@@ -1359,7 +1360,7 @@
   }
 })();
             </script>
-            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260908-warehouse2" defer></script>
+            <script src="/platform-assets/epc_warehouse_search_parity.js?v=20260909-c110j" defer></script>
         }
     }
 
@@ -1782,9 +1783,9 @@
         // Client JS expands to full crossbase + stock merge with longer timeouts.
         try
         {
-            using var crossCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(2200));
+            using var crossCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(3500));
             var crossSeed = await Dashboards.BuildStorefrontCrossSearchAsync(
-                _articleInput, _brandInput, 80, crossCts.Token, includeCrossbase: false);
+                _articleInput, _brandInput, 200, crossCts.Token, includeCrossbase: false);
             if (crossSeed.References.Count > 0)
             {
                 _crossRefs = crossSeed.References;

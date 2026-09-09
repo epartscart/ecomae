@@ -959,7 +959,7 @@
 			br = nav.getAttribute("data-brand") || br;
 		}
 		var url = "/storefront/cross-search?article=" + encodeURIComponent(art) +
-			"&limit=600&include_crossbase=1";
+			"&limit=5000&include_crossbase=1";
 		if (br) url += "&brand=" + encodeURIComponent(br);
 		return fetch(url, { credentials: "same-origin" })
 			.then(function (r) { return r.json(); })
@@ -993,7 +993,7 @@
 				if (stockBox && stock.length) {
 					stockBox.hidden = false;
 					stockBox.innerHTML = "<strong>Cross references in stock (" + stock.length + ")</strong><ul>" +
-						stock.slice(0, 40).map(function (s) {
+						stock.slice(0, 200).map(function (s) {
 							var b = s.brand || "";
 							var a = s.article || s.article_norm || "";
 							return "<li><a href=\"" + partsHref(b, a) + "\">" + esc(b) + " " + esc(a) + "</a>" +
@@ -1013,7 +1013,7 @@
 					}
 					var shown = 0;
 					var html = [];
-					for (var i = 0; i < refs.length && shown < 200; i++) {
+					for (var i = 0; i < refs.length && shown < 5000; i++) {
 						var ref = refs[i];
 						var rb = ref.brand || "";
 						var ra = ref.article || ref.article_norm || "";

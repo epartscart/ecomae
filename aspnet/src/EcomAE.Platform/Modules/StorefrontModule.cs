@@ -581,7 +581,7 @@ public sealed class StorefrontModule : ISurfaceModule
             var result = await dashboards.BuildStorefrontCrossSearchAsync(
                 article ?? string.Empty,
                 manufacturer,
-                limit ?? 600,
+                limit ?? LegacySurfaceDashboardSql.StorefrontCrossSearchMax,
                 cancellationToken,
                 includeCrossbase: wantCrossbase);
             var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);

@@ -92,6 +92,25 @@ public sealed class StorefrontSearchSqlParityTests
         Assert.DoesNotContain("article_search", replace, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CrossMatch_TwoSidedEquality_AvoidsOrScan()
+    {
+        var article = LegacySurfaceDashboardSql.StorefrontCrossArticleSideMatchSql(hasAnalogsSearchColumns: true);
+        var analog = LegacySurfaceDashboardSql.StorefrontCrossAnalogSideMatchSql(hasAnalogsSearchColumns: true);
+        var articleFb = LegacySurfaceDashboardSql.StorefrontCrossArticleSideMatchSql(hasAnalogsSearchColumns: false);
+        var analogFb = LegacySurfaceDashboardSql.StorefrontCrossAnalogSideMatchSql(hasAnalogsSearchColumns: false);
+        Assert.Equal("`article_search` = @article", article);
+        Assert.Equal("`analog_search` = @article", analog);
+        Assert.DoesNotContain(" OR ", article, StringComparison.Ordinal);
+        Assert.DoesNotContain(" OR ", analog, StringComparison.Ordinal);
+        Assert.Contains("REPLACE(", articleFb, StringComparison.Ordinal);
+        Assert.Contains("REPLACE(", analogFb, StringComparison.Ordinal);
+        Assert.Equal(5000, LegacySurfaceDashboardSql.StorefrontCrossSearchMax);
+        Assert.Equal(2500, LegacySurfaceDashboardSql.StorefrontCrossbaseParseMax);
+        Assert.Equal(2000, LegacySurfaceDashboardSql.StorefrontCrossStockMax);
+        Assert.Equal(400, LegacySurfaceDashboardSql.StorefrontCrossStockBatch);
+    }
+
     private static int CountOccurrences(string haystack, string needle)
     {
         var count = 0;
