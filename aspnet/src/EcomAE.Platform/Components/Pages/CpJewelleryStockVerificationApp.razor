@@ -14,6 +14,8 @@
 <PhpChromeStyles Surface="erp" />
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="@_spec.Title" BreadcrumbArea="Jewellery" BreadcrumbTab="@_spec.Label">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@_appPath" IsAdmin="_isAdmin" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
     <PhpErpModulePageHeader Title="@_spec.Title" Subtitle="@_spec.Subtitle" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -24,6 +26,67 @@
         <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong> <a class="btn btn-xs btn-default" href="@_listHref">Close</a></p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Voc no</dt><dd>@_opened.VocNo.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Date</dt><dd>@(string.IsNullOrWhiteSpace(_opened.VocDate) ? "—" : _opened.VocDate)</dd>
+                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.VocType) ? "—" : _opened.VocType)</dd>
+                <dt>Verified by</dt><dd>@(string.IsNullOrWhiteSpace(_opened.VerifiedBy) ? "—" : _opened.VerifiedBy)</dd>
+                <dt>Location</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Location) ? "—" : _opened.Location)</dd>
+                <dt>Metal / stone</dt><dd>@(string.IsNullOrWhiteSpace(_opened.MetalStone) ? "—" : _opened.MetalStone)</dd>
+                <dt>Division</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Division) ? "—" : _opened.Division)</dd>
+                <dt>Remaining pcs</dt><dd>@_opened.RemainingPcs.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
+                <dt>Branch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Branch) ? "—" : _opened.Branch)</dd>
+            </dl>
+            @if (!string.IsNullOrWhiteSpace(_opened.RemarksExcerpt))
+            {
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.RemarksExcerpt</pre>
+                @if (_opened.RemarksLen > _opened.RemarksExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.RemarksExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.RemarksLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No remarks excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Voc no</th>
+                            <th>Location</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@sib.VocNo.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Location) ? "—" : sib.Location)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "verify_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-status siblings yet.</p>
+            }
+        </div>
+    }
+
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.StockTabs" />
 
     @if (_isAdmin && _tab == "jw_stock_verification")
@@ -31,7 +94,7 @@
         <ErpPhpCreateWell Title="New Count">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryStockVerifySaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <label>Branch <input class="form-control input-sm" name="branch" value="HO" /></label>
                 <label>Location <input class="form-control input-sm" name="code" placeholder="Showroom" required /></label>
                 <label>Supervisor <input class="form-control input-sm" name="supervisor" /></label>
@@ -44,7 +107,7 @@
         <ErpPhpCreateWell Title="Add / Edit Metal stock">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryMetalStockSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 @if (_company > 0)
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
@@ -72,7 +135,7 @@
     {
         <ErpPhpCreateWell Title="@("New " + _spec.Label)">
             <form method="post" action="@EcomAeRoutes.ErpJewelleryModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
-                <input type="hidden" name="returnUrl" value="@_returnHere" />
+                <input type="hidden" name="returnUrl" value="@ReturnHref" />
                 <input type="hidden" name="action" value="@(_tab + "_save")" />
                 <label>Item Code <input class="form-control input-sm" name="code" required /></label>
                 <label>Metal
@@ -95,6 +158,10 @@
                     {
                         <th>@col</th>
                     }
+                    @if (_tab == "jw_stock_verification")
+                    {
+                        <th></th>
+                    }
                 </tr>
             </thead>
             <tbody>
@@ -102,8 +169,8 @@
                 {
                     @foreach (var row in _display)
                     {
-                        <tr>
-                            <td>@row.Id</td>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
+                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.Branch</td>
                             <td>@row.Type</td>
                             <td>@row.Date</td>
@@ -112,12 +179,13 @@
                             <td>@row.Total</td>
                             <td>@row.Scanned</td>
                             <td>@row.Status</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "verify_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
                 else
                 {
-                    <tr><td colspan="@_spec.Columns.Count" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
+                    <tr><td colspan="@(_spec.Columns.Count + (_tab == "jw_stock_verification" ? 1 : 0))" class="text-muted">@(_isAdmin ? _spec.EmptyCopy : "Sign in with ERP or Control Panel capability for live rows.")</td></tr>
                 }
             </tbody>
         </table>
@@ -143,8 +211,22 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
+    private string _listHref = "/cp/jewellery-stock-verification-app";
+    private long _openedId;
+    private CpJewelleryStockVerificationDetail? _opened;
+    private IReadOnlyList<CpJewelleryStockVerificationRowDigest> _openedSiblings = [];
 
-    private sealed record StockRow(string Id, string Branch, string Type, string Date, string No, string Location, string Total, string Scanned, string Status);
+    private sealed record StockRow(long Id, string Branch, string Type, string Date, string No, string Location, string Total, string Scanned, string Status);
+
+    private string OpenedCaption =>
+        _opened is not null && _opened.VocNo > 0
+            ? ("Voc " + _opened.VocNo.ToString(CultureInfo.InvariantCulture))
+            : (_openedId > 0 ? ("Verification #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+
+    private string ReturnHref =>
+        _openedId > 0
+            ? _listHref + "?verify_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+            : _returnHere;
 
     protected override async Task OnInitializedAsync()
     {
@@ -154,6 +236,8 @@
         _appPath = path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             ? "/erp/jewellery-stock-verification-app"
             : "/cp/jewellery-stock-verification-app";
+        _listHref = _appPath;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "verify_id");
         _company = ErpJewelleryModuleChrome.CompanyFromQuery(ctx.Request.Query["company"].ToString());
         _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.StockTabs, "jw_stock_verification");
         _ok = ctx.Request.Query["ok"].ToString();
@@ -175,7 +259,7 @@
         _source = result.Source;
         _message = result.Message;
         _display = result.Verifications.Select(r => new StockRow(
-            r.Id.ToString(CultureInfo.InvariantCulture),
+            r.Id,
             string.IsNullOrWhiteSpace(r.Branch) ? "—" : r.Branch,
             string.IsNullOrWhiteSpace(r.VocType) ? "—" : r.VocType,
             string.IsNullOrWhiteSpace(r.VocDate) ? "—" : r.VocDate,
@@ -184,5 +268,11 @@
             r.TotalPcs.ToString(CultureInfo.InvariantCulture),
             r.ScannedPcs.ToString(CultureInfo.InvariantCulture),
             string.IsNullOrWhiteSpace(r.Status) ? "—" : r.Status)).ToList();
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpJewelleryStockVerificationDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Verification;
+            _openedSiblings = detail.Siblings;
+        }
     }
 }

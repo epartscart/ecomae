@@ -88,6 +88,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
     [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=jewellery&tab=jw_karat&karat_id=3", "/erp/jewellery-masters-app?tab=jw_karat&karat_id=3")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification&verify_id=4", "/erp/jewellery-stock-verification-app?tab=jw_stock_verification&verify_id=4")]
+    [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_verification&epc_erp_shell=1&verify_id=4", "/erp/jewellery-stock-verification-app?tab=jw_stock_verification&verify_id=4")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -1677,6 +1679,51 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/jewellery-masters-app",
                 "/ERP/?epc_erp_shell=1&area=jewellery&tab=jw_karat&karat_id=3"));
+    }
+
+    [Fact]
+    public void JewelleryStockVerificationApp_OpenLoadsRemarksExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryStockVerificationApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpJewelleryStockVerificationDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"verify_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("verify_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"verify_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("RemarksExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("VerifiedBy", razor, StringComparison.Ordinal);
+        Assert.Contains("MetalStone", razor, StringComparison.Ordinal);
+        Assert.Contains("RemainingPcs", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ErpJewelleryStockVerifySaveForm", razor, StringComparison.Ordinal);
+        Assert.Contains("Save stock verification", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryMetalStockSaveForm", razor, StringComparison.Ordinal);
+        Assert.Contains("Save metal stock", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("Sample seed stays Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/jewellery-stock-verification-app?verify_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/jewellery-stock-verification-app", "verify_id", 4));
+        Assert.Equal(
+            "/erp/jewellery-stock-verification-app?verify_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/jewellery-stock-verification-app",
+                "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification&verify_id=4"));
+        Assert.Equal(
+            "/cp/jewellery-stock-verification-app?verify_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/jewellery-stock-verification-app",
+                "/CP/shop/finance/erp?area=inventory_mgmt&tab=jw_stock_verification&epc_erp_shell=1&verify_id=4"));
     }
 
     [Fact]

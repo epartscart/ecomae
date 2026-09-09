@@ -446,6 +446,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only jewellery stock verification vouchers (remarks omitted).</summary>
     Task<CpJewelleryStockVerificationDigestResult> BuildCpJewelleryStockVerificationDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened jewellery stock verification (Open key <c>verify_id</c>) plus same-status siblings. remarks is a short excerpt.</summary>
+    Task<CpJewelleryStockVerificationDetailResult> BuildCpJewelleryStockVerificationDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -7714,7 +7714,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_jewel_stock_verification* KPIs + vouchers (remarks omitted). PHP jewellery stock verification remains authoritative."
+                note = "Read-only epc_jewel_stock_verification* KPIs + vouchers (remarks omitted on the list). Open ?verify_id= loads a 280-char remarks excerpt. PHP jewellery stock verification remains authoritative."
             });
         });
 
