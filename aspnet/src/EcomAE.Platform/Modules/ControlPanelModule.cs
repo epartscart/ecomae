@@ -7920,6 +7920,93 @@ public sealed class ControlPanelModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCrmProjectsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmProjectWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM project write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmProjectsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var name = body.Name;
+            var opportunityId = body.OpportunityId;
+            var orderId = body.OrderId;
+            var status = body.Status;
+            var progressPct = body.ProgressPct;
+            var startDate = body.StartDate;
+            var endDate = body.EndDate;
+            var ownerUserId = body.OwnerUserId;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "project_id", "projectId");
+                name = LiveWriteFormBinder.Text(form, "name");
+                opportunityId = LiveWriteFormBinder.Long(form, "opportunity_id", "opportunityId", "opp_id");
+                orderId = LiveWriteFormBinder.Long(form, "order_id", "orderId");
+                status = LiveWriteFormBinder.Text(form, "status");
+                progressPct = LiveWriteFormBinder.Int(form, "progress_pct", "progressPct");
+                startDate = LiveWriteFormBinder.Text(form, "start_date", "startDate");
+                endDate = LiveWriteFormBinder.Text(form, "end_date", "endDate");
+                ownerUserId = LiveWriteFormBinder.Long(form, "owner_user_id", "ownerUserId");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (ownerUserId <= 0)
+            {
+                ownerUserId = session.UserId;
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_project" or "crm_save_project")
+            {
+                var written = await writes.SaveAsync(
+                    new CpCrmProjectSaveRequest(
+                        id, name, opportunityId, orderId, status, progressPct, startDate, endDate, ownerUserId, notes),
+                    cancellationToken);
+                var dest = written.Succeeded
+                    ? "/cp/crm-opportunities-app"
+                    : "/cp/crm-opportunities-app";
+                if (written.Succeeded && opportunityId > 0)
+                {
+                    dest = "/cp/crm-opportunities-app?opp_id=" + opportunityId.ToString(CultureInfo.InvariantCulture);
+                }
+
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_project" or "crm_save_project",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Project tasks stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the project.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSoc2Compliance, async (
             HttpContext context,
@@ -11447,6 +11534,19 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? RelatedType = null,
         long RelatedId = 0,
         string? DueDate = null,
+        long OwnerUserId = 0,
+        string? Notes = null);
+    private sealed record CpCrmProjectsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? Name = null,
+        long OpportunityId = 0,
+        long OrderId = 0,
+        string? Status = null,
+        int ProgressPct = 0,
+        string? StartDate = null,
+        string? EndDate = null,
         long OwnerUserId = 0,
         string? Notes = null);
     private sealed record CpCrmQuotesWriteBody(
