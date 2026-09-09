@@ -906,6 +906,40 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened cash entry (Open key <c>entry_id</c>). entry_type/counterparties are hidden from the list. add-if-missing columns omitted.</summary>
+    public const string SelectErpCashEntryDetail = """
+        SELECT e.`id`, IFNULL(e.`account_id`, 0) AS account_id,
+               IFNULL(a.`name`, '') AS account_name,
+               IFNULL(a.`account_type`, '') AS account_type,
+               IFNULL(e.`time`, 0) AS time,
+               IFNULL(e.`direction`, 0) AS direction,
+               IFNULL(e.`amount`, 0) AS amount,
+               IFNULL(e.`reference`, '') AS reference,
+               IFNULL(e.`entry_type`, '') AS entry_type,
+               IFNULL(e.`counterparty_type`, '') AS counterparty_type,
+               IFNULL(e.`counterparty_id`, 0) AS counterparty_id,
+               IFNULL(e.`order_id`, 0) AS order_id,
+               IFNULL(e.`purchase_id`, 0) AS purchase_id,
+               IFNULL(e.`transfer_pair_id`, 0) AS transfer_pair_id,
+               IFNULL(e.`admin_id`, 0) AS admin_id
+        FROM `epc_erp_cash_bank_entries` e
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
+        WHERE e.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other cash entries with the same entry_type. counterparties omitted.</summary>
+    public const string SelectErpCashEntryTypeSiblings = """
+        SELECT e.`id`, e.`account_id`, IFNULL(a.`name`, '') AS account_name, IFNULL(a.`account_type`, '') AS account_type,
+               e.`time`, e.`direction`, e.`amount`,
+               IFNULL(e.`reference`, '') AS reference, IFNULL(e.`note`, '') AS note
+        FROM `epc_erp_cash_bank_entries` e
+        LEFT JOIN `epc_erp_cash_bank_accounts` a ON a.`id` = e.`account_id`
+        WHERE IFNULL(e.`entry_type`, '') = @entry_type AND e.`id` <> @id AND e.`active` = 1
+        ORDER BY e.`time` DESC, e.`id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpInvoices = """
         SELECT d.`id`, IFNULL(d.`invoice_number`, '') AS invoice_number, d.`order_id`, d.`user_id`,
                IFNULL(u.`email`, '') AS customer_email, d.`issue_date`,

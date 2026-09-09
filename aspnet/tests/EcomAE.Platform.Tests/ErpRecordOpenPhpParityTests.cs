@@ -398,6 +398,40 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void CashEntriesApp_OpenLoadsEntryTypeCounterpartiesAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpCashEntriesApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpCashEntryDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"entry_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("entry_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(\"/erp/cash-entries-app\", \"entry_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("EntryType", razor, StringComparison.Ordinal);
+        Assert.Contains("CounterpartyType", razor, StringComparison.Ordinal);
+        Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("voucher_no", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("gl_journal_id", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/cash-entries-app?entry_id=8#erp-row-8",
+            ErpRecordOpen.Href("/erp/cash-entries-app", "entry_id", 8));
+        Assert.Equal(
+            "/erp/cash-entries-app?entry_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/cash-entries-app",
+                "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank&entry_id=8"));
+    }
+
+    [Fact]
     public void GlJournalsApp_OpenLoadsNoteReferenceAndSiblings()
     {
         var root = FindRepoRoot();

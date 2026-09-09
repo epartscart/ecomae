@@ -580,6 +580,29 @@ public sealed record ErpCashEntryListResult(
     string Source,
     string Message);
 
+public sealed record ErpCashEntryDetail(
+    long Id,
+    long AccountId,
+    string AccountName,
+    string AccountType,
+    long TimeUnix,
+    int Direction,
+    decimal Amount,
+    string Reference,
+    string EntryType,
+    string CounterpartyType,
+    int CounterpartyId,
+    int OrderId,
+    int PurchaseId,
+    int TransferPairId,
+    int AdminId);
+
+public sealed record ErpCashEntryDetailResult(
+    ErpCashEntryDetail? Entry,
+    IReadOnlyList<ErpCashEntryDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpInvoiceDigest(
     long Id,
     string InvoiceNumber,
