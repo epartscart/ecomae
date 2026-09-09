@@ -16,7 +16,8 @@ public sealed class CpPlatformGovernanceWriteTests
     [Fact]
     public void Rule_key_and_enforcement_match_php()
     {
-        Assert.Equal("data_retention", CpPlatformGovernanceWriteService.NormalizeRuleKey(" Data-Retention! "));
+        Assert.Equal("dataretention", CpPlatformGovernanceWriteService.NormalizeRuleKey(" Data-Retention! "));
+        Assert.Equal("data_retention", CpPlatformGovernanceWriteService.NormalizeRuleKey(" Data_Retention! "));
         Assert.Equal("", CpPlatformGovernanceWriteService.NormalizeRuleKey(" !!! "));
         Assert.Equal("required", CpPlatformGovernanceWriteService.NormalizeEnforcement(null));
         Assert.Equal("required", CpPlatformGovernanceWriteService.NormalizeEnforcement(""));
