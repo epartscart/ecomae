@@ -388,6 +388,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPricesEditApp.razor", "/cp/prices-edit/write"),
             ("CpCurrenciesApp.razor", "/cp/currencies/set-rate"),
             ("CpCurrenciesApp.razor", "/cp/currencies/set-available"),
+            ("CpCurrenciesApp.razor", "/cp/currencies/schedule-save"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/set-min-limit"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/templates-actions"),
             ("CpProductCatalogueApp.razor", "/cp/catalogue/line-lists/write"),
