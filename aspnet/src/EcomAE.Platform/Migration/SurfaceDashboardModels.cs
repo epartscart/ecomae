@@ -4504,6 +4504,34 @@ public sealed record CpJewelleryFixingDigestResult(
     string Source,
     string Message);
 
+public sealed record CpJewelleryFixingDetail(
+    long Id,
+    long CompanyId,
+    string Branch,
+    string FixType,
+    string FixDate,
+    long FixNo,
+    string PartyCode,
+    string PartyName,
+    string Metal,
+    string Karat,
+    string RateType,
+    decimal FixRate,
+    decimal FixQtyGms,
+    decimal FixAmount,
+    decimal UnfixedQty,
+    string ReferenceVoc,
+    string Status,
+    string CreatedBy,
+    int RemarksLen,
+    string RemarksExcerpt);
+
+public sealed record CpJewelleryFixingDetailResult(
+    CpJewelleryFixingDetail? Fixing,
+    IReadOnlyList<CpJewelleryFixingRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpWebTrackerSummary(
     int SessionCount,
     int PageviewCount,

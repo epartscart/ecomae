@@ -560,6 +560,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened finance-close batch (PHP <c>batch_id=</c> detail) plus opening lines.</summary>
     Task<CpFinanceCloseBatchDetailResult> BuildCpFinanceCloseBatchDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpJewelleryFixingDigestResult> BuildCpJewelleryFixingDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened jewellery fixing (Open key <c>fixing_id</c>) plus same-status siblings. remarks is a short excerpt.</summary>
+    Task<CpJewelleryFixingDetailResult> BuildCpJewelleryFixingDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpWebTrackerDigestResult> BuildCpWebTrackerDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpWebTrackerDashboardResult> BuildCpWebTrackerDashboardAsync(CpWebTrackerFilterQuery filters, CancellationToken cancellationToken = default);
     Task<CpWebTrackerSessionDetailResult> BuildCpWebTrackerSessionDetailAsync(long sessionId, string siteKey, bool isSuper, CancellationToken cancellationToken = default);

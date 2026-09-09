@@ -14957,6 +14957,93 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpJewelleryFixingDetailResult> BuildCpJewelleryFixingDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpJewelleryFixingDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryFixingDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpJewelleryFixingDetail(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["branch"] is DBNull ? string.Empty : reader["branch"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["fix_type"] is DBNull ? string.Empty : reader["fix_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["fix_date"] is DBNull ? string.Empty : reader["fix_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["fix_no"] is DBNull ? 0 : reader["fix_no"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["party_code"] is DBNull ? string.Empty : reader["party_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["party_name"] is DBNull ? string.Empty : reader["party_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["metal"] is DBNull ? string.Empty : reader["metal"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["karat"] is DBNull ? string.Empty : reader["karat"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["rate_type"] is DBNull ? string.Empty : reader["rate_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["fix_rate"] is DBNull ? 0 : reader["fix_rate"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["fix_qty_gms"] is DBNull ? 0 : reader["fix_qty_gms"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["fix_amount"] is DBNull ? 0 : reader["fix_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["unfixed_qty"] is DBNull ? 0 : reader["unfixed_qty"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["reference_voc"] is DBNull ? string.Empty : reader["reference_voc"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["remarks_len"] is DBNull ? 0 : reader["remarks_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["remarks_excerpt"] is DBNull ? string.Empty : reader["remarks_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Jewellery fixing not found.");
+            }
+
+            var siblings = new List<CpJewelleryFixingRowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryFixingStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpJewelleryFixingRowDigest(
+                        Convert.ToInt64(reader["id"] is DBNull ? 0 : reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["branch"] is DBNull ? string.Empty : reader["branch"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["fix_type"] is DBNull ? string.Empty : reader["fix_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["fix_date"] is DBNull ? string.Empty : reader["fix_date"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["fix_no"] is DBNull ? 0 : reader["fix_no"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["party_code"] is DBNull ? string.Empty : reader["party_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["party_name"] is DBNull ? string.Empty : reader["party_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["metal"] is DBNull ? string.Empty : reader["metal"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["karat"] is DBNull ? string.Empty : reader["karat"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["fix_qty_gms"] is DBNull ? 0 : reader["fix_qty_gms"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["fix_amount"] is DBNull ? 0 : reader["fix_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_by"] is DBNull ? string.Empty : reader["created_by"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public Task<CpWebTrackerDashboardResult> BuildCpWebTrackerDashboardAsync(
         CpWebTrackerFilterQuery filters,
         CancellationToken cancellationToken = default)
