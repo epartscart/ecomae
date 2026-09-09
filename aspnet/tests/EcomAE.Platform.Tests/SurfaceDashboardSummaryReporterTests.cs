@@ -543,6 +543,13 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("phone_masked", LegacySurfaceDashboardSql.SelectCpWhatsappNotifyLog, StringComparison.Ordinal);
         Assert.DoesNotContain("`response`", LegacySurfaceDashboardSql.SelectCpWhatsappNotifyLog, StringComparison.Ordinal);
         Assert.Contains("epc_crm_leads", LegacySurfaceDashboardSql.SelectCpCrmLeads, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectCpCrmLeadsDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpCrmLeadsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("email", LegacySurfaceDashboardSql.SelectCpCrmLeadsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("phone", LegacySurfaceDashboardSql.SelectCpCrmLeadsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpCrmLeadsStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("email", LegacySurfaceDashboardSql.SelectCpCrmLeadsStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectCpCrmLeadsStatusSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("email", LegacySurfaceDashboardSql.SelectCpCrmLeads, StringComparison.Ordinal);
         Assert.Contains("epc_jewel_voucher", LegacySurfaceDashboardSql.SelectCpJewelleryVouchers, StringComparison.Ordinal);
         Assert.DoesNotContain("passport", LegacySurfaceDashboardSql.SelectCpJewelleryVouchers, StringComparison.Ordinal);

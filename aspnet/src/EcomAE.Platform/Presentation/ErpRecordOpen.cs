@@ -52,7 +52,7 @@ public static class ErpRecordOpen
         "migration_id", "proof_id",
         "item_id", "app_id",
         "report_id", "pbi_id", "mb_id", "review_id", "run_id", "pack_id", "snapshot_id", "rule_id", "task_id",
-        "query_id", "block_id", "notif_id", "social_id", "activity_id", "ticket_id", "text_id", "vin_id", "cons_id", "po_req_id", "budget_id", "work_id", "tab_id", "storage_id", "filter_id", "geo_id", "obtaining_mode_id", "content_id", "menu_id", "product_id", "office_id", "module_id", "leg_id", "aprice_id", "ugroup_id", "credit_id", "job_id", "fixing_id",
+        "query_id", "block_id", "notif_id", "social_id", "activity_id", "ticket_id", "text_id", "vin_id", "cons_id", "po_req_id", "budget_id", "work_id", "tab_id", "storage_id", "filter_id", "geo_id", "obtaining_mode_id", "content_id", "menu_id", "product_id", "office_id", "module_id", "leg_id", "aprice_id", "ugroup_id", "credit_id", "job_id", "fixing_id", "lead_id",
     ];
 
     public static string Href(string appPath, string param, long id)

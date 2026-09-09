@@ -1457,6 +1457,25 @@ public sealed record CpCrmBoardDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCrmLeadDetail(
+    long Id,
+    string Title,
+    string ContactName,
+    string Status,
+    string Source,
+    long OwnerId,
+    decimal Amount,
+    long CreatedAt,
+    long UpdatedAt,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record CpCrmLeadDetailResult(
+    CpCrmLeadDetail? Lead,
+    IReadOnlyList<CpCrmLeadDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpDocumentControlSummary(
     string CompanyName,
     int TemplateCount,

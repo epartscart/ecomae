@@ -87,6 +87,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
     [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
+    [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
+    [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
     [InlineData("/CP/shop/finance/erp?area=purchasing&tab=jw_purchase_fixing&epc_erp_shell=1&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
     [InlineData("/CP/shop/workshop?job_id=5", "/cp/workshop-app?job_id=5")]
@@ -1640,6 +1642,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/groups-app",
                 "/CP/users/usergroups?ugroup_id=3"));
+    }
+
+    [Fact]
+    public void CrmBoardApp_OpenLoadsNotesExcerptAndOmitsContact()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpCrmBoardApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpCrmLeadDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"lead_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("lead_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"lead_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("ContactName", razor, StringComparison.Ordinal);
+        Assert.Contains("Email/phone omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Email", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Phone", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/crm-board-app?lead_id=6#erp-row-6",
+            ErpRecordOpen.Href("/cp/crm-board-app", "lead_id", 6));
+        Assert.Equal(
+            "/cp/crm-board-app?lead_id=6",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/crm-board-app",
+                "/CP/shop/crm/crm_main?lead_id=6"));
     }
 
     [Fact]
