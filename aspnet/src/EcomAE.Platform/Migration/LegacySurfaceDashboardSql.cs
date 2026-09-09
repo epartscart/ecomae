@@ -750,6 +750,39 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened purchase invoice (Open key <c>purchase_id</c>). note/VAT are hidden from the list. add-if-missing columns omitted.</summary>
+    public const string SelectErpPurchaseDetail = """
+        SELECT p.`id`, IFNULL(p.`supplier_id`, 0) AS supplier_id,
+               IFNULL(s.`name`, '') AS supplier_name,
+               IFNULL(p.`purchase_date`, 0) AS purchase_date,
+               IFNULL(p.`invoice_number`, '') AS invoice_number,
+               IFNULL(p.`amount_ex_vat`, 0) AS amount_ex_vat,
+               IFNULL(p.`vat_amount`, 0) AS vat_amount,
+               IFNULL(p.`total_amount`, 0) AS total_amount,
+               IFNULL(p.`status`, '') AS status,
+               IFNULL(p.`order_id`, 0) AS order_id,
+               IFNULL(p.`storage_id`, 0) AS storage_id,
+               LEFT(IFNULL(p.`note`, ''), 280) AS note_excerpt,
+               CHAR_LENGTH(IFNULL(p.`note`, '')) AS note_len,
+               IFNULL(p.`admin_id`, 0) AS admin_id,
+               IFNULL(p.`time_created`, 0) AS time_created
+        FROM `epc_erp_purchases` p
+        LEFT JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
+        WHERE p.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other purchase invoices with the same status. note/VAT omitted.</summary>
+    public const string SelectErpPurchaseStatusSiblings = """
+        SELECT p.`id`, p.`supplier_id`, IFNULL(s.`name`, '') AS supplier_name, p.`purchase_date`,
+               IFNULL(p.`invoice_number`, '') AS invoice_number, p.`total_amount`, p.`status`, p.`order_id`
+        FROM `epc_erp_purchases` p
+        LEFT JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
+        WHERE IFNULL(p.`status`, '') = @status AND p.`id` <> @id
+        ORDER BY p.`purchase_date` DESC, p.`id` DESC
+        LIMIT 50
+        """;
+
     public const string CountCustomerGarage = """
         SELECT COUNT(*) FROM `shop_docpart_garage` WHERE `user_id` = @userId
         """;

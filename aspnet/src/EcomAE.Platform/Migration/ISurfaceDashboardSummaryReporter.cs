@@ -54,6 +54,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened purchase invoice (Open key <c>purchase_id</c>) plus same-status siblings. note/VAT are hidden from the list.</summary>
+    Task<ErpPurchaseDetailResult> BuildErpPurchaseDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<StorefrontGarageResult> ListStorefrontGarageAsync(int userId, int limit, CancellationToken cancellationToken = default);
 
     /// <summary>PHP <c>shop_docpart_garage_orders</c> links for an order owned by the customer.</summary>

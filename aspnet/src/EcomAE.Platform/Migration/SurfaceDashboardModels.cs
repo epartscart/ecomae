@@ -385,6 +385,29 @@ public sealed record ErpPurchaseListResult(
     string Source,
     string Message);
 
+public sealed record ErpPurchaseDetail(
+    long Id,
+    long SupplierId,
+    string SupplierName,
+    long PurchaseDate,
+    string InvoiceNumber,
+    decimal AmountExVat,
+    decimal VatAmount,
+    decimal TotalAmount,
+    string Status,
+    long OrderId,
+    int StorageId,
+    string NoteExcerpt,
+    int NoteLen,
+    int AdminId,
+    long TimeCreated);
+
+public sealed record ErpPurchaseDetailResult(
+    ErpPurchaseDetail? Purchase,
+    IReadOnlyList<ErpPurchaseDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record StorefrontGarageVehicleDigest(
     long Id,
     string Caption,
