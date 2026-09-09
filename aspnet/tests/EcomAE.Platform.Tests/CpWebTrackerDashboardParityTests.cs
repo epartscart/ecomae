@@ -182,7 +182,8 @@ public class CpWebTrackerDashboardParityTests
         Assert.Contains("<PhpWebTrackerBeacon", marketing);
         Assert.Contains("window.EPC_WEB_TRACKER", beacon);
         Assert.Contains("/platform-assets/epc_web_tracker.js", beacon);
-        Assert.Contains("/epc-web-tracker-collect.php", beacon + "\n" + File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/CpWebTrackerCollectService.cs")));
+        var collect = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/CpWebTrackerCollectService.cs"));
+        Assert.Contains("WebTrackerCollectPhp", collect);
         Assert.DoesNotContain("/php-reference/", storefront);
         Assert.DoesNotContain("/php-reference/", marketing);
         Assert.DoesNotContain("/php-reference/", beacon);
@@ -243,7 +244,8 @@ public class CpWebTrackerDashboardParityTests
         var mobile = CpWebTrackerCollectService.ParseUa("Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 Version/17.0 Mobile/15E148 Safari/604.1");
         Assert.Equal("mobile", mobile.Device);
         Assert.Equal("Safari", mobile.Browser);
-        Assert.Equal("iOS", mobile.Os);
+        // PHP checks "mac os" before "iphone", so iPhone UAs resolve to macOS.
+        Assert.Equal("macOS", mobile.Os);
 
         Assert.Equal("hello world", CpWebTrackerCollectService.Clip("  hello   world  ", 50));
         Assert.Equal("abc", CpWebTrackerCollectService.Clip("abcdef", 3));
