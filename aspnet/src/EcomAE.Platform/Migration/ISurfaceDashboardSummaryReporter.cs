@@ -826,6 +826,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only print templates (PHP <c>epc_erp_print_templates</c>; HTML/CSS omitted).</summary>
     Task<ErpPrintTemplatesListResult> ListErpPrintTemplatesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened print template (Open key <c>template_id</c>, remapped by <c>tab=print_designer</c>) plus same-type siblings. HTML/CSS are short excerpts.</summary>
+    Task<ErpPrintTemplateDetailResult> BuildErpPrintTemplateDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpOrderPlanningDigestResult> BuildErpOrderPlanningDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpProcurementCategoriesDigestResult> BuildErpProcurementCategoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default);

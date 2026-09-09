@@ -22247,6 +22247,90 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpPrintTemplateDetailResult> BuildErpPrintTemplateDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpPrintTemplateDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpPrintTemplateDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "doc_type"),
+                        ReadStr(reader, "name"),
+                        Convert.ToInt32(reader["is_default"] is DBNull ? 0 : reader["is_default"], CultureInfo.InvariantCulture) == 1,
+                        ReadStr(reader, "page_size"),
+                        ReadStr(reader, "orientation"),
+                        Convert.ToInt32(reader["margin_top"] is DBNull ? 0 : reader["margin_top"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["margin_bottom"] is DBNull ? 0 : reader["margin_bottom"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["margin_left"] is DBNull ? 0 : reader["margin_left"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["margin_right"] is DBNull ? 0 : reader["margin_right"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "font_family"),
+                        Convert.ToInt32(reader["font_size"] is DBNull ? 0 : reader["font_size"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "primary_color"),
+                        ReadStr(reader, "secondary_color"),
+                        ReadStr(reader, "logo_position"),
+                        Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) == 1,
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["header_html_len"] is DBNull ? 0 : reader["header_html_len"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "header_html_excerpt"),
+                        Convert.ToInt32(reader["footer_html_len"] is DBNull ? 0 : reader["footer_html_len"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "footer_html_excerpt"),
+                        Convert.ToInt32(reader["custom_css_len"] is DBNull ? 0 : reader["custom_css_len"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "custom_css_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Print template not found.");
+            }
+
+            var siblings = new List<ErpPrintTemplateDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPrintTemplateTypeSiblings;
+                AddParameter(cmd, "@doc_type", header.DocType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpPrintTemplateDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "doc_type"),
+                        ReadStr(reader, "name"),
+                        Convert.ToInt32(reader["is_default"] is DBNull ? 0 : reader["is_default"], CultureInfo.InvariantCulture) == 1,
+                        ReadStr(reader, "page_size"),
+                        ReadStr(reader, "orientation"),
+                        Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) == 1,
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpOrderPlanningDigestResult> BuildErpOrderPlanningDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

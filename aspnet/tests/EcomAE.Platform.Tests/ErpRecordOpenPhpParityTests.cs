@@ -123,6 +123,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=common&tab=agenda&epc_erp_shell=1&event_id=12", "/erp/agenda-app?event_id=12")]
     [InlineData("/ERP/?epc_erp_shell=1&area=common&tab=documents&document_id=13", "/erp/documents-app?document_id=13")]
     [InlineData("/CP/shop/finance/erp?area=common&tab=documents&epc_erp_shell=1&document_id=13", "/erp/documents-app?document_id=13")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=setup&tab=print_designer&template_id=14", "/erp/print-designer-app?template_id=14")]
+    [InlineData("/CP/shop/finance/erp?area=setup&tab=print_designer&epc_erp_shell=1&template_id=14", "/erp/print-designer-app?template_id=14")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2433,6 +2435,43 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/documents-app",
                 "/ERP/?epc_erp_shell=1&area=common&tab=documents&document_id=13"));
+    }
+
+    [Fact]
+    public void PrintDesignerApp_OpenLoadsHtmlCssExcerptsAndKeepsErpChrome()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpPrintDesignerApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpPrintTemplateDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"template_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("template_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"template_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("HeaderHtmlExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("FooterHtmlExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("CustomCssExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Save writes here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/print-designer/save", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpPhpCreateWell", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/print-designer-app?template_id=14#erp-row-14",
+            ErpRecordOpen.Href("/erp/print-designer-app", "template_id", 14));
+        Assert.Equal(
+            "/erp/print-designer-app?template_id=14",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/print-designer-app",
+                "/ERP/?epc_erp_shell=1&area=setup&tab=print_designer&template_id=14"));
     }
 
     [Fact]

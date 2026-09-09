@@ -7421,6 +7421,50 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened print template. HTML/CSS are short excerpts. Save writes on this page.</summary>
+    public const string SelectErpPrintTemplateDetail = """
+        SELECT `id`, IFNULL(`doc_type`,'') AS doc_type,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`is_default`,0) AS is_default,
+               IFNULL(`page_size`,'A4') AS page_size,
+               IFNULL(`orientation`,'portrait') AS orientation,
+               IFNULL(`margin_top`,0) AS margin_top,
+               IFNULL(`margin_bottom`,0) AS margin_bottom,
+               IFNULL(`margin_left`,0) AS margin_left,
+               IFNULL(`margin_right`,0) AS margin_right,
+               IFNULL(`font_family`,'') AS font_family,
+               IFNULL(`font_size`,0) AS font_size,
+               IFNULL(`primary_color`,'') AS primary_color,
+               IFNULL(`secondary_color`,'') AS secondary_color,
+               IFNULL(`logo_position`,'') AS logo_position,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`header_html`,'')) AS header_html_len,
+               LEFT(IFNULL(`header_html`,''), 280) AS header_html_excerpt,
+               CHAR_LENGTH(IFNULL(`footer_html`,'')) AS footer_html_len,
+               LEFT(IFNULL(`footer_html`,''), 280) AS footer_html_excerpt,
+               CHAR_LENGTH(IFNULL(`custom_css`,'')) AS custom_css_len,
+               LEFT(IFNULL(`custom_css`,''), 280) AS custom_css_excerpt
+        FROM `epc_erp_print_templates`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other print templates of the same doc type. HTML/CSS omitted.</summary>
+    public const string SelectErpPrintTemplateTypeSiblings = """
+        SELECT `id`, IFNULL(`doc_type`,'') AS doc_type,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`is_default`,0) AS is_default,
+               IFNULL(`page_size`,'A4') AS page_size,
+               IFNULL(`orientation`,'portrait') AS orientation,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_print_templates`
+        WHERE IFNULL(`doc_type`,'') = @doc_type AND `id` <> @id
+        ORDER BY `is_default` DESC, `id`
+        LIMIT 50
+        """;
+
     public const string SelectErpOrderRecommendations = """
         SELECT r.`id`, IFNULL(r.`item_id`,0) AS item_id,
                IFNULL(i.`sku`,'') AS sku,
