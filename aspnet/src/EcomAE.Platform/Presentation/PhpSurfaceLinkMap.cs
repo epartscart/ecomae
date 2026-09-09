@@ -1695,7 +1695,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/workflows-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/workflows-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/templates-manager-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/cp/plugins-manager-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/cp/plugins-manager-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/sitemap-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

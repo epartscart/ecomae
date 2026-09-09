@@ -655,6 +655,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpTemplatesManagerDetailResult> BuildCpTemplatesManagerDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpDesignTokensDigestResult> BuildCpDesignTokensDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpSitemapDigestResult> BuildCpSitemapDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened sitemap content URL (Open key <c>sm_id</c>) plus same-published siblings. content HTML is a short excerpt.</summary>
+    Task<CpSitemapDetailResult> BuildCpSitemapDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<CpFailoverStatusDigestResult> BuildCpFailoverStatusDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<CpOpsGuidesDigestResult> BuildCpOpsGuidesDigestAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -501,7 +501,7 @@ public static class SurfacePayloadContractCatalog
         Contract("cp", "/cp/sitemap", "content + shop_catalogue_categories + shop_catalogue_products", "admin-cp",
             ["ok", "surface", "summary", "pages", "count", "source", "message", "session", "note"],
             ["contentUrlCount", "categoryCount", "productCount", "frontendContentCount", "source", "message"],
-            ["Sitemap KPIs + pages", "sitemap.xml file artifact (generation remains PHP); content HTML omitted", "PHP Sitemap remains authoritative"],
+            ["Sitemap KPIs + pages", "Open ?sm_id= loads 280-char content excerpt; rebuild stays Classic", "PHP Sitemap remains authoritative"],
             "cp/templates/bootstrap_admin/desktop.php"),
 
         Contract("cp", "/cp/failover-status", "filesystem epc-platform-status.*", "admin-cp",
@@ -1148,7 +1148,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "plugins-manager Blazor list", "/cp/plugins-manager-app", "digest-wired-awaiting-dual-sample", "Open ?plugin_id= loads 280-char data_value excerpt; same-frontend siblings; activate/lock stay Classic; tenant chrome stays PHP."),
         new("cp", "templates-manager Blazor list", "/cp/templates-manager-app", "digest-wired-awaiting-dual-sample", "Open ?tpl_id= loads 280-char data_value excerpt; same-frontend siblings; switch current stays Classic; tenant chrome stays PHP."),
         new("cp", "design-tokens Blazor list", "/cp/design-tokens-app", "presentation-shell-scaffolded", "Read UI over /cp/design-tokens digest; setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs; PHP Design tokens remains authoritative; tenant chrome stays PHP."),
-        new("cp", "sitemap Blazor list", "/cp/sitemap-app", "presentation-shell-scaffolded", "Read UI over /cp/sitemap digest; sitemap.xml file artifact (generation remains PHP); content HTML omitted; PHP Sitemap remains authoritative; tenant chrome stays PHP."),
+        new("cp", "sitemap Blazor list", "/cp/sitemap-app", "digest-wired-awaiting-dual-sample", "Open ?sm_id= loads 280-char content excerpt; same-published siblings; rebuild stays Classic; tenant chrome stays PHP."),
 
         new("cp", "failover-status Blazor list", "/cp/failover-status-app", "presentation-shell-scaffolded", "Read UI over /cp/failover-status digest; secrets inside failover config; PHP Failover status remains authoritative; tenant chrome stays PHP."),
         new("cp", "ops-guides Blazor list", "/cp/ops-guides-app", "presentation-shell-scaffolded", "Read UI over /cp/ops-guides digest; Open ?item_id= loads the menu item plus group siblings; guide HTML omitted; PHP Ops guides remains authoritative; tenant chrome stays PHP."),

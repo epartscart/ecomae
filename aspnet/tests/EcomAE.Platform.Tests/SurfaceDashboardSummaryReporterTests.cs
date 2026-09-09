@@ -968,6 +968,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("data_value", LegacySurfaceDashboardSql.SelectCpPluginsManagerFrontendSiblings, StringComparison.Ordinal);
         Assert.Contains("@is_frontend", LegacySurfaceDashboardSql.SelectCpPluginsManagerFrontendSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpPluginsManagerFrontendSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEFT(IFNULL(`content`", LegacySurfaceDashboardSql.SelectCpSitemapRows, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`content`,''), 280)", LegacySurfaceDashboardSql.SelectCpSitemapDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpSitemapDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEFT(IFNULL(`content`", LegacySurfaceDashboardSql.SelectCpSitemapPublishedSiblings, StringComparison.Ordinal);
+        Assert.Contains("@published_flag", LegacySurfaceDashboardSql.SelectCpSitemapPublishedSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpSitemapPublishedSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
         Assert.Contains("@division", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
