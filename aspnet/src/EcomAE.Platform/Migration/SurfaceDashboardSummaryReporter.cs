@@ -24149,6 +24149,79 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpPerformanceReviewDetailResult> BuildErpPerformanceReviewDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpPerformanceReviewDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPerformanceReviewDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpPerformanceReviewDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "employee_id"),
+                        ReadStr(reader, "employee_name"),
+                        ReadStr(reader, "period"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "reviewer"),
+                        ReadDec(reader, "overall_rating"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadI64(reader, "time_updated"),
+                        ReadI32(reader, "notes_len"),
+                        ReadStr(reader, "notes_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Performance review not found.");
+            }
+
+            var siblings = new List<ErpPerformanceReviewDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPerformanceReviewStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "employee_id"),
+                        ReadStr(reader, "employee_name"),
+                        ReadStr(reader, "period"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "reviewer"),
+                        ReadDec(reader, "overall_rating"),
+                        ReadI64(reader, "time_updated")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpProductInfoDigestResult> BuildErpProductInfoDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

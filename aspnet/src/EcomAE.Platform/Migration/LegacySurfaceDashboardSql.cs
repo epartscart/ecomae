@@ -8288,6 +8288,39 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened performance review. notes is a short excerpt.</summary>
+    public const string SelectErpPerformanceReviewDetail = """
+        SELECT `id`, IFNULL(`employee_id`,0) AS employee_id,
+               IFNULL(`employee_name`,'') AS employee_name,
+               IFNULL(`period`,'') AS period,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`reviewer`,'') AS reviewer,
+               IFNULL(`overall_rating`,0) AS overall_rating,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_hrt_review`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other reviews of the same status. notes omitted.</summary>
+    public const string SelectErpPerformanceReviewStatusSiblings = """
+        SELECT `id`, IFNULL(`employee_id`,0) AS employee_id,
+               IFNULL(`employee_name`,'') AS employee_name,
+               IFNULL(`period`,'') AS period,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`reviewer`,'') AS reviewer,
+               IFNULL(`overall_rating`,0) AS overall_rating,
+               IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_hrt_review`
+        WHERE IFNULL(`status`,'draft') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpProductInfoItems = """
         SELECT `id`, IFNULL(`sku`,'') AS sku,
                IFNULL(`name`,'') AS name,

@@ -14,7 +14,11 @@
 <PageTitle>Performance · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Performance" BreadcrumbArea="People" BreadcrumbTab="Performance">
-    <PhpErpModulePageHeader Title="Performance reviews" Subtitle="Reviews and weighted goals. Saves stay dry-run." PhpTabHref="@_phpTab" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/performance-app" IsAdmin="_isAdmin" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <PhpErpModulePageHeader Title="Performance reviews" Subtitle="Open a review for the 280-character notes excerpt. Review save and goal add stay on this page. Finalize stays Classic." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Performance KPIs">
@@ -50,25 +54,91 @@
         </ErpPhpCreateWell>
     }
 
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>Id</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Employee</dt><dd>@(string.IsNullOrWhiteSpace(_opened.EmployeeName) ? "—" : _opened.EmployeeName)</dd>
+                <dt>Employee id</dt><dd>@(_opened.EmployeeId > 0 ? _opened.EmployeeId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Period</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Period) ? "—" : _opened.Period)</dd>
+                <dt>Reviewer</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Reviewer) ? "—" : _opened.Reviewer)</dd>
+                <dt>Rating</dt><dd>@_opened.OverallRating.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
+                <dt>Company</dt><dd>@(_opened.CompanyId > 0 ? _opened.CompanyId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
+                <dt>Updated</dt><dd>@FormatTime(_opened.TimeUpdated)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Review save and goal add stay on this page. Finalize stays Classic.</p>
+            @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.NotesExcerpt</pre>
+                @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Employee</th>
+                            <th>Period</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.EmployeeName) ? "—" : sib.EmployeeName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Period) ? "—" : sib.Period)</td>
+                                <td>@sib.Status</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "hrt_review_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-status siblings yet.</p>
+            }
+        </div>
+    }
+
     <h2 style="font-size:16px;">Reviews</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Employee</th><th>Period</th><th>Reviewer</th><th class="text-right">Rating</th><th>Status</th></tr></thead>
+            <thead><tr><th>Employee</th><th>Period</th><th>Reviewer</th><th class="text-right">Rating</th><th>Status</th><th></th></tr></thead>
             <tbody>
                 @if (_reviews.Count == 0)
                 {
-                    <tr><td colspan="5">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No performance reviews yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No performance reviews yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
                     @foreach (var row in _reviews)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.EmployeeName) ? $"#{row.Id.ToString(CultureInfo.InvariantCulture)}" : row.EmployeeName)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Period) ? "—" : row.Period)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Reviewer) ? "—" : row.Reviewer)</td>
                             <td class="text-right">@row.OverallRating.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td><span class="label label-default">@row.Status</span></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "hrt_review_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -79,9 +149,9 @@
     <h2 style="font-size:16px;">Goals</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Goal</th><th>Review</th><th>Target</th><th class="text-right">Weight</th><th class="text-right">Rating</th></tr></thead>
+            <thead><tr><th>Goal</th><th>Review</th><th>Target</th><th class="text-right">Weight</th><th class="text-right">Rating</th><th></th></tr></thead>
             <tbody>
-                @if (_goals.Count == 0) { <tr><td colspan="5">No goals yet.</td></tr> }
+                @if (_goals.Count == 0) { <tr><td colspan="6">No goals yet.</td></tr> }
                 else
                 {
                     @foreach (var row in _goals)
@@ -92,6 +162,12 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Target) ? "—" : row.Target)</td>
                             <td class="text-right">@row.Weight.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td class="text-right">@row.Rating.ToString(CultureInfo.InvariantCulture)</td>
+                            <td>
+                                @if (row.ReviewId > 0)
+                                {
+                                    <a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "hrt_review_id", row.ReviewId)">Open review</a>
+                                }
+                            </td>
                         </tr>
                     }
                 }
@@ -100,24 +176,42 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Live: <code>hrt_review_save</code>. Goal add and finalize stay Classic.
+        Source: @_source.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
+        Review save and goal add are live when confirmed. Finalize stays Classic.
     </div>
 </PhpErpDesktopChrome>
 
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=people&tab=performance";
+    private const string _listHref = "/erp/performance-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpPerformanceReviewDigest> _reviews = [];
     private IReadOnlyList<ErpPerformanceGoalDigest> _goals = [];
     private int _count, _open, _done;
     private string _source = "n/a";
     private string _message = "";
+    private long _openedId;
+    private ErpPerformanceReviewDetail? _opened;
+    private IReadOnlyList<ErpPerformanceReviewDigest> _openedSiblings = [];
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?hrt_review_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (string.IsNullOrWhiteSpace(_opened.EmployeeName)
+            ? ("Review #" + _opened.Id.ToString(CultureInfo.InvariantCulture))
+            : _opened.EmployeeName)
+            + (string.IsNullOrWhiteSpace(_opened.Period) ? "" : (" · " + _opened.Period))
+            + (string.IsNullOrWhiteSpace(_opened.Status) ? "" : (" · " + _opened.Status));
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "hrt_review_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         if (!_isAdmin) { _message = "Sign in for live data."; return; }
@@ -130,6 +224,30 @@
         _done = result.DoneCount;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpPerformanceReviewDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Review;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _reviews.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _reviews = new[] { openedList }.Concat(_reviews.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
 
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
 }
