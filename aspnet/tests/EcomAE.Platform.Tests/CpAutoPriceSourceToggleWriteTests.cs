@@ -22,6 +22,15 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Equal(0, CpAutoPriceWriteService.NextEnabled(1, null));
         Assert.Equal(1, CpAutoPriceWriteService.NextEnabled(0, true));
         Assert.Equal(0, CpAutoPriceWriteService.NextEnabled(1, false));
+        Assert.Equal("parts.example.com", CpAutoPriceWriteService.NormalizeDomain("https://www.parts.example.com/path"));
+        Assert.Equal("parts.example.com", CpAutoPriceWriteService.NormalizeDomain("www.parts.example.com/path"));
+        Assert.Equal(1, CpAutoPriceWriteService.AddEnabled(null));
+        Assert.Equal(0, CpAutoPriceWriteService.AddEnabled(false));
+        Assert.Equal(100, CpAutoPriceWriteService.AddPriority(null));
+        Assert.Equal(10, CpAutoPriceWriteService.AddPriority(10));
+        Assert.True(CpAutoPriceWriteService.IsOwnStorefrontDomain("www.epartscart.com", "shop.local"));
+        Assert.True(CpAutoPriceWriteService.IsOwnStorefrontDomain("shop.local", "shop.local"));
+        Assert.False(CpAutoPriceWriteService.IsOwnStorefrontDomain("parts.example.com", "shop.local"));
     }
 
     [Fact]
@@ -34,9 +43,13 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"toggle_discovery_source\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"delete_discovery_source\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"add_discovery_source\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"domain\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"auth_password\"", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"login_url\"", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
@@ -50,6 +63,7 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Equal("write-live-gated", write.Status);
         Assert.Contains("ajax_auto_price.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("add_discovery_source", write.Notes, StringComparison.Ordinal);
         Assert.Contains("toggle_discovery_source", write.Notes, StringComparison.Ordinal);
         Assert.Contains("delete_discovery_source", write.Notes, StringComparison.Ordinal);
     }
@@ -63,11 +77,14 @@ public sealed class CpAutoPriceSourceToggleWriteTests
         Assert.Contains("ICpAutoPriceWriteService", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpAutoPriceWriteService.cs"));
+        Assert.Contains("epc_disc_source_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_disc_source_toggle", service, StringComparison.Ordinal);
         Assert.Contains("epc_disc_source_delete", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_discovery_sources`", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_discovery_sources`", service, StringComparison.Ordinal);
         Assert.Contains("DELETE FROM `epc_discovery_sources`", service, StringComparison.Ordinal);
+        Assert.Contains("add_discovery_source", module, StringComparison.Ordinal);
         Assert.Contains("delete_discovery_source", module, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
