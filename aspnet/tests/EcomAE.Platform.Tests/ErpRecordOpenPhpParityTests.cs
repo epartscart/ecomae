@@ -234,6 +234,22 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("PhpReferenceOnlyHref(phpHref)", text, StringComparison.Ordinal);
         Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("id=\"erp-module-new\"", text, StringComparison.Ordinal);
+        Assert.Contains("BuildErpSalesOrderDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"so_id\", \"order_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("so_id=", text, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", text, StringComparison.Ordinal);
+        Assert.Contains("AmountExVat", text, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("stay Classic", text, StringComparison.Ordinal);
+        Assert.Contains("/erp/orders/settlement", text, StringComparison.Ordinal);
+        Assert.Contains("erp-sales-orders.js", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/sales-orders-app?so_id=42#erp-row-42",
+            ErpRecordOpen.Href("/erp/sales-orders-app", "so_id", 42));
     }
 
     [Theory]

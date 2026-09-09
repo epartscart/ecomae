@@ -1021,6 +1021,38 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened sales order (Open key <c>so_id</c>). notes/title/VAT are hidden from the list.</summary>
+    public const string SelectErpSalesOrderDetail = """
+        SELECT `id`, IFNULL(`so_no`, '') AS so_no,
+               IFNULL(`customer_user_id`, 0) AS customer_user_id,
+               IFNULL(`contact_id`, 0) AS contact_id,
+               IFNULL(`title`, '') AS title,
+               IFNULL(`amount_ex_vat`, 0) AS amount_ex_vat,
+               IFNULL(`vat_amount`, 0) AS vat_amount,
+               IFNULL(`total_amount`, 0) AS total_amount,
+               IFNULL(`status`, '') AS status,
+               IFNULL(`sales_invoice_id`, 0) AS sales_invoice_id,
+               LEFT(IFNULL(`notes`, ''), 280) AS notes_excerpt,
+               CHAR_LENGTH(IFNULL(`notes`, '')) AS notes_len,
+               IFNULL(`admin_id`, 0) AS admin_id,
+               IFNULL(`time_created`, 0) AS time_created,
+               IFNULL(`time_updated`, 0) AS time_updated
+        FROM `epc_erp_sales_orders`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other sales orders with the same status. notes/title/VAT omitted.</summary>
+    public const string SelectErpSalesOrderStatusSiblings = """
+        SELECT `id`, IFNULL(`so_no`, '') AS so_no, IFNULL(`customer_user_id`, 0) AS customer_user_id,
+               IFNULL(`total_amount`, 0) AS total_amount, IFNULL(`status`, '') AS status,
+               IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_sales_orders`
+        WHERE IFNULL(`status`, '') = @status AND `id` <> @id
+        ORDER BY `time_created` DESC, `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>erp_tabs_sales_orders.php</c> line picker source.</summary>
     public const string SelectErpInventoryItemsForPicker = """
         SELECT `id`, IFNULL(`sku`, '') AS sku, IFNULL(`name`, '') AS name,

@@ -738,6 +738,29 @@ public sealed record ErpSalesOrderListResult(
     string Source,
     string Message);
 
+public sealed record ErpSalesOrderDetail(
+    long Id,
+    string SoNo,
+    int CustomerUserId,
+    int ContactId,
+    string Title,
+    decimal AmountExVat,
+    decimal VatAmount,
+    decimal TotalAmount,
+    string Status,
+    int SalesInvoiceId,
+    string NotesExcerpt,
+    int NotesLen,
+    int AdminId,
+    long TimeCreated,
+    long TimeUpdated);
+
+public sealed record ErpSalesOrderDetailResult(
+    ErpSalesOrderDetail? Order,
+    IReadOnlyList<ErpSalesOrderDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpMenuDigest(
     int Id,
     string Caption,
