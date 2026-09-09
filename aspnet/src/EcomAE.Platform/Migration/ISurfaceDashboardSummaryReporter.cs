@@ -47,6 +47,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<CpGroupListResult> ListCpGroupsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened user group (Open key <c>ugroup_id</c>) plus same-parent siblings. description is a short excerpt.</summary>
+    Task<CpGroupDetailResult> BuildCpGroupsDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpSupplierListResult> ListErpSuppliersAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default);

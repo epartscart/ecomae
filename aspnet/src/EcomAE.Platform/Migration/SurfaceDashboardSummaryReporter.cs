@@ -1516,6 +1516,80 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpGroupDetailResult> BuildCpGroupsDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpGroupDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpGroupsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpGroupDetail(
+                        Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["value"] is DBNull ? string.Empty : reader["value"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["for_backend"] is DBNull ? 0 : reader["for_backend"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["for_guests"] is DBNull ? 0 : reader["for_guests"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["for_registrated"] is DBNull ? 0 : reader["for_registrated"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["unblocked"] is DBNull ? 1 : reader["unblocked"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["level"] is DBNull ? 0 : reader["level"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["child_count"] is DBNull ? 0 : reader["child_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["for_percentage"] is DBNull ? 0 : reader["for_percentage"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["sort_order"] is DBNull ? 0 : reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Group not found.");
+            }
+
+            var siblings = new List<CpGroupDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpGroupsParentSiblings;
+                AddParameter(cmd, "@parent", header.Parent);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpGroupDigest(
+                        Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["value"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["for_backend"] is DBNull ? 0 : reader["for_backend"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["for_guests"] is DBNull ? 0 : reader["for_guests"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["for_registrated"] is DBNull ? 0 : reader["for_registrated"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["unblocked"] is DBNull ? 1 : reader["unblocked"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["parent"] is DBNull ? 0 : reader["parent"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["level"] is DBNull ? 0 : reader["level"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpSupplierListResult> ListErpSuppliersAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

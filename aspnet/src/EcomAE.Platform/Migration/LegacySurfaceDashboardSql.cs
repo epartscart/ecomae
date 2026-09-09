@@ -705,6 +705,29 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened user group. description is a short excerpt.</summary>
+    public const string SelectCpGroupsDetail = """
+        SELECT `id`, IFNULL(`value`,'') AS value, `for_backend`, `for_guests`, `for_registrated`,
+               `unblocked`, `parent`, `level`,
+               IFNULL(`count`,0) AS child_count,
+               IFNULL(`for_percentage`,0) AS for_percentage,
+               IFNULL(`order`,0) AS sort_order,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt
+        FROM `groups`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other groups with the same parent. description omitted.</summary>
+    public const string SelectCpGroupsParentSiblings = """
+        SELECT `id`, `value`, `for_backend`, `for_guests`, `for_registrated`, `unblocked`, `parent`, `level`
+        FROM `groups`
+        WHERE `parent` = @parent AND `id` <> @id
+        ORDER BY `level` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectErpSuppliers = """
         SELECT s.`id`, s.`name`, s.`storage_id`,
             IFNULL((SELECT SUM(`amount`) FROM `epc_erp_supplier_accounting`

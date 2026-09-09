@@ -86,6 +86,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1&leg_id=4", "/cp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
+    [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=compliance&soc2_id=8", "/erp/soc2-compliance-app?soc2_id=8")]
@@ -1603,6 +1604,38 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/auto-price-app",
                 "/CP/control/portal/epc_auto_price_engine?aprice_id=6"));
+    }
+
+    [Fact]
+    public void GroupsApp_OpenLoadsDescriptionExcerpt()
+    {
+        var root = FindRepoRoot();
+        var text = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpGroupsApp.razor"));
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"ugroup_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"ugroup_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpGroupsDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("No description excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No same-parent siblings yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-kpi", text, StringComparison.Ordinal);
+        Assert.Contains("PhpCpModulePageHeader", text, StringComparison.Ordinal);
+        Assert.Contains("ugroup_id=", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(\"/CP/users/usergroups\")\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/groups-app?ugroup_id=3#erp-row-3",
+            ErpRecordOpen.Href("/cp/groups-app", "ugroup_id", 3));
+        Assert.Equal(
+            "/cp/groups-app?ugroup_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/groups-app",
+                "/CP/users/usergroups?ugroup_id=3"));
     }
 
     [Fact]

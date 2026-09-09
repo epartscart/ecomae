@@ -3802,7 +3802,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only groups digest. PHP user_groups remains authoritative."
+                note = "Read-only groups digest. Open ?ugroup_id= loads 280-char description excerpt plus same-parent siblings. Tree save stays on the Classic twin."
             });
         });
 
