@@ -10942,7 +10942,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for quality digest.");
             var result = await dashboards.BuildErpQualityDigestAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", plans = result.Plans, orders = result.Orders, ncrs = result.Ncrs, count = result.Count, openOrderCount = result.OpenOrderCount, openNcrCount = result.OpenNcrCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_qm_plan/order/ncr. PHP quality tab remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", plans = result.Plans, orders = result.Orders, ncrs = result.Ncrs, count = result.Count, openOrderCount = result.OpenOrderCount, openNcrCount = result.OpenNcrCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_qm_plan/order/ncr. Open ?ncr_id= loads corrective-action excerpt and closed time. NCR update writes on ASP.NET. Order create/record and NCR create stay PHP." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpRfid, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>

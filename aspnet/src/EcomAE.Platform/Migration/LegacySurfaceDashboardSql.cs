@@ -7765,6 +7765,36 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened NCR (Open key <c>ncr_id</c>, remapped by <c>qv=ncr</c>). corrective_action is a 280-char excerpt. Surfaces time_closed hidden from the list.</summary>
+    public const string SelectErpQmNcrDetail = """
+        SELECT `id`, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`severity`,'minor') AS severity,
+               IFNULL(`disposition`,'') AS disposition,
+               IFNULL(`status`,'open') AS status,
+               CHAR_LENGTH(IFNULL(`corrective_action`,'')) AS action_len,
+               LEFT(IFNULL(`corrective_action`,''), 280) AS action_excerpt,
+               IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_closed`,0) AS time_closed
+        FROM `epc_qm_ncr`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other NCRs with the same status. corrective_action / time_closed omitted.</summary>
+    public const string SelectErpQmNcrStatusSiblings = """
+        SELECT `id`, IFNULL(`order_id`,0) AS order_id,
+               IFNULL(`title`,'') AS title,
+               IFNULL(`severity`,'minor') AS severity,
+               IFNULL(`disposition`,'') AS disposition,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_qm_ncr`
+        WHERE IFNULL(`status`,'open') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpRfidTags = """
         SELECT `id`, IFNULL(`rfid_epc`,'') AS rfid_epc,
                IFNULL(`sku`,'') AS sku,

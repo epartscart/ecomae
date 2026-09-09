@@ -869,6 +869,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_proc_category", LegacySurfaceDashboardSql.SelectErpProcCategories, StringComparison.Ordinal);
         Assert.Contains("epc_qm_plan", LegacySurfaceDashboardSql.SelectErpQmPlans, StringComparison.Ordinal);
         Assert.DoesNotContain("corrective_action", LegacySurfaceDashboardSql.SelectErpQmNcrs, StringComparison.Ordinal);
+        Assert.DoesNotContain("time_closed", LegacySurfaceDashboardSql.SelectErpQmNcrs, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`corrective_action`,''), 280)", LegacySurfaceDashboardSql.SelectErpQmNcrDetail, StringComparison.Ordinal);
+        Assert.Contains("time_closed", LegacySurfaceDashboardSql.SelectErpQmNcrDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpQmNcrDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("corrective_action", LegacySurfaceDashboardSql.SelectErpQmNcrStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("time_closed", LegacySurfaceDashboardSql.SelectErpQmNcrStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpQmNcrStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpQmNcrStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_rfid_tags", LegacySurfaceDashboardSql.SelectErpRfidTags, StringComparison.Ordinal);
         Assert.Contains("epc_rfid_scan_sessions", LegacySurfaceDashboardSql.SelectErpRfidSessions, StringComparison.Ordinal);
         Assert.DoesNotContain("time_completed", LegacySurfaceDashboardSql.SelectErpRfidSessions, StringComparison.Ordinal);

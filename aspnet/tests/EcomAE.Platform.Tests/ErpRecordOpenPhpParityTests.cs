@@ -147,6 +147,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=movements&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
     [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=ledger&epc_erp_shell=1&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
     [InlineData("/CP/shop/finance/epc_inventory_forecast?inv_forecast_id=23", "/erp/inventory-forecast-app?inv_forecast_id=23")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=production&tab=quality&ncr_id=24", "/erp/quality-app?ncr_id=24")]
+    [InlineData("/CP/shop/finance/erp?area=production&tab=quality&epc_erp_shell=1&ncr_id=24", "/erp/quality-app?ncr_id=24")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/finance/erp?area=inventory&tab=rfid&epc_erp_shell=1&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
@@ -2869,6 +2871,49 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/cash-accounts-app?tab=cash_forecast",
                 "/ERP/?epc_erp_shell=1&area=banking&tab=cash_forecast"));
+    }
+
+    [Fact]
+    public void QualityApp_OpenLoadsCorrectiveExcerptAndRemapsByNcrView()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpQualityApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpQualityNcrDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"ncr_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ncr_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"ncr_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ActionExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("TimeClosed", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("NCR update writes stay here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/quality/ncr-update", razor, StringComparison.Ordinal);
+        Assert.Contains("qv=orders&amp;order_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("qv=plans&amp;plan_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("company_id", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/quality-app?qv=ncr&ncr_id=24#erp-row-24",
+            ErpRecordOpen.Href("/erp/quality-app?qv=ncr", "ncr_id", 24));
+        Assert.Equal(
+            "/erp/quality-app?ncr_id=24",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/quality-app",
+                "/ERP/?epc_erp_shell=1&area=production&tab=quality&ncr_id=24"));
+        Assert.Equal(
+            "/erp/quality-app?order_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/quality-app",
+                "/ERP/?epc_erp_shell=1&area=production&tab=quality&order_id=5"));
     }
 
     [Fact]
