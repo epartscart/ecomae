@@ -899,6 +899,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpPerformanceReviewDetailResult> BuildErpPerformanceReviewDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpProductInfoDigestResult> BuildErpProductInfoDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened report schedule (Open key <c>rsched_id</c>) plus same-type siblings. recipients/body/subject/filters omitted.</summary>
+    Task<ErpReportScheduleDetailResult> BuildErpReportScheduleDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default);
 

@@ -8375,6 +8375,43 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened report schedule. recipients/body/subject/filters omitted.</summary>
+    public const string SelectErpReportScheduleDetail = """
+        SELECT `id`, IFNULL(`report_name`,'') AS report_name,
+               IFNULL(`report_type`,'') AS report_type,
+               IFNULL(`frequency`,'monthly') AS frequency,
+               IFNULL(`day_of_week`,1) AS day_of_week,
+               IFNULL(`day_of_month`,1) AS day_of_month,
+               IFNULL(`time_of_day`,'08:00') AS time_of_day,
+               IFNULL(`format`,'pdf') AS format,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`last_status`,'') AS last_status,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created,
+               IFNULL(DATE_FORMAT(`last_sent_at`,'%Y-%m-%d %H:%i'),'') AS last_sent_at
+        FROM `epc_report_schedules`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other schedules of the same type. recipients/body omitted.</summary>
+    public const string SelectErpReportScheduleTypeSiblings = """
+        SELECT `id`, IFNULL(`report_name`,'') AS report_name,
+               IFNULL(`report_type`,'') AS report_type,
+               IFNULL(`frequency`,'monthly') AS frequency,
+               IFNULL(`day_of_week`,1) AS day_of_week,
+               IFNULL(`day_of_month`,1) AS day_of_month,
+               IFNULL(`time_of_day`,'08:00') AS time_of_day,
+               IFNULL(`format`,'pdf') AS format,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`last_status`,'') AS last_status,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_report_schedules`
+        WHERE IFNULL(`report_type`,'') = @report_type AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpPrjaBudgets = """
         SELECT `id`, IFNULL(`project_id`,0) AS project_id,
                IFNULL(`category`,'general') AS category,
