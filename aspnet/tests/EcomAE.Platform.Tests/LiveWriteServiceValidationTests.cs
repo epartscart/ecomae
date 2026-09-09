@@ -982,6 +982,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bulkReviewDb.Succeeded);
         Assert.Equal("db", bulkReviewDb.Code);
 
+        var ftBad = await new CpFreeToolsWriteService(new ConfiguredNeverOpened())
+            .ToggleAsync(new CpFreeToolsToggleRequest("", true));
+        Assert.False(ftBad.Succeeded);
+        Assert.Equal("invalid", ftBad.Code);
+
+        var ftDb = await new CpFreeToolsWriteService(new UnconfiguredConnections())
+            .ToggleAsync(new CpFreeToolsToggleRequest("vat", true));
+        Assert.False(ftDb.Succeeded);
+        Assert.Equal("db", ftDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

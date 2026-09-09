@@ -9673,9 +9673,80 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_free_tool_accounts/saves/settings KPIs + accounts. Open ?account_id= loads last-login plus saved-tool titles. token/pass_hash/del_code_hash/payload omitted. PHP free tools admin remains authoritative."
+                note = "Read-only epc_free_tool_accounts/saves/settings KPIs + accounts. Open ?account_id= loads last-login plus saved-tool titles. token/pass_hash/del_code_hash/payload omitted. toggle POST /cp/free-tools/write when confirmWrites=true. Schema-ensure stays Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpFreeToolsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpFreeToolsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Free tools write is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/free-tools-app", "Admin CP capability required for free-tools write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpFreeToolsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var tool = body.Tool;
+            var active = body.Active;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                tool = LiveWriteFormBinder.Text(form, "tool");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "toggle";
+            }
+
+            if (confirm && key is "toggle" or "free_tools_toggle")
+            {
+                var written = await writes.ToggleAsync(new CpFreeToolsToggleRequest(tool, active), cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/free-tools-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "toggle" or "free_tools_toggle",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Schema-ensure stays Classic."
+                    : "Dry-run. Set confirmWrites=true to toggle the free tool.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelConfigSandbox, async (
             HttpContext context,
@@ -12176,4 +12247,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false,
         long UploadId = 0,
         string? Notes = null);
+    private sealed record CpFreeToolsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? Tool = null,
+        bool Active = false);
 }
