@@ -34,7 +34,7 @@ public static class PhpVsAspNetRemovalMatrix
         Row("sf-pay-order", "storefront", "content/shop/finance/pay_for_order.php", "/shop/finance/pay_for_order", "/storefront/payment-app", "aspnet-routed", "aspnet", "Demo go_to_pay + notify + pay_for_order are ASP.NET-live. Live acquirer APIs stay unconfigured like PHP demo stubs."),
         Row("sf-umapi", "storefront", "content/umapi_catalog.php", "/umapi_catalog", "/en/umapi_catalog", "aspnet-digest", "php", "UMAPI miss-fill stays PHP."),
         Row("sf-ucats", "storefront", "content/shop/ucats", "/shop/ucats", "/storefront/app", "aspnet-hub", "php", "UCATS product-detail twins are hub-only."),
-        Row("sf-workshop-gms", "storefront", "content/shop/workshop/garage_manager_portal.php", "/shop/workshop", "/storefront/garage-manager-app", "aspnet-digest", "php", "GMS board is thin; portal writes stay PHP."),
+        Row("sf-workshop-gms", "storefront", "content/shop/workshop/garage_manager_portal.php", "/shop/workshop", "/storefront/garage-manager-app", "aspnet-digest", "php", "Public book inserts epc_ws_jobs and staff appointment inserts epc_ws_appointments on ASP.NET. Seed and schema-ensure stay Classic."),
 
         // CP shop families
         Row("cp-orders", "cp", "cp/content/shop/orders + order_process", "/CP/shop/orders/orders", "/cp/orders", "aspnet-digest", "aspnet", "OMS item/items status, update_item/update_items (including warehouse reprice + customer-group sell markup), refresh_item_cost, message, courier, delete, comment, viewed, supplier fulfillment stage, and pay-refund are ASP.NET-live. Refund email stays PHP."),

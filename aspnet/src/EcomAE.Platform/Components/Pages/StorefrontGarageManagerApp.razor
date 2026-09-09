@@ -42,16 +42,26 @@
                     <a class="btn btn-default" href="@StorefrontAspNetCanonical.AutoWorkshop" style="margin-left:.4rem">Public book / track</a>
                     <a class="btn btn-default" href="@StorefrontAspNetCanonical.GarageLogin" style="margin-left:.4rem">Customer garage</a>
                 </p>
+                @if (!string.IsNullOrWhiteSpace(_flashOk))
+                {
+                    <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#ecfdf3;border:1px solid #86efac;color:#166534">@_flashOk</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(_flashErr))
+                {
+                    <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
+                }
                 <div class="panel panel-primary">
                     <div class="panel-heading">New appointment</div>
                     <div class="panel-body">
                         <form method="post" action="@PhpWorkshopPortal.ManagerWriteHref">
+                            <input type="hidden" name="confirmWrites" value="true" />
                             <label for="customer_name">Customer name</label>
                             <input id="customer_name" class="form-control" name="customer_name" required />
                             <label for="plate">Plate</label>
                             <input id="plate" class="form-control" name="plate" required />
                             <button type="submit" class="btn btn-ar btn-primary" style="margin-top:10px;">Create appointment</button>
                         </form>
+                        <p style="margin:.75rem 0 0;color:#64748b;font-size:.85rem">This page does not invent a send.</p>
                     </div>
                 </div>
             }
@@ -62,6 +72,8 @@
 @code {
     private string _brand = "eParts Cart";
     private bool _isStaff;
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -71,6 +83,8 @@
             return;
         }
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isStaff = session.Kind == LegacySessionKind.Admin || session.HasBackendAccess;
