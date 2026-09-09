@@ -10822,9 +10822,80 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_marketplace_apps/installs/reviews KPIs + apps. Open ?app_id= loads a 280-char description excerpt plus installs/reviews. features/config/review_text omitted. Install/review writes stay PHP."
+                note = "Read-only epc_marketplace_apps/installs/reviews KPIs + apps. Open ?app_id= loads a 280-char description excerpt plus installs/reviews. features/config/review_text omitted. install / uninstall POST /cp/marketplace-apps/write when confirmWrites=true. Review, config, and seed stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpMarketplaceAppsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpMarketplaceAppsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/marketplace-apps-app", "Admin CP capability required for marketplace-apps write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpMarketplaceAppsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var appId = body.AppId;
+            var siteKey = body.SiteKey;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                appId = LiveWriteFormBinder.Long(form, "app_id", "id");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "install";
+            }
+
+            if (confirm && key is "install")
+            {
+                var written = await writes.InstallAsync(new CpMarketplaceInstallRequest(appId, siteKey), cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/marketplace-apps-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "uninstall")
+            {
+                var written = await writes.UninstallAsync(new CpMarketplaceInstallRequest(appId, siteKey), cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/marketplace-apps-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "install" or "uninstall",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Review, config, and seed stay Classic."
+                    : "Dry-run. Set confirmWrites=true to install or uninstall a marketplace app.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelNotifications, async (
             HttpContext context,
@@ -13000,6 +13071,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long Id = 0);
+    private sealed record CpMarketplaceAppsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long AppId = 0,
+        string? SiteKey = null);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(

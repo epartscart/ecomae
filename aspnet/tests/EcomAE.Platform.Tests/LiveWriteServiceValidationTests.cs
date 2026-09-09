@@ -1212,6 +1212,31 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(sandDiscardDb.Succeeded);
         Assert.Equal("db", sandDiscardDb.Code);
 
+        var mktInstBad = await new CpMarketplaceAppsWriteService(new ConfiguredNeverOpened())
+            .InstallAsync(new CpMarketplaceInstallRequest(0, "epartscart"));
+        Assert.False(mktInstBad.Succeeded);
+        Assert.Equal("invalid", mktInstBad.Code);
+
+        var mktInstSiteBad = await new CpMarketplaceAppsWriteService(new ConfiguredNeverOpened())
+            .InstallAsync(new CpMarketplaceInstallRequest(4, ""));
+        Assert.False(mktInstSiteBad.Succeeded);
+        Assert.Equal("invalid", mktInstSiteBad.Code);
+
+        var mktInstDb = await new CpMarketplaceAppsWriteService(new UnconfiguredConnections())
+            .InstallAsync(new CpMarketplaceInstallRequest(4, "epartscart"));
+        Assert.False(mktInstDb.Succeeded);
+        Assert.Equal("db", mktInstDb.Code);
+
+        var mktUninstBad = await new CpMarketplaceAppsWriteService(new ConfiguredNeverOpened())
+            .UninstallAsync(new CpMarketplaceInstallRequest(0, "epartscart"));
+        Assert.False(mktUninstBad.Succeeded);
+        Assert.Equal("invalid", mktUninstBad.Code);
+
+        var mktUninstDb = await new CpMarketplaceAppsWriteService(new UnconfiguredConnections())
+            .UninstallAsync(new CpMarketplaceInstallRequest(4, "epartscart"));
+        Assert.False(mktUninstDb.Succeeded);
+        Assert.Equal("db", mktUninstDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
