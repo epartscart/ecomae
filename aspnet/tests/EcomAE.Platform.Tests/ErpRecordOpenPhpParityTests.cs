@@ -1976,7 +1976,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"plugin_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("DataValueExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("same-frontend siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Activate or lock stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("Lock, delete, and backend 2FA (plugin 10) activate stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/plugins-manager/activate", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"flag_value\"", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);

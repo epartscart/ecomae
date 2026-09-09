@@ -20,12 +20,21 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Installed plugins from tenant tables. Activate or lock stays on the Classic twin.</p>
+                <p>Installed plugins from tenant tables. Activate writes here. Lock, delete, and backend 2FA (plugin 10) activate stay on the Classic twin.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/plugins-manager-app" IsAdmin="_isAdmin" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
 
     @if (_opened is not null)
     {
@@ -45,7 +54,24 @@
                         <dt>Frontend</dt><dd>@_opened.IsFrontend.ToString(CultureInfo.InvariantCulture)</dd>
                         <dt>Lock</dt><dd>@_opened.ControlLock.ToString(CultureInfo.InvariantCulture)</dd>
                     </dl>
-                    <p class="text-muted" style="margin:.85rem 0 0">Activate or lock stays on the Classic twin.</p>
+                    @if (_opened.ControlLock != 0)
+                    {
+                        <p class="text-muted" style="margin:.85rem 0 0">This plugin is locked. Lock and delete stay on the Classic twin.</p>
+                    }
+                    else if (_opened.Id == 10 && _opened.Activated == 0)
+                    {
+                        <p class="text-muted" style="margin:.85rem 0 0">Backend 2FA activate stays on the Classic twin.</p>
+                    }
+                    else
+                    {
+                        <form method="post" action="/cp/plugins-manager/activate" class="form-inline" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <input type="hidden" name="plugin_id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <input type="hidden" name="flag_value" value="@(_opened.Activated == 0 ? "1" : "0")" />
+                            <button type="submit" class="btn btn-sm @(_opened.Activated == 0 ? "btn-primary" : "btn-default")">@(_opened.Activated == 0 ? "Activate" : "Deactivate")</button>
+                        </form>
+                    }
                     @if (!string.IsNullOrWhiteSpace(_opened.DataValueExcerpt))
                     {
                         <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DataValueExcerpt</pre>
@@ -112,12 +138,13 @@
                                 <th>Frontend</th>
                                 <th>Lock</th>
                                 <th></th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                         @if (_rows.Count == 0)
                         {
-                            <tr><td colspan="7">No records yet.</td></tr>
+                            <tr><td colspan="8">No records yet.</td></tr>
                         }
                         else
                         {
@@ -131,6 +158,26 @@
                                     <td>@row.IsFrontend.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@row.ControlLock.ToString(CultureInfo.InvariantCulture)</td>
                                     <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "plugin_id", row.Id)">Open</a></td>
+                                    <td>
+                                        @if (row.ControlLock != 0)
+                                        {
+                                            <span class="text-muted">Locked</span>
+                                        }
+                                        else if (row.Id == 10 && row.Activated == 0)
+                                        {
+                                            <span class="text-muted">2FA: Classic</span>
+                                        }
+                                        else
+                                        {
+                                            <form method="post" action="/cp/plugins-manager/activate" style="display:inline">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="@_listHref" />
+                                                <input type="hidden" name="plugin_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <input type="hidden" name="flag_value" value="@(row.Activated == 0 ? "1" : "0")" />
+                                                <button type="submit" class="btn btn-xs @(row.Activated == 0 ? "btn-primary" : "btn-default")">@(row.Activated == 0 ? "Activate" : "Deactivate")</button>
+                                            </form>
+                                        }
+                                    </td>
                                 </tr>
                             }
                         }
@@ -146,6 +193,8 @@
     private const string _phpTab = "/CP/plugins/plugins_manager";
     private const string _listHref = "/cp/plugins-manager-app";
     private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
     private CpPluginsManagerSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpPluginsManagerRowDigest> _rows = [];
     private long _openedId;
@@ -168,6 +217,8 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "plugin_id");
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)

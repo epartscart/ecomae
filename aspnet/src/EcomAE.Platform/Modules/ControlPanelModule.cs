@@ -8658,9 +8658,67 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only plugins KPIs + plugins (data_value omitted on the list). Open ?plugin_id= loads a 280-char data_value excerpt. Activate/lock stay Classic. PHP Plugins manager remains authoritative."
+                note = "Read-only plugins KPIs + plugins (data_value omitted on the list). Open ?plugin_id= loads a 280-char data_value excerpt. Activate POST /cp/plugins-manager/activate when confirmWrites=true. Delete, lock, and 2FA plugin 10 activate stay Classic."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.ControlPanelPluginsActivate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPluginsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/plugins-manager-app", "Admin CP capability required for plugin activate.");
+            }
+
+            long pluginId = 0;
+            string? pluginsList = null;
+            var flagValue = 0;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                pluginId = LiveWriteFormBinder.Long(form, "plugin_id", "pluginId");
+                pluginsList = LiveWriteFormBinder.Text(form, "plugins_list", "pluginsList");
+                flagValue = LiveWriteFormBinder.Int(form, "flag_value", "flagValue");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPluginsActivateBody>(context, cancellationToken) ?? new();
+                pluginId = body.PluginId;
+                pluginsList = body.PluginsList;
+                flagValue = body.FlagValue;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to activate or deactivate the plugin.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ActivateAsync(new CpPluginsActivateRequest(pluginsList, pluginId, flagValue), cancellationToken);
+            var dest = written.Id > 0
+                ? EcomAeRoutes.ControlPanelPluginsManagerApp + "?plugin_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                : EcomAeRoutes.ControlPanelPluginsManagerApp;
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelTemplatesManager, async (
             HttpContext context,
@@ -10372,5 +10430,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Ids = null,
         string? ModulesList = null,
         string? LangCode = null,
+        bool ConfirmWrites = false);
+    private sealed record CpPluginsActivateBody(
+        long PluginId = 0,
+        string? PluginsList = null,
+        int FlagValue = 0,
         bool ConfirmWrites = false);
 }
