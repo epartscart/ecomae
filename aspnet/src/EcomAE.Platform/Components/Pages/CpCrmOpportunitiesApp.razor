@@ -194,6 +194,37 @@
                 </div>
             </div>
         </div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">New CRM project</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/crm/projects/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "opp_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="save_project" />
+                        <input type="hidden" name="id" value="0" />
+                        <label>Name <input type="text" name="name" maxlength="255" /></label>
+                        <label>Opp <input type="text" name="opportunity_id" inputmode="numeric" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "0")" /></label>
+                        <label>Order <input type="text" name="order_id" inputmode="numeric" value="0" /></label>
+                        <label>Status
+                            <select name="status">
+                                <option value="planned" selected>planned</option>
+                                <option value="active">active</option>
+                                <option value="on_hold">on_hold</option>
+                                <option value="done">done</option>
+                                <option value="cancelled">cancelled</option>
+                            </select>
+                        </label>
+                        <label>Progress % <input type="text" name="progress_pct" inputmode="numeric" value="0" /></label>
+                        <label>Start <input type="text" name="start_date" /></label>
+                        <label>End <input type="text" name="end_date" /></label>
+                        <label>Notes <input type="text" name="notes" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Create project</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Project tasks stay Classic.</p>
+                </div>
+            </div>
+        </div>
     }
 
     <div class="col-lg-12">
