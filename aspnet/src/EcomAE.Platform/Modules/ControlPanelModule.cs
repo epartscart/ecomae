@@ -11009,10 +11009,84 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_social_accounts/drafts. Open ?social_id= loads last-test plus draft caption excerpts. encrypted_credentials omitted. Publish/save remain portal_social dry-run."
+                note = "Read-only epc_social_accounts/drafts. Open ?social_id= loads last-test plus draft caption excerpts. encrypted_credentials omitted. save_draft POST /cp/social-hub/write when confirmWrites=true. Publish stay Classic."
             });
         });
 
+        endpoints.MapPost(EcomAeRoutes.CpSocialHubWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpSocialHubWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/social-hub-app", "Admin CP capability required for social-hub write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpSocialHubWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var siteKey = body.SiteKey;
+            var platform = body.Platform;
+            var title = body.Title;
+            var caption = body.Caption;
+            var hashtags = body.Hashtags;
+            var mediaUrl = body.MediaUrl;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "draft_id");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                platform = LiveWriteFormBinder.Text(form, "platform");
+                title = LiveWriteFormBinder.Text(form, "title");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                hashtags = LiveWriteFormBinder.Text(form, "hashtags");
+                mediaUrl = LiveWriteFormBinder.Text(form, "media_url", "mediaUrl");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "save_draft";
+            }
+
+            if (confirm && key is "save_draft" or "social_save_draft")
+            {
+                var written = await writes.SaveDraftAsync(
+                    new CpSocialHubSaveDraftRequest(
+                        id, siteKey, platform, title, caption, hashtags, mediaUrl,
+                        SuperCpHostGate.IsAllowed(context),
+                        context.Request.Host.Host),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/social-hub-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_draft" or "social_save_draft",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Publish stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the draft.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelTenantFeatures, async (
             HttpContext context,
@@ -12178,6 +12252,16 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? FromName = null,
         string? FromEmail = null,
         bool ConfirmWrites = false);
+    private sealed record CpSocialHubWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? SiteKey = null,
+        string? Platform = null,
+        string? Title = null,
+        string? Caption = null,
+        string? Hashtags = null,
+        string? MediaUrl = null);
     private sealed record CpTenantsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
