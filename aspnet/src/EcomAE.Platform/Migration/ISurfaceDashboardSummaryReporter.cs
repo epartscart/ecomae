@@ -927,6 +927,12 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpDocAttachmentDetailResult> BuildErpDocAttachmentDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpInventoryReportDigestResult> BuildErpInventoryReportDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened inventory category (Open key <c>invrep_cat_id</c>) plus same-level siblings. company_id is hidden from the list.</summary>
+    Task<ErpInventoryReportCategoryDetailResult> BuildErpInventoryReportCategoryDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened inventory snapshot (Open key <c>invrep_snap_id</c>) plus same-category siblings. company_id is hidden from the list.</summary>
+    Task<ErpInventoryReportSnapshotDetailResult> BuildErpInventoryReportSnapshotDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only order→ERP pipeline log (PHP <c>epc_order_erp_log</c>; details JSON omitted).</summary>
     Task<ErpOrderPipelineListResult> ListErpOrderPipelineLogAsync(int limit, CancellationToken cancellationToken = default);
 

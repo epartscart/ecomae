@@ -25020,6 +25020,146 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpInventoryReportCategoryDetailResult> BuildErpInventoryReportCategoryDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpInventoryReportCategoryDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryReportCategoryDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpInventoryReportCategoryDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "parent_id"),
+                        ReadStr(reader, "code"),
+                        ReadStr(reader, "name"),
+                        ReadI32(reader, "level"),
+                        ReadI32(reader, "sort_order"),
+                        ReadI32(reader, "is_active") == 1,
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Inventory category not found.");
+            }
+
+            var siblings = new List<ErpInventoryReportCategoryDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryReportCategoryLevelSiblings;
+                AddParameter(cmd, "@level", header.Level);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "parent_id"),
+                        ReadStr(reader, "code"),
+                        ReadStr(reader, "name"),
+                        ReadI32(reader, "level"),
+                        ReadI32(reader, "sort_order"),
+                        ReadI32(reader, "is_active") == 1,
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpInventoryReportSnapshotDetailResult> BuildErpInventoryReportSnapshotDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpInventoryReportSnapshotDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryReportSnapshotDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpInventoryReportSnapshotDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "snapshot_date"),
+                        ReadI64(reader, "category_id"),
+                        ReadI32(reader, "total_skus"),
+                        ReadDec(reader, "total_qty"),
+                        ReadDec(reader, "total_value"),
+                        ReadDec(reader, "avg_age_days"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Inventory snapshot not found.");
+            }
+
+            var siblings = new List<ErpInventoryReportSnapshotDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryReportSnapshotCategorySiblings;
+                AddParameter(cmd, "@category_id", header.CategoryId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "snapshot_date"),
+                        ReadI64(reader, "category_id"),
+                        ReadI32(reader, "total_skus"),
+                        ReadDec(reader, "total_qty"),
+                        ReadDec(reader, "total_value"),
+                        ReadDec(reader, "avg_age_days"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     private async Task<List<ErpQmPlanDigest>> ReadQmPlansAsync(System.Data.Common.DbConnection connection, int limit, CancellationToken cancellationToken)
     {
         var plans = new List<ErpQmPlanDigest>();

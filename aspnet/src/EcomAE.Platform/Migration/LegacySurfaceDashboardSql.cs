@@ -8702,6 +8702,66 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened inventory category (Open key <c>invrep_cat_id</c>). company_id is hidden from the list.</summary>
+    public const string SelectErpInventoryReportCategoryDetail = """
+        SELECT `id`, IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`level`,1) AS level,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_categories`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other categories at the same level. company_id omitted.</summary>
+    public const string SelectErpInventoryReportCategoryLevelSiblings = """
+        SELECT `id`, IFNULL(`parent_id`,0) AS parent_id,
+               IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`level`,1) AS level,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`is_active`,1) AS is_active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_categories`
+        WHERE IFNULL(`level`,1) = @level AND `id` <> @id
+        ORDER BY `sort_order`, `name`, `id`
+        LIMIT 50
+        """;
+
+    /// <summary>Opened inventory snapshot (Open key <c>invrep_snap_id</c>). company_id is hidden from the list.</summary>
+    public const string SelectErpInventoryReportSnapshotDetail = """
+        SELECT `id`, IFNULL(`snapshot_date`,'') AS snapshot_date,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`total_skus`,0) AS total_skus,
+               IFNULL(`total_qty`,0) AS total_qty,
+               IFNULL(`total_value`,0) AS total_value,
+               IFNULL(`avg_age_days`,0) AS avg_age_days,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_snapshots`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other snapshots for the same category. company_id omitted.</summary>
+    public const string SelectErpInventoryReportSnapshotCategorySiblings = """
+        SELECT `id`, IFNULL(`snapshot_date`,'') AS snapshot_date,
+               IFNULL(`category_id`,0) AS category_id,
+               IFNULL(`total_skus`,0) AS total_skus,
+               IFNULL(`total_qty`,0) AS total_qty,
+               IFNULL(`total_value`,0) AS total_value,
+               IFNULL(`avg_age_days`,0) AS avg_age_days,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_inventory_snapshots`
+        WHERE IFNULL(`category_id`,0) = @category_id AND `id` <> @id
+        ORDER BY `snapshot_date` DESC, `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>
     /// PHP <c>epc_erp_dashboard</c> / <c>epc_erp_order_sum_sql</c> purchase ex-VAT:
     /// finished <c>shop_orders</c> COGS (<c>t2_price_purchase * count_need</c>) on counting
