@@ -21,19 +21,101 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Auto-price rules from tenant tables. Edit and compare-run stay on the Classic twin.</p>
+                <p>Open a row for the 280-character notes excerpt (<code>?aprice_id=</code>). Edit and compare-run stay on the Classic twin.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/auto-price-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/auto-price-app" IsAdmin="_isAdmin" />
+
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Auto-price KPIs">
+        <div class="kpi"><div class="lbl">Active rules</div><div class="val">@_summary.ActiveRules.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Active sources</div><div class="val">@_summary.ActiveSources.ToString(CultureInfo.InvariantCulture)</div></div>
+        <div class="kpi"><div class="lbl">Compare runs</div><div class="val">@_summary.CompareRuns.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    @if (_opened is not null)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @OpenedCaption
+                    <a class="btn btn-xs btn-default pull-right" href="@_listHref">Close</a>
+                </div>
+                <div class="panel-body">
+                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                        <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SiteKey) ? "—" : _opened.SiteKey)</dd>
+                        <dt>Rule</dt><dd>@(string.IsNullOrWhiteSpace(_opened.RuleKey) ? "—" : _opened.RuleKey)</dd>
+                        <dt>Min margin</dt><dd>@_opened.MinMarginPercent.ToString("N2", CultureInfo.InvariantCulture) %</dd>
+                        <dt>Auto update</dt><dd>@(_opened.AutoUpdatePrices ? "yes" : "no")</dd>
+                        <dt>Cross-list</dt><dd>@(_opened.AutoCrossList ? "yes" : "no")</dd>
+                        <dt>Channels</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CrossListChannels) ? "—" : _opened.CrossListChannels)</dd>
+                        <dt>Schedule h</dt><dd>@_opened.ScheduleHours.ToString(CultureInfo.InvariantCulture)</dd>
+                        <dt>Active</dt><dd>@(_opened.Active ? "yes" : "no")</dd>
+                    </dl>
+                    @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
+                    {
+                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.NotesExcerpt</pre>
+                        @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
+                        {
+                            <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars). Edit stays on the Classic twin.</p>
+                        }
+                    }
+                    else
+                    {
+                        <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Same site</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Rule</th>
+                                    <th>Active</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_openedSiblings.Count == 0)
+                                {
+                                    <tr><td colspan="4">No same-site siblings yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var sib in _openedSiblings)
+                                    {
+                                        <tr>
+                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(sib.RuleKey) ? "—" : sib.RuleKey)</td>
+                                            <td>@(sib.Active ? "yes" : "no")</td>
+                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "aprice_id", sib.Id)">Open</a></td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Rules</div>
             <div class="panel-body">
-                <p class="help-block">@_summary.ActiveRules.ToString(CultureInfo.InvariantCulture) active rules · @_summary.ActiveSources.ToString(CultureInfo.InvariantCulture) active sources · @_summary.CompareRuns.ToString(CultureInfo.InvariantCulture) compare runs.</p>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                         <thead>
                             <tr>
                                 <th>ID</th>
@@ -44,18 +126,23 @@
                                 <th>Schedule h</th>
                                 <th>Active</th>
                                 <th>Updated</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (_rules.Count == 0)
+                        @if (!_isAdmin)
                         {
-                            <tr><td colspan="8">No records yet.</td></tr>
+                            <tr><td colspan="9">Sign in for live data.</td></tr>
+                        }
+                        else if (_rules.Count == 0)
+                        {
+                            <tr><td colspan="9">No records yet.</td></tr>
                         }
                         else
                         {
                             @foreach (var r in _rules)
                             {
-                                <tr>
+                                <tr id="erp-row-@r.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(r.Id, _openedId)">
                                     <td>@r.Id.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@(string.IsNullOrWhiteSpace(r.SiteKey) ? "—" : r.SiteKey)</td>
                                     <td>@(string.IsNullOrWhiteSpace(r.RuleKey) ? "—" : r.RuleKey)</td>
@@ -64,6 +151,7 @@
                                     <td>@r.ScheduleHours.ToString(CultureInfo.InvariantCulture)</td>
                                     <td>@(r.Active ? "yes" : "no")</td>
                                     <td>@(r.UpdatedAt > 0 ? r.UpdatedAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "aprice_id", r.Id)">Open</a></td>
                                 </tr>
                             }
                         }
@@ -80,12 +168,22 @@
     private bool _isAdmin;
     private CpAutoPriceSummary _summary = new(0, 0, 0, "n/a", "");
     private IReadOnlyList<CpAutoPriceRuleDigest> _rules = [];
+    private string _listHref = "/cp/auto-price-app";
+    private long _openedId;
+    private CpAutoPriceRuleDetail? _opened;
+    private IReadOnlyList<CpAutoPriceRuleDigest> _openedSiblings = [];
+
+    private string OpenedCaption =>
+        !string.IsNullOrWhiteSpace(_opened?.RuleKey)
+            ? _opened.RuleKey
+            : (_openedId > 0 ? ("Rule #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "aprice_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -96,5 +194,11 @@
         var result = await Dashboards.BuildCpAutoPriceDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _rules = result.Rules;
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpAutoPriceDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Rule;
+            _openedSiblings = detail.Siblings;
+        }
     }
 }

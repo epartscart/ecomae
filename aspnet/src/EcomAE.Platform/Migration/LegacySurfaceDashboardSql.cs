@@ -2279,6 +2279,35 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened auto-price rule. notes is a short excerpt; config_json omitted.</summary>
+    public const string SelectCpAutoPriceRulesDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rule_key`,'') AS rule_key,
+               IFNULL(`min_margin_percent`,0) AS min_margin_percent,
+               IFNULL(`auto_update_prices`,0) AS auto_update_prices,
+               IFNULL(`auto_cross_list`,0) AS auto_cross_list,
+               IFNULL(`cross_list_channels`,'') AS cross_list_channels,
+               IFNULL(`schedule_hours`,0) AS schedule_hours,
+               IFNULL(`active`,0) AS active, IFNULL(`updated_at`,0) AS updated_at,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_auto_price_rules`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other auto-price rules for the same site. notes/config_json omitted.</summary>
+    public const string SelectCpAutoPriceRulesSiteSiblings = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`rule_key`,'') AS rule_key,
+               IFNULL(`min_margin_percent`,0) AS min_margin_percent,
+               IFNULL(`auto_update_prices`,0) AS auto_update_prices,
+               IFNULL(`schedule_hours`,0) AS schedule_hours,
+               IFNULL(`active`,0) AS active, IFNULL(`updated_at`,0) AS updated_at
+        FROM `epc_auto_price_rules`
+        WHERE `site_key` = @site_key AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>UAE tax KPIs — omits erp_summary/compliance_actions_json/pdf_url/passport.</summary>
     public const string SelectCpUaeTaxStats = """
         SELECT

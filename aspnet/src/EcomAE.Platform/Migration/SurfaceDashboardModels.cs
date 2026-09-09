@@ -1831,6 +1831,26 @@ public sealed record CpAutoPriceDigestResult(
     string Source,
     string Message);
 
+public sealed record CpAutoPriceRuleDetail(
+    long Id,
+    string SiteKey,
+    string RuleKey,
+    decimal MinMarginPercent,
+    bool AutoUpdatePrices,
+    bool AutoCrossList,
+    string CrossListChannels,
+    int ScheduleHours,
+    bool Active,
+    long UpdatedAt,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record CpAutoPriceRuleDetailResult(
+    CpAutoPriceRuleDetail? Rule,
+    IReadOnlyList<CpAutoPriceRuleDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpUaeTaxComplianceSummary(
     int LegislationCount,
     int VatAdvanceRows,

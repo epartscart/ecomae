@@ -6582,7 +6582,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_auto_price_rules KPIs + rules (config_json/notes/meta omitted). PHP epc_auto_price_engine remains authoritative."
+                note = "Read-only epc_auto_price_rules KPIs + rules. Open ?aprice_id= loads 280-char notes excerpt. config_json omitted. Edit and compare-run stay on the Classic twin."
             });
         });
 

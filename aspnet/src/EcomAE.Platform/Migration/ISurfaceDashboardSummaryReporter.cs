@@ -221,6 +221,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only auto-price rules (config_json/notes/meta omitted).</summary>
     Task<CpAutoPriceDigestResult> BuildCpAutoPriceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened auto-price rule (Open key <c>aprice_id</c>) plus same-site siblings. notes is a short excerpt; config_json omitted.</summary>
+    Task<CpAutoPriceRuleDetailResult> BuildCpAutoPriceDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only UAE tax legislation (erp_summary/pdf/passport omitted).</summary>
     Task<CpUaeTaxComplianceDigestResult> BuildCpUaeTaxComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
