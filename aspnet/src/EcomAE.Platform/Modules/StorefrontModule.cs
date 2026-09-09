@@ -2298,6 +2298,96 @@ public sealed class StorefrontModule : ISurfaceModule
             => MapCompareCookieAsync(context, validator, add: true, cancellationToken)).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontCompareRemove, (HttpContext context, ILegacySessionValidator validator, CancellationToken cancellationToken)
             => MapCompareCookieAsync(context, validator, add: false, cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.StorefrontRegister, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IStorefrontRegisterWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.UserId > 0)
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/storefront/account-summary-app",
+                    false,
+                    "You are already signed in.",
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "already", message = "You are already signed in.", session = SessionPayload(session) });
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<StorefrontRegisterBody>(context, cancellationToken)
+                       ?? new StorefrontRegisterBody();
+            var contactType = body.RegContactType;
+            var contact = body.RegContact;
+            var password = body.Password;
+            var passwordRepeat = body.PasswordRepeat;
+            var agreement = body.UsersAgreement;
+            var confirm = body.ConfirmWrites;
+            var variant = body.RegVariant ?? 1;
+            var fields = body.Fields is null
+                ? new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
+                : new Dictionary<string, string>(body.Fields, StringComparer.OrdinalIgnoreCase);
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                contactType = LiveWriteFormBinder.Text(form, "reg_contact_type", "regContactType");
+                contact = LiveWriteFormBinder.Text(form, "reg_contact", "regContact");
+                password = LiveWriteFormBinder.Text(form, "password");
+                passwordRepeat = LiveWriteFormBinder.Text(form, "password_repeat", "passwordRepeat");
+                agreement = LiveWriteFormBinder.Flag(form, "users_agreement", "usersAgreement");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                variant = LiveWriteFormBinder.Int(form, "reg_variant", "regVariant");
+                if (variant <= 0)
+                {
+                    variant = 1;
+                }
+
+                foreach (var item in form)
+                {
+                    if (!StorefrontCustomerWriteService.IsAllowedProfileKey(item.Key))
+                    {
+                        continue;
+                    }
+
+                    var value = LiveWriteFormBinder.Text(form, item.Key);
+                    if (value.Length > 0)
+                    {
+                        fields[item.Key] = value;
+                    }
+                }
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Set confirmWrites=true to create the account on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.RegisterAsync(
+                new StorefrontRegisterWriteRequest(
+                    contactType,
+                    contact,
+                    password,
+                    passwordRepeat,
+                    agreement,
+                    variant,
+                    context.Connection.RemoteIpAddress?.ToString(),
+                    fields),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                written.Ok ? "/storefront/login" : "/storefront/register-app",
+                written.Ok,
+                written.Message,
+                written.ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.StorefrontProfileSave, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2758,6 +2848,15 @@ public sealed class StorefrontModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record StorefrontGetArticleListBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoadReturnsDataBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record StorefrontRegisterBody(
+        string? RegContactType = null,
+        string? RegContact = null,
+        string? Password = null,
+        string? PasswordRepeat = null,
+        bool UsersAgreement = false,
+        int? RegVariant = 1,
+        IReadOnlyDictionary<string, string>? Fields = null,
+        bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadProcessBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record StorefrontBulkUploadHistoryUpdateBody(
         [property: JsonPropertyName("upload_id")] long? UploadId = null,

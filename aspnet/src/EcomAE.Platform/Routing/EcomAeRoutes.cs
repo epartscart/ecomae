@@ -1145,6 +1145,8 @@ public static class EcomAeRoutes
     public const string StorefrontProfileSave = "/storefront/profile/save";
     /// <summary>PHP <c>users/editform.php</c> password UPDATE. <c>confirmWrites=true</c> writes <c>md5(password+secret_succession)</c>.</summary>
     public const string StorefrontProfilePassword = "/storefront/profile/change-password";
+    /// <summary>PHP <c>content/users/register.php</c> quick register. <c>confirmWrites=true</c> writes users + group. Activation send stays Classic.</summary>
+    public const string StorefrontRegister = "/storefront/register";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_sendCode.php (writes=0).</summary>
     public const string StorefrontLoginSendCode = "/storefront/login/send-code";
     /// <summary>Wave B dry-run for PHP modules/login/code/frontAjax/ajax_checkCode.php (writes=0).</summary>
