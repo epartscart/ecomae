@@ -972,6 +972,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(apSkipDb.Succeeded);
         Assert.Equal("db", apSkipDb.Code);
 
+        var bulkReviewBad = await new CpBulkUploadWriteService(new ConfiguredNeverOpened())
+            .MarkReviewedAsync(new CpBulkUploadMarkReviewedRequest(0, 1, "Reviewed"));
+        Assert.False(bulkReviewBad.Succeeded);
+        Assert.Equal("invalid", bulkReviewBad.Code);
+
+        var bulkReviewDb = await new CpBulkUploadWriteService(new UnconfiguredConnections())
+            .MarkReviewedAsync(new CpBulkUploadMarkReviewedRequest(3, 1, "Reviewed"));
+        Assert.False(bulkReviewDb.Succeeded);
+        Assert.Equal("db", bulkReviewDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

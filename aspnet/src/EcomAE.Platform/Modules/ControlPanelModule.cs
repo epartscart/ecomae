@@ -7188,6 +7188,65 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.CpBulkUploadWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpBulkUploadWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/bulk-upload-app", "Admin CP capability required for bulk-upload write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpBulkUploadWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var uploadId = body.UploadId;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                uploadId = LiveWriteFormBinder.Long(form, "upload_id", "uploadId", "id");
+                notes = LiveWriteFormBinder.Text(form, "notes", "cp_notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "mark_reviewed" or "bulk_mark_reviewed")
+            {
+                var written = await writes.MarkReviewedAsync(
+                    new CpBulkUploadMarkReviewedRequest(uploadId, session.UserId, notes),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/bulk-upload-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "mark_reviewed" or "bulk_mark_reviewed",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Process, quote, and cart stay Classic."
+                    : key is "mark_reviewed" or "bulk_mark_reviewed"
+                        ? "Dry-run. Set confirmWrites=true to mark the upload reviewed."
+                        : "Dry-run. Set confirmWrites=true to mark the upload reviewed.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelUaeTaxCompliance, async (
             HttpContext context,
             int? limit,
@@ -12112,4 +12171,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         long ValidTo = 0,
         int Active = 1,
         bool ConfirmWrites = false);
+    private sealed record CpBulkUploadWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long UploadId = 0,
+        string? Notes = null);
 }
