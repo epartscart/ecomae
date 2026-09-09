@@ -21,10 +21,19 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Pipeline rows from tenant CRM tables. Stage edits stay on the Classic twin. Open a row for notes and activities.</p>
+                <p>Set a pipeline stage here. Save opportunity, convert, and quote email stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/crm-opportunities-app" IsAdmin="_isAdmin" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDetail is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
@@ -55,6 +64,31 @@
                     else
                     {
                         <p class="text-muted">No notes yet.</p>
+                    }
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="/cp/crm/opportunities/write" style="margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "opp_id", _openedDetail.Id)" />
+                            <input type="hidden" name="action" value="update_stage" />
+                            <input type="hidden" name="id" value="@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Stage
+                                <select name="stage">
+                                    @foreach (var st in _stages)
+                                    {
+                                        @if (string.Equals(st, _openedDetail.Stage, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@st" selected>@st</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@st">@st</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <button type="submit" class="btn btn-primary btn-sm">Set stage</button>
+                        </form>
                     }
                 </div>
             </div>
@@ -154,6 +188,9 @@
     private IReadOnlyList<CpCrmOpportunityDigest> _opportunities = [];
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private static readonly string[] _stages = ["prospect", "qualified", "proposal", "negotiation", "won", "lost"];
     private long _openedId;
     private CpCrmOpportunityDetail? _openedDetail;
     private IReadOnlyList<CpCrmOpportunityActivityDigest> _openedActivities = [];
@@ -176,6 +213,8 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         if (!_isAdmin)
         {
             return;

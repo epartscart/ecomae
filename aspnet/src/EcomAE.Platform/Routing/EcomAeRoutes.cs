@@ -220,6 +220,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrmOpportunities = "/cp/crm-opportunities";
     /// <summary>CP CRM opportunities Blazor list (JSON digest remains <see cref="ControlPanelCrmOpportunities"/>).</summary>
     public const string ControlPanelCrmOpportunitiesApp = "/cp/crm-opportunities-app";
+    /// <summary>CRM opportunity update_stage. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Save / convert stay Classic.</summary>
+    public const string CpCrmOpportunitiesWrite = "/cp/crm/opportunities/write";
     /// <summary>CP integrations / webhooks (secrets/events JSON omitted).</summary>
     public const string ControlPanelIntegrations = "/cp/integrations";
     /// <summary>CP integrations Blazor list (JSON digest remains <see cref="ControlPanelIntegrations"/>).</summary>
