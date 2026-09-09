@@ -79,6 +79,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpCashEntryListResult> ListErpCashEntriesAsync(int? accountId, int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened cash entry (Open key <c>entry_id</c>) plus same-type siblings. entry_type/counterparties are hidden from the list.</summary>
+    Task<ErpCashEntryDetailResult> BuildErpCashEntryDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpInvoiceListResult> ListErpInvoicesAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened e-invoice (Open key <c>inv_id</c>) plus same-status siblings. payment_terms/VAT/due are hidden from the list.</summary>

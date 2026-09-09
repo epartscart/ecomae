@@ -1399,7 +1399,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP cash/bank entries digest. PHP epc_erp_list_cash_entries remains authoritative."
+                note = "Read-only ERP cash/bank entries digest. Open ?entry_id= loads entry type, counterparties, and linked ids plus same-type siblings. Writes stay Classic."
             });
         });
 

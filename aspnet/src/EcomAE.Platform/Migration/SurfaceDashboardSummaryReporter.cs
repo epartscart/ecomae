@@ -2408,6 +2408,83 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpCashEntryDetailResult> BuildErpCashEntryDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpCashEntryDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCashEntryDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpCashEntryDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "account_id"),
+                        ReadStr(reader, "account_name"),
+                        ReadStr(reader, "account_type"),
+                        ReadI64(reader, "time"),
+                        ReadI32(reader, "direction"),
+                        ReadDec(reader, "amount"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "entry_type"),
+                        ReadStr(reader, "counterparty_type"),
+                        ReadI32(reader, "counterparty_id"),
+                        ReadI32(reader, "order_id"),
+                        ReadI32(reader, "purchase_id"),
+                        ReadI32(reader, "transfer_pair_id"),
+                        ReadI32(reader, "admin_id"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Cash entry not found.");
+            }
+
+            var siblings = new List<ErpCashEntryDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCashEntryTypeSiblings;
+                AddParameter(cmd, "@entry_type", header.EntryType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "account_id"),
+                        ReadStr(reader, "account_name"),
+                        ReadStr(reader, "account_type"),
+                        ReadI64(reader, "time"),
+                        ReadI32(reader, "direction"),
+                        ReadDec(reader, "amount"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "note")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpInvoiceListResult> ListErpInvoicesAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
