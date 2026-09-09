@@ -7079,9 +7079,68 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_opportunities KPIs + opportunities (notes omitted). PHP sales opportunities / CRM shell remains authoritative."
+                note = "Read-only epc_crm_opportunities KPIs + opportunities (notes omitted). update_stage POST /cp/crm/opportunities/write when confirmWrites=true. Save, convert, and quote email stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpCrmOpportunitiesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmOpportunityWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM opportunity write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmOpportunitiesWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var stage = body.Stage;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "opp_id", "opportunity_id");
+                stage = LiveWriteFormBinder.Text(form, "stage");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "update_stage" or "crm_update_stage")
+            {
+                var written = await writes.UpdateStageAsync(id, stage, cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/cp/crm-opportunities-app?opp_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/crm-opportunities-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "update_stage" or "crm_update_stage",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Save opportunity and convert stay Classic."
+                    : "Dry-run. Set confirmWrites=true to update the stage.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelIntegrations, async (
             HttpContext context,
@@ -10872,51 +10931,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? MenuList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
-    private sealed record CpMarketingGrowthWriteBody(
+
+    private sealed record CpCrmOpportunitiesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
-        string? StrategyKey = null,
-        string? ReviewType = null,
-        int Score = 0,
-        string? Notes = null);
-    private sealed record CpModulesWriteBody(
-        string? Action = null,
-        long ModuleId = 0,
-        long PrototypeId = 0,
-        string? PrototypeNameLangStrId = null,
-        string? Caption = null,
-        string? CaptionLangStrId = null,
-        string? ContentType = null,
-        string? Content = null,
-        string? ContentLangStrId = null,
-        string? Position = null,
-        int Activated = 1,
-        string? DataJson = null,
-        string? DataValue = null,
-        int ShowCaption = 0,
-        int SortOrder = 0,
-        int ForAll = 0,
-        int IsFrontend = 1,
-        string? ContentIds = null,
-        string? ContentArray = null,
-        string? GroupsAllowed = null,
-        string? Ids = null,
-        string? ModulesList = null,
-        string? LangCode = null,
-        bool ConfirmWrites = false);
-    private sealed record CpSmsActivateBody(
-        long SystemId = 0,
-        string? ParametersValues = null,
-        bool ConfirmWrites = false);
-    private sealed record CpPluginsActivateBody(
-        long PluginId = 0,
-        string? PluginsList = null,
-        int FlagValue = 0,
-        bool ConfirmWrites = false);
-    private sealed record CpTemplatesSetCurrentBody(long TemplateId = 0, bool ConfirmWrites = false);
-    private sealed record CpNotificationToggleBody(
-        long NotificationId = 0,
-        string? Type = null,
-        int SetSend = 0,
-        bool ConfirmWrites = false);
-}
+        long Id = 0,
+        string? Stage = null);
