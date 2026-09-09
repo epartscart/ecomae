@@ -7651,6 +7651,28 @@ public sealed record ErpCustomerGroupsDigestResult(
     IReadOnlyList<ErpCustomerGroupDigest> Groups,
     int Count, int ActiveCount, int MemberTotal, string Source, string Message);
 
+public sealed record ErpCustomerGroupDetail(
+    long Id,
+    string GroupCode,
+    string GroupName,
+    string GroupType,
+    decimal DiscountPct,
+    decimal CreditLimit,
+    int PaymentTermsDays,
+    long CompanyId,
+    long PriceListId,
+    int MemberCount,
+    bool IsActive,
+    long TimeCreated,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record ErpCustomerGroupDetailResult(
+    ErpCustomerGroupDetail? Group,
+    IReadOnlyList<ErpCustomerGroupDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpPerformanceReviewDigest(
     long Id, long EmployeeId, string EmployeeName, string Period, string Status,
     string Reviewer, decimal OverallRating, long TimeUpdated);

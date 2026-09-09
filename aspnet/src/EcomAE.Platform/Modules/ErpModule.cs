@@ -10969,7 +10969,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for customer-groups digest.");
             var result = await dashboards.ListErpCustomerGroupsAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, count = result.Count, activeCount = result.ActiveCount, memberTotal = result.MemberTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read digest over epc_customer_groups. Create/assign are live when confirmed." });
+            return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, count = result.Count, activeCount = result.ActiveCount, memberTotal = result.MemberTotal, source = result.Source, message = result.Message, session = SessionPayload(session), note = "epc_customer_groups (description omitted from the list). Open ?cgroup_id= loads a 280-char description excerpt plus same-type siblings. Create/assign write here when confirmWrites=true. Schema-ensure stays Classic." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpPerformance, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
