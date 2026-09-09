@@ -104,7 +104,7 @@ public sealed class CrossbaseReferenceLoaderTests
         Assert.Contains("StorefrontPriceArticleReplaceInSql", reporter, StringComparison.Ordinal);
         // Local CP reader must dispose before stock batch reuses the same MySqlConnection.
         Assert.Contains("already in use", reporter, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("await using (var reader = await command.ExecuteReaderAsync", reporter, StringComparison.Ordinal);
+        Assert.Contains("await using var reader = await command.ExecuteReaderAsync", reporter, StringComparison.Ordinal);
         // Heavy analogs queries exceed the old 2s CommandTimeout after republish load.
         Assert.Contains("command.CommandTimeout = Math.Clamp(commandTimeoutSeconds, 1, 15)", reporter, StringComparison.Ordinal);
         Assert.Contains("hasAnalogsSearch ? 10 : 2", reporter, StringComparison.Ordinal);

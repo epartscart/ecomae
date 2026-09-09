@@ -3391,6 +3391,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     /// <summary>
     /// PHP <c>epc_cross_load_local_references</c> one-side equality query.
     /// Swallows timeout so the other side / crossbase merge can still paint C110J.
+    /// Dispose each analog reader before stock/crossbase reuse this connection
+    /// (MySqlConnector: "This MySqlConnection is already in use").
     /// </summary>
     private async Task AppendStorefrontCrossPairsAsync(
         DbConnection connection,
