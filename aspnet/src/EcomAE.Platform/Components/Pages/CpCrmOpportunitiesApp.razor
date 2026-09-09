@@ -21,7 +21,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Set a pipeline stage here. Save opportunity, convert, and quote email stay Classic. This page does not invent a send.</p>
+                <p>Save an opportunity here. Set a pipeline stage here. Convert and quote email stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -68,6 +68,34 @@
                     @if (_isAdmin)
                     {
                         <form method="post" action="/cp/crm/opportunities/write" style="margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "opp_id", _openedDetail.Id)" />
+                            <input type="hidden" name="action" value="save_opportunity" />
+                            <input type="hidden" name="id" value="@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Title <input type="text" name="title" maxlength="255" value="@_openedDetail.Title" /></label>
+                            <label>Lead <input type="text" name="lead_id" inputmode="numeric" value="@_openedDetail.LeadId.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Stage
+                                <select name="stage">
+                                    @foreach (var st in _stages)
+                                    {
+                                        @if (string.Equals(st, _openedDetail.Stage, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@st" selected>@st</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@st">@st</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Amount <input type="text" name="amount" inputmode="decimal" value="@_openedDetail.Amount.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Prob % <input type="text" name="probability" inputmode="numeric" value="@_openedDetail.Probability.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Close <input type="text" name="close_date" value="@_openedDetail.CloseDate.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Notes <input type="text" name="notes" value="@_openedDetail.Notes" /></label>
+                            <button type="submit" class="btn btn-primary btn-sm">Save opportunity</button>
+                        </form>
+                        <form method="post" action="/cp/crm/opportunities/write" style="margin:.75rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "opp_id", _openedDetail.Id)" />
                             <input type="hidden" name="action" value="update_stage" />
@@ -128,6 +156,41 @@
                             </tbody>
                         </table>
                     </div>
+                </div>
+            </div>
+        </div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">New opportunity</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/crm/opportunities/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="save_opportunity" />
+                        <input type="hidden" name="id" value="0" />
+                        <label>Title <input type="text" name="title" maxlength="255" /></label>
+                        <label>Lead <input type="text" name="lead_id" inputmode="numeric" value="0" /></label>
+                        <label>Stage
+                            <select name="stage">
+                                <option value="prospect" selected>prospect</option>
+                                <option value="qualified">qualified</option>
+                                <option value="proposal">proposal</option>
+                                <option value="negotiation">negotiation</option>
+                                <option value="won">won</option>
+                                <option value="lost">lost</option>
+                            </select>
+                        </label>
+                        <label>Amount <input type="text" name="amount" inputmode="decimal" value="0" /></label>
+                        <label>Prob % <input type="text" name="probability" inputmode="numeric" value="10" /></label>
+                        <label>Close <input type="text" name="close_date" value="0" /></label>
+                        <label>Notes <input type="text" name="notes" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Create opportunity</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Convert and quote email stay Classic.</p>
                 </div>
             </div>
         </div>

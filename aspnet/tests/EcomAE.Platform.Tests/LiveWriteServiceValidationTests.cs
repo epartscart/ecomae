@@ -743,6 +743,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(oppDb.Succeeded);
         Assert.Equal("db", oppDb.Code);
 
+        Assert.Equal("prospect", CpCrmOpportunityWriteService.NormalizeStage("nope"));
+        Assert.Equal("Opportunity", CpCrmOpportunityWriteService.NormalizeTitle(""));
+        Assert.Equal(0, CpCrmOpportunityWriteService.ParseCloseDate(""));
+        Assert.True(CpCrmOpportunityWriteService.ParseCloseDate("2026-09-09") > 0);
+
+        var oppSaveBad = await new CpCrmOpportunityWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCrmOpportunitySaveRequest(-1, 0, "Deal", "prospect", 10, 10, "0", 1, 0, ""));
+        Assert.False(oppSaveBad.Succeeded);
+        Assert.Equal("invalid", oppSaveBad.Code);
+
+        var oppSaveDb = await new CpCrmOpportunityWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpCrmOpportunitySaveRequest(0, 0, "Deal", "prospect", 10, 10, "0", 1, 0, ""));
+        Assert.False(oppSaveDb.Succeeded);
+        Assert.Equal("db", oppSaveDb.Code);
+
         var actInvalid = await new CpCrmActivityWriteService(new ConfiguredNeverOpened())
             .ToggleDoneAsync(0, true);
         Assert.False(actInvalid.Succeeded);
