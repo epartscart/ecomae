@@ -1047,6 +1047,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(infoDb.Succeeded);
         Assert.Equal("db", infoDb.Code);
 
+        var infoDelBad = await new CpInfoBlocksWriteService(new ConfiguredNeverOpened())
+            .DeleteAsync(0);
+        Assert.False(infoDelBad.Succeeded);
+        Assert.Equal("invalid", infoDelBad.Code);
+
+        var infoDelDb = await new CpInfoBlocksWriteService(new UnconfiguredConnections())
+            .DeleteAsync(3);
+        Assert.False(infoDelDb.Succeeded);
+        Assert.Equal("db", infoDelDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
