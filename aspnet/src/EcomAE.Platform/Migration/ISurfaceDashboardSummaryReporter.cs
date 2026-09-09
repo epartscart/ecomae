@@ -873,6 +873,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only order→ERP pipeline log (PHP <c>epc_order_erp_log</c>; details JSON omitted).</summary>
     Task<ErpOrderPipelineListResult> ListErpOrderPipelineLogAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened pipeline log (Open key <c>pipeline_log_id</c>) plus same-order siblings. details is a 280-char excerpt — never the full JSON.</summary>
+    Task<ErpOrderPipelineLogDetailResult> BuildErpOrderPipelineLogDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only inventory forecast (PHP <c>epc_inventory_forecast</c>; recompute writes on ASP.NET).</summary>
     Task<ErpInventoryForecastListResult> ListErpInventoryForecastAsync(int limit, CancellationToken cancellationToken = default);
 

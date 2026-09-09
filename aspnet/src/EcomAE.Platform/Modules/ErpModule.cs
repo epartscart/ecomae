@@ -11032,7 +11032,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for order-pipeline digest.");
             var result = await dashboards.ListErpOrderPipelineLogAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", logs = result.Logs, count = result.Count, successCount = result.SuccessCount, failedCount = result.FailedCount, pendingCount = result.PendingCount, avgDurationMs = result.AvgDurationMs, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_order_erp_log. PHP order→ERP pipeline remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", logs = result.Logs, count = result.Count, successCount = result.SuccessCount, failedCount = result.FailedCount, pendingCount = result.PendingCount, avgDurationMs = result.AvgDurationMs, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_order_erp_log. Open ?pipeline_log_id= loads a 280-char details excerpt. Pipeline execution stays PHP." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpInventoryForecast, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>
