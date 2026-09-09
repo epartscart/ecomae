@@ -925,6 +925,31 @@ public sealed record ErpPurchaseOrderListResult(
     string Source,
     string Message);
 
+public sealed record ErpPurchaseOrderDetail(
+    long Id,
+    string PoNo,
+    long SupplierId,
+    string Title,
+    decimal AmountExVat,
+    decimal VatAmount,
+    decimal TotalAmount,
+    string Status,
+    int PurchaseId,
+    int OrderId,
+    long ApprovedAt,
+    long ReceivedAt,
+    string NotesExcerpt,
+    int NotesLen,
+    int AdminId,
+    long TimeCreated,
+    long TimeUpdated);
+
+public sealed record ErpPurchaseOrderDetailResult(
+    ErpPurchaseOrderDetail? Order,
+    IReadOnlyList<ErpPurchaseOrderDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpInventoryStockSummaryResult(
     long RowCount,
     decimal QtyOnHand,

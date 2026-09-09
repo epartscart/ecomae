@@ -6200,6 +6200,84 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpPurchaseOrderDetailResult> BuildErpPurchaseOrderDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpPurchaseOrderDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPurchaseOrderDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpPurchaseOrderDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "po_no"),
+                        ReadI64(reader, "supplier_id"),
+                        ReadStr(reader, "title"),
+                        ReadDec(reader, "amount_ex_vat"),
+                        ReadDec(reader, "vat_amount"),
+                        ReadDec(reader, "total_amount"),
+                        ReadStr(reader, "status"),
+                        ReadI32(reader, "purchase_id"),
+                        ReadI32(reader, "order_id"),
+                        ReadI64(reader, "approved_at"),
+                        ReadI64(reader, "received_at"),
+                        ReadStr(reader, "notes_excerpt"),
+                        ReadI32(reader, "notes_len"),
+                        ReadI32(reader, "admin_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadI64(reader, "time_updated"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Purchase order not found.");
+            }
+
+            var siblings = new List<ErpPurchaseOrderDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpPurchaseOrderStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "po_no"),
+                        ReadI64(reader, "supplier_id"),
+                        ReadStr(reader, "title"),
+                        ReadDec(reader, "total_amount"),
+                        ReadStr(reader, "status"),
+                        ReadI64(reader, "time_created"),
+                        []));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpInventoryItemPickerResult> ListErpInventoryItemsForPickerAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(ErpFirstPaint.ClampList(limit), 1, ErpFirstPaint.PickerLimit);
