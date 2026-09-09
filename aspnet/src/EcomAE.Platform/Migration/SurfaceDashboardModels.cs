@@ -7757,6 +7757,58 @@ public sealed record ErpProductInfoDigestResult(
     IReadOnlyList<ErpProductInfoVariantDigest> Variants,
     int Count, int ActiveCount, int FieldCount, string Source, string Message);
 
+public sealed record ErpProductInfoItemDetail(
+    long Id,
+    string Sku,
+    string Name,
+    long ProductId,
+    string ItemType,
+    string Unit,
+    decimal SalesPrice,
+    bool TrackExpiry,
+    bool Active,
+    long TimeCreated);
+
+public sealed record ErpProductInfoItemDetailResult(
+    ErpProductInfoItemDetail? Item,
+    IReadOnlyList<ErpProductInfoItemDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpProductInfoFieldDetail(
+    long Id,
+    string FieldKey,
+    string Label,
+    string FieldType,
+    string FieldRole,
+    int SortOrder,
+    bool Active,
+    int OptionsLen,
+    string OptionsExcerpt);
+
+public sealed record ErpProductInfoFieldDetailResult(
+    ErpProductInfoFieldDetail? Field,
+    IReadOnlyList<ErpProductInfoFieldDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpProductInfoVariantDetail(
+    long Id,
+    long ItemId,
+    string BaseSku,
+    string VariantSku,
+    string VariantLabel,
+    bool Active,
+    long TimeCreated,
+    int ComboLen,
+    string ComboExcerpt);
+
+public sealed record ErpProductInfoVariantDetailResult(
+    ErpProductInfoVariantDetail? Variant,
+    IReadOnlyList<ErpProductInfoVariantDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpReportScheduleDigest(
     long Id, string ReportName, string ReportType, string Frequency, int DayOfWeek, int DayOfMonth,
     string TimeOfDay, string Format, bool IsActive, string LastStatus, long TimeCreated);

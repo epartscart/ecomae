@@ -8359,6 +8359,96 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened item master (Open key <c>pm_item_id</c>). track_expiry is hidden from the list. notes/barcode omitted.</summary>
+    public const string SelectErpProductInfoItemDetail = """
+        SELECT `id`, IFNULL(`sku`,'') AS sku,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`product_id`,0) AS product_id,
+               IFNULL(`item_type`,'standard') AS item_type,
+               IFNULL(`unit`,'pcs') AS unit,
+               IFNULL(`sales_price`,0) AS sales_price,
+               IFNULL(`track_expiry`,0) AS track_expiry,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_inv_items`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other items of the same type. notes/barcode omitted.</summary>
+    public const string SelectErpProductInfoItemTypeSiblings = """
+        SELECT `id`, IFNULL(`sku`,'') AS sku,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`product_id`,0) AS product_id,
+               IFNULL(`item_type`,'standard') AS item_type,
+               IFNULL(`unit`,'pcs') AS unit,
+               IFNULL(`sales_price`,0) AS sales_price,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_inv_items`
+        WHERE IFNULL(`item_type`,'standard') = @item_type AND `id` <> @id
+        ORDER BY `sku`, `id`
+        LIMIT 50
+        """;
+
+    /// <summary>Opened field definition (Open key <c>pm_field_id</c>). options is a short excerpt.</summary>
+    public const string SelectErpProductInfoFieldDetail = """
+        SELECT `id`, IFNULL(`field_key`,'') AS field_key,
+               IFNULL(`label`,'') AS label,
+               IFNULL(`field_type`,'text') AS field_type,
+               IFNULL(`field_role`,'inventory') AS field_role,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`active`,1) AS active,
+               CHAR_LENGTH(IFNULL(`options_json`,'')) AS options_len,
+               LEFT(IFNULL(`options_json`,''), 280) AS options_excerpt
+        FROM `epc_erp_inv_field_defs`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other field definitions of the same type.</summary>
+    public const string SelectErpProductInfoFieldTypeSiblings = """
+        SELECT `id`, IFNULL(`field_key`,'') AS field_key,
+               IFNULL(`label`,'') AS label,
+               IFNULL(`field_type`,'text') AS field_type,
+               IFNULL(`field_role`,'inventory') AS field_role,
+               IFNULL(`sort_order`,0) AS sort_order,
+               IFNULL(`active`,1) AS active
+        FROM `epc_erp_inv_field_defs`
+        WHERE IFNULL(`field_type`,'text') = @field_type AND `id` <> @id
+        ORDER BY `sort_order`, `id`
+        LIMIT 50
+        """;
+
+    /// <summary>Opened variant (Open key <c>pm_variant_id</c>). combo is a short excerpt.</summary>
+    public const string SelectErpProductInfoVariantDetail = """
+        SELECT `id`, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`base_sku`,'') AS base_sku,
+               IFNULL(`variant_sku`,'') AS variant_sku,
+               IFNULL(`variant_label`,'') AS variant_label,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`combo_json`,'')) AS combo_len,
+               LEFT(IFNULL(`combo_json`,''), 280) AS combo_excerpt
+        FROM `epc_erp_prod_variants`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other variants of the same item.</summary>
+    public const string SelectErpProductInfoVariantItemSiblings = """
+        SELECT `id`, IFNULL(`item_id`,0) AS item_id,
+               IFNULL(`base_sku`,'') AS base_sku,
+               IFNULL(`variant_sku`,'') AS variant_sku,
+               IFNULL(`variant_label`,'') AS variant_label,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_prod_variants`
+        WHERE IFNULL(`item_id`,0) = @item_id AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpReportSchedules = """
         SELECT `id`, IFNULL(`report_name`,'') AS report_name,
                IFNULL(`report_type`,'') AS report_type,

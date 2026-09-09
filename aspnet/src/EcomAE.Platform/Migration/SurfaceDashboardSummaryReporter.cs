@@ -24284,6 +24284,216 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpProductInfoItemDetailResult> BuildErpProductInfoItemDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpProductInfoItemDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoItemDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpProductInfoItemDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "sku"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "product_id"),
+                        ReadStr(reader, "item_type"),
+                        ReadStr(reader, "unit"),
+                        ReadDec(reader, "sales_price"),
+                        ReadI32(reader, "track_expiry") == 1,
+                        ReadI32(reader, "active") == 1,
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Product item not found.");
+            }
+
+            var siblings = new List<ErpProductInfoItemDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoItemTypeSiblings;
+                AddParameter(cmd, "@item_type", header.ItemType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "sku"),
+                        ReadStr(reader, "name"),
+                        ReadI64(reader, "product_id"),
+                        ReadStr(reader, "item_type"),
+                        ReadStr(reader, "unit"),
+                        ReadDec(reader, "sales_price"),
+                        ReadI32(reader, "active") == 1,
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpProductInfoFieldDetailResult> BuildErpProductInfoFieldDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpProductInfoFieldDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoFieldDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpProductInfoFieldDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "field_key"),
+                        ReadStr(reader, "label"),
+                        ReadStr(reader, "field_type"),
+                        ReadStr(reader, "field_role"),
+                        ReadI32(reader, "sort_order"),
+                        ReadI32(reader, "active") == 1,
+                        ReadI32(reader, "options_len"),
+                        ReadStr(reader, "options_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Field definition not found.");
+            }
+
+            var siblings = new List<ErpProductInfoFieldDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoFieldTypeSiblings;
+                AddParameter(cmd, "@field_type", header.FieldType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "field_key"),
+                        ReadStr(reader, "label"),
+                        ReadStr(reader, "field_type"),
+                        ReadStr(reader, "field_role"),
+                        ReadI32(reader, "sort_order"),
+                        ReadI32(reader, "active") == 1));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpProductInfoVariantDetailResult> BuildErpProductInfoVariantDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpProductInfoVariantDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoVariantDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpProductInfoVariantDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "item_id"),
+                        ReadStr(reader, "base_sku"),
+                        ReadStr(reader, "variant_sku"),
+                        ReadStr(reader, "variant_label"),
+                        ReadI32(reader, "active") == 1,
+                        ReadI64(reader, "time_created"),
+                        ReadI32(reader, "combo_len"),
+                        ReadStr(reader, "combo_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Variant not found.");
+            }
+
+            var siblings = new List<ErpProductInfoVariantDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpProductInfoVariantItemSiblings;
+                AddParameter(cmd, "@item_id", header.ItemId);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "item_id"),
+                        ReadStr(reader, "base_sku"),
+                        ReadStr(reader, "variant_sku"),
+                        ReadStr(reader, "variant_label"),
+                        ReadI32(reader, "active") == 1,
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -3225,6 +3225,56 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void ProductInfoApp_OpenLoadsTrackExpiryOptionsComboAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpProductInfoApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpProductInfoItemDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpProductInfoFieldDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpProductInfoVariantDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"pm_item_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"pm_field_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"pm_variant_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("pm_item_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("pm_field_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("pm_variant_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"pm_item_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"pm_field_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"pm_variant_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("TrackExpiry", razor, StringComparison.Ordinal);
+        Assert.Contains("OptionsExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("ComboExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("same-item siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Dimension-link save stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/inv-create-item", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/product-info-app?pm_item_id=9#erp-row-9",
+            ErpRecordOpen.Href("/erp/product-info-app", "pm_item_id", 9));
+        Assert.Equal(
+            "/erp/product-info-app?pm_item_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/product-info-app",
+                "/ERP/?epc_erp_shell=1&area=pim&tab=product_info&pm_item_id=9"));
+        Assert.Equal("/erp/product-info-app?pm_field_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/product-info-app", "pm_field_id", 3));
+        Assert.Equal("/erp/product-info-app?pm_variant_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/product-info-app", "pm_variant_id", 4));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();
