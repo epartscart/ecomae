@@ -11014,7 +11014,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for doc-attachments digest.");
             var result = await dashboards.ListErpDocAttachmentsAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", attachments = result.Attachments, count = result.Count, entityTypeCount = result.EntityTypeCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_doc_attachments (file_path omitted). PHP doc_attachment remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", attachments = result.Attachments, count = result.Count, entityTypeCount = result.EntityTypeCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_doc_attachments. Open ?attach_id= loads description excerpt and uploaded time. Storage location omitted. PHP upload remains authoritative." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpInventoryReport, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>

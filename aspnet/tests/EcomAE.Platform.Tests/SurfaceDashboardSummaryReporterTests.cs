@@ -916,6 +916,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("detail_json", LegacySurfaceDashboardSql.SelectErpPrjaRecognitions, StringComparison.Ordinal);
         Assert.Contains("epc_doc_attachments", LegacySurfaceDashboardSql.SelectErpDocAttachments, StringComparison.Ordinal);
         Assert.DoesNotContain("file_path", LegacySurfaceDashboardSql.SelectErpDocAttachments, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`description`,''), 280)", LegacySurfaceDashboardSql.SelectErpDocAttachmentDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpDocAttachmentDetail, StringComparison.Ordinal);
+        Assert.Contains("time_created", LegacySurfaceDashboardSql.SelectErpDocAttachmentDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("file_path", LegacySurfaceDashboardSql.SelectErpDocAttachmentDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectErpDocAttachmentTypeSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("file_path", LegacySurfaceDashboardSql.SelectErpDocAttachmentTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("@entity_type", LegacySurfaceDashboardSql.SelectErpDocAttachmentTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpDocAttachmentTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_inventory_categories", LegacySurfaceDashboardSql.SelectErpInventoryReportCategories, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
         Assert.DoesNotContain("custom_css", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);

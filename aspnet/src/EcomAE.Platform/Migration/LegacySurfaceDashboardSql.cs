@@ -8035,6 +8035,38 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened attachment (Open key <c>attach_id</c>, remapped by <c>tab=doc_attachment</c>). description is a 280-char excerpt. file_path omitted.</summary>
+    public const string SelectErpDocAttachmentDetail = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type,
+               IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size,
+               IFNULL(`mime_type`,'') AS mime_type,
+               CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
+               LEFT(IFNULL(`description`,''), 280) AS description_excerpt,
+               IFNULL(`uploaded_by`,0) AS uploaded_by,
+               IFNULL(`uploaded_by_name`,'') AS uploaded_by_name,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_doc_attachments`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other attachments of the same entity type. description / file_path omitted.</summary>
+    public const string SelectErpDocAttachmentTypeSiblings = """
+        SELECT `id`, IFNULL(`entity_type`,'') AS entity_type,
+               IFNULL(`entity_id`,0) AS entity_id,
+               IFNULL(`file_name`,'') AS file_name,
+               IFNULL(`file_size`,0) AS file_size,
+               IFNULL(`mime_type`,'') AS mime_type,
+               IFNULL(`uploaded_by_name`,'') AS uploaded_by_name,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_doc_attachments`
+        WHERE IFNULL(`entity_type`,'') = @entity_type AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpInventoryReportCategories = """
         SELECT `id`, IFNULL(`parent_id`,0) AS parent_id,
                IFNULL(`code`,'') AS code,

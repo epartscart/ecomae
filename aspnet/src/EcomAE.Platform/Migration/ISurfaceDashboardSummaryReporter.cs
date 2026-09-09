@@ -868,6 +868,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpDocAttachmentsDigestResult> ListErpDocAttachmentsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened attachment (Open key <c>attach_id</c>, remapped by <c>tab=doc_attachment</c>) plus same-type siblings. description is a 280-char excerpt. file_path omitted.</summary>
+    Task<ErpDocAttachmentDetailResult> BuildErpDocAttachmentDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpInventoryReportDigestResult> BuildErpInventoryReportDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only order→ERP pipeline log (PHP <c>epc_order_erp_log</c>; details JSON omitted).</summary>
