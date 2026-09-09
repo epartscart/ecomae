@@ -87,6 +87,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
     [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
+    [InlineData("/CP/shop/finance/erp?area=purchasing&tab=jw_purchase_fixing&epc_erp_shell=1&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
     [InlineData("/CP/shop/workshop?job_id=5", "/cp/workshop-app?job_id=5")]
     [InlineData("/CP/shop/finance/epc_credit_limit?credit_id=7", "/cp/credit-limits-app?credit_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
@@ -1638,6 +1640,51 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/groups-app",
                 "/CP/users/usergroups?ugroup_id=3"));
+    }
+
+    [Fact]
+    public void JewelleryFixingApp_OpenLoadsRemarksExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryFixingApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpJewelleryFixingDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"fixing_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("fixing_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"fixing_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("RemarksExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("PartyName", razor, StringComparison.Ordinal);
+        Assert.Contains("RateType", razor, StringComparison.Ordinal);
+        Assert.Contains("FixRate", razor, StringComparison.Ordinal);
+        Assert.Contains("UnfixedQty", razor, StringComparison.Ordinal);
+        Assert.Contains("ReferenceVoc", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ErpJewelleryFixingSaveForm", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryFixUnfixCreateForm", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryFixUnfixSettleForm", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/jewellery-fixing-app?fixing_id=4#erp-row-4",
+            ErpRecordOpen.Href("/cp/jewellery-fixing-app", "fixing_id", 4));
+        Assert.Equal(
+            "/erp/jewellery-fixing-app?fixing_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/jewellery-fixing-app",
+                "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4"));
+        Assert.Equal(
+            "/cp/jewellery-fixing-app?fixing_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/jewellery-fixing-app",
+                "/CP/shop/finance/erp?area=purchasing&tab=jw_purchase_fixing&epc_erp_shell=1&fixing_id=4"));
     }
 
     [Fact]

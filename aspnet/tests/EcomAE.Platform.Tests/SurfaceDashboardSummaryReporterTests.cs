@@ -940,6 +940,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`batch_id` = @id", LegacySurfaceDashboardSql.SelectCpFinanceCloseLines, StringComparison.Ordinal);
         Assert.Contains("meta_json", LegacySurfaceDashboardSql.SelectCpFinanceCloseLines, StringComparison.Ordinal);
         Assert.Contains("epc_jewel_fixing", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`remarks`,''), 280)", LegacySurfaceDashboardSql.SelectCpJewelleryFixingDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpJewelleryFixingDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectCpJewelleryFixingDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`remarks`", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_credit_limits", LegacySurfaceDashboardSql.SelectCpCreditLimits, StringComparison.Ordinal);
         Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpCreditLimits, StringComparison.Ordinal);
         Assert.DoesNotContain("hold_reason", LegacySurfaceDashboardSql.SelectCpCreditLimits, StringComparison.Ordinal);

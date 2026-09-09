@@ -4938,6 +4938,39 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened jewellery fixing. remarks is a short excerpt; notes omitted (not on this table).</summary>
+    public const string SelectCpJewelleryFixingDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
+               IFNULL(`fix_type`,'') AS fix_type, IFNULL(`fix_date`,'') AS fix_date,
+               IFNULL(`fix_no`,0) AS fix_no, IFNULL(`party_code`,'') AS party_code,
+               IFNULL(`party_name`,'') AS party_name, IFNULL(`metal`,'') AS metal,
+               IFNULL(`karat`,'') AS karat, IFNULL(`rate_type`,'') AS rate_type,
+               IFNULL(`fix_rate`,0) AS fix_rate, IFNULL(`fix_qty_gms`,0) AS fix_qty_gms,
+               IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`unfixed_qty`,0) AS unfixed_qty,
+               IFNULL(`reference_voc`,'') AS reference_voc, IFNULL(`status`,'') AS status,
+               IFNULL(`created_by`,'') AS created_by,
+               CHAR_LENGTH(IFNULL(`remarks`,'')) AS remarks_len,
+               LEFT(IFNULL(`remarks`,''), 280) AS remarks_excerpt
+        FROM `epc_jewel_fixing`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other jewellery fixings with the same status. remarks/notes omitted.</summary>
+    public const string SelectCpJewelleryFixingStatusSiblings = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`branch`,'') AS branch,
+               IFNULL(`fix_type`,'') AS fix_type, IFNULL(`fix_date`,'') AS fix_date,
+               IFNULL(`fix_no`,0) AS fix_no, IFNULL(`party_code`,'') AS party_code,
+               IFNULL(`party_name`,'') AS party_name, IFNULL(`metal`,'') AS metal,
+               IFNULL(`karat`,'') AS karat, IFNULL(`fix_qty_gms`,0) AS fix_qty_gms,
+               IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`status`,'') AS status,
+               IFNULL(`created_by`,'') AS created_by
+        FROM `epc_jewel_fixing`
+        WHERE `status` = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Web tracker KPIs from epc_web_tracker_* (CREATE TABLE in epc_web_tracker.php).</summary>
     public const string SelectCpWebTrackerStats = """
         SELECT

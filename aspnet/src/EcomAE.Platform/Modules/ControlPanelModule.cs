@@ -7827,7 +7827,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_jewel_fixing + epc_fix_unfix_* + epc_jewel_petty_cash KPIs + fixings (remarks/notes omitted). PHP jewellery fixing / purchase window remains authoritative."
+                note = "Read-only epc_jewel_fixing + epc_fix_unfix_* + epc_jewel_petty_cash KPIs + fixings (remarks/notes omitted on the list). Open ?fixing_id= loads a 280-char remarks excerpt. PHP jewellery fixing / purchase window remains authoritative."
             });
         });
 
