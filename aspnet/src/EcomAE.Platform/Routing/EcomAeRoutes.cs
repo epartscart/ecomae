@@ -439,7 +439,7 @@ public static class EcomAeRoutes
     public const string ControlPanelPlatformCommunication = "/cp/platform-communication";
     /// <summary>CP Platform communication Blazor list (JSON digest remains <see cref="ControlPanelPlatformCommunication"/>).</summary>
     public const string ControlPanelPlatformCommunicationApp = "/cp/platform-communication-app";
-    /// <summary>Super-CP platform-communication save_task / delete_task. <c>confirmWrites=true</c> twins PHP epc_scp_task_save / epc_scp_task_delete. Notification policy and schema-ensure stay Classic.</summary>
+    /// <summary>Super-CP platform-communication save_task / delete_task / save_comm_settings. <c>confirmWrites=true</c> twins PHP epc_scp_task_save / epc_scp_task_delete / epc_scp_comm_settings_save. SMTP and schema-ensure stay Classic.</summary>
     public const string CpPlatformCommunicationWrite = "/cp/platform-communication/write";
     public const string ControlPanelInfoBlocks = "/cp/info-blocks";
     /// <summary>CP Info blocks Blazor list (JSON digest remains <see cref="ControlPanelInfoBlocks"/>).</summary>
