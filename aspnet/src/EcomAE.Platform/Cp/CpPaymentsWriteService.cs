@@ -1,17 +1,21 @@
+using System.Data.Common;
 using System.Text;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_payments.php</c> <c>activate</c> twin of <c>epc_payment_set_active</c>.
+/// Live PHP <c>ajax_payments.php</c> twins of <c>epc_payment_set_active</c> and <c>epc_pay_accounts_mark_settlement</c>.
 /// Clears every <c>shop_payment_systems.active</c> then sets the named handler.
-/// <c>save_config</c>, accounts, seed, and settlement stay Classic (credentials / filesystem).
+/// Marks <c>epc_payment_settlements.status</c> when confirmed.
+/// <c>save_config</c>, accounts, seed, and send stay Classic (credentials / filesystem).
 /// This service does not invent a send.
 /// </summary>
 public interface ICpPaymentsWriteService
 {
     Task<ErpSimpleWriteResult> ActivateAsync(string? handler, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> MarkSettlementAsync(long settlementId, string? status, CancellationToken cancellationToken = default);
 }
 
 public sealed class CpPaymentsWriteService : ICpPaymentsWriteService
@@ -62,6 +66,64 @@ public sealed class CpPaymentsWriteService : ICpPaymentsWriteService
             cancellationToken,
             key);
         return ErpSimpleWriteResult.Ok("Activated: " + HandlerTitle(key), id);
+    }
+
+    public async Task<ErpSimpleWriteResult> MarkSettlementAsync(
+        long settlementId,
+        string? status,
+        CancellationToken cancellationToken = default)
+    {
+        if (settlementId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Settlement id required");
+        }
+
+        var key = SanitizeSettlementStatus(status);
+        if (key.Length == 0)
+        {
+            key = "paid_out";
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `epc_payment_settlements` SET `status` = ?, `updated_at` = ? WHERE `id` = ?"),
+                cancellationToken,
+                key, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), settlementId);
+            return ErpSimpleWriteResult.Ok("Settlement updated", settlementId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Settlement table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP <c>preg_replace('/[^a-z_]/', '', $status)</c> on mark_settlement.</summary>
+    public static string SanitizeSettlementStatus(string? raw)
+    {
+        if (string.IsNullOrEmpty(raw))
+        {
+            return string.Empty;
+        }
+
+        var buffer = new StringBuilder(raw.Length);
+        foreach (var ch in raw)
+        {
+            if ((ch is >= 'a' and <= 'z') || ch == '_')
+            {
+                buffer.Append(ch);
+            }
+        }
+
+        return buffer.ToString();
     }
 
     /// <summary>PHP <c>preg_replace('/[^a-z0-9_]/', '', $handler)</c>.</summary>

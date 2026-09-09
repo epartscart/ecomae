@@ -22,6 +22,12 @@ public sealed class CpPaymentsActivateWriteTests
         Assert.Equal(string.Empty, CpPaymentsWriteService.SanitizeHandler("!!!"));
         Assert.Equal("Stripe", CpPaymentsWriteService.HandlerTitle("stripe"));
         Assert.Equal("Jazzcash wallet", CpPaymentsWriteService.HandlerTitle("jazzcash_wallet"));
+        Assert.Equal("paid_out", CpPaymentsWriteService.SanitizeSettlementStatus("paid_out"));
+        Assert.Equal("pending", CpPaymentsWriteService.SanitizeSettlementStatus("pending"));
+        Assert.Equal("paidout", CpPaymentsWriteService.SanitizeSettlementStatus("paid-out!"));
+        Assert.Equal("paid_out", CpPaymentsWriteService.SanitizeSettlementStatus("paid_out!"));
+        Assert.Equal("_", CpPaymentsWriteService.SanitizeSettlementStatus("PAID_OUT"));
+        Assert.Equal(string.Empty, CpPaymentsWriteService.SanitizeSettlementStatus("!!!"));
     }
 
     [Fact]
@@ -50,6 +56,10 @@ public sealed class CpPaymentsActivateWriteTests
         Assert.Contains("name=\"action\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"activate\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"handler\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"mark_settlement\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"status\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"paid_out\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", razor, StringComparison.Ordinal);
@@ -65,8 +75,11 @@ public sealed class CpPaymentsActivateWriteTests
             item.AspNetRouteOrCapability == "/cp/payments/write");
         Assert.Equal("write-live-gated", write.Status);
         Assert.Contains("ajax_payments.php", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("mark_settlement", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("epc_payment_settlements", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("save_config", write.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("settlement, and send stay Classic", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -77,15 +90,21 @@ public sealed class CpPaymentsActivateWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpPaymentsWriteService", module, StringComparison.Ordinal);
         Assert.Contains("ActivateAsync", module, StringComparison.Ordinal);
+        Assert.Contains("MarkSettlementAsync", module, StringComparison.Ordinal);
+        Assert.Contains("mark_settlement", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPaymentsWriteService.cs"));
         Assert.Contains("epc_payment_set_active", service, StringComparison.Ordinal);
+        Assert.Contains("epc_pay_accounts_mark_settlement", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("SET `active` = 0", service, StringComparison.Ordinal);
         Assert.Contains("SET `active` = 1", service, StringComparison.Ordinal);
+        Assert.Contains("UPDATE `epc_payment_settlements`", service, StringComparison.Ordinal);
+        Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.DoesNotContain("parameters_values", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
