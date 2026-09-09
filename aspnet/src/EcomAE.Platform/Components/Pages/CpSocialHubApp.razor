@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -20,13 +21,84 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/social-hub-app")</p>
-                <p>Open an account for last-test status and draft titles. Credentials stay on the Classic twin.</p>
+                <p>Open an account for last-test status and draft titles. Save a draft here. Publish, generate caption, credentials, and test stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/social-hub-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedAccount is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save draft</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/social-hub/write" class="well">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "social_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="save_draft" />
+                        <input type="hidden" name="id" value="0" />
+                        @if (_isSuper)
+                        {
+                            <div class="form-group">
+                                <label>Site key</label>
+                                <input type="text" class="form-control" name="site_key" value="@OpenedSiteKey" />
+                            </div>
+                        }
+                        else
+                        {
+                            <input type="hidden" name="site_key" value="@OpenedSiteKey" />
+                        }
+                        <div class="form-group">
+                            <label>Platform</label>
+                            <select class="form-control" name="platform">
+                                @foreach (var p in _platforms)
+                                {
+                                    @if (OpenedPlatform == p)
+                                    {
+                                        <option value="@p" selected>@p</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@p">@p</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Title</label>
+                            <input type="text" class="form-control" name="title" value="" />
+                        </div>
+                        <div class="form-group">
+                            <label>Caption</label>
+                            <textarea class="form-control" name="caption" rows="3"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Hashtags</label>
+                            <input type="text" class="form-control" name="hashtags" value="" />
+                        </div>
+                        <div class="form-group">
+                            <label>Public media URL</label>
+                            <input type="url" class="form-control" name="media_url" value="" />
+                        </div>
+                        <button type="submit" class="btn btn-default">Save draft</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Publish stay Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Social hub KPIs">
         <div class="kpi"><div class="lbl">Accounts</div><div class="val">@_accountCount.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -153,7 +225,7 @@
         </div>
     </div>
 
-    <div class="epc-nw-note">Credentials omitted. Draft save/publish remain portal_social dry-run; PHP social hub authoritative.</div>
+    <div class="epc-nw-note">Credentials omitted. Publish, generate caption, and test stay Classic.</div>
 
 </PhpCpDesktopChrome>
 
@@ -171,6 +243,23 @@
     private long _openedId;
     private CpSocialHubAccountDetail? _openedAccount;
     private IReadOnlyList<CpSocialHubDraftDigest> _openedDrafts = [];
+    private bool _isSuper;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private static readonly string[] _platforms = ["instagram", "tiktok", "facebook", "linkedin", "x"];
+
+    private string OpenedSiteKey => _openedAccount is not null && !string.IsNullOrWhiteSpace(_openedAccount.SiteKey)
+        ? _openedAccount.SiteKey
+        : (_isSuper ? "platform" : "");
+
+    private string OpenedPlatform
+    {
+        get
+        {
+            var raw = (_openedAccount?.Platform ?? string.Empty).Trim().ToLowerInvariant();
+            return _platforms.Contains(raw) ? raw : "instagram";
+        }
+    }
 
     private string OpenedCaption => _openedAccount is null
         ? ""
@@ -187,6 +276,9 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "social_id");
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

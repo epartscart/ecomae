@@ -1027,6 +1027,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(tenantDb.Succeeded);
         Assert.Equal("db", tenantDb.Code);
 
+        var socialBad = await new CpSocialHubWriteService(new ConfiguredNeverOpened())
+            .SaveDraftAsync(new CpSocialHubSaveDraftRequest(0, "", "instagram", "Hi", "", "", "", false, ""));
+        Assert.False(socialBad.Succeeded);
+        Assert.Equal("invalid", socialBad.Code);
+
+        var socialDb = await new CpSocialHubWriteService(new UnconfiguredConnections())
+            .SaveDraftAsync(new CpSocialHubSaveDraftRequest(0, "epartscart", "instagram", "Hi", "", "", "", false, "www.epartscart.com"));
+        Assert.False(socialDb.Succeeded);
+        Assert.Equal("db", socialDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
