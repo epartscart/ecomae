@@ -467,6 +467,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only warehouse stock transfers (notes omitted).</summary>
     Task<ErpStockTransfersDigestResult> BuildErpStockTransfersDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened stock transfer (Open key <c>transfer_id</c>) plus same-status siblings. notes is a short excerpt. Line bodies omitted.</summary>
+    Task<ErpStockTransferDetailResult> BuildErpStockTransferDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only CRM/sales quotations (notes omitted).</summary>
     Task<ErpSalesQuotationsDigestResult> BuildErpSalesQuotationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

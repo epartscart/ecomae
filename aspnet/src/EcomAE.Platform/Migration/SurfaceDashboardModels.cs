@@ -2673,6 +2673,30 @@ public sealed record ErpStockTransfersDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpStockTransferDetail(
+    long Id,
+    long CompanyId,
+    string TransferNo,
+    long FromWarehouseId,
+    long ToWarehouseId,
+    string Reason,
+    string Status,
+    int TotalItems,
+    decimal TotalQty,
+    string ShippedAt,
+    string ReceivedAt,
+    long CreatedBy,
+    long ReceivedBy,
+    long TimeCreated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpStockTransferDetailResult(
+    ErpStockTransferDetail? Transfer,
+    IReadOnlyList<ErpStockTransferDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpSalesQuotationsSummary(
     int QuoteCount,
     int DraftCount,

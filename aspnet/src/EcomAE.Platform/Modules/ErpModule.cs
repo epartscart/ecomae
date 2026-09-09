@@ -10371,7 +10371,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_warehouse_transfers KPIs + transfers (notes omitted). PHP inventory/warehouse transfer UX remains authoritative."
+                note = "Open ?transfer_id= loads 280-char notes excerpt; same-status siblings. PHP inventory/warehouse transfer UX remains authoritative."
             });
         });
 

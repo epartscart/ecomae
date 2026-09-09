@@ -3322,6 +3322,36 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened stock transfer. notes is a short excerpt. Line bodies omitted. Ship/receive stay Classic.</summary>
+    public const string SelectErpStockTransferDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`transfer_no`,'') AS transfer_no,
+               IFNULL(`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(`to_warehouse_id`,0) AS to_warehouse_id,
+               IFNULL(`reason`,'') AS reason, IFNULL(`status`,'') AS status,
+               IFNULL(`total_items`,0) AS total_items, IFNULL(`total_qty`,0) AS total_qty,
+               IFNULL(`shipped_at`,'') AS shipped_at, IFNULL(`received_at`,'') AS received_at,
+               IFNULL(`created_by`,0) AS created_by, IFNULL(`received_by`,0) AS received_by,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_warehouse_transfers`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other stock transfers with the same status. notes omitted.</summary>
+    public const string SelectErpStockTransferStatusSiblings = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`transfer_no`,'') AS transfer_no,
+               IFNULL(`from_warehouse_id`,0) AS from_warehouse_id, IFNULL(`to_warehouse_id`,0) AS to_warehouse_id,
+               IFNULL(`reason`,'') AS reason, IFNULL(`status`,'') AS status,
+               IFNULL(`total_items`,0) AS total_items, IFNULL(`total_qty`,0) AS total_qty,
+               IFNULL(`shipped_at`,'') AS shipped_at, IFNULL(`received_at`,'') AS received_at,
+               IFNULL(`created_by`,0) AS created_by, IFNULL(`time_created`,0) AS time_created
+        FROM `epc_warehouse_transfers`
+        WHERE IFNULL(`status`,'') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>Sales quotation KPIs — omits notes.</summary>
     public const string SelectErpSalesQuotationStats = """
         SELECT
