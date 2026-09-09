@@ -768,6 +768,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(actDb.Succeeded);
         Assert.Equal("db", actDb.Code);
 
+        Assert.Equal("task", CpCrmActivityWriteService.NormalizeActivityType("nope"));
+        Assert.Equal("lead", CpCrmActivityWriteService.NormalizeRelatedType("nope"));
+        Assert.True(CpCrmActivityWriteService.ParseDueDate("") > 0);
+        Assert.True(CpCrmActivityWriteService.ParseDueDate("2026-09-09") > 0);
+
+        var actSaveBad = await new CpCrmActivityWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCrmActivitySaveRequest(-1, "task", "lead", 0, "", false, 1, ""));
+        Assert.False(actSaveBad.Succeeded);
+        Assert.Equal("invalid", actSaveBad.Code);
+
+        var actSaveDb = await new CpCrmActivityWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpCrmActivitySaveRequest(0, "task", "lead", 0, "", false, 1, ""));
+        Assert.False(actSaveDb.Succeeded);
+        Assert.Equal("db", actSaveDb.Code);
+
         var tixInvalid = await new CpCrmTicketWriteService(new ConfiguredNeverOpened())
             .UpdateStatusAsync(0, "open", "normal", "", 1);
         Assert.False(tixInvalid.Succeeded);
