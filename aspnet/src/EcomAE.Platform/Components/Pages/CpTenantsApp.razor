@@ -19,7 +19,7 @@
 
 
         <PhpCpModulePageHeader Title="Portal Tenants"
-                               Subtitle="Super CP tenant fleet control (PHP tenant control centre presentation)."
+                               Subtitle="Super CP tenant fleet control. Enable or disable a registry tenant here. Password reset and reveal stay on the Classic twin. This page does not invent a send."
                                PhpTabHref="@_phpTab"
                                ExtraPanelClass="epc-scp-panel--tenants">
             <a class="ghost" href="/cp/menus-app">Menus list</a>
@@ -44,6 +44,37 @@
                 <div class="epc-scp-kpi__val">@_erpOnly</div>
             </div>
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="alert alert-success" role="status">@_flashOk</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="alert alert-danger" role="status">@_flashErr</div>
+        }
+
+        @if (_isAdmin)
+        {
+            <div class="epc-scp-table-card" style="margin-bottom:1rem;padding:1rem">
+                <form method="post" action="/cp/tenants/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                    <input type="hidden" name="action" value="tenant_set_active" />
+                    <label>Site key
+                        <input type="text" name="site_key" value="" />
+                    </label>
+                    <label>Active
+                        <select name="active">
+                            <option value="1">on</option>
+                            <option value="0">off</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-primary btn-sm">Set active</button>
+                </form>
+                <p class="help-block" style="margin:.75rem 0 0">Password reset and reveal stay Classic.</p>
+            </div>
+        }
 
         <div class="epc-scp-table-card">
             <table class="epc-scp-data-table table table-epc-pro">
@@ -82,7 +113,28 @@
                                 <td><span class="epc-scp-badge @(t.IsActive ? "epc-scp-badge--ok" : "epc-scp-badge--off")">@(t.IsActive ? "yes" : "no")</span></td>
                                 <td><span class="epc-scp-badge @(t.HasDb ? "epc-scp-badge--ok" : "epc-scp-badge--off")">@(t.HasDb ? "yes" : "no")</span></td>
                                 <td><span class="epc-scp-badge">@(t.ErpOnly ? "yes" : "no")</span></td>
-                                <td class="epc-scp-actions-cell"><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                                <td class="epc-scp-actions-cell">
+                                    <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a>
+                                    @if (_isAdmin && !string.IsNullOrWhiteSpace(t.SiteKey))
+                                    {
+                                        <form method="post" action="/cp/tenants/write" style="display:inline">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="/cp/tenants-app" />
+                                            <input type="hidden" name="action" value="tenant_set_active" />
+                                            <input type="hidden" name="site_key" value="@t.SiteKey" />
+                                            @if (t.IsActive)
+                                            {
+                                                <input type="hidden" name="active" value="0" />
+                                                <button type="submit" class="btn btn-xs btn-default">Disable</button>
+                                            }
+                                            else
+                                            {
+                                                <input type="hidden" name="active" value="1" />
+                                                <button type="submit" class="btn btn-xs btn-primary">Enable</button>
+                                            }
+                                        </form>
+                                    }
+                                </td>
                             </tr>
                         }
                     }
@@ -112,6 +164,8 @@ else
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -121,6 +175,9 @@ else
         {
             return;
         }
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

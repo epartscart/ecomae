@@ -1017,6 +1017,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(featDb.Succeeded);
         Assert.Equal("db", featDb.Code);
 
+        var tenantBad = await new CpTenantsWriteService(new ConfiguredNeverOpened())
+            .SetActiveAsync(new CpTenantsSetActiveRequest("", true));
+        Assert.False(tenantBad.Succeeded);
+        Assert.Equal("invalid", tenantBad.Code);
+
+        var tenantDb = await new CpTenantsWriteService(new UnconfiguredConnections())
+            .SetActiveAsync(new CpTenantsSetActiveRequest("epartscart", true));
+        Assert.False(tenantDb.Succeeded);
+        Assert.Equal("db", tenantDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

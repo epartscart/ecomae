@@ -732,6 +732,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOfficeWriteService, EcomAE.Plat
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantEmailWriteService, EcomAE.Platform.Cp.CpTenantEmailWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMobileAppsWriteService, EcomAE.Platform.Cp.CpMobileAppsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantFeaturesWriteService, EcomAE.Platform.Cp.CpTenantFeaturesWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantsWriteService, EcomAE.Platform.Cp.CpTenantsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsWhatsappWriteService, EcomAE.Platform.Cp.CpSmsWhatsappWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPluginsWriteService, EcomAE.Platform.Cp.CpPluginsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTemplatesWriteService, EcomAE.Platform.Cp.CpTemplatesWriteService>();
