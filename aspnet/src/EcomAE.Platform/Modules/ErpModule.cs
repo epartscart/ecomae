@@ -11383,7 +11383,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only inventory movement ledger (epc_erp_inventory_ledger). Writes remain PHP."
+                note = "Read-only inventory movement ledger (epc_erp_inventory_ledger). Open ?movement_id= loads 280-char note excerpt. Writes remain PHP."
             });
         });
 

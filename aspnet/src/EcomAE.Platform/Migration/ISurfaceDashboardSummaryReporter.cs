@@ -509,6 +509,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only inventory movement ledger (PHP <c>epc_erp_inventory_ledger</c>).</summary>
     Task<ErpInventoryMovementsDigestResult> BuildErpInventoryMovementsDigestAsync(int limit, int? itemId = null, int? warehouseId = null, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened inventory movement (Open key <c>movement_id</c>, remapped by <c>tab=ledger</c>) plus same-warehouse siblings. note is a short excerpt. Surfaces batch_no + total_cost hidden from the list table.</summary>
+    Task<ErpInventoryMovementDetailResult> BuildErpInventoryMovementDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Batch 4: read-only warehouse part search (writes/cart remain PHP part_search).</summary>
     Task<StorefrontPartSearchResult> SearchStorefrontPartsAsync(string article, int limit, CancellationToken cancellationToken = default);
 

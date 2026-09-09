@@ -944,6 +944,31 @@ public sealed record ErpInventoryMovementsDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpInventoryMovementDetail(
+    long Id,
+    string MovementType,
+    long WarehouseId,
+    long ItemId,
+    string Sku,
+    string ItemName,
+    string WarehouseName,
+    decimal Qty,
+    decimal UnitCost,
+    decimal TotalCost,
+    string BatchNo,
+    string ExpiryDate,
+    long TransferWarehouseId,
+    string Reference,
+    long MovementDate,
+    int NoteLen,
+    string NoteExcerpt);
+
+public sealed record ErpInventoryMovementDetailResult(
+    ErpInventoryMovementDetail? Movement,
+    IReadOnlyList<ErpInventoryMovementDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpAgingPartyDigest(
     string Name,
     decimal Bucket0,

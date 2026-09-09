@@ -513,6 +513,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("company_id", LegacySurfaceDashboardSql.SelectErpReportCenterTableRowsByCompanyTemplate, StringComparison.Ordinal);
         Assert.Contains("information_schema.COLUMNS", LegacySurfaceDashboardSql.SelectErpReportCenterHasCompanyIdTemplate, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_movements", LegacySurfaceDashboardSql.SelectErpInventoryMovements, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpInventoryMovements, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(m.`note`,''), 280)", LegacySurfaceDashboardSql.SelectErpInventoryMovementDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpInventoryMovementDetail, StringComparison.Ordinal);
+        Assert.Contains("batch_no", LegacySurfaceDashboardSql.SelectErpInventoryMovementDetail, StringComparison.Ordinal);
+        Assert.Contains("total_cost", LegacySurfaceDashboardSql.SelectErpInventoryMovementDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
+        Assert.Contains("@warehouse_id", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SumErpDashboardStockValue, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_lines", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
         Assert.Contains("shop_currencies", LegacySurfaceDashboardSql.SelectCpCurrencies, StringComparison.Ordinal);
