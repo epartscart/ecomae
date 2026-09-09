@@ -6122,6 +6122,18 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    /// <summary>Shop event channel flags — omits email/SMS template bodies.</summary>
+    public const string SelectCpNotificationSettings = """
+        SELECT `id`, IFNULL(`name`, '') AS name,
+               IFNULL(`email_on`, 0) AS email_on,
+               IFNULL(`sms_on`, 0) AS sms_on,
+               IFNULL(`foreseen_email`, 0) AS foreseen_email,
+               IFNULL(`foreseen_sms`, 0) AS foreseen_sms
+        FROM `notifications_settings`
+        ORDER BY `id` ASC
+        LIMIT @limit
+        """;
+
     /// <summary>Portal site settings KPIs (CREATE in content/general_pages/epc_portal_db.php).</summary>
     public const string SelectCpPortalSettingsStats = """
         SELECT
