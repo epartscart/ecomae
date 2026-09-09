@@ -10285,7 +10285,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP purchase-orders digest. PHP epc_erp_purchase_orders remains authoritative."
+                note = "Read-only ERP purchase-orders digest. Open ?po_id= loads a 280-char notes excerpt and VAT plus same-status siblings. Writes stay Classic."
             });
         });
 

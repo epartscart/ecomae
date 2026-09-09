@@ -127,6 +127,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpPurchaseOrderListResult> ListErpPurchaseOrdersAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened purchase order (Open key <c>po_id</c>) plus same-status siblings. notes/VAT are hidden from the list.</summary>
+    Task<ErpPurchaseOrderDetailResult> BuildErpPurchaseOrderDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only inventory stock KPIs + on-hand rows (PHP <c>epc_erp_inventory_stock_report</c>).</summary>
     Task<ErpInventoryStockDigestResult> BuildErpInventoryStockDigestAsync(int limit, int? warehouseId = null, CancellationToken cancellationToken = default);
 

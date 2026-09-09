@@ -1256,6 +1256,40 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened purchase order (Open key <c>po_id</c>). notes/VAT/ids/timestamps are hidden from the list. jw_* jewellery columns are add-if-missing — omitted.</summary>
+    public const string SelectErpPurchaseOrderDetail = """
+        SELECT `id`, IFNULL(`po_no`, '') AS po_no,
+               IFNULL(`supplier_id`, 0) AS supplier_id,
+               IFNULL(`title`, '') AS title,
+               IFNULL(`amount_ex_vat`, 0) AS amount_ex_vat,
+               IFNULL(`vat_amount`, 0) AS vat_amount,
+               IFNULL(`total_amount`, 0) AS total_amount,
+               IFNULL(`status`, '') AS status,
+               IFNULL(`purchase_id`, 0) AS purchase_id,
+               IFNULL(`order_id`, 0) AS order_id,
+               IFNULL(`approved_at`, 0) AS approved_at,
+               IFNULL(`received_at`, 0) AS received_at,
+               LEFT(IFNULL(`notes`, ''), 280) AS notes_excerpt,
+               CHAR_LENGTH(IFNULL(`notes`, '')) AS notes_len,
+               IFNULL(`admin_id`, 0) AS admin_id,
+               IFNULL(`time_created`, 0) AS time_created,
+               IFNULL(`time_updated`, 0) AS time_updated
+        FROM `epc_erp_purchase_orders`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other purchase orders with the same status. notes/VAT omitted.</summary>
+    public const string SelectErpPurchaseOrderStatusSiblings = """
+        SELECT `id`, IFNULL(`po_no`, '') AS po_no, IFNULL(`supplier_id`, 0) AS supplier_id,
+               IFNULL(`title`, '') AS title, IFNULL(`total_amount`, 0) AS total_amount,
+               IFNULL(`status`, '') AS status, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_purchase_orders`
+        WHERE IFNULL(`status`, '') = @status AND `id` <> @id
+        ORDER BY `time_created` DESC, `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpPurchaseOrderLines = """
         SELECT `l`.`id` AS line_id, `l`.`po_id` AS document_id, IFNULL(`l`.`item_code`, '') AS item_code,
                IFNULL(`l`.`description`, '') AS description, IFNULL(`l`.`qty`, 0) AS qty,

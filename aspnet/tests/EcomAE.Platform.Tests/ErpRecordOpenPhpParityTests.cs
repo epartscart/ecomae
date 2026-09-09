@@ -253,6 +253,43 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void PurchaseOrdersApp_OpenLoadsNotesVatAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchaseOrdersApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpPurchaseOrderDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"po_id\", \"order_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("po_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(\"/erp/purchase-orders-app\", \"po_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("AmountExVat", razor, StringComparison.Ordinal);
+        Assert.Contains("VatAmount", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("erp-purchase-orders.js", razor, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpJewelleryBarcodePurchaseCreateForm", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/purchase-orders-app?po_id=9#erp-row-9",
+            ErpRecordOpen.Href("/erp/purchase-orders-app", "po_id", 9));
+        Assert.Equal(
+            "/erp/purchase-orders-app?po_id=9",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/purchase-orders-app",
+                "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders&po_id=9"));
+    }
+
+    [Fact]
     public void GlJournalsApp_OpenLoadsNoteReferenceAndSiblings()
     {
         var root = FindRepoRoot();
