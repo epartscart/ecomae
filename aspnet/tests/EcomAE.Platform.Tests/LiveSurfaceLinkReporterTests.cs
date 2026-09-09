@@ -169,7 +169,7 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Equal(4, report.Links.Count(link =>
             link.HostClass == "aspnet-exact-route-shadow-live"
             && link.AspNetRouteHint.StartsWith("/storefront/", StringComparison.Ordinal)));
-        Assert.Equal(205, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
+        Assert.Equal(206, report.Links.Count(link => link.HostClass == "aspnet-presentation-preview"));
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/erp/on-premises-app"
@@ -1269,6 +1269,9 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/erp/multi-currency-gl-app");
+        Assert.Contains(report.Links, link =>
+            link.HostClass == "aspnet-presentation-preview"
+            && link.AspNetRouteHint == "/erp/procurement-categories-app");
         Assert.Contains(report.Links, link =>
             link.HostClass == "aspnet-presentation-preview"
             && link.AspNetRouteHint == "/cp/page-builder-app");

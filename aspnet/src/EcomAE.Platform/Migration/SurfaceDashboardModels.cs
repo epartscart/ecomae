@@ -7653,6 +7653,38 @@ public sealed record ErpProcurementCategoriesDigestResult(
     IReadOnlyList<ErpProcPolicyDigest> Policies,
     int Count, int ActiveCount, int PolicyCount, string Source, string Message);
 
+public sealed record ErpProcCategoryDetail(
+    long Id,
+    string Code,
+    string Name,
+    long ParentId,
+    string DefaultAccount,
+    bool Active,
+    long CompanyId,
+    long TimeCreated);
+
+public sealed record ErpProcCategoryDetailResult(
+    ErpProcCategoryDetail? Category,
+    IReadOnlyList<ErpProcCategoryDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpProcPolicyDetail(
+    long Id,
+    string Name,
+    long CategoryId,
+    decimal ApprovalThreshold,
+    string PreferredVendor,
+    bool Active,
+    long CompanyId,
+    long TimeCreated);
+
+public sealed record ErpProcPolicyDetailResult(
+    ErpProcPolicyDetail? Policy,
+    IReadOnlyList<ErpProcPolicyDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpQmPlanDigest(long Id, string Code, string Name, bool Active, int TestCount, long TimeUpdated);
 public sealed record ErpQmOrderDigest(long Id, long PlanId, string RefType, string RefId, long ItemId, decimal Qty, string Status, string Verdict, long TimeCreated);
 public sealed record ErpQmNcrDigest(long Id, long OrderId, string Title, string Severity, string Disposition, string Status, long TimeCreated);

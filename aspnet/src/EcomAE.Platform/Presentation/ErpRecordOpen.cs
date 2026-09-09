@@ -30,6 +30,7 @@ public static class ErpRecordOpen
         "invrep_cat_id", "invrep_snap_id",
         "me_group_id", "me_ic_id",
         "mcgl_rate_id", "mcgl_entry_id",
+        "proc_cat_id", "proc_pol_id",
         "order_id", "pf_case",
         "case_id", "campaign_id",
         "warehouse_id", "rfq_id",
