@@ -7064,9 +7064,68 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_auto_price_rules KPIs + rules. Open ?aprice_id= loads 280-char notes excerpt. config_json omitted. Edit and compare-run stay on the Classic twin."
+                note = "Read-only epc_auto_price_rules KPIs + rules. Open ?aprice_id= loads 280-char notes excerpt. config_json omitted. toggle_discovery_source POST /cp/auto-price/write when confirmWrites=true. Add/delete and compare-run stay Classic."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.CpAutoPriceWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAutoPriceWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/auto-price-app", "Admin CP capability required for auto-price write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAutoPriceWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var siteKey = body.SiteKey;
+            var enabled = body.Enabled;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "source_id", "sourceId");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                var enabledRaw = LiveWriteFormBinder.Text(form, "enabled");
+                enabled = enabledRaw.Length == 0 ? null : LiveWriteFormBinder.Flag(form, "enabled");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "toggle_discovery_source" or "apai_toggle_discovery_source")
+            {
+                var written = await writes.ToggleSourceAsync(
+                    new CpAutoPriceSourceToggleRequest(id, siteKey, enabled),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/auto-price-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "toggle_discovery_source" or "apai_toggle_discovery_source",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Add, delete, and compare-run stay Classic."
+                    : "Dry-run. Set confirmWrites=true to toggle the discovery source.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelUaeTaxCompliance, async (
             HttpContext context,
@@ -11931,6 +11990,12 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? FooterHtml = null,
         string? CssExtra = null,
         bool Active = false);
+    private sealed record CpAutoPriceWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? SiteKey = null,
+        bool? Enabled = null);
     private sealed record CpModulesWriteBody(
         string? Action = null,
         long ModuleId = 0,

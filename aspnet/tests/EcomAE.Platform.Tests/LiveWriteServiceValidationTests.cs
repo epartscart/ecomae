@@ -924,6 +924,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(dcTemplateDb.Succeeded);
         Assert.Equal("db", dcTemplateDb.Code);
 
+        Assert.Equal("epartscart", CpAutoPriceWriteService.NormalizeSiteKey(" ePartsCart! "));
+        Assert.Equal(1, CpAutoPriceWriteService.NextEnabled(0, null));
+
+        var apToggleBad = await new CpAutoPriceWriteService(new ConfiguredNeverOpened())
+            .ToggleSourceAsync(new CpAutoPriceSourceToggleRequest(0, "", null));
+        Assert.False(apToggleBad.Succeeded);
+        Assert.Equal("invalid", apToggleBad.Code);
+
+        var apToggleDb = await new CpAutoPriceWriteService(new UnconfiguredConnections())
+            .ToggleSourceAsync(new CpAutoPriceSourceToggleRequest(3, "", null));
+        Assert.False(apToggleDb.Succeeded);
+        Assert.Equal("db", apToggleDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
