@@ -5,9 +5,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>epc_marketplace.php</c> twin of <c>epc_marketplace_install</c>
-/// and <c>epc_marketplace_uninstall</c>. Review, config, seed, and schema-ensure
-/// stay Classic. This service does not invent a send.
+/// Live PHP <c>epc_marketplace.php</c> twin of <c>epc_marketplace_install</c>,
+/// <c>epc_marketplace_uninstall</c>, and <c>epc_marketplace_add_review</c>.
+/// Config, seed, and schema-ensure stay Classic. This service does not invent a send.
 /// </summary>
 public interface ICpMarketplaceAppsWriteService
 {
@@ -18,11 +18,23 @@ public interface ICpMarketplaceAppsWriteService
     Task<ErpSimpleWriteResult> UninstallAsync(
         CpMarketplaceInstallRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> AddReviewAsync(
+        CpMarketplaceReviewRequest request,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record CpMarketplaceInstallRequest(
     long AppId,
     string? SiteKey);
+
+public sealed record CpMarketplaceReviewRequest(
+    long AppId,
+    string? SiteKey,
+    int? Rating,
+    string? Title,
+    string? ReviewText,
+    string? ReviewerName);
 
 public sealed class CpMarketplaceAppsWriteService : ICpMarketplaceAppsWriteService
 {
@@ -36,7 +48,24 @@ public sealed class CpMarketplaceAppsWriteService : ICpMarketplaceAppsWriteServi
     }
 
     public static string NormalizeSiteKey(string? raw)
-        => SiteKeySafe.Replace((raw ?? string.Empty).Trim().ToLowerInvariant(), string.Empty);
+        => Clip(SiteKeySafe.Replace((raw ?? string.Empty).Trim().ToLowerInvariant(), string.Empty), 64);
+
+    public static string Clip(string? raw, int max)
+    {
+        var text = raw ?? string.Empty;
+        return text.Length <= max ? text : text[..max];
+    }
+
+    public static int ClampRating(int? raw)
+    {
+        var rating = raw ?? 5;
+        if (rating < 1)
+        {
+            return 1;
+        }
+
+        return rating > 5 ? 5 : rating;
+    }
 
     public async Task<ErpSimpleWriteResult> InstallAsync(
         CpMarketplaceInstallRequest request,
@@ -128,6 +157,61 @@ public sealed class CpMarketplaceAppsWriteService : ICpMarketplaceAppsWriteServi
                 ErpDb.Positional("UPDATE `epc_marketplace_installs` SET `status`='uninstalled' WHERE `app_id`=? AND `site_key`=?"),
                 cancellationToken, request.AppId, siteKey).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("App uninstalled.", request.AppId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Marketplace table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> AddReviewAsync(
+        CpMarketplaceReviewRequest request,
+        CancellationToken cancellationToken = default)
+    {
+        if (request.AppId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "App id is required");
+        }
+
+        var siteKey = NormalizeSiteKey(request.SiteKey);
+        if (siteKey.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Site key is required");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var rating = ClampRating(request.Rating);
+        var title = Clip(request.Title, 128);
+        var reviewText = Clip(request.ReviewText, 512);
+        var reviewerName = Clip(request.ReviewerName, 128);
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("INSERT INTO `epc_marketplace_reviews` (`app_id`,`site_key`,`rating`,`title`,`review_text`,`reviewer_name`) VALUES (?,?,?,?,?,?)"),
+                cancellationToken, request.AppId, siteKey, rating, title, reviewText, reviewerName).ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+
+            var avg = await ErpDb.DecimalAsync(
+                connection, null,
+                ErpDb.Positional("SELECT AVG(`rating`) FROM `epc_marketplace_reviews` WHERE `app_id`=?"),
+                cancellationToken, request.AppId).ConfigureAwait(false);
+            var count = await ErpDb.LongAsync(
+                connection, null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `epc_marketplace_reviews` WHERE `app_id`=?"),
+                cancellationToken, request.AppId).ConfigureAwait(false);
+            var avgRounded = Math.Round(avg, 1, MidpointRounding.AwayFromZero);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("UPDATE `epc_marketplace_apps` SET `avg_rating`=?, `review_count`=? WHERE `id`=?"),
+                cancellationToken, avgRounded, count, request.AppId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Review added.", id);
         }
         catch (DbException)
         {
