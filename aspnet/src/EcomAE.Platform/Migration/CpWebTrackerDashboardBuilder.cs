@@ -544,7 +544,7 @@ public static class CpWebTrackerDashboardBuilder
         }
     }
 
-    internal static long NormalizeUnixSeconds(long value)
+    public static long NormalizeUnixSeconds(long value)
         => value > 10_000_000_000L ? value / 1000L : value;
 
     private static string BuildSessionFilterSql(
