@@ -908,8 +908,8 @@ public sealed class StorefrontModule : ISurfaceModule
 
             var result = await dashboards.ListStorefrontCartAsync(shopper.UserId, limit ?? 50, cancellationToken, shopper.SessionRecordId);
             var checkedCount = result.Lines.Count(l => l.CheckedForOrder);
-            var readiness = result.Summary.Count > 0
-                ? (checkedCount > 0 ? "ready-for-php-how-get" : "cart-has-lines")
+            var                 readiness = result.Summary.Count > 0
+                ? (checkedCount > 0 ? "ready-for-confirm" : "cart-has-lines")
                 : "empty-cart";
             return Results.Ok(new
             {
@@ -921,15 +921,15 @@ public sealed class StorefrontModule : ISurfaceModule
                 readiness,
                 php_steps = new[]
                 {
-                    new { id = "how_get", href = "https://epartscart.com/shop/checkout/how_get" },
-                    new { id = "login_offer", href = "https://epartscart.com/shop/checkout/login_offer" },
-                    new { id = "confirm", href = "https://epartscart.com/shop/checkout/confirm" },
+                    new { id = "how_get", href = "/storefront/checkout-app?step=how_get" },
+                    new { id = "login_offer", href = "/storefront/checkout-app?step=login_offer" },
+                    new { id = "confirm", href = "/storefront/checkout-app?step=confirm" },
                 },
                 count = result.Count,
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Wave B read-only checkout readiness over shop_carts. Obtain/confirm/payment writes remain PHP."
+                note = "Checkout readiness over shop_carts. Create POST /storefront/checkout/create writes how_get_json from the how_get cookie. Live acquirer capture and staff email stay PHP."
             });
         });
 
@@ -1636,6 +1636,7 @@ public sealed class StorefrontModule : ISurfaceModule
             var agreement = body.UsersAgreement;
             var phone = body.PhoneNotAuth;
             var email = body.EmailNotAuth;
+            var howGetJson = body.HowGetJson;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -1647,13 +1648,29 @@ public sealed class StorefrontModule : ISurfaceModule
                 buyerPo = LiveWriteFormBinder.Text(form, "buyerPoNumber", "buyer_po_number");
                 phone = LiveWriteFormBinder.Text(form, "phoneNotAuth", "phone_not_auth", "phone");
                 email = LiveWriteFormBinder.Text(form, "emailNotAuth", "email_not_auth", "email");
+                howGetJson = LiveWriteFormBinder.Text(form, "how_get_json", "howGetJson");
+            }
+
+            if (string.IsNullOrWhiteSpace(howGetJson))
+            {
+                howGetJson = StorefrontHowGetCookie.ReadRaw(context.Request);
+            }
+
+            if (howGet <= 0)
+            {
+                howGet = StorefrontHowGetCookie.ReadInt(howGetJson, "mode");
+            }
+
+            if (officeId <= 0)
+            {
+                officeId = StorefrontHowGetCookie.ReadInt(howGetJson, "office_id");
             }
 
             if (confirm)
             {
                 var written = await writes.CreateAsync(
                     shopper.UserId,
-                    new StorefrontCheckoutWriteRequest(howGet, officeId, agreement, orderMessage, buyerPo, shopper.SessionRecordId, phone, email),
+                    new StorefrontCheckoutWriteRequest(howGet, officeId, agreement, orderMessage, buyerPo, shopper.SessionRecordId, phone, email, howGetJson),
                     cancellationToken);
                 if (written.Ok && !shopper.IsSignedIn)
                 {
@@ -2613,7 +2630,8 @@ public sealed class StorefrontModule : ISurfaceModule
         bool ConfirmWrites = false,
         bool UsersAgreement = false,
         string? OrderMessage = null,
-        string? BuyerPoNumber = null);
+        string? BuyerPoNumber = null,
+        string? HowGetJson = null);
     private sealed record StorefrontPaymentCreateBody(
         decimal Amount,
         long OrderId = 0,

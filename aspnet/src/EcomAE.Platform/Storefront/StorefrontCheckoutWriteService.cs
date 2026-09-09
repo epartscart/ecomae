@@ -1,6 +1,5 @@
 using System.Data.Common;
 using System.Globalization;
-using System.Text.Json;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Storefront;
@@ -25,7 +24,8 @@ public sealed record StorefrontCheckoutWriteRequest(
     string? BuyerPoNumber = null,
     long SessionId = 0,
     string? PhoneNotAuth = null,
-    string? EmailNotAuth = null);
+    string? EmailNotAuth = null,
+    string? HowGetCookieJson = null);
 
 public sealed record StorefrontCheckoutWriteResult(
     bool Ok,
@@ -191,16 +191,7 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var how = new Dictionary<string, object?>
-            {
-                ["mode"] = request.HowGetMode,
-            };
-            if (office > 0)
-            {
-                how["office_id"] = office;
-            }
-
-            var howJson = JsonSerializer.Serialize(how);
+            var howJson = StorefrontHowGetCookie.BuildHowGetJson(request.HowGetMode, office, request.HowGetCookieJson);
             var time = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
             var phoneStored = userId > 0 ? "" : StorefrontGuestSessionService.HtmlEntities(phone);
             var emailStored = userId > 0 ? "" : StorefrontGuestSessionService.HtmlEntities(email);

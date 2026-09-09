@@ -47,6 +47,7 @@ public sealed class StorefrontGuestCheckoutParityTests
         Assert.Contains("`session_id` = ?", checkout, StringComparison.Ordinal);
         Assert.Contains("phone_not_auth", checkout, StringComparison.Ordinal);
         Assert.Contains("phone_required", checkout, StringComparison.Ordinal);
+        Assert.Contains("StorefrontHowGetCookie.BuildHowGetJson", checkout, StringComparison.Ordinal);
 
         var cartApp = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontCartApp.razor"));
