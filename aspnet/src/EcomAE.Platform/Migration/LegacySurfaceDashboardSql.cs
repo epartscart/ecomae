@@ -8150,6 +8150,68 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened job requisition. notes is a short excerpt.</summary>
+    public const string SelectErpRecruitmentJobDetail = """
+        SELECT `id`, IFNULL(`title`,'') AS title,
+               IFNULL(`department`,'') AS department,
+               IFNULL(`headcount`,1) AS headcount,
+               IFNULL(`hired`,0) AS hired,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`hiring_manager`,'') AS hiring_manager,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_hrt_job`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other jobs of the same status. notes omitted.</summary>
+    public const string SelectErpRecruitmentJobStatusSiblings = """
+        SELECT `id`, IFNULL(`title`,'') AS title,
+               IFNULL(`department`,'') AS department,
+               IFNULL(`headcount`,1) AS headcount,
+               IFNULL(`hired`,0) AS hired,
+               IFNULL(`status`,'open') AS status,
+               IFNULL(`hiring_manager`,'') AS hiring_manager,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_hrt_job`
+        WHERE IFNULL(`status`,'open') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Opened applicant. notes is a short excerpt. email/phone omitted.</summary>
+    public const string SelectErpRecruitmentApplicantDetail = """
+        SELECT `id`, IFNULL(`job_id`,0) AS job_id,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`stage`,'applied') AS stage,
+               IFNULL(`rating`,0) AS rating,
+               IFNULL(`company_id`,0) AS company_id,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_hrt_applicant`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other applicants of the same stage. notes and email/phone omitted.</summary>
+    public const string SelectErpRecruitmentApplicantStageSiblings = """
+        SELECT `id`, IFNULL(`job_id`,0) AS job_id,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`email`,'') AS email,
+               IFNULL(`phone`,'') AS phone,
+               IFNULL(`stage`,'applied') AS stage,
+               IFNULL(`rating`,0) AS rating,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_hrt_applicant`
+        WHERE IFNULL(`stage`,'applied') = @stage AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpCustomerGroups = """
         SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,
                IFNULL(g.`group_name`,'') AS group_name,

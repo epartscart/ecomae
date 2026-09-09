@@ -23853,6 +23853,148 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpRecruitmentJobDetailResult> BuildErpRecruitmentJobDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpRecruitmentJobDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpRecruitmentJobDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpRecruitmentJobDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "title"),
+                        ReadStr(reader, "department"),
+                        ReadI32(reader, "headcount"),
+                        ReadI32(reader, "hired"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "hiring_manager"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadI32(reader, "notes_len"),
+                        ReadStr(reader, "notes_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Job requisition not found.");
+            }
+
+            var siblings = new List<ErpRecruitmentJobDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpRecruitmentJobStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "title"),
+                        ReadStr(reader, "department"),
+                        ReadI32(reader, "headcount"),
+                        ReadI32(reader, "hired"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "hiring_manager"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    public async Task<ErpRecruitmentApplicantDetailResult> BuildErpRecruitmentApplicantDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpRecruitmentApplicantDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpRecruitmentApplicantDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpRecruitmentApplicantDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "job_id"),
+                        ReadStr(reader, "name"),
+                        ReadStr(reader, "stage"),
+                        ReadI32(reader, "rating"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadI32(reader, "notes_len"),
+                        ReadStr(reader, "notes_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Applicant not found.");
+            }
+
+            var siblings = new List<ErpRecruitmentApplicantDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpRecruitmentApplicantStageSiblings;
+                AddParameter(cmd, "@stage", header.Stage);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "job_id"),
+                        ReadStr(reader, "name"),
+                        ReadStr(reader, "email"),
+                        ReadStr(reader, "phone"),
+                        ReadStr(reader, "stage"),
+                        ReadI32(reader, "rating"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpCustomerGroupsDigestResult> ListErpCustomerGroupsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

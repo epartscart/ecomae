@@ -883,6 +883,12 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened RFID scan session (Open key <c>session_id</c>, remapped by <c>tab=rfid</c>) plus same-status siblings. Reader IP/TID omitted.</summary>
     Task<ErpRfidSessionDetailResult> BuildErpRfidSessionDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpRecruitmentDigestResult> BuildErpRecruitmentDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened job requisition (Open key <c>hrt_job_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
+    Task<ErpRecruitmentJobDetailResult> BuildErpRecruitmentJobDetailAsync(long id, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened applicant (Open key <c>applicant_id</c>) plus same-stage siblings. notes is a short excerpt. email/phone omitted.</summary>
+    Task<ErpRecruitmentApplicantDetailResult> BuildErpRecruitmentApplicantDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpCustomerGroupsDigestResult> ListErpCustomerGroupsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened customer group (Open key <c>cgroup_id</c>) plus same-type siblings. description is a short excerpt.</summary>

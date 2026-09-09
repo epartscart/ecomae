@@ -3052,6 +3052,58 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void RecruitmentApp_OpenLoadsNotesExcerptsAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpRecruitmentApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpRecruitmentJobDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpRecruitmentApplicantDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"hrt_job_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"applicant_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("hrt_job_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("applicant_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"hrt_job_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"applicant_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("same-stage siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("email/phone stay off this pane", razor, StringComparison.Ordinal);
+        Assert.Contains("Job save, applicant add, and stage stay on this page", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecruitmentJobSave", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecruitmentApplicantAdd", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/recruitment/applicants/stage", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_openedApplicant.Email", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_openedApplicant.Phone", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/recruitment-app?hrt_job_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/recruitment-app", "hrt_job_id", 4));
+        Assert.Equal("/erp/recruitment-app?applicant_id=8#erp-row-8",
+            ErpRecordOpen.Href("/erp/recruitment-app", "applicant_id", 8));
+        Assert.Equal(
+            "/erp/recruitment-app?hrt_job_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/recruitment-app",
+                "/ERP/?epc_erp_shell=1&area=hr&tab=recruitment&hrt_job_id=4"));
+        Assert.Equal(
+            "/erp/recruitment-app?applicant_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/recruitment-app",
+                "/ERP/?epc_erp_shell=1&area=hr&tab=recruitment&applicant_id=8"));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

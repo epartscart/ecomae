@@ -7643,6 +7643,42 @@ public sealed record ErpRecruitmentDigestResult(
     IReadOnlyList<ErpRecruitmentApplicantDigest> Applicants,
     int Count, int OpenJobCount, int ApplicantCount, string Source, string Message);
 
+public sealed record ErpRecruitmentJobDetail(
+    long Id,
+    string Title,
+    string Department,
+    int Headcount,
+    int Hired,
+    string Status,
+    string HiringManager,
+    long CompanyId,
+    long TimeCreated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpRecruitmentJobDetailResult(
+    ErpRecruitmentJobDetail? Job,
+    IReadOnlyList<ErpRecruitmentJobDigest> Siblings,
+    string Source,
+    string Message);
+
+public sealed record ErpRecruitmentApplicantDetail(
+    long Id,
+    long JobId,
+    string Name,
+    string Stage,
+    int Rating,
+    long CompanyId,
+    long TimeCreated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpRecruitmentApplicantDetailResult(
+    ErpRecruitmentApplicantDetail? Applicant,
+    IReadOnlyList<ErpRecruitmentApplicantDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpCustomerGroupDigest(
     long Id, string GroupCode, string GroupName, string GroupType, decimal DiscountPct,
     decimal CreditLimit, int PaymentTermsDays, int MemberCount, bool IsActive, long TimeCreated);
