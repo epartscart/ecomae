@@ -11,6 +11,9 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=invoices&inv_id=17", "/erp/invoices-app?inv_id=17")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=gl&journal_id=3", "/erp/gl-journals-app?journal_id=3")]
     [InlineData("/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank&account_id=5", "/erp/cash-accounts-app?account_id=5")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=coa&account_id=19", "/erp/coa-accounts-app?account_id=19")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=chart_of_accounts&account_id=19", "/erp/coa-accounts-app?account_id=19")]
+    [InlineData("/CP/shop/finance/erp?area=finance&tab=coa&epc_erp_shell=1&account_id=19", "/erp/coa-accounts-app?account_id=19")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=vendors&supplier_id=8", "/erp/suppliers-app?supplier_id=8")]
     [InlineData("/ERP/?epc_erp_shell=1&area=overview&tab=processflow&pf_case=11", "/erp/process-flow-tasks-app?pf_case=11")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions&rq=4", "/erp/purchase-requests-app?rq=4")]
@@ -2648,6 +2651,47 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/rfid-app",
                 "/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18"));
+    }
+
+    [Fact]
+    public void CoaAccountsApp_OpenLoadsDescriptionExcerptAndRemapsByTab()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpCoaAccountsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpCoaAccountDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"account_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("account_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"account_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("SystemFlag", razor, StringComparison.Ordinal);
+        Assert.Contains("TimeCreated", razor, StringComparison.Ordinal);
+        Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Writes stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/coa-accounts-app?account_id=19#erp-row-19",
+            ErpRecordOpen.Href("/erp/coa-accounts-app", "account_id", 19));
+        Assert.Equal(
+            "/erp/coa-accounts-app?account_id=19",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/coa-accounts-app",
+                "/ERP/?epc_erp_shell=1&area=finance&tab=coa&account_id=19"));
+        Assert.Equal(
+            "/erp/cash-accounts-app?account_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/cash-accounts-app",
+                "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank&account_id=5"));
     }
 
     [Fact]
