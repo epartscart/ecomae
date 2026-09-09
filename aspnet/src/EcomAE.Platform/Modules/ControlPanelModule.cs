@@ -7108,9 +7108,90 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_promo_promotions KPIs + promotions. PHP epc_promotions_engine remains authoritative."
+                note = "Read-only epc_promo_promotions KPIs + promotions. Open ?promo_id= loads the validity window. Save POST /cp/promotions/write when confirmWrites=true. Apply and loyalty stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelPromotionsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPromoWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/promotions-app", "Admin CP capability required for promotion save.");
+            }
+
+            long id = 0;
+            var code = "";
+            var name = "";
+            var type = "";
+            decimal value = 0;
+            decimal minSpend = 0;
+            long validFrom = 0;
+            long validTo = 0;
+            var active = 1;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "promo_id", "promoId");
+                code = LiveWriteFormBinder.Text(form, "code");
+                name = LiveWriteFormBinder.Text(form, "name");
+                type = LiveWriteFormBinder.Text(form, "type");
+                value = LiveWriteFormBinder.Dec(form, "value");
+                minSpend = LiveWriteFormBinder.Dec(form, "min_spend", "minSpend");
+                validFrom = LiveWriteFormBinder.Long(form, "valid_from", "validFrom");
+                validTo = LiveWriteFormBinder.Long(form, "valid_to", "validTo");
+                active = form.ContainsKey("active")
+                    ? (LiveWriteFormBinder.Flag(form, "active") ? 1 : LiveWriteFormBinder.Int(form, "active"))
+                    : 1;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPromoSaveBody>(context, cancellationToken) ?? new();
+                id = body.Id;
+                code = body.Code ?? "";
+                name = body.Name ?? "";
+                type = body.Type ?? "";
+                value = body.Value;
+                minSpend = body.MinSpend;
+                validFrom = body.ValidFrom;
+                validTo = body.ValidTo;
+                active = body.Active;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the promotion.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveAsync(
+                new CpPromoSaveRequest(id, code, name, type, value, minSpend, validFrom, validTo, active),
+                cancellationToken);
+            var dest = written.Succeeded && written.Id > 0
+                ? ErpRecordOpen.Href(EcomAeRoutes.ControlPanelPromotionsApp, "promo_id", written.Id)
+                : EcomAeRoutes.ControlPanelPromotionsApp;
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, id = written.Id, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelCrmOpportunities, async (
             HttpContext context,
@@ -11175,5 +11256,16 @@ public sealed class ControlPanelModule : ISurfaceModule
         long NotificationId = 0,
         string? Type = null,
         int SetSend = 0,
+        bool ConfirmWrites = false);
+    private sealed record CpPromoSaveBody(
+        long Id = 0,
+        string? Code = null,
+        string? Name = null,
+        string? Type = null,
+        decimal Value = 0,
+        decimal MinSpend = 0,
+        long ValidFrom = 0,
+        long ValidTo = 0,
+        int Active = 1,
         bool ConfirmWrites = false);
 }

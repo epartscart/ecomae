@@ -220,6 +220,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPromotions = "/cp/promotions";
     /// <summary>CP promotions Blazor list (JSON digest remains <see cref="ControlPanelPromotions"/>).</summary>
     public const string ControlPanelPromotionsApp = "/cp/promotions-app";
+    /// <summary>PHP <c>epc_promo_save</c> on <c>epc_promo_promotions</c>. <c>confirmWrites=true</c> writes. Apply / loyalty stay Classic.</summary>
+    public const string ControlPanelPromotionsWrite = "/cp/promotions/write";
     /// <summary>CP CRM opportunities (notes omitted).</summary>
     public const string ControlPanelCrmOpportunities = "/cp/crm-opportunities";
     /// <summary>CP CRM opportunities Blazor list (JSON digest remains <see cref="ControlPanelCrmOpportunities"/>).</summary>
