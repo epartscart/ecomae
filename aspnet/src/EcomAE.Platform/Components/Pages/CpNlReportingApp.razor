@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -20,11 +21,73 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/nl-reporting-app")</p>
-                <p>Open a definition for a short query excerpt and run history. Recipients, parameters, generate, and schedule stay on the Classic twin.</p>
+                <p>Open a definition for a short query excerpt and run history. Save metadata or deactivate a definition here. Query template, recipients, and generate stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/nl-reporting-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">New definition</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/nl-reporting/write" class="well">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="save" />
+                        <input type="hidden" name="id" value="0" />
+                        <div class="form-group">
+                            <label>Site key</label>
+                            <input type="text" class="form-control" name="site_key" />
+                        </div>
+                        <div class="form-group">
+                            <label>Name</label>
+                            <input type="text" class="form-control" name="name" maxlength="128" />
+                        </div>
+                        <div class="form-group">
+                            <label>Description</label>
+                            <textarea class="form-control" name="description" rows="2"></textarea>
+                        </div>
+                        <div class="form-group">
+                            <label>Type</label>
+                            <input type="text" class="form-control" name="report_type" maxlength="32" value="custom" />
+                        </div>
+                        <div class="form-group">
+                            <label>Schedule</label>
+                            <select class="form-control" name="schedule">
+                                @foreach (var schedule in CpNlReportingWriteService.Schedules)
+                                {
+                                    <option value="@schedule">@schedule</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Format</label>
+                            <select class="form-control" name="format">
+                                @foreach (var format in CpNlReportingWriteService.Formats)
+                                {
+                                    <option value="@format">@format</option>
+                                }
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-default">Save definition</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Query template stay Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDef is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -62,6 +125,85 @@
                     else
                     {
                         <p class="text-muted">No query excerpt yet.</p>
+                    }
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="/cp/nl-reporting/write" class="well" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <input type="hidden" name="action" value="save" />
+                            <input type="hidden" name="id" value="@_openedDef.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <div class="form-group">
+                                <label>Site key</label>
+                                <input type="text" class="form-control" name="site_key" value="@_openedDef.SiteKey" />
+                            </div>
+                            <div class="form-group">
+                                <label>Name</label>
+                                <input type="text" class="form-control" name="name" maxlength="128" value="@_openedDef.Name" />
+                            </div>
+                            <div class="form-group">
+                                <label>Description</label>
+                                <textarea class="form-control" name="description" rows="2">@_openedDef.Description</textarea>
+                            </div>
+                            <div class="form-group">
+                                <label>Type</label>
+                                <input type="text" class="form-control" name="report_type" maxlength="32" value="@_openedDef.ReportType" />
+                            </div>
+                            <div class="form-group">
+                                <label>Schedule</label>
+                                <select class="form-control" name="schedule">
+                                    @foreach (var schedule in CpNlReportingWriteService.Schedules)
+                                    {
+                                        @if (OpenedSchedule == schedule)
+                                        {
+                                            <option value="@schedule" selected>@schedule</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@schedule">@schedule</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label>Format</label>
+                                <select class="form-control" name="format">
+                                    @foreach (var format in CpNlReportingWriteService.Formats)
+                                    {
+                                        @if (OpenedFormat == format)
+                                        {
+                                            <option value="@format" selected>@format</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@format">@format</option>
+                                        }
+                                    }
+                                </select>
+                            </div>
+                            <div class="checkbox">
+                                <label>
+                                    @if (_openedDef.Active)
+                                    {
+                                        <input type="checkbox" name="active" value="1" checked />
+                                    }
+                                    else
+                                    {
+                                        <input type="checkbox" name="active" value="1" />
+                                    }
+                                    Active
+                                </label>
+                            </div>
+                            <button type="submit" class="btn btn-default">Save definition</button>
+                        </form>
+                        <form method="post" action="/cp/nl-reporting/write" class="well" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_listHref" />
+                            <input type="hidden" name="action" value="delete" />
+                            <input type="hidden" name="id" value="@_openedDef.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <button type="submit" class="btn btn-default">Deactivate</button>
+                        </form>
+                        <p class="help-block" style="margin:.75rem 0 0">Query template, recipients, and generate stay Classic.</p>
                     }
                 </div>
             </div>
@@ -170,6 +312,16 @@
     private long _openedId;
     private CpNlReportDefinitionDetail? _openedDef;
     private IReadOnlyList<CpNlReportRunDigest> _openedRuns = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    private string OpenedSchedule => CpNlReportingWriteService.NormalizeSchedule(_openedDef?.Schedule);
+
+    private string OpenedFormat => CpNlReportingWriteService.NormalizeFormat(_openedDef?.Format);
+
+    private string OpenedReturnHref => _openedId > 0
+        ? ErpRecordOpen.Href(_listHref, "report_id", _openedId)
+        : _listHref;
 
     private string OpenedCaption => _openedDef is null
         ? ""
@@ -184,6 +336,8 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "report_id");
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
