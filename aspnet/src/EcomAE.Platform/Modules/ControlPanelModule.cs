@@ -6567,9 +6567,102 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_document_templates (HTML/bank secrets omitted). Print remains PHP document_control."
+                note = "Read-only epc_document_templates (HTML/bank secrets omitted). save_company POST /cp/document-control/write when confirmWrites=true. Logo upload and print stay Classic."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.CpDocumentControlWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpDocumentControlWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/document-control-app", "Admin CP capability required for document-control write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpDocumentControlWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var expectedVersion = body.ExpectedVersion;
+            var legalName = body.LegalName;
+            var tradeName = body.TradeName;
+            var addressLine1 = body.AddressLine1;
+            var addressLine2 = body.AddressLine2;
+            var city = body.City;
+            var country = body.Country;
+            var trn = body.Trn;
+            var phone = body.Phone;
+            var email = body.Email;
+            var website = body.Website;
+            var logoPath = body.LogoPath;
+            var bankName = body.BankName;
+            var bankIban = body.BankIban;
+            var legalFooter = body.LegalFooter;
+            var confirm = body.ConfirmWrites;
+            HashSet<string>? posted = null;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                expectedVersion = LiveWriteFormBinder.Int(form, "expected_version", "expectedVersion");
+                legalName = LiveWriteFormBinder.Text(form, "legal_name", "legalName");
+                tradeName = LiveWriteFormBinder.Text(form, "trade_name", "tradeName");
+                addressLine1 = LiveWriteFormBinder.Text(form, "address_line1", "addressLine1");
+                addressLine2 = LiveWriteFormBinder.Text(form, "address_line2", "addressLine2");
+                city = LiveWriteFormBinder.Text(form, "city");
+                country = LiveWriteFormBinder.Text(form, "country");
+                trn = LiveWriteFormBinder.Text(form, "trn");
+                phone = LiveWriteFormBinder.Text(form, "phone");
+                email = LiveWriteFormBinder.Text(form, "email");
+                website = LiveWriteFormBinder.Text(form, "website");
+                logoPath = LiveWriteFormBinder.Text(form, "logo_path", "logoPath");
+                bankName = LiveWriteFormBinder.Text(form, "bank_name", "bankName");
+                bankIban = LiveWriteFormBinder.Text(form, "bank_iban", "bankIban");
+                legalFooter = LiveWriteFormBinder.Text(form, "legal_footer", "legalFooter");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                posted = new HashSet<string>(StringComparer.Ordinal);
+                foreach (var key in CpDocumentControlWriteService.FieldMax.Keys)
+                {
+                    if (form.ContainsKey(key))
+                    {
+                        posted.Add(key);
+                    }
+                }
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_company" or "dc_save_company")
+            {
+                var written = await writes.SaveCompanyAsync(
+                    new CpDocumentCompanySaveRequest(
+                        expectedVersion, legalName, tradeName, addressLine1, addressLine2, city, country,
+                        trn, phone, email, website, logoPath, bankName, bankIban, legalFooter, posted),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/document-control-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_company" or "dc_save_company",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Logo upload stays Classic."
+                    : "Dry-run. Set confirmWrites=true to save the company profile.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelDeliveryMethods, async (
             HttpContext context,
@@ -11764,6 +11857,24 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long LeadId = 0);
+    private sealed record CpDocumentControlWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        int ExpectedVersion = 0,
+        string? LegalName = null,
+        string? TradeName = null,
+        string? AddressLine1 = null,
+        string? AddressLine2 = null,
+        string? City = null,
+        string? Country = null,
+        string? Trn = null,
+        string? Phone = null,
+        string? Email = null,
+        string? Website = null,
+        string? LogoPath = null,
+        string? BankName = null,
+        string? BankIban = null,
+        string? LegalFooter = null);
     private sealed record CpModulesWriteBody(
         string? Action = null,
         long ModuleId = 0,
