@@ -14,9 +14,10 @@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Contacts" BreadcrumbArea="Master Data" BreadcrumbTab="Contacts">
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/contacts-app" IsAdmin="_isAdmin" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -30,7 +31,7 @@
     {
         <form method="post" action="/erp/customers/master-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>Customer ID <input type="number" name="customer_id" min="1" required style="width:6rem" /></label>
             <label>Account <input type="text" name="customer_account" maxlength="32" placeholder="C-0001" /></label>
             <label>Name <input type="text" name="customer_name" maxlength="255" /></label>
@@ -56,7 +57,7 @@
         </form>
         <form method="post" action="/erp/contacts/party-contacts/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>Party id <input type="number" name="party_id" min="1" required style="width:6rem" /></label>
             <label>Type
                 <select name="contact_type">
@@ -73,7 +74,7 @@
         </form>
         <form method="post" action="/erp/contacts/addresses/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>Party id <input type="number" name="party_id" min="1" required style="width:6rem" /></label>
             <label>Purpose
                 <select name="purpose">
@@ -94,7 +95,7 @@
         </form>
         <form method="post" action="/erp/contacts/parties/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <input type="hidden" name="id" value="0" />
             <label>Name <input type="text" name="name" required maxlength="190" style="width:14rem" /></label>
             <label>Type
@@ -113,6 +114,75 @@
         <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
         <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
+
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
+                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.PartyType) ? "—" : _opened.PartyType)</dd>
+                <dt>Company</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Company) ? "—" : _opened.Company)</dd>
+                <dt>TRN</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Trn) ? "—" : _opened.Trn)</dd>
+                <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CurrencyCode) ? "—" : _opened.CurrencyCode)</dd>
+                <dt>City</dt><dd>@(string.IsNullOrWhiteSpace(_opened.City) ? "—" : _opened.City)</dd>
+                <dt>Country</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CountryCode) ? "—" : _opened.CountryCode)</dd>
+                <dt>Address</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Address) ? "—" : _opened.Address)</dd>
+                <dt>Linked user</dt><dd>@(_opened.LinkedUserId > 0 ? _opened.LinkedUserId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Linked supplier</dt><dd>@(_opened.LinkedSupplierId > 0 ? _opened.LinkedSupplierId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Active</dt><dd>@(_opened.Active ? "yes" : "no")</dd>
+                <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
+                <dt>Updated</dt><dd>@FormatTime(_opened.TimeUpdated)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Email/phone omitted. Customer master and address-book writes stay here.</p>
+            @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.NotesExcerpt</pre>
+                @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-city siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Name</th>
+                            <th>Type</th>
+                            <th>City</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Name) ? "—" : sib.Name)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.PartyType) ? "—" : sib.PartyType)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.City) ? "—" : sib.City)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "contact_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-city siblings yet.</p>
+            }
+        </div>
+    }
 
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -137,7 +207,7 @@
                 {
                     @foreach (var row in _contacts)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.Name) ? $"#{row.Id}" : row.Name)</strong></td>
                             <td><span class="label label-default">@row.PartyType</span></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Company) ? "—" : row.Company)</td>
@@ -145,7 +215,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.City) ? "—" : row.City)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.CountryCode) ? "—" : row.CountryCode)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/contacts-app", "contact_id", row.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "contact_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -163,15 +233,28 @@
 @code {
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=common&tab=contacts";
     private string _title = "Contacts";
-    private string _subtitle = "Customer and vendor contacts. Customer master credit-profile save writes here when confirmWrites is set.";
-    private string _returnUrl = "/erp/contacts-app";
-    private string _flashOk = "";
-    private string _flashErr = "";
+    private string _subtitle = "Open a row for street address and the 280-character notes excerpt. Email/phone omitted. Customer master and address-book writes stay here.";
+    private string _listHref = "/erp/contacts-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpContactDigest> _contacts = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private long _openedId;
+    private ErpContactDetail? _opened;
+    private IReadOnlyList<ErpContactDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.Name)
+            ? _opened.Name
+            : ("Contact #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + (_listHref.Contains('?', StringComparison.Ordinal) ? "&" : "?") + "contact_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
@@ -183,12 +266,13 @@
         {
             _phpTab = "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup";
             _title = "AR setup";
-            _subtitle = "Customer master credit-profile save writes here when confirmWrites is set.";
-            _returnUrl = "/erp/contacts-app?tab=ar_setup";
+            _subtitle = "Open a row for street address and the 280-character notes excerpt. Email/phone omitted. Customer master credit-profile save writes here.";
+            _listHref = "/erp/contacts-app?tab=ar_setup";
         }
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "contact_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -201,6 +285,21 @@
         _contacts = result.Contacts;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpContactDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Contact;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _contacts.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _contacts = new[] { openedList }.Concat(_contacts.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
     }
 
     private static string FormatTime(long unix)

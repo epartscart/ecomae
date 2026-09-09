@@ -130,6 +130,10 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=finance&tab=opening&epc_erp_shell=1&batch_id=15", "/erp/opening-app?batch_id=15")]
     [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=year_end&period_id=16", "/erp/period-close-app?period_id=16")]
     [InlineData("/CP/shop/finance/erp?area=finance&tab=year_end&epc_erp_shell=1&period_id=16", "/erp/period-close-app?period_id=16")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=common&tab=contacts&contact_id=17", "/erp/contacts-app?contact_id=17")]
+    [InlineData("/CP/shop/finance/erp?area=common&tab=contacts&epc_erp_shell=1&contact_id=17", "/erp/contacts-app?contact_id=17")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup&contact_id=17", "/erp/contacts-app?tab=ar_setup&contact_id=17")]
+    [InlineData("/CP/shop/finance/erp?area=ar&tab=ar_setup&epc_erp_shell=1&contact_id=17", "/erp/contacts-app?tab=ar_setup&contact_id=17")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2553,6 +2557,54 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/period-close-app",
                 "/ERP/?epc_erp_shell=1&area=finance&tab=year_end&period_id=16"));
+    }
+
+    [Fact]
+    public void ContactsApp_OpenLoadsNotesExcerptAndOmitsEmailPhone()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpContactsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpContactDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"contact_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("contact_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"contact_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("_opened.Address", razor, StringComparison.Ordinal);
+        Assert.Contains("_opened.CurrencyCode", razor, StringComparison.Ordinal);
+        Assert.Contains("same-city siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Email/phone omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("Customer master and address-book writes stay here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/customers/master-save", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/contacts/party-contacts/save", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/contacts/addresses/save", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/contacts/parties/save", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Email", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Phone", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/contacts-app?contact_id=17#erp-row-17",
+            ErpRecordOpen.Href("/erp/contacts-app", "contact_id", 17));
+        Assert.Equal(
+            "/erp/contacts-app?contact_id=17",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/contacts-app",
+                "/ERP/?epc_erp_shell=1&area=common&tab=contacts&contact_id=17"));
+        Assert.Equal(
+            "/erp/contacts-app?tab=ar_setup&contact_id=17",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/contacts-app?tab=ar_setup",
+                "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup&contact_id=17"));
     }
 
     [Fact]

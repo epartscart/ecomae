@@ -11492,7 +11492,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP contacts digest. PHP epc_erp_contacts remains authoritative."
+                note = "Read-only ERP contacts digest. Open ?contact_id= loads 280-char notes excerpt. Email/phone omitted from the Open pane. PHP epc_erp_contacts remains authoritative."
             });
         });
 

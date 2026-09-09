@@ -6685,6 +6685,7 @@ public const string SelectCpOpsGuidesStats = """
         """;
 
     /// <summary>ERP contacts (address/notes omitted) — PHP epc_erp_contacts.</summary>
+    /// <summary>ERP contacts list — address/notes/currency omitted. Email/phone stay on the list only.</summary>
     public const string SelectErpContacts = """
         SELECT `id`, IFNULL(`party_type`,'') AS party_type, IFNULL(`name`,'') AS name,
                IFNULL(`company`,'') AS company, IFNULL(`email`,'') AS email,
@@ -6697,6 +6698,39 @@ public const string SelectCpOpsGuidesStats = """
         WHERE IFNULL(`active`,1) = 1
         ORDER BY `name` ASC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened contact. notes is a short excerpt. Email/phone omitted. Address is the street line, not a filesystem path.</summary>
+    public const string SelectErpContactDetail = """
+        SELECT `id`, IFNULL(`party_type`,'') AS party_type, IFNULL(`name`,'') AS name,
+               IFNULL(`company`,'') AS company, IFNULL(`trn`,'') AS trn,
+               IFNULL(`address`,'') AS address,
+               IFNULL(`city`,'') AS city, IFNULL(`country_code`,'AE') AS country_code,
+               IFNULL(`currency_code`,'AED') AS currency_code,
+               IFNULL(`linked_user_id`,0) AS linked_user_id,
+               IFNULL(`linked_supplier_id`,0) AS linked_supplier_id,
+               IFNULL(`active`,1) AS active,
+               IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`time_updated`,0) AS time_updated,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_contacts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other contacts in the same city. notes/address/email/phone omitted.</summary>
+    public const string SelectErpContactCitySiblings = """
+        SELECT `id`, IFNULL(`party_type`,'') AS party_type, IFNULL(`name`,'') AS name,
+               IFNULL(`company`,'') AS company,
+               IFNULL(`city`,'') AS city, IFNULL(`country_code`,'AE') AS country_code,
+               IFNULL(`linked_user_id`,0) AS linked_user_id,
+               IFNULL(`linked_supplier_id`,0) AS linked_supplier_id,
+               IFNULL(`active`,1) AS active, IFNULL(`time_updated`,0) AS time_updated
+        FROM `epc_erp_contacts`
+        WHERE IFNULL(`city`,'') = @city AND `id` <> @id
+        ORDER BY `name` ASC
+        LIMIT 50
         """;
 
     /// <summary>ERP payment batches (notes omitted) — PHP epc_erp_payment_batches.</summary>
