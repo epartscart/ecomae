@@ -287,6 +287,34 @@
                 </div>
             </div>
         </div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">New CRM expense</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/crm/expenses/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "opp_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="save_expense" />
+                        <input type="hidden" name="id" value="0" />
+                        <label>Employee <input type="text" name="employee_user_id" inputmode="numeric" value="0" /></label>
+                        <label>Amount <input type="text" name="amount" inputmode="decimal" value="0" /></label>
+                        <label>Category <input type="text" name="category" maxlength="64" value="travel" /></label>
+                        <label>Status
+                            <select name="status">
+                                <option value="draft" selected>draft</option>
+                                <option value="submitted">submitted</option>
+                                <option value="approved">approved</option>
+                                <option value="rejected">rejected</option>
+                                <option value="paid">paid</option>
+                            </select>
+                        </label>
+                        <label>Receipt <input type="text" name="receipt_note" maxlength="512" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Create expense</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Approve-to-cash stays Classic.</p>
+                </div>
+            </div>
+        </div>
     }
 
     <div class="col-lg-12">
