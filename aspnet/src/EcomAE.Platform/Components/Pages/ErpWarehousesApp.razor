@@ -17,6 +17,7 @@
     {
         <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/warehouses-app" IsAdmin="_isAdmin" />
     }
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@OpenedListHref" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
@@ -136,6 +137,66 @@
     }
     else
     {
+    @if (_opened is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Code) ? "—" : _opened.Code)</dd>
+                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
+                <dt>Storage ID</dt><dd>@(_opened.StorageId > 0 ? _opened.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
+                <dt>Active</dt><dd>@(_opened.Active ? "active" : "inactive")</dd>
+                <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Create and transfer stay on the virtual-warehouse tab.</p>
+            @if (!string.IsNullOrWhiteSpace(_opened.NameExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">name excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.NameExcerpt</pre>
+                @if (_opened.NameLen > _opened.NameExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.NameExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NameLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No name excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-active siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead>
+                        <tr>
+                            <th>Code</th>
+                            <th>Name</th>
+                            <th>Storage</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Code) ? "—" : sib.Code)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Name) ? "—" : sib.Name)</td>
+                                <td>@(sib.StorageId > 0 ? sib.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "warehouse_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-active siblings yet.</p>
+            }
+        </div>
+    }
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Warehouse KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_warehouses.Count</div></div>
         <div class="kpi"><div class="lbl">Active in page</div><div class="val">@_active</div></div>
@@ -163,13 +224,13 @@
                 {
                     @foreach (var w in _warehouses)
                     {
-                        <tr>
+                        <tr id="erp-row-@w.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(w.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(w.Code) ? $"#{w.Id}" : w.Code)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(w.Name) ? "—" : w.Name)</td>
                             <td>@(w.StorageId > 0 ? w.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td>@FormatTime(w.TimeCreated)</td>
                             <td><span class="label label-default">@(w.Active ? "active" : "inactive")</span></td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/warehouses-app", "warehouse_id", w.Id)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "warehouse_id", w.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -181,12 +242,16 @@
 </PhpErpDesktopChrome>
 
 @code {
+    private const string _listHref = "/erp/warehouses-app";
     private string _phpTab = "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory";
     private const string _phpWms = "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms";
     private string _title = "Warehouses";
     private string _subtitle = "Warehouse master linked to shop storage.";
     private string _view = "warehouses";
     private bool _isAdmin;
+    private long _openedId;
+    private ErpWarehouseDetail? _opened;
+    private IReadOnlyList<ErpWarehouseDigest> _openedSiblings = [];
     private IReadOnlyList<ErpWarehouseDigest> _warehouses = [];
     private IReadOnlyList<ErpWarehouseDigest> _virtual = [];
     private ErpStockTransfersDigestResult _transfers = new(new(0, 0, 0, 0, 0, "n/a", ""), [], 0, "n/a", "");
@@ -205,6 +270,7 @@
 
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "warehouse_id");
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab == "virtual_warehouse" ? "virtual_warehouse" : "warehouses";
         _phpTab = _view == "virtual_warehouse"
@@ -213,7 +279,7 @@
         _title = _view == "virtual_warehouse" ? "Virtual warehouse" : "Warehouses";
         _subtitle = _view == "virtual_warehouse"
             ? "Exhibition, display, consignment and transit locations. Create and transfer are live when confirmed."
-            : "Warehouse master linked to shop storage.";
+            : "Open a row for the 280-character name excerpt and same-active siblings. Warehouse master linked to shop storage.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -238,7 +304,43 @@
         _linkedStorage = _warehouses.Count(w => w.StorageId > 0);
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildErpWarehouseDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Warehouse;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _warehouses.FirstOrDefault(w => w.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _warehouses = new[] { openedList }.Concat(_warehouses.Where(w => w.Id != _openedId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
+
+    private string OpenedListHref => _view == "virtual_warehouse"
+        ? _listHref + "?tab=virtual_warehouse"
+        : _listHref;
+
+    private string OpenedReturnHref => _openedId > 0
+        ? ErpRecordOpen.Href(_listHref, "warehouse_id", _openedId)
+        : OpenedListHref;
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.Code)
+            ? _opened.Code
+            : (!string.IsNullOrWhiteSpace(_opened.Name)
+                ? _opened.Name
+                : ("Warehouse #" + _opened.Id.ToString(CultureInfo.InvariantCulture))))
+            + (_opened.Active ? " · active" : " · inactive");
 
     private static string FormatTime(long unix)
     {

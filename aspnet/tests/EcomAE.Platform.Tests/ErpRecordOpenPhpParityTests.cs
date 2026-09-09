@@ -2843,6 +2843,40 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void WarehousesApp_OpenLoadsNameExcerptAndSameActiveSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpWarehousesApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpWarehouseDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"warehouse_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("warehouse_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"warehouse_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NameExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-active siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Create and transfer stay on the virtual-warehouse tab", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/warehouses-app?warehouse_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/warehouses-app", "warehouse_id", 4));
+        Assert.Equal(
+            "/erp/warehouses-app?warehouse_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/warehouses-app",
+                "/ERP/?epc_erp_shell=1&area=warehouse&tab=warehouse&warehouse_id=4"));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

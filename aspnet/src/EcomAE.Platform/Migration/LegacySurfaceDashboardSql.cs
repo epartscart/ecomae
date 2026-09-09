@@ -990,6 +990,28 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened warehouse. name is a short excerpt. Create/transfer stay on the virtual-warehouse tab.</summary>
+    public const string SelectErpWarehouseDetail = """
+        SELECT `id`, IFNULL(`storage_id`, 0) AS storage_id, IFNULL(`code`, '') AS code,
+               IFNULL(`name`, '') AS name, IFNULL(`active`, 0) AS active,
+               IFNULL(`time_created`, 0) AS time_created,
+               CHAR_LENGTH(IFNULL(`name`,'')) AS name_len,
+               LEFT(IFNULL(`name`,''), 280) AS name_excerpt
+        FROM `epc_erp_inv_warehouses`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other warehouses with the same active flag. name omitted from the sibling list.</summary>
+    public const string SelectErpWarehouseActiveSiblings = """
+        SELECT `id`, IFNULL(`storage_id`, 0) AS storage_id, IFNULL(`code`, '') AS code,
+               IFNULL(`name`, '') AS name, `active`, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_erp_inv_warehouses`
+        WHERE IFNULL(`active`, 0) = @active AND `id` <> @id
+        ORDER BY `name` ASC, `id` ASC
+        LIMIT 50
+        """;
+
     public const string SelectErpSalesOrders = """
         SELECT `id`, IFNULL(`so_no`, '') AS so_no, IFNULL(`customer_user_id`, 0) AS customer_user_id,
                IFNULL(`total_amount`, 0) AS total_amount, IFNULL(`status`, '') AS status,

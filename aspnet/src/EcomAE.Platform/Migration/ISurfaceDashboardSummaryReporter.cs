@@ -93,6 +93,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpWarehouseListResult> ListErpWarehousesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened warehouse (Open key <c>warehouse_id</c>) plus same-active siblings. name is a short excerpt.</summary>
+    Task<ErpWarehouseDetailResult> BuildErpWarehouseDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpSalesOrderListResult> ListErpSalesOrdersAsync(int limit, CancellationToken cancellationToken = default);
 
     Task<ErpInventoryItemPickerResult> ListErpInventoryItemsForPickerAsync(int limit, CancellationToken cancellationToken = default);
