@@ -5945,6 +5945,25 @@ public sealed record CpOfficesDigestResult(
     string Source,
     string Message);
 
+public sealed record CpOfficeDetail(
+    long Id,
+    string Caption,
+    string City,
+    string Address,
+    string Phone,
+    string Country,
+    string Region,
+    string Email,
+    string Coordinates,
+    int UsersLen,
+    string UsersExcerpt);
+
+public sealed record CpOfficeDetailResult(
+    CpOfficeDetail? Office,
+    IReadOnlyList<CpOfficeDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpWorkshopSummary(
     int OpenCount,
     int InProgressCount,

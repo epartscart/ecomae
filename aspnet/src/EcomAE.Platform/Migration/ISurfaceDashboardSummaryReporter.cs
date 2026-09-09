@@ -676,6 +676,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only shop_offices + storage/geo maps (PHP offices.php).</summary>
     Task<CpOfficesDigestResult> BuildCpOfficesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened office (PHP <c>office_id</c>) plus same-city siblings. users is a short excerpt.</summary>
+    Task<CpOfficeDetailResult> BuildCpOfficesDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only workshop jobs (customer phone/email omitted).</summary>
     Task<CpWorkshopDigestResult> BuildCpWorkshopDigestAsync(int limit, CancellationToken cancellationToken = default);
 
