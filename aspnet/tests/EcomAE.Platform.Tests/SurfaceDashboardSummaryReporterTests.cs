@@ -904,6 +904,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@doc_category", LegacySurfaceDashboardSql.SelectErpDocumentCategorySiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpDocumentCategorySiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_payroll_runs", LegacySurfaceDashboardSql.SelectErpPayrollRuns, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpPayrollRuns, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_payroll_runs", LegacySurfaceDashboardSql.SelectErpPayrollRunDetail, StringComparison.Ordinal);
+        Assert.Contains("note_excerpt", LegacySurfaceDashboardSql.SelectErpPayrollRunDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(r.`note`,''), 280)", LegacySurfaceDashboardSql.SelectErpPayrollRunDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("note_excerpt", LegacySurfaceDashboardSql.SelectErpPayrollRuns, StringComparison.Ordinal);
+        Assert.DoesNotContain("note_excerpt", LegacySurfaceDashboardSql.SelectErpPayrollRunStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("bank_account", LegacySurfaceDashboardSql.SelectErpPayrollRunDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("standard_days", LegacySurfaceDashboardSql.SelectErpPayrollRunDetail, StringComparison.Ordinal);
         Assert.Contains("epc_erp_print_templates", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
         Assert.Contains("epc_erp_order_recommendations", LegacySurfaceDashboardSql.SelectErpOrderRecommendations, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpOrderRecommendationDetail, StringComparison.Ordinal);

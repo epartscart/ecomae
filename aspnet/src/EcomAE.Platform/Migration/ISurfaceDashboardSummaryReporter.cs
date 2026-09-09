@@ -859,6 +859,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only payroll runs (PHP <c>epc_erp_payroll_runs</c>).</summary>
     Task<ErpPayrollListResult> ListErpPayrollRunsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened payroll run (Open key <c>payroll_id</c>) plus same-status siblings. note is a short excerpt.</summary>
+    Task<ErpPayrollRunDetailResult> BuildErpPayrollRunDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only print templates (PHP <c>epc_erp_print_templates</c>; HTML/CSS omitted).</summary>
     Task<ErpPrintTemplatesListResult> ListErpPrintTemplatesAsync(int limit, CancellationToken cancellationToken = default);
 
