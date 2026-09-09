@@ -349,7 +349,9 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("PhpReferenceOnlyHref", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w19-hero", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w19-kpis", blocks, StringComparison.Ordinal);
-        Assert.DoesNotContain("SuperCpHostGate", blocks, StringComparison.Ordinal);
+        Assert.Contains("SuperCpHostGate.IsAllowed", blocks, StringComparison.Ordinal);
+        Assert.Contains("_isAdmin && _isSuper", blocks, StringComparison.Ordinal);
+        Assert.DoesNotContain("@if (_allowed)", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", blocks, StringComparison.Ordinal);
     }
 
