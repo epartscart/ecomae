@@ -8251,6 +8251,79 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpAutoPriceRuleDetailResult> BuildCpAutoPriceDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpAutoPriceRuleDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAutoPriceRulesDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpAutoPriceRuleDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["rule_key"] is DBNull ? string.Empty : reader["rule_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["min_margin_percent"] is DBNull ? 0 : reader["min_margin_percent"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["auto_update_prices"] is DBNull ? 0 : reader["auto_update_prices"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["auto_cross_list"] is DBNull ? 0 : reader["auto_cross_list"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToString(reader["cross_list_channels"] is DBNull ? string.Empty : reader["cross_list_channels"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["schedule_hours"] is DBNull ? 0 : reader["schedule_hours"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["updated_at"] is DBNull ? 0 : reader["updated_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Auto-price rule not found.");
+            }
+
+            var siblings = new List<CpAutoPriceRuleDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpAutoPriceRulesSiteSiblings;
+                AddParameter(cmd, "@site_key", header.SiteKey);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpAutoPriceRuleDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["rule_key"] is DBNull ? string.Empty : reader["rule_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["min_margin_percent"] is DBNull ? 0 : reader["min_margin_percent"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["auto_update_prices"] is DBNull ? 0 : reader["auto_update_prices"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["schedule_hours"] is DBNull ? 0 : reader["schedule_hours"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["updated_at"] is DBNull ? 0 : reader["updated_at"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpUaeTaxComplianceDigestResult> BuildCpUaeTaxComplianceDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

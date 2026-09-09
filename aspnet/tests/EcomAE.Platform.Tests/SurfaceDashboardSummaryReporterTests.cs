@@ -552,6 +552,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_auto_price_rules", LegacySurfaceDashboardSql.SelectCpAutoPriceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpAutoPriceRules, StringComparison.Ordinal);
         Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpAutoPriceRules, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("config_json", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesSiteSiblings, StringComparison.Ordinal);
+        Assert.Contains("@site_key", LegacySurfaceDashboardSql.SelectCpAutoPriceRulesSiteSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_uae_tax_legislation_items", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("erp_summary", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
         Assert.DoesNotContain("pdf_url", LegacySurfaceDashboardSql.SelectCpUaeTaxItems, StringComparison.Ordinal);
