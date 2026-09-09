@@ -22,7 +22,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Tickets from tenant CRM tables. Open a ticket for message excerpts. Set CRM status here. Create SLA, create a ticket, and save a text reply here. Schema-ensure and file attachments stay Classic. This page does not invent a send.</p>
+                <p>Create or save a CRM ticket here. Set status on Open. Leftover ERP SLA/create/reply stay on their routes. File attachments stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -106,6 +106,48 @@
                     @if (_isAdmin)
                     {
                         <form method="post" action="/cp/crm/tickets/write" style="margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "ticket_id", _openedTicket.Id)" />
+                            <input type="hidden" name="action" value="save_ticket" />
+                            <input type="hidden" name="id" value="@_openedTicket.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Subject <input type="text" name="subject" maxlength="255" value="@_openedTicket.Subject" /></label>
+                            <label>Customer <input type="text" name="customer_user_id" inputmode="numeric" value="@_openedTicket.CustomerUserId.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Order <input type="text" name="order_id" inputmode="numeric" value="@_openedTicket.OrderId.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Assignee <input type="text" name="assigned_user_id" inputmode="numeric" value="@_openedTicket.AssignedUserId.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <label>Status
+                                <select name="status">
+                                    @foreach (var st in _statuses)
+                                    {
+                                        @if (string.Equals(st, _openedTicket.Status, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@st" selected>@st</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@st">@st</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Priority
+                                <select name="priority">
+                                    @foreach (var pr in _priorities)
+                                    {
+                                        @if (string.Equals(pr, _openedTicket.Priority, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@pr" selected>@pr</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@pr">@pr</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Note <input type="text" name="message" /></label>
+                            <button type="submit" class="btn btn-primary btn-sm">Save ticket</button>
+                        </form>
+                        <form method="post" action="/cp/crm/tickets/write" style="margin:.75rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "ticket_id", _openedTicket.Id)" />
                             <input type="hidden" name="action" value="update_ticket_status" />
@@ -202,6 +244,45 @@
         </div>
     }
 
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">New CRM ticket</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/crm/tickets/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="save_ticket" />
+                        <input type="hidden" name="id" value="0" />
+                        <label>Subject <input type="text" name="subject" maxlength="255" /></label>
+                        <label>Customer <input type="text" name="customer_user_id" inputmode="numeric" value="0" /></label>
+                        <label>Order <input type="text" name="order_id" inputmode="numeric" value="0" /></label>
+                        <label>Status
+                            <select name="status">
+                                <option value="open" selected>open</option>
+                                <option value="pending">pending</option>
+                                <option value="resolved">resolved</option>
+                                <option value="closed">closed</option>
+                            </select>
+                        </label>
+                        <label>Priority
+                            <select name="priority">
+                                <option value="low">low</option>
+                                <option value="normal" selected>normal</option>
+                                <option value="high">high</option>
+                                <option value="urgent">urgent</option>
+                            </select>
+                        </label>
+                        <label>Note <input type="text" name="message" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Create ticket</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">This saves a CRM ticket. Leftover ERP create stays on its route. File attachments stay Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
+
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Tickets</div>
@@ -255,7 +336,7 @@
     @if (_leftoverWrite)
     {
         <div class="col-lg-12">
-            <p class="help-block">SLA, ticket create, and text replies are live when confirmed. CRM status writes here. Schema-ensure and file attachments stay Classic.</p>
+            <p class="help-block">SLA, leftover ERP ticket create, and text replies are live when confirmed. CRM save/status writes here. File attachments stay Classic.</p>
         </div>
     }
 
