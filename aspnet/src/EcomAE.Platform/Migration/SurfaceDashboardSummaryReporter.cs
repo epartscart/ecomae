@@ -2336,6 +2336,78 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpGlJournalDetailResult> BuildErpGlJournalDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpGlJournalDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpGlJournalDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpGlJournalDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "journal_no"),
+                        ReadI64(reader, "journal_date"),
+                        ReadStr(reader, "source_type"),
+                        ReadI64(reader, "source_id"),
+                        ReadStr(reader, "status"),
+                        ReadDec(reader, "total_debit"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "description_excerpt"),
+                        ReadI32(reader, "description_len"),
+                        ReadI32(reader, "admin_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "GL journal not found.");
+            }
+
+            var siblings = new List<ErpGlJournalDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpGlJournalSourceSiblings;
+                AddParameter(cmd, "@source_type", header.SourceType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "journal_no"),
+                        ReadI64(reader, "journal_date"),
+                        ReadStr(reader, "source_type"),
+                        ReadI64(reader, "source_id"),
+                        ReadStr(reader, "status"),
+                        ReadDec(reader, "total_debit")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpModuleListResult> ListCpModulesAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

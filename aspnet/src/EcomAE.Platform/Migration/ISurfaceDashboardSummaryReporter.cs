@@ -77,6 +77,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpGlJournalListResult> ListErpGlJournalsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened GL journal (Open key <c>journal_id</c>) plus same-source siblings. Note excerpt and reference are hidden from the list.</summary>
+    Task<ErpGlJournalDetailResult> BuildErpGlJournalDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<CpModuleListResult> ListCpModulesAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened module (PHP <c>module_id</c>) plus same-position siblings. Body is a short excerpt.</summary>

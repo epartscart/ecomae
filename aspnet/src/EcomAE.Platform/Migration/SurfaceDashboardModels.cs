@@ -571,6 +571,26 @@ public sealed record ErpGlJournalListResult(
     string Source,
     string Message);
 
+public sealed record ErpGlJournalDetail(
+    long Id,
+    string JournalNo,
+    long JournalDate,
+    string SourceType,
+    long SourceId,
+    string Status,
+    decimal TotalDebit,
+    string Reference,
+    string DescriptionExcerpt,
+    int DescriptionLen,
+    int AdminId,
+    long TimeCreated);
+
+public sealed record ErpGlJournalDetailResult(
+    ErpGlJournalDetail? Journal,
+    IReadOnlyList<ErpGlJournalDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpModuleDigest(
     int Id,
     string Caption,

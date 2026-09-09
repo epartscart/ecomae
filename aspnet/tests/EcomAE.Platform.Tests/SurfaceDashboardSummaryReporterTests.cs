@@ -473,6 +473,18 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_cash_bank_accounts", LegacySurfaceDashboardSql.SelectErpCashAccounts, StringComparison.Ordinal);
         Assert.Contains("users_profiles", LegacySurfaceDashboardSql.SelectStorefrontUserProfiles, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_journals", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);
+        Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);
+        Assert.DoesNotContain("reference", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_gl_journals", LegacySurfaceDashboardSql.SelectErpGlJournalDetail, StringComparison.Ordinal);
+        Assert.Contains("description_excerpt", LegacySurfaceDashboardSql.SelectErpGlJournalDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(j.`description`, ''), 280)", LegacySurfaceDashboardSql.SelectErpGlJournalDetail, StringComparison.Ordinal);
+        Assert.Contains("reference", LegacySurfaceDashboardSql.SelectErpGlJournalDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpGlJournalDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("company_id", LegacySurfaceDashboardSql.SelectErpGlJournalDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("description_excerpt", LegacySurfaceDashboardSql.SelectErpGlJournalSourceSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("reference", LegacySurfaceDashboardSql.SelectErpGlJournalSourceSiblings, StringComparison.Ordinal);
+        Assert.Contains("@source_type", LegacySurfaceDashboardSql.SelectErpGlJournalSourceSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpGlJournalSourceSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_einvoice_documents", LegacySurfaceDashboardSql.SelectErpInvoices, StringComparison.Ordinal);
         Assert.Contains("config_items", LegacySurfaceDashboardSql.SelectCpConfigItemsMeta, StringComparison.Ordinal);
         Assert.Contains("epc_erp_coa_accounts", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);

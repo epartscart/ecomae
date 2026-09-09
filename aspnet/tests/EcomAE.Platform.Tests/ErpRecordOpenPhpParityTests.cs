@@ -252,6 +252,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.Href("/erp/sales-orders-app", "so_id", 42));
     }
 
+    [Fact]
+    public void GlJournalsApp_OpenLoadsNoteReferenceAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpGlJournalsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpGlJournalDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"journal_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("journal_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(\"/erp/gl-journals-app\", \"journal_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("Reference", razor, StringComparison.Ordinal);
+        Assert.Contains("same-source siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Reverse stays Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryVoucherSaveForm", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/gl-journals-app?journal_id=3#erp-row-3",
+            ErpRecordOpen.Href("/erp/gl-journals-app", "journal_id", 3));
+        Assert.Equal(
+            "/erp/gl-journals-app?journal_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/gl-journals-app",
+                "/ERP/?epc_erp_shell=1&area=finance&tab=gl&journal_id=3"));
+    }
+
     [Theory]
     [InlineData("ErpPurchaseOrdersApp.razor", "po_id")]
     [InlineData("ErpInvoicesApp.razor", "inv_id")]
