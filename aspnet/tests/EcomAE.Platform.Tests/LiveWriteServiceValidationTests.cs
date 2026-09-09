@@ -1002,6 +1002,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(govDb.Succeeded);
         Assert.Equal("db", govDb.Code);
 
+        var mobileDb = await new CpMobileAppsWriteService(new UnconfiguredConnections())
+            .SaveMobileAsync(new CpMobileAppsSaveRequest(true, "App", "com.app", "", "", "", "", "", true, "", false));
+        Assert.False(mobileDb.Succeeded);
+        Assert.Equal("db", mobileDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

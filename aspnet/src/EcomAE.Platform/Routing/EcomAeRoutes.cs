@@ -99,10 +99,12 @@ public static class EcomAeRoutes
     public const string ControlPanelPowerBi = "/cp/power-bi";
     /// <summary>CP Power BI Blazor list (JSON digest remains <see cref="ControlPanelPowerBi"/>).</summary>
     public const string ControlPanelPowerBiApp = "/cp/power-bi-app";
-    /// <summary>CP mobile apps config from integrations_json (push secrets never returned; writes remain PHP).</summary>
+    /// <summary>CP mobile apps config from integrations_json (push secrets never returned).</summary>
     public const string ControlPanelMobileApps = "/cp/mobile-apps";
     /// <summary>CP mobile apps Blazor summary (JSON digest remains <see cref="ControlPanelMobileApps"/>).</summary>
     public const string ControlPanelMobileAppsApp = "/cp/mobile-apps-app";
+    /// <summary>Tenant CP save_mobile. <c>confirmWrites=true</c> twins PHP ajax_integrations.php. Schema-ensure stays Classic.</summary>
+    public const string CpMobileAppsWrite = "/cp/mobile-apps/write";
 
     /// <summary>CP Metabase config + dashboards (secret_key never returned; writes remain PHP).</summary>
     public const string ControlPanelMetabase = "/cp/metabase";
