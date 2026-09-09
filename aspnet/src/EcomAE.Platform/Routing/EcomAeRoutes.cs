@@ -484,6 +484,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPrintDocsApp = "/cp/print-docs-app";
     public const string ControlPanelDataTransferApp = "/cp/data-transfer-app";
     public const string ControlPanelBulkUploadApp = "/cp/bulk-upload-app";
+    /// <summary>CP bulk-upload mark_reviewed. <c>confirmWrites=true</c> twins PHP ajax_bulk_cp.php. process / quote / cart stay Classic.</summary>
+    public const string CpBulkUploadWrite = "/cp/bulk-upload/write";
     public const string ControlPanelKktApp = "/cp/kkt-app";
     /// <summary>CP shop-module coverage board (PHP shop/* → ASP.NET apps).</summary>
     public const string ControlPanelShopModuleCoverage = "/cp/shop-module-coverage";
