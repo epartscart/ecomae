@@ -248,6 +248,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrmTickets = "/cp/crm-tickets";
     /// <summary>CP CRM tickets Blazor list (JSON digest remains <see cref="ControlPanelCrmTickets"/>).</summary>
     public const string ControlPanelCrmTicketsApp = "/cp/crm-tickets-app";
+    /// <summary>CRM update_ticket_status. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Schema-ensure stays Classic.</summary>
+    public const string CpCrmTicketsWrite = "/cp/crm/tickets/write";
     /// <summary>CP marketing growth (task/KPI/review; notes omitted).</summary>
     public const string ControlPanelMarketingGrowth = "/cp/marketing-growth";
     /// <summary>CP marketing growth Blazor list (JSON digest remains <see cref="ControlPanelMarketingGrowth"/>).</summary>

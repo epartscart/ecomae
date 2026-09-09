@@ -693,6 +693,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(carrierDb.Succeeded);
         Assert.Equal("db", carrierDb.Code);
 
+        var tixInvalid = await new CpCrmTicketWriteService(new ConfiguredNeverOpened())
+            .UpdateStatusAsync(0, "open", "normal", "", 1);
+        Assert.False(tixInvalid.Succeeded);
+        Assert.Equal("invalid", tixInvalid.Code);
+
+        var tixDb = await new CpCrmTicketWriteService(new UnconfiguredConnections())
+            .UpdateStatusAsync(3, "open", "normal", "", 1);
+        Assert.False(tixDb.Succeeded);
+        Assert.Equal("db", tixDb.Code);
+
         var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
             .AssignAsync(0, 1, 1);
         Assert.False(wsAssign.Succeeded);
