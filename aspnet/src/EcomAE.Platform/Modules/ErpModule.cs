@@ -1317,7 +1317,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP suppliers digest. PHP epc_erp_list_suppliers remains authoritative."
+                note = "Read-only ERP suppliers digest. Open ?supplier_id= loads a 280-char TRN excerpt and currency plus same-currency siblings. Writes stay Classic."
             });
         });
 

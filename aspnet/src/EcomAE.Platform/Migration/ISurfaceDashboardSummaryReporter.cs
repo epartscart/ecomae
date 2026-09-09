@@ -52,6 +52,9 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpSupplierListResult> ListErpSuppliersAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened supplier (Open key <c>supplier_id</c>) plus same-currency siblings. TRN/currency are hidden from the list.</summary>
+    Task<ErpSupplierDetailResult> BuildErpSupplierDetailAsync(long id, CancellationToken cancellationToken = default);
+
     Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened purchase invoice (Open key <c>purchase_id</c>) plus same-status siblings. note/VAT are hidden from the list.</summary>
