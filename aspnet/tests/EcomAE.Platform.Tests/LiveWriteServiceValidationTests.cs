@@ -708,6 +708,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(payActivateDb.Succeeded);
         Assert.Equal("db", payActivateDb.Code);
 
+        var crmInvalid = await new CpCrmWriteService(new ConfiguredNeverOpened())
+            .SaveLeadAsync(-1, "Acme", "Ali", "", "", "web", "new", 1, 0, "");
+        Assert.False(crmInvalid.Succeeded);
+        Assert.Equal("invalid", crmInvalid.Code);
+
+        var crmDb = await new CpCrmWriteService(new UnconfiguredConnections())
+            .SaveLeadAsync(0, "Acme", "Ali", "", "", "web", "new", 1, 0, "");
+        Assert.False(crmDb.Succeeded);
+        Assert.Equal("db", crmDb.Code);
+
         var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
             .AssignAsync(0, 1, 1);
         Assert.False(wsAssign.Succeeded);

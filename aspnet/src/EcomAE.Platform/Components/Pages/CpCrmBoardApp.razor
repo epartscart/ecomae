@@ -22,10 +22,19 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Open a lead for the 280-character notes excerpt. Email and phone stay omitted. Edit and pipeline actions stay on the Classic twin.</p>
+                <p>Save a lead here. Convert, quote email, schema-ensure, and send stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="@_listHref" IsAdmin="_isAdmin" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -59,6 +68,35 @@
                     else
                     {
                         <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
+                    }
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="/cp/crm/action" style="margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "lead_id", _opened.Id)" />
+                            <input type="hidden" name="action" value="save_lead" />
+                            <input type="hidden" name="id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Company <input type="text" name="company" maxlength="255" value="@_opened.Title" /></label>
+                            <label>Contact <input type="text" name="contact_name" maxlength="255" value="@_opened.ContactName" /></label>
+                            <label>Source <input type="text" name="source" maxlength="64" value="@_opened.Source" /></label>
+                            <label>Status
+                                <select name="status">
+                                    @foreach (var st in _leadStatuses)
+                                    {
+                                        @if (string.Equals(st, _opened.Status, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@st" selected>@st</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@st">@st</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Amount <input type="text" name="expected_value" inputmode="decimal" value="@_opened.Amount.ToString(CultureInfo.InvariantCulture)" /></label>
+                            <button type="submit" class="btn btn-primary btn-sm">Save lead</button>
+                        </form>
                     }
                     @if (_openedSiblings.Count > 0)
                     {
@@ -101,6 +139,32 @@
             <div class="panel-heading hbuilt">Leads</div>
             <div class="panel-body">
                 <p class="help-block">Open uses <code>?lead_id=</code>. @_summary.Leads.ToString(CultureInfo.InvariantCulture) leads · @_summary.Opportunities.ToString(CultureInfo.InvariantCulture) opportunities · @_summary.Activities.ToString(CultureInfo.InvariantCulture) activities · @_summary.TicketsOpen.ToString(CultureInfo.InvariantCulture) open tickets.</p>
+                @if (_isAdmin)
+                {
+                    <form method="post" action="/cp/crm/action" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="save_lead" />
+                        <input type="hidden" name="id" value="0" />
+                        <label>Company <input type="text" name="company" maxlength="255" required /></label>
+                        <label>Contact <input type="text" name="contact_name" maxlength="255" /></label>
+                        <label>Email <input type="email" name="email" maxlength="255" /></label>
+                        <label>Phone <input type="text" name="phone" maxlength="64" /></label>
+                        <label>Source <input type="text" name="source" maxlength="64" value="web" /></label>
+                        <label>Status
+                            <select name="status">
+                                <option value="new" selected>new</option>
+                                <option value="contacted">contacted</option>
+                                <option value="qualified">qualified</option>
+                                <option value="unqualified">unqualified</option>
+                                <option value="converted">converted</option>
+                            </select>
+                        </label>
+                        <label>Amount <input type="text" name="expected_value" inputmode="decimal" value="0" /></label>
+                        <label>Notes <input type="text" name="notes" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Add lead</button>
+                    </form>
+                }
                 <div class="table-responsive">
                     <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-epc">
                         <thead>
@@ -153,8 +217,11 @@
     private string _message = "";
     private string _listHref = "/cp/crm-board-app";
     private long _openedId;
+    private string _flashOk = "";
+    private string _flashErr = "";
     private CpCrmLeadDetail? _opened;
     private IReadOnlyList<CpCrmLeadDigest> _openedSiblings = [];
+    private static readonly string[] _leadStatuses = ["new", "contacted", "qualified", "unqualified", "converted"];
 
     private string OpenedCaption =>
         !string.IsNullOrWhiteSpace(_opened?.Title)
@@ -173,6 +240,8 @@
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "lead_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         if (!_isAdmin)
         {
             return;
