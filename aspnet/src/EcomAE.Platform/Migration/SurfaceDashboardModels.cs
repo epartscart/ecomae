@@ -6998,6 +6998,26 @@ public sealed record ErpOpeningListResult(
     string Source,
     string Message);
 
+public sealed record ErpOpeningBatchDetail(
+    long Id,
+    string Module,
+    string AsOfDate,
+    string Reference,
+    string Status,
+    int LineCount,
+    decimal DebitTotal,
+    decimal CreditTotal,
+    long TimeCreated,
+    long TimePosted,
+    int NoteLen,
+    string NoteExcerpt);
+
+public sealed record ErpOpeningBatchDetailResult(
+    ErpOpeningBatchDetail? Batch,
+    IReadOnlyList<ErpOpeningBatchDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_erp_marketing_campaigns</c> (notes omitted).</summary>
 public sealed record ErpMarketingCampaignDigest(
     long Id,

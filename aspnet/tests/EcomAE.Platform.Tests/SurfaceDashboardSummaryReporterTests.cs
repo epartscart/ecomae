@@ -731,6 +731,15 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("body_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("ocr_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.Contains("epc_erp_opening_batches", LegacySurfaceDashboardSql.SelectErpOpeningBatches, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpOpeningBatches, StringComparison.Ordinal);
+        Assert.DoesNotContain("meta_json", LegacySurfaceDashboardSql.SelectErpOpeningBatches, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(b.`note`,''), 280)", LegacySurfaceDashboardSql.SelectErpOpeningBatchDetail, StringComparison.Ordinal);
+        Assert.Contains("b.`id` = @id", LegacySurfaceDashboardSql.SelectErpOpeningBatchDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("meta_json", LegacySurfaceDashboardSql.SelectErpOpeningBatchDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("meta_json", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("b.`id` <> @id", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_marketing_campaigns", LegacySurfaceDashboardSql.SelectErpMarketingCampaigns, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpMarketingCampaigns, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpMarketingCampaignDetail, StringComparison.Ordinal);

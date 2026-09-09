@@ -7323,7 +7323,7 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
-    /// <summary>PHP opening-balance batches + line totals (meta_json omitted).</summary>
+    /// <summary>PHP opening-balance batches + line totals (note/meta_json omitted).</summary>
     public const string SelectErpOpeningBatches = """
         SELECT b.`id`, IFNULL(b.`module`,'combined') AS module,
                IFNULL(b.`as_of_date`,'') AS as_of_date,
@@ -7337,6 +7337,41 @@ public const string SelectCpOpsGuidesStats = """
         FROM `epc_erp_opening_batches` b
         ORDER BY b.`as_of_date` DESC, b.`id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened opening batch. note is a short excerpt. Line meta_json omitted. Create/add-line write here.</summary>
+    public const string SelectErpOpeningBatchDetail = """
+        SELECT b.`id`, IFNULL(b.`module`,'combined') AS module,
+               IFNULL(b.`as_of_date`,'') AS as_of_date,
+               IFNULL(b.`reference`,'') AS reference,
+               IFNULL(b.`status`,'draft') AS status,
+               IFNULL(b.`time_created`,0) AS time_created,
+               IFNULL(b.`time_posted`,0) AS time_posted,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS line_count,
+               IFNULL((SELECT SUM(l.`debit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS debit_total,
+               IFNULL((SELECT SUM(l.`credit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS credit_total,
+               CHAR_LENGTH(IFNULL(b.`note`,'')) AS note_len,
+               LEFT(IFNULL(b.`note`,''), 280) AS note_excerpt
+        FROM `epc_erp_opening_batches` b
+        WHERE b.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other opening batches with the same status. note and meta_json omitted.</summary>
+    public const string SelectErpOpeningBatchStatusSiblings = """
+        SELECT b.`id`, IFNULL(b.`module`,'combined') AS module,
+               IFNULL(b.`as_of_date`,'') AS as_of_date,
+               IFNULL(b.`reference`,'') AS reference,
+               IFNULL(b.`status`,'draft') AS status,
+               IFNULL(b.`time_created`,0) AS time_created,
+               IFNULL(b.`time_posted`,0) AS time_posted,
+               IFNULL((SELECT COUNT(*) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS line_count,
+               IFNULL((SELECT SUM(l.`debit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS debit_total,
+               IFNULL((SELECT SUM(l.`credit`) FROM `epc_erp_opening_lines` l WHERE l.`batch_id` = b.`id`),0) AS credit_total
+        FROM `epc_erp_opening_batches` b
+        WHERE IFNULL(b.`status`,'draft') = @status AND b.`id` <> @id
+        ORDER BY b.`as_of_date` DESC, b.`id` DESC
+        LIMIT 50
         """;
 
     /// <summary>PHP <c>epc_erp_marketing_list</c> — notes omitted.</summary>

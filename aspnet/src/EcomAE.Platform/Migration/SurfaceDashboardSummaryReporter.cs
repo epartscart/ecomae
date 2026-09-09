@@ -22052,6 +22052,81 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpOpeningBatchDetailResult> BuildErpOpeningBatchDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpOpeningBatchDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpOpeningBatchDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpOpeningBatchDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "module"),
+                        ReadStr(reader, "as_of_date"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "status"),
+                        Convert.ToInt32(reader["line_count"] is DBNull ? 0 : reader["line_count"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["debit_total"] is DBNull ? 0m : reader["debit_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["credit_total"] is DBNull ? 0m : reader["credit_total"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_posted"] is DBNull ? 0 : reader["time_posted"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["note_len"] is DBNull ? 0 : reader["note_len"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "note_excerpt"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Opening batch not found.");
+            }
+
+            var siblings = new List<ErpOpeningBatchDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpOpeningBatchDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "module"),
+                        ReadStr(reader, "as_of_date"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "status"),
+                        Convert.ToInt32(reader["line_count"] is DBNull ? 0 : reader["line_count"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["debit_total"] is DBNull ? 0m : reader["debit_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["credit_total"] is DBNull ? 0m : reader["credit_total"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_posted"] is DBNull ? 0 : reader["time_posted"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpMarketingListResult> ListErpMarketingCampaignsAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
