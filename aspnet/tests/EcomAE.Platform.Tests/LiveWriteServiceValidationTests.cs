@@ -693,6 +693,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(carrierDb.Succeeded);
         Assert.Equal("db", carrierDb.Code);
 
+        var payActivateInvalid = await new CpPaymentsWriteService(new ConfiguredNeverOpened())
+            .ActivateAsync("");
+        Assert.False(payActivateInvalid.Succeeded);
+        Assert.Equal("invalid", payActivateInvalid.Code);
+
+        var payActivateStripped = await new CpPaymentsWriteService(new ConfiguredNeverOpened())
+            .ActivateAsync("STRIPE!");
+        Assert.False(payActivateStripped.Succeeded);
+        Assert.Equal("invalid", payActivateStripped.Code);
+
+        var payActivateDb = await new CpPaymentsWriteService(new UnconfiguredConnections())
+            .ActivateAsync("stripe");
+        Assert.False(payActivateDb.Succeeded);
+        Assert.Equal("db", payActivateDb.Code);
+
         var wsAssign = await new CpWorkshopWriteService(new ConfiguredNeverOpened())
             .AssignAsync(0, 1, 1);
         Assert.False(wsAssign.Succeeded);
