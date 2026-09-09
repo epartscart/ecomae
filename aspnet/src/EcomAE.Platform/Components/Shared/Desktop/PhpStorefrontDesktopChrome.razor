@@ -833,6 +833,7 @@
     });
 })();
 </script>
+<PhpWebTrackerBeacon UserId="@_userId" />
 
 @code {
     [Parameter] public RenderFragment? ChildContent { get; set; }
@@ -842,6 +843,7 @@
 
     private bool _signedIn;
     private string _userLabel = "Account";
+    private int _userId;
     private int _bookmarkCount;
     private int _compareCount;
 
@@ -858,6 +860,7 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind is LegacySessionKind.Customer or LegacySessionKind.Admin;
+        _userId = session.Kind == LegacySessionKind.Customer ? session.UserId : 0;
         if (_signedIn)
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email)

@@ -16247,7 +16247,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
         try
         {
-            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var connection = await CpWebTrackerDashboardBuilder.OpenPreferredTrackerConnectionAsync(_connections, cancellationToken).ConfigureAwait(false);
             var sessionCount = 0; var pageviewCount = 0; var eventCount = 0; var countryCount = 0;
             await using (var stats = connection.CreateCommand())
             {

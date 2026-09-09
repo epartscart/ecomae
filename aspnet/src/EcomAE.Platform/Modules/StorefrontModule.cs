@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO;
 using System.Text.Json.Serialization;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Middleware;
@@ -23,6 +24,15 @@ public sealed class StorefrontModule : ISurfaceModule
 
     public void MapEndpoints(IEndpointRouteBuilder endpoints)
     {
+        endpoints.MapMethods(
+            EcomAeRoutes.WebTrackerCollectPhp,
+            ["GET", "HEAD", "POST", "OPTIONS"],
+            HandleWebTrackerCollectAsync).DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(
+            EcomAeRoutes.WebTrackerCollect,
+            ["GET", "HEAD", "POST", "OPTIONS"],
+            HandleWebTrackerCollectAsync).DisableAntiforgery().AllowAnonymous();
+
         endpoints.MapGet(EcomAeRoutes.StorefrontParity, (IStorefrontParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
         endpoints.MapGet("/storefront/migration-placeholder", (
@@ -2678,6 +2688,50 @@ public sealed class StorefrontModule : ISurfaceModule
     private sealed record StorefrontProfilePasswordBody(string? Password = null, bool ConfirmWrites = false);
     private sealed record StorefrontLoginSendCodeBody(string? Phone, bool ConfirmWrites = false);
     private sealed record StorefrontLoginCheckCodeBody(string? Code, bool ConfirmWrites = false);
+
+    private static async Task<IResult> HandleWebTrackerCollectAsync(
+        HttpContext context,
+        ICpWebTrackerCollectService collect,
+        CpWebTrackerCollectRateLimiter rateLimiter,
+        CancellationToken cancellationToken)
+    {
+        context.Response.Headers.CacheControl = "no-store";
+        context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+        if (HttpMethods.IsOptions(context.Request.Method))
+        {
+            context.Response.Headers.Append("Access-Control-Allow-Methods", "POST, OPTIONS");
+            context.Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type");
+            return Results.StatusCode(StatusCodes.Status204NoContent);
+        }
+
+        if (!HttpMethods.IsPost(context.Request.Method))
+        {
+            return Results.Json(new { ok = false, error = "POST required" }, statusCode: StatusCodes.Status405MethodNotAllowed);
+        }
+
+        var ip = CpWebTrackerCollectService.ClientIp(context.Request);
+        if (!rateLimiter.TryAcquire(ip))
+        {
+            return Results.Json(new { ok = false, error = "rate_limited" }, statusCode: StatusCodes.Status429TooManyRequests);
+        }
+
+        string raw;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            raw = form["payload"].ToString();
+        }
+        else
+        {
+            using var reader = new StreamReader(context.Request.Body);
+            raw = await reader.ReadToEndAsync(cancellationToken);
+        }
+
+        var result = await collect.IngestAsync(raw, context.Request, cancellationToken);
+        return Results.Json(
+            new { ok = result.Ok, session_id = result.SessionId, pageviews = result.Pageviews, events = result.Events, error = result.Error },
+            statusCode: result.Status);
+    }
 
     private static async Task<IResult> MapWishlistCookieAsync(
         HttpContext context,

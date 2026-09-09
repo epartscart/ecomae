@@ -1,0 +1,19 @@
+@namespace EcomAE.Platform.Components.Shared
+@inject IHttpContextAccessor Http
+@*
+  PHP epc_web_tracker_beacon_html() — storefront + marketing only (JS skips /cp).
+*@
+<script>window.EPC_WEB_TRACKER=@((MarkupString)_json);</script>
+<script src="/platform-assets/epc_web_tracker.js?v=20260909" defer></script>
+
+@code {
+    [Parameter] public int UserId { get; set; }
+
+    private string _json = "{}";
+
+    protected override void OnParametersSet()
+    {
+        var host = Http.HttpContext?.Request.Host.Host ?? string.Empty;
+        _json = CpWebTrackerCollectService.BuildBeaconConfigJson(host, UserId);
+    }
+}
