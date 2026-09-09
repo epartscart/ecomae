@@ -87,6 +87,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
     [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
+    [InlineData("/CP/shop/workshop?job_id=5", "/cp/workshop-app?job_id=5")]
     [InlineData("/CP/shop/finance/epc_credit_limit?credit_id=7", "/cp/credit-limits-app?credit_id=7")]
     [InlineData("/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost&sheet_id=6", "/erp/landed-cost-app?sheet_id=6")]
     [InlineData("/CP/control/portal/epc_soc2_compliance?soc2_id=8", "/cp/soc2-compliance-app?soc2_id=8")]
@@ -1637,6 +1638,61 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/groups-app",
                 "/CP/users/usergroups?ugroup_id=3"));
+    }
+
+    [Fact]
+    public void WorkshopApp_OpenLoadsNotesExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpWorkshopApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpWorkshopDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"job_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("job_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"job_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("ComplaintExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("_opened.Vin", razor, StringComparison.Ordinal);
+        Assert.Contains("_opened.Odometer", razor, StringComparison.Ordinal);
+        Assert.Contains("EstimateApproved", razor, StringComparison.Ordinal);
+        Assert.Contains("UnderWarranty", razor, StringComparison.Ordinal);
+        Assert.Contains("PartsTotal", razor, StringComparison.Ordinal);
+        Assert.Contains("LabourTotal", razor, StringComparison.Ordinal);
+        Assert.Contains("TaxTotal", razor, StringComparison.Ordinal);
+        Assert.Contains("TimePromised", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.CustomerPhone", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.CustomerEmail", razor, StringComparison.Ordinal);
+        Assert.Contains("Phone/email omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("value=\"assign\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_bay\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_tech\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"set_status\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"create_job\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"add_line\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"create_appointment\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"convert_appointment\"", razor, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites=true", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-table-card", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-data-table", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpCpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/workshop-app?job_id=5#erp-row-5",
+            ErpRecordOpen.Href("/cp/workshop-app", "job_id", 5));
+        Assert.Equal(
+            "/cp/workshop-app?job_id=5",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/cp/workshop-app",
+                "/CP/shop/workshop?job_id=5"));
     }
 
     [Fact]

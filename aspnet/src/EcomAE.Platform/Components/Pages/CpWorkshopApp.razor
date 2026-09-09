@@ -12,11 +12,12 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpParityModuleBody AppPath="/cp/workshop-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/workshop-app" IsAdmin="_isAdmin" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <PhpCpModulePageHeader Title="Workshop &amp; service desk"
-                           Subtitle="Assign, save bay, save tech, set status, create job, add line, and appointments write here. Seed stays on the Classic twin."
+                           Subtitle="Open a job for the 280-character notes and complaint excerpts. Assign, save bay, save tech, set status, create job, add line, and appointments write here. Seed stays on the Classic twin."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/sao-app">SAO</a>
         <a class="ghost" href="/cp/orders">Orders</a>
@@ -39,7 +40,7 @@
     {
         <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="assign" />
             <label>Job id <input type="number" name="jobId" min="1" required style="width:6rem" /></label>
             <label>Bay id <input type="number" name="bayId" min="0" value="0" style="width:6rem" /></label>
@@ -48,7 +49,7 @@
         </form>
         <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="save_bay" />
             <label>Bay id (0=new) <input type="number" name="id" min="0" value="0" style="width:6rem" /></label>
             <label>Code <input type="text" name="code" required maxlength="32" /></label>
@@ -63,7 +64,7 @@
         </form>
         <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="save_tech" />
             <label>Tech id (0=new) <input type="number" name="id" min="0" value="0" style="width:6rem" /></label>
             <label>Name <input type="text" name="name" required maxlength="190" /></label>
@@ -79,7 +80,7 @@
         </form>
         <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="set_status" />
             <label>Job id <input type="number" name="jobId" min="1" required style="width:6rem" /></label>
             <label>Status
@@ -98,7 +99,7 @@
         </form>
         <form method="post" action="/cp/workshop/write" data-epc-ws-create-job style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="create_job" />
             <label>Job no <input type="text" name="job_no" maxlength="40" placeholder="auto" /></label>
             <label>Status
@@ -132,7 +133,7 @@
         </form>
         <form method="post" action="/cp/workshop/write" data-epc-ws-add-line style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="add_line" />
             <label>Job id <input type="number" name="job_id" min="1" required style="width:6rem" /></label>
             <label>Type
@@ -149,7 +150,7 @@
         </form>
         <form method="post" action="/cp/workshop/write" data-epc-ws-create-appointment style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="create_appointment" />
             <label>Customer <input type="text" name="customer_name" maxlength="160" /></label>
             <label>Phone <input type="text" name="customer_phone" maxlength="40" /></label>
@@ -163,7 +164,7 @@
         </form>
         <form method="post" action="/cp/workshop/write" data-epc-ws-convert-appointment style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/workshop-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <input type="hidden" name="action" value="convert_appointment" />
             <label>Appointment id <input type="number" name="appointment_id" min="1" required style="width:7rem" /></label>
             <button type="submit" class="btn btn-xs btn-primary">Check in</button>
@@ -192,6 +193,91 @@
             <div class="epc-scp-kpi__val">AED @_summary.RevenueOpen.ToString("N0", CultureInfo.InvariantCulture)</div>
         </div>
     </div>
+
+    @if (_opened is not null)
+    {
+        <div class="epc-scp-table-card" style="margin-bottom:1rem">
+            <div class="epc-scp-table-card__head">
+                <div>
+                    <h3>@OpenedCaption</h3>
+                    <p class="epc-users-hint">Job field preview. Phone/email omitted. Writes stay on this page.</p>
+                </div>
+                <a class="btn btn-default btn-xs" href="@_listHref">Close</a>
+            </div>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Job no</dt><dd>@(string.IsNullOrWhiteSpace(_opened.JobNo) ? "—" : _opened.JobNo)</dd>
+                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
+                <dt>Customer</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CustomerName) ? "—" : _opened.CustomerName)</dd>
+                <dt>Plate</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Plate) ? "—" : _opened.Plate)</dd>
+                <dt>VIN</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Vin) ? "—" : _opened.Vin)</dd>
+                <dt>Vehicle</dt><dd>@(string.IsNullOrWhiteSpace(OpenedVehicle) ? "—" : OpenedVehicle)</dd>
+                <dt>Odometer</dt><dd>@_opened.Odometer.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Estimate approved</dt><dd>@(_opened.EstimateApproved ? "yes" : "no")</dd>
+                <dt>Under warranty</dt><dd>@(_opened.UnderWarranty ? "yes" : "no")</dd>
+                <dt>Parts</dt><dd>@_opened.PartsTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Labour</dt><dd>@_opened.LabourTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Tax</dt><dd>@_opened.TaxTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Total</dt><dd>@_opened.GrandTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Time promised</dt><dd>@FormatUnix(_opened.TimePromised)</dd>
+                <dt>Bay</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BayName) ? "—" : _opened.BayName)</dd>
+                <dt>Tech</dt><dd>@(string.IsNullOrWhiteSpace(_opened.TechName) ? "—" : _opened.TechName)</dd>
+            </dl>
+            @if (!string.IsNullOrWhiteSpace(_opened.ComplaintExcerpt))
+            {
+                <p style="margin:.85rem 0 0"><strong>Complaint</strong></p>
+                <pre style="max-height:8rem;overflow:auto;white-space:pre-wrap;margin:.35rem 0 0">@_opened.ComplaintExcerpt</pre>
+                @if (_opened.ComplaintLen > _opened.ComplaintExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.ComplaintExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.ComplaintLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
+            {
+                <p style="margin:.85rem 0 0"><strong>Notes</strong></p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.35rem 0 0">@_opened.NotesExcerpt</pre>
+                @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="epc-users-hint" style="margin:1rem 0 .4rem">Same-status siblings</p>
+                <table class="table table-condensed table-striped table-epc">
+                    <thead>
+                        <tr>
+                            <th>Job no</th>
+                            <th>Plate</th>
+                            <th>Customer</th>
+                            <th>Status</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.JobNo) ? sib.Id.ToString(CultureInfo.InvariantCulture) : sib.JobNo)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Plate) ? "—" : sib.Plate)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.CustomerName) ? "—" : sib.CustomerName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "job_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-status siblings yet.</p>
+            }
+        </div>
+    }
 
     <div class="epc-scp-tool-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;">
         <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?tab=board")">
@@ -224,7 +310,7 @@
         <div class="epc-scp-table-card__head">
             <div>
                 <h3>Jobs</h3>
-                <p class="epc-users-hint">PHP job list — job_no, plate, make/model/year, customer, status, bay, tech, grand_total. Phone/email omitted.</p>
+                <p class="epc-users-hint">Open uses <code>?job_id=</code>. Phone/email omitted. Writes stay on this page.</p>
             </div>
             <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP module</a>
         </div>
@@ -252,7 +338,7 @@
                     @foreach (var row in _jobs)
                     {
                         var vehicle = string.Join(" / ", new[] { row.Make, row.Model, row.Year }.Where(s => !string.IsNullOrWhiteSpace(s)));
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.JobNo) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.JobNo)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.Plate) ? "—" : row.Plate)</td>
                             <td>@(string.IsNullOrWhiteSpace(vehicle) ? "—" : vehicle)</td>
@@ -261,7 +347,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.BayName) ? "—" : row.BayName)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.TechName) ? "—" : row.TechName)</td>
                             <td>@row.GrandTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}?tab=jobs&job_id={row.Id.ToString(CultureInfo.InvariantCulture)}")">Open</a></td>
+                            <td><a href="@ErpRecordOpen.Href(_listHref, "job_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -277,12 +363,49 @@
     private IReadOnlyList<CpWorkshopJobDigest> _jobs = [];
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _listHref = "/cp/workshop-app";
+    private long _openedId;
+    private CpWorkshopJobDetail? _opened;
+    private IReadOnlyList<CpWorkshopJobDigest> _openedSiblings = [];
+
+    private string OpenedCaption =>
+        !string.IsNullOrWhiteSpace(_opened?.JobNo)
+            ? _opened.JobNo
+            : (_openedId > 0 ? ("Job #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+
+    private string OpenedVehicle =>
+        _opened is null
+            ? ""
+            : string.Join(" / ", new[] { _opened.Make, _opened.Model, _opened.Year }.Where(s => !string.IsNullOrWhiteSpace(s)));
+
+    private string ReturnHref =>
+        _openedId > 0
+            ? _listHref + "?job_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+            : _listHref;
+
+    private static string FormatUnix(long unix)
+    {
+        if (unix <= 0)
+        {
+            return "—";
+        }
+
+        try
+        {
+            return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+        }
+        catch
+        {
+            return unix.ToString(CultureInfo.InvariantCulture);
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "job_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -295,5 +418,11 @@
         var result = await Dashboards.BuildCpWorkshopDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _jobs = result.Jobs;
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpWorkshopDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Job;
+            _openedSiblings = detail.Siblings;
+        }
     }
 }

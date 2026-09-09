@@ -6332,6 +6332,44 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened workshop job. notes/complaint are short excerpts; phone/email omitted.</summary>
+    public const string SelectCpWorkshopJobsDetail = """
+        SELECT j.`id`, IFNULL(j.`job_no`,'') AS job_no, IFNULL(j.`status`,'') AS status,
+               IFNULL(j.`customer_name`,'') AS customer_name, IFNULL(j.`plate`,'') AS plate,
+               IFNULL(j.`vin`,'') AS vin, IFNULL(j.`make`,'') AS make, IFNULL(j.`model`,'') AS model,
+               IFNULL(j.`year`,'') AS year, IFNULL(j.`odometer`,0) AS odometer,
+               IFNULL(j.`estimate_approved`,0) AS estimate_approved,
+               IFNULL(j.`under_warranty`,0) AS under_warranty,
+               IFNULL(j.`parts_total`,0) AS parts_total, IFNULL(j.`labour_total`,0) AS labour_total,
+               IFNULL(j.`tax_total`,0) AS tax_total, IFNULL(j.`grand_total`,0) AS grand_total,
+               IFNULL(j.`time_promised`,0) AS time_promised,
+               IFNULL(b.`name`,'') AS bay_name, IFNULL(t.`name`,'') AS tech_name,
+               CHAR_LENGTH(IFNULL(j.`complaint`,'')) AS complaint_len,
+               LEFT(IFNULL(j.`complaint`,''), 280) AS complaint_excerpt,
+               CHAR_LENGTH(IFNULL(j.`notes`,'')) AS notes_len,
+               LEFT(IFNULL(j.`notes`,''), 280) AS notes_excerpt
+        FROM `epc_ws_jobs` j
+        LEFT JOIN `epc_ws_bays` b ON b.`id` = j.`bay_id`
+        LEFT JOIN `epc_ws_technicians` t ON t.`id` = j.`tech_id`
+        WHERE j.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other workshop jobs with the same status. notes/phone/email omitted.</summary>
+    public const string SelectCpWorkshopJobsStatusSiblings = """
+        SELECT j.`id`, IFNULL(j.`job_no`,'') AS job_no, IFNULL(j.`status`,'') AS status,
+               IFNULL(j.`customer_name`,'') AS customer_name, IFNULL(j.`plate`,'') AS plate,
+               IFNULL(j.`make`,'') AS make, IFNULL(j.`model`,'') AS model,
+               IFNULL(j.`year`,'') AS year, IFNULL(b.`name`,'') AS bay_name,
+               IFNULL(t.`name`,'') AS tech_name, IFNULL(j.`grand_total`,0) AS grand_total
+        FROM `epc_ws_jobs` j
+        LEFT JOIN `epc_ws_bays` b ON b.`id` = j.`bay_id`
+        LEFT JOIN `epc_ws_technicians` t ON t.`id` = j.`tech_id`
+        WHERE j.`status` = @status AND j.`id` <> @id
+        ORDER BY j.`id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP devices.php / kkt_root_page — shop_kkt_devices + fiscal checks (customer contact omitted).</summary>
     public const string SelectCpKktStats = """
         SELECT

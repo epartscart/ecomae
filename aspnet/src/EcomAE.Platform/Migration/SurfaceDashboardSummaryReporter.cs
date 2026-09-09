@@ -19311,6 +19311,93 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpWorkshopJobDetailResult> BuildCpWorkshopDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpWorkshopJobDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpWorkshopJobsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpWorkshopJobDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["job_no"] is DBNull ? string.Empty : reader["job_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["plate"] is DBNull ? string.Empty : reader["plate"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["vin"] is DBNull ? string.Empty : reader["vin"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["make"] is DBNull ? string.Empty : reader["make"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["model"] is DBNull ? string.Empty : reader["model"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["year"] is DBNull ? string.Empty : reader["year"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["odometer"] is DBNull ? 0 : reader["odometer"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["estimate_approved"] is DBNull ? 0 : reader["estimate_approved"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["under_warranty"] is DBNull ? 0 : reader["under_warranty"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToDecimal(reader["parts_total"] is DBNull ? 0m : reader["parts_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["labour_total"] is DBNull ? 0m : reader["labour_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["tax_total"] is DBNull ? 0m : reader["tax_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["grand_total"] is DBNull ? 0m : reader["grand_total"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_promised"] is DBNull ? 0 : reader["time_promised"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["bay_name"] is DBNull ? string.Empty : reader["bay_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["tech_name"] is DBNull ? string.Empty : reader["tech_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["complaint_len"] is DBNull ? 0 : reader["complaint_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["complaint_excerpt"] is DBNull ? string.Empty : reader["complaint_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Workshop job not found.");
+            }
+
+            var siblings = new List<CpWorkshopJobDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpWorkshopJobsStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpWorkshopJobDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["job_no"] is DBNull ? string.Empty : reader["job_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["customer_name"] is DBNull ? string.Empty : reader["customer_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["plate"] is DBNull ? string.Empty : reader["plate"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["make"] is DBNull ? string.Empty : reader["make"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["model"] is DBNull ? string.Empty : reader["model"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["year"] is DBNull ? string.Empty : reader["year"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["bay_name"] is DBNull ? string.Empty : reader["bay_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["tech_name"] is DBNull ? string.Empty : reader["tech_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["grand_total"] is DBNull ? 0m : reader["grand_total"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpKktDigestResult> BuildCpKktDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

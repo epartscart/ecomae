@@ -6101,6 +6101,37 @@ public sealed record CpWorkshopDigestResult(
     string Source,
     string Message);
 
+public sealed record CpWorkshopJobDetail(
+    long Id,
+    string JobNo,
+    string Status,
+    string CustomerName,
+    string Plate,
+    string Vin,
+    string Make,
+    string Model,
+    string Year,
+    int Odometer,
+    bool EstimateApproved,
+    bool UnderWarranty,
+    decimal PartsTotal,
+    decimal LabourTotal,
+    decimal TaxTotal,
+    decimal GrandTotal,
+    long TimePromised,
+    string BayName,
+    string TechName,
+    int ComplaintLen,
+    string ComplaintExcerpt,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record CpWorkshopJobDetailResult(
+    CpWorkshopJobDetail? Job,
+    IReadOnlyList<CpWorkshopJobDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpKktSummary(
     int DeviceCount,
     int WiredDeviceCount,
