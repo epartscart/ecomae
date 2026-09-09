@@ -892,6 +892,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(contractSaveDb.Succeeded);
         Assert.Equal("db", contractSaveDb.Code);
 
+        Assert.Equal("draft", CpCrmExpenseWriteService.NormalizeStatus("nope"));
+        Assert.Equal("travel", CpCrmExpenseWriteService.NormalizeCategory(""));
+
+        var expenseSaveBad = await new CpCrmExpenseWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCrmExpenseSaveRequest(-1, 1, 25, "travel", "draft", ""));
+        Assert.False(expenseSaveBad.Succeeded);
+        Assert.Equal("invalid", expenseSaveBad.Code);
+
+        var expenseSaveDb = await new CpCrmExpenseWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpCrmExpenseSaveRequest(0, 1, 25, "travel", "draft", ""));
+        Assert.False(expenseSaveDb.Succeeded);
+        Assert.Equal("db", expenseSaveDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);

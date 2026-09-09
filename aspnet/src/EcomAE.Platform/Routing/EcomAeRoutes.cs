@@ -264,6 +264,8 @@ public static class EcomAeRoutes
     public const string CpCrmProjectsWrite = "/cp/crm/projects/write";
     /// <summary>CRM save_contract. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Quote email stays Classic.</summary>
     public const string CpCrmContractsWrite = "/cp/crm/contracts/write";
+    /// <summary>CRM save_expense. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Approve-to-cash stays Classic.</summary>
+    public const string CpCrmExpensesWrite = "/cp/crm/expenses/write";
     /// <summary>CP marketing growth (task/KPI/review; notes omitted).</summary>
     public const string ControlPanelMarketingGrowth = "/cp/marketing-growth";
     /// <summary>CP marketing growth Blazor list (JSON digest remains <see cref="ControlPanelMarketingGrowth"/>).</summary>

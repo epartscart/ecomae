@@ -8100,6 +8100,76 @@ public sealed class ControlPanelModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCrmExpensesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmExpenseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-opportunities-app", "Admin CP or ERP capability required for CRM expense write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmExpensesWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var employeeUserId = body.EmployeeUserId;
+            var amount = body.Amount;
+            var category = body.Category;
+            var status = body.Status;
+            var receiptNote = body.ReceiptNote;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "expense_id", "expenseId");
+                employeeUserId = LiveWriteFormBinder.Long(form, "employee_user_id", "employeeUserId");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                category = LiveWriteFormBinder.Text(form, "category");
+                status = LiveWriteFormBinder.Text(form, "status");
+                receiptNote = LiveWriteFormBinder.Text(form, "receipt_note", "receiptNote");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (employeeUserId <= 0)
+            {
+                employeeUserId = session.UserId;
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_expense" or "crm_save_expense")
+            {
+                var written = await writes.SaveAsync(
+                    new CpCrmExpenseSaveRequest(id, employeeUserId, amount, category, status, receiptNote),
+                    cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/crm-opportunities-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_expense" or "crm_save_expense",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Approve-to-cash stays Classic."
+                    : "Dry-run. Set confirmWrites=true to save the expense.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSoc2Compliance, async (
             HttpContext context,
@@ -11657,6 +11727,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? NextBillingDate = null,
         string? Status = null,
         string? Notes = null);
+    private sealed record CpCrmExpensesWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        long EmployeeUserId = 0,
+        decimal Amount = 0,
+        string? Category = null,
+        string? Status = null,
+        string? ReceiptNote = null);
     private sealed record CpCrmQuotesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
