@@ -23693,7 +23693,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt32(reader["days_of_stock"] is DBNull ? 0 : reader["days_of_stock"], CultureInfo.InvariantCulture),
                         ReadStr(reader, "stockout_date"),
                         ReadStr(reader, "forecast_status"),
-                        ReadStr(reader, "last_computed"));
+                        ReadStr(reader, "last_computed")));
                 }
             }
 
