@@ -60,6 +60,33 @@ public sealed class StorefrontGuestSessionService : IStorefrontGuestSessionServi
     public static string NormalizeContact(string? value)
         => (value ?? string.Empty).Trim();
 
+    /// <summary>
+    /// After guest checkout create, land on the guest-order tracker with the
+    /// contacts the lookup requires. Does not invent a payment write.
+    /// </summary>
+    public static string GuestOrderSuccessHref(long orderId, string? email, string? phone)
+    {
+        if (orderId <= 0)
+        {
+            return "/storefront/checkout-app?step=confirm";
+        }
+
+        var dest = "/storefront/guest-order-app?order_id=" + orderId.ToString(CultureInfo.InvariantCulture);
+        var emailNorm = NormalizeContact(email);
+        var phoneNorm = NormalizeContact(phone);
+        if (emailNorm.Length > 0)
+        {
+            dest += "&email_not_auth=" + Uri.EscapeDataString(emailNorm);
+        }
+
+        if (phoneNorm.Length > 0)
+        {
+            dest += "&phone_not_auth=" + Uri.EscapeDataString(phoneNorm);
+        }
+
+        return dest;
+    }
+
     public static bool GuestEmailLooksValid(string? email)
     {
         var value = NormalizeContact(email);

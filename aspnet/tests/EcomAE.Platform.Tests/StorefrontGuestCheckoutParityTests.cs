@@ -28,6 +28,18 @@ public sealed class StorefrontGuestCheckoutParityTests
     }
 
     [Fact]
+    public void Guest_success_href_lands_on_guest_order_with_contacts()
+    {
+        Assert.Equal(
+            "/storefront/guest-order-app?order_id=42&email_not_auth=buyer%40local.test&phone_not_auth=%2B971501234567",
+            StorefrontGuestSessionService.GuestOrderSuccessHref(42, " buyer@local.test ", "+971501234567"));
+        Assert.Equal(
+            "/storefront/guest-order-app?order_id=7&phone_not_auth=0501234567",
+            StorefrontGuestSessionService.GuestOrderSuccessHref(7, "  ", "0501234567"));
+        Assert.Equal("/storefront/checkout-app?step=confirm", StorefrontGuestSessionService.GuestOrderSuccessHref(0, "a@b.c", "1"));
+    }
+
+    [Fact]
     public void Html_entities_escape_guest_contacts()
     {
         Assert.Equal("a &amp; b", StorefrontGuestSessionService.HtmlEntities("a & b"));
@@ -41,6 +53,8 @@ public sealed class StorefrontGuestCheckoutParityTests
         Assert.Contains("IStorefrontGuestSessionService", module, StringComparison.Ordinal);
         Assert.Contains("phone_not_auth", module, StringComparison.Ordinal);
         Assert.Contains("ApplyCheckoutCookies", module, StringComparison.Ordinal);
+        Assert.Contains("GuestOrderSuccessHref", module, StringComparison.Ordinal);
+        Assert.DoesNotContain("checkout-app?step=confirm&order_id=", module, StringComparison.Ordinal);
         Assert.Contains("AppendProductsInCartCookie", module, StringComparison.Ordinal);
 
         var checkout = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Storefront/StorefrontCheckoutWriteService.cs"));
@@ -53,6 +67,18 @@ public sealed class StorefrontGuestCheckoutParityTests
         Assert.Contains("Please log in or register to continue.", cartApp, StringComparison.Ordinal);
         Assert.Contains("ValidateCustomerAsync", cartApp, StringComparison.Ordinal);
         Assert.Contains("IStorefrontGuestSessionService", cartApp, StringComparison.Ordinal);
+
+        var guestOrder = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontGuestOrderApp.razor"));
+        Assert.Contains("method=\"get\"", guestOrder, StringComparison.Ordinal);
+        Assert.Contains("PhpCustomerWrites.GuestOrderWriteHref", guestOrder, StringComparison.Ordinal);
+        Assert.Contains("does not invent a live card capture", guestOrder, StringComparison.Ordinal);
+        Assert.DoesNotContain("method=\"post\"", guestOrder, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference", guestOrder, StringComparison.Ordinal);
+
+        var pay = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontPaymentApp.razor"));
+        Assert.Contains("does not invent a live card capture", pay, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
