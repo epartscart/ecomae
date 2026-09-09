@@ -518,6 +518,23 @@ public sealed record ErpCashAccountListResult(
     string Source,
     string Message);
 
+public sealed record ErpCashAccountDetail(
+    long Id,
+    string Name,
+    string AccountType,
+    string CurrencyCode,
+    decimal OpeningBalance,
+    string BankNameExcerpt,
+    int BankNameLen,
+    int OfficeId,
+    long TimeCreated);
+
+public sealed record ErpCashAccountDetailResult(
+    ErpCashAccountDetail? Account,
+    IReadOnlyList<ErpCashAccountDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record StorefrontProfileResult(
     int UserId,
     string Email,

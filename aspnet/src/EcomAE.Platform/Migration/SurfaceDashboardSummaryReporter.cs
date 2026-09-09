@@ -2143,6 +2143,74 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpCashAccountDetailResult> BuildErpCashAccountDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpCashAccountDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCashAccountDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpCashAccountDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "name"),
+                        ReadStr(reader, "account_type"),
+                        ReadStr(reader, "currency_code"),
+                        ReadDec(reader, "opening_balance"),
+                        ReadStr(reader, "bank_name_excerpt"),
+                        ReadI32(reader, "bank_name_len"),
+                        ReadI32(reader, "office_id"),
+                        ReadI64(reader, "time_created"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Cash account not found.");
+            }
+
+            var siblings = new List<ErpCashAccountDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpCashAccountTypeSiblings;
+                AddParameter(cmd, "@account_type", header.AccountType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "name"),
+                        ReadStr(reader, "account_type"),
+                        ReadStr(reader, "currency_code"),
+                        ReadDec(reader, "opening_balance"),
+                        0m));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<StorefrontProfileResult> BuildStorefrontProfileAsync(int userId, CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)

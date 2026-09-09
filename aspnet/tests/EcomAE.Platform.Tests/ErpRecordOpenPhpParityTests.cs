@@ -361,6 +361,43 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void CashAccountsApp_OpenLoadsBankNameOfficeAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpCashAccountsApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpCashAccountDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"account_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("account_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(\"/erp/cash-accounts-app\", \"account_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("BankNameExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("OfficeId", razor, StringComparison.Ordinal);
+        Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/offices-cash/add", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("account_number", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("iban", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/cash-accounts-app?account_id=4#erp-row-4",
+            ErpRecordOpen.Href("/erp/cash-accounts-app", "account_id", 4));
+        Assert.Equal(
+            "/erp/cash-accounts-app?account_id=4",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/cash-accounts-app",
+                "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank&account_id=4"));
+    }
+
+    [Fact]
     public void GlJournalsApp_OpenLoadsNoteReferenceAndSiblings()
     {
         var root = FindRepoRoot();
