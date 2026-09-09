@@ -9858,7 +9858,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_platform_info_blocks KPIs + blocks. Open ?block_id= loads a 280-char content excerpt plus placement siblings. save_info_block POST /cp/info-blocks/write when confirmWrites=true. Delete stay Classic."
+                note = "Read-only epc_platform_info_blocks KPIs + blocks. Open ?block_id= loads a 280-char content excerpt plus placement siblings. save_info_block / delete_info_block POST /cp/info-blocks/write when confirmWrites=true. Schema-ensure stay Classic."
             });
         });
 
@@ -9922,6 +9922,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                 key = "save_info_block";
             }
 
+            if (confirm && key is "delete_info_block" or "delete")
+            {
+                var written = await writes.DeleteAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/info-blocks-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             if (confirm && key is "save_info_block" or "save")
             {
                 var written = await writes.SaveAsync(
@@ -9939,13 +9950,13 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "save_info_block" or "save",
+                wouldWrite = key is "save_info_block" or "save" or "delete_info_block" or "delete",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Delete stay Classic."
-                    : "Dry-run. Set confirmWrites=true to save the info block.",
+                    ? "Unknown info-blocks action."
+                    : "Dry-run. Set confirmWrites=true to save or delete the info block.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });

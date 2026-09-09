@@ -5,14 +5,18 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>epc_super_cp_info_blocks.php</c> twin of <c>epc_scp_info_block_save</c>.
-/// Delete and schema-ensure stay Classic.
+/// Live PHP <c>epc_super_cp_info_blocks.php</c> twin of <c>epc_scp_info_block_save</c>
+/// and <c>epc_scp_info_block_delete</c>. Schema-ensure stays Classic.
 /// This service does not invent a send.
 /// </summary>
 public interface ICpInfoBlocksWriteService
 {
     Task<ErpSimpleWriteResult> SaveAsync(
         CpInfoBlockSaveRequest request,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DeleteAsync(
+        long id,
         CancellationToken cancellationToken = default);
 }
 
@@ -148,6 +152,35 @@ public sealed class CpInfoBlocksWriteService : ICpInfoBlocksWriteService
                 return ErpSimpleWriteResult.Fail("invalid", "Duplicate block key for this scope/locale");
             }
 
+            return ErpSimpleWriteResult.Fail("db", "Info-blocks table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteAsync(
+        long id,
+        CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Info block id is required");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional("DELETE FROM `epc_platform_info_blocks` WHERE `id`=?"),
+                cancellationToken, id).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Info block deleted.", id);
+        }
+        catch (DbException)
+        {
             return ErpSimpleWriteResult.Fail("db", "Info-blocks table is missing — schema-ensure stays Classic.");
         }
     }
