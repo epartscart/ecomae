@@ -14,9 +14,12 @@
 <PageTitle>Multi-currency GL · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Multi-currency GL" BreadcrumbArea="Finance" BreadcrumbTab="Multi-currency GL">
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/multi-currency-gl-app" IsAdmin="_isAdmin" />
 
-    <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Set the FX rate for multi-currency GL here." />
-    <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
+    <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+    <PhpErpModulePageHeader Title="Multi-currency GL" Subtitle="Open an FX rate for created time. Open a currency journal for the note and site. Set FX rate writes here. Revaluation stays Classic." PhpTabHref="@_phpTab" />
+    <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flash))
     {
@@ -82,6 +85,108 @@
         <div class="kpi"><div class="lbl">Reval P/L</div><div class="val">@_reval.ToString("N2", CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    @if (_openedRate is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedRateCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedRateReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>Rate id</dt><dd>@_openedRate.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Base</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.BaseCurrency) ? "—" : _openedRate.BaseCurrency)</dd>
+                <dt>Target</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.TargetCurrency) ? "—" : _openedRate.TargetCurrency)</dd>
+                <dt>Rate</dt><dd>@_openedRate.Rate.ToString("N8", CultureInfo.InvariantCulture)</dd>
+                <dt>Inverse</dt><dd>@_openedRate.InverseRate.ToString("N8", CultureInfo.InvariantCulture)</dd>
+                <dt>Source</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.Source) ? "—" : _openedRate.Source)</dd>
+                <dt>Effective</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.EffectiveDate) ? "—" : _openedRate.EffectiveDate)</dd>
+                <dt>Created</dt><dd>@(string.IsNullOrWhiteSpace(_openedRate.CreatedAt) ? "—" : _openedRate.CreatedAt)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Set FX rate writes here. Revaluation stays Classic.</p>
+            @if (_openedRateSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-pair siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Effective</th><th class="text-right">Rate</th><th>Source</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var sib in _openedRateSiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.EffectiveDate) ? "—" : sib.EffectiveDate)</td>
+                                <td class="text-right">@sib.Rate.ToString("N8", CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Source) ? "—" : sib.Source)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "mcgl_rate_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-pair siblings yet.</p>
+            }
+        </div>
+    }
+
+    @if (_openedEntry is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedEntryCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedEntryReturnHref">This row</a>
+                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>Entry id</dt><dd>@_openedEntry.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.SiteKey) ? "—" : _openedEntry.SiteKey)</dd>
+                <dt>Journal</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.JournalRef) ? "—" : _openedEntry.JournalRef)</dd>
+                <dt>Account</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.AccountCode) ? "—" : _openedEntry.AccountCode) @(string.IsNullOrWhiteSpace(_openedEntry.AccountName) ? "" : _openedEntry.AccountName)</dd>
+                <dt>Date</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.EntryDate) ? "—" : _openedEntry.EntryDate)</dd>
+                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.EntryType) ? "—" : _openedEntry.EntryType)</dd>
+                <dt>Txn</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.TxnCurrency) ? "—" : _openedEntry.TxnCurrency) @_openedEntry.TxnAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>FX rate</dt><dd>@_openedEntry.FxRate.ToString("N8", CultureInfo.InvariantCulture)</dd>
+                <dt>Base</dt><dd>@(string.IsNullOrWhiteSpace(_openedEntry.BaseCurrency) ? "—" : _openedEntry.BaseCurrency) @_openedEntry.BaseAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Revalued</dt><dd>@(_openedEntry.Revalued ? "yes" : "no")</dd>
+                <dt>Reval P/L</dt><dd>@_openedEntry.RevalGainLoss.ToString("N2", CultureInfo.InvariantCulture)</dd>
+            </dl>
+            <p class="text-muted" style="margin:.85rem 0 0">Set FX rate writes here. Revaluation stays Classic.</p>
+            @if (!string.IsNullOrWhiteSpace(_openedEntry.DescriptionExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedEntry.DescriptionExcerpt</pre>
+                @if (_openedEntry.DescriptionLen > _openedEntry.DescriptionExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_openedEntry.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedEntry.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No note excerpt yet.</p>
+            }
+            @if (_openedEntrySiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Date</th><th>Account</th><th>Type</th><th></th></tr></thead>
+                    <tbody>
+                        @foreach (var sib in _openedEntrySiblings)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(sib.EntryDate) ? "—" : sib.EntryDate)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.AccountCode) ? "—" : sib.AccountCode)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.EntryType) ? "—" : sib.EntryType)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "mcgl_entry_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-type siblings yet.</p>
+            }
+        </div>
+    }
+
     <h2 style="font-size:16px;">FX rates</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -95,7 +200,7 @@
                 {
                     @foreach (var row in _rates)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedRateId)">
                             <td><strong>@(string.IsNullOrWhiteSpace(row.BaseCurrency) ? "—" : row.BaseCurrency)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.TargetCurrency) ? "—" : row.TargetCurrency)</td>
                             <td class="text-right">@row.Rate.ToString("N8", CultureInfo.InvariantCulture)</td>
@@ -103,6 +208,7 @@
                             <td>@(string.IsNullOrWhiteSpace(row.Source) ? "—" : row.Source)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.EffectiveDate) ? "—" : row.EffectiveDate)</td>
                             <td>
+                                <a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "mcgl_rate_id", row.Id)">Open</a>
                                 @if (_isAdmin)
                                 {
                                     <form method="post" action="/erp/multi-currency-gl/set-rate" style="display:inline-flex;flex-wrap:wrap;gap:.25rem;align-items:end;margin:0">
@@ -128,14 +234,14 @@
     <h2 style="font-size:16px;">Currency journal entries</h2>
     <div class="epc-erp-table-wrap">
         <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-            <thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Txn</th><th class="text-right">Txn amt</th><th class="text-right">Base amt</th><th>Revalued</th></tr></thead>
+            <thead><tr><th>Date</th><th>Account</th><th>Type</th><th>Txn</th><th class="text-right">Txn amt</th><th class="text-right">Base amt</th><th>Revalued</th><th></th></tr></thead>
             <tbody>
-                @if (_entries.Count == 0) { <tr><td colspan="7">No currency journal entries yet.</td></tr> }
+                @if (_entries.Count == 0) { <tr><td colspan="8">No currency journal entries yet.</td></tr> }
                 else
                 {
                     @foreach (var row in _entries)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedEntryId)">
                             <td>@(string.IsNullOrWhiteSpace(row.EntryDate) ? "—" : row.EntryDate)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.AccountCode) ? "—" : row.AccountCode) @(string.IsNullOrWhiteSpace(row.AccountName) ? "" : row.AccountName)</td>
                             <td><span class="label label-default">@row.EntryType</span></td>
@@ -143,6 +249,7 @@
                             <td class="text-right">@row.TxnAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td class="text-right">@row.BaseAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(row.Revalued ? "yes" : "no")</td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "mcgl_entry_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -151,12 +258,14 @@
     </div>
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Distinct from shop currency rates on <a href="/cp/currencies-app">currencies</a>. Digest: <code>/erp/multi-currency-gl</code>.
+        Source: @_source. Distinct from shop currency rates on <a href="/cp/currencies-app">currencies</a>. Digest: <code>/erp/multi-currency-gl</code>. Revaluation stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=multi_currency_gl";
+    private const string _listHref = "/erp/multi-currency-gl-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpFxRateDigest> _rates = [];
     private IReadOnlyList<ErpGlCurrencyEntryDigest> _entries = [];
@@ -169,11 +278,45 @@
     private string _flash = "";
     private bool _flashOk;
     private string _today = DateTime.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    private long _openedRateId;
+    private long _openedEntryId;
+    private ErpFxRateDetail? _openedRate;
+    private ErpGlCurrencyEntryDetail? _openedEntry;
+    private IReadOnlyList<ErpFxRateDigest> _openedRateSiblings = [];
+    private IReadOnlyList<ErpGlCurrencyEntryDigest> _openedEntrySiblings = [];
+
+    private long _openedId => _openedRateId > 0 ? _openedRateId : _openedEntryId;
+
+    private bool OpenedFound => _openedRate is not null || _openedEntry is not null;
+
+    private string OpenedRateReturnHref => _openedRateId > 0
+        ? _listHref + "?mcgl_rate_id=" + _openedRateId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
+
+    private string OpenedEntryReturnHref => _openedEntryId > 0
+        ? _listHref + "?mcgl_entry_id=" + _openedEntryId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
+
+    private string OpenedRateCaption => _openedRate is null
+        ? ""
+        : ((string.IsNullOrWhiteSpace(_openedRate.BaseCurrency) ? "FX" : _openedRate.BaseCurrency)
+            + "/"
+            + (string.IsNullOrWhiteSpace(_openedRate.TargetCurrency) ? "—" : _openedRate.TargetCurrency)
+            + " #" + _openedRate.Id.ToString(CultureInfo.InvariantCulture));
+
+    private string OpenedEntryCaption => _openedEntry is null
+        ? ""
+        : ("Journal #" + _openedEntry.Id.ToString(CultureInfo.InvariantCulture)
+            + (string.IsNullOrWhiteSpace(_openedEntry.AccountCode) ? "" : (" · " + _openedEntry.AccountCode)));
+
+    private string OpenedCaption => _openedRate is not null ? OpenedRateCaption : OpenedEntryCaption;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _openedRateId = ErpRecordOpen.ReadId(ctx.Request, "mcgl_rate_id");
+        _openedEntryId = ErpRecordOpen.ReadId(ctx.Request, "mcgl_entry_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
         var ok = ctx.Request.Query["ok"].ToString();
@@ -195,5 +338,43 @@
         _reval = result.RevalGainLossTotal;
         _source = result.Source;
         _message = result.Message;
+
+        if (_openedRateId > 0)
+        {
+            var detail = await Dashboards.BuildErpFxRateDetailAsync(_openedRateId, ctx.RequestAborted);
+            _openedRate = detail.Rate;
+            _openedRateSiblings = detail.Siblings;
+            if (_openedRate is not null)
+            {
+                var openedList = _rates.FirstOrDefault(r => r.Id == _openedRateId);
+                if (openedList is not null)
+                {
+                    _rates = new[] { openedList }.Concat(_rates.Where(r => r.Id != _openedRateId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
+
+        if (_openedEntryId > 0)
+        {
+            var detail = await Dashboards.BuildErpGlCurrencyEntryDetailAsync(_openedEntryId, ctx.RequestAborted);
+            _openedEntry = detail.Entry;
+            _openedEntrySiblings = detail.Siblings;
+            if (_openedEntry is not null)
+            {
+                var openedList = _entries.FirstOrDefault(e => e.Id == _openedEntryId);
+                if (openedList is not null)
+                {
+                    _entries = new[] { openedList }.Concat(_entries.Where(e => e.Id != _openedEntryId)).ToList();
+                }
+            }
+            else if (!string.IsNullOrWhiteSpace(detail.Message) && _openedRate is null)
+            {
+                _message = detail.Message;
+            }
+        }
     }
 }
