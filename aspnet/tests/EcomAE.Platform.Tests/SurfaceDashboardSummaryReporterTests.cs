@@ -740,6 +740,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("meta_json", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("b.`id` <> @id", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_periods", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
+        Assert.DoesNotContain("checklist_json", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`note`,''), 280)", LegacySurfaceDashboardSql.SelectErpFiscalPeriodDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpFiscalPeriodDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("checklist_json", LegacySurfaceDashboardSql.SelectErpFiscalPeriodDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpFiscalPeriodStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("checklist_json", LegacySurfaceDashboardSql.SelectErpFiscalPeriodStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpFiscalPeriodStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpFiscalPeriodStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_marketing_campaigns", LegacySurfaceDashboardSql.SelectErpMarketingCampaigns, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpMarketingCampaigns, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpMarketingCampaignDetail, StringComparison.Ordinal);

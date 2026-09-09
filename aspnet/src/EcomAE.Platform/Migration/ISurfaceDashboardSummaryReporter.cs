@@ -735,6 +735,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened payment batch (Open key <c>batch_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
     Task<ErpPaymentBatchDetailResult> BuildErpPaymentBatchDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpFiscalPeriodListResult> ListErpFiscalPeriodsAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened fiscal period (Open key <c>period_id</c>, remapped by <c>tab=year_end</c>) plus same-status siblings. note is a short excerpt; checklist JSON omitted.</summary>
+    Task<ErpFiscalPeriodDetailResult> BuildErpFiscalPeriodDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpAgendaEventListResult> ListErpAgendaEventsAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened agenda event (Open key <c>event_id</c>, remapped by <c>tab=agenda</c>) plus same-type siblings. notes is a short excerpt.</summary>

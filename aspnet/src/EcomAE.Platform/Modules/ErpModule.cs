@@ -11546,7 +11546,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP fiscal periods digest. PHP period_list / year_end remains authoritative."
+                note = "Read-only ERP fiscal periods digest. Open ?period_id= loads a 280-char note excerpt. Checklist JSON omitted. PHP period_list / year_end remains authoritative."
             });
         });
 

@@ -20377,6 +20377,76 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpFiscalPeriodDetailResult> BuildErpFiscalPeriodDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpFiscalPeriodDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpFiscalPeriodDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpFiscalPeriodDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["year_month"] is DBNull ? string.Empty : reader["year_month"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["soft_closed"] is DBNull ? 0 : reader["soft_closed"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["locked"] is DBNull ? 0 : reader["locked"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["closed_by"] is DBNull ? 0 : reader["closed_by"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["closed_at"] is DBNull ? 0 : reader["closed_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["locked_by"] is DBNull ? 0 : reader["locked_by"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["locked_at"] is DBNull ? 0 : reader["locked_at"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["note_len"] is DBNull ? 0 : reader["note_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["note_excerpt"] is DBNull ? string.Empty : reader["note_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Period not found.");
+            }
+
+            var siblings = new List<ErpFiscalPeriodDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpFiscalPeriodStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpFiscalPeriodDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["year_month"] is DBNull ? string.Empty : reader["year_month"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["soft_closed"] is DBNull ? 0 : reader["soft_closed"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["locked"] is DBNull ? 0 : reader["locked"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
 
     public async Task<ErpAgendaEventListResult> ListErpAgendaEventsAsync(int limit, CancellationToken cancellationToken = default)
     {
