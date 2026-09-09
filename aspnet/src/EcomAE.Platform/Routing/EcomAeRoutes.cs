@@ -258,6 +258,8 @@ public static class EcomAeRoutes
     public const string ControlPanelCrmTicketsApp = "/cp/crm-tickets-app";
     /// <summary>CRM update_ticket_status / save_ticket. <c>confirmWrites=true</c> twins PHP ajax_crm.php. File attachments and send stay Classic.</summary>
     public const string CpCrmTicketsWrite = "/cp/crm/tickets/write";
+    /// <summary>CRM save_quote. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Accept and quote email stay Classic.</summary>
+    public const string CpCrmQuotesWrite = "/cp/crm/quotes/write";
     /// <summary>CP marketing growth (task/KPI/review; notes omitted).</summary>
     public const string ControlPanelMarketingGrowth = "/cp/marketing-growth";
     /// <summary>CP marketing growth Blazor list (JSON digest remains <see cref="ControlPanelMarketingGrowth"/>).</summary>

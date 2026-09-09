@@ -839,6 +839,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(tixSaveDb.Succeeded);
         Assert.Equal("db", tixSaveDb.Code);
 
+        Assert.Equal("draft", CpCrmQuoteWriteService.NormalizeStatus("nope"));
+        Assert.Equal("Q-202609-0001", CpCrmQuoteWriteService.NextQuoteNumber(1, new DateTimeOffset(2026, 9, 9, 0, 0, 0, TimeSpan.Zero)));
+
+        var quoteSaveBad = await new CpCrmQuoteWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpCrmQuoteSaveRequest(-1, 0, 0, 0, "", "draft", "", "", 1, 0));
+        Assert.False(quoteSaveBad.Succeeded);
+        Assert.Equal("invalid", quoteSaveBad.Code);
+
+        var quoteSaveDb = await new CpCrmQuoteWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpCrmQuoteSaveRequest(0, 0, 0, 0, "", "draft", "", "", 1, 0));
+        Assert.False(quoteSaveDb.Succeeded);
+        Assert.Equal("db", quoteSaveDb.Code);
+
         var crmConvInvalid = await new CpCrmConvertWriteService(new ConfiguredNeverOpened())
             .ConvertLeadAsync(0, 1);
         Assert.False(crmConvInvalid.Succeeded);
