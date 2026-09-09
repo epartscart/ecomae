@@ -23625,6 +23625,86 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpInventoryForecastDetailResult> BuildErpInventoryForecastDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpInventoryForecastDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpInventoryForecastDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "site_key"),
+                        ReadStr(reader, "sku"),
+                        ReadStr(reader, "product_name"),
+                        Convert.ToInt32(reader["current_stock"] is DBNull ? 0 : reader["current_stock"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["avg_daily_demand"] is DBNull ? 0m : reader["avg_daily_demand"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["lead_time_days"] is DBNull ? 0 : reader["lead_time_days"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["safety_stock"] is DBNull ? 0 : reader["safety_stock"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["reorder_point"] is DBNull ? 0 : reader["reorder_point"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["eoq"] is DBNull ? 0 : reader["eoq"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["days_of_stock"] is DBNull ? 0 : reader["days_of_stock"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "stockout_date"),
+                        ReadStr(reader, "forecast_status"),
+                        ReadStr(reader, "last_computed"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Forecast row not found.");
+            }
+
+            var siblings = new List<ErpInventoryForecastDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpInventoryForecastStatusSiblings;
+                AddParameter(cmd, "@forecast_status", header.ForecastStatus);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpInventoryForecastDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "sku"),
+                        ReadStr(reader, "product_name"),
+                        Convert.ToInt32(reader["current_stock"] is DBNull ? 0 : reader["current_stock"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["avg_daily_demand"] is DBNull ? 0m : reader["avg_daily_demand"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["lead_time_days"] is DBNull ? 0 : reader["lead_time_days"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["safety_stock"] is DBNull ? 0 : reader["safety_stock"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["reorder_point"] is DBNull ? 0 : reader["reorder_point"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["eoq"] is DBNull ? 0 : reader["eoq"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["days_of_stock"] is DBNull ? 0 : reader["days_of_stock"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "stockout_date"),
+                        ReadStr(reader, "forecast_status"),
+                        ReadStr(reader, "last_computed"));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpMultiEntityListResult> ListErpMultiEntityAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -146,6 +146,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=ledger&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=movements&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
     [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=ledger&epc_erp_shell=1&movement_id=22", "/erp/stock-movements-app?movement_id=22")]
+    [InlineData("/CP/shop/finance/epc_inventory_forecast?inv_forecast_id=23", "/erp/inventory-forecast-app?inv_forecast_id=23")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/finance/erp?area=inventory&tab=rfid&epc_erp_shell=1&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
@@ -2825,6 +2826,49 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/inventory-stock-app",
                 "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory&warehouse_id=3"));
+    }
+
+    [Fact]
+    public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryForecastApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpInventoryForecastDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"inv_forecast_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("inv_forecast_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"inv_forecast_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("SiteKey", razor, StringComparison.Ordinal);
+        Assert.Contains("LeadTimeDays", razor, StringComparison.Ordinal);
+        Assert.Contains("SafetyStock", razor, StringComparison.Ordinal);
+        Assert.Contains("Eoq", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Recompute writes stay here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/inventory-forecast/recompute", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/inventory-forecast-app?inv_forecast_id=23#erp-row-23",
+            ErpRecordOpen.Href("/erp/inventory-forecast-app", "inv_forecast_id", 23));
+        Assert.Equal(
+            "/erp/inventory-forecast-app?inv_forecast_id=23",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/inventory-forecast-app",
+                "/CP/shop/finance/epc_inventory_forecast?inv_forecast_id=23"));
+        Assert.Equal(
+            "/erp/cash-accounts-app?tab=cash_forecast",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/cash-accounts-app?tab=cash_forecast",
+                "/ERP/?epc_erp_shell=1&area=banking&tab=cash_forecast"));
     }
 
     [Fact]

@@ -8301,6 +8301,45 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened inventory forecast (Open key <c>inv_forecast_id</c>). Surfaces site_key plus lead_time_days / safety_stock / eoq hidden from the list table.</summary>
+    public const string SelectErpInventoryForecastDetail = """
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`sku`,'') AS sku,
+               IFNULL(`product_name`,'') AS product_name,
+               IFNULL(`current_stock`,0) AS current_stock,
+               IFNULL(`avg_daily_demand`,0) AS avg_daily_demand,
+               IFNULL(`lead_time_days`,0) AS lead_time_days,
+               IFNULL(`safety_stock`,0) AS safety_stock,
+               IFNULL(`reorder_point`,0) AS reorder_point,
+               IFNULL(`eoq`,0) AS eoq,
+               IFNULL(`days_of_stock`,0) AS days_of_stock,
+               IFNULL(DATE_FORMAT(`stockout_date`, '%Y-%m-%d'),'') AS stockout_date,
+               IFNULL(`forecast_status`,'healthy') AS forecast_status,
+               IFNULL(DATE_FORMAT(`last_computed`, '%Y-%m-%d %H:%i:%s'),'') AS last_computed
+        FROM `epc_inventory_forecast`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other forecast rows with the same status. site_key omitted.</summary>
+    public const string SelectErpInventoryForecastStatusSiblings = """
+        SELECT `id`, IFNULL(`sku`,'') AS sku,
+               IFNULL(`product_name`,'') AS product_name,
+               IFNULL(`current_stock`,0) AS current_stock,
+               IFNULL(`avg_daily_demand`,0) AS avg_daily_demand,
+               IFNULL(`lead_time_days`,0) AS lead_time_days,
+               IFNULL(`safety_stock`,0) AS safety_stock,
+               IFNULL(`reorder_point`,0) AS reorder_point,
+               IFNULL(`eoq`,0) AS eoq,
+               IFNULL(`days_of_stock`,0) AS days_of_stock,
+               IFNULL(DATE_FORMAT(`stockout_date`, '%Y-%m-%d'),'') AS stockout_date,
+               IFNULL(`forecast_status`,'healthy') AS forecast_status,
+               IFNULL(DATE_FORMAT(`last_computed`, '%Y-%m-%d %H:%i:%s'),'') AS last_computed
+        FROM `epc_inventory_forecast`
+        WHERE IFNULL(`forecast_status`,'healthy') = @forecast_status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>epc_entity_groups</c> + member count.</summary>
     public const string SelectErpEntityGroups = """
         SELECT g.`id`, IFNULL(g.`group_code`,'') AS group_code,

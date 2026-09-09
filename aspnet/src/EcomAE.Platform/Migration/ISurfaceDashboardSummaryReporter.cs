@@ -869,8 +869,11 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only order→ERP pipeline log (PHP <c>epc_order_erp_log</c>; details JSON omitted).</summary>
     Task<ErpOrderPipelineListResult> ListErpOrderPipelineLogAsync(int limit, CancellationToken cancellationToken = default);
 
-    /// <summary>Read-only inventory forecast (PHP <c>epc_inventory_forecast</c>; recompute stays PHP).</summary>
+    /// <summary>Read-only inventory forecast (PHP <c>epc_inventory_forecast</c>; recompute writes on ASP.NET).</summary>
     Task<ErpInventoryForecastListResult> ListErpInventoryForecastAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened inventory forecast (Open key <c>inv_forecast_id</c>) plus same-status siblings. Surfaces site_key plus lead_time_days / safety_stock / eoq hidden from the list table.</summary>
+    Task<ErpInventoryForecastDetailResult> BuildErpInventoryForecastDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only multi-entity groups + IC txns (PHP <c>epc_entity_groups</c>).</summary>
     Task<ErpMultiEntityListResult> ListErpMultiEntityAsync(int limit, CancellationToken cancellationToken = default);

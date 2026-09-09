@@ -521,6 +521,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
         Assert.Contains("@warehouse_id", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpInventoryMovementWarehouseSiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_inventory_forecast", LegacySurfaceDashboardSql.SelectErpInventoryForecast, StringComparison.Ordinal);
+        Assert.DoesNotContain("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecast, StringComparison.Ordinal);
+        Assert.Contains("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
+        Assert.Contains("lead_time_days", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
+        Assert.Contains("safety_stock", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
+        Assert.Contains("eoq", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpInventoryForecastDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("site_key", LegacySurfaceDashboardSql.SelectErpInventoryForecastStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@forecast_status", LegacySurfaceDashboardSql.SelectErpInventoryForecastStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpInventoryForecastStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_stock", LegacySurfaceDashboardSql.SumErpDashboardStockValue, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_lines", LegacySurfaceDashboardSql.SelectErpCoaAccounts, StringComparison.Ordinal);
         Assert.Contains("shop_currencies", LegacySurfaceDashboardSql.SelectCpCurrencies, StringComparison.Ordinal);

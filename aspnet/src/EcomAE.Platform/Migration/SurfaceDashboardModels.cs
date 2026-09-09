@@ -7258,6 +7258,28 @@ public sealed record ErpInventoryForecastListResult(
     string Source,
     string Message);
 
+public sealed record ErpInventoryForecastDetail(
+    long Id,
+    string SiteKey,
+    string Sku,
+    string ProductName,
+    int CurrentStock,
+    decimal AvgDailyDemand,
+    int LeadTimeDays,
+    int SafetyStock,
+    int ReorderPoint,
+    int Eoq,
+    int DaysOfStock,
+    string StockoutDate,
+    string ForecastStatus,
+    string LastComputed);
+
+public sealed record ErpInventoryForecastDetailResult(
+    ErpInventoryForecastDetail? Forecast,
+    IReadOnlyList<ErpInventoryForecastDigest> Siblings,
+    string Source,
+    string Message);
+
 /// <summary>PHP <c>epc_entity_groups</c>.</summary>
 public sealed record ErpEntityGroupDigest(
     long Id,
