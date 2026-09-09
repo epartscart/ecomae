@@ -20,7 +20,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/marketing-growth-app")</p>
-                <p>Save a review here. Task and KPI writes stay Classic. This page does not invent a send.</p>
+                <p>Save a review, mark a task done, or record a KPI here. Schema-ensure stays Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -119,6 +119,44 @@
             <div class="panel-body">
                 @if (_isAdmin)
                 {
+                    <form method="post" action="/cp/marketing-growth/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="toggle_task" />
+                        <label>Strategy
+                            <select name="strategy_key" required>
+                                @foreach (var key in _strategies)
+                                {
+                                    <option value="@key">@key</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Task key <input type="text" name="task_key" maxlength="128" /></label>
+                        <label>Done
+                            <select name="is_done">
+                                <option value="1" selected>yes</option>
+                                <option value="0">no</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-sm">Toggle task</button>
+                    </form>
+                    <form method="post" action="/cp/marketing-growth/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="save_kpi" />
+                        <label>Strategy
+                            <select name="strategy_key" required>
+                                @foreach (var key in _strategies)
+                                {
+                                    <option value="@key">@key</option>
+                                }
+                            </select>
+                        </label>
+                        <label>KPI key <input type="text" name="kpi_key" maxlength="128" /></label>
+                        <label>Value <input type="text" name="value" /></label>
+                        <label>Note <input type="text" name="note" /></label>
+                        <button type="submit" class="btn btn-primary btn-sm">Record KPI</button>
+                    </form>
                     <form method="post" action="/cp/marketing-growth/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem">
                         <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="returnUrl" value="@_listHref" />
