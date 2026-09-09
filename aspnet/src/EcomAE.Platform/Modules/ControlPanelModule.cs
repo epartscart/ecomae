@@ -2254,12 +2254,16 @@ public sealed class ControlPanelModule : ISurfaceModule
                        ?? new();
             var action = body.Action;
             var handler = body.Handler;
+            var settlementId = body.SettlementId > 0 ? body.SettlementId : body.Id;
+            var status = body.Status;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 action = LiveWriteFormBinder.Text(form, "action");
                 handler = LiveWriteFormBinder.Text(form, "handler", "payment_handler", "paymentHandler");
+                settlementId = LiveWriteFormBinder.Long(form, "id", "settlementId", "settlement_id");
+                status = LiveWriteFormBinder.Text(form, "status");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -2267,6 +2271,17 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (confirm && key is "activate")
             {
                 var written = await writes.ActivateAsync(handler, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/payment-gateways-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "mark_settlement" or "mark-settlement")
+            {
+                var written = await writes.MarkSettlementAsync(settlementId, status, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
                     "/cp/payment-gateways-app",
@@ -12872,7 +12887,13 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpPacksDeleteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpChannelsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Code = null, int? Enabled = null);
     private sealed record CpLogisticsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Code = null);
-    private sealed record CpPaymentsWriteBody(string? Action = null, bool ConfirmWrites = false, string? Handler = null);
+    private sealed record CpPaymentsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? Handler = null,
+        long Id = 0,
+        long SettlementId = 0,
+        string? Status = null);
     private sealed record CpWorkshopWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

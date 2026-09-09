@@ -1448,7 +1448,7 @@ public static class EcomAeRoutes
     public const string CpChannelsWrite = "/cp/channels/write";
     /// <summary>Carrier toggle. <c>confirmWrites=true</c> + action=toggle_carrier is the live twin of PHP ajax_logistics.php.</summary>
     public const string CpLogisticsWrite = "/cp/logistics/write";
-    /// <summary>Payment activate. <c>confirmWrites=true</c> + action=activate is the live twin of PHP ajax_payments.php activate. save_config / accounts stay Classic.</summary>
+    /// <summary>Payment activate and mark_settlement. <c>confirmWrites=true</c> twins PHP ajax_payments.php activate / mark_settlement. save_config / accounts stay Classic.</summary>
     public const string CpPaymentsWrite = "/cp/payments/write";
     /// <summary>Workshop assign / save_bay / save_tech. <c>confirmWrites=true</c> is the live twin of those PHP actions.</summary>
     public const string CpWorkshopWrite = "/cp/workshop/write";
