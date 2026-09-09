@@ -3742,6 +3742,26 @@ public sealed record CpJewelleryMastersDigestResult(
     string Source,
     string Message);
 
+public sealed record CpJewelleryMastersKaratDetail(
+    long Id,
+    long CompanyId,
+    string KaratCode,
+    decimal StdPurity,
+    decimal RangeFrom,
+    decimal RangeTo,
+    decimal SpGravity,
+    decimal PosRateMinMax,
+    string Division,
+    string CreatedAt,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record CpJewelleryMastersKaratDetailResult(
+    CpJewelleryMastersKaratDetail? Karat,
+    IReadOnlyList<CpJewelleryMastersKaratDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpConsolidationsSummary(
     int EntityCount,
     int FigureCount,

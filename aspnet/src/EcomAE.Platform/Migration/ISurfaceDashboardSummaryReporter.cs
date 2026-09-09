@@ -377,6 +377,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only jewellery karat/rate/barcode masters.</summary>
     Task<CpJewelleryMastersDigestResult> BuildCpJewelleryMastersDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened jewellery karat (Open key <c>karat_id</c>) plus same-division siblings. description is a short excerpt.</summary>
+    Task<CpJewelleryMastersKaratDetailResult> BuildCpJewelleryMastersDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only consolidation group entities.</summary>
     Task<CpConsolidationsDigestResult> BuildCpConsolidationsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

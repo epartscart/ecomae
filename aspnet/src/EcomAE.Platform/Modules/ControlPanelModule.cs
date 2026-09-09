@@ -7348,7 +7348,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_jewel_karat_master/rate_type/barcode KPIs + karat rows (description omitted). PHP jewellery masters remain authoritative."
+                note = "Read-only epc_jewel_karat_master/rate_type/barcode KPIs + karat rows (description omitted on the list). Open ?karat_id= loads a 280-char description excerpt. PHP jewellery masters remain authoritative."
             });
         });
 

@@ -12744,6 +12744,80 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpJewelleryMastersKaratDetailResult> BuildCpJewelleryMastersDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpJewelleryMastersKaratDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersKaratDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpJewelleryMastersKaratDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["karat_code"] is DBNull ? string.Empty : reader["karat_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["std_purity"] is DBNull ? 0 : reader["std_purity"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["range_from"] is DBNull ? 0 : reader["range_from"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["range_to"] is DBNull ? 0 : reader["range_to"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["sp_gravity"] is DBNull ? 0 : reader["sp_gravity"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["pos_rate_min_max"] is DBNull ? 0 : reader["pos_rate_min_max"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["division"] is DBNull ? string.Empty : reader["division"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Jewellery karat not found.");
+            }
+
+            var siblings = new List<CpJewelleryMastersKaratDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings;
+                AddParameter(cmd, "@division", header.Division);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpJewelleryMastersKaratDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["company_id"] is DBNull ? 0 : reader["company_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["karat_code"] is DBNull ? string.Empty : reader["karat_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(reader["std_purity"] is DBNull ? 0 : reader["std_purity"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["range_from"] is DBNull ? 0 : reader["range_from"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["range_to"] is DBNull ? 0 : reader["range_to"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["sp_gravity"] is DBNull ? 0 : reader["sp_gravity"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["division"] is DBNull ? string.Empty : reader["division"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["created_at"] is DBNull ? string.Empty : reader["created_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpConsolidationsDigestResult> BuildCpConsolidationsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

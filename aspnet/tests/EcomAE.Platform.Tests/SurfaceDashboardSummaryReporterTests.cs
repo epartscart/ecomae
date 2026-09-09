@@ -919,6 +919,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`customer_id` = @customer_id", LegacySurfaceDashboardSql.SelectCpAmlComplianceKycTransactions, StringComparison.Ordinal);
         Assert.Contains("epc_jewel_karat_master", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`description`,''), 280)", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKaratDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKaratDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
+        Assert.Contains("@division", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_cons_entities", LegacySurfaceDashboardSql.SelectCpConsolidationsEntities, StringComparison.Ordinal);
         Assert.Contains("epc_cmp_rules", LegacySurfaceDashboardSql.SelectCpTaxExternalReportingStats, StringComparison.Ordinal);
         Assert.DoesNotContain("value_json", LegacySurfaceDashboardSql.SelectCpTaxExternalReportingRows, StringComparison.Ordinal);

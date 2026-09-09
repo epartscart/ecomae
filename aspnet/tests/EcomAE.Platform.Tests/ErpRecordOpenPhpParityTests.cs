@@ -87,6 +87,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance&leg_id=4", "/erp/uae-tax-compliance-app?leg_id=4")]
     [InlineData("/CP/control/portal/epc_auto_price_engine?aprice_id=6", "/cp/auto-price-app?aprice_id=6")]
     [InlineData("/CP/users/usergroups?ugroup_id=3", "/cp/groups-app?ugroup_id=3")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=jewellery&tab=jw_karat&karat_id=3", "/erp/jewellery-masters-app?tab=jw_karat&karat_id=3")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -1642,6 +1643,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/groups-app",
                 "/CP/users/usergroups?ugroup_id=3"));
+    }
+
+    [Fact]
+    public void JewelleryMastersApp_OpenLoadsDescriptionExcerptAndKeepsWrites()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpJewelleryMastersApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildCpJewelleryMastersDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"karat_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("karat_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"karat_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("PosRateMinMax", razor, StringComparison.Ordinal);
+        Assert.Contains("same-division siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ErpJewelleryKaratSaveForm", razor, StringComparison.Ordinal);
+        Assert.Contains("Save karat", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryKaratSeedForm", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/cp/jewellery-masters-app?karat_id=3#erp-row-3",
+            ErpRecordOpen.Href("/cp/jewellery-masters-app", "karat_id", 3));
+        Assert.Equal(
+            "/erp/jewellery-masters-app?karat_id=3",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/jewellery-masters-app",
+                "/ERP/?epc_erp_shell=1&area=jewellery&tab=jw_karat&karat_id=3"));
     }
 
     [Fact]
