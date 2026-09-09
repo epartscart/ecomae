@@ -11519,7 +11519,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP payment batches digest. PHP epc_erp_payment_batches remains authoritative."
+                note = "Open ?batch_id= loads 280-char notes excerpt; same-status siblings. PHP epc_erp_payment_batches / payment_batch_save remain authoritative."
             });
         });
 

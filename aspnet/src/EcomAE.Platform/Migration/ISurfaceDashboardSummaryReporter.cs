@@ -731,6 +731,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpThreeWayMatchListResult> ListErpThreeWayMatchAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpPaymentBatchListResult> ListErpPaymentBatchesAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened payment batch (Open key <c>batch_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
+    Task<ErpPaymentBatchDetailResult> BuildErpPaymentBatchDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpFiscalPeriodListResult> ListErpFiscalPeriodsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpAgendaEventListResult> ListErpAgendaEventsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpDocumentListResult> ListErpDocumentsAsync(int limit, CancellationToken cancellationToken = default);
