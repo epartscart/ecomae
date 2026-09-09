@@ -18,7 +18,7 @@ public static class PhpVsAspNetRemovalMatrix
     public static IReadOnlyList<PhpVsAspNetMatrixRow> Rows { get; } =
     [
         // Storefront
-        Row("sf-home", "storefront", "templates/*/desktop.php + content/general_pages", "/", "/storefront/app", "aspnet-digest", "php", "Homepage chrome is ASP.NET. Signed-in and guest checkout/create and demo pay are ASP.NET-live. Staff email notify stays PHP."),
+        Row("sf-home", "storefront", "templates/*/desktop.php + content/general_pages", "/", "/storefront/app", "aspnet-digest", "php", "Homepage chrome is ASP.NET. Signed-in and guest checkout/create and demo pay are ASP.NET-live. Vendor self-register INSERT is ASP.NET-live. Staff email notify stays PHP."),
         Row("sf-search", "storefront", "content/shop/docpart/ajax_part_search.php", "/shop/part_search", "/en/shop/part_search", "aspnet-digest", "php", "Offer list is ASP.NET; live supplier poll stays PHP. Cart add is /storefront/cart/add."),
         Row("sf-vin", "storefront", "content/laximo + content/general_pages/vin_zapros.php", "/en/katalog-laximo", "/storefront/vin-app", "aspnet-digest", "aspnet", "Live Laximo FindVehicleByVIN and users_vin INSERT / customer message are ASP.NET-live. Captcha, photos, and manager email stay Classic."),
         Row("sf-cart", "storefront", "content/shop/order_process", "/shop/cart", "/en/shop/cart", "aspnet-digest", "aspnet", "Type-2 qty / delete / check-for-order and guest session carts write on ASP.NET. Type-1 catalogue details stay PHP."),

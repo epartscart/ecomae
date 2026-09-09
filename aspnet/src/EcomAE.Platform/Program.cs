@@ -744,6 +744,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOrderStatusWriteService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteWriteService, EcomAE.Platform.Cp.CpQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, EcomAE.Platform.Cp.CpVendorApprovalWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVendorRegisterWriteService, EcomAE.Platform.Storefront.StorefrontVendorRegisterWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientWriteService, EcomAE.Platform.Cp.CpApiClientWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceStorageRuleWriteService, EcomAE.Platform.Cp.CpPriceStorageRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, EcomAE.Platform.Cp.CpContentManagerWriteService>();
