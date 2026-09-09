@@ -6406,6 +6406,35 @@ public sealed record CpBulkUploadDigestResult(
     string Source,
     string Message);
 
+public sealed record CpBulkUploadDetail(
+    long Id,
+    string FileName,
+    string Priority,
+    string SourceLabel,
+    long UserId,
+    int UploadedCount,
+    int AvailableCount,
+    int CrossCount,
+    int ShortCount,
+    int NotFoundCount,
+    long ShopQuoteId,
+    long CrmQuoteId,
+    int CartAddedCount,
+    string CreatedAt,
+    string UpdatedAt,
+    int NotesLen,
+    string NotesExcerpt,
+    int ResultLen,
+    string ResultExcerpt,
+    int CsvLen,
+    string CsvExcerpt);
+
+public sealed record CpBulkUploadDetailResult(
+    CpBulkUploadDetail? Upload,
+    IReadOnlyList<CpBulkUploadRowDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpTenantEmailSummary(
     bool UseTenantSmtp,
     string Host,

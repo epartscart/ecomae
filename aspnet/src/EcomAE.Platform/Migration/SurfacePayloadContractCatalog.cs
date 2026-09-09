@@ -1132,7 +1132,7 @@ public static class SurfacePayloadContractCatalog
         new("cp", "sao Blazor shell", "/cp/sao-app", "presentation-shell-scaffolded", "ASP.NET shell for PHP shop/sao order automation; exec protocols remain PHP; tenant chrome stays PHP."),
         new("cp", "print-docs Blazor shell", "/cp/print-docs-app", "presentation-shell-scaffolded", "ASP.NET shell for PHP shop/print_docs; templates remain PHP; tenant chrome stays PHP."),
         new("cp", "data-transfer Blazor shell", "/cp/data-transfer-app", "presentation-shell-scaffolded", "ASP.NET shell for PHP shop/data_transfer; CSV import remains PHP; tenant chrome stays PHP."),
-        new("cp", "bulk-upload Blazor shell", "/cp/bulk-upload-app", "presentation-shell-scaffolded", "ASP.NET shell for PHP shop/bulk_upload; ajax_bulk_cp remains PHP; tenant chrome stays PHP."),
+        new("cp", "bulk-upload Blazor shell", "/cp/bulk-upload-app", "presentation-shell-scaffolded", "Open ?upload_id= loads 280-char notes/result/csv excerpts; file bodies omitted; same-priority siblings; process/review/quote/cart stay Classic; tenant chrome stays PHP."),
         new("cp", "kkt Blazor shell", "/cp/kkt-app", "presentation-shell-scaffolded", "ASP.NET shell for PHP shop/kkt fiscal devices; checks remain PHP; tenant chrome stays PHP."),
         new("cp", "shop-module coverage board", "/cp/shop-module-coverage", "parity-board", "All 36 cp/content/shop modules → ASP.NET apps; cutoverAllowed=false; PHP authoritative."),
         new("cp", "toplevel-area coverage board", "/cp/toplevel-area-coverage", "parity-board", "All 12 cp/content top-level areas → ASP.NET apps; cutoverAllowed=false; PHP authoritative."),

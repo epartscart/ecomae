@@ -12,11 +12,12 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpParityModuleBody AppPath="/cp/bulk-upload-app" IsAdmin="_isAdmin" />
+    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/bulk-upload-app" IsAdmin="_isAdmin" />
 
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     <PhpCpModulePageHeader Title="Bulk upload"
-                           Subtitle="PHP bulk_upload_hub parity — operator history from epc_bulk_upload_history. process_upload / review / quote / cart writes stay PHP."
+                           Subtitle="Open a row for the 280-character notes, result, and csv excerpts. process_upload / review / quote / cart writes stay PHP."
                            PhpTabHref="@_phpTab">
         <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
         <a class="ghost" href="/storefront/bulk-upload-app">Storefront bulk</a>
@@ -66,11 +67,112 @@
         </a>
     </div>
 
+    @if (_opened is not null)
+    {
+        <div class="epc-scp-table-card" style="margin-bottom:1rem">
+            <div class="epc-scp-table-card__head">
+                <div>
+                    <h3>@OpenedCaption</h3>
+                    <p class="epc-users-hint">process_upload / review / quote / cart stay on the Classic twin. File bodies omitted.</p>
+                </div>
+                <a class="btn btn-default btn-xs" href="@OpenedReturnHref">This row</a>
+                <a class="btn btn-default btn-xs" href="@_listHref">Close</a>
+            </div>
+            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>File</dt><dd>@(string.IsNullOrWhiteSpace(_opened.FileName) ? "—" : _opened.FileName)</dd>
+                <dt>Priority</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Priority) ? "—" : _opened.Priority)</dd>
+                <dt>Source</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SourceLabel) ? "—" : _opened.SourceLabel)</dd>
+                <dt>User</dt><dd>@_opened.UserId.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Uploaded</dt><dd>@_opened.UploadedCount.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Available</dt><dd>@_opened.AvailableCount.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Cross</dt><dd>@_opened.CrossCount.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Short</dt><dd>@_opened.ShortCount.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Not found</dt><dd>@_opened.NotFoundCount.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Shop quote</dt><dd>@_opened.ShopQuoteId.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>CRM quote</dt><dd>@_opened.CrmQuoteId.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Cart added</dt><dd>@_opened.CartAddedCount.ToString(CultureInfo.InvariantCulture)</dd>
+                <dt>Created</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CreatedAt) ? "—" : _opened.CreatedAt)</dd>
+                <dt>Updated</dt><dd>@(string.IsNullOrWhiteSpace(_opened.UpdatedAt) ? "—" : _opened.UpdatedAt)</dd>
+            </dl>
+            @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.NotesExcerpt</pre>
+                @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_opened.ResultExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">result excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.ResultExcerpt</pre>
+                @if (_opened.ResultLen > _opened.ResultExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.ResultExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.ResultLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No result excerpt yet.</p>
+            }
+            @if (!string.IsNullOrWhiteSpace(_opened.CsvExcerpt))
+            {
+                <p class="text-muted" style="margin:.85rem 0 .35rem">csv excerpt</p>
+                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.CsvExcerpt</pre>
+                @if (_opened.CsvLen > _opened.CsvExcerpt.Length)
+                {
+                    <p class="text-muted">Excerpt only (@_opened.CsvExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.CsvLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                }
+            }
+            else
+            {
+                <p class="text-muted" style="margin:.85rem 0 0">No csv excerpt yet.</p>
+            }
+            @if (_openedSiblings.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Same-priority siblings</p>
+                <table class="epc-scp-data-table table table-epc-pro">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>File</th>
+                            <th>Priority</th>
+                            <th>Not found</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var sib in _openedSiblings)
+                        {
+                            <tr>
+                                <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.FileName) ? "—" : sib.FileName)</td>
+                                <td>@(string.IsNullOrWhiteSpace(sib.Priority) ? "—" : sib.Priority)</td>
+                                <td>@sib.NotFoundCount.ToString(CultureInfo.InvariantCulture)</td>
+                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "upload_id", sib.Id)">Open</a></td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            else
+            {
+                <p class="text-muted">No same-priority siblings yet.</p>
+            }
+        </div>
+    }
+
     <div class="epc-scp-table-card">
         <div class="epc-scp-table-card__head">
             <div>
                 <h3>Upload history</h3>
-                <p class="epc-users-hint">PHP ajax_bulk_cp history — file, priority, line counts. File bodies omitted.</p>
+                <p class="epc-users-hint">Open uses <code>?upload_id=</code>. File bodies omitted.</p>
             </div>
             <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP module</a>
         </div>
@@ -98,7 +200,7 @@
                 {
                     @foreach (var row in _uploads)
                     {
-                        <tr>
+                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                             <td><strong>@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
                             <td>@(string.IsNullOrWhiteSpace(row.FileName) ? "—" : row.FileName)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.Priority) ? "—" : row.Priority)</td>
@@ -108,7 +210,7 @@
                             <td>@row.ShortCount.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@row.NotFoundCount.ToString(CultureInfo.InvariantCulture)</td>
                             <td>@(string.IsNullOrWhiteSpace(row.CreatedAt) ? "—" : row.CreatedAt)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
+                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "upload_id", row.Id)">Open</a></td>
                         </tr>
                     }
                 }
@@ -119,15 +221,30 @@
 
 @code {
     private const string _phpTab = "/CP/shop/bulk_upload";
+    private const string _listHref = "/cp/bulk-upload-app";
     private bool _isAdmin;
     private CpBulkUploadSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpBulkUploadRowDigest> _uploads = [];
+    private long _openedId;
+    private CpBulkUploadDetail? _opened;
+    private IReadOnlyList<CpBulkUploadRowDigest> _openedSiblings = [];
+
+    private string OpenedCaption => _opened is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_opened.FileName)
+            ? _opened.FileName
+            : ("Upload #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+
+    private string OpenedReturnHref => _openedId > 0
+        ? _listHref + "?upload_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+        : _listHref;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "upload_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -138,5 +255,20 @@
         var result = await Dashboards.BuildCpBulkUploadDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _uploads = result.Uploads;
+
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpBulkUploadDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Upload;
+            _openedSiblings = detail.Siblings;
+            if (_opened is not null)
+            {
+                var openedList = _uploads.FirstOrDefault(r => r.Id == _openedId);
+                if (openedList is not null)
+                {
+                    _uploads = new[] { openedList }.Concat(_uploads.Where(r => r.Id != _openedId)).ToList();
+                }
+            }
+        }
     }
 }
