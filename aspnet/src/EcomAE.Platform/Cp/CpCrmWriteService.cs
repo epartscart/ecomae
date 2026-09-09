@@ -26,7 +26,7 @@ public interface ICpCrmWriteService
 
 public sealed class CpCrmWriteService : ICpCrmWriteService
 {
-    internal static readonly HashSet<string> LeadStatuses = new(StringComparer.OrdinalIgnoreCase)
+    public static readonly HashSet<string> LeadStatuses = new(StringComparer.OrdinalIgnoreCase)
     {
         "new", "contacted", "qualified", "unqualified", "converted",
     };
