@@ -7842,6 +7842,84 @@ public sealed class ControlPanelModule : ISurfaceModule
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCrmQuotesWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrmQuoteWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin
+                || !(session.Capabilities.Contains("cp") || session.Capabilities.Contains("erp")))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/erp/sales-quotations-app", "Admin CP or ERP capability required for CRM quote write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmQuotesWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var opportunityId = body.OpportunityId;
+            var leadId = body.LeadId;
+            var customerUserId = body.CustomerUserId;
+            var quoteNumber = body.QuoteNumber;
+            var status = body.Status;
+            var notes = body.Notes;
+            var lineDescription = body.LineDescription;
+            var lineQty = body.LineQty;
+            var lineUnitPrice = body.LineUnitPrice;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "quote_id", "quoteId");
+                opportunityId = LiveWriteFormBinder.Long(form, "opportunity_id", "opportunityId", "opp_id");
+                leadId = LiveWriteFormBinder.Long(form, "lead_id", "leadId");
+                customerUserId = LiveWriteFormBinder.Long(form, "customer_user_id", "customerUserId");
+                quoteNumber = LiveWriteFormBinder.Text(form, "quote_number", "quoteNumber");
+                status = LiveWriteFormBinder.Text(form, "status");
+                notes = LiveWriteFormBinder.Text(form, "notes");
+                lineDescription = LiveWriteFormBinder.Text(form, "line_description", "lineDescription");
+                lineQty = LiveWriteFormBinder.Dec(form, "line_qty", "lineQty");
+                lineUnitPrice = LiveWriteFormBinder.Dec(form, "line_unit_price", "lineUnitPrice");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (confirm && key is "save_quote" or "crm_save_quote")
+            {
+                var written = await writes.SaveAsync(
+                    new CpCrmQuoteSaveRequest(
+                        id, opportunityId, leadId, customerUserId, quoteNumber, status, notes,
+                        lineDescription, lineQty, lineUnitPrice),
+                    cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/erp/sales-quotations-app?quote_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/erp/sales-quotations-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "save_quote" or "crm_save_quote",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Accept and quote email stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the quote.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelSoc2Compliance, async (
             HttpContext context,
@@ -11371,6 +11449,19 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? DueDate = null,
         long OwnerUserId = 0,
         string? Notes = null);
+    private sealed record CpCrmQuotesWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        long OpportunityId = 0,
+        long LeadId = 0,
+        long CustomerUserId = 0,
+        string? QuoteNumber = null,
+        string? Status = null,
+        string? Notes = null,
+        string? LineDescription = null,
+        decimal LineQty = 1,
+        decimal LineUnitPrice = 0);
     private sealed record CpCrmTicketsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
