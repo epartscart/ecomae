@@ -814,6 +814,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only opening-balance batches (PHP <c>epc_erp_opening_batches</c>).</summary>
     Task<ErpOpeningListResult> ListErpOpeningBatchesAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened opening batch (Open key <c>batch_id</c>, remapped by <c>tab=opening</c>) plus same-status siblings. note is a short excerpt; line meta_json omitted.</summary>
+    Task<ErpOpeningBatchDetailResult> BuildErpOpeningBatchDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only marketing campaigns (PHP <c>epc_erp_marketing_campaigns</c>).</summary>
     Task<ErpMarketingListResult> ListErpMarketingCampaignsAsync(int limit, CancellationToken cancellationToken = default);
 

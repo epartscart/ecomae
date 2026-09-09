@@ -125,6 +125,9 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=common&tab=documents&epc_erp_shell=1&document_id=13", "/erp/documents-app?document_id=13")]
     [InlineData("/ERP/?epc_erp_shell=1&area=setup&tab=print_designer&template_id=14", "/erp/print-designer-app?template_id=14")]
     [InlineData("/CP/shop/finance/erp?area=setup&tab=print_designer&epc_erp_shell=1&template_id=14", "/erp/print-designer-app?template_id=14")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=opening&batch_id=15", "/erp/opening-app?batch_id=15")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances&batch_id=15", "/erp/opening-app?batch_id=15")]
+    [InlineData("/CP/shop/finance/erp?area=finance&tab=opening&epc_erp_shell=1&batch_id=15", "/erp/opening-app?batch_id=15")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2472,6 +2475,44 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/print-designer-app",
                 "/ERP/?epc_erp_shell=1&area=setup&tab=print_designer&template_id=14"));
+    }
+
+    [Fact]
+    public void OpeningApp_OpenLoadsNoteExcerptAndOmitsLineMeta()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpOpeningApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpOpeningBatchDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"batch_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("batch_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"batch_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NoteExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Line JSON omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("Create and add-line write here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/opening/create-batch", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/opening/add-coa-line", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/opening/add-inv-line", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("meta_json", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/opening-app?batch_id=15#erp-row-15",
+            ErpRecordOpen.Href("/erp/opening-app", "batch_id", 15));
+        Assert.Equal(
+            "/erp/opening-app?batch_id=15",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/opening-app",
+                "/ERP/?epc_erp_shell=1&area=finance&tab=opening&batch_id=15"));
     }
 
     [Fact]

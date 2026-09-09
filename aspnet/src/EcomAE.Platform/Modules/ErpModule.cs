@@ -10825,7 +10825,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_opening_batches. PHP opening tab remains authoritative."
+                note = "Read-only epc_erp_opening_batches. Open ?batch_id= loads a 280-char note excerpt. Line meta_json omitted. PHP opening tab remains authoritative."
             });
         });
 
