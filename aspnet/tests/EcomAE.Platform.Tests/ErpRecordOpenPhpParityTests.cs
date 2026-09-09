@@ -109,6 +109,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=inventory_mgmt&tab=inv_groups&epc_erp_shell=1&transfer_id=5", "/erp/stock-transfers-app?transfer_id=5")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=proposals&quote_id=6", "/erp/sales-quotations-app?quote_id=6")]
     [InlineData("/CP/shop/finance/erp?area=sales&tab=proposals&epc_erp_shell=1&quote_id=6", "/erp/sales-quotations-app?quote_id=6")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=marketing&campaign_id=7", "/erp/marketing-app?campaign_id=7")]
+    [InlineData("/CP/shop/finance/erp?area=sales&tab=marketing&epc_erp_shell=1&campaign_id=7", "/erp/marketing-app?campaign_id=7")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2172,6 +2174,41 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/sales-quotations-app",
                 "/ERP/?epc_erp_shell=1&area=sales&tab=proposals&quote_id=6"));
+    }
+
+    [Fact]
+    public void MarketingApp_OpenLoadsNotesExcerptAndKeepsErpChrome()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpMarketingApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpMarketingCampaignDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"campaign_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("campaign_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"campaign_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/erp/marketing/create", razor, StringComparison.Ordinal);
+        Assert.Contains("Create campaign", razor, StringComparison.Ordinal);
+        Assert.Contains("Schema seed stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/marketing-app?campaign_id=7#erp-row-7",
+            ErpRecordOpen.Href("/erp/marketing-app", "campaign_id", 7));
+        Assert.Equal(
+            "/erp/marketing-app?campaign_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/marketing-app",
+                "/ERP/?epc_erp_shell=1&area=sales&tab=marketing&campaign_id=7"));
     }
 
     [Fact]

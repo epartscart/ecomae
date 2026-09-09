@@ -799,6 +799,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only marketing campaigns (PHP <c>epc_erp_marketing_campaigns</c>).</summary>
     Task<ErpMarketingListResult> ListErpMarketingCampaignsAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened marketing campaign (Open key <c>campaign_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
+    Task<ErpMarketingCampaignDetailResult> BuildErpMarketingCampaignDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only payroll runs (PHP <c>epc_erp_payroll_runs</c>).</summary>
     Task<ErpPayrollListResult> ListErpPayrollRunsAsync(int limit, CancellationToken cancellationToken = default);
 

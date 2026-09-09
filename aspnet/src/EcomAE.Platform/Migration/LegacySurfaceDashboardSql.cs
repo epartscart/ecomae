@@ -7194,6 +7194,41 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>Opened marketing campaign. notes is a short excerpt. Create stays on this page. Schema seed stays Classic.</summary>
+    public const string SelectErpMarketingCampaignDetail = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`channel`,'') AS channel,
+               IFNULL(`budget`,0) AS budget,
+               IFNULL(`spent`,0) AS spent,
+               IFNULL(`leads`,0) AS leads,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`time_start`,0) AS time_start,
+               IFNULL(`time_end`,0) AS time_end,
+               IFNULL(`time_created`,0) AS time_created,
+               CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
+               LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
+        FROM `epc_erp_marketing_campaigns`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other marketing campaigns with the same status. notes omitted.</summary>
+    public const string SelectErpMarketingCampaignStatusSiblings = """
+        SELECT `id`, IFNULL(`name`,'') AS name,
+               IFNULL(`channel`,'') AS channel,
+               IFNULL(`budget`,0) AS budget,
+               IFNULL(`spent`,0) AS spent,
+               IFNULL(`leads`,0) AS leads,
+               IFNULL(`status`,'draft') AS status,
+               IFNULL(`time_start`,0) AS time_start,
+               IFNULL(`time_end`,0) AS time_end,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_erp_marketing_campaigns`
+        WHERE IFNULL(`status`,'draft') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>PHP <c>epc_erp_payroll_list_runs</c> — notes omitted.</summary>
     public const string SelectErpPayrollRuns = """
         SELECT r.`id`, IFNULL(r.`period_label`,'') AS period_label,

@@ -1701,7 +1701,8 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/bulk-upload-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/fixed-assets-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/stock-transfers-app", StringComparison.OrdinalIgnoreCase)
-                    || aspNet.Equals("/erp/sales-quotations-app", StringComparison.OrdinalIgnoreCase))
+                    || aspNet.Equals("/erp/sales-quotations-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/erp/marketing-app", StringComparison.OrdinalIgnoreCase))
                 {
                     return ErpRecordOpen.PreserveRecordQuery(aspNet, value);
                 }

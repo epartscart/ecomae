@@ -10855,7 +10855,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "epc_erp_marketing_campaigns. Create on POST /erp/marketing/create when confirmWrites=true. Staff schema seed stays PHP."
+                note = "Open ?campaign_id= loads 280-char notes excerpt; same-status siblings. Create on POST /erp/marketing/create when confirmWrites=true. Staff schema seed stays PHP."
             });
         });
 
