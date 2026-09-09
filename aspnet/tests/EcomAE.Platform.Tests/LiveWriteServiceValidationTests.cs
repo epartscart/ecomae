@@ -3663,4 +3663,19 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("db", missingDb.Code);
     }
 
+    [Fact]
+    public async Task Promo_save_rejects_missing_code_and_unconfigured_db()
+    {
+        var missingCode = await new CpPromoWriteService(new ConfiguredNeverOpened())
+            .SaveAsync(new CpPromoSaveRequest(0, "", "10% off", "percent", 10, 100, 0, 0, 1));
+        Assert.False(missingCode.Succeeded);
+        Assert.Equal("invalid", missingCode.Code);
+        Assert.Equal("A promotion code is required.", missingCode.Message);
+
+        var missingDb = await new CpPromoWriteService(new UnconfiguredConnections())
+            .SaveAsync(new CpPromoSaveRequest(0, "SAVE10", "10% off", "percent", 10, 100, 0, 0, 1));
+        Assert.False(missingDb.Succeeded);
+        Assert.Equal("db", missingDb.Code);
+    }
+
 }
