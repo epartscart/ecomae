@@ -22,7 +22,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Tickets from tenant CRM tables. Open a ticket for message excerpts. Create SLA, create a ticket, and save a text reply here. Schema-ensure and file attachments stay on the Classic twin.</p>
+                <p>Tickets from tenant CRM tables. Open a ticket for message excerpts. Set CRM status here. Create SLA, create a ticket, and save a text reply here. Schema-ensure and file attachments stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
@@ -103,6 +103,47 @@
                         · @(_openedTicket.Active ? "active" : "inactive")</p>
                     <p>Created @_openedTicket.TimeCreated.ToString(CultureInfo.InvariantCulture)
                         · updated @_openedTicket.TimeUpdated.ToString(CultureInfo.InvariantCulture)</p>
+                    @if (_isAdmin)
+                    {
+                        <form method="post" action="/cp/crm/tickets/write" style="margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@ErpRecordOpen.Href(_listHref, "ticket_id", _openedTicket.Id)" />
+                            <input type="hidden" name="action" value="update_ticket_status" />
+                            <input type="hidden" name="id" value="@_openedTicket.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Status
+                                <select name="status">
+                                    @foreach (var st in _statuses)
+                                    {
+                                        @if (string.Equals(st, _openedTicket.Status, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@st" selected>@st</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@st">@st</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Priority
+                                <select name="priority">
+                                    @foreach (var pr in _priorities)
+                                    {
+                                        @if (string.Equals(pr, _openedTicket.Priority, StringComparison.OrdinalIgnoreCase))
+                                        {
+                                            <option value="@pr" selected>@pr</option>
+                                        }
+                                        else
+                                        {
+                                            <option value="@pr">@pr</option>
+                                        }
+                                    }
+                                </select>
+                            </label>
+                            <label>Note <input type="text" name="message" /></label>
+                            <button type="submit" class="btn btn-primary btn-sm">Update ticket</button>
+                        </form>
+                    }
                 </div>
             </div>
         </div>
@@ -214,7 +255,7 @@
     @if (_leftoverWrite)
     {
         <div class="col-lg-12">
-            <p class="help-block">SLA, ticket create, and text replies are live when confirmed. Schema-ensure and file attachments stay on the Classic twin.</p>
+            <p class="help-block">SLA, ticket create, and text replies are live when confirmed. CRM status writes here. Schema-ensure and file attachments stay Classic.</p>
         </div>
     }
 
@@ -235,6 +276,8 @@
     private long _openedId;
     private CpCrmTicketDetail? _openedTicket;
     private IReadOnlyList<CpCrmTicketMessageDigest> _openedMessages = [];
+    private static readonly string[] _statuses = ["open", "pending", "resolved", "closed"];
+    private static readonly string[] _priorities = ["low", "normal", "high", "urgent"];
 
     private string OpenedCaption => _openedTicket is null
         ? ""
