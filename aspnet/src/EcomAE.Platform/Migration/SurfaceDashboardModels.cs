@@ -7339,6 +7339,28 @@ public sealed record ErpRfidDigestResult(
     IReadOnlyList<ErpRfidSessionDigest> Sessions,
     int Count, int ActiveTagCount, int SessionCount, string Source, string Message);
 
+public sealed record ErpRfidSessionDetail(
+    long Id,
+    string SessionType,
+    long WarehouseId,
+    string Zone,
+    int TotalScanned,
+    int TotalExpected,
+    int TotalFound,
+    int TotalMissing,
+    int TotalUnexpected,
+    long ScannedBy,
+    string ScannedByName,
+    string Status,
+    long TimeStarted,
+    long TimeCompleted);
+
+public sealed record ErpRfidSessionDetailResult(
+    ErpRfidSessionDetail? Session,
+    IReadOnlyList<ErpRfidSessionDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpRecruitmentJobDigest(
     long Id, string Title, string Department, int Headcount, int Hired, string Status, string HiringManager, long TimeCreated);
 

@@ -134,6 +134,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=common&tab=contacts&epc_erp_shell=1&contact_id=17", "/erp/contacts-app?contact_id=17")]
     [InlineData("/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup&contact_id=17", "/erp/contacts-app?tab=ar_setup&contact_id=17")]
     [InlineData("/CP/shop/finance/erp?area=ar&tab=ar_setup&epc_erp_shell=1&contact_id=17", "/erp/contacts-app?tab=ar_setup&contact_id=17")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18", "/erp/rfid-app?session_id=18")]
+    [InlineData("/CP/shop/finance/erp?area=inventory&tab=rfid&epc_erp_shell=1&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2605,6 +2607,47 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/contacts-app?tab=ar_setup",
                 "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup&contact_id=17"));
+    }
+
+    [Fact]
+    public void RfidApp_OpenLoadsCompletedTimeAndOmitsReaderSecrets()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpRfidApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpRfidSessionDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"session_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("session_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"session_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("TimeCompleted", razor, StringComparison.Ordinal);
+        Assert.Contains("TotalUnexpected", razor, StringComparison.Ordinal);
+        Assert.Contains("ScannedBy", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Reader IP/TID omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("Register, start, and scan write here", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/rfid/register", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/rfid/start-session", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/rfid/scan", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ip_address", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.RfidTid", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/rfid-app?session_id=18#erp-row-18",
+            ErpRecordOpen.Href("/erp/rfid-app", "session_id", 18));
+        Assert.Equal(
+            "/erp/rfid-app?session_id=18",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/rfid-app",
+                "/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18"));
     }
 
     [Fact]

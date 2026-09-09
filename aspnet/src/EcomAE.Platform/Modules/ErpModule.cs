@@ -10951,7 +10951,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for rfid digest.");
             var result = await dashboards.BuildErpRfidDigestAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", tags = result.Tags, sessions = result.Sessions, count = result.Count, activeTagCount = result.ActiveTagCount, sessionCount = result.SessionCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_rfid_tags + scan sessions. PHP rfid tab remains authoritative." });
+            return Results.Ok(new { ok = true, surface = "erp", tags = result.Tags, sessions = result.Sessions, count = result.Count, activeTagCount = result.ActiveTagCount, sessionCount = result.SessionCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_rfid_tags + scan sessions. Open ?session_id= loads completed time and unexpected count. Reader IP/TID omitted. PHP rfid tab remains authoritative." });
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpRecruitment, async (HttpContext context, int? limit, ILegacySessionValidator validator, ISurfaceDashboardSummaryReporter dashboards, CancellationToken cancellationToken) =>

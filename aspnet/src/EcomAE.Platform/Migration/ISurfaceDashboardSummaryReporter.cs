@@ -842,6 +842,9 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpProcurementCategoriesDigestResult> BuildErpProcurementCategoriesDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpRfidDigestResult> BuildErpRfidDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened RFID scan session (Open key <c>session_id</c>, remapped by <c>tab=rfid</c>) plus same-status siblings. Reader IP/TID omitted.</summary>
+    Task<ErpRfidSessionDetailResult> BuildErpRfidSessionDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpRecruitmentDigestResult> BuildErpRecruitmentDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpCustomerGroupsDigestResult> ListErpCustomerGroupsAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpPerformanceDigestResult> BuildErpPerformanceDigestAsync(int limit, CancellationToken cancellationToken = default);

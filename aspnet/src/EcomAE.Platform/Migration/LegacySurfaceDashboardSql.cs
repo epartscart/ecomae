@@ -7663,6 +7663,7 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    /// <summary>RFID scan sessions list — time_completed / unexpected / scanned_by omitted.</summary>
     public const string SelectErpRfidSessions = """
         SELECT `id`, IFNULL(`session_type`,'stocktake') AS session_type,
                IFNULL(`warehouse_id`,0) AS warehouse_id,
@@ -7677,6 +7678,44 @@ public const string SelectCpOpsGuidesStats = """
         FROM `epc_rfid_scan_sessions`
         ORDER BY `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened RFID scan session. Reader IP/TID credentials omitted. Writes stay on this page.</summary>
+    public const string SelectErpRfidSessionDetail = """
+        SELECT `id`, IFNULL(`session_type`,'stocktake') AS session_type,
+               IFNULL(`warehouse_id`,0) AS warehouse_id,
+               IFNULL(`zone`,'') AS zone,
+               IFNULL(`total_scanned`,0) AS total_scanned,
+               IFNULL(`total_expected`,0) AS total_expected,
+               IFNULL(`total_found`,0) AS total_found,
+               IFNULL(`total_missing`,0) AS total_missing,
+               IFNULL(`total_unexpected`,0) AS total_unexpected,
+               IFNULL(`scanned_by`,0) AS scanned_by,
+               IFNULL(`scanned_by_name`,'') AS scanned_by_name,
+               IFNULL(`status`,'in_progress') AS status,
+               IFNULL(`time_started`,0) AS time_started,
+               IFNULL(`time_completed`,0) AS time_completed
+        FROM `epc_rfid_scan_sessions`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other RFID sessions with the same status. Reader credentials omitted.</summary>
+    public const string SelectErpRfidSessionStatusSiblings = """
+        SELECT `id`, IFNULL(`session_type`,'stocktake') AS session_type,
+               IFNULL(`warehouse_id`,0) AS warehouse_id,
+               IFNULL(`zone`,'') AS zone,
+               IFNULL(`total_scanned`,0) AS total_scanned,
+               IFNULL(`total_expected`,0) AS total_expected,
+               IFNULL(`total_found`,0) AS total_found,
+               IFNULL(`total_missing`,0) AS total_missing,
+               IFNULL(`status`,'in_progress') AS status,
+               IFNULL(`scanned_by_name`,'') AS scanned_by_name,
+               IFNULL(`time_started`,0) AS time_started
+        FROM `epc_rfid_scan_sessions`
+        WHERE IFNULL(`status`,'in_progress') = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
         """;
 
     public const string SelectErpRecruitmentJobs = """

@@ -1200,7 +1200,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "order planning Blazor", "/erp/order-planning-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/order-planning digest; PHP order_planning remains authoritative."),
         new("erp", "procurement categories Blazor", "/erp/procurement-categories-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/procurement-categories digest; PHP procurement_categories remains authoritative."),
         new("erp", "quality Blazor", "/erp/quality-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/quality digest; PHP quality tab remains authoritative."),
-        new("erp", "RFID Blazor", "/erp/rfid-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/rfid digest; PHP rfid tab remains authoritative."),
+        new("erp", "RFID Blazor", "/erp/rfid-app", "digest-wired-awaiting-dual-sample", "Open ?session_id= loads completed time, unexpected count, and scanner numeric id; same-status siblings; reader IP/TID omitted; register/start/scan write here; tenant chrome stays PHP."),
         new("erp", "recruitment Blazor", "/erp/recruitment-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/recruitment digest; PHP recruitment tab remains authoritative."),
         new("erp", "customer groups Blazor", "/erp/customer-groups-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/customer-groups digest. Create/assign are live when confirmed; schema-ensure stays PHP."),
         new("erp", "performance Blazor", "/erp/performance-app", "digest-wired-awaiting-dual-sample", "Read UI over /erp/performance digest; PHP performance tab remains authoritative."),
