@@ -111,6 +111,8 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/erp?area=sales&tab=proposals&epc_erp_shell=1&quote_id=6", "/erp/sales-quotations-app?quote_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=marketing&campaign_id=7", "/erp/marketing-app?campaign_id=7")]
     [InlineData("/CP/shop/finance/erp?area=sales&tab=marketing&epc_erp_shell=1&campaign_id=7", "/erp/marketing-app?campaign_id=7")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=rfq&rfq_id=8", "/erp/rfq-app?rfq_id=8")]
+    [InlineData("/CP/shop/finance/erp?area=purchasing&tab=rfq&epc_erp_shell=1&rfq_id=8", "/erp/rfq-app?rfq_id=8")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/CP/shop/crm?lead_id=6", "/cp/crm-board-app?lead_id=6")]
     [InlineData("/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing&fixing_id=4", "/erp/jewellery-fixing-app?tab=jw_purchase_fixing&fixing_id=4")]
@@ -2209,6 +2211,40 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/marketing-app",
                 "/ERP/?epc_erp_shell=1&area=sales&tab=marketing&campaign_id=7"));
+    }
+
+    [Fact]
+    public void RfqApp_OpenLoadsDescriptionExcerptAndKeepsErpChrome()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpRfqApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpRfqDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"rfq_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("rfq_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"rfq_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Save stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/rfq-app?rfq_id=8#erp-row-8",
+            ErpRecordOpen.Href("/erp/rfq-app", "rfq_id", 8));
+        Assert.Equal(
+            "/erp/rfq-app?rfq_id=8",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/rfq-app",
+                "/ERP/?epc_erp_shell=1&area=purchasing&tab=rfq&rfq_id=8"));
     }
 
     [Fact]

@@ -6211,6 +6211,27 @@ public sealed record ErpRfqListResult(
     string Source,
     string Message);
 
+public sealed record ErpRfqDetail(
+    long Id,
+    string RfqNo,
+    long SupplierId,
+    string Title,
+    decimal AmountEst,
+    string CurrencyCode,
+    string Status,
+    long DueDate,
+    long OrderId,
+    long TimeCreated,
+    long TimeUpdated,
+    int DescriptionLen,
+    string DescriptionExcerpt);
+
+public sealed record ErpRfqDetailResult(
+    ErpRfqDetail? Rfq,
+    IReadOnlyList<ErpRfqDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpThreeWayMatchDigest(
     long PoId,
     string PoNo,
