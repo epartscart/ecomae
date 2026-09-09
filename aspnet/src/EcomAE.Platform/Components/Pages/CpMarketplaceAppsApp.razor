@@ -20,11 +20,20 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/marketplace-apps-app")</p>
-                <p>Open an app for a short description excerpt, installs, and review titles. Install, review, and config writes stay on the Classic twin.</p>
+                <p>Open an app for a short description excerpt, installs, and review titles. Install or uninstall here. Review, config, and seed stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/marketplace-apps-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedApp is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -62,6 +71,35 @@
                     else
                     {
                         <p class="text-muted">No description excerpt yet.</p>
+                    }
+                    @if (_isAdmin)
+                    {
+                        @if (string.Equals(_openedApp.Status, "published", StringComparison.OrdinalIgnoreCase))
+                        {
+                            <form method="post" action="/cp/marketplace-apps/write" class="well" style="margin:.85rem 0 0">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                                <input type="hidden" name="action" value="install" />
+                                <input type="hidden" name="app_id" value="@_openedApp.Id.ToString(CultureInfo.InvariantCulture)" />
+                                <div class="form-group">
+                                    <label>Site key</label>
+                                    <input type="text" class="form-control" name="site_key" />
+                                </div>
+                                <button type="submit" class="btn btn-default">Install</button>
+                            </form>
+                        }
+                        <form method="post" action="/cp/marketplace-apps/write" class="well" style="margin:.85rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <input type="hidden" name="action" value="uninstall" />
+                            <input type="hidden" name="app_id" value="@_openedApp.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <div class="form-group">
+                                <label>Site key</label>
+                                <input type="text" class="form-control" name="site_key" />
+                            </div>
+                            <button type="submit" class="btn btn-default">Uninstall</button>
+                        </form>
+                        <p class="help-block" style="margin:.75rem 0 0">Review, config, and seed stay Classic.</p>
                     }
                 </div>
             </div>
@@ -228,6 +266,12 @@
     private CpMarketplaceAppDetail? _openedApp;
     private IReadOnlyList<CpMarketplaceInstallDigest> _openedInstalls = [];
     private IReadOnlyList<CpMarketplaceReviewDigest> _openedReviews = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
+
+    private string OpenedReturnHref => _openedId > 0
+        ? ErpRecordOpen.Href(_listHref, "app_id", _openedId)
+        : _listHref;
 
     private string OpenedCaption => _openedApp is null
         ? ""
@@ -242,6 +286,8 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "app_id");
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

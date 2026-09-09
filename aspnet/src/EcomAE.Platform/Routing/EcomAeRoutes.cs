@@ -474,6 +474,8 @@ public static class EcomAeRoutes
     public const string ControlPanelMarketplaceApps = "/cp/marketplace-apps";
     /// <summary>CP Marketplace apps Blazor list (JSON digest remains <see cref="ControlPanelMarketplaceApps"/>).</summary>
     public const string ControlPanelMarketplaceAppsApp = "/cp/marketplace-apps-app";
+    /// <summary>Marketplace install / uninstall. <c>confirmWrites=true</c> twins PHP epc_marketplace_install / epc_marketplace_uninstall. Review, config, and seed stay Classic.</summary>
+    public const string CpMarketplaceAppsWrite = "/cp/marketplace-apps/write";
     public const string ControlPanelNotifications = "/cp/notifications";
     /// <summary>CP Notifications Blazor list (JSON digest remains <see cref="ControlPanelNotifications"/>).</summary>
     public const string ControlPanelNotificationsApp = "/cp/notifications-app";
