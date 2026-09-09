@@ -65,6 +65,8 @@ public static class EcomAeRoutes
     public const string ControlPanelTenants = "/cp/tenants";
     /// <summary>CP portal tenants Blazor list (JSON digest remains <see cref="ControlPanelTenants"/>).</summary>
     public const string ControlPanelTenantsApp = "/cp/tenants-app";
+    /// <summary>Super-CP tenant_set_active. <c>confirmWrites=true</c> twins PHP ajax_portal.php. Password reset/reveal stay Classic.</summary>
+    public const string CpTenantsWrite = "/cp/tenants/write";
     public const string ControlPanelUsers = "/cp/users";
     public const string ControlPanelGroups = "/cp/groups";
     public const string ControlPanelModules = "/cp/modules";

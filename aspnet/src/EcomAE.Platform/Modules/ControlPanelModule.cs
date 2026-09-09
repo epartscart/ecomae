@@ -97,9 +97,80 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only portal tenant digest. PHP tenant control remains authoritative."
+                note = "Read-only portal tenant digest. tenant_set_active POST /cp/tenants/write when confirmWrites=true. Password reset/reveal stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpTenantsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTenantsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Tenant fleet write is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/tenants-app", "Admin CP capability required for tenants write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTenantsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var siteKey = body.SiteKey;
+            var active = body.Active;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                active = LiveWriteFormBinder.Flag(form, "active");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "tenant_set_active";
+            }
+
+            if (confirm && key is "tenant_set_active" or "set_active")
+            {
+                var written = await writes.SetActiveAsync(new CpTenantsSetActiveRequest(siteKey, active), cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/tenants-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "tenant_set_active" or "set_active",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Password reset and reveal stay Classic."
+                    : "Dry-run. Set confirmWrites=true to set tenant active.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelOrdersDigest, async (
             HttpContext context,
@@ -12107,6 +12178,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? FromName = null,
         string? FromEmail = null,
         bool ConfirmWrites = false);
+    private sealed record CpTenantsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        bool Active = false);
     private sealed record CpTenantFeaturesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
