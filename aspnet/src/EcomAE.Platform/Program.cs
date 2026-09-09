@@ -930,6 +930,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmProjectWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmContractWriteService, EcomAE.Platform.Cp.CpCrmContractWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmExpenseWriteService, EcomAE.Platform.Cp.CpCrmExpenseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpDocumentControlWriteService, EcomAE.Platform.Cp.CpDocumentControlWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAutoPriceWriteService, EcomAE.Platform.Cp.CpAutoPriceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmConvertWriteService, EcomAE.Platform.Cp.CpCrmConvertWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Platform.Cp.CpWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWorkshopWriteService, EcomAE.Platform.Storefront.StorefrontWorkshopWriteService>();

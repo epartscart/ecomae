@@ -21,10 +21,18 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Open a row for the 280-character notes excerpt (<code>?aprice_id=</code>). Edit and compare-run stay on the Classic twin.</p>
+                <p>Open a row for the 280-character notes excerpt (<code>?aprice_id=</code>). Toggle a discovery source here. Add, delete, and compare-run stay Classic. This page does not invent a send.</p>
             </div>
         </div>
     </div>
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
     <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/auto-price-app" IsAdmin="_isAdmin" />
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
@@ -34,6 +42,33 @@
         <div class="kpi"><div class="lbl">Active sources</div><div class="val">@_summary.ActiveSources.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Compare runs</div><div class="val">@_summary.CompareRuns.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Toggle discovery source</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/auto-price/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "aprice_id", _openedId) : _listHref)" />
+                        <input type="hidden" name="action" value="toggle_discovery_source" />
+                        <label>Source <input type="text" name="id" inputmode="numeric" value="0" /></label>
+                        <label>Site key <input type="text" name="site_key" /></label>
+                        <label>Enabled
+                            <select name="enabled">
+                                <option value="" selected>toggle</option>
+                                <option value="1">on</option>
+                                <option value="0">off</option>
+                            </select>
+                        </label>
+                        <button type="submit" class="btn btn-primary btn-sm">Update source</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Add, delete, and compare-run stay Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     @if (_opened is not null)
     {
@@ -172,6 +207,8 @@
     private long _openedId;
     private CpAutoPriceRuleDetail? _opened;
     private IReadOnlyList<CpAutoPriceRuleDigest> _openedSiblings = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     private string OpenedCaption =>
         !string.IsNullOrWhiteSpace(_opened?.RuleKey)
@@ -186,6 +223,8 @@
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "aprice_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         if (!_isAdmin)
         {
             return;

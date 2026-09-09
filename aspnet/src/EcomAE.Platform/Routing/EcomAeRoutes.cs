@@ -194,6 +194,8 @@ public static class EcomAeRoutes
     public const string ControlPanelAutoPrice = "/cp/auto-price";
     /// <summary>CP auto-price Blazor list (JSON digest remains <see cref="ControlPanelAutoPrice"/>).</summary>
     public const string ControlPanelAutoPriceApp = "/cp/auto-price-app";
+    /// <summary>CP auto-price toggle_discovery_source. <c>confirmWrites=true</c> twins PHP ajax_auto_price.php. Add/delete and compare-run stay Classic.</summary>
+    public const string CpAutoPriceWrite = "/cp/auto-price/write";
     /// <summary>CP UAE tax compliance legislation (erp_summary/pdf/passport omitted).</summary>
     public const string ControlPanelUaeTaxCompliance = "/cp/uae-tax-compliance";
     /// <summary>CP UAE tax Blazor list (JSON digest remains <see cref="ControlPanelUaeTaxCompliance"/>).</summary>
