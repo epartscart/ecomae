@@ -10023,9 +10023,67 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only shop_carts abandoned-cart KPIs + lines (guest/session preferred). Deletes/filters remain PHP /CP/shop/orders/carts."
+                note = "Read-only shop_carts abandoned-cart KPIs + lines (guest/session preferred). type-2 delete POST /cp/abandoned-carts/write when confirmWrites=true. Type-1 reserve release stay Classic."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.CpAbandonedCartsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpAbandonedCartsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/abandoned-carts-app", "Admin CP capability required for abandoned-carts write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAbandonedCartsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                id = LiveWriteFormBinder.Long(form, "id", "cart_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            if (string.IsNullOrWhiteSpace(key))
+            {
+                key = "delete";
+            }
+
+            if (confirm && key is "delete" or "delete_cart" or "delete_line")
+            {
+                var written = await writes.DeleteAsync(id, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/abandoned-carts-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "delete" or "delete_cart" or "delete_line",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Catalogue reserve release stay Classic."
+                    : "Dry-run. Set confirmWrites=true to delete a type-2 cart line.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelQuoteRequests, async (
             HttpContext context,
@@ -12769,6 +12827,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         long DashboardId = 0,
         string? DashboardName = null,
         string? Category = null);
+    private sealed record CpAbandonedCartsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0);
     private sealed record CpPriceReviewWriteBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPriceReviewCreateCsvBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpAccessoriesPhotosBody(

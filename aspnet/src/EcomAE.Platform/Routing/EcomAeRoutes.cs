@@ -443,6 +443,8 @@ public static class EcomAeRoutes
     public const string ControlPanelAbandonedCarts = "/cp/abandoned-carts";
     /// <summary>CP Abandoned carts Blazor list (JSON digest remains <see cref="ControlPanelAbandonedCarts"/>).</summary>
     public const string ControlPanelAbandonedCartsApp = "/cp/abandoned-carts-app";
+    /// <summary>Abandoned-cart type-2 delete. <c>confirmWrites=true</c> twins PHP ajax_delete_cart_record.php deleteRecordType2. Type-1 reserve release stays Classic.</summary>
+    public const string CpAbandonedCartsWrite = "/cp/abandoned-carts/write";
     public const string ControlPanelQuoteRequests = "/cp/quote-requests";
     /// <summary>CP Quote requests Blazor list (JSON digest remains <see cref="ControlPanelQuoteRequests"/>).</summary>
     public const string ControlPanelQuoteRequestsApp = "/cp/quote-requests-app";
