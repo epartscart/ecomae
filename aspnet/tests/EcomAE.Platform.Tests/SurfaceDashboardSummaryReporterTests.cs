@@ -812,6 +812,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_inventory_categories", LegacySurfaceDashboardSql.SelectErpInventoryReportCategories, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
         Assert.DoesNotContain("custom_css", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`header_html`,''), 280)", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`footer_html`,''), 280)", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`custom_css`,''), 280)", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectErpPrintTemplateTypeSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("custom_css", LegacySurfaceDashboardSql.SelectErpPrintTemplateTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("@doc_type", LegacySurfaceDashboardSql.SelectErpPrintTemplateTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpPrintTemplateTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_fa_assets", LegacySurfaceDashboardSql.SelectErpFixedAssets, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpFixedAssets, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`note`,''), 280)", LegacySurfaceDashboardSql.SelectErpFixedAssetDetail, StringComparison.Ordinal);

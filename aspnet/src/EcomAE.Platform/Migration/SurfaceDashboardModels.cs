@@ -7197,6 +7197,37 @@ public sealed record ErpPrintTemplatesListResult(
     string Source,
     string Message);
 
+public sealed record ErpPrintTemplateDetail(
+    long Id,
+    string DocType,
+    string Name,
+    bool IsDefault,
+    string PageSize,
+    string Orientation,
+    int MarginTop,
+    int MarginBottom,
+    int MarginLeft,
+    int MarginRight,
+    string FontFamily,
+    int FontSize,
+    string PrimaryColor,
+    string SecondaryColor,
+    string LogoPosition,
+    bool Active,
+    long TimeUpdated,
+    int HeaderHtmlLen,
+    string HeaderHtmlExcerpt,
+    int FooterHtmlLen,
+    string FooterHtmlExcerpt,
+    int CustomCssLen,
+    string CustomCssExcerpt);
+
+public sealed record ErpPrintTemplateDetailResult(
+    ErpPrintTemplateDetail? Template,
+    IReadOnlyList<ErpPrintTemplateDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpOrderRecommendationDigest(
     long Id, long ItemId, string Sku, string ItemName, long WarehouseId,
     decimal Roq, decimal OrderValue, string Status, string Supplier, long OrderedPoId, long TimeUpdated);
