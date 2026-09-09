@@ -11041,7 +11041,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for inventory-forecast digest.");
             var result = await dashboards.ListErpInventoryForecastAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", forecasts = result.Forecasts, count = result.Count, healthyCount = result.HealthyCount, lowCount = result.LowCount, criticalCount = result.CriticalCount, stockoutCount = result.StockoutCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_forecast. POST /erp/inventory-forecast/recompute is the ASP.NET live twin of epc_forecast_compute." });
+            return Results.Ok(new { ok = true, surface = "erp", forecasts = result.Forecasts, count = result.Count, healthyCount = result.HealthyCount, lowCount = result.LowCount, criticalCount = result.CriticalCount, stockoutCount = result.StockoutCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_forecast. Open ?inv_forecast_id= loads site key, lead time, safety stock, and EOQ. POST /erp/inventory-forecast/recompute is the ASP.NET live twin of epc_forecast_compute." });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpInventoryForecastRecompute, async (
