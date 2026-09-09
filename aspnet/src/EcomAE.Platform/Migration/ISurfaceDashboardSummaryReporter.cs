@@ -697,6 +697,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only workshop jobs (customer phone/email omitted).</summary>
     Task<CpWorkshopDigestResult> BuildCpWorkshopDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened workshop job (Open key <c>job_id</c>) plus same-status siblings. notes/complaint are short excerpts; phone/email omitted.</summary>
+    Task<CpWorkshopJobDetailResult> BuildCpWorkshopDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only KKT devices (PHP devices.php; customer contact omitted).</summary>
     Task<CpKktDigestResult> BuildCpKktDigestAsync(int limit, CancellationToken cancellationToken = default);
 

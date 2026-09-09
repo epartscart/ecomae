@@ -947,6 +947,17 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpCreditLimitsDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpCreditLimitsStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectCpCreditLimitsStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(j.`notes`,''), 280)", LegacySurfaceDashboardSql.SelectCpWorkshopJobsDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(j.`complaint`,''), 280)", LegacySurfaceDashboardSql.SelectCpWorkshopJobsDetail, StringComparison.Ordinal);
+        Assert.Contains("j.`id` = @id", LegacySurfaceDashboardSql.SelectCpWorkshopJobsDetail, StringComparison.Ordinal);
+        Assert.Contains("`epc_ws_jobs`", LegacySurfaceDashboardSql.SelectCpWorkshopJobsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("customer_phone", LegacySurfaceDashboardSql.SelectCpWorkshopJobsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("customer_email", LegacySurfaceDashboardSql.SelectCpWorkshopJobsDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("notes", LegacySurfaceDashboardSql.SelectCpWorkshopJobsStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("complaint", LegacySurfaceDashboardSql.SelectCpWorkshopJobsStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("customer_phone", LegacySurfaceDashboardSql.SelectCpWorkshopJobsStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectCpWorkshopJobsStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("j.`id` <> @id", LegacySurfaceDashboardSql.SelectCpWorkshopJobsStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_fix_unfix_purchases", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
         Assert.DoesNotContain("`remarks`", LegacySurfaceDashboardSql.SelectCpJewelleryFixingRows, StringComparison.Ordinal);
         Assert.Contains("epc_web_tracker_sessions", LegacySurfaceDashboardSql.SelectCpWebTrackerStats, StringComparison.Ordinal);
