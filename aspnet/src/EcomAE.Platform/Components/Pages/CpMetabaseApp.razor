@@ -20,11 +20,73 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/metabase-app")</p>
-                <p>Open a dashboard for its site URL and category siblings. Configure and embed stay on the Classic twin.</p>
+                <p>Open a dashboard for its site URL and category siblings. Save the instance URL or register a dashboard here. Secret key and JWT embed stay on the Classic twin. This page does not invent a send.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/metabase-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Save instance URL</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/metabase/write" class="well">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="save_config" />
+                        <div class="form-group">
+                            <label>Site key</label>
+                            <input type="text" class="form-control" name="site_key" value="@_summary.SiteKey" />
+                        </div>
+                        <div class="form-group">
+                            <label>Metabase URL</label>
+                            <input type="text" class="form-control" name="metabase_url" maxlength="256" value="@_summary.MetabaseUrl" />
+                        </div>
+                        <button type="submit" class="btn btn-default">Save URL</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">Secret key stay Classic.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Register dashboard</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/metabase/write" class="well">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="add_dashboard" />
+                        <input type="hidden" name="site_key" value="@_summary.SiteKey" />
+                        <div class="form-group">
+                            <label>Dashboard id</label>
+                            <input type="text" class="form-control" name="dashboard_id" />
+                        </div>
+                        <div class="form-group">
+                            <label>Dashboard name</label>
+                            <input type="text" class="form-control" name="dashboard_name" maxlength="128" />
+                        </div>
+                        <div class="form-group">
+                            <label>Category</label>
+                            <input type="text" class="form-control" name="category" maxlength="32" value="finance" />
+                        </div>
+                        <button type="submit" class="btn btn-default">Register dashboard</button>
+                    </form>
+                    <p class="help-block" style="margin:.75rem 0 0">JWT embed stay Classic.</p>
+                </div>
+            </div>
+        </div>
+    }
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedDash is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
@@ -160,6 +222,8 @@
     private CpMetabaseDashboardDetail? _openedDash;
     private CpMetabaseSiteConfigExcerpt? _openedConfig;
     private IReadOnlyList<CpMetabaseDashboardDigest> _openedSiblings = [];
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     private string OpenedCaption => _openedDash is null
         ? ""
@@ -174,6 +238,8 @@
         if (ctx is null) return;
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "mb_id");
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
