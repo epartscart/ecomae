@@ -858,6 +858,49 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>Opened e-invoice (Open key <c>inv_id</c>). payment_terms/VAT/due are hidden from the list. xml/seller/buyer JSON and add-if-missing columns omitted.</summary>
+    public const string SelectErpInvoiceDetail = """
+        SELECT d.`id`, IFNULL(d.`invoice_number`, '') AS invoice_number,
+               IFNULL(d.`order_id`, 0) AS order_id, IFNULL(d.`user_id`, 0) AS user_id,
+               IFNULL(u.`email`, '') AS customer_email,
+               IFNULL(d.`doc_category`, '') AS doc_category,
+               IFNULL(d.`issue_date`, 0) AS issue_date,
+               IFNULL(d.`payment_due_date`, 0) AS payment_due_date,
+               IFNULL(d.`currency_code`, '') AS currency_code,
+               LEFT(IFNULL(d.`payment_terms`, ''), 280) AS payment_terms_excerpt,
+               CHAR_LENGTH(IFNULL(d.`payment_terms`, '')) AS payment_terms_len,
+               IFNULL(d.`subtotal_ex_vat`, 0) AS subtotal_ex_vat,
+               IFNULL(d.`total_vat`, 0) AS total_vat,
+               IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat,
+               IFNULL(d.`paid_amount`, 0) AS paid_amount,
+               IFNULL(d.`amount_due`, 0) AS amount_due,
+               IFNULL(d.`status`, '') AS status,
+               IFNULL(d.`validation_ok`, 0) AS validation_ok,
+               IFNULL(d.`asp_name`, '') AS asp_name,
+               IFNULL(d.`asp_reference`, '') AS asp_reference,
+               IFNULL(d.`fta_report_status`, '') AS fta_report_status,
+               IFNULL(d.`admin_id`, 0) AS admin_id,
+               IFNULL(d.`time_created`, 0) AS time_created,
+               IFNULL(d.`time_updated`, 0) AS time_updated,
+               IFNULL(d.`time_submitted`, 0) AS time_submitted
+        FROM `epc_einvoice_documents` d
+        LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
+        WHERE d.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other e-invoices with the same status. payment_terms/VAT omitted.</summary>
+    public const string SelectErpInvoiceStatusSiblings = """
+        SELECT d.`id`, IFNULL(d.`invoice_number`, '') AS invoice_number, d.`order_id`, d.`user_id`,
+               IFNULL(u.`email`, '') AS customer_email, d.`issue_date`,
+               IFNULL(d.`status`, '') AS status, IFNULL(d.`total_incl_vat`, 0) AS total_incl_vat
+        FROM `epc_einvoice_documents` d
+        LEFT JOIN `users` u ON u.`user_id` = d.`user_id`
+        WHERE IFNULL(d.`status`, '') = @status AND d.`id` <> @id
+        ORDER BY d.`issue_date` DESC, d.`id` DESC
+        LIMIT 50
+        """;
+
     public const string SelectErpGlJournals = """
         SELECT j.`id`, IFNULL(j.`journal_no`, '') AS journal_no, j.`journal_date`,
                IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,

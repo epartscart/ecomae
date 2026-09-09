@@ -10150,7 +10150,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only e-invoice documents digest. PHP epc_erp_invoice_list remains authoritative."
+                note = "Read-only e-invoice documents digest. Open ?inv_id= loads a 280-char payment-terms excerpt, VAT, and amount due plus same-status siblings. Writes stay Classic."
             });
         });
 

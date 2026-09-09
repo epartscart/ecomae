@@ -290,6 +290,42 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void InvoicesApp_OpenLoadsPaymentTermsVatAndSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpInvoicesApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpInvoiceDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"inv_id\", \"invoice_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("inv_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(\"/erp/invoices-app\", \"inv_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("PaymentTermsExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("SubtotalExVat", razor, StringComparison.Ordinal);
+        Assert.Contains("AmountDue", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("xml_content", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("seller_json", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("buyer_json", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/invoices-app?inv_id=7#erp-row-7",
+            ErpRecordOpen.Href("/erp/invoices-app", "inv_id", 7));
+        Assert.Equal(
+            "/erp/invoices-app?inv_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/invoices-app",
+                "/ERP/?epc_erp_shell=1&area=sales&tab=invoices&inv_id=7"));
+    }
+
+    [Fact]
     public void GlJournalsApp_OpenLoadsNoteReferenceAndSiblings()
     {
         var root = FindRepoRoot();
