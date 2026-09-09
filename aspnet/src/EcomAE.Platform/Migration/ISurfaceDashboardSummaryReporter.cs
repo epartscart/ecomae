@@ -482,6 +482,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only ERP workspace favorites/shortcuts.</summary>
     Task<ErpWorkspaceFavoritesDigestResult> BuildErpWorkspaceFavoritesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened workspace favorite (Open key <c>favorite_id</c>, remapped by <c>tab=favorites</c>) plus same-surface siblings. icon_color plus hidden target_url/icon_class.</summary>
+    Task<ErpWorkspaceFavoriteDetailResult> BuildErpWorkspaceFavoriteDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only fixed assets register (note omitted).</summary>
     Task<ErpFixedAssetsDigestResult> BuildErpFixedAssetsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

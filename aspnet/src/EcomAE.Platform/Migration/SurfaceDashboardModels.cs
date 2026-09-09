@@ -2797,6 +2797,27 @@ public sealed record ErpWorkspaceFavoritesDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpWorkspaceFavoriteDetail(
+    long Id,
+    long CompanyId,
+    long UserId,
+    string Surface,
+    string ShortcutKey,
+    string Label,
+    string IconClass,
+    string IconColor,
+    string TargetUrl,
+    string TargetTab,
+    int SortOrder,
+    bool IsPinned,
+    long TimeCreated);
+
+public sealed record ErpWorkspaceFavoriteDetailResult(
+    ErpWorkspaceFavoriteDetail? Favorite,
+    IReadOnlyList<ErpWorkspaceFavoriteDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpFixedAssetsSummary(
     int AssetCount,
     int ActiveCount,

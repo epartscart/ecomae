@@ -736,6 +736,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_user_shortcuts", LegacySurfaceDashboardSql.SelectErpWorkspaceFavorites, StringComparison.Ordinal);
+        Assert.DoesNotContain("icon_color", LegacySurfaceDashboardSql.SelectErpWorkspaceFavorites, StringComparison.Ordinal);
+        Assert.Contains("icon_color", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteDetail, StringComparison.Ordinal);
+        Assert.Contains("target_url", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteDetail, StringComparison.Ordinal);
+        Assert.Contains("icon_class", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("icon_color", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteSurfaceSiblings, StringComparison.Ordinal);
+        Assert.Contains("@surface", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteSurfaceSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpWorkspaceFavoriteSurfaceSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_staff_profiles", LegacySurfaceDashboardSql.SelectErpStaffProfiles, StringComparison.Ordinal);
         Assert.Contains("epc_erp_contracts", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);
         Assert.DoesNotContain("body_text", LegacySurfaceDashboardSql.SelectErpContracts, StringComparison.Ordinal);

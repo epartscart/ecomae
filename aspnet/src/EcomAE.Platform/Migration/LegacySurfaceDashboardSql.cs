@@ -3438,6 +3438,7 @@ public static class LegacySurfaceDashboardSql
         """;
 
     /// <summary>Workspace favorites / shortcuts.</summary>
+    /// <summary>Workspace favorites list — icon_color omitted. target_url/icon_class stay in SQL but off the table.</summary>
     public const string SelectErpWorkspaceFavorites = """
         SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`user_id`,0) AS user_id,
                IFNULL(`surface`,'') AS surface, IFNULL(`shortcut_key`,'') AS shortcut_key,
@@ -3448,6 +3449,34 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_user_shortcuts`
         ORDER BY `sort_order` ASC, `id` DESC
         LIMIT @limit
+        """;
+
+    /// <summary>Opened workspace favorite. icon_color plus hidden target_url/icon_class. Writes stay on this page.</summary>
+    public const string SelectErpWorkspaceFavoriteDetail = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`surface`,'') AS surface, IFNULL(`shortcut_key`,'') AS shortcut_key,
+               IFNULL(`label`,'') AS label, IFNULL(`icon_class`,'') AS icon_class,
+               IFNULL(`icon_color`,'') AS icon_color,
+               IFNULL(`target_url`,'') AS target_url, IFNULL(`target_tab`,'') AS target_tab,
+               IFNULL(`sort_order`,0) AS sort_order, IFNULL(`is_pinned`,0) AS is_pinned,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_user_shortcuts`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other shortcuts on the same surface. icon_color omitted.</summary>
+    public const string SelectErpWorkspaceFavoriteSurfaceSiblings = """
+        SELECT `id`, IFNULL(`company_id`,0) AS company_id, IFNULL(`user_id`,0) AS user_id,
+               IFNULL(`surface`,'') AS surface, IFNULL(`shortcut_key`,'') AS shortcut_key,
+               IFNULL(`label`,'') AS label, IFNULL(`icon_class`,'') AS icon_class,
+               IFNULL(`target_url`,'') AS target_url, IFNULL(`target_tab`,'') AS target_tab,
+               IFNULL(`sort_order`,0) AS sort_order, IFNULL(`is_pinned`,0) AS is_pinned,
+               IFNULL(`time_created`,0) AS time_created
+        FROM `epc_user_shortcuts`
+        WHERE IFNULL(`surface`,'') = @surface AND `id` <> @id
+        ORDER BY `sort_order` ASC, `id` DESC
+        LIMIT 50
         """;
 
     /// <summary>Fixed asset KPIs — omits note.</summary>
