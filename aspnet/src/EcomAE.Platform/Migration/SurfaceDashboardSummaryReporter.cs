@@ -13462,6 +13462,86 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpCreditLimitsDetailResult> BuildCpCreditLimitsDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpCreditLimitsDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCreditLimitsDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpCreditLimitsDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["credit_limit"] is DBNull ? 0 : reader["credit_limit"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["balance_used"] is DBNull ? 0 : reader["balance_used"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["risk_score"] is DBNull ? 0 : reader["risk_score"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["payment_terms"] is DBNull ? string.Empty : reader["payment_terms"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["approved_by"] is DBNull ? 0 : reader["approved_by"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["last_review"] is DBNull ? string.Empty : reader["last_review"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["next_review"] is DBNull ? string.Empty : reader["next_review"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["hold_reason_len"] is DBNull ? 0 : reader["hold_reason_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["hold_reason_excerpt"] is DBNull ? string.Empty : reader["hold_reason_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Credit limit not found.");
+            }
+
+            var siblings = new List<CpCreditLimitsLimitDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpCreditLimitsStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpCreditLimitsLimitDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(reader["customer_id"] is DBNull ? 0 : reader["customer_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["credit_limit"] is DBNull ? 0 : reader["credit_limit"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["balance_used"] is DBNull ? 0 : reader["balance_used"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["currency"] is DBNull ? string.Empty : reader["currency"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["risk_score"] is DBNull ? 0 : reader["risk_score"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["payment_terms"] is DBNull ? string.Empty : reader["payment_terms"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["updated_at"] is DBNull ? string.Empty : reader["updated_at"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpInsuranceComplianceDigestResult> BuildCpInsuranceComplianceDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

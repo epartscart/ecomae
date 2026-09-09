@@ -4034,6 +4034,31 @@ public sealed record CpCreditLimitsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpCreditLimitsDetail(
+    long Id,
+    string SiteKey,
+    long CustomerId,
+    decimal CreditLimit,
+    decimal BalanceUsed,
+    string Currency,
+    string Status,
+    int RiskScore,
+    string PaymentTerms,
+    string UpdatedAt,
+    long ApprovedBy,
+    string LastReview,
+    string NextReview,
+    int HoldReasonLen,
+    string HoldReasonExcerpt,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record CpCreditLimitsDetailResult(
+    CpCreditLimitsDetail? Limit,
+    IReadOnlyList<CpCreditLimitsLimitDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpInsuranceComplianceSummary(
     int PolicyCount,
     int ActiveCount,

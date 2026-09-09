@@ -410,6 +410,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only credit limits (notes omitted).</summary>
     Task<CpCreditLimitsDigestResult> BuildCpCreditLimitsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened credit limit (Open key <c>credit_id</c>) plus same-status siblings. notes/hold_reason are short excerpts.</summary>
+    Task<CpCreditLimitsDetailResult> BuildCpCreditLimitsDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only insurance policies (notes/emails omitted).</summary>
     Task<CpInsuranceComplianceDigestResult> BuildCpInsuranceComplianceDigestAsync(int limit, CancellationToken cancellationToken = default);
 
