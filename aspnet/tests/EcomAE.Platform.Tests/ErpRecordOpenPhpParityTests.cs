@@ -152,6 +152,9 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/shop/finance/epc_order_erp_pipeline?pipeline_log_id=25", "/erp/order-pipeline-app?pipeline_log_id=25")]
     [InlineData("/ERP/?epc_erp_shell=1&area=common&tab=doc_attachment&attach_id=26", "/erp/doc-attachments-app?attach_id=26")]
     [InlineData("/CP/shop/finance/erp?area=common&tab=doc_attachment&epc_erp_shell=1&attach_id=26", "/erp/doc-attachments-app?attach_id=26")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=planning&tab=order_planning&opl_rec_id=27", "/erp/order-planning-app?opl_rec_id=27")]
+    [InlineData("/ERP/?epc_erp_shell=1&area=planning&tab=master_planning&opl_rec_id=27", "/erp/order-planning-app?tab=master_planning&opl_rec_id=27")]
+    [InlineData("/CP/shop/finance/erp?area=planning&tab=order_planning&epc_erp_shell=1&opl_rec_id=27", "/erp/order-planning-app?opl_rec_id=27")]
     [InlineData("/ERP/?epc_erp_shell=1&area=inventory&tab=rfid&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/finance/erp?area=inventory&tab=rfid&epc_erp_shell=1&session_id=18", "/erp/rfid-app?session_id=18")]
     [InlineData("/CP/shop/crm/crm_main?lead_id=6", "/cp/crm-board-app?lead_id=6")]
@@ -2998,6 +3001,48 @@ public sealed class ErpRecordOpenPhpParityTests
             ErpRecordOpen.PreserveRecordQuery(
                 "/erp/documents-app",
                 "/ERP/?epc_erp_shell=1&area=common&tab=documents&document_id=13"));
+    }
+
+    [Fact]
+    public void OrderPlanningApp_OpenLoadsItemIdAndUpdatedTime()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpOrderPlanningApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpOrderPlanningRecommendationDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"opl_rec_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("opl_rec_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"opl_rec_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("TimeUpdated", razor, StringComparison.Ordinal);
+        Assert.Contains("Item id", razor, StringComparison.Ordinal);
+        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("opl_set_status", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/order-planning-app?opl_rec_id=27#erp-row-27",
+            ErpRecordOpen.Href("/erp/order-planning-app", "opl_rec_id", 27));
+        Assert.Equal(
+            "/erp/order-planning-app?tab=master_planning&opl_rec_id=27#erp-row-27",
+            ErpRecordOpen.Href("/erp/order-planning-app?tab=master_planning", "opl_rec_id", 27));
+        Assert.Equal(
+            "/erp/order-planning-app?opl_rec_id=27",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/order-planning-app",
+                "/ERP/?epc_erp_shell=1&area=planning&tab=order_planning&opl_rec_id=27"));
+        Assert.Equal(
+            "/erp/order-planning-app?tab=master_planning&opl_rec_id=27",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/order-planning-app?tab=master_planning",
+                "/ERP/?epc_erp_shell=1&area=planning&tab=master_planning&opl_rec_id=27"));
     }
 
     [Fact]

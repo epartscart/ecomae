@@ -22945,6 +22945,83 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpOrderRecommendationDetailResult> BuildErpOrderPlanningRecommendationDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpOrderRecommendationDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                ErpFirstPaint.ApplyIfErp(cmd);
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpOrderRecommendationDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpOrderRecommendationDetail(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "item_id"),
+                        ReadStr(reader, "sku"),
+                        ReadStr(reader, "item_name"),
+                        ReadI64(reader, "warehouse_id"),
+                        ReadDec(reader, "roq"),
+                        ReadDec(reader, "order_value"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "supplier"),
+                        ReadI64(reader, "ordered_po_id"),
+                        ReadI64(reader, "time_updated"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Recommendation row not found.");
+            }
+
+            var siblings = new List<ErpOrderRecommendationDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                ErpFirstPaint.ApplyIfErp(cmd);
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpOrderRecommendationStatusSiblings;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new ErpOrderRecommendationDigest(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "item_id"),
+                        ReadStr(reader, "sku"),
+                        ReadStr(reader, "item_name"),
+                        ReadI64(reader, "warehouse_id"),
+                        ReadDec(reader, "roq"),
+                        ReadDec(reader, "order_value"),
+                        ReadStr(reader, "status"),
+                        ReadStr(reader, "supplier"),
+                        ReadI64(reader, "ordered_po_id"),
+                        0));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpProcurementCategoriesDigestResult> BuildErpProcurementCategoriesDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
