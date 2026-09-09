@@ -299,6 +299,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only jewellery repairs (customer PII/narration omitted).</summary>
     Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened jewellery repair (Open key <c>repair_id</c>) plus same-status siblings. narration/stone_details are short excerpts. Phone/mobile omitted.</summary>
+    Task<CpJewelleryRepairDetailResult> BuildCpJewelleryRepairDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only CRM tickets (message bodies omitted).</summary>
     Task<CpCrmTicketsDigestResult> BuildCpCrmTicketsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

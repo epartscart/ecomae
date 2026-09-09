@@ -10930,6 +10930,162 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpJewelleryRepairDetailResult> BuildCpJewelleryRepairDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var suntech = await TryReadJewelleryRepairDetailAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectCpJewelleryRepairDetail,
+                LegacySurfaceDashboardSql.SelectCpJewelleryRepairStatusSiblings,
+                id,
+                cancellationToken).ConfigureAwait(false);
+            if (suntech.Repair is not null)
+            {
+                return suntech;
+            }
+
+            var integration = await TryReadJewelleryRepairDetailAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairDetail,
+                LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairStatusSiblings,
+                id,
+                cancellationToken).ConfigureAwait(false);
+            if (integration.Repair is not null)
+            {
+                return integration;
+            }
+
+            return new(null, [], "database", "Repair not found.");
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    private async Task<CpJewelleryRepairDetailResult> TryReadJewelleryRepairDetailAsync(
+        System.Data.Common.DbConnection connection,
+        string detailSql,
+        string siblingSql,
+        long id,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            CpJewelleryRepairDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = detailSql;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = MapJewelleryRepairDetail(reader);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "");
+            }
+
+            var siblings = new List<CpJewelleryRepairDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = siblingSql;
+                AddParameter(cmd, "@status", header.Status);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(MapJewelleryRepairRow(reader));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
+    private static CpJewelleryRepairDetail MapJewelleryRepairDetail(System.Data.Common.DbDataReader reader)
+    {
+        string Text(string col)
+        {
+            try
+            {
+                var ord = reader.GetOrdinal(col);
+                return reader.IsDBNull(ord)
+                    ? string.Empty
+                    : Convert.ToString(reader.GetValue(ord), CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return string.Empty;
+            }
+        }
+
+        decimal Dec(string col)
+        {
+            try
+            {
+                var ord = reader.GetOrdinal(col);
+                return reader.IsDBNull(ord) ? 0 : Convert.ToDecimal(reader.GetValue(ord), CultureInfo.InvariantCulture);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return 0;
+            }
+        }
+
+        int Int(string col)
+        {
+            try
+            {
+                var ord = reader.GetOrdinal(col);
+                return reader.IsDBNull(ord) ? 0 : Convert.ToInt32(reader.GetValue(ord), CultureInfo.InvariantCulture);
+            }
+            catch (IndexOutOfRangeException)
+            {
+                return 0;
+            }
+        }
+
+        return new CpJewelleryRepairDetail(
+            Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+            Text("repair_no"),
+            Text("customer_name"),
+            Text("item_description"),
+            Text("metal"),
+            Text("karat"),
+            Text("repair_type"),
+            Dec("weight_in"),
+            Dec("estimated_cost"),
+            Text("status"),
+            Text("branch"),
+            Text("voc_date"),
+            Text("delivery_date"),
+            Text("salesman"),
+            Int("narration_len"),
+            Text("narration_excerpt"),
+            Int("stone_details_len"),
+            Text("stone_details_excerpt"));
+    }
+
     private static CpJewelleryRepairDigest MapJewelleryRepairRow(System.Data.Common.DbDataReader reader)
     {
         string Text(string col)

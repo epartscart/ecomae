@@ -3020,6 +3020,32 @@ public sealed record CpJewelleryRepairsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpJewelleryRepairDetail(
+    long Id,
+    string RepairNo,
+    string CustomerName,
+    string ItemDescription,
+    string Metal,
+    string Karat,
+    string RepairType,
+    decimal WeightIn,
+    decimal EstimatedCost,
+    string Status,
+    string Branch,
+    string VocDate,
+    string DeliveryDate,
+    string Salesman,
+    int NarrationLen,
+    string NarrationExcerpt,
+    int StoneDetailsLen,
+    string StoneDetailsExcerpt);
+
+public sealed record CpJewelleryRepairDetailResult(
+    CpJewelleryRepairDetail? Repair,
+    IReadOnlyList<CpJewelleryRepairDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record CpCrmTicketsSummary(
     int TicketCount,
     int OpenCount,

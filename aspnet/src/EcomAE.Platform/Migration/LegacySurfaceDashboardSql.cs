@@ -3583,6 +3583,91 @@ public static class LegacySurfaceDashboardSql
             0 AS item_count
         """;
 
+    /// <summary>Opened Suntech jewellery repair. narration is a short excerpt. mobile/remarks omitted.</summary>
+    public const string SelectCpJewelleryRepairDetail = """
+        SELECT r.`id`, IFNULL(r.`company_id`,0) AS company_id, IFNULL(r.`branch`,'') AS branch,
+               IFNULL(r.`voc_type`,'') AS voc_type, IFNULL(r.`voc_date`,'') AS voc_date,
+               IFNULL(r.`voc_no`,0) AS voc_no, IFNULL(r.`customer_name`,'') AS customer_name,
+               IFNULL(r.`status`,'') AS status, IFNULL(r.`currency`,'') AS currency,
+               IFNULL(r.`delivery_date`,'') AS delivery_date, IFNULL(r.`authorized`,0) AS authorized,
+               IFNULL(r.`created_at`,'') AS created_at,
+               CONCAT(IFNULL(r.`voc_type`,'REP'), '-', IFNULL(r.`voc_no`,0)) AS repair_no,
+               IFNULL(r.`salesman`,'') AS salesman,
+               IFNULL(i.`description`,'') AS item_description,
+               IFNULL(i.`repair_type`,'') AS repair_type,
+               IFNULL(i.`gr_wt`,0) AS weight_in,
+               CHAR_LENGTH(IFNULL(r.`repair_narration`,'')) AS narration_len,
+               LEFT(IFNULL(r.`repair_narration`,''), 280) AS narration_excerpt
+        FROM `epc_jewel_repair` r
+        LEFT JOIN `epc_jewel_repair_items` i ON i.`repair_id` = r.`id` AND i.`line_no` = 1
+        WHERE r.`id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other Suntech repairs with the same status. narration/mobile/remarks omitted.</summary>
+    public const string SelectCpJewelleryRepairStatusSiblings = """
+        SELECT r.`id`, IFNULL(r.`company_id`,0) AS company_id, IFNULL(r.`branch`,'') AS branch,
+               IFNULL(r.`voc_type`,'') AS voc_type, IFNULL(r.`voc_date`,'') AS voc_date,
+               IFNULL(r.`voc_no`,0) AS voc_no, IFNULL(r.`customer_name`,'') AS customer_name,
+               IFNULL(r.`status`,'') AS status, IFNULL(r.`currency`,'') AS currency,
+               IFNULL(r.`delivery_date`,'') AS delivery_date, IFNULL(r.`authorized`,0) AS authorized,
+               IFNULL(r.`created_at`,'') AS created_at,
+               CONCAT(IFNULL(r.`voc_type`,'REP'), '-', IFNULL(r.`voc_no`,0)) AS repair_no,
+               IFNULL(i.`description`,'') AS item_description,
+               IFNULL(i.`repair_type`,'') AS repair_type,
+               IFNULL(i.`gr_wt`,0) AS weight_in
+        FROM `epc_jewel_repair` r
+        LEFT JOIN `epc_jewel_repair_items` i ON i.`repair_id` = r.`id` AND i.`line_no` = 1
+        WHERE r.`status` = @status AND r.`id` <> @id
+        ORDER BY r.`id` DESC
+        LIMIT 50
+        """;
+
+    /// <summary>Opened PHP-integration jewellery repair. stone_details is a short excerpt. phone omitted.</summary>
+    public const string SelectCpJewelleryIntegrationRepairDetail = """
+        SELECT `id`, 0 AS company_id, '' AS branch, 'REPAIR' AS voc_type,
+               IFNULL(FROM_UNIXTIME(NULLIF(`received_date`,0)), '') AS voc_date,
+               0 AS voc_no, IFNULL(`customer_name`,'') AS customer_name,
+               IFNULL(`status`,'') AS status, 'AED' AS currency,
+               IFNULL(FROM_UNIXTIME(NULLIF(`delivered_date`,0)), '') AS delivery_date,
+               0 AS authorized,
+               IFNULL(FROM_UNIXTIME(NULLIF(`time_created`,0)), '') AS created_at,
+               IFNULL(`repair_no`,'') AS repair_no,
+               IFNULL(`item_description`,'') AS item_description,
+               IFNULL(`metal_type`,'') AS metal,
+               IFNULL(`karat`,'') AS karat,
+               IFNULL(`gross_wt_in`,0) AS weight_in,
+               IFNULL(`repair_type`,'') AS repair_type,
+               IFNULL(`estimated_cost`,0) AS estimated_cost,
+               CHAR_LENGTH(IFNULL(`stone_details`,'')) AS stone_details_len,
+               LEFT(IFNULL(`stone_details`,''), 280) AS stone_details_excerpt
+        FROM `epc_erp_jw_repairs`
+        WHERE `id` = @id
+        LIMIT 1
+        """;
+
+    /// <summary>Other integration repairs with the same status. phone/stone_details omitted.</summary>
+    public const string SelectCpJewelleryIntegrationRepairStatusSiblings = """
+        SELECT `id`, 0 AS company_id, '' AS branch, 'REPAIR' AS voc_type,
+               IFNULL(FROM_UNIXTIME(NULLIF(`received_date`,0)), '') AS voc_date,
+               0 AS voc_no, IFNULL(`customer_name`,'') AS customer_name,
+               IFNULL(`status`,'') AS status, 'AED' AS currency,
+               IFNULL(FROM_UNIXTIME(NULLIF(`delivered_date`,0)), '') AS delivery_date,
+               0 AS authorized,
+               IFNULL(FROM_UNIXTIME(NULLIF(`time_created`,0)), '') AS created_at,
+               IFNULL(`repair_no`,'') AS repair_no,
+               IFNULL(`item_description`,'') AS item_description,
+               IFNULL(`metal_type`,'') AS metal,
+               IFNULL(`karat`,'') AS karat,
+               IFNULL(`gross_wt_in`,0) AS weight_in,
+               IFNULL(`repair_type`,'') AS repair_type,
+               IFNULL(`estimated_cost`,0) AS estimated_cost
+        FROM `epc_erp_jw_repairs`
+        WHERE `status` = @status AND `id` <> @id
+        ORDER BY `id` DESC
+        LIMIT 50
+        """;
+
     /// <summary>CRM ticket KPIs from epc_crm_tickets (CREATE TABLE in epc_crm_schema.php).</summary>
     public const string SelectCpCrmTicketStats = """
         SELECT
