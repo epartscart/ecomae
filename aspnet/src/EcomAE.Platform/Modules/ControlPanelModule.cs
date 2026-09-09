@@ -7536,6 +7536,14 @@ public sealed class ControlPanelModule : ISurfaceModule
             var action = body.Action;
             var id = body.Id;
             var stage = body.Stage;
+            var leadId = body.LeadId;
+            var title = body.Title;
+            var amount = body.Amount;
+            var probability = body.Probability;
+            var closeDate = body.CloseDate;
+            var ownerUserId = body.OwnerUserId;
+            var linkedUserId = body.LinkedUserId;
+            var notes = body.Notes;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -7543,7 +7551,20 @@ public sealed class ControlPanelModule : ISurfaceModule
                 action = LiveWriteFormBinder.Text(form, "action");
                 id = LiveWriteFormBinder.Long(form, "id", "opp_id", "opportunity_id");
                 stage = LiveWriteFormBinder.Text(form, "stage");
+                leadId = LiveWriteFormBinder.Long(form, "lead_id", "leadId");
+                title = LiveWriteFormBinder.Text(form, "title");
+                amount = LiveWriteFormBinder.Dec(form, "amount");
+                probability = LiveWriteFormBinder.Int(form, "probability");
+                closeDate = LiveWriteFormBinder.Text(form, "close_date", "closeDate");
+                ownerUserId = LiveWriteFormBinder.Long(form, "owner_user_id", "ownerUserId");
+                linkedUserId = LiveWriteFormBinder.Long(form, "linked_user_id", "linkedUserId");
+                notes = LiveWriteFormBinder.Text(form, "notes");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (ownerUserId <= 0)
+            {
+                ownerUserId = session.UserId;
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -7561,17 +7582,34 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
+            if (confirm && key is "save_opportunity" or "crm_save_opportunity")
+            {
+                var written = await writes.SaveAsync(
+                    new CpCrmOpportunitySaveRequest(
+                        id, leadId, title, stage, amount, probability, closeDate, ownerUserId, linkedUserId, notes),
+                    cancellationToken);
+                var dest = written.Succeeded && written.Id > 0
+                    ? "/cp/crm-opportunities-app?opp_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                    : "/cp/crm-opportunities-app";
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    dest,
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
             return Results.Ok(new
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "update_stage" or "crm_update_stage",
+                wouldWrite = key is "update_stage" or "crm_update_stage" or "save_opportunity" or "crm_save_opportunity",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Save opportunity and convert stay Classic."
-                    : "Dry-run. Set confirmWrites=true to update the stage.",
+                    ? "Convert and quote email stay Classic."
+                    : "Dry-run. Set confirmWrites=true to save the opportunity or update the stage.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });
@@ -11200,7 +11238,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long Id = 0,
-        string? Stage = null);
+        string? Stage = null,
+        long LeadId = 0,
+        string? Title = null,
+        decimal Amount = 0,
+        int Probability = 10,
+        string? CloseDate = null,
+        long OwnerUserId = 0,
+        long LinkedUserId = 0,
+        string? Notes = null);
     private sealed record CpCrmActivitiesWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

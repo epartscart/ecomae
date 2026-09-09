@@ -32,8 +32,11 @@ public sealed class CpCrmOpportunityStageWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"action\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"update_stage\"", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"save_opportunity\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"stage\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"title\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"amount\"", razor, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
@@ -50,6 +53,7 @@ public sealed class CpCrmOpportunityStageWriteTests
         Assert.Contains("ajax_crm.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("update_stage", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("save_opportunity", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -60,11 +64,14 @@ public sealed class CpCrmOpportunityStageWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpCrmOpportunityWriteService", module, StringComparison.Ordinal);
         Assert.Contains("UpdateStageAsync", module, StringComparison.Ordinal);
+        Assert.Contains("SaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmOpportunityWriteService.cs"));
         Assert.Contains("epc_crm_update_opportunity_stage", service, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_save_opportunity", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_crm_opportunities`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_crm_opportunities`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
