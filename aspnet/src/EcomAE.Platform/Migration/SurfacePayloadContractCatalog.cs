@@ -491,7 +491,7 @@ public static class SurfacePayloadContractCatalog
         Contract("cp", "/cp/templates-manager", "templates", "admin-cp",
             ["ok", "surface", "summary", "templates", "count", "source", "message", "session", "note"],
             ["templateCount", "frontendCount", "currentFrontendCount", "currentBackendCount", "source", "message"],
-            ["Templates manager KPIs + templates", "Open ?tpl_id= loads 280-char data_value excerpt; switch current stays Classic", "PHP Templates manager remains authoritative"],
+            ["Templates manager KPIs + templates", "Open ?tpl_id= loads 280-char data_value excerpt; set current writes here", "delete and generate_style stay Classic"],
             "cp/templates/bootstrap_admin/desktop.php"),
         Contract("cp", "/cp/design-tokens", "epc_settings (brand_*)", "admin-cp",
             ["ok", "surface", "summary", "tokens", "count", "source", "message", "session", "note"],
@@ -1146,7 +1146,8 @@ public static class SurfacePayloadContractCatalog
         new("cp", "communications-test Blazor list", "/cp/communications-test-app", "presentation-shell-scaffolded", "Read UI over /cp/communications-test digest; debug_result blobs + sms parameters_values secrets; PHP Communications test remains authoritative; tenant chrome stays PHP."),
         new("cp", "languages Blazor list", "/cp/languages-app", "presentation-shell-scaffolded", "Read UI over /cp/languages digest; flags/translation/description/delete/create-string POST /cp/lang/* when confirmWrites=true. Used-found scan stays PHP."),
         new("cp", "plugins-manager Blazor list", "/cp/plugins-manager-app", "digest-wired-awaiting-dual-sample", "Open ?plugin_id= loads 280-char data_value excerpt; same-frontend siblings; activate/lock stay Classic; tenant chrome stays PHP."),
-        new("cp", "templates-manager Blazor list", "/cp/templates-manager-app", "digest-wired-awaiting-dual-sample", "Open ?tpl_id= loads 280-char data_value excerpt; same-frontend siblings; switch current stays Classic; tenant chrome stays PHP."),
+        new("cp", "templates-manager Blazor list", "/cp/templates-manager-app", "digest-wired-awaiting-dual-sample", "Open ?tpl_id= loads 280-char data_value excerpt; same-frontend siblings; set current POST /cp/templates-manager/set-current when confirmWrites=true; delete and generate_style stay Classic."),
+        new("cp", "templates-manager set-current write", "/cp/templates-manager/set-current", "write-live-gated", "POST PHP templates_manager.php set_current; confirmWrites=true writes ASP.NET; delete and generate_style stay PHP."),
         new("cp", "design-tokens Blazor list", "/cp/design-tokens-app", "presentation-shell-scaffolded", "Read UI over /cp/design-tokens digest; setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs; PHP Design tokens remains authoritative; tenant chrome stays PHP."),
         new("cp", "sitemap Blazor list", "/cp/sitemap-app", "digest-wired-awaiting-dual-sample", "Open ?sm_id= loads 280-char content excerpt; same-published siblings; rebuild stays Classic; tenant chrome stays PHP."),
 

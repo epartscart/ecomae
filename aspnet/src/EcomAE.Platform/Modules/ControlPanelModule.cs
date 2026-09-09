@@ -8686,9 +8686,61 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only templates KPIs + templates (data_value omitted on the list). Open ?tpl_id= loads a 280-char data_value excerpt. Switch current stays Classic. PHP Templates manager remains authoritative."
+                note = "Read-only templates KPIs + templates (data_value omitted on the list). Open ?tpl_id= loads a 280-char data_value excerpt. Set current POST /cp/templates-manager/set-current when confirmWrites=true. Delete and generate_style stay Classic."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.ControlPanelTemplatesSetCurrent, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTemplatesWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/templates-manager-app", "Admin CP capability required for template switch.");
+            }
+
+            long templateId = 0;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                templateId = LiveWriteFormBinder.Long(form, "template_id", "templateId", "tpl_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTemplatesSetCurrentBody>(context, cancellationToken) ?? new();
+                templateId = body.TemplateId;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to switch the current template.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SetCurrentAsync(new CpTemplatesSetCurrentRequest(templateId), cancellationToken);
+            var dest = written.Id > 0
+                ? EcomAeRoutes.ControlPanelTemplatesManagerApp + "?tpl_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
+                : EcomAeRoutes.ControlPanelTemplatesManagerApp;
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelDesignTokens, async (
             HttpContext context,
@@ -10373,4 +10425,5 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ModulesList = null,
         string? LangCode = null,
         bool ConfirmWrites = false);
+    private sealed record CpTemplatesSetCurrentBody(long TemplateId = 0, bool ConfirmWrites = false);
 }
