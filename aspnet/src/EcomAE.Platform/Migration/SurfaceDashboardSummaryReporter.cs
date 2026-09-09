@@ -9002,6 +9002,77 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpWorkflowDetailResult> BuildCpWorkflowDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            CpWorkflowDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpWorkflowDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new CpWorkflowDetail(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["trigger_type"] is DBNull ? string.Empty : reader["trigger_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["version"] is DBNull ? 0 : reader["version"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["run_count"] is DBNull ? 0 : reader["run_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["last_run_status"] is DBNull ? string.Empty : reader["last_run_status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Workflow not found.");
+            }
+
+            var siblings = new List<CpWorkflowDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectCpWorkflowTriggerSiblings;
+                AddParameter(cmd, "@trigger_type", header.TriggerType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new CpWorkflowDigest(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["site_key"] is DBNull ? string.Empty : reader["site_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(reader["trigger_type"] is DBNull ? string.Empty : reader["trigger_type"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToInt32(reader["version"] is DBNull ? 0 : reader["version"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["run_count"] is DBNull ? 0 : reader["run_count"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["last_run_status"] is DBNull ? string.Empty : reader["last_run_status"], CultureInfo.InvariantCulture) ?? string.Empty));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpPurchaseRequestsDigestResult> BuildCpPurchaseRequestsDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -62,6 +62,7 @@
         <h3><i class="fa fa-magic"></i> Accounting &amp; Business Process Automation</h3>
         <p>See every automation available for this ERP tenant, watch the graphical pipeline, and open the matching module. Custom trigger → condition → action builder execute is not on this screen.</p>
     </div>
+    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -162,6 +163,69 @@
         </div>
     }
 
+    @if (_opened is not null)
+    {
+        <div class="ef-window" style="margin-bottom:16px">
+            <div class="ef-title">@OpenedCaption <a class="btn btn-xs btn-default" href="@_listHref">Close</a></div>
+            <div class="ef-body">
+                <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
+                    <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                    <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
+                    <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SiteKey) ? "—" : _opened.SiteKey)</dd>
+                    <dt>Trigger</dt><dd>@(string.IsNullOrWhiteSpace(_opened.TriggerType) ? "—" : _opened.TriggerType)</dd>
+                    <dt>Active</dt><dd>@(_opened.Active ? "yes" : "no")</dd>
+                    <dt>Version</dt><dd>@_opened.Version.ToString(CultureInfo.InvariantCulture)</dd>
+                    <dt>Runs</dt><dd>@_opened.RunCount.ToString(CultureInfo.InvariantCulture)</dd>
+                    <dt>Last status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.LastRunStatus) ? "—" : _opened.LastRunStatus)</dd>
+                </dl>
+                <p class="text-muted" style="margin:.85rem 0 0">trigger_config omitted.</p>
+                @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
+                {
+                    <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DescriptionExcerpt</pre>
+                    @if (_opened.DescriptionLen > _opened.DescriptionExcerpt.Length)
+                    {
+                        <p class="text-muted">Excerpt only (@_opened.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars).</p>
+                    }
+                }
+                else
+                {
+                    <p class="text-muted" style="margin:.85rem 0 0">No description excerpt yet.</p>
+                }
+                @if (_openedSiblings.Count > 0)
+                {
+                    <p class="text-muted" style="margin:1rem 0 .4rem">Same-trigger siblings</p>
+                    <div class="epc-wf-table-wrap">
+                        <table class="epc-wf-table">
+                            <thead>
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Trigger</th>
+                                    <th>Active</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var sib in _openedSiblings)
+                                {
+                                    <tr>
+                                        <td>@(string.IsNullOrWhiteSpace(sib.Name) ? "—" : sib.Name)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(sib.TriggerType) ? "—" : sib.TriggerType)</td>
+                                        <td>@(sib.Active ? "yes" : "no")</td>
+                                        <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "workflow_id", sib.Id)">Open</a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+                else
+                {
+                    <p class="text-muted">No same-trigger siblings yet.</p>
+                }
+            </div>
+        </div>
+    }
+
     @if (_view == "runs" || _view == "hub")
     {
         <div class="ef-window">
@@ -179,18 +243,19 @@
                                 <th>Version</th>
                                 <th>Runs</th>
                                 <th>Last status</th>
+                                <th></th>
                             </tr>
                         </thead>
                         <tbody>
                             @if (_workflows.Count == 0)
                             {
-                                <tr><td colspan="8">No records yet.</td></tr>
+                                <tr><td colspan="9">No records yet.</td></tr>
                             }
                             else
                             {
                                 @foreach (var row in _workflows)
                                 {
-                                    <tr>
+                                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
                                         <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
                                         <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
                                         <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
@@ -199,6 +264,7 @@
                                         <td>@row.Version.ToString(CultureInfo.InvariantCulture)</td>
                                         <td>@row.RunCount.ToString(CultureInfo.InvariantCulture)</td>
                                         <td>@(!string.IsNullOrWhiteSpace(row.LastRunStatus) ? row.LastRunStatus : "—")</td>
+                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "workflow_id", row.Id)">Open</a></td>
                                     </tr>
                                 }
                             }
@@ -213,7 +279,7 @@
 
 <form method="post" action="/erp/automation/deactivate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/erp/workflows-app" />
+            <input type="hidden" name="returnUrl" value="@ReturnHref" />
             <label>Automation
                 <select name="id">
                     <option value="order_to_erp">order_to_erp</option>
@@ -254,6 +320,20 @@
     private string _flashErr = "";
     private int _activeDefault;
     private int _availableDefault;
+    private string _listHref = "/cp/workflows-app";
+    private long _openedId;
+    private CpWorkflowDetail? _opened;
+    private IReadOnlyList<CpWorkflowDigest> _openedSiblings = [];
+
+    private string OpenedCaption =>
+        !string.IsNullOrWhiteSpace(_opened?.Name)
+            ? _opened.Name
+            : (_openedId > 0 ? ("Workflow #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+
+    private string ReturnHref =>
+        _openedId > 0
+            ? _listHref + "?workflow_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
+            : _basePath;
 
     protected override async Task OnInitializedAsync()
     {
@@ -262,6 +342,8 @@
         var path = ctx.Request.Path.Value ?? "";
         _isErpHost = path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
         _basePath = _isErpHost ? "/erp/workflows-app" : "/cp/workflows-app";
+        _listHref = _basePath;
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "workflow_id");
         _view = (ctx.Request.Query["auto_view"].ToString() ?? "hub").Trim().ToLowerInvariant();
         if (_view is not ("hub" or "accounting" or "processes" or "builder" or "runs"))
         {
@@ -279,6 +361,12 @@
         var result = await Dashboards.BuildCpWorkflowsDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;
         _workflows = result.Workflows;
+        if (_openedId > 0)
+        {
+            var detail = await Dashboards.BuildCpWorkflowDetailAsync(_openedId, ctx.RequestAborted);
+            _opened = detail.Workflow;
+            _openedSiblings = detail.Siblings;
+        }
     }
 
     private string AutoHref(string view) => _basePath + "?auto_view=" + Uri.EscapeDataString(view);

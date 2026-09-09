@@ -254,6 +254,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only workflows (trigger_config/JSON omitted).</summary>
     Task<CpWorkflowsDigestResult> BuildCpWorkflowsDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened workflow (Open key <c>workflow_id</c>) plus same-trigger siblings. description is a short excerpt. trigger_config omitted.</summary>
+    Task<CpWorkflowDetailResult> BuildCpWorkflowDetailAsync(long id, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only purchase requisitions (justification/decision_note omitted).</summary>
     Task<CpPurchaseRequestsDigestResult> BuildCpPurchaseRequestsDigestAsync(int limit, CancellationToken cancellationToken = default);
 

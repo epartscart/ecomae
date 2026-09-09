@@ -6722,7 +6722,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_workflows KPIs + workflows (trigger_config/description omitted). PHP workflow automation shell remains authoritative."
+                note = "Read-only epc_workflows KPIs + workflows (trigger_config/description omitted). Open ?workflow_id= loads a 280-char description excerpt. PHP workflow automation shell remains authoritative."
             });
         });
 
