@@ -894,6 +894,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened customer group (Open key <c>cgroup_id</c>) plus same-type siblings. description is a short excerpt.</summary>
     Task<ErpCustomerGroupDetailResult> BuildErpCustomerGroupDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpPerformanceDigestResult> BuildErpPerformanceDigestAsync(int limit, CancellationToken cancellationToken = default);
+
+    /// <summary>Opened performance review (Open key <c>hrt_review_id</c>) plus same-status siblings. notes is a short excerpt.</summary>
+    Task<ErpPerformanceReviewDetailResult> BuildErpPerformanceReviewDetailAsync(long id, CancellationToken cancellationToken = default);
     Task<ErpProductInfoDigestResult> BuildErpProductInfoDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpReportSchedulerDigestResult> BuildErpReportSchedulerDigestAsync(int limit, CancellationToken cancellationToken = default);
     Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default);

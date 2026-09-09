@@ -979,6 +979,16 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@group_type", LegacySurfaceDashboardSql.SelectErpCustomerGroupTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_hrt_review", LegacySurfaceDashboardSql.SelectErpPerformanceReviews, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpPerformanceReviews, StringComparison.Ordinal);
+        Assert.Contains("epc_hrt_review", LegacySurfaceDashboardSql.SelectErpPerformanceReviewDetail, StringComparison.Ordinal);
+        Assert.Contains("notes_excerpt", LegacySurfaceDashboardSql.SelectErpPerformanceReviewDetail, StringComparison.Ordinal);
+        Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpPerformanceReviewDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpPerformanceReviewDetail, StringComparison.Ordinal);
+        Assert.Contains("company_id", LegacySurfaceDashboardSql.SelectErpPerformanceReviewDetail, StringComparison.Ordinal);
+        Assert.Contains("time_created", LegacySurfaceDashboardSql.SelectErpPerformanceReviewDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("notes_excerpt", LegacySurfaceDashboardSql.SelectErpPerformanceReviews, StringComparison.Ordinal);
+        Assert.DoesNotContain("notes_excerpt", LegacySurfaceDashboardSql.SelectErpPerformanceReviewStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpPerformanceReviewStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpPerformanceReviewStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_inv_items", LegacySurfaceDashboardSql.SelectErpProductInfoItems, StringComparison.Ordinal);
         Assert.DoesNotContain("options_json", LegacySurfaceDashboardSql.SelectErpProductInfoFieldDefs, StringComparison.Ordinal);
         Assert.DoesNotContain("combo_json", LegacySurfaceDashboardSql.SelectErpProductInfoVariants, StringComparison.Ordinal);

@@ -7721,6 +7721,26 @@ public sealed record ErpPerformanceDigestResult(
     IReadOnlyList<ErpPerformanceGoalDigest> Goals,
     int Count, int OpenCount, int DoneCount, string Source, string Message);
 
+public sealed record ErpPerformanceReviewDetail(
+    long Id,
+    long EmployeeId,
+    string EmployeeName,
+    string Period,
+    string Status,
+    string Reviewer,
+    decimal OverallRating,
+    long CompanyId,
+    long TimeCreated,
+    long TimeUpdated,
+    int NotesLen,
+    string NotesExcerpt);
+
+public sealed record ErpPerformanceReviewDetailResult(
+    ErpPerformanceReviewDetail? Review,
+    IReadOnlyList<ErpPerformanceReviewDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpProductInfoItemDigest(
     long Id, string Sku, string Name, long ProductId, string ItemType, string Unit,
     decimal SalesPrice, bool Active, long TimeCreated);
