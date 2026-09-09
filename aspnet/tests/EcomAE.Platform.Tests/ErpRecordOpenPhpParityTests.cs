@@ -3140,6 +3140,45 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
+    public void ReportSchedulerApp_OpenLoadsCompanyLastSentAndSameTypeSiblings()
+    {
+        var root = FindRepoRoot();
+        var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpReportSchedulerApp.razor"));
+        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpReportScheduleDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"rsched_id\")", razor, StringComparison.Ordinal);
+        Assert.Contains("rsched_id=", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref, \"rsched_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("CompanyId", razor, StringComparison.Ordinal);
+        Assert.Contains("LastSentAt", razor, StringComparison.Ordinal);
+        Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("Recipients and body stay off this pane", razor, StringComparison.Ordinal);
+        Assert.Contains("Send and email stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpReportSchedulerCreateForm", razor, StringComparison.Ordinal);
+        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("table-epc", razor, StringComparison.Ordinal);
+        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Recipients", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("_opened.Body", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
+
+        Assert.Equal("/erp/report-scheduler-app?rsched_id=7#erp-row-7",
+            ErpRecordOpen.Href("/erp/report-scheduler-app", "rsched_id", 7));
+        Assert.Equal(
+            "/erp/report-scheduler-app?rsched_id=7",
+            ErpRecordOpen.PreserveRecordQuery(
+                "/erp/report-scheduler-app",
+                "/ERP/?epc_erp_shell=1&area=reports&tab=report_scheduler&rsched_id=7"));
+    }
+
+    [Fact]
     public void InventoryForecastApp_OpenLoadsSiteLeadSafetyEoqAndKeepsRecompute()
     {
         var root = FindRepoRoot();

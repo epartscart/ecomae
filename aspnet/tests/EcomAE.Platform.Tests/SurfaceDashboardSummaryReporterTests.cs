@@ -995,6 +995,17 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_report_schedules", LegacySurfaceDashboardSql.SelectErpReportSchedules, StringComparison.Ordinal);
         Assert.DoesNotContain("recipients", LegacySurfaceDashboardSql.SelectErpReportSchedules, StringComparison.Ordinal);
         Assert.DoesNotContain("body_template", LegacySurfaceDashboardSql.SelectErpReportSchedules, StringComparison.Ordinal);
+        Assert.Contains("epc_report_schedules", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.Contains("company_id", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.Contains("last_sent_at", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("recipients", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("body_template", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("subject_template", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("filters", LegacySurfaceDashboardSql.SelectErpReportScheduleDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("recipients", LegacySurfaceDashboardSql.SelectErpReportScheduleTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("@report_type", LegacySurfaceDashboardSql.SelectErpReportScheduleTypeSiblings, StringComparison.Ordinal);
+        Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpReportScheduleTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_prja_budget", LegacySurfaceDashboardSql.SelectErpPrjaBudgets, StringComparison.Ordinal);
         Assert.DoesNotContain("detail_json", LegacySurfaceDashboardSql.SelectErpPrjaRecognitions, StringComparison.Ordinal);
         Assert.Contains("epc_doc_attachments", LegacySurfaceDashboardSql.SelectErpDocAttachments, StringComparison.Ordinal);

@@ -24313,6 +24313,83 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpReportScheduleDetailResult> BuildErpReportScheduleDetailAsync(long id, CancellationToken cancellationToken = default)
+    {
+        if (id <= 0)
+        {
+            return new(null, [], "n/a", "");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpReportScheduleDetail? header = null;
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpReportScheduleDetail;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    header = new ErpReportScheduleDetail(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "report_name"),
+                        ReadStr(reader, "report_type"),
+                        ReadStr(reader, "frequency"),
+                        ReadI32(reader, "day_of_week"),
+                        ReadI32(reader, "day_of_month"),
+                        ReadStr(reader, "time_of_day"),
+                        ReadStr(reader, "format"),
+                        ReadI32(reader, "is_active") == 1,
+                        ReadStr(reader, "last_status"),
+                        ReadI64(reader, "company_id"),
+                        ReadI64(reader, "time_created"),
+                        ReadStr(reader, "last_sent_at"));
+                }
+            }
+
+            if (header is null)
+            {
+                return new(null, [], "database", "Report schedule not found.");
+            }
+
+            var siblings = new List<ErpReportScheduleDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpReportScheduleTypeSiblings;
+                AddParameter(cmd, "@report_type", header.ReportType);
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    siblings.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadStr(reader, "report_name"),
+                        ReadStr(reader, "report_type"),
+                        ReadStr(reader, "frequency"),
+                        ReadI32(reader, "day_of_week"),
+                        ReadI32(reader, "day_of_month"),
+                        ReadStr(reader, "time_of_day"),
+                        ReadStr(reader, "format"),
+                        ReadI32(reader, "is_active") == 1,
+                        ReadStr(reader, "last_status"),
+                        ReadI64(reader, "time_created")));
+                }
+            }
+
+            return new(header, siblings, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpProjectAccountingDigestResult> BuildErpProjectAccountingDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

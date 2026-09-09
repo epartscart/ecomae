@@ -7765,6 +7765,27 @@ public sealed record ErpReportSchedulerDigestResult(
     IReadOnlyList<ErpReportScheduleDigest> Schedules,
     int Count, int ActiveCount, string Source, string Message);
 
+public sealed record ErpReportScheduleDetail(
+    long Id,
+    string ReportName,
+    string ReportType,
+    string Frequency,
+    int DayOfWeek,
+    int DayOfMonth,
+    string TimeOfDay,
+    string Format,
+    bool IsActive,
+    string LastStatus,
+    long CompanyId,
+    long TimeCreated,
+    string LastSentAt);
+
+public sealed record ErpReportScheduleDetailResult(
+    ErpReportScheduleDetail? Schedule,
+    IReadOnlyList<ErpReportScheduleDigest> Siblings,
+    string Source,
+    string Message);
+
 public sealed record ErpPrjaBudgetDigest(
     long Id, long ProjectId, string Category, decimal CostBudget, decimal RevenueBudget, long TimeCreated);
 
