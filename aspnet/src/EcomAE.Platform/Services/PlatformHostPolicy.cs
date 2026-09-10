@@ -51,6 +51,7 @@ public static class PlatformHostPolicy
         "billing",
         "rma",
         "dealers",
+        "dunning",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
