@@ -433,6 +433,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("BosFleetSummaryApp.razor", "/bos/notifications/cleanup"),
             ("BosFleetSummaryApp.razor", "/bos/credit/hold"),
             ("BosFleetSummaryApp.razor", "/bos/credit/release"),
+            ("BosFleetSummaryApp.razor", "/bos/api-keys/revoke"),
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
             ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),

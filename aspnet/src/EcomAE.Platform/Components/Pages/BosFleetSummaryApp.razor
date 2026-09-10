@@ -126,6 +126,12 @@
             <label>Customer id <input type="text" name="customer_id" /></label>
             <button type="submit">Release credit</button>
         </form>
+        <form method="post" action="/bos/api-keys/revoke" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Key id <input type="text" name="key_id" /></label>
+            <button type="submit">Revoke API key</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 

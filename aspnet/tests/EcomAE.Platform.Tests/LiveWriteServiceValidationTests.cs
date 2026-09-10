@@ -2876,6 +2876,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosReleaseDb.Succeeded);
         Assert.Equal("db", bosReleaseDb.Code);
 
+        var bosApiRevokeDb = await new BosApiKeyWriteService(new UnconfiguredConnections())
+            .RevokeAsync(9);
+        Assert.False(bosApiRevokeDb.Succeeded);
+        Assert.Equal("db", bosApiRevokeDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);
