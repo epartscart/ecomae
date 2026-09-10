@@ -261,6 +261,13 @@
             <label>Snapshot id <input type="text" name="snapshot_id" /></label>
             <button type="submit">Discard sandbox snapshot</button>
         </form>
+        <form method="post" action="/bos/marketplace/uninstall" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>App id <input type="text" name="app_id" /></label>
+            <label>Site key <input type="text" name="site_key" /></label>
+            <button type="submit">Uninstall marketplace app</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 

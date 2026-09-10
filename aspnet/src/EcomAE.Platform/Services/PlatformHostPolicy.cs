@@ -54,6 +54,7 @@ public static class PlatformHostPolicy
         "dunning",
         "sso",
         "sandbox",
+        "marketplace",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
