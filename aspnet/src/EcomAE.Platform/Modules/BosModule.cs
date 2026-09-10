@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Bos;
@@ -932,6 +933,59 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosFulfillmentCreateWave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosFulfillmentWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for fulfillment create-wave.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosFulfillmentCreateWaveBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var fulfillmentIds = body.FulfillmentIds ?? [];
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = form.ContainsKey("site_key") ? form["site_key"].ToString() : siteKey;
+                fulfillmentIds = ParseFulfillmentIds(form.ContainsKey("fulfillment_ids") ? form["fulfillment_ids"].ToString() : null);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create a fulfillment wave.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateWaveAsync(siteKey, fulfillmentIds, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosBillingCancel, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -1585,6 +1639,39 @@ public sealed class BosModule : ISurfaceModule
         string? AssignedName = null,
         string? Carrier = null,
         string? TrackingNumber = null);
+
+    private sealed record BosFulfillmentCreateWaveBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        long[]? FulfillmentIds = null);
+
+    private static long[] ParseFulfillmentIds(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return [];
+        }
+
+        var text = raw.Trim();
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                return doc.RootElement.EnumerateArray()
+                    .Select(item => item.ValueKind == JsonValueKind.Number && item.TryGetInt64(out var id) ? id : 0)
+                    .ToArray();
+            }
+        }
+        catch (JsonException)
+        {
+            // PHP json_decode failure becomes [] via `$ids ?: array()`.
+        }
+
+        return text.Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Select(part => long.TryParse(part, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0)
+            .ToArray();
+    }
 
     private sealed record BosBillingCancelBody(
         bool ConfirmWrites = false,

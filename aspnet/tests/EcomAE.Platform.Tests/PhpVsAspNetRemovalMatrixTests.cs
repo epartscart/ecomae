@@ -441,6 +441,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("BosFleetSummaryApp.razor", "/bos/po/approve"),
             ("BosFleetSummaryApp.razor", "/bos/fulfillment/pick-item"),
             ("BosFleetSummaryApp.razor", "/bos/fulfillment/transition"),
+            ("BosFleetSummaryApp.razor", "/bos/fulfillment/create-wave"),
             ("BosFleetSummaryApp.razor", "/bos/billing/cancel"),
             ("BosFleetSummaryApp.razor", "/bos/billing/pay"),
             ("BosFleetSummaryApp.razor", "/bos/rma/transition"),
