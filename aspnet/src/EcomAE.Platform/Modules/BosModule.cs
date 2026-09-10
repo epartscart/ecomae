@@ -413,6 +413,59 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosCreditRelease, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosCreditWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for credit release.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosCreditReleaseBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var customerId = body.CustomerId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = form.ContainsKey("site_key") ? form["site_key"].ToString() : form.ContainsKey("siteKey") ? form["siteKey"].ToString() : null;
+                customerId = LiveWriteFormBinder.Long(form, "customer_id", "customerId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to release a credit hold.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ReleaseAsync(siteKey, customerId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -697,6 +750,11 @@ public sealed class BosModule : ISurfaceModule
         string? SiteKey = null,
         long CustomerId = 0,
         string? Reason = null);
+
+    private sealed record BosCreditReleaseBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        long CustomerId = 0);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,

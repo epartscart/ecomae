@@ -119,7 +119,14 @@
             <label>Reason <input type="text" name="reason" /></label>
             <button type="submit">Hold credit</button>
         </form>
-        <p class="help-block" style="margin:0 0 1rem">Send, broadcast, and credit release stay Classic. This page does not invent a send.</p>
+        <form method="post" action="/bos/credit/release" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Customer id <input type="text" name="customer_id" /></label>
+            <button type="submit">Release credit</button>
+        </form>
+        <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
 </PhpBosDesktopChrome>
