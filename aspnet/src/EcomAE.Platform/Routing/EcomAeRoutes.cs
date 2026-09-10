@@ -2025,6 +2025,8 @@ public static class EcomAeRoutes
     public const string BosFulfillmentPickItem = "/bos/fulfillment/pick-item";
     /// <summary>Live PHP ajax_epc_bos.php subscription_billing cancel. confirmWrites=true UPDATEs epc_subscriptions. Super-CP only.</summary>
     public const string BosBillingCancel = "/bos/billing/cancel";
+    /// <summary>Live PHP ajax_epc_bos.php subscription_billing pay. confirmWrites=true UPDATEs epc_billing_invoices. Super-CP only.</summary>
+    public const string BosBillingPay = "/bos/billing/pay";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
