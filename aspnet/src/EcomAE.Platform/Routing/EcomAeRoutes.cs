@@ -2053,6 +2053,8 @@ public static class EcomAeRoutes
     public const string BosMarketplaceUninstall = "/bos/marketplace/uninstall";
     /// <summary>Live PHP ajax_epc_bos.php promotions_engine record_usage. confirmWrites=true INSERTs epc_promotion_usage. Super-CP only.</summary>
     public const string BosPromosRecordUsage = "/bos/promos/record-usage";
+    /// <summary>Live PHP ajax_epc_bos.php multi_entity eliminate. confirmWrites=true UPDATEs epc_intercompany_txns. Super-CP only.</summary>
+    public const string BosEntitiesEliminate = "/bos/entities/eliminate";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

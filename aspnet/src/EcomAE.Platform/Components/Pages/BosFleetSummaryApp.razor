@@ -278,6 +278,12 @@
             <label>Discount <input type="text" name="discount" /></label>
             <button type="submit">Record promo usage</button>
         </form>
+        <form method="post" action="/bos/entities/eliminate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Group id <input type="text" name="group_id" /></label>
+            <button type="submit">Eliminate matched intercompany</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
