@@ -2051,6 +2051,8 @@ public static class EcomAeRoutes
     public const string BosSandboxDiscard = "/bos/sandbox/discard";
     /// <summary>Live PHP ajax_epc_bos.php marketplace uninstall. confirmWrites=true UPDATEs epc_marketplace_installs. Super-CP only.</summary>
     public const string BosMarketplaceUninstall = "/bos/marketplace/uninstall";
+    /// <summary>Live PHP ajax_epc_bos.php promotions_engine record_usage. confirmWrites=true INSERTs epc_promotion_usage. Super-CP only.</summary>
+    public const string BosPromosRecordUsage = "/bos/promos/record-usage";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

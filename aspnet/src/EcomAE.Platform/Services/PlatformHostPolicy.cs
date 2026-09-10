@@ -55,6 +55,7 @@ public static class PlatformHostPolicy
         "sso",
         "sandbox",
         "marketplace",
+        "promos",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
