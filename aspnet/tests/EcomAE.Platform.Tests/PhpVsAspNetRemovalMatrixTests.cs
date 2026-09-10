@@ -442,6 +442,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("BosFleetSummaryApp.razor", "/bos/billing/cancel"),
             ("BosFleetSummaryApp.razor", "/bos/billing/pay"),
             ("BosFleetSummaryApp.razor", "/bos/rma/transition"),
+            ("BosFleetSummaryApp.razor", "/bos/dealers/auto-tier"),
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
             ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),

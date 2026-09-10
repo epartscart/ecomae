@@ -50,6 +50,7 @@ public static class PlatformHostPolicy
         "fulfillment",
         "billing",
         "rma",
+        "dealers",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
