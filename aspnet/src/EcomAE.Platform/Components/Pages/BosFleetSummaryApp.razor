@@ -166,6 +166,17 @@
             <label>Qty picked <input type="text" name="qty_picked" /></label>
             <button type="submit">Pick item</button>
         </form>
+        <form method="post" action="/bos/fulfillment/transition" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Fulfillment id <input type="text" name="fulfillment_id" /></label>
+            <label>New status <input type="text" name="new_status" /></label>
+            <label>Assigned to <input type="text" name="assigned_to" /></label>
+            <label>Assigned name <input type="text" name="assigned_name" /></label>
+            <label>Carrier <input type="text" name="carrier" /></label>
+            <label>Tracking <input type="text" name="tracking_number" /></label>
+            <button type="submit">Transition fulfillment</button>
+        </form>
         <form method="post" action="/bos/billing/cancel" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
