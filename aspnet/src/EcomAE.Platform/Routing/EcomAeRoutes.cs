@@ -2059,6 +2059,8 @@ public static class EcomAeRoutes
     public const string BosPayrollApproveRun = "/bos/payroll/approve-run";
     /// <summary>Live PHP ajax_epc_bos.php soc2_compliance add_evidence. confirmWrites=true INSERTs epc_soc2_evidence. Super-CP only.</summary>
     public const string BosSoc2AddEvidence = "/bos/soc2/add-evidence";
+    /// <summary>Live PHP ajax_epc_bos.php soc2_compliance update_control. confirmWrites=true UPDATEs epc_soc2_controls. Super-CP only.</summary>
+    public const string BosSoc2UpdateControl = "/bos/soc2/update-control";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

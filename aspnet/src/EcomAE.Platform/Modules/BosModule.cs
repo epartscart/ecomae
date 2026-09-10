@@ -1796,6 +1796,62 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosSoc2UpdateControl, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosSoc2WriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for SOC2 update-control.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosSoc2UpdateControlBody>(context, cancellationToken)
+                       ?? new();
+            var controlId = body.ControlId;
+            var controlData = body.ControlData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                controlId = FormOrNull(form, "control_id", "controlId");
+                controlData = FormOrNull(form, "control_data", "controlData");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to update a SOC 2 control.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.UpdateControlAsync(
+                controlId,
+                BosSoc2WriteService.ParseControlData(controlData),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -2243,6 +2299,11 @@ public sealed class BosModule : ISurfaceModule
         string? ValidFrom = null,
         string? ValidTo = null,
         string? Notes = null);
+
+    private sealed record BosSoc2UpdateControlBody(
+        bool ConfirmWrites = false,
+        string? ControlId = null,
+        string? ControlData = null);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,

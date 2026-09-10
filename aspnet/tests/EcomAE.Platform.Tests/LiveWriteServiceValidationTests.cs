@@ -3001,6 +3001,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosSoc2EvidenceDb.Succeeded);
         Assert.Equal("db", bosSoc2EvidenceDb.Code);
 
+        var bosSoc2ControlEmpty = await new BosSoc2WriteService(new UnconfiguredConnections())
+            .UpdateControlAsync("CC1.1", new Dictionary<string, string?>());
+        Assert.False(bosSoc2ControlEmpty.Succeeded);
+        Assert.Equal("invalid", bosSoc2ControlEmpty.Code);
+
+        var bosSoc2ControlDb = await new BosSoc2WriteService(new UnconfiguredConnections())
+            .UpdateControlAsync("CC1.1", new Dictionary<string, string?> { ["status"] = "tested" });
+        Assert.False(bosSoc2ControlDb.Succeeded);
+        Assert.Equal("db", bosSoc2ControlDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);
