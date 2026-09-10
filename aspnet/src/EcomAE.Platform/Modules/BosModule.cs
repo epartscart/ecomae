@@ -178,6 +178,71 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosNotificationsMarkAllRead, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosNotificationWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for notification mark_all_read.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosNotificationsMarkAllReadBody>(context, cancellationToken)
+                       ?? new();
+            var userId = body.UserId;
+            var tenantKey = body.TenantKey;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                userId = LiveWriteFormBinder.Long(form, "user_id", "userId");
+                if (form.ContainsKey("tenant_key"))
+                {
+                    tenantKey = form["tenant_key"].ToString();
+                }
+                else if (form.ContainsKey("tenantKey"))
+                {
+                    tenantKey = form["tenantKey"].ToString();
+                }
+                else
+                {
+                    tenantKey = null;
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to mark all notifications read.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.MarkAllReadAsync(tenantKey, userId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, marked = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -446,6 +511,11 @@ public sealed class BosModule : ISurfaceModule
     private sealed record BosNotificationsDismissBody(
         bool ConfirmWrites = false,
         long NotificationId = 0,
+        string? TenantKey = null);
+
+    private sealed record BosNotificationsMarkAllReadBody(
+        bool ConfirmWrites = false,
+        long UserId = 0,
         string? TenantKey = null);
 
     private sealed record BosAjaxWriteRegistryBody(bool ConfirmWrites = false);

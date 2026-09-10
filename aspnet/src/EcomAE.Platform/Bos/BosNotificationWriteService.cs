@@ -6,9 +6,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> <c>mark_read</c> / <c>epc_notifications_mark_read</c>
-/// and <c>dismiss</c> / <c>epc_notifications_dismiss</c>.
-/// Send, broadcast, and mark-all stay Classic.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> <c>mark_read</c> / <c>epc_notifications_mark_read</c>,
+/// <c>dismiss</c> / <c>epc_notifications_dismiss</c>, and <c>mark_all_read</c> / <c>epc_notifications_mark_all_read</c>.
+/// Send and broadcast stay Classic.
 /// This service does not invent a send. It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosNotificationWriteService
@@ -21,6 +21,11 @@ public interface IBosNotificationWriteService
     Task<ErpSimpleWriteResult> DismissAsync(
         long notificationId,
         string? tenantKey,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> MarkAllReadAsync(
+        string? tenantKey,
+        long userId,
         CancellationToken cancellationToken = default);
 }
 
@@ -163,6 +168,37 @@ public sealed class BosNotificationWriteService : IBosNotificationWriteService
             }
 
             return ErpSimpleWriteResult.Ok("Notification dismissed", notificationId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Notifications table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> MarkAllReadAsync(
+        string? tenantKey,
+        long userId,
+        CancellationToken cancellationToken = default)
+    {
+        var key = ResolveTenantKey(tenantKey);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var marked = await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    UPDATE `epc_notifications` SET `is_read` = 1, `read_at` = NOW()
+                    WHERE `tenant_key` = ? AND (`user_id` = ? OR `user_id` = 0) AND `is_read` = 0
+                    """),
+                cancellationToken, key, userId).ConfigureAwait(false);
+            var noun = marked == 1 ? "notification" : "notifications";
+            return ErpSimpleWriteResult.Ok($"Marked {marked.ToString(CultureInfo.InvariantCulture)} {noun} read", marked);
         }
         catch (DbException)
         {
