@@ -6832,9 +6832,80 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_parts_agent_* metadata (system_prompt/client_ip omitted). Chat UX remains PHP parts_agent."
+                note = "Read-only epc_parts_agent_* metadata (system_prompt/client_ip omitted). save_config POST /cp/parts-agent/save-config when confirmWrites=true. Chat UX remains PHP parts_agent."
             });
         });
+        endpoints.MapPost(EcomAeRoutes.CpPartsAgentSaveConfig, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPartsAgentWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/parts-agent-chats-app", "Admin CP capability required for Parts Agent config.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPartsAgentSaveConfigBody>(context, cancellationToken)
+                       ?? new();
+            var enabled = body.Enabled;
+            var agentName = body.AgentName;
+            var subtitle = body.Subtitle;
+            var greeting = body.Greeting;
+            var systemPrompt = body.SystemPrompt;
+            var teaserText = body.TeaserText;
+            var placeholder = body.Placeholder;
+            var logoUrl = body.LogoUrl;
+            var domain = body.Domain;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                enabled = LiveWriteFormBinder.Text(form, "enabled");
+                agentName = LiveWriteFormBinder.Text(form, "agentName", "agent_name");
+                subtitle = LiveWriteFormBinder.Text(form, "subtitle");
+                greeting = LiveWriteFormBinder.Text(form, "greeting");
+                systemPrompt = LiveWriteFormBinder.Text(form, "systemPrompt", "system_prompt");
+                teaserText = LiveWriteFormBinder.Text(form, "teaserText", "teaser_text");
+                placeholder = LiveWriteFormBinder.Text(form, "placeholder");
+                logoUrl = LiveWriteFormBinder.Text(form, "logoUrl", "logo_url");
+                domain = LiveWriteFormBinder.Text(form, "domain");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save Parts Agent config.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveConfigAsync(
+                enabled,
+                agentName,
+                subtitle,
+                greeting,
+                systemPrompt,
+                teaserText,
+                placeholder,
+                logoUrl,
+                domain,
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/parts-agent-chats-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelPosOverview, async (
             HttpContext context,
@@ -13374,6 +13445,17 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? GroupIdsJson = null,
         string? UserIds = null,
         string? UserIdsJson = null);
+    private sealed record CpPartsAgentSaveConfigBody(
+        bool ConfirmWrites = false,
+        string? Enabled = null,
+        string? AgentName = null,
+        string? Subtitle = null,
+        string? Greeting = null,
+        string? SystemPrompt = null,
+        string? TeaserText = null,
+        string? Placeholder = null,
+        string? LogoUrl = null,
+        string? Domain = null);
     private sealed record CpStoragesGroupsBody(string? Action = null, bool ConfirmWrites = false, long Id = 0, string? Name = null, string? Storages = null);
     private sealed record CpStoragesWriteBody(
         string? Action = null,
