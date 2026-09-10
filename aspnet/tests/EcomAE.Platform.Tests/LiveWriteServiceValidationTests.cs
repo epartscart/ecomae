@@ -2916,6 +2916,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosFfTransDb.Succeeded);
         Assert.Equal("db", bosFfTransDb.Code);
 
+        var bosFfWaveEmpty = await new BosFulfillmentWriteService(new ConfiguredNeverOpened())
+            .CreateWaveAsync("epc", Array.Empty<long>());
+        Assert.False(bosFfWaveEmpty.Succeeded);
+        Assert.Equal("invalid", bosFfWaveEmpty.Code);
+
+        var bosFfWaveDb = await new BosFulfillmentWriteService(new UnconfiguredConnections())
+            .CreateWaveAsync("epc", [9]);
+        Assert.False(bosFfWaveDb.Succeeded);
+        Assert.Equal("db", bosFfWaveDb.Code);
+
         var bosBillCancelDb = await new BosBillingWriteService(new UnconfiguredConnections())
             .CancelAsync(9, "done");
         Assert.False(bosBillCancelDb.Succeeded);

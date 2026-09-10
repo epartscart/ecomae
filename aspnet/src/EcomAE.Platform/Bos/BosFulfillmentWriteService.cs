@@ -1,12 +1,15 @@
 using System.Data.Common;
+using System.Globalization;
+using System.Linq;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>fulfillment_queue</c> <c>pick_item</c> / <c>epc_fulfillment_pick_item</c>
-/// and <c>transition</c> / <c>epc_fulfillment_transition</c>.
-/// Queue, wave, and schema-ensure stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>fulfillment_queue</c> <c>pick_item</c> / <c>epc_fulfillment_pick_item</c>,
+/// <c>transition</c> / <c>epc_fulfillment_transition</c>, and <c>create_wave</c> / <c>epc_fulfillment_create_wave</c>.
+/// Queue and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosFulfillmentWriteService
@@ -24,10 +27,17 @@ public interface IBosFulfillmentWriteService
         string? carrier,
         string? trackingNumber,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreateWaveAsync(
+        string? siteKey,
+        IReadOnlyList<long> fulfillmentIds,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class BosFulfillmentWriteService : IBosFulfillmentWriteService
 {
+    private static readonly Regex SiteKeySafe = new("[^a-z0-9_]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     private static readonly Dictionary<string, string[]> Valid = new(StringComparer.Ordinal)
     {
         ["queued"] = ["picking", "cancelled"],
@@ -154,6 +164,46 @@ public sealed class BosFulfillmentWriteService : IBosFulfillmentWriteService
                 ErpDb.Positional("UPDATE `epc_fulfillment_orders` SET " + string.Join(", ", updates) + " WHERE `id` = ?"),
                 cancellationToken, parameters.ToArray()).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Fulfillment transitioned", fulfillmentId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Fulfillment orders table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> CreateWaveAsync(
+        string? siteKey,
+        IReadOnlyList<long> fulfillmentIds,
+        CancellationToken cancellationToken = default)
+    {
+        var key = SiteKeySafe.Replace((siteKey ?? string.Empty).Trim().ToLowerInvariant(), string.Empty);
+        if (fulfillmentIds.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "No fulfillment IDs provided");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            var waveId = int.Parse(DateTime.Now.ToString("yyMMddHHmm", CultureInfo.InvariantCulture), CultureInfo.InvariantCulture);
+            var placeholders = string.Join(",", Enumerable.Repeat("?", fulfillmentIds.Count));
+            var parameters = new List<object?> { waveId, key };
+            foreach (var id in fulfillmentIds)
+            {
+                parameters.Add(id);
+            }
+
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    "UPDATE `epc_fulfillment_orders` SET `wave_id` = ? WHERE `site_key` = ? AND `id` IN (" + placeholders + ") AND `status` = 'queued'"),
+                cancellationToken, parameters.ToArray()).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Fulfillment wave created", waveId);
         }
         catch (DbException)
         {
