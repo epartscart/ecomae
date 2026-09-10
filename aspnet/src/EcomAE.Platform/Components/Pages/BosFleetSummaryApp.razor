@@ -304,6 +304,13 @@
             <label>Notes <input type="text" name="notes" /></label>
             <button type="submit">Add SOC 2 evidence</button>
         </form>
+        <form method="post" action="/bos/soc2/update-control" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Control id <input type="text" name="control_id" /></label>
+            <label>Control data JSON <input type="text" name="control_data" value="{}" /></label>
+            <button type="submit">Update SOC 2 control</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
