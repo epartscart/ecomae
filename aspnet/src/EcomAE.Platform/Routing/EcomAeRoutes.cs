@@ -2015,6 +2015,8 @@ public static class EcomAeRoutes
     public const string BosApiKeysRevoke = "/bos/api-keys/revoke";
     /// <summary>Live PHP ajax_epc_bos.php webhooks delete. confirmWrites=true UPDATEs epc_webhooks. Super-CP only.</summary>
     public const string BosWebhooksDelete = "/bos/webhooks/delete";
+    /// <summary>Live PHP ajax_epc_bos.php webhooks dlq_resolve. confirmWrites=true UPDATEs epc_webhook_dlq. Super-CP only.</summary>
+    public const string BosWebhooksDlqResolve = "/bos/webhooks/dlq-resolve";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

@@ -138,6 +138,12 @@
             <label>Webhook id <input type="text" name="webhook_id" /></label>
             <button type="submit">Delete webhook</button>
         </form>
+        <form method="post" action="/bos/webhooks/dlq-resolve" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>DLQ id <input type="text" name="dlq_id" /></label>
+            <button type="submit">Resolve DLQ</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
