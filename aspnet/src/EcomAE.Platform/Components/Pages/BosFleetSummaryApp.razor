@@ -166,6 +166,13 @@
             <label>Qty picked <input type="text" name="qty_picked" /></label>
             <button type="submit">Pick item</button>
         </form>
+        <form method="post" action="/bos/billing/cancel" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Subscription id <input type="text" name="subscription_id" /></label>
+            <label>Reason <input type="text" name="reason" /></label>
+            <button type="submit">Cancel subscription</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
