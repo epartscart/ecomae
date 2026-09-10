@@ -2916,6 +2916,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosBillPayDb.Succeeded);
         Assert.Equal("db", bosBillPayDb.Code);
 
+        var bosRmaDb = await new BosRmaWriteService(new UnconfiguredConnections())
+            .TransitionAsync(9, "approved", "");
+        Assert.False(bosRmaDb.Succeeded);
+        Assert.Equal("db", bosRmaDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);

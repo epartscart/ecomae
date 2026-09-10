@@ -766,6 +766,7 @@ builder.Services.AddScoped<EcomAE.Platform.Bos.IBosWebhookWriteService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosPoWriteService, EcomAE.Platform.Bos.BosPoWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosFulfillmentWriteService, EcomAE.Platform.Bos.BosFulfillmentWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosBillingWriteService, EcomAE.Platform.Bos.BosBillingWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Bos.IBosRmaWriteService, EcomAE.Platform.Bos.BosRmaWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteWriteService, EcomAE.Platform.Cp.CpQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, EcomAE.Platform.Cp.CpVendorApprovalWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVendorRegisterWriteService, EcomAE.Platform.Storefront.StorefrontVendorRegisterWriteService>();
