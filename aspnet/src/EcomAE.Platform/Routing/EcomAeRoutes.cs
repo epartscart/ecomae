@@ -1235,6 +1235,8 @@ public static class EcomAeRoutes
     public const string CpPricesCompleteSession = "/cp/prices/complete-session";
     /// <summary>PHP <c>min_price_acl_save</c> / <c>epc_mv_min_price_acl_save</c>. <c>confirmWrites=true</c> UPSERTs the singleton ACL row. File ingest stays Classic.</summary>
     public const string CpMultivendorMinPriceAclSave = "/cp/multivendor/min-price-acl/save";
+    /// <summary>PHP <c>vendor_code_save</c> / <c>epc_multivendor_vendor_code_save</c>. <c>confirmWrites=true</c> UPDATEs shop_storages name/short_name. File ingest stay Classic.</summary>
+    public const string CpMultivendorVendorCodeSave = "/cp/multivendor/vendor-code/save";
     /// <summary>PHP <c>ajax_epc_storefront_storage_toggle</c> / <c>epc_ssf_set_toggle</c>. <c>confirmWrites=true</c> UPDATEs storefront_temp_disabled. Schema-ensure stay Classic.</summary>
     public const string CpPricesStorefrontStorageToggle = "/cp/prices/storefront-storage/toggle";
     /// <summary>PHP logistics groups add_group / del. <c>confirmWrites=true</c> writes via <c>ICpStorageGroupWriteService</c>.</summary>

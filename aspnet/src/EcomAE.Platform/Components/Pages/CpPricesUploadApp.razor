@@ -132,6 +132,14 @@
                     <label>User ids <input type="text" name="user_ids" placeholder="12,18" style="width:10rem" /></label>
                     <button type="submit">Save min-price access</button>
                 </form>
+                <form method="post" action="/cp/multivendor/vendor-code/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/shop/prices/multivendor" />
+                    <label>Warehouse id <input type="number" name="storage_id" min="1" required style="width:7rem" /></label>
+                    <label>Vendor code <input type="text" name="vendor_code" maxlength="64" required /></label>
+                    <label>Vendor name <input type="text" name="vendor_full" maxlength="255" /></label>
+                    <button type="submit">Save vendor code</button>
+                </form>
                 <p class="help-block" style="margin:0 0 1rem">File ingest stay Classic. This page does not invent a send.</p>
             }
         }
