@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Linq;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
