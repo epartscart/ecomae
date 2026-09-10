@@ -3016,6 +3016,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosWorkflowToggleDb.Succeeded);
         Assert.Equal("db", bosWorkflowToggleDb.Code);
 
+        var bosWorkflowDeleteDb = await new BosWorkflowWriteService(new UnconfiguredConnections())
+            .DeleteAsync(9);
+        Assert.False(bosWorkflowDeleteDb.Succeeded);
+        Assert.Equal("db", bosWorkflowDeleteDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);

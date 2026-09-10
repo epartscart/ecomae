@@ -2063,6 +2063,8 @@ public static class EcomAeRoutes
     public const string BosSoc2UpdateControl = "/bos/soc2/update-control";
     /// <summary>Live PHP ajax_epc_bos.php workflow_builder toggle. confirmWrites=true UPDATEs epc_workflows. Super-CP only.</summary>
     public const string BosWorkflowsToggle = "/bos/workflows/toggle";
+    /// <summary>Live PHP ajax_epc_bos.php workflow_builder delete. confirmWrites=true DELETEs epc_workflows. Super-CP only.</summary>
+    public const string BosWorkflowsDelete = "/bos/workflows/delete";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

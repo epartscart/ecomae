@@ -318,6 +318,12 @@
             <label>Active <input type="text" name="active" value="1" /></label>
             <button type="submit">Toggle workflow</button>
         </form>
+        <form method="post" action="/bos/workflows/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Workflow id <input type="text" name="workflow_id" /></label>
+            <button type="submit">Delete workflow</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
