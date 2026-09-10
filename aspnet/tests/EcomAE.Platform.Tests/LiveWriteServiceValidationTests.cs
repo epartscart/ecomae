@@ -2763,6 +2763,18 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(doneDb.Succeeded);
         Assert.Equal("db", doneDb.Code);
 
+        Assert.True(CpPricesUploadWriteService.ParseRestrict(null));
+        Assert.True(CpPricesUploadWriteService.ParseRestrict("1"));
+        Assert.False(CpPricesUploadWriteService.ParseRestrict("0"));
+        Assert.False(CpPricesUploadWriteService.ParseRestrict("off"));
+        Assert.Equal(new[] { 2L, 5L }, CpPricesUploadWriteService.ParseIdList("2,5"));
+        Assert.Equal(new[] { 12L, 18L }, CpPricesUploadWriteService.ParseIdList("[12,18]"));
+
+        var aclDb = await new CpPricesUploadWriteService(new UnconfiguredConnections())
+            .SaveMinPriceAclAsync("1", "2,5", "12", 1);
+        Assert.False(aclDb.Succeeded);
+        Assert.Equal("db", aclDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);

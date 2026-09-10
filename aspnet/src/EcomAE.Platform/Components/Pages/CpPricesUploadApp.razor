@@ -115,8 +115,25 @@
             <div class="epc-prices-note">
                 Multi-vendor ingest is PHP <code>ajax_epc_multivendor_ingest</code>
                 (<code>cp/content/shop/prices_upload/for_multivendor/form.php</code>).
-                Drop a combined Excel/CSV there. Writes stay PHP.
+                Drop a combined Excel/CSV there. File ingest stays Classic.
             </div>
+            @if (_isAdmin)
+            {
+                <form method="post" action="/cp/multivendor/min-price-acl/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/shop/prices/multivendor" />
+                    <label>Restrict min prices
+                        <select name="restrict">
+                            <option value="1" selected>yes</option>
+                            <option value="0">no</option>
+                        </select>
+                    </label>
+                    <label>Group ids <input type="text" name="group_ids" placeholder="2,5" style="width:10rem" /></label>
+                    <label>User ids <input type="text" name="user_ids" placeholder="12,18" style="width:10rem" /></label>
+                    <button type="submit">Save min-price access</button>
+                </form>
+                <p class="help-block" style="margin:0 0 1rem">File ingest stays Classic. This page does not invent a send.</p>
+            }
         }
         else if (_view == "price")
         {

@@ -1365,6 +1365,55 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpMultivendorMinPriceAclSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPricesUploadWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/shop/prices/multivendor", "Admin CP capability required for min-price ACL.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpMultivendorMinPriceAclSaveBody>(context, cancellationToken)
+                       ?? new();
+            var restrict = body.Restrict;
+            var groupIds = body.GroupIds ?? body.GroupIdsJson;
+            var userIds = body.UserIds ?? body.UserIdsJson;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                restrict = LiveWriteFormBinder.Text(form, "restrict", "restrict_min");
+                groupIds = LiveWriteFormBinder.Text(form, "groupIds", "group_ids", "group_ids_json");
+                userIds = LiveWriteFormBinder.Text(form, "userIds", "user_ids", "user_ids_json");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save min-price access on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveMinPriceAclAsync(restrict, groupIds, userIds, session.UserId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/shop/prices/multivendor",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.CpCreateSitemap, async (HttpContext context, CpCreateSitemapBody? body, ILegacySessionValidator validator, ICpCreateSitemapDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -13318,6 +13367,13 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpUsersSetPasswordBody(long UserId = 0, string? Password = null, bool ConfirmWrites = false);
     private sealed record CpPricesImportCsvBody(long SessionId, bool ConfirmWrites = false);
     private sealed record CpPricesCompleteSessionBody(long SessionId = 0, long PriceId = 0, bool ConfirmWrites = false);
+    private sealed record CpMultivendorMinPriceAclSaveBody(
+        bool ConfirmWrites = false,
+        string? Restrict = null,
+        string? GroupIds = null,
+        string? GroupIdsJson = null,
+        string? UserIds = null,
+        string? UserIdsJson = null);
     private sealed record CpStoragesGroupsBody(string? Action = null, bool ConfirmWrites = false, long Id = 0, string? Name = null, string? Storages = null);
     private sealed record CpStoragesWriteBody(
         string? Action = null,
