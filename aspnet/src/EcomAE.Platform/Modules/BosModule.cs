@@ -886,6 +886,61 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosRmaTransition, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosRmaWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for RMA transition.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosRmaTransitionBody>(context, cancellationToken)
+                       ?? new();
+            var rmaId = body.RmaId;
+            var status = body.Status;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                rmaId = LiveWriteFormBinder.Long(form, "rma_id", "rmaId");
+                status = form.ContainsKey("status") ? form["status"].ToString() : null;
+                notes = form.ContainsKey("notes") ? form["notes"].ToString() : null;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to transition an RMA.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.TransitionAsync(rmaId, status, notes, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -1213,6 +1268,12 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long InvoiceId = 0,
         string? Method = null);
+
+    private sealed record BosRmaTransitionBody(
+        bool ConfirmWrites = false,
+        long RmaId = 0,
+        string? Status = null,
+        string? Notes = null);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,
