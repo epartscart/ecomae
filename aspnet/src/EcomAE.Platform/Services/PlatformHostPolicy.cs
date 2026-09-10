@@ -57,6 +57,7 @@ public static class PlatformHostPolicy
         "marketplace",
         "promos",
         "entities",
+        "payroll",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
