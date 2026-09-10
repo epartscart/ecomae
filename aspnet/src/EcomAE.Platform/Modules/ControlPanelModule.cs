@@ -1414,6 +1414,61 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPricesStorefrontStorageToggle, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPricesUploadWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/prices-upload-app", "Admin CP capability required for storefront storage toggle.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpStorefrontStorageToggleBody>(context, cancellationToken)
+                       ?? new();
+            var entityType = body.EntityType;
+            var entityId = body.EntityId;
+            var storefrontEnabled = body.StorefrontEnabled;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                entityType = LiveWriteFormBinder.Text(form, "entityType", "entity_type");
+                entityId = LiveWriteFormBinder.Long(form, "entityId", "entity_id", "id");
+                storefrontEnabled = LiveWriteFormBinder.Text(form, "storefrontEnabled", "storefront_enabled");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save storefront visibility.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SetStorefrontToggleAsync(
+                entityType,
+                entityId,
+                storefrontEnabled,
+                session.UserId,
+                session.Email,
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/prices-upload-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.CpCreateSitemap, async (HttpContext context, CpCreateSitemapBody? body, ILegacySessionValidator validator, ICpCreateSitemapDryRun dryRun, CancellationToken cancellationToken) =>
         {
@@ -13445,6 +13500,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? GroupIdsJson = null,
         string? UserIds = null,
         string? UserIdsJson = null);
+    private sealed record CpStorefrontStorageToggleBody(
+        bool ConfirmWrites = false,
+        string? EntityType = null,
+        long EntityId = 0,
+        string? StorefrontEnabled = null);
     private sealed record CpPartsAgentSaveConfigBody(
         bool ConfirmWrites = false,
         string? Enabled = null,
