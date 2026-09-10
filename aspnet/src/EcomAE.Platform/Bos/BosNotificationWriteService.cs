@@ -6,14 +6,19 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> / <c>sub_action=mark_read</c>
-/// / <c>epc_notifications_mark_read</c>. Send, broadcast, dismiss, and mark-all stay Classic.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> <c>mark_read</c> / <c>dismiss</c>.
+/// Send, broadcast, and mark-all stay Classic.
 /// This service does not invent a send. It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosNotificationWriteService
 {
     Task<ErpSimpleWriteResult> MarkReadAsync(
         string? idsRaw,
+        string? tenantKey,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DismissAsync(
+        long notificationId,
         string? tenantKey,
         CancellationToken cancellationToken = default);
 }
@@ -122,6 +127,41 @@ public sealed class BosNotificationWriteService : IBosNotificationWriteService
                 .ConfigureAwait(false);
             var noun = marked == 1 ? "notification" : "notifications";
             return ErpSimpleWriteResult.Ok($"Marked {marked.ToString(CultureInfo.InvariantCulture)} {noun} read", marked);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Notifications table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> DismissAsync(
+        long notificationId,
+        string? tenantKey,
+        CancellationToken cancellationToken = default)
+    {
+        var key = ResolveTenantKey(tenantKey);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var marked = await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    UPDATE `epc_notifications` SET `dismissed` = 1
+                    WHERE `id` = ? AND `tenant_key` = ?
+                    """),
+                cancellationToken, notificationId, key).ConfigureAwait(false);
+            if (marked <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Notification not found");
+            }
+
+            return ErpSimpleWriteResult.Ok("Notification dismissed", notificationId);
         }
         catch (DbException)
         {

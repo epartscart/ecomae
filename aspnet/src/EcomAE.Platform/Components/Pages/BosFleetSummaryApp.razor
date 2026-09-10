@@ -79,7 +79,14 @@
             <label>Tenant key <input type="text" name="tenant_key" value="__platform__" /></label>
             <button type="submit">Mark read</button>
         </form>
-        <p class="help-block" style="margin:0 0 1rem">Send, broadcast, dismiss, and mark-all stay Classic. This page does not invent a send.</p>
+        <form method="post" action="/bos/notifications/dismiss" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Notification id <input type="text" name="notification_id" /></label>
+            <label>Tenant key <input type="text" name="tenant_key" value="__platform__" /></label>
+            <button type="submit">Dismiss</button>
+        </form>
+        <p class="help-block" style="margin:0 0 1rem">Send, broadcast, and mark-all stay Classic. This page does not invent a send.</p>
     }
 
 </PhpBosDesktopChrome>

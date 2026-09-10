@@ -1999,6 +1999,8 @@ public static class EcomAeRoutes
     public const string BosFleetSummaryApp = "/bos/fleet-summary-app";
     /// <summary>Live PHP ajax_epc_bos.php notifications mark_read. confirmWrites=true UPDATEs epc_notifications. Super-CP only.</summary>
     public const string BosNotificationsMarkRead = "/bos/notifications/mark-read";
+    /// <summary>Live PHP ajax_epc_bos.php notifications dismiss. confirmWrites=true UPDATEs epc_notifications. Super-CP only.</summary>
+    public const string BosNotificationsDismiss = "/bos/notifications/dismiss";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
