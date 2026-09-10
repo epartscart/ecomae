@@ -2896,6 +2896,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosPoCancelDb.Succeeded);
         Assert.Equal("db", bosPoCancelDb.Code);
 
+        var bosPoRejectDb = await new BosPoWriteService(new UnconfiguredConnections())
+            .RejectAsync(9, 1, 2, "no");
+        Assert.False(bosPoRejectDb.Succeeded);
+        Assert.Equal("db", bosPoRejectDb.Code);
+
         var bosPickDb = await new BosFulfillmentWriteService(new UnconfiguredConnections())
             .PickItemAsync(9, 1);
         Assert.False(bosPickDb.Succeeded);

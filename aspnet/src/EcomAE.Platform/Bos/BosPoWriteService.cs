@@ -4,14 +4,22 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>po_approval</c> <c>cancel</c> / <c>epc_po_cancel</c>.
-/// Create, approve, reject, and schema-ensure stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>po_approval</c> <c>cancel</c> / <c>epc_po_cancel</c>
+/// and <c>reject</c> / <c>epc_po_reject</c>.
+/// Create, approve, and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosPoWriteService
 {
     Task<ErpSimpleWriteResult> CancelAsync(
         long poId,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> RejectAsync(
+        long poId,
+        int tier,
+        long approverId,
+        string? reason,
         CancellationToken cancellationToken = default);
 }
 
@@ -58,6 +66,56 @@ public sealed class BosPoWriteService : IBosPoWriteService
                     """),
                 cancellationToken, poId).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("PO cancelled", poId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "PO requests table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> RejectAsync(
+        long poId,
+        int tier,
+        long approverId,
+        string? reason,
+        CancellationToken cancellationToken = default)
+    {
+        var rejectionReason = reason ?? string.Empty;
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var status = await ErpDb.StringAsync(
+                connection, null,
+                ErpDb.Positional("SELECT `status` FROM `epc_po_requests` WHERE `id` = ?"),
+                cancellationToken, poId).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(status))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "PO not found");
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    UPDATE `epc_po_approval_steps`
+                    SET `decision` = 'rejected', `approver_id` = ?, `comment` = ?, `decided_at` = NOW()
+                    WHERE `po_id` = ? AND `tier` = ?
+                    """),
+                cancellationToken, approverId, rejectionReason, poId, tier).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    UPDATE `epc_po_requests` SET `status` = 'rejected', `rejected_at` = NOW(), `rejection_reason` = ?
+                    WHERE `id` = ?
+                    """),
+                cancellationToken, rejectionReason, poId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("PO rejected", poId);
         }
         catch (DbException)
         {
