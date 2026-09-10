@@ -2029,6 +2029,8 @@ public static class EcomAeRoutes
     public const string BosBillingPay = "/bos/billing/pay";
     /// <summary>Live PHP ajax_epc_bos.php warranty_rma rma_transition. confirmWrites=true UPDATEs epc_rma_requests. Super-CP only.</summary>
     public const string BosRmaTransition = "/bos/rma/transition";
+    /// <summary>Live PHP ajax_epc_bos.php dealer_portal auto_tier. confirmWrites=true UPDATEs epc_dealers. Super-CP only.</summary>
+    public const string BosDealersAutoTier = "/bos/dealers/auto-tier";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
