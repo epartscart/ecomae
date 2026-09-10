@@ -4,8 +4,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>subscription_billing</c> <c>cancel</c> / <c>epc_billing_cancel</c>.
-/// Create-plan, subscribe, pay, and schema-ensure stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>subscription_billing</c> <c>cancel</c> / <c>epc_billing_cancel</c>
+/// and <c>pay</c> / <c>epc_billing_record_payment</c>.
+/// Create-plan, subscribe, and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosBillingWriteService
@@ -13,6 +14,11 @@ public interface IBosBillingWriteService
     Task<ErpSimpleWriteResult> CancelAsync(
         long subscriptionId,
         string? reason,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> PayAsync(
+        long invoiceId,
+        string? method,
         CancellationToken cancellationToken = default);
 }
 
@@ -52,6 +58,36 @@ public sealed class BosBillingWriteService : IBosBillingWriteService
         catch (DbException)
         {
             return ErpSimpleWriteResult.Fail("db", "Subscriptions table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> PayAsync(
+        long invoiceId,
+        string? method,
+        CancellationToken cancellationToken = default)
+    {
+        var paymentMethod = method ?? "card";
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    UPDATE `epc_billing_invoices` SET `status`='paid', `paid_at`=NOW(), `payment_method`=?
+                    WHERE `id`=? AND `status` IN ('sent','overdue')
+                    """),
+                cancellationToken, paymentMethod, invoiceId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Invoice payment recorded", invoiceId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Billing invoices table is missing — schema-ensure stays Classic.");
         }
     }
 }
