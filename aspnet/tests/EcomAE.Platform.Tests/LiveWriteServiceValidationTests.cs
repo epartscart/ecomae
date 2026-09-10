@@ -1,5 +1,6 @@
 using System.Data.Common;
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Bos;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Storefront;
@@ -2816,6 +2817,22 @@ public sealed class LiveWriteServiceValidationTests
             .SaveConfigAsync("1", "Parts", "", "", "", "", "", "", "");
         Assert.False(agentDb.Succeeded);
         Assert.Equal("db", agentDb.Code);
+
+        var bosNotifMissing = await new BosNotificationWriteService(new ConfiguredNeverOpened())
+            .MarkReadAsync("", "__platform__");
+        Assert.False(bosNotifMissing.Succeeded);
+        Assert.Equal("invalid", bosNotifMissing.Code);
+        Assert.Equal(BosNotificationWriteService.MissingIdsMessage, bosNotifMissing.Message);
+
+        var bosNotifEmptyJson = await new BosNotificationWriteService(new ConfiguredNeverOpened())
+            .MarkReadAsync("[]", "__platform__");
+        Assert.False(bosNotifEmptyJson.Succeeded);
+        Assert.Equal("invalid", bosNotifEmptyJson.Code);
+
+        var bosNotifDb = await new BosNotificationWriteService(new UnconfiguredConnections())
+            .MarkReadAsync("[1]", "__platform__");
+        Assert.False(bosNotifDb.Succeeded);
+        Assert.Equal("db", bosNotifDb.Code);
 
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");

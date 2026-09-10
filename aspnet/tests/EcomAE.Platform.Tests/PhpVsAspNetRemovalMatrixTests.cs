@@ -426,6 +426,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPricesUploadApp.razor", "/cp/prices/storefront-storage/toggle"),
             ("CpPricesUploadApp.razor", "/cp/multivendor/vendor-code/save"),
             ("CpPartsAgentChatsApp.razor", "/cp/parts-agent/save-config"),
+            ("BosFleetSummaryApp.razor", "/bos/notifications/mark-read"),
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
             ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),

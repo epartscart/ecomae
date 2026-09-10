@@ -1,4 +1,6 @@
+using System.Text.Json;
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Bos;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
@@ -45,6 +47,71 @@ public sealed class BosModule : ISurfaceModule
                 note = "Read-only migration summary. PHP BOS command center remains authoritative."
             });
         });
+
+        endpoints.MapPost(EcomAeRoutes.BosNotificationsMarkRead, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosNotificationWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for notification mark_read.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosNotificationsMarkReadBody>(context, cancellationToken)
+                       ?? new();
+            var idsRaw = IdsRaw(body);
+            var tenantKey = body.TenantKey;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                idsRaw = form["ids"].ToString();
+                if (form.ContainsKey("tenant_key"))
+                {
+                    tenantKey = form["tenant_key"].ToString();
+                }
+                else if (form.ContainsKey("tenantKey"))
+                {
+                    tenantKey = form["tenantKey"].ToString();
+                }
+                else
+                {
+                    tenantKey = null;
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to mark notifications read.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.MarkReadAsync(idsRaw, tenantKey, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, marked = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
@@ -293,6 +360,24 @@ public sealed class BosModule : ISurfaceModule
         module_acl = session.Modules,
         permissions = session.Permissions
     };
+    private static string? IdsRaw(BosNotificationsMarkReadBody body)
+    {
+        if (body.Ids.ValueKind == JsonValueKind.Array || body.Ids.ValueKind == JsonValueKind.String)
+        {
+            return body.Ids.ValueKind == JsonValueKind.String
+                ? body.Ids.GetString()
+                : body.Ids.GetRawText();
+        }
+
+        return body.IdsText;
+    }
+
+    private sealed record BosNotificationsMarkReadBody(
+        bool ConfirmWrites = false,
+        JsonElement Ids = default,
+        string? IdsText = null,
+        string? TenantKey = null);
+
     private sealed record BosAjaxWriteRegistryBody(bool ConfirmWrites = false);
     private sealed record BosAjaxMfaPolicyBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record BosAjaxDesignTokensBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
