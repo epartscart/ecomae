@@ -6,7 +6,8 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> <c>mark_read</c> / <c>dismiss</c>.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> <c>mark_read</c> / <c>epc_notifications_mark_read</c>
+/// and <c>dismiss</c> / <c>epc_notifications_dismiss</c>.
 /// Send, broadcast, and mark-all stay Classic.
 /// This service does not invent a send. It does not emit CREATE/ALTER.
 /// </summary>
