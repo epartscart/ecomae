@@ -47,6 +47,7 @@ public static class PlatformHostPolicy
         "api-keys",
         "webhooks",
         "po",
+        "fulfillment",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
