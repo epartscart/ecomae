@@ -2021,6 +2021,8 @@ public static class EcomAeRoutes
     public const string BosPoCancel = "/bos/po/cancel";
     /// <summary>Live PHP ajax_epc_bos.php po_approval reject. confirmWrites=true UPDATEs epc_po_requests. Super-CP only.</summary>
     public const string BosPoReject = "/bos/po/reject";
+    /// <summary>Live PHP ajax_epc_bos.php po_approval approve. confirmWrites=true UPDATEs epc_po_requests. Super-CP only.</summary>
+    public const string BosPoApprove = "/bos/po/approve";
     /// <summary>Live PHP ajax_epc_bos.php fulfillment_queue pick_item. confirmWrites=true UPDATEs epc_fulfillment_items. Super-CP only.</summary>
     public const string BosFulfillmentPickItem = "/bos/fulfillment/pick-item";
     /// <summary>Live PHP ajax_epc_bos.php fulfillment_queue transition. confirmWrites=true UPDATEs epc_fulfillment_orders. Super-CP only.</summary>

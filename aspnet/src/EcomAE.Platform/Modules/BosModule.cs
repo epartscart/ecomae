@@ -727,6 +727,63 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosPoApprove, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosPoWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for PO approve.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosPoApproveBody>(context, cancellationToken)
+                       ?? new();
+            var poId = body.PoId;
+            var tier = body.Tier;
+            var approverId = body.ApproverId;
+            var comment = body.Comment;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                poId = LiveWriteFormBinder.Long(form, "po_id", "poId");
+                tier = LiveWriteFormBinder.Int(form, "tier");
+                approverId = LiveWriteFormBinder.Long(form, "approver_id", "approverId");
+                comment = form.ContainsKey("comment") ? form["comment"].ToString() : null;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to approve a PO.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ApproveAsync(poId, tier, approverId, comment, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosFulfillmentPickItem, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -1507,6 +1564,13 @@ public sealed class BosModule : ISurfaceModule
         int Tier = 0,
         long ApproverId = 0,
         string? Reason = null);
+
+    private sealed record BosPoApproveBody(
+        bool ConfirmWrites = false,
+        long PoId = 0,
+        int Tier = 0,
+        long ApproverId = 0,
+        string? Comment = null);
 
     private sealed record BosFulfillmentPickBody(
         bool ConfirmWrites = false,
