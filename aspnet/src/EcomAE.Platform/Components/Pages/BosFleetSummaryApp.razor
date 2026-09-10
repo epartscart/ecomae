@@ -291,6 +291,19 @@
             <label>Approver id <input type="text" name="approver_id" /></label>
             <button type="submit">Approve payroll run</button>
         </form>
+        <form method="post" action="/bos/soc2/add-evidence" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Control id <input type="text" name="control_id" /></label>
+            <label>Type <input type="text" name="evidence_type" value="document" /></label>
+            <label>Title <input type="text" name="title" /></label>
+            <label>File path <input type="text" name="file_path" /></label>
+            <label>Collected by <input type="text" name="collected_by" /></label>
+            <label>Valid from <input type="text" name="valid_from" /></label>
+            <label>Valid to <input type="text" name="valid_to" /></label>
+            <label>Notes <input type="text" name="notes" /></label>
+            <button type="submit">Add SOC 2 evidence</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 

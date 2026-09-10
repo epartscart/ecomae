@@ -58,6 +58,7 @@ public static class PlatformHostPolicy
         "promos",
         "entities",
         "payroll",
+        "soc2",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>

@@ -1730,6 +1730,72 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosSoc2AddEvidence, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosSoc2WriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for SOC2 add-evidence.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosSoc2AddEvidenceBody>(context, cancellationToken)
+                       ?? new();
+            var controlId = body.ControlId;
+            var evidenceType = body.EvidenceType;
+            var title = body.Title;
+            var filePath = body.FilePath;
+            var collectedBy = body.CollectedBy;
+            var validFrom = body.ValidFrom;
+            var validTo = body.ValidTo;
+            var notes = body.Notes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                controlId = FormOrNull(form, "control_id", "controlId");
+                evidenceType = FormOrNull(form, "evidence_type", "evidenceType");
+                title = FormOrNull(form, "title");
+                filePath = FormOrNull(form, "file_path", "filePath");
+                collectedBy = FormOrNull(form, "collected_by", "collectedBy");
+                validFrom = FormOrNull(form, "valid_from", "validFrom");
+                validTo = FormOrNull(form, "valid_to", "validTo");
+                notes = FormOrNull(form, "notes");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to add SOC 2 evidence.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AddEvidenceAsync(
+                controlId, evidenceType, title, filePath, collectedBy, validFrom, validTo, notes, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -2166,6 +2232,17 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long RunId = 0,
         long ApproverId = 0);
+
+    private sealed record BosSoc2AddEvidenceBody(
+        bool ConfirmWrites = false,
+        string? ControlId = null,
+        string? EvidenceType = null,
+        string? Title = null,
+        string? FilePath = null,
+        string? CollectedBy = null,
+        string? ValidFrom = null,
+        string? ValidTo = null,
+        string? Notes = null);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,
