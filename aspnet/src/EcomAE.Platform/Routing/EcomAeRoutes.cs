@@ -2047,6 +2047,8 @@ public static class EcomAeRoutes
     public const string BosSsoProviderDelete = "/bos/sso/provider-delete";
     /// <summary>Live PHP ajax_epc_bos.php config_sandbox promote. confirmWrites=true UPDATEs epc_config_snapshots. Super-CP only.</summary>
     public const string BosSandboxPromote = "/bos/sandbox/promote";
+    /// <summary>Live PHP ajax_epc_bos.php config_sandbox discard. confirmWrites=true UPDATEs epc_config_snapshots. Super-CP only.</summary>
+    public const string BosSandboxDiscard = "/bos/sandbox/discard";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
