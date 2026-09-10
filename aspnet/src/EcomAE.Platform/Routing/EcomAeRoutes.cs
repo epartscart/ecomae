@@ -2033,6 +2033,8 @@ public static class EcomAeRoutes
     public const string BosDealersAutoTier = "/bos/dealers/auto-tier";
     /// <summary>Live PHP ajax_epc_bos.php collections_dunning update_status. confirmWrites=true UPDATEs epc_dunning_queue. Super-CP only.</summary>
     public const string BosDunningUpdateStatus = "/bos/dunning/update-status";
+    /// <summary>Live PHP ajax_epc_bos.php collections_dunning record_payment. confirmWrites=true UPDATEs epc_dunning_queue. Super-CP only.</summary>
+    public const string BosDunningRecordPayment = "/bos/dunning/record-payment";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
