@@ -2793,20 +2793,20 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("ACME", CpPricesUploadWriteService.SanitizeShort(" ACME/# "));
         Assert.Equal("", CpPricesUploadWriteService.SanitizeShort("///"));
 
-        var vendorInvalid = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
+        var mvVendorInvalid = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
             .SaveVendorCodeAsync(0, "ACME", "Acme");
-        Assert.False(vendorInvalid.Succeeded);
-        Assert.Equal("invalid", vendorInvalid.Code);
+        Assert.False(mvVendorInvalid.Succeeded);
+        Assert.Equal("invalid", mvVendorInvalid.Code);
 
-        var vendorEmpty = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
+        var mvVendorEmpty = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
             .SaveVendorCodeAsync(9, "///", "");
-        Assert.False(vendorEmpty.Succeeded);
-        Assert.Equal("invalid", vendorEmpty.Code);
+        Assert.False(mvVendorEmpty.Succeeded);
+        Assert.Equal("invalid", mvVendorEmpty.Code);
 
-        var vendorDb = await new CpPricesUploadWriteService(new UnconfiguredConnections())
+        var mvVendorDb = await new CpPricesUploadWriteService(new UnconfiguredConnections())
             .SaveVendorCodeAsync(9, "ACME", "Acme");
-        Assert.False(vendorDb.Succeeded);
-        Assert.Equal("db", vendorDb.Code);
+        Assert.False(mvVendorDb.Succeeded);
+        Assert.Equal("db", mvVendorDb.Code);
 
         Assert.True(CpPartsAgentWriteService.ParseEnabled("1"));
         Assert.False(CpPartsAgentWriteService.ParseEnabled("0"));
