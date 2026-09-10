@@ -335,6 +335,17 @@
             <label>Workflow id <input type="text" name="workflow_id" /></label>
             <button type="submit">Delete workflow</button>
         </form>
+        <form method="post" action="/bos/vault/new-version" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Document id <input type="text" name="document_id" /></label>
+            <label>File path <input type="text" name="file_path" /></label>
+            <label>File size <input type="text" name="file_size" /></label>
+            <label>Checksum <input type="text" name="checksum" /></label>
+            <label>Change note <input type="text" name="change_note" /></label>
+            <label>Uploaded by <input type="text" name="uploaded_by" /></label>
+            <button type="submit">Add vault version</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
