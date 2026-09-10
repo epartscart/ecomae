@@ -2996,6 +2996,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosPayrollApproveDb.Succeeded);
         Assert.Equal("db", bosPayrollApproveDb.Code);
 
+        var bosSoc2EvidenceDb = await new BosSoc2WriteService(new UnconfiguredConnections())
+            .AddEvidenceAsync("CC1.1", "document", "Policy", "", "", null, null, "");
+        Assert.False(bosSoc2EvidenceDb.Succeeded);
+        Assert.Equal("db", bosSoc2EvidenceDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);
