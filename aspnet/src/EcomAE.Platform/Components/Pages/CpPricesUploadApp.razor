@@ -115,7 +115,7 @@
             <div class="epc-prices-note">
                 Multi-vendor ingest is PHP <code>ajax_epc_multivendor_ingest</code>
                 (<code>cp/content/shop/prices_upload/for_multivendor/form.php</code>).
-                Drop a combined Excel/CSV there. File ingest stays Classic.
+                Drop a combined Excel/CSV there. File ingest stay Classic.
             </div>
             @if (_isAdmin)
             {
@@ -132,7 +132,7 @@
                     <label>User ids <input type="text" name="user_ids" placeholder="12,18" style="width:10rem" /></label>
                     <button type="submit">Save min-price access</button>
                 </form>
-                <p class="help-block" style="margin:0 0 1rem">File ingest stays Classic. This page does not invent a send.</p>
+                <p class="help-block" style="margin:0 0 1rem">File ingest stay Classic. This page does not invent a send.</p>
             }
         }
         else if (_view == "price")
@@ -184,7 +184,7 @@
                     <a class="epc-price-action" href="@CpPricesUploadWaysCatalog.ReviewHref(_detail.Id)">Review</a>
                 </div>
                 <div class="epc-prices-note">
-                    FTP password and save/create stay on PHP <code>price.php</code>. Complete session stamps last_updated and records_count on ASP.NET.
+                    FTP password and save/create stay on the Classic twin. Complete session stamps last_updated and records_count here.
                 </div>
             }
         }
@@ -276,7 +276,7 @@
         <div class="epc-prices-note">
             Uploaded amounts are supplier purchase. Storefront customer price = purchase + group markup
             (<code>shop_offices_storages_map</code>). Staff with <code>for_percentage</code> see purchase under the sell price.
-            File ingest stays PHP / pyprices. Complete session stamps last_updated and records_count on ASP.NET.
+            File ingest stay Classic / pyprices. Complete session stamps last_updated and records_count here.
         </div>
     </div>
 </PhpCpDesktopChrome>
