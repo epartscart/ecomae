@@ -2041,6 +2041,8 @@ public static class EcomAeRoutes
     public const string BosDunningUpdateStatus = "/bos/dunning/update-status";
     /// <summary>Live PHP ajax_epc_bos.php collections_dunning record_payment. confirmWrites=true UPDATEs epc_dunning_queue. Super-CP only.</summary>
     public const string BosDunningRecordPayment = "/bos/dunning/record-payment";
+    /// <summary>Live PHP ajax_epc_bos.php sso_saml provider_toggle. confirmWrites=true UPDATEs epc_sso_providers. Super-CP only.</summary>
+    public const string BosSsoProviderToggle = "/bos/sso/provider-toggle";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

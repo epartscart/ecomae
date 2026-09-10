@@ -1306,6 +1306,61 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosSsoProviderToggle, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosSsoWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for SSO provider-toggle.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosSsoProviderToggleBody>(context, cancellationToken)
+                       ?? new();
+            var providerId = body.ProviderId;
+            var active = body.Active;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                providerId = LiveWriteFormBinder.Long(form, "provider_id", "providerId");
+                active = form.ContainsKey("active")
+                    ? BosSsoWriteService.PhpPostedBool(form["active"].ToString())
+                    : false;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to toggle an SSO provider.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ToggleAsync(providerId, active, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -1703,6 +1758,11 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long QueueId = 0,
         decimal Amount = 0);
+
+    private sealed record BosSsoProviderToggleBody(
+        bool ConfirmWrites = false,
+        long ProviderId = 0,
+        bool Active = false);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,
