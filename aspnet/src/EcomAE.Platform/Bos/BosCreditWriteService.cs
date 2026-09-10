@@ -5,8 +5,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>credit_limit</c> / <c>sub_action=hold</c> / <c>epc_credit_hold</c>.
-/// Set-limit already lives on CP. Release, check-order, and schema-ensure stay Classic.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>credit_limit</c> <c>hold</c> / <c>epc_credit_hold</c>
+/// and <c>release</c> / <c>epc_credit_release</c>.
+/// Set-limit already lives on CP. Check-order and schema-ensure stay Classic.
 /// This service does not invent a send. It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosCreditWriteService
@@ -15,6 +16,11 @@ public interface IBosCreditWriteService
         string? siteKey,
         long customerId,
         string? reason,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> ReleaseAsync(
+        string? siteKey,
+        long customerId,
         CancellationToken cancellationToken = default);
 }
 
@@ -58,6 +64,36 @@ public sealed class BosCreditWriteService : IBosCreditWriteService
                     """),
                 cancellationToken, holdReason, key, customerId).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Credit hold applied", customerId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Credit limits table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> ReleaseAsync(
+        string? siteKey,
+        long customerId,
+        CancellationToken cancellationToken = default)
+    {
+        var key = NormalizeSiteKey(siteKey);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    UPDATE `epc_credit_limits` SET `status` = 'active', `hold_reason` = ''
+                    WHERE `site_key` = ? AND `customer_id` = ?
+                    """),
+                cancellationToken, key, customerId).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Credit hold released", customerId);
         }
         catch (DbException)
         {
