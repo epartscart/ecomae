@@ -2030,6 +2030,71 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosVaultNewVersion, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosVaultWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for vault new-version.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosVaultNewVersionBody>(context, cancellationToken)
+                       ?? new();
+            var documentId = body.DocumentId;
+            var versionData = body.VersionData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                documentId = LiveWriteFormBinder.Long(form, "document_id", "documentId");
+                versionData = FormOrNull(form, "version_data", "versionData");
+                if (string.IsNullOrWhiteSpace(versionData))
+                {
+                    versionData = JsonSerializer.Serialize(new Dictionary<string, string?>
+                    {
+                        ["file_path"] = form["file_path"].ToString(),
+                        ["file_size"] = form["file_size"].ToString(),
+                        ["checksum"] = form["checksum"].ToString(),
+                        ["change_note"] = form["change_note"].ToString(),
+                        ["uploaded_by"] = form["uploaded_by"].ToString()
+                    });
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to add a vault document version.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.NewVersionAsync(documentId, versionData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -2497,6 +2562,11 @@ public sealed class BosModule : ISurfaceModule
     private sealed record BosWorkflowsDeleteBody(
         bool ConfirmWrites = false,
         long WorkflowId = 0);
+
+    private sealed record BosVaultNewVersionBody(
+        bool ConfirmWrites = false,
+        long DocumentId = 0,
+        string? VersionData = null);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,

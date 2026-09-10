@@ -60,6 +60,7 @@ public static class PlatformHostPolicy
         "payroll",
         "soc2",
         "workflows",
+        "vault",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>
