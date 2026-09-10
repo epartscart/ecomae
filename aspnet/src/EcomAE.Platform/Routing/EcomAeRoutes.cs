@@ -2019,6 +2019,8 @@ public static class EcomAeRoutes
     public const string BosWebhooksDlqResolve = "/bos/webhooks/dlq-resolve";
     /// <summary>Live PHP ajax_epc_bos.php po_approval cancel. confirmWrites=true UPDATEs epc_po_requests. Super-CP only.</summary>
     public const string BosPoCancel = "/bos/po/cancel";
+    /// <summary>Live PHP ajax_epc_bos.php po_approval reject. confirmWrites=true UPDATEs epc_po_requests. Super-CP only.</summary>
+    public const string BosPoReject = "/bos/po/reject";
     /// <summary>Live PHP ajax_epc_bos.php fulfillment_queue pick_item. confirmWrites=true UPDATEs epc_fulfillment_items. Super-CP only.</summary>
     public const string BosFulfillmentPickItem = "/bos/fulfillment/pick-item";
     public const string BosTenants = "/bos/tenants";
