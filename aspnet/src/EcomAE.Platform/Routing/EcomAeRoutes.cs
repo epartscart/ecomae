@@ -2005,6 +2005,8 @@ public static class EcomAeRoutes
     public const string BosNotificationsMarkAllRead = "/bos/notifications/mark-all-read";
     /// <summary>Live PHP ajax_epc_bos.php notifications prefs_save. confirmWrites=true UPSERTs epc_notification_prefs. Super-CP only.</summary>
     public const string BosNotificationsPrefsSave = "/bos/notifications/prefs-save";
+    /// <summary>Live PHP ajax_epc_bos.php notifications cleanup. confirmWrites=true DELETEs old read epc_notifications. Super-CP only.</summary>
+    public const string BosNotificationsCleanup = "/bos/notifications/cleanup";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

@@ -2854,6 +2854,15 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosPrefsDb.Succeeded);
         Assert.Equal("db", bosPrefsDb.Code);
 
+        Assert.Equal(90, BosNotificationWriteService.ResolveDays(null));
+        Assert.Equal(7, BosNotificationWriteService.ResolveDays("3"));
+        Assert.Equal(120, BosNotificationWriteService.ResolveDays("120"));
+
+        var bosCleanupDb = await new BosNotificationWriteService(new UnconfiguredConnections())
+            .CleanupAsync("90");
+        Assert.False(bosCleanupDb.Succeeded);
+        Assert.Equal("db", bosCleanupDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);
