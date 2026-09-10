@@ -28,6 +28,7 @@ public sealed class BosHostGateMiddlewareTests
     [InlineData("/bos/tenants-app", true)]
     [InlineData("/bos/fleet-summary", true)]
     [InlineData("/bos/ajax-writes/catalog", true)]
+    [InlineData("/bos/notifications/mark-read", true)]
     [InlineData("/BOS/", true)]
     [InlineData("/php-reference/bos", true)]
     [InlineData("/marketing/bos", false)]

@@ -42,6 +42,7 @@ public static class PlatformHostPolicy
         "fleet-readiness-app",
         "audit-log",
         "audit-log-app",
+        "notifications",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>

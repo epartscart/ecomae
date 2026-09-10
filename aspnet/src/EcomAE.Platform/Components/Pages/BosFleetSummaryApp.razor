@@ -62,6 +62,26 @@
         <div class="epc-fs-kpi"><strong>@_sessions.ToString(CultureInfo.InvariantCulture)</strong><span>Admin sessions</span></div>
 </div>
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/bos/notifications/mark-read" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Ids <input type="text" name="ids" placeholder="1,2,3 or [1,2,3]" /></label>
+            <label>Tenant key <input type="text" name="tenant_key" value="__platform__" /></label>
+            <button type="submit">Mark read</button>
+        </form>
+        <p class="help-block" style="margin:0 0 1rem">Send, broadcast, dismiss, and mark-all stay Classic. This page does not invent a send.</p>
+    }
+
 </PhpBosDesktopChrome>
 
 @code {
@@ -77,11 +97,16 @@
     private int _platform;
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("bos");
