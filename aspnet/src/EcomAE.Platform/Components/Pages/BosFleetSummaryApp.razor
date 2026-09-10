@@ -93,6 +93,18 @@
             <label>Tenant key <input type="text" name="tenant_key" value="__platform__" /></label>
             <button type="submit">Mark all read</button>
         </form>
+        <form method="post" action="/bos/notifications/prefs-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>User id <input type="text" name="user_id" value="0" /></label>
+            <label>Tenant key <input type="text" name="tenant_key" value="__platform__" /></label>
+            <label>Category <input type="text" name="category" value="*" /></label>
+            <label>In-app <input type="text" name="channel_in_app" value="1" /></label>
+            <label>Email <input type="text" name="channel_email" value="1" /></label>
+            <label>Webhook <input type="text" name="channel_webhook" value="0" /></label>
+            <label>Digest <input type="text" name="email_digest" value="daily" /></label>
+            <button type="submit">Save prefs</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
