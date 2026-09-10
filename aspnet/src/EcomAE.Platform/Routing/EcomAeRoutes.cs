@@ -2017,6 +2017,8 @@ public static class EcomAeRoutes
     public const string BosWebhooksDelete = "/bos/webhooks/delete";
     /// <summary>Live PHP ajax_epc_bos.php webhooks dlq_resolve. confirmWrites=true UPDATEs epc_webhook_dlq. Super-CP only.</summary>
     public const string BosWebhooksDlqResolve = "/bos/webhooks/dlq-resolve";
+    /// <summary>Live PHP ajax_epc_bos.php po_approval cancel. confirmWrites=true UPDATEs epc_po_requests. Super-CP only.</summary>
+    public const string BosPoCancel = "/bos/po/cancel";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
