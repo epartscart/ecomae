@@ -2976,6 +2976,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosSandboxDiscardDb.Succeeded);
         Assert.Equal("db", bosSandboxDiscardDb.Code);
 
+        var bosMarketplaceUninstallDb = await new BosMarketplaceWriteService(new UnconfiguredConnections())
+            .UninstallAsync(9, "acme");
+        Assert.False(bosMarketplaceUninstallDb.Succeeded);
+        Assert.Equal("db", bosMarketplaceUninstallDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);
