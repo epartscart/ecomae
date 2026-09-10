@@ -428,6 +428,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("CpPartsAgentChatsApp.razor", "/cp/parts-agent/save-config"),
             ("BosFleetSummaryApp.razor", "/bos/notifications/mark-read"),
             ("BosFleetSummaryApp.razor", "/bos/notifications/dismiss"),
+            ("BosFleetSummaryApp.razor", "/bos/notifications/mark-all-read"),
             ("ErpPayrollApp.razor", "/erp/ajax/hr-update-days"),
             ("CpHrOverviewApp.razor", "/erp/ajax/hr-update-days"),
             ("ErpInventoryStockApp.razor", "/erp/ajax/inv-set-reorder-level"),
