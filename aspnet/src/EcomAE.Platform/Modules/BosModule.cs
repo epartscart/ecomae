@@ -780,6 +780,101 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosFulfillmentTransition, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosFulfillmentWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for fulfillment transition.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosFulfillmentTransitionBody>(context, cancellationToken)
+                       ?? new();
+            var fulfillmentId = body.FulfillmentId;
+            var newStatus = body.NewStatus;
+            var assignedTo = body.AssignedTo;
+            var assignedName = body.AssignedName;
+            var carrier = body.Carrier;
+            var trackingNumber = body.TrackingNumber;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                fulfillmentId = LiveWriteFormBinder.Long(form, "fulfillment_id", "fulfillmentId");
+                newStatus = form.ContainsKey("new_status") ? form["new_status"].ToString() : (form.ContainsKey("newStatus") ? form["newStatus"].ToString() : null);
+                assignedTo = LiveWriteFormBinder.Long(form, "assigned_to", "assignedTo");
+                assignedName = form.ContainsKey("assigned_name") ? form["assigned_name"].ToString() : null;
+                carrier = form.ContainsKey("carrier") ? form["carrier"].ToString() : null;
+                trackingNumber = form.ContainsKey("tracking_number") ? form["tracking_number"].ToString() : null;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                if (form.ContainsKey("opts"))
+                {
+                    try
+                    {
+                        using var opts = JsonDocument.Parse(form["opts"].ToString());
+                        if (opts.RootElement.ValueKind == JsonValueKind.Object)
+                        {
+                            if (opts.RootElement.TryGetProperty("assigned_to", out var assignedEl)
+                                && assignedEl.TryGetInt64(out var assignedFromOpts))
+                            {
+                                assignedTo = assignedFromOpts;
+                            }
+
+                            if (opts.RootElement.TryGetProperty("assigned_name", out var nameEl))
+                            {
+                                assignedName = nameEl.GetString();
+                            }
+
+                            if (opts.RootElement.TryGetProperty("carrier", out var carrierEl))
+                            {
+                                carrier = carrierEl.GetString();
+                            }
+
+                            if (opts.RootElement.TryGetProperty("tracking_number", out var trackingEl))
+                            {
+                                trackingNumber = trackingEl.GetString();
+                            }
+                        }
+                    }
+                    catch (JsonException)
+                    {
+                        // PHP json_decode failure becomes [] via `$opts ?: array()`.
+                    }
+                }
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to transition a fulfillment order.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.TransitionAsync(fulfillmentId, newStatus, assignedTo, assignedName, carrier, trackingNumber, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosBillingCancel, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -1417,6 +1512,15 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long ItemId = 0,
         int QtyPicked = 0);
+
+    private sealed record BosFulfillmentTransitionBody(
+        bool ConfirmWrites = false,
+        long FulfillmentId = 0,
+        string? NewStatus = null,
+        long AssignedTo = 0,
+        string? AssignedName = null,
+        string? Carrier = null,
+        string? TrackingNumber = null);
 
     private sealed record BosBillingCancelBody(
         bool ConfirmWrites = false,
