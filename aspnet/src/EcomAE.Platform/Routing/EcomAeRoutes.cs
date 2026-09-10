@@ -2011,6 +2011,8 @@ public static class EcomAeRoutes
     public const string BosCreditHold = "/bos/credit/hold";
     /// <summary>Live PHP ajax_epc_bos.php credit_limit release. confirmWrites=true UPDATEs epc_credit_limits. Super-CP only.</summary>
     public const string BosCreditRelease = "/bos/credit/release";
+    /// <summary>Live PHP ajax_epc_bos.php rest_api key_revoke. confirmWrites=true UPDATEs epc_api_keys. Super-CP only.</summary>
+    public const string BosApiKeysRevoke = "/bos/api-keys/revoke";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";

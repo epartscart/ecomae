@@ -466,6 +466,57 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosApiKeysRevoke, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosApiKeyWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for API key revoke.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosApiKeyRevokeBody>(context, cancellationToken)
+                       ?? new();
+            var keyId = body.KeyId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                keyId = LiveWriteFormBinder.Long(form, "key_id", "keyId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to revoke an API key.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.RevokeAsync(keyId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -755,6 +806,10 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         string? SiteKey = null,
         long CustomerId = 0);
+
+    private sealed record BosApiKeyRevokeBody(
+        bool ConfirmWrites = false,
+        long KeyId = 0);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,
