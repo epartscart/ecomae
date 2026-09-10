@@ -202,6 +202,13 @@
             <label>Notes <input type="text" name="notes" /></label>
             <button type="submit">Update dunning status</button>
         </form>
+        <form method="post" action="/bos/dunning/record-payment" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Queue id <input type="text" name="queue_id" /></label>
+            <label>Amount <input type="text" name="amount" /></label>
+            <button type="submit">Record dunning payment</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
