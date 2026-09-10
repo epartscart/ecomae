@@ -43,6 +43,7 @@ public static class PlatformHostPolicy
         "audit-log",
         "audit-log-app",
         "notifications",
+        "credit",
     };
 
     /// <summary>First path segment under <c>/ip/</c> that is product Intelligence Platform.</summary>

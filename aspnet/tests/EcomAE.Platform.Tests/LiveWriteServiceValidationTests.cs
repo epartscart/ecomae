@@ -2863,6 +2863,14 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosCleanupDb.Succeeded);
         Assert.Equal("db", bosCleanupDb.Code);
 
+        Assert.Equal("acme", BosCreditWriteService.NormalizeSiteKey(" ACME! "));
+        Assert.Equal("", BosCreditWriteService.NormalizeSiteKey(" !!! "));
+
+        var bosHoldDb = await new BosCreditWriteService(new UnconfiguredConnections())
+            .HoldAsync("acme", 9, "overdue");
+        Assert.False(bosHoldDb.Succeeded);
+        Assert.Equal("db", bosHoldDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);
