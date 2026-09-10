@@ -261,6 +261,16 @@
             <label>Snapshot id <input type="text" name="snapshot_id" /></label>
             <button type="submit">Discard sandbox snapshot</button>
         </form>
+        <form method="post" action="/bos/sandbox/apply-change" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Snapshot id <input type="text" name="snapshot_id" /></label>
+            <label>Key <input type="text" name="key" /></label>
+            <label>Old value <input type="text" name="old_value" /></label>
+            <label>New value <input type="text" name="new_value" /></label>
+            <label>Change type <input type="text" name="change_type" value="modify" /></label>
+            <button type="submit">Apply sandbox change</button>
+        </form>
         <form method="post" action="/bos/marketplace/uninstall" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />

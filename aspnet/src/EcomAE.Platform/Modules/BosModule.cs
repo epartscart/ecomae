@@ -1514,6 +1514,65 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosSandboxApplyChange, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosSandboxWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for sandbox apply-change.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosSandboxApplyChangeBody>(context, cancellationToken)
+                       ?? new();
+            var snapshotId = body.SnapshotId;
+            var key = body.Key;
+            var oldValue = body.OldValue;
+            var newValue = body.NewValue;
+            var changeType = body.ChangeType;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                snapshotId = LiveWriteFormBinder.Long(form, "snapshot_id", "snapshotId");
+                key = FormOrNull(form, "key");
+                oldValue = FormOrNull(form, "old_value", "oldValue");
+                newValue = FormOrNull(form, "new_value", "newValue");
+                changeType = FormOrNull(form, "change_type", "changeType") ?? "modify";
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to apply a sandbox change.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ApplyChangeAsync(snapshotId, key, oldValue, newValue, changeType, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosMarketplaceUninstall, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2509,6 +2568,14 @@ public sealed class BosModule : ISurfaceModule
     private sealed record BosSandboxDiscardBody(
         bool ConfirmWrites = false,
         long SnapshotId = 0);
+
+    private sealed record BosSandboxApplyChangeBody(
+        bool ConfirmWrites = false,
+        long SnapshotId = 0,
+        string? Key = null,
+        string? OldValue = null,
+        string? NewValue = null,
+        string? ChangeType = "modify");
 
     private sealed record BosMarketplaceUninstallBody(
         bool ConfirmWrites = false,
