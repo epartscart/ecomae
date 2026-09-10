@@ -163,3 +163,4 @@ public sealed class BosFulfillmentWriteService : IBosFulfillmentWriteService
 
     private static bool IsPhpEmpty(string? value)
         => string.IsNullOrEmpty(value) || string.Equals(value, "0", StringComparison.Ordinal);
+}
