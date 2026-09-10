@@ -2775,6 +2775,15 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(aclDb.Succeeded);
         Assert.Equal("db", aclDb.Code);
 
+        Assert.True(CpPartsAgentWriteService.ParseEnabled("1"));
+        Assert.False(CpPartsAgentWriteService.ParseEnabled("0"));
+        Assert.False(CpPartsAgentWriteService.ParseEnabled("yes"));
+
+        var agentDb = await new CpPartsAgentWriteService(new UnconfiguredConnections())
+            .SaveConfigAsync("1", "Parts", "", "", "", "", "", "", "");
+        Assert.False(agentDb.Succeeded);
+        Assert.Equal("db", agentDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);

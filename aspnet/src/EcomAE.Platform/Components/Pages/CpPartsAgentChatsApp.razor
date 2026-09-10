@@ -2,10 +2,12 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
+@inject ICpPartsAgentWriteService Writes
 @inject IHttpContextAccessor Http
 
 <PageTitle>Parts Agent Chats · Control Panel · eParts Cart</PageTitle>
@@ -25,6 +27,47 @@
     </div>
     <PhpParityModuleBody AppPath="/cp/parts-agent-chats-app" IsAdmin="_isAdmin" />
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+    @if (_isAdmin)
+    {
+        <form method="post" action="/cp/parts-agent/save-config" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/parts-agent-chats-app" />
+            <label>Enabled
+                <select name="enabled">
+                    @if (_cfg.Enabled)
+                    {
+                        <option value="1" selected>yes</option>
+                        <option value="0">no</option>
+                    }
+                    else
+                    {
+                        <option value="1">yes</option>
+                        <option value="0" selected>no</option>
+                    }
+                </select>
+            </label>
+            <label>Agent name <input type="text" name="agent_name" maxlength="128" value="@_cfg.AgentName" /></label>
+            <label>Subtitle <input type="text" name="subtitle" maxlength="255" value="@_cfg.Subtitle" /></label>
+            <label>Greeting <input type="text" name="greeting" value="@_cfg.Greeting" /></label>
+            <label>Teaser <input type="text" name="teaser_text" maxlength="255" value="@_cfg.TeaserText" /></label>
+            <label>Placeholder <input type="text" name="placeholder" maxlength="255" value="@_cfg.Placeholder" /></label>
+            <label>Logo URL <input type="text" name="logo_url" maxlength="512" value="@_cfg.LogoUrl" /></label>
+            <label>Domain <input type="text" name="domain" maxlength="255" value="@_cfg.Domain" /></label>
+            <label style="flex:1 1 100%">Prompt
+                <textarea name="system_prompt" rows="3" style="width:100%;display:block">@_cfg.SystemPrompt</textarea>
+            </label>
+            <button type="submit">Save config</button>
+        </form>
+        <p class="help-block" style="margin:0 0 1rem">Chat, sync, and export stay Classic. This page does not invent a send.</p>
+    }
 
     <p class="help-block">@(_summary.Enabled ? "on" : "off") Agent @(string.IsNullOrWhiteSpace(_summary.AgentName) ? "—" : _summary.AgentName) · @_summary.TotalSessions.ToString(CultureInfo.InvariantCulture) Total sessions (@_summary.SessionsToday.ToString(CultureInfo.InvariantCulture) today) · @_summary.MessagesToday.ToString(CultureInfo.InvariantCulture) Messages today · @_summary.LoggedInSessions.ToString(CultureInfo.InvariantCulture) logged / @_summary.GuestSessions.ToString(CultureInfo.InvariantCulture) guest.</p>
 
@@ -81,13 +124,19 @@
     private bool _isAdmin;
     private CpPartsAgentSummary _summary = new(0, 0, 0, 0, 0, false, "", "", "n/a", "");
     private IReadOnlyList<CpPartsAgentSessionDigest> _sessions = [];
+    private CpPartsAgentConfigRow _cfg = new(true, "", "", "", "", "", "", "", "");
     private string _source = "n/a";
     private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -101,5 +150,6 @@
         _sessions = result.Sessions;
         _source = result.Source;
         _message = result.Message;
+        _cfg = await Writes.LoadConfigAsync(ctx.RequestAborted);
     }
 }
