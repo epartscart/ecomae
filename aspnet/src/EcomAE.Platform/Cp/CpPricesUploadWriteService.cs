@@ -6,8 +6,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_6_complete_session</c> last_updated / records_count twin
-/// and <c>min_price_acl_save</c> / <c>epc_mv_min_price_acl_save</c> UPSERT.
+/// Live PHP <c>ajax_6_complete_session</c> last_updated / records_count twin,
+/// <c>min_price_acl_save</c> / <c>epc_mv_min_price_acl_save</c> UPSERT,
+/// and <c>ajax_epc_storefront_storage_toggle</c> / <c>epc_ssf_set_toggle</c>.
 /// CSV import, file ingest, and sitemap stay Classic. This service does not invent a send.
 /// </summary>
 public interface ICpPricesUploadWriteService
@@ -19,6 +20,14 @@ public interface ICpPricesUploadWriteService
         string? groupIds,
         string? userIds,
         long updatedBy,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetStorefrontToggleAsync(
+        string? entityTypeRaw,
+        long entityId,
+        string? storefrontEnabledRaw,
+        long userId,
+        string? userLabel,
         CancellationToken cancellationToken = default);
 }
 
@@ -124,6 +133,124 @@ public sealed class CpPricesUploadWriteService : ICpPricesUploadWriteService
         }
     }
 
+    public async Task<ErpSimpleWriteResult> SetStorefrontToggleAsync(
+        string? entityTypeRaw,
+        long entityId,
+        string? storefrontEnabledRaw,
+        long userId,
+        string? userLabel,
+        CancellationToken cancellationToken = default)
+    {
+        var entityType = ParseEntityType(entityTypeRaw);
+        var disabled = ParseStorefrontEnabled(storefrontEnabledRaw) ? 0 : 1;
+        if (entityId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid entity id");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var label = Clip(userLabel, 128);
+        if (label.Length == 0)
+        {
+            label = userId > 0 ? "user#" + userId.ToString(CultureInfo.InvariantCulture) : "admin";
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var nameSql = entityType == "price_list"
+                ? "SELECT `name` FROM `shop_docpart_prices` WHERE `id` = ? LIMIT 1"
+                : "SELECT `name` FROM `shop_storages` WHERE `id` = ? LIMIT 1";
+            var name = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional(nameSql),
+                cancellationToken,
+                entityId) ?? string.Empty;
+            if (name.Length == 0)
+            {
+                return ErpSimpleWriteResult.Fail(
+                    "not_found",
+                    entityType == "price_list" ? "Price list not found" : "Storage not found");
+            }
+
+            var updateSql = entityType == "price_list"
+                ? "UPDATE `shop_docpart_prices` SET `storefront_temp_disabled` = ? WHERE `id` = ? LIMIT 1"
+                : "UPDATE `shop_storages` SET `storefront_temp_disabled` = ? WHERE `id` = ? LIMIT 1";
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(updateSql),
+                cancellationToken,
+                disabled,
+                entityId);
+
+            try
+            {
+                if (entityType == "price_list")
+                {
+                    await SyncStoragesFromPriceAsync(connection, entityId, disabled, cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await SyncPriceFromStorageAsync(connection, entityId, disabled, cancellationToken).ConfigureAwait(false);
+                }
+            }
+            catch (DbException)
+            {
+                // Linked column missing — schema-ensure stays Classic.
+            }
+
+            try
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        """
+                        INSERT INTO `epc_storefront_storage_toggle_audit`
+                         (`entity_type`, `entity_id`, `entity_name`, `storefront_disabled`, `user_id`, `user_label`, `created_at`)
+                         VALUES (?, ?, ?, ?, ?, ?, NOW())
+                        """),
+                    cancellationToken,
+                    entityType,
+                    entityId,
+                    Clip(name, 255),
+                    disabled,
+                    Math.Max(0, userId),
+                    label);
+            }
+            catch (DbException)
+            {
+                // Audit table missing — schema-ensure stays Classic.
+            }
+
+            return ErpSimpleWriteResult.Ok("Storefront visibility saved.", entityId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Storefront toggle column is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP entity_type is price_list or storage (default).</summary>
+    public static string ParseEntityType(string? raw)
+    {
+        var key = (raw ?? string.Empty).Trim().ToLowerInvariant();
+        return key == "price_list" ? "price_list" : "storage";
+    }
+
+    /// <summary>PHP: enabled when the raw value is nonempty and not 0.</summary>
+    public static bool ParseStorefrontEnabled(string? raw)
+    {
+        var key = (raw ?? string.Empty).Trim();
+        return key.Length > 0 && key != "0";
+    }
+
     /// <summary>PHP: restrict unless the raw value is 0 / false / no / off.</summary>
     public static bool ParseRestrict(string? raw)
     {
@@ -189,5 +316,106 @@ public sealed class CpPricesUploadWriteService : ICpPricesUploadWriteService
         }
 
         parsed.Add(id);
+    }
+
+    private static async Task SyncPriceFromStorageAsync(
+        DbConnection connection,
+        long storageId,
+        int disabled,
+        CancellationToken cancellationToken)
+    {
+        var raw = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `connection_options` FROM `shop_storages` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            storageId);
+        var priceId = PriceIdFromConnectionOptions(raw);
+        if (priceId <= 0)
+        {
+            return;
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `shop_docpart_prices` SET `storefront_temp_disabled` = ? WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            disabled,
+            priceId);
+    }
+
+    private static async Task SyncStoragesFromPriceAsync(
+        DbConnection connection,
+        long priceId,
+        int disabled,
+        CancellationToken cancellationToken)
+    {
+        await using var select = connection.CreateCommand();
+        select.CommandText = ErpDb.Positional(
+            """
+            SELECT `id` FROM `shop_storages`
+             WHERE `connection_options` LIKE CONCAT('%"price_id":', ?, '%')
+            """);
+        ErpDb.AddParameters(select, priceId);
+        var ids = new List<long>();
+        await using (var reader = await select.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!reader.IsDBNull(0))
+                {
+                    ids.Add(Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture));
+                }
+            }
+        }
+
+        foreach (var id in ids)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_storages` SET `storefront_temp_disabled` = ? WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                disabled,
+                id);
+        }
+    }
+
+    private static long PriceIdFromConnectionOptions(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            return 0;
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(text);
+            if (!doc.RootElement.TryGetProperty("price_id", out var prop))
+            {
+                return 0;
+            }
+
+            if (prop.ValueKind == JsonValueKind.Number && prop.TryGetInt64(out var n))
+            {
+                return n;
+            }
+
+            return long.TryParse(prop.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var fromText)
+                ? fromText
+                : 0;
+        }
+        catch (JsonException)
+        {
+            return 0;
+        }
+    }
+
+    private static string Clip(string? raw, int max)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        return text.Length <= max ? text : text[..max];
     }
 }

@@ -189,6 +189,29 @@
             }
         }
 
+        @if (_isAdmin && _view != "guide")
+        {
+            <form method="post" action="/cp/prices/storefront-storage/toggle" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/cp/prices-upload-app" />
+                <label>Entity
+                    <select name="entity_type">
+                        <option value="storage" selected>warehouse</option>
+                        <option value="price_list">price list</option>
+                    </select>
+                </label>
+                <label>Id <input type="number" name="entity_id" min="1" required style="width:7rem" /></label>
+                <label>Storefront
+                    <select name="storefront_enabled">
+                        <option value="1" selected>on</option>
+                        <option value="0">off</option>
+                    </select>
+                </label>
+                <button type="submit">Save storefront visibility</button>
+            </form>
+            <p class="help-block" style="margin:0 0 1rem">File ingest stay Classic. This page does not invent a send.</p>
+        }
+
         @if (_view != "price")
         {
             <h2 style="margin:1rem 0 .55rem;font-size:1.05rem;">Price lists</h2>
@@ -276,7 +299,7 @@
         <div class="epc-prices-note">
             Uploaded amounts are supplier purchase. Storefront customer price = purchase + group markup
             (<code>shop_offices_storages_map</code>). Staff with <code>for_percentage</code> see purchase under the sell price.
-            File ingest stay Classic / pyprices. Complete session stamps last_updated and records_count here.
+            File ingest stay Classic / pyprices. Complete session and storefront toggle save here.
         </div>
     </div>
 </PhpCpDesktopChrome>

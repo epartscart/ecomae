@@ -2775,6 +2775,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(aclDb.Succeeded);
         Assert.Equal("db", aclDb.Code);
 
+        Assert.Equal("price_list", CpPricesUploadWriteService.ParseEntityType("price_list"));
+        Assert.Equal("storage", CpPricesUploadWriteService.ParseEntityType(""));
+        Assert.True(CpPricesUploadWriteService.ParseStorefrontEnabled("1"));
+        Assert.False(CpPricesUploadWriteService.ParseStorefrontEnabled("0"));
+
+        var toggleInvalid = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
+            .SetStorefrontToggleAsync("storage", 0, "1", 1, "admin");
+        Assert.False(toggleInvalid.Succeeded);
+        Assert.Equal("invalid", toggleInvalid.Code);
+
+        var toggleDb = await new CpPricesUploadWriteService(new UnconfiguredConnections())
+            .SetStorefrontToggleAsync("storage", 9, "1", 1, "admin");
+        Assert.False(toggleDb.Succeeded);
+        Assert.Equal("db", toggleDb.Code);
+
         Assert.True(CpPartsAgentWriteService.ParseEnabled("1"));
         Assert.False(CpPartsAgentWriteService.ParseEnabled("0"));
         Assert.False(CpPartsAgentWriteService.ParseEnabled("yes"));
