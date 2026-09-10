@@ -8,7 +8,7 @@ namespace EcomAE.Platform.Bos;
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> <c>mark_read</c> / <c>epc_notifications_mark_read</c>,
 /// <c>dismiss</c> / <c>epc_notifications_dismiss</c>, <c>mark_all_read</c> / <c>epc_notifications_mark_all_read</c>,
-/// and <c>prefs_save</c> / <c>epc_notification_prefs_save</c>.
+/// <c>prefs_save</c> / <c>epc_notification_prefs_save</c>, and <c>cleanup</c> / <c>epc_notifications_cleanup</c>.
 /// Send and broadcast stay Classic.
 /// This service does not invent a send. It does not emit CREATE/ALTER.
 /// </summary>
@@ -37,6 +37,10 @@ public interface IBosNotificationWriteService
         string? channelEmail,
         string? channelWebhook,
         string? emailDigest,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CleanupAsync(
+        string? daysRaw,
         CancellationToken cancellationToken = default);
 }
 
@@ -268,6 +272,41 @@ public sealed class BosNotificationWriteService : IBosNotificationWriteService
                     """),
                 cancellationToken, key, userId, cat, inApp, email, webhook, digest).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("Notification preferences saved", userId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Notifications table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP <c>max(7, (int) ($_POST['days'] ?? 90))</c>.</summary>
+    public static int ResolveDays(string? raw)
+        => raw is null ? 90 : Math.Max(7, (int)PhpIntval(raw));
+
+    public async Task<ErpSimpleWriteResult> CleanupAsync(
+        string? daysRaw,
+        CancellationToken cancellationToken = default)
+    {
+        var days = ResolveDays(daysRaw);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            var cutoff = DateTime.UtcNow.AddSeconds(-days * 86400.0);
+            var cutoffText = cutoff.ToString("yyyy-MM-dd HH:mm:ss", CultureInfo.InvariantCulture);
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var deleted = await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    DELETE FROM `epc_notifications` WHERE `created_at` < ? AND `is_read` = 1
+                    """),
+                cancellationToken, cutoffText).ConfigureAwait(false);
+            var noun = deleted == 1 ? "notification" : "notifications";
+            return ErpSimpleWriteResult.Ok($"Deleted {deleted.ToString(CultureInfo.InvariantCulture)} {noun}", deleted);
         }
         catch (DbException)
         {
