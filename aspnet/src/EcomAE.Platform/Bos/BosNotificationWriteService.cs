@@ -7,7 +7,8 @@ namespace EcomAE.Platform.Bos;
 
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>notifications</c> <c>mark_read</c> / <c>epc_notifications_mark_read</c>,
-/// <c>dismiss</c> / <c>epc_notifications_dismiss</c>, and <c>mark_all_read</c> / <c>epc_notifications_mark_all_read</c>.
+/// <c>dismiss</c> / <c>epc_notifications_dismiss</c>, <c>mark_all_read</c> / <c>epc_notifications_mark_all_read</c>,
+/// and <c>prefs_save</c> / <c>epc_notification_prefs_save</c>.
 /// Send and broadcast stay Classic.
 /// This service does not invent a send. It does not emit CREATE/ALTER.
 /// </summary>
@@ -26,6 +27,16 @@ public interface IBosNotificationWriteService
     Task<ErpSimpleWriteResult> MarkAllReadAsync(
         string? tenantKey,
         long userId,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SavePrefsAsync(
+        string? tenantKey,
+        long userId,
+        string? category,
+        string? channelInApp,
+        string? channelEmail,
+        string? channelWebhook,
+        string? emailDigest,
         CancellationToken cancellationToken = default);
 }
 
@@ -199,6 +210,64 @@ public sealed class BosNotificationWriteService : IBosNotificationWriteService
                 cancellationToken, key, userId).ConfigureAwait(false);
             var noun = marked == 1 ? "notification" : "notifications";
             return ErpSimpleWriteResult.Ok($"Marked {marked.ToString(CultureInfo.InvariantCulture)} {noun} read", marked);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Notifications table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP <c>(string) ($_POST['category'] ?? '*')</c>.</summary>
+    public static string ResolveCategory(string? category)
+        => category is null ? "*" : category;
+
+    /// <summary>PHP <c>(string) ($_POST['email_digest'] ?? 'daily')</c>.</summary>
+    public static string ResolveDigest(string? digest)
+        => digest is null ? "daily" : digest;
+
+    /// <summary>PHP <c>(int) ($_POST['channel_*'] ?? $default)</c>.</summary>
+    public static int ResolveChannel(string? raw, int whenMissing)
+        => raw is null ? whenMissing : (int)PhpIntval(raw);
+
+    public async Task<ErpSimpleWriteResult> SavePrefsAsync(
+        string? tenantKey,
+        long userId,
+        string? category,
+        string? channelInApp,
+        string? channelEmail,
+        string? channelWebhook,
+        string? emailDigest,
+        CancellationToken cancellationToken = default)
+    {
+        var key = ResolveTenantKey(tenantKey);
+        var cat = ResolveCategory(category);
+        var digest = ResolveDigest(emailDigest);
+        var inApp = ResolveChannel(channelInApp, 1);
+        var email = ResolveChannel(channelEmail, 1);
+        var webhook = ResolveChannel(channelWebhook, 0);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_notification_prefs`
+                        (`tenant_key`, `user_id`, `category`, `channel_in_app`, `channel_email`, `channel_webhook`, `email_digest`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?)
+                    ON DUPLICATE KEY UPDATE
+                        `channel_in_app` = VALUES(`channel_in_app`),
+                        `channel_email` = VALUES(`channel_email`),
+                        `channel_webhook` = VALUES(`channel_webhook`),
+                        `email_digest` = VALUES(`email_digest`)
+                    """),
+                cancellationToken, key, userId, cat, inApp, email, webhook, digest).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Notification preferences saved", userId);
         }
         catch (DbException)
         {
