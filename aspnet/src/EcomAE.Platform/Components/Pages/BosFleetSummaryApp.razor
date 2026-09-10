@@ -268,6 +268,17 @@
             <label>Site key <input type="text" name="site_key" /></label>
             <button type="submit">Uninstall marketplace app</button>
         </form>
+        <form method="post" action="/bos/marketplace/review" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>App id <input type="text" name="app_id" /></label>
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Rating <input type="text" name="rating" value="5" /></label>
+            <label>Title <input type="text" name="title" /></label>
+            <label>Review text <input type="text" name="review_text" /></label>
+            <label>Reviewer name <input type="text" name="reviewer_name" /></label>
+            <button type="submit">Add marketplace review</button>
+        </form>
         <form method="post" action="/bos/promos/record-usage" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />

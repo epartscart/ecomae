@@ -1567,6 +1567,78 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosMarketplaceReview, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosMarketplaceWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for marketplace review.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosMarketplaceReviewBody>(context, cancellationToken)
+                       ?? new();
+            var appId = body.AppId;
+            var siteKey = body.SiteKey;
+            var reviewData = body.ReviewData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                appId = LiveWriteFormBinder.Long(form, "app_id", "appId");
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                reviewData = FormOrNull(form, "review_data", "reviewData");
+                if (string.IsNullOrWhiteSpace(reviewData))
+                {
+                    var fields = new Dictionary<string, string?>
+                    {
+                        ["title"] = form["title"].ToString(),
+                        ["review_text"] = form["review_text"].ToString(),
+                        ["reviewer_name"] = form["reviewer_name"].ToString()
+                    };
+                    var rating = form["rating"].ToString();
+                    if (!string.IsNullOrWhiteSpace(rating))
+                    {
+                        fields["rating"] = rating;
+                    }
+
+                    reviewData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to add a marketplace review.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AddReviewAsync(appId, siteKey, reviewData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosPromosRecordUsage, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2377,6 +2449,12 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long AppId = 0,
         string? SiteKey = null);
+
+    private sealed record BosMarketplaceReviewBody(
+        bool ConfirmWrites = false,
+        long AppId = 0,
+        string? SiteKey = null,
+        string? ReviewData = null);
 
     private sealed record BosPromosRecordUsageBody(
         bool ConfirmWrites = false,
