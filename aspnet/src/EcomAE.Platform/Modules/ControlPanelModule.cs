@@ -1414,6 +1414,55 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpMultivendorVendorCodeSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPricesUploadWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/shop/prices/multivendor", "Admin CP capability required for vendor code save.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpMultivendorVendorCodeSaveBody>(context, cancellationToken)
+                       ?? new();
+            var storageId = body.StorageId > 0 ? body.StorageId : body.Id;
+            var vendorCode = body.VendorCode ?? body.VendorShort ?? body.ShortName;
+            var vendorFull = body.VendorFull ?? body.Name;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                storageId = LiveWriteFormBinder.Long(form, "storageId", "storage_id", "id");
+                vendorCode = LiveWriteFormBinder.Text(form, "vendorCode", "vendor_code", "vendor_short", "short_name");
+                vendorFull = LiveWriteFormBinder.Text(form, "vendorFull", "vendor_full", "name");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the vendor code.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveVendorCodeAsync(storageId, vendorCode, vendorFull, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/shop/prices/multivendor",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPricesStorefrontStorageToggle, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -13500,6 +13549,15 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? GroupIdsJson = null,
         string? UserIds = null,
         string? UserIdsJson = null);
+    private sealed record CpMultivendorVendorCodeSaveBody(
+        bool ConfirmWrites = false,
+        long StorageId = 0,
+        long Id = 0,
+        string? VendorCode = null,
+        string? VendorShort = null,
+        string? ShortName = null,
+        string? VendorFull = null,
+        string? Name = null);
     private sealed record CpStorefrontStorageToggleBody(
         bool ConfirmWrites = false,
         string? EntityType = null,

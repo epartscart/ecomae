@@ -1,6 +1,9 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Text.Encodings.Web;
 using System.Text.Json;
+using System.Text.Json.Nodes;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
@@ -8,7 +11,8 @@ namespace EcomAE.Platform.Cp;
 /// <summary>
 /// Live PHP <c>ajax_6_complete_session</c> last_updated / records_count twin,
 /// <c>min_price_acl_save</c> / <c>epc_mv_min_price_acl_save</c> UPSERT,
-/// and <c>ajax_epc_storefront_storage_toggle</c> / <c>epc_ssf_set_toggle</c>.
+/// <c>ajax_epc_storefront_storage_toggle</c> / <c>epc_ssf_set_toggle</c>,
+/// and <c>vendor_code_save</c> / <c>epc_multivendor_vendor_code_save</c>.
 /// CSV import, file ingest, and sitemap stay Classic. This service does not invent a send.
 /// </summary>
 public interface ICpPricesUploadWriteService
@@ -28,6 +32,12 @@ public interface ICpPricesUploadWriteService
         string? storefrontEnabledRaw,
         long userId,
         string? userLabel,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SaveVendorCodeAsync(
+        long storageId,
+        string? vendorCode,
+        string? vendorFull,
         CancellationToken cancellationToken = default);
 }
 
@@ -237,6 +247,129 @@ public sealed class CpPricesUploadWriteService : ICpPricesUploadWriteService
         }
     }
 
+    public async Task<ErpSimpleWriteResult> SaveVendorCodeAsync(
+        long storageId,
+        string? vendorCode,
+        string? vendorFull,
+        CancellationToken cancellationToken = default)
+    {
+        if (storageId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid warehouse id");
+        }
+
+        var newCode = SanitizeShort(vendorCode);
+        if (newCode.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Vendor code cannot be empty");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var select = connection.CreateCommand();
+            select.CommandText = ErpDb.Positional(
+                "SELECT `name`, `short_name`, `connection_options` FROM `shop_storages` WHERE `id` = ? LIMIT 1");
+            ErpDb.AddParameters(select, storageId);
+            string oldName;
+            string oldCode;
+            string optionsRaw;
+            await using (var reader = await select.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return ErpSimpleWriteResult.Fail("not_found", "Warehouse not found");
+                }
+
+                oldName = reader.IsDBNull(0) ? "" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? "";
+                oldCode = reader.IsDBNull(1) ? "" : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? "";
+                optionsRaw = reader.IsDBNull(2) ? "" : Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture) ?? "";
+            }
+
+            var postedFull = SanitizeFull(vendorFull);
+            var full = postedFull.Length > 0 ? postedFull : oldName;
+            if (full.Length == 0)
+            {
+                full = newCode;
+            }
+
+            var clash = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    """
+                    SELECT `id` FROM `shop_storages`
+                     WHERE UPPER(TRIM(`name`)) = UPPER(?) AND UPPER(TRIM(`short_name`)) = UPPER(?) AND `id` <> ?
+                     LIMIT 1
+                    """),
+                cancellationToken,
+                full,
+                newCode,
+                storageId);
+            if (clash > 0)
+            {
+                return ErpSimpleWriteResult.Fail("conflict", "Another warehouse already uses this vendor name + code");
+            }
+
+            var opts = ParseOptions(optionsRaw);
+            opts["epc_mv_vendor_full"] = full;
+            opts["epc_mv_vendor_code"] = newCode;
+            var encoded = opts.ToJsonString(new JsonSerializerOptions
+            {
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+            });
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_storages` SET `name` = ?, `short_name` = ?, `connection_options` = ? WHERE `id` = ?"),
+                cancellationToken,
+                full,
+                newCode,
+                encoded,
+                storageId);
+
+            try
+            {
+                await RenameLinkedPriceListsAsync(connection, opts, oldCode, oldName, newCode, full, cancellationToken)
+                    .ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+                // Best-effort price-list rename — schema-ensure stays Classic.
+            }
+
+            return ErpSimpleWriteResult.Ok(
+                "Vendor code updated — storefront shows the new code; CP still shows the vendor name",
+                storageId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Warehouse table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP <c>epc_multivendor_sanitize_short</c>.</summary>
+    public static string SanitizeShort(string? raw)
+    {
+        var text = Regex.Replace((raw ?? string.Empty).Trim(), @"\s+", " ");
+        text = Regex.Replace(text, @"[/#'""\\]+", "");
+        text = text.Trim();
+        return text.Length <= 64 ? text : text[..64];
+    }
+
+    /// <summary>PHP <c>epc_multivendor_sanitize_full</c>.</summary>
+    public static string SanitizeFull(string? raw)
+    {
+        var text = Regex.Replace((raw ?? string.Empty).Trim(), @"\s+", " ");
+        return text.Length <= 255 ? text : text[..255];
+    }
+
     /// <summary>PHP entity_type is price_list or storage (default).</summary>
     public static string ParseEntityType(string? raw)
     {
@@ -417,5 +550,125 @@ public sealed class CpPricesUploadWriteService : ICpPricesUploadWriteService
     {
         var text = (raw ?? string.Empty).Trim();
         return text.Length <= max ? text : text[..max];
+    }
+
+    private static JsonObject ParseOptions(string? raw)
+    {
+        var text = (raw ?? string.Empty).Trim();
+        if (text.Length == 0)
+        {
+            return new JsonObject();
+        }
+
+        try
+        {
+            return JsonNode.Parse(text) as JsonObject ?? new JsonObject();
+        }
+        catch (JsonException)
+        {
+            return new JsonObject();
+        }
+    }
+
+    private static async Task RenameLinkedPriceListsAsync(
+        DbConnection connection,
+        JsonObject opts,
+        string oldCode,
+        string oldName,
+        string newCode,
+        string newFull,
+        CancellationToken cancellationToken)
+    {
+        if (oldCode.Length == 0)
+        {
+            return;
+        }
+
+        var priceIds = new List<long>();
+        AddPriceId(priceIds, opts["price_id"]);
+        if (opts["epc_typed_price_ids"] is JsonArray typed)
+        {
+            foreach (var item in typed)
+            {
+                AddPriceId(priceIds, item);
+            }
+        }
+
+        if (priceIds.Count == 0)
+        {
+            return;
+        }
+
+        var newList = ListBaseName(newCode, newFull);
+        var oldBase = ListBaseName(oldCode, oldName.Length > 0 ? oldName : oldCode);
+        foreach (var pid in priceIds.Distinct())
+        {
+            var current = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `name` FROM `shop_docpart_prices` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                pid) ?? string.Empty;
+            if (current.Length == 0)
+            {
+                continue;
+            }
+
+            foreach (var suf in new[] { "", " · Sales", " · Purchase" })
+            {
+                if (current == oldBase + suf || current == oldCode + suf)
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        null,
+                        ErpDb.Positional("UPDATE `shop_docpart_prices` SET `name` = ? WHERE `id` = ?"),
+                        cancellationToken,
+                        newList + suf,
+                        pid);
+                    break;
+                }
+            }
+        }
+    }
+
+    private static void AddPriceId(List<long> ids, JsonNode? node)
+    {
+        if (node is not JsonValue value)
+        {
+            return;
+        }
+
+        if (value.TryGetValue<long>(out var n) && n > 0 && !ids.Contains(n))
+        {
+            ids.Add(n);
+            return;
+        }
+
+        if (value.TryGetValue<string>(out var text)
+            && long.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var fromText)
+            && fromText > 0
+            && !ids.Contains(fromText))
+        {
+            ids.Add(fromText);
+        }
+    }
+
+    /// <summary>PHP <c>epc_multivendor_list_base_name</c>.</summary>
+    public static string ListBaseName(string vendorShort, string vendorFull)
+    {
+        var code = SanitizeShort(vendorShort);
+        var full = SanitizeFull(vendorFull);
+        if (code.Length == 0)
+        {
+            return full.Length > 0 ? full : "Vendor";
+        }
+
+        if (full.Length == 0 || string.Equals(full, code, StringComparison.OrdinalIgnoreCase))
+        {
+            return code;
+        }
+
+        var suffix = full.Length <= 90 ? full : full[..90];
+        return code + " · " + suffix;
     }
 }

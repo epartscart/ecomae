@@ -2790,6 +2790,24 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(toggleDb.Succeeded);
         Assert.Equal("db", toggleDb.Code);
 
+        Assert.Equal("ACME", CpPricesUploadWriteService.SanitizeShort(" ACME/# "));
+        Assert.Equal("", CpPricesUploadWriteService.SanitizeShort("///"));
+
+        var mvVendorInvalid = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
+            .SaveVendorCodeAsync(0, "ACME", "Acme");
+        Assert.False(mvVendorInvalid.Succeeded);
+        Assert.Equal("invalid", mvVendorInvalid.Code);
+
+        var mvVendorEmpty = await new CpPricesUploadWriteService(new ConfiguredNeverOpened())
+            .SaveVendorCodeAsync(9, "///", "");
+        Assert.False(mvVendorEmpty.Succeeded);
+        Assert.Equal("invalid", mvVendorEmpty.Code);
+
+        var mvVendorDb = await new CpPricesUploadWriteService(new UnconfiguredConnections())
+            .SaveVendorCodeAsync(9, "ACME", "Acme");
+        Assert.False(mvVendorDb.Succeeded);
+        Assert.Equal("db", mvVendorDb.Code);
+
         Assert.True(CpPartsAgentWriteService.ParseEnabled("1"));
         Assert.False(CpPartsAgentWriteService.ParseEnabled("0"));
         Assert.False(CpPartsAgentWriteService.ParseEnabled("yes"));
