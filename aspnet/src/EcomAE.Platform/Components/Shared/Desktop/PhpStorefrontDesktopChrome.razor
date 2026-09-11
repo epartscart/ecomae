@@ -858,7 +858,16 @@
         _bookmarkCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.BookmarksName, StorefrontIntListCookie.BookmarksMax).Count;
         _compareCount = StorefrontIntListCookie.Read(ctx.Request, StorefrontIntListCookie.CompareName, StorefrontIntListCookie.CompareMax).Count;
 
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        LegacySessionContext session;
+        try
+        {
+            session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        }
+        catch
+        {
+            return;
+        }
+
         _signedIn = session.Kind is LegacySessionKind.Customer or LegacySessionKind.Admin;
         _userId = session.Kind == LegacySessionKind.Customer ? session.UserId : 0;
         if (_signedIn)

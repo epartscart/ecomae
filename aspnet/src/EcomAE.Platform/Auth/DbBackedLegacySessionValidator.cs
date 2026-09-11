@@ -20,9 +20,17 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
     public async ValueTask<LegacySessionContext> ValidateCustomerAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
     {
         using var activity = EcomAeActivitySources.Auth.StartActivity("auth.legacy-session.validate-customer");
-        var customer = await TryCustomerAsync(httpContext, cancellationToken).ConfigureAwait(false);
-        activity?.SetTag("ecomae.session.kind", customer.Kind.ToString().ToLowerInvariant());
-        return customer;
+        try
+        {
+            var customer = await TryCustomerAsync(httpContext, cancellationToken).ConfigureAwait(false);
+            activity?.SetTag("ecomae.session.kind", customer.Kind.ToString().ToLowerInvariant());
+            return customer;
+        }
+        catch
+        {
+            activity?.SetTag("ecomae.session.kind", "anonymous");
+            return Anonymous();
+        }
     }
 
     public async ValueTask<LegacySessionContext> ValidateAsync(HttpContext httpContext, CancellationToken cancellationToken = default)
@@ -37,7 +45,17 @@ public sealed class DbBackedLegacySessionValidator : ILegacySessionValidator
             return cached;
         }
 
-        var resolved = await ValidateCoreAsync(httpContext, activity, cancellationToken).ConfigureAwait(false);
+        LegacySessionContext resolved;
+        try
+        {
+            resolved = await ValidateCoreAsync(httpContext, activity, cancellationToken).ConfigureAwait(false);
+        }
+        catch
+        {
+            // Timeout / DB fault must paint the storefront as guest, not 500 the page.
+            resolved = new LegacySessionContext(LegacySessionKind.Anonymous, 0, null, []);
+        }
+
         httpContext.Items[requestCacheKey] = resolved;
         return resolved;
     }

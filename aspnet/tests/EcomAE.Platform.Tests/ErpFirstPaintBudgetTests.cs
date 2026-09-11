@@ -205,7 +205,25 @@ public sealed class ErpFirstPaintBudgetTests
         Assert.Contains("ErpFirstPaint.IsActive", bridge, StringComparison.Ordinal);
         var session = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Auth/DbLegacySessionStore.cs"));
-        Assert.Contains("ErpFirstPaint.ApplyIfErp", session, StringComparison.Ordinal);
+        Assert.DoesNotContain("ErpFirstPaint.ApplyIfErp", session, StringComparison.Ordinal);
+        Assert.Contains("must not 500 the storefront", session, StringComparison.Ordinal);
+        Assert.Contains("SessionCommandTimeoutSeconds = 5", session, StringComparison.Ordinal);
+        var validator = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Auth/DbBackedLegacySessionValidator.cs"));
+        Assert.Contains("paint the storefront as guest", validator, StringComparison.Ordinal);
+        var ownBrand = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Presentation/EpartFrontOwnBrandService.cs"));
+        Assert.Contains("ErpFirstPaint.IsActive", ownBrand, StringComparison.Ordinal);
+        Assert.Contains("ScheduleRefresh", ownBrand, StringComparison.Ordinal);
+        var getStart = ownBrand.IndexOf(
+            "public async Task<IReadOnlyList<EpartOwnBrandRow>> GetAsync",
+            StringComparison.Ordinal);
+        Assert.True(getStart >= 0, "OwnBrand GetAsync missing");
+        var getEnd = ownBrand.IndexOf("private void ScheduleRefresh", getStart, StringComparison.Ordinal);
+        Assert.True(getEnd > getStart, "OwnBrand GetAsync bounds missing");
+        var getBody = ownBrand[getStart..getEnd];
+        Assert.DoesNotContain("shop_docpart_prices_data", getBody, StringComparison.Ordinal);
+        Assert.Contains("shop_docpart_prices_data", ownBrand, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)

@@ -355,14 +355,28 @@
         var pricesVisible = false;
         if (Http.HttpContext is not null)
         {
-            var access = await PriceAccess.ResolveAsync(Http.HttpContext);
-            pricesVisible = access.PricesVisible;
+            try
+            {
+                var access = await PriceAccess.ResolveAsync(Http.HttpContext);
+                pricesVisible = access.PricesVisible;
+            }
+            catch
+            {
+                pricesVisible = false;
+            }
         }
 
         _family = PhpHomeWidgetHtml.ProductFamily(lang);
         _catalog = PhpHomeWidgetHtml.UmapiCatalog(lang);
         _brands = PhpHomeWidgetHtml.AvailableBrands(pricesVisible, lang);
         _vehicle = PhpHomeWidgetHtml.VehicleCatalog(lang);
-        _ownBrand = await OwnBrand.GetAsync();
+        try
+        {
+            _ownBrand = await OwnBrand.GetAsync();
+        }
+        catch
+        {
+            _ownBrand = [];
+        }
     }
 }
