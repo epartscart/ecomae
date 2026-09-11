@@ -1504,6 +1504,101 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosDunningAddInvoice, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosDunningWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for dunning add-invoice.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosDunningAddInvoiceBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var customerId = body.CustomerId;
+            var customerName = body.CustomerName;
+            var invoiceRef = body.InvoiceRef;
+            var invoiceAmount = body.InvoiceAmount;
+            var amountDue = body.AmountDue;
+            var dueDate = body.DueDate;
+            var profileId = body.ProfileId;
+            var confirm = body.ConfirmWrites;
+            if (!string.IsNullOrWhiteSpace(body.Invoice))
+            {
+                var parsed = BosDunningWriteService.ParseInvoice(body.Invoice);
+                customerId = parsed.CustomerId;
+                customerName = parsed.CustomerName;
+                invoiceRef = parsed.InvoiceRef;
+                invoiceAmount = parsed.InvoiceAmount;
+                amountDue = parsed.AmountDue;
+                dueDate = parsed.DueDate;
+                profileId = parsed.ProfileId;
+            }
+
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var invoiceJson = FormOrNull(form, "invoice");
+                if (!string.IsNullOrWhiteSpace(invoiceJson))
+                {
+                    var parsed = BosDunningWriteService.ParseInvoice(invoiceJson);
+                    customerId = parsed.CustomerId;
+                    customerName = parsed.CustomerName;
+                    invoiceRef = parsed.InvoiceRef;
+                    invoiceAmount = parsed.InvoiceAmount;
+                    amountDue = parsed.AmountDue;
+                    dueDate = parsed.DueDate;
+                    profileId = parsed.ProfileId;
+                }
+                else
+                {
+                    customerId = BosDunningWriteService.PhpIntval(FormOrNull(form, "customer_id", "customerId"));
+                    customerName = FormOrNull(form, "customer_name", "customerName");
+                    invoiceRef = FormOrNull(form, "invoice_ref", "invoiceRef");
+                    invoiceAmount = BosDunningWriteService.PhpFloat(FormOrNull(form, "invoice_amount", "invoiceAmount"));
+                    amountDue = form.ContainsKey("amount_due") || form.ContainsKey("amountDue")
+                        ? BosDunningWriteService.PhpFloat(FormOrNull(form, "amount_due", "amountDue"))
+                        : null;
+                    dueDate = FormOrNull(form, "due_date", "dueDate");
+                    profileId = BosDunningWriteService.PhpIntval(FormOrNull(form, "profile_id", "profileId"));
+                }
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to add a dunning invoice.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AddInvoiceAsync(
+                siteKey, customerId, customerName, invoiceRef, invoiceAmount, amountDue, dueDate, profileId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosSsoProviderToggle, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3093,6 +3188,18 @@ public sealed class BosModule : ISurfaceModule
         string? SiteKey = null,
         string? Name = null,
         string? Steps = null);
+
+    private sealed record BosDunningAddInvoiceBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? Invoice = null,
+        long CustomerId = 0,
+        string? CustomerName = null,
+        string? InvoiceRef = null,
+        decimal InvoiceAmount = 0,
+        decimal? AmountDue = null,
+        string? DueDate = null,
+        long ProfileId = 0);
 
     private sealed record BosSsoProviderToggleBody(
         bool ConfirmWrites = false,

@@ -8,8 +8,9 @@ namespace EcomAE.Platform.Bos;
 
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>collections_dunning</c> <c>update_status</c> / <c>epc_dunning_update_status</c>,
-/// <c>record_payment</c> / <c>epc_dunning_record_payment</c>, and <c>profile_create</c> / <c>epc_dunning_profile_create</c>.
-/// Process, add-invoice, and schema-ensure stay Classic. This service does not invent a send.
+/// <c>record_payment</c> / <c>epc_dunning_record_payment</c>, <c>profile_create</c> / <c>epc_dunning_profile_create</c>,
+/// and <c>add_invoice</c> / <c>epc_dunning_add_invoice</c>.
+/// Process and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER. The CP twin writes the tenant shop DB; this write uses the platform operator PDO.
 /// </summary>
 public interface IBosDunningWriteService
@@ -29,6 +30,17 @@ public interface IBosDunningWriteService
         string? siteKey,
         string? name,
         string? stepsJson,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> AddInvoiceAsync(
+        string? siteKey,
+        long customerId,
+        string? customerName,
+        string? invoiceRef,
+        decimal invoiceAmount,
+        decimal? amountDue,
+        string? dueDate,
+        long profileId,
         CancellationToken cancellationToken = default);
 }
 
@@ -162,6 +174,65 @@ public sealed class BosDunningWriteService : IBosDunningWriteService
         }
     }
 
+    public async Task<ErpSimpleWriteResult> AddInvoiceAsync(
+        string? siteKey,
+        long customerId,
+        string? customerName,
+        string? invoiceRef,
+        decimal invoiceAmount,
+        decimal? amountDue,
+        string? dueDate,
+        long profileId,
+        CancellationToken cancellationToken = default)
+    {
+        var key = PhpBosSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing site_key");
+        }
+
+        var due = string.IsNullOrWhiteSpace(dueDate)
+            ? DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+            : dueDate.Trim();
+        var days = DaysOverdue(due, DateTime.Now);
+        var dueAmt = amountDue ?? invoiceAmount;
+        object? profile = profileId == 0 ? null : profileId;
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_dunning_queue`
+                        (`site_key`, `customer_id`, `customer_name`, `invoice_ref`, `invoice_amount`,
+                         `amount_due`, `due_date`, `days_overdue`, `profile_id`)
+                    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+                    """),
+                cancellationToken,
+                key,
+                customerId,
+                customerName ?? "",
+                invoiceRef ?? "",
+                invoiceAmount,
+                dueAmt,
+                due,
+                days,
+                profile).ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Dunning invoice queued", id);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Dunning queue table is missing — schema-ensure stays Classic.");
+        }
+    }
+
     /// <summary>PHP ajax <c>preg_replace('/[^a-z0-9_]/', '', strtolower(...))</c>.</summary>
     public static string PhpBosSiteKey(string? raw)
         => SiteKeySafe.Replace((raw ?? "").ToLowerInvariant(), "");
@@ -251,4 +322,211 @@ public sealed class BosDunningWriteService : IBosDunningWriteService
         => el.TryGetProperty(name, out var prop) && prop.ValueKind == JsonValueKind.String
             ? prop.GetString() ?? ""
             : "";
+
+    /// <summary>PHP <c>(int)</c> on a token (leading digits; trailing junk ignored).</summary>
+    public static long PhpIntval(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return 0;
+        }
+
+        var text = raw.Trim();
+        var i = 0;
+        if (text[0] is '+' or '-')
+        {
+            i = 1;
+        }
+
+        while (i < text.Length && char.IsDigit(text[i]))
+        {
+            i++;
+        }
+
+        if (i == 0 || (i == 1 && text[0] is '+' or '-'))
+        {
+            return 0;
+        }
+
+        return long.TryParse(text[..i], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : 0;
+    }
+
+    /// <summary>PHP <c>(float)</c> on a token (leading numeric / optional exponent; trailing junk ignored).</summary>
+    public static decimal PhpFloat(string? raw)
+    {
+        if (string.IsNullOrEmpty(raw))
+        {
+            return 0;
+        }
+
+        var text = raw.TrimStart();
+        if (text.Length == 0)
+        {
+            return 0;
+        }
+
+        var i = 0;
+        if (text[0] is '+' or '-')
+        {
+            i = 1;
+        }
+
+        var sawDigit = false;
+        while (i < text.Length && char.IsDigit(text[i]))
+        {
+            sawDigit = true;
+            i++;
+        }
+
+        if (i < text.Length && text[i] == '.')
+        {
+            i++;
+            while (i < text.Length && char.IsDigit(text[i]))
+            {
+                sawDigit = true;
+                i++;
+            }
+        }
+
+        if (!sawDigit)
+        {
+            return 0;
+        }
+
+        if (i < text.Length && text[i] is 'e' or 'E')
+        {
+            var exp = i + 1;
+            if (exp < text.Length && text[exp] is '+' or '-')
+            {
+                exp++;
+            }
+
+            var expDigits = exp;
+            while (expDigits < text.Length && char.IsDigit(text[expDigits]))
+            {
+                expDigits++;
+            }
+
+            if (expDigits > exp)
+            {
+                i = expDigits;
+            }
+        }
+
+        return decimal.TryParse(text[..i], NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : 0;
+    }
+
+    /// <summary>
+    /// PHP <c>json_decode((string)($_POST['invoice'] ?? '{}'), true) ?: array()</c>
+    /// then <c>due_date ?? date('Y-m-d')</c>, <c>amount_due ?? invoice_amount ?? 0</c>,
+    /// and <c>(int)(profile_id ?? 0) ?: null</c>.
+    /// </summary>
+    public static (
+        long CustomerId,
+        string CustomerName,
+        string InvoiceRef,
+        decimal InvoiceAmount,
+        decimal AmountDue,
+        string? DueDate,
+        long ProfileId) ParseInvoice(string? json)
+    {
+        JsonElement root = default;
+        var hasObject = false;
+        if (!string.IsNullOrWhiteSpace(json))
+        {
+            try
+            {
+                using var doc = JsonDocument.Parse(json);
+                if (doc.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    root = doc.RootElement.Clone();
+                    hasObject = true;
+                }
+            }
+            catch (JsonException)
+            {
+                hasObject = false;
+            }
+        }
+
+        var invoiceAmount = hasObject ? ReadNumber(root, "invoice_amount") : 0m;
+        var amountDue = hasObject && root.TryGetProperty("amount_due", out _)
+            ? ReadNumber(root, "amount_due")
+            : invoiceAmount;
+        string? dueDate = null;
+        if (hasObject && root.TryGetProperty("due_date", out var dueProp) && dueProp.ValueKind == JsonValueKind.String)
+        {
+            dueDate = dueProp.GetString();
+        }
+
+        return (
+            hasObject ? ReadLong(root, "customer_id") : 0,
+            hasObject ? ReadLooseString(root, "customer_name") : "",
+            hasObject ? ReadLooseString(root, "invoice_ref") : "",
+            invoiceAmount,
+            amountDue,
+            dueDate,
+            hasObject ? ReadLong(root, "profile_id") : 0);
+    }
+
+    /// <summary>PHP <c>max(0, (int)((time()-strtotime($dueDate))/86400))</c> for parseable dates.</summary>
+    public static int DaysOverdue(string? dueDate, DateTime now)
+    {
+        if (!DateTime.TryParse(dueDate, CultureInfo.InvariantCulture, DateTimeStyles.AssumeLocal, out var due)
+            && !DateTime.TryParse(dueDate, out due))
+        {
+            return 0;
+        }
+
+        return Math.Max(0, (int)((now - due).TotalSeconds / 86400));
+    }
+
+    private static long ReadLong(JsonElement el, string name)
+    {
+        if (!el.TryGetProperty(name, out var prop))
+        {
+            return 0;
+        }
+
+        return prop.ValueKind switch
+        {
+            JsonValueKind.Number when prop.TryGetInt64(out var n) => n,
+            JsonValueKind.String => PhpIntval(prop.GetString()),
+            _ => 0,
+        };
+    }
+
+    private static decimal ReadNumber(JsonElement el, string name)
+    {
+        if (!el.TryGetProperty(name, out var prop))
+        {
+            return 0;
+        }
+
+        return prop.ValueKind switch
+        {
+            JsonValueKind.Number when prop.TryGetDecimal(out var n) => n,
+            JsonValueKind.String => PhpFloat(prop.GetString()),
+            _ => 0,
+        };
+    }
+
+    private static string ReadLooseString(JsonElement el, string name)
+    {
+        if (!el.TryGetProperty(name, out var prop))
+        {
+            return "";
+        }
+
+        return prop.ValueKind switch
+        {
+            JsonValueKind.String => prop.GetString() ?? "",
+            JsonValueKind.Number => prop.ToString(),
+            _ => "",
+        };
+    }
 }

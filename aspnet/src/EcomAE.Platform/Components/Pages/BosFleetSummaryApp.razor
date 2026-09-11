@@ -259,6 +259,19 @@
             <label>Steps JSON <input type="text" name="steps" /></label>
             <button type="submit">Create dunning profile</button>
         </form>
+        <form method="post" action="/bos/dunning/add-invoice" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Customer id <input type="text" name="customer_id" /></label>
+            <label>Customer name <input type="text" name="customer_name" /></label>
+            <label>Invoice ref <input type="text" name="invoice_ref" /></label>
+            <label>Invoice amount <input type="text" name="invoice_amount" /></label>
+            <label>Amount due <input type="text" name="amount_due" /></label>
+            <label>Due date <input type="text" name="due_date" /></label>
+            <label>Profile id <input type="text" name="profile_id" /></label>
+            <button type="submit">Add dunning invoice</button>
+        </form>
         <form method="post" action="/bos/sso/provider-toggle" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
