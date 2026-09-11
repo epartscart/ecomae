@@ -3583,6 +3583,65 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosAiClassReview, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosAiClassWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for AI classification review.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosAiClassReviewBody>(context, cancellationToken)
+                       ?? new();
+            var classificationId = body.ClassificationId;
+            var category = body.Category;
+            var subcategory = body.Subcategory;
+            var hsCode = body.HsCode;
+            var reviewerId = body.ReviewerId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                classificationId = LiveWriteFormBinder.Long(form, "classification_id", "classificationId");
+                category = FormOrNull(form, "category");
+                subcategory = FormOrNull(form, "subcategory");
+                hsCode = FormOrNull(form, "hs_code", "hsCode");
+                reviewerId = LiveWriteFormBinder.Long(form, "reviewer_id", "reviewerId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to review an AI classification.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.ReviewAsync(classificationId, category, subcategory, hsCode, reviewerId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -4189,6 +4248,14 @@ public sealed class BosModule : ISurfaceModule
         string? Key = null,
         string? Value = null,
         long UpdatedBy = 0);
+
+    private sealed record BosAiClassReviewBody(
+        bool ConfirmWrites = false,
+        long ClassificationId = 0,
+        string? Category = null,
+        string? Subcategory = null,
+        string? HsCode = null,
+        long ReviewerId = 0);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,

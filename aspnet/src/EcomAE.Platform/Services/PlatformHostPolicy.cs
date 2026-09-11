@@ -65,6 +65,7 @@ public static class PlatformHostPolicy
         "nl-reporting",
         "design-tokens",
         "tenant-config",
+        "ai-class",
         "industry",
     };
 
