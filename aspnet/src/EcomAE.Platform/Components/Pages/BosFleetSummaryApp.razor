@@ -307,6 +307,14 @@
             <label>Change type <input type="text" name="change_type" value="modify" /></label>
             <button type="submit">Apply sandbox change</button>
         </form>
+        <form method="post" action="/bos/sandbox/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Name <input type="text" name="name" /></label>
+            <label>Config JSON <input type="text" name="config_data" /></label>
+            <button type="submit">Create sandbox snapshot</button>
+        </form>
         <form method="post" action="/bos/marketplace/uninstall" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />

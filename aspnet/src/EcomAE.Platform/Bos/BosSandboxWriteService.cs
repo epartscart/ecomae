@@ -1,12 +1,15 @@
 using System.Data.Common;
+using System.Text.Json;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>config_sandbox</c> <c>promote</c> / <c>epc_sandbox_promote</c>,
-/// <c>discard</c> / <c>epc_sandbox_discard</c>, and <c>apply_change</c> / <c>epc_sandbox_apply_change</c>.
-/// Create, rollback, and schema-ensure stay Classic. This service does not invent a send.
+/// <c>discard</c> / <c>epc_sandbox_discard</c>, <c>apply_change</c> / <c>epc_sandbox_apply_change</c>,
+/// and <c>create</c> / <c>epc_sandbox_create</c>.
+/// Rollback and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER. PHP always returns ok — this write does not invent id/not-found/only-active checks.
 /// </summary>
 public interface IBosSandboxWriteService
@@ -26,10 +29,19 @@ public interface IBosSandboxWriteService
         string? newValue,
         string? changeType,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreateAsync(
+        string? siteKey,
+        string? name,
+        string? configDataJson,
+        long createdBy,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class BosSandboxWriteService : IBosSandboxWriteService
 {
+    private static readonly Regex SiteKeySafe = new("[^a-z0-9_]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     private readonly IErpWriteConnectionFactory _connections;
 
     public BosSandboxWriteService(IErpWriteConnectionFactory connections)
@@ -92,6 +104,84 @@ public sealed class BosSandboxWriteService : IBosSandboxWriteService
         catch (DbException)
         {
             return ErpSimpleWriteResult.Fail("db", "Sandbox table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> CreateAsync(
+        string? siteKey,
+        string? name,
+        string? configDataJson,
+        long createdBy,
+        CancellationToken cancellationToken = default)
+    {
+        var key = PhpBosSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing site_key");
+        }
+
+        var snapshotName = name ?? "Sandbox";
+        var configData = SerializeConfigData(configDataJson);
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_config_snapshots` (`site_key`,`snapshot_name`,`config_data`,`created_by`) VALUES (?,?,?,?)"),
+                cancellationToken, key, snapshotName, configData, createdBy).ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Sandbox snapshot created", id);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Sandbox table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP ajax <c>preg_replace('/[^a-z0-9_]/', '', strtolower(...))</c>.</summary>
+    public static string PhpBosSiteKey(string? raw)
+        => SiteKeySafe.Replace((raw ?? "").ToLowerInvariant(), "");
+
+    /// <summary>
+    /// PHP <c>json_decode((string)($_POST['config_data'] ?? '{}'), true) ?: array()</c>
+    /// then <c>json_encode</c>. Empty object becomes <c>[]</c>.
+    /// </summary>
+    public static string SerializeConfigData(string? json)
+    {
+        if (string.IsNullOrWhiteSpace(json))
+        {
+            return "[]";
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(json);
+            if (doc.RootElement.ValueKind == JsonValueKind.Array)
+            {
+                return JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(json));
+            }
+
+            if (doc.RootElement.ValueKind == JsonValueKind.Object)
+            {
+                if (!doc.RootElement.EnumerateObject().Any())
+                {
+                    return "[]";
+                }
+
+                return JsonSerializer.Serialize(JsonSerializer.Deserialize<object>(json));
+            }
+
+            return "[]";
+        }
+        catch (JsonException)
+        {
+            return "[]";
         }
     }
 

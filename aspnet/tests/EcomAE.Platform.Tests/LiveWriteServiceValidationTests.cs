@@ -2996,6 +2996,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosSandboxApplyChangeDb.Succeeded);
         Assert.Equal("db", bosSandboxApplyChangeDb.Code);
 
+        var bosSandboxCreateDb = await new BosSandboxWriteService(new UnconfiguredConnections())
+            .CreateAsync("acme", "Sandbox", null, 0);
+        Assert.False(bosSandboxCreateDb.Succeeded);
+        Assert.Equal("db", bosSandboxCreateDb.Code);
+
         var bosMarketplaceUninstallDb = await new BosMarketplaceWriteService(new UnconfiguredConnections())
             .UninstallAsync(9, "acme");
         Assert.False(bosMarketplaceUninstallDb.Succeeded);
