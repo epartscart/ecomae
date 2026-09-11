@@ -3086,6 +3086,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosVaultFolderDb.Succeeded);
         Assert.Equal("db", bosVaultFolderDb.Code);
 
+        var bosImportCreateDb = await new BosImportWriteService(new UnconfiguredConnections())
+            .CreateJobAsync("acme", null);
+        Assert.False(bosImportCreateDb.Succeeded);
+        Assert.Equal("db", bosImportCreateDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);

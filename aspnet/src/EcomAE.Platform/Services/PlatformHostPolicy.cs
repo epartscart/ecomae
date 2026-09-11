@@ -61,6 +61,7 @@ public static class PlatformHostPolicy
         "soc2",
         "workflows",
         "vault",
+        "imports",
         "industry",
     };
 
