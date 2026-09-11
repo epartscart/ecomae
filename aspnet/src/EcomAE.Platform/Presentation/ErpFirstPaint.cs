@@ -3,9 +3,10 @@ using System.Data.Common;
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// ERP SSR first-paint budget: ~2s wall clock. Caps SQL, clamps list pages, and
-/// memoizes companies per request so chrome does not open the shop DB three times.
-/// Does not flip PHP serving or cutover flags.
+/// SSR first-paint budget: ~2s wall clock for ERP, CP, BOS, and storefront.
+/// Caps SQL, clamps list pages, and memoizes companies per request so chrome
+/// does not open the shop DB three times. Does not flip PHP serving or cutover flags.
+/// Cloudflare 524 is an origin timeout — this budget fails-soft instead of hanging.
 /// </summary>
 public static class ErpFirstPaint
 {
@@ -13,6 +14,7 @@ public static class ErpFirstPaint
     public const int ListLimit = 50;
     public const int PickerLimit = 80;
     public const int AgingScanLimit = 200;
+    public const int PhpBridgeTimeoutSeconds = 5;
     public const string CompaniesCacheKey = "ecomae.erp.companies-digest";
 
     private static readonly AsyncLocal<HttpContext?> Bound = new();
@@ -25,12 +27,45 @@ public static class ErpFirstPaint
         return value.StartsWith("/erp", StringComparison.OrdinalIgnoreCase);
     }
 
-    public static void Observe(HttpContext? context)
+    /// <summary>
+    /// Product HTML that must paint before Cloudflare's origin timeout:
+    /// ERP, CP, BOS, storefront home, and lang-prefixed storefront.
+    /// </summary>
+    public static bool IsPaintPath(PathString path)
     {
-        Bound.Value = context is not null && IsErpPath(context.Request.Path) ? context : null;
+        var value = path.Value ?? string.Empty;
+        if (value.Length == 0 || value == "/")
+        {
+            return true;
+        }
+
+        if (IsErpPath(path)
+            || value.StartsWith("/cp", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/bos", StringComparison.OrdinalIgnoreCase)
+            || value.StartsWith("/storefront", StringComparison.OrdinalIgnoreCase))
+        {
+            return true;
+        }
+
+        foreach (var lang in StorefrontLangPrefix.All)
+        {
+            if (value.Equals(lang, StringComparison.OrdinalIgnoreCase)
+                || value.Equals(lang + "/", StringComparison.OrdinalIgnoreCase)
+                || value.StartsWith(lang + "/", StringComparison.OrdinalIgnoreCase))
+            {
+                return true;
+            }
+        }
+
+        return false;
     }
 
-    public static bool IsActive => Current is not null && IsErpPath(Current.Request.Path);
+    public static void Observe(HttpContext? context)
+    {
+        Bound.Value = context is not null && IsPaintPath(context.Request.Path) ? context : null;
+    }
+
+    public static bool IsActive => Current is not null;
 
     /// <summary>Apply the 2s budget when the command still has the 30s pool default.</summary>
     public static void ApplyIfUnset(DbCommand command)
@@ -74,6 +109,13 @@ public static class ErpFirstPaint
         }
 
         return value;
+    }
+
+    /// <summary>PHP warehouse bridge stays Classic, but SSR must not wait 45s per hop.</summary>
+    public static int ClampPhpBridgeTimeout(int requestedSeconds)
+    {
+        var n = Math.Clamp(requestedSeconds, 1, 60);
+        return IsActive ? Math.Min(n, PhpBridgeTimeoutSeconds) : n;
     }
 
     public static bool TryGetRequestCache<T>(HttpContext? context, string key, out T? value)
