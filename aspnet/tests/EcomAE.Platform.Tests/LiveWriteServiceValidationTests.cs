@@ -3121,6 +3121,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosNlCreateDb.Succeeded);
         Assert.Equal("db", bosNlCreateDb.Code);
 
+        var bosTokenSaveDb = await new BosDesignTokenWriteService(new UnconfiguredConnections())
+            .SaveTokenAsync("acme", "brand_primary", "#111");
+        Assert.False(bosTokenSaveDb.Succeeded);
+        Assert.Equal("db", bosTokenSaveDb.Code);
+
         var quoteNote = await new CpQuoteWriteService(new ConfiguredNeverOpened())
             .SaveAdminNoteAsync(0, "note");
         Assert.False(quoteNote.Succeeded);

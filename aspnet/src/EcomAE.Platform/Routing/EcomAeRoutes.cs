@@ -2105,6 +2105,8 @@ public static class EcomAeRoutes
     public const string BosImportsCreate = "/bos/imports/create";
     /// <summary>Live PHP ajax_epc_bos.php nl_reporting create. confirmWrites=true INSERTs epc_report_definitions. Super-CP only.</summary>
     public const string BosNlReportingCreate = "/bos/nl-reporting/create";
+    /// <summary>Live PHP ajax_epc_bos.php design_tokens save_token. confirmWrites=true UPSERTs epc_settings. Super-CP only.</summary>
+    public const string BosDesignTokensSave = "/bos/design-tokens/save";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
