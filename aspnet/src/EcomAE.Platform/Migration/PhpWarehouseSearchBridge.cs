@@ -4,6 +4,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EcomAE.Platform.Api.Catalog;
+using EcomAE.Platform.Presentation;
 
 namespace EcomAE.Platform.Migration;
 
@@ -372,6 +373,7 @@ public sealed class PhpWarehouseSearchBridge
             return null;
         }
 
+        timeoutSeconds = ErpFirstPaint.ClampPhpBridgeTimeout(timeoutSeconds);
         var (client, dispose) = CreateClient(timeoutSeconds);
         try
         {
@@ -387,8 +389,10 @@ public sealed class PhpWarehouseSearchBridge
                 {
                     using var request = new HttpRequestMessage(HttpMethod.Get, target.Uri);
                     ApplyTargetHeaders(request, target);
+                    using var bound = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    bound.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
-                    using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    using var response = await client.SendAsync(request, bound.Token).ConfigureAwait(false);
                     if (!response.IsSuccessStatusCode)
                     {
                         continue;
@@ -432,6 +436,7 @@ public sealed class PhpWarehouseSearchBridge
             return null;
         }
 
+        timeoutSeconds = ErpFirstPaint.ClampPhpBridgeTimeout(timeoutSeconds);
         var (client, dispose) = CreateClient(timeoutSeconds);
         try
         {
@@ -448,8 +453,10 @@ public sealed class PhpWarehouseSearchBridge
                     ApplyTargetHeaders(request, target);
                     ForwardBrowserCookies(request);
                     request.Content = new FormUrlEncodedContent(form);
+                    using var bound = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+                    bound.CancelAfter(TimeSpan.FromSeconds(timeoutSeconds));
 
-                    using var response = await client.SendAsync(request, cancellationToken).ConfigureAwait(false);
+                    using var response = await client.SendAsync(request, bound.Token).ConfigureAwait(false);
                     if (!response.IsSuccessStatusCode)
                     {
                         continue;
@@ -557,6 +564,12 @@ public sealed class PhpWarehouseSearchBridge
         if (request.Host.Port is int publicPort)
         {
             publicBuilder.Port = publicPort;
+        }
+
+        // First paint: one loopback hop only — do not walk every port then Cloudflare.
+        if (ErpFirstPaint.IsActive && targets.Count > 0)
+        {
+            return [targets[0]];
         }
 
         targets.Add(new BridgeTarget(publicBuilder.Uri, HostHeader: null));

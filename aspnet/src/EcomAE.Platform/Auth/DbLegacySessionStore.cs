@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Presentation;
 
 namespace EcomAE.Platform.Auth;
 
@@ -67,6 +68,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
                 try
                 {
                     await using var command = connection.CreateCommand();
+                    ErpFirstPaint.ApplyIfErp(command);
                     command.CommandText = LegacySessionSql.SelectGroupParent;
                     AddParameter(command, "@groupId", current);
                     var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -98,6 +100,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
         {
             await using (var openCommand = connection.CreateCommand())
             {
+                ErpFirstPaint.ApplyIfErp(openCommand);
                 openCommand.CommandText = LegacySessionSql.SelectOpenModules;
                 await using var openReader = await openCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await openReader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -111,6 +114,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
             foreach (var groupId in groupIds.Distinct())
             {
                 await using var grantCommand = connection.CreateCommand();
+                ErpFirstPaint.ApplyIfErp(grantCommand);
                 grantCommand.CommandText = LegacySessionSql.SelectModuleAccessForGroup;
                 AddParameter(grantCommand, "@groupId", groupId);
                 await using var grantReader = await grantCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -145,6 +149,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
 
         await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
+        ErpFirstPaint.ApplyIfErp(command);
         command.CommandText = sql;
         AddParameter(command, "@session", sessionToken);
         AddParameter(command, "@userId", userId);
@@ -156,6 +161,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
     private static async Task<string?> ScalarStringAsync(DbConnection connection, string sql, int userId, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        ErpFirstPaint.ApplyIfErp(command);
         command.CommandText = sql;
         AddParameter(command, "@userId", userId);
         var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -170,6 +176,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        ErpFirstPaint.ApplyIfErp(command);
         command.CommandText = sql;
         if (parameterName is not null && parameterValue is not null)
         {

@@ -18,6 +18,7 @@ public sealed class ErpFirstPaintBudgetTests
         Assert.Equal(50, ErpFirstPaint.ListLimit);
         Assert.Equal(80, ErpFirstPaint.PickerLimit);
         Assert.Equal(200, ErpFirstPaint.AgingScanLimit);
+        Assert.Equal(5, ErpFirstPaint.PhpBridgeTimeoutSeconds);
     }
 
     [Fact]
@@ -28,6 +29,23 @@ public sealed class ErpFirstPaintBudgetTests
         Assert.True(ErpFirstPaint.IsErpPath("/ERP/quality-app"));
         Assert.False(ErpFirstPaint.IsErpPath("/cp/users"));
         Assert.False(ErpFirstPaint.IsErpPath("/en/parts/BOSCH/0986424590"));
+    }
+
+    [Fact]
+    public void IsPaintPath_CoversCpBosAndStorefront()
+    {
+        Assert.True(ErpFirstPaint.IsPaintPath("/"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/erp/sales-orders-app"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/cp/orders"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/CP/users"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/bos/fleet-summary-app"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/storefront/app"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/en"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/en/parts/BOSCH/0986424590"));
+        Assert.True(ErpFirstPaint.IsPaintPath("/ar/shop/part_search"));
+        Assert.False(ErpFirstPaint.IsPaintPath("/migration/php-reference-mode"));
+        Assert.False(ErpFirstPaint.IsPaintPath("/php-reference/en"));
+        Assert.False(ErpFirstPaint.IsPaintPath("/platform-assets/x.css"));
     }
 
     [Fact]
@@ -120,6 +138,74 @@ public sealed class ErpFirstPaintBudgetTests
         {
             ErpFirstPaint.Observe(null);
         }
+    }
+
+    [Fact]
+    public void CpAndStorefront_ObserveActivatesTwoSecondBudget()
+    {
+        var cp = new DefaultHttpContext();
+        cp.Request.Path = "/cp/orders";
+        try
+        {
+            ErpFirstPaint.Observe(cp);
+            Assert.True(ErpFirstPaint.IsActive);
+            Assert.Equal(50, ErpFirstPaint.ClampList(200));
+            Assert.Equal(5, ErpFirstPaint.ClampPhpBridgeTimeout(45));
+        }
+        finally
+        {
+            ErpFirstPaint.Observe(null);
+        }
+
+        Assert.False(ErpFirstPaint.IsActive);
+        Assert.Equal(45, ErpFirstPaint.ClampPhpBridgeTimeout(45));
+    }
+
+    [Fact]
+    public void DashboardScalarFallback_IsGatedOnFirstPaint()
+    {
+        var reporter = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        var start = reporter.IndexOf(
+            "private async Task<ErpDashboardSummary> ReadErpDashboardScalarsAsync",
+            StringComparison.Ordinal);
+        Assert.True(start >= 0, "scalar fallback missing");
+        var end = reporter.IndexOf(
+            "public async Task<BosFleetSummary> BuildBosAsync",
+            start,
+            StringComparison.Ordinal);
+        Assert.True(end > start, "scalar fallback bounds missing");
+        var body = reporter[start..end];
+        Assert.Contains("ErpFirstPaint.IsActive", body, StringComparison.Ordinal);
+        Assert.Contains("EmptyErpSummary", body, StringComparison.Ordinal);
+        Assert.Contains("Cloudflare 524", body, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void Middleware_ObservesBeforeAdminGate()
+    {
+        var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
+        var paint = program.IndexOf("UseMiddleware<SurfaceFirstPaintMiddleware>", StringComparison.Ordinal);
+        var gate = program.IndexOf("UseMiddleware<AdminSurfaceAuthGateMiddleware>", StringComparison.Ordinal);
+        Assert.True(paint >= 0, "first-paint middleware missing");
+        Assert.True(gate > paint, "first-paint middleware must run before admin gate");
+        var middleware = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Middleware/SurfaceFirstPaintMiddleware.cs"));
+        Assert.Contains("ErpFirstPaint.Observe", middleware, StringComparison.Ordinal);
+        Assert.DoesNotContain("cutoverAllowed = true", middleware, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PhpBridgeAndSession_CapFirstPaintWaits()
+    {
+        var bridge = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Migration/PhpWarehouseSearchBridge.cs"));
+        Assert.Contains("ClampPhpBridgeTimeout", bridge, StringComparison.Ordinal);
+        Assert.Contains("CancelAfter", bridge, StringComparison.Ordinal);
+        Assert.Contains("ErpFirstPaint.IsActive", bridge, StringComparison.Ordinal);
+        var session = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Auth/DbLegacySessionStore.cs"));
+        Assert.Contains("ErpFirstPaint.ApplyIfErp", session, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)

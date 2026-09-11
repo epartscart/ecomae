@@ -556,6 +556,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         long overdueBefore,
         CancellationToken cancellationToken)
     {
+        // Batch miss + 20 sequential scalars × 2s = 40s — that is a Cloudflare 524.
+        // First paint keeps the shell; KPI zeros until the batch path works.
+        if (ErpFirstPaint.IsActive)
+        {
+            return EmptyErpSummary("database", string.Empty);
+        }
+
         var cash = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumCashBankTotal, cancellationToken).ConfigureAwait(false);
         var credit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierCredit, cancellationToken).ConfigureAwait(false);
         var debit = await ScalarDecimalSafeAsync(connection, LegacySurfaceDashboardSql.SumSupplierDebit, cancellationToken).ConfigureAwait(false);
