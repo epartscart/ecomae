@@ -145,27 +145,44 @@
             _categoryId = id;
         }
 
-        var treeResult = await Dashboards.ListStorefrontCatalogueTreeAsync();
-        _tree = treeResult.Tree;
-        if (treeResult.Source is "database-error" or "migration")
+        try
         {
-            _treeError = string.IsNullOrWhiteSpace(treeResult.Message)
-                ? treeResult.Source
-                : treeResult.Message;
+            var treeResult = await Dashboards.ListStorefrontCatalogueTreeAsync();
+            _tree = treeResult.Tree;
+            if (treeResult.Source is "database-error" or "migration")
+            {
+                _treeError = string.IsNullOrWhiteSpace(treeResult.Message)
+                    ? treeResult.Source
+                    : treeResult.Message;
+            }
+        }
+        catch
+        {
+            _tree = [];
+            _treeError = "Catalogue tree is temporarily unavailable.";
         }
 
         if (_categoryId > 0 || _categoryUrl.Length > 0 || _search.Length > 0)
         {
-            var products = await Dashboards.ListStorefrontCatalogueProductsAsync(
-                _categoryId, _categoryUrl, _search, 48);
-            _loadedProducts = true;
-            _products = products.Rows;
-            _categoryId = products.CategoryId;
-            _categoryUrl = products.CategoryUrl;
-            _categoryValue = products.CategoryValue;
-            _productsMessage = string.IsNullOrWhiteSpace(products.Message)
-                ? (products.Count == 0 ? "No products in this category." : "")
-                : products.Message;
+            try
+            {
+                var products = await Dashboards.ListStorefrontCatalogueProductsAsync(
+                    _categoryId, _categoryUrl, _search, 48);
+                _loadedProducts = true;
+                _products = products.Rows;
+                _categoryId = products.CategoryId;
+                _categoryUrl = products.CategoryUrl;
+                _categoryValue = products.CategoryValue;
+                _productsMessage = string.IsNullOrWhiteSpace(products.Message)
+                    ? (products.Count == 0 ? "No products in this category." : "")
+                    : products.Message;
+            }
+            catch
+            {
+                _loadedProducts = true;
+                _products = [];
+                _productsMessage = "Products are temporarily unavailable.";
+            }
         }
     }
 

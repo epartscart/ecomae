@@ -5394,6 +5394,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        ErpFirstPaint.ApplyIfErp(command);
         command.CommandText = sql;
         var flat = new List<StorefrontCatalogueCategoryRow>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -5653,6 +5654,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             await using (var command = connection.CreateCommand())
             {
+                ErpFirstPaint.ApplyIfErp(command);
                 command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontGenuineManufacturerNames;
                 await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -5665,6 +5667,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             try
             {
                 await using var synonymCmd = connection.CreateCommand();
+                ErpFirstPaint.ApplyIfErp(synonymCmd);
                 synonymCmd.CommandText = LegacySurfaceDashboardSql.SelectStorefrontManufacturerSynonyms;
                 await using var synonymReader = await synonymCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await synonymReader.ReadAsync(cancellationToken).ConfigureAwait(false))

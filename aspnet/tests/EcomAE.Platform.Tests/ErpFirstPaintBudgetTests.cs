@@ -224,6 +224,22 @@ public sealed class ErpFirstPaintBudgetTests
         var getBody = ownBrand[getStart..getEnd];
         Assert.DoesNotContain("FROM `shop_docpart_prices_data`", getBody, StringComparison.Ordinal);
         Assert.Contains("FROM `shop_docpart_prices_data`", ownBrand, StringComparison.Ordinal);
+        var brandsApp = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontAvailableBrandsApp.razor"));
+        Assert.Contains("ErpFirstPaint.IsActive", brandsApp, StringComparison.Ordinal);
+        Assert.Contains("PhpHomeWidgetHtml.AvailableBrands", brandsApp, StringComparison.Ordinal);
+        var genuine = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        var genuineStart = genuine.IndexOf(
+            "public async Task<StorefrontGenuineBrandsResult> ListStorefrontGenuineBrandsAsync",
+            StringComparison.Ordinal);
+        Assert.True(genuineStart >= 0, "genuine brands method missing");
+        var genuineEnd = genuine.IndexOf(
+            "public async Task<StorefrontOfficeStorageBunchesResult> ListStorefrontOfficeStorageBunchesAsync",
+            genuineStart,
+            StringComparison.Ordinal);
+        Assert.True(genuineEnd > genuineStart, "genuine brands method bounds missing");
+        Assert.Contains("ErpFirstPaint.ApplyIfErp", genuine[genuineStart..genuineEnd], StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
