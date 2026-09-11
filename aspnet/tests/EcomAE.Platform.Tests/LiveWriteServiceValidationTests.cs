@@ -2876,6 +2876,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosReleaseDb.Succeeded);
         Assert.Equal("db", bosReleaseDb.Code);
 
+        var bosSetLimitDb = await new BosCreditWriteService(new UnconfiguredConnections())
+            .SetLimitAsync("acme", 9, "1000", "AED", "net30", "", null, 0);
+        Assert.False(bosSetLimitDb.Succeeded);
+        Assert.Equal("db", bosSetLimitDb.Code);
+
         var bosApiRevokeDb = await new BosApiKeyWriteService(new UnconfiguredConnections())
             .RevokeAsync(9);
         Assert.False(bosApiRevokeDb.Succeeded);
