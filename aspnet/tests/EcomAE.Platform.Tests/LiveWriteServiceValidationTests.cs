@@ -2946,6 +2946,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosRmaDb.Succeeded);
         Assert.Equal("db", bosRmaDb.Code);
 
+        var bosWarrantyDb = await new BosRmaWriteService(new UnconfiguredConnections())
+            .RegisterAsync("acme", null);
+        Assert.False(bosWarrantyDb.Succeeded);
+        Assert.Equal("db", bosWarrantyDb.Code);
+
         var bosDealerDb = await new BosDealerWriteService(new UnconfiguredConnections())
             .AutoTierAsync(9);
         Assert.False(bosDealerDb.Succeeded);
