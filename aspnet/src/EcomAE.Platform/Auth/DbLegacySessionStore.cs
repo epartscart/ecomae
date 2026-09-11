@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Presentation;
 
 namespace EcomAE.Platform.Auth;
 
@@ -10,11 +11,16 @@ namespace EcomAE.Platform.Auth;
 public sealed class DbLegacySessionStore : ILegacySessionStore
 {
     /// <summary>
-    /// Session lookups must not share the 2s first-paint SQL budget — a timeout
-    /// there 500s every storefront/CP/ERP page. Cap independently so a wedged
-    /// shop DB fails soft instead of hanging until Cloudflare 524.
+    /// Session lookups must not call the paint ApplyIfErp helper — a throw there
+    /// 500s every storefront/CP/ERP page. Cap to the 3s wall clock (or remaining)
+    /// and fail soft instead of hanging until Cloudflare 524.
     /// </summary>
-    private const int SessionCommandTimeoutSeconds = 5;
+    private const int SessionCommandTimeoutSeconds = 3;
+
+    private static int EffectiveSessionTimeoutSeconds()
+        => ErpFirstPaint.IsActive
+            ? Math.Min(SessionCommandTimeoutSeconds, ErpFirstPaint.RemainingCommandTimeoutSeconds)
+            : SessionCommandTimeoutSeconds;
 
     private readonly ITenantDbConnectionFactory _connections;
 
@@ -81,7 +87,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
                 try
                 {
                     await using var command = connection.CreateCommand();
-                    command.CommandTimeout = SessionCommandTimeoutSeconds;
+                    command.CommandTimeout = EffectiveSessionTimeoutSeconds();
                     command.CommandText = LegacySessionSql.SelectGroupParent;
                     AddParameter(command, "@groupId", current);
                     var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -113,7 +119,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
         {
             await using (var openCommand = connection.CreateCommand())
             {
-                openCommand.CommandTimeout = SessionCommandTimeoutSeconds;
+                openCommand.CommandTimeout = EffectiveSessionTimeoutSeconds();
                 openCommand.CommandText = LegacySessionSql.SelectOpenModules;
                 await using var openReader = await openCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await openReader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -127,7 +133,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
             foreach (var groupId in groupIds.Distinct())
             {
                 await using var grantCommand = connection.CreateCommand();
-                grantCommand.CommandTimeout = SessionCommandTimeoutSeconds;
+                grantCommand.CommandTimeout = EffectiveSessionTimeoutSeconds();
                 grantCommand.CommandText = LegacySessionSql.SelectModuleAccessForGroup;
                 AddParameter(grantCommand, "@groupId", groupId);
                 await using var grantReader = await grantCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -164,7 +170,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
         {
             await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
-            command.CommandTimeout = SessionCommandTimeoutSeconds;
+            command.CommandTimeout = EffectiveSessionTimeoutSeconds();
             command.CommandText = sql;
             AddParameter(command, "@session", sessionToken);
             AddParameter(command, "@userId", userId);
@@ -182,7 +188,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
     private static async Task<string?> ScalarStringAsync(DbConnection connection, string sql, int userId, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandTimeout = SessionCommandTimeoutSeconds;
+        command.CommandTimeout = EffectiveSessionTimeoutSeconds();
         command.CommandText = sql;
         AddParameter(command, "@userId", userId);
         var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -197,7 +203,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandTimeout = SessionCommandTimeoutSeconds;
+        command.CommandTimeout = EffectiveSessionTimeoutSeconds();
         command.CommandText = sql;
         if (parameterName is not null && parameterValue is not null)
         {

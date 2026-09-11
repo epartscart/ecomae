@@ -1066,7 +1066,7 @@ app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
-// Bind 2s first-paint SQL/bridge caps before session + Blazor (stops Cloudflare 524 hangs).
+// Bind 3s first-paint wall clock before session + Blazor (stops Cloudflare 524 hangs).
 app.UseMiddleware<SurfaceFirstPaintMiddleware>();
 // lifeos.ecomae.com bare / or mis-routed /marketing/app → redirect /lifeos (short-circuit).
 // Must short-circuit with Redirect: implicit UseRouting already matched /marketing/app.

@@ -373,6 +373,11 @@ public sealed class PhpWarehouseSearchBridge
             return null;
         }
 
+        if (ErpFirstPaint.IsExpired)
+        {
+            return null;
+        }
+
         timeoutSeconds = ErpFirstPaint.ClampPhpBridgeTimeout(timeoutSeconds);
         var (client, dispose) = CreateClient(timeoutSeconds);
         try
@@ -385,6 +390,11 @@ public sealed class PhpWarehouseSearchBridge
 
             foreach (var target in targets)
             {
+                if (ErpFirstPaint.IsExpired)
+                {
+                    return null;
+                }
+
                 try
                 {
                     using var request = new HttpRequestMessage(HttpMethod.Get, target.Uri);
@@ -436,6 +446,11 @@ public sealed class PhpWarehouseSearchBridge
             return null;
         }
 
+        if (ErpFirstPaint.IsExpired)
+        {
+            return null;
+        }
+
         timeoutSeconds = ErpFirstPaint.ClampPhpBridgeTimeout(timeoutSeconds);
         var (client, dispose) = CreateClient(timeoutSeconds);
         try
@@ -447,6 +462,11 @@ public sealed class PhpWarehouseSearchBridge
 
             foreach (var target in targets)
             {
+                if (ErpFirstPaint.IsExpired)
+                {
+                    return null;
+                }
+
                 try
                 {
                     using var request = new HttpRequestMessage(HttpMethod.Post, target.Uri);
