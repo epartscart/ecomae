@@ -6,19 +6,20 @@ using Xunit;
 namespace EcomAE.Platform.Tests;
 
 /// <summary>
-/// Guards the ~2s ERP first-paint budget: request-cached chrome, 2s SQL caps,
+/// Guards the 3s first-paint wall clock: request-cached chrome, remaining SQL caps,
 /// slimmer workspace home, and clamped list/picker scans.
 /// </summary>
 public sealed class ErpFirstPaintBudgetTests
 {
     [Fact]
-    public void BudgetConstants_AreTwoSecondsAndSmallLists()
+    public void BudgetConstants_AreThreeSecondWallClockAndSmallLists()
     {
-        Assert.Equal(2, ErpFirstPaint.CommandTimeoutSeconds);
+        Assert.Equal(3000, ErpFirstPaint.WallClockMilliseconds);
+        Assert.Equal(1, ErpFirstPaint.CommandTimeoutSeconds);
         Assert.Equal(50, ErpFirstPaint.ListLimit);
         Assert.Equal(80, ErpFirstPaint.PickerLimit);
         Assert.Equal(200, ErpFirstPaint.AgingScanLimit);
-        Assert.Equal(5, ErpFirstPaint.PhpBridgeTimeoutSeconds);
+        Assert.Equal(1, ErpFirstPaint.PhpBridgeTimeoutSeconds);
     }
 
     [Fact]
@@ -141,7 +142,7 @@ public sealed class ErpFirstPaintBudgetTests
     }
 
     [Fact]
-    public void CpAndStorefront_ObserveActivatesTwoSecondBudget()
+    public void CpAndStorefront_ObserveActivatesThreeSecondBudget()
     {
         var cp = new DefaultHttpContext();
         cp.Request.Path = "/cp/orders";
@@ -149,8 +150,10 @@ public sealed class ErpFirstPaintBudgetTests
         {
             ErpFirstPaint.Observe(cp);
             Assert.True(ErpFirstPaint.IsActive);
+            Assert.False(ErpFirstPaint.IsExpired);
             Assert.Equal(50, ErpFirstPaint.ClampList(200));
-            Assert.Equal(5, ErpFirstPaint.ClampPhpBridgeTimeout(45));
+            Assert.Equal(1, ErpFirstPaint.ClampPhpBridgeTimeout(45));
+            Assert.InRange(ErpFirstPaint.RemainingMilliseconds, 1, 3000);
         }
         finally
         {
@@ -159,6 +162,33 @@ public sealed class ErpFirstPaintBudgetTests
 
         Assert.False(ErpFirstPaint.IsActive);
         Assert.Equal(45, ErpFirstPaint.ClampPhpBridgeTimeout(45));
+    }
+
+    [Fact]
+    public void WallClock_ExpiresAfterThreeSecondsAndCapsCommands()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = "/en/parts";
+        ctx.Items[ErpFirstPaint.StartedItemKey] = System.Diagnostics.Stopwatch.GetTimestamp()
+            - (4L * System.Diagnostics.Stopwatch.Frequency);
+        try
+        {
+            ErpFirstPaint.Observe(ctx);
+            Assert.True(ErpFirstPaint.IsActive);
+            Assert.True(ErpFirstPaint.IsExpired);
+            Assert.Equal(0, ErpFirstPaint.RemainingMilliseconds);
+            Assert.Equal(1, ErpFirstPaint.RemainingCommandTimeoutSeconds);
+            Assert.Equal(1, ErpFirstPaint.ClampPhpBridgeTimeout(45));
+
+            using var command = new MySqlConnector.MySqlCommand();
+            command.CommandTimeout = 8;
+            ErpFirstPaint.ApplyIfErp(command);
+            Assert.Equal(1, command.CommandTimeout);
+        }
+        finally
+        {
+            ErpFirstPaint.Observe(null);
+        }
     }
 
     [Fact]
@@ -192,7 +222,15 @@ public sealed class ErpFirstPaintBudgetTests
         var middleware = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Middleware/SurfaceFirstPaintMiddleware.cs"));
         Assert.Contains("ErpFirstPaint.Observe", middleware, StringComparison.Ordinal);
+        Assert.Contains("3s SSR first-paint wall clock", middleware, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", middleware, StringComparison.Ordinal);
+        var factory = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Data/MySqlTenantDbConnectionFactory.cs"));
+        Assert.Contains("ApplyFirstPaintTimeouts", factory, StringComparison.Ordinal);
+        Assert.Contains("DefaultCommandTimeout = remain", factory, StringComparison.Ordinal);
+        var shopOpen = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        Assert.Contains("first-paint 3s budget", shopOpen, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -207,7 +245,8 @@ public sealed class ErpFirstPaintBudgetTests
             "aspnet/src/EcomAE.Platform/Auth/DbLegacySessionStore.cs"));
         Assert.DoesNotContain("ErpFirstPaint.ApplyIfErp", session, StringComparison.Ordinal);
         Assert.Contains("must not 500 the storefront", session, StringComparison.Ordinal);
-        Assert.Contains("SessionCommandTimeoutSeconds = 5", session, StringComparison.Ordinal);
+        Assert.Contains("SessionCommandTimeoutSeconds = 3", session, StringComparison.Ordinal);
+        Assert.Contains("EffectiveSessionTimeoutSeconds", session, StringComparison.Ordinal);
         var validator = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Auth/DbBackedLegacySessionValidator.cs"));
         Assert.Contains("paint the storefront as guest", validator, StringComparison.Ordinal);

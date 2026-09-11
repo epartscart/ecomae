@@ -1,6 +1,7 @@
 using System.Data.Common;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 using Microsoft.Extensions.Options;
 using MySqlConnector;
@@ -45,6 +46,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
 
         var builder = new MySqlConnectionStringBuilder(connectionString);
         ApplyPoolOptions(builder);
+        ApplyFirstPaintTimeouts(builder);
 
         var tenant = CurrentTenant();
         var db = !string.IsNullOrWhiteSpace(databaseName)
@@ -98,6 +100,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
 
         var builder = new MySqlConnectionStringBuilder(connectionString);
         ApplyPoolOptions(builder);
+        ApplyFirstPaintTimeouts(builder);
         // Explicitly do not apply TenantContext — portal registry must stay isolated.
         var connection = new MySqlConnection(builder.ConnectionString);
         await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
@@ -131,6 +134,26 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         {
             builder.DefaultCommandTimeout = (uint)pool.DefaultCommandTimeoutSeconds;
         }
+    }
+
+    /// <summary>
+    /// First paint must not inherit the 30s pool default or 8s connect wait.
+    /// Cap both to the remaining 3s wall clock so sequential opens cannot 524.
+    /// </summary>
+    private static void ApplyFirstPaintTimeouts(MySqlConnectionStringBuilder builder)
+    {
+        if (!ErpFirstPaint.IsActive)
+        {
+            return;
+        }
+
+        var remain = (uint)Math.Max(1, ErpFirstPaint.RemainingCommandTimeoutSeconds);
+        if (builder.ConnectionTimeout == 0 || builder.ConnectionTimeout > remain)
+        {
+            builder.ConnectionTimeout = remain;
+        }
+
+        builder.DefaultCommandTimeout = remain;
     }
 
     private string? ResolveBaseConnectionString()

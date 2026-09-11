@@ -1,21 +1,25 @@
 using System.Data.Common;
+using System.Diagnostics;
 
 namespace EcomAE.Platform.Presentation;
 
 /// <summary>
-/// SSR first-paint budget: ~2s wall clock for ERP, CP, BOS, and storefront.
-/// Caps SQL, clamps list pages, and memoizes companies per request so chrome
-/// does not open the shop DB three times. Does not flip PHP serving or cutover flags.
-/// Cloudflare 524 is an origin timeout — this budget fails-soft instead of hanging.
+/// SSR first-paint budget: 3s wall clock for ERP, CP, BOS, and storefront.
+/// Caps SQL to remaining time, clamps list pages, and memoizes companies per
+/// request so chrome does not open the shop DB three times. Does not flip PHP
+/// serving or cutover flags. Cloudflare 524 is an origin timeout — this budget
+/// fails-soft instead of hanging.
 /// </summary>
 public static class ErpFirstPaint
 {
-    public const int CommandTimeoutSeconds = 2;
+    public const int WallClockMilliseconds = 3000;
+    public const int CommandTimeoutSeconds = 1;
     public const int ListLimit = 50;
     public const int PickerLimit = 80;
     public const int AgingScanLimit = 200;
-    public const int PhpBridgeTimeoutSeconds = 5;
+    public const int PhpBridgeTimeoutSeconds = 1;
     public const string CompaniesCacheKey = "ecomae.erp.companies-digest";
+    public const string StartedItemKey = "ecomae.first-paint.started";
 
     private static readonly AsyncLocal<HttpContext?> Bound = new();
 
@@ -28,7 +32,7 @@ public static class ErpFirstPaint
     }
 
     /// <summary>
-    /// Product HTML that must paint before Cloudflare's origin timeout:
+    /// Product HTML that must paint within <see cref="WallClockMilliseconds"/>:
     /// ERP, CP, BOS, storefront home, and lang-prefixed storefront.
     /// </summary>
     public static bool IsPaintPath(PathString path)
@@ -62,18 +66,80 @@ public static class ErpFirstPaint
 
     public static void Observe(HttpContext? context)
     {
-        Bound.Value = context is not null && IsPaintPath(context.Request.Path) ? context : null;
+        if (context is null || !IsPaintPath(context.Request.Path))
+        {
+            Bound.Value = null;
+            return;
+        }
+
+        if (!context.Items.ContainsKey(StartedItemKey))
+        {
+            context.Items[StartedItemKey] = Stopwatch.GetTimestamp();
+        }
+
+        Bound.Value = context;
     }
 
     public static bool IsActive => Current is not null;
 
-    /// <summary>Apply the 2s budget when the command still has the 30s pool default.</summary>
+    public static int ElapsedMilliseconds
+    {
+        get
+        {
+            var context = Current;
+            if (context?.Items.TryGetValue(StartedItemKey, out var boxed) != true || boxed is not long started)
+            {
+                return 0;
+            }
+
+            return (int)Math.Min(int.MaxValue, Stopwatch.GetElapsedTime(started).TotalMilliseconds);
+        }
+    }
+
+    public static int RemainingMilliseconds => IsActive
+        ? Math.Max(0, WallClockMilliseconds - ElapsedMilliseconds)
+        : WallClockMilliseconds;
+
+    /// <summary>True when the 3s wall clock is spent — skip more SQL/bridge work and paint.</summary>
+    public static bool IsExpired => IsActive && RemainingMilliseconds <= 0;
+
+    public static int RemainingCommandTimeoutSeconds
+    {
+        get
+        {
+            if (!IsActive)
+            {
+                return CommandTimeoutSeconds;
+            }
+
+            var ms = RemainingMilliseconds;
+            if (ms <= 0)
+            {
+                return 1;
+            }
+
+            return Math.Clamp((ms + 999) / 1000, 1, CommandTimeoutSeconds);
+        }
+    }
+
+    /// <summary>Apply the remaining first-paint budget (force-cap even when a caller set 8–30s).</summary>
     public static void ApplyIfUnset(DbCommand command)
     {
         ArgumentNullException.ThrowIfNull(command);
-        if (command.CommandTimeout is 0 or 30)
+        if (!IsActive)
         {
-            command.CommandTimeout = CommandTimeoutSeconds;
+            if (command.CommandTimeout is 0 or 30)
+            {
+                command.CommandTimeout = CommandTimeoutSeconds;
+            }
+
+            return;
+        }
+
+        var cap = RemainingCommandTimeoutSeconds;
+        if (command.CommandTimeout <= 0 || command.CommandTimeout > cap)
+        {
+            command.CommandTimeout = cap;
         }
     }
 
@@ -111,11 +177,11 @@ public static class ErpFirstPaint
         return value;
     }
 
-    /// <summary>PHP warehouse bridge stays Classic, but SSR must not wait 45s per hop.</summary>
+    /// <summary>PHP warehouse bridge stays Classic, but SSR must not wait past the 3s wall clock.</summary>
     public static int ClampPhpBridgeTimeout(int requestedSeconds)
     {
         var n = Math.Clamp(requestedSeconds, 1, 60);
-        return IsActive ? Math.Min(n, PhpBridgeTimeoutSeconds) : n;
+        return IsActive ? Math.Min(n, Math.Min(PhpBridgeTimeoutSeconds, RemainingCommandTimeoutSeconds)) : n;
     }
 
     public static bool TryGetRequestCache<T>(HttpContext? context, string key, out T? value)

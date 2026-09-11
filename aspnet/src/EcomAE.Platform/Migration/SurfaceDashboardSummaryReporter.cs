@@ -4007,6 +4007,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             await using var command = connection.CreateCommand();
             command.CommandTimeout = Math.Clamp(commandTimeoutSeconds, 1, 15);
+            ErpFirstPaint.ApplyIfErp(command);
             command.CommandText = LegacySurfaceDashboardSql.SelectStorefrontArticleCrossPairs.Replace(
                 "{CROSS_MATCH}",
                 matchSql,
@@ -4106,9 +4107,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var best = new Dictionary<string, StorefrontCrossStockDigest>(StringComparer.OrdinalIgnoreCase);
         for (var offset = 0; offset < norms.Count && best.Count < stockMax; offset += batchSize)
         {
+            if (ErpFirstPaint.IsExpired)
+            {
+                break;
+            }
+
             var batch = norms.Skip(offset).Take(batchSize).ToList();
             await using var command = connection.CreateCommand();
             command.CommandTimeout = 8;
+            ErpFirstPaint.ApplyIfErp(command);
             // PHP epc_cross_load_stock_for_references uses docpart_sql_article_normalized_expr IN (...).
             var articleMatch = LegacySurfaceDashboardSql.StorefrontPriceArticleReplaceInSql(batch.Count);
             command.CommandText = $"""
@@ -4217,6 +4224,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private Task<DbConnection> OpenTenantShopAsync(CancellationToken cancellationToken)
     {
         ErpFirstPaint.Observe(_httpContextAccessor?.HttpContext);
+        if (ErpFirstPaint.IsExpired)
+        {
+            throw new TimeoutException("first-paint 3s budget");
+        }
+
         if (IsEpartsCartRequest())
         {
             return _connections.OpenAsync("docpart", cancellationToken);

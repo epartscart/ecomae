@@ -3,7 +3,7 @@ using EcomAE.Platform.Presentation;
 namespace EcomAE.Platform.Middleware;
 
 /// <summary>
-/// Binds the 2s SSR first-paint budget before session gates and Blazor run.
+/// Binds the 3s SSR first-paint wall clock before session gates and Blazor run.
 /// Does not change routing or cutover flags.
 /// </summary>
 public sealed class SurfaceFirstPaintMiddleware
