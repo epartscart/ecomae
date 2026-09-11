@@ -16,7 +16,8 @@ public sealed class BosDunningCreateProfileWriteTests
     [Fact]
     public void Php_site_key_and_steps_match_php()
     {
-        Assert.Equal("acme_1", BosDunningWriteService.PhpBosSiteKey("Acme-1!"));
+        Assert.Equal("acme1", BosDunningWriteService.PhpBosSiteKey("Acme-1!"));
+        Assert.Equal("acme_1", BosDunningWriteService.PhpBosSiteKey("Acme_1"));
         Assert.Equal("", BosDunningWriteService.PhpBosSiteKey("!!!"));
         Assert.Equal("", BosDunningWriteService.PhpBosSiteKey(null));
 
