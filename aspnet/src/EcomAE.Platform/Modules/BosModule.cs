@@ -1092,6 +1092,149 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosBillingCreatePlan, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosBillingWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for billing create-plan.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosBillingCreatePlanBody>(context, cancellationToken)
+                       ?? new();
+            var planData = body.PlanData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                planData = FormOrNull(form, "plan_data", "planData");
+                if (string.IsNullOrWhiteSpace(planData))
+                {
+                    object features = Array.Empty<object>();
+                    var featuresRaw = form["features"].ToString();
+                    if (featuresRaw.Length > 0)
+                    {
+                        try
+                        {
+                            using var featuresDoc = JsonDocument.Parse(featuresRaw);
+                            features = featuresDoc.RootElement.ValueKind is JsonValueKind.Array or JsonValueKind.Object
+                                ? JsonSerializer.Deserialize<object>(featuresRaw) ?? Array.Empty<object>()
+                                : featuresRaw;
+                        }
+                        catch (JsonException)
+                        {
+                            features = featuresRaw;
+                        }
+                    }
+
+                    object usageLimits = Array.Empty<object>();
+                    var limitsRaw = form["usage_limits"].ToString();
+                    if (limitsRaw.Length > 0)
+                    {
+                        try
+                        {
+                            using var limitsDoc = JsonDocument.Parse(limitsRaw);
+                            usageLimits = limitsDoc.RootElement.ValueKind is JsonValueKind.Array or JsonValueKind.Object
+                                ? JsonSerializer.Deserialize<object>(limitsRaw) ?? Array.Empty<object>()
+                                : limitsRaw;
+                        }
+                        catch (JsonException)
+                        {
+                            usageLimits = limitsRaw;
+                        }
+                    }
+
+                    var fields = new Dictionary<string, object?>
+                    {
+                        ["features"] = features,
+                        ["usage_limits"] = usageLimits
+                    };
+                    var planCode = form["plan_code"].ToString();
+                    if (planCode.Length > 0)
+                    {
+                        fields["plan_code"] = planCode;
+                    }
+
+                    var name = form["name"].ToString();
+                    if (name.Length > 0)
+                    {
+                        fields["name"] = name;
+                    }
+
+                    var description = form["description"].ToString();
+                    if (description.Length > 0)
+                    {
+                        fields["description"] = description;
+                    }
+
+                    var cycle = form["billing_cycle"].ToString();
+                    if (cycle.Length > 0)
+                    {
+                        fields["billing_cycle"] = cycle;
+                    }
+
+                    var price = form["base_price"].ToString();
+                    if (price.Length > 0)
+                    {
+                        fields["base_price"] = price;
+                    }
+
+                    var currency = form["currency"].ToString();
+                    if (currency.Length > 0)
+                    {
+                        fields["currency"] = currency;
+                    }
+
+                    var trial = form["trial_days"].ToString();
+                    if (trial.Length > 0)
+                    {
+                        fields["trial_days"] = trial;
+                    }
+
+                    var setup = form["setup_fee"].ToString();
+                    if (setup.Length > 0)
+                    {
+                        fields["setup_fee"] = setup;
+                    }
+
+                    planData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create a billing plan.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreatePlanAsync(planData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosRmaTransition, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2864,6 +3007,10 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long InvoiceId = 0,
         string? Method = null);
+
+    private sealed record BosBillingCreatePlanBody(
+        bool ConfirmWrites = false,
+        string? PlanData = null);
 
     private sealed record BosRmaTransitionBody(
         bool ConfirmWrites = false,
