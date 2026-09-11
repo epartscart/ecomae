@@ -455,6 +455,16 @@
             <label>Parent id <input type="text" name="parent_id" /></label>
             <button type="submit">Create vault folder</button>
         </form>
+        <form method="post" action="/bos/imports/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Entity type <input type="text" name="entity_type" value="products" /></label>
+            <label>Source format <input type="text" name="source_format" value="csv" /></label>
+            <label>Filename <input type="text" name="filename" /></label>
+            <label>Total rows <input type="text" name="total_rows" /></label>
+            <button type="submit">Create import job</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 

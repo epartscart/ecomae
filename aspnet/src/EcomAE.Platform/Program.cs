@@ -778,6 +778,7 @@ builder.Services.AddScoped<EcomAE.Platform.Bos.IBosPayrollWriteService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosSoc2WriteService, EcomAE.Platform.Bos.BosSoc2WriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosWorkflowWriteService, EcomAE.Platform.Bos.BosWorkflowWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosVaultWriteService, EcomAE.Platform.Bos.BosVaultWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Bos.IBosImportWriteService, EcomAE.Platform.Bos.BosImportWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosIndustryWriteService, EcomAE.Platform.Bos.BosIndustryWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteWriteService, EcomAE.Platform.Cp.CpQuoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, EcomAE.Platform.Cp.CpVendorApprovalWriteService>();

@@ -2895,6 +2895,110 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosImportsCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosImportWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for imports create.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosImportsCreateBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var jobData = body.JobData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                jobData = FormOrNull(form, "job_data", "jobData");
+                if (string.IsNullOrWhiteSpace(jobData))
+                {
+                    var fields = new Dictionary<string, object?>();
+                    var entityType = FormOrNull(form, "entity_type", "entityType");
+                    if (entityType is { Length: > 0 })
+                    {
+                        fields["entity_type"] = entityType;
+                    }
+
+                    var sourceFormat = FormOrNull(form, "source_format", "sourceFormat");
+                    if (sourceFormat is { Length: > 0 })
+                    {
+                        fields["source_format"] = sourceFormat;
+                    }
+
+                    var filename = FormOrNull(form, "filename");
+                    if (filename is { Length: > 0 })
+                    {
+                        fields["filename"] = filename;
+                    }
+
+                    if (form.ContainsKey("total_rows") || form.ContainsKey("totalRows"))
+                    {
+                        fields["total_rows"] = BosImportWriteService.PhpIntval(FormOrNull(form, "total_rows", "totalRows"));
+                    }
+
+                    var mapping = FormOrNull(form, "field_mapping", "fieldMapping");
+                    if (mapping is { Length: > 0 })
+                    {
+                        fields["field_mapping"] = mapping;
+                    }
+
+                    var options = FormOrNull(form, "options");
+                    if (options is { Length: > 0 })
+                    {
+                        fields["options"] = options;
+                    }
+
+                    if (form.ContainsKey("dry_run") || form.ContainsKey("dryRun"))
+                    {
+                        fields["dry_run"] = BosImportWriteService.PhpIntval(FormOrNull(form, "dry_run", "dryRun"));
+                    }
+
+                    if (form.ContainsKey("created_by") || form.ContainsKey("createdBy"))
+                    {
+                        fields["created_by"] = BosImportWriteService.PhpIntval(FormOrNull(form, "created_by", "createdBy"));
+                    }
+
+                    jobData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create an import job.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateJobAsync(siteKey, jobData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -3441,6 +3545,11 @@ public sealed class BosModule : ISurfaceModule
         string? Name = null,
         long ParentId = 0,
         long CreatedBy = 0);
+
+    private sealed record BosImportsCreateBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? JobData = null);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,
