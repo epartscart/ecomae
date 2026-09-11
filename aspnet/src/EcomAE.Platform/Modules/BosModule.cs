@@ -1449,6 +1449,61 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosDunningCreateProfile, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosDunningWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for dunning create-profile.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosDunningCreateProfileBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var name = body.Name;
+            var steps = body.Steps;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                name = FormOrNull(form, "name");
+                steps = FormOrNull(form, "steps");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create a dunning profile.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateProfileAsync(siteKey, name, steps, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosSsoProviderToggle, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3032,6 +3087,12 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long QueueId = 0,
         decimal Amount = 0);
+
+    private sealed record BosDunningCreateProfileBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? Name = null,
+        string? Steps = null);
 
     private sealed record BosSsoProviderToggleBody(
         bool ConfirmWrites = false,
