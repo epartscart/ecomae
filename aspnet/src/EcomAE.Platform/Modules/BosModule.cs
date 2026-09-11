@@ -2217,6 +2217,73 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosPromosCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosPromoWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for promo create.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosPromosCreateBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var promoData = body.PromoData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                promoData = FormOrNull(form, "promo_data", "promoData");
+                if (string.IsNullOrWhiteSpace(promoData))
+                {
+                    var fields = new Dictionary<string, object?>();
+                    foreach (var key in new[] { "name", "code", "type", "value", "min_order", "max_discount", "start_date", "end_date", "usage_limit", "per_customer", "stackable", "priority", "conditions", "applies_to", "customer_segments", "created_by" })
+                    {
+                        if (form.ContainsKey(key))
+                        {
+                            fields[key] = form[key].ToString();
+                        }
+                    }
+
+                    promoData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create a promotion.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateAsync(siteKey, promoData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosEntitiesAddMember, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3481,6 +3548,11 @@ public sealed class BosModule : ISurfaceModule
         long CustomerId = 0,
         string? OrderRef = null,
         decimal Discount = 0);
+
+    private sealed record BosPromosCreateBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? PromoData = null);
 
     private sealed record BosEntitiesAddMemberBody(
         bool ConfirmWrites = false,

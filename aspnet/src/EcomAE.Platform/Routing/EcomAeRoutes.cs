@@ -2069,6 +2069,8 @@ public static class EcomAeRoutes
     public const string BosIndustryAssign = "/bos/industry/assign";
     /// <summary>Live PHP ajax_epc_bos.php promotions_engine record_usage. confirmWrites=true INSERTs epc_promotion_usage. Super-CP only.</summary>
     public const string BosPromosRecordUsage = "/bos/promos/record-usage";
+    /// <summary>Live PHP ajax_epc_bos.php promotions_engine create. confirmWrites=true INSERTs epc_promotions. Super-CP only.</summary>
+    public const string BosPromosCreate = "/bos/promos/create";
     /// <summary>Live PHP ajax_epc_bos.php multi_entity add_member. confirmWrites=true UPSERTs epc_entity_members. Super-CP only.</summary>
     public const string BosEntitiesAddMember = "/bos/entities/add-member";
     /// <summary>Live PHP ajax_epc_bos.php multi_entity intercompany. confirmWrites=true INSERTs epc_intercompany_txns. Super-CP only.</summary>
