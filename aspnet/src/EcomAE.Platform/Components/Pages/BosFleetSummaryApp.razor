@@ -251,6 +251,14 @@
             <label>Amount <input type="text" name="amount" /></label>
             <button type="submit">Record dunning payment</button>
         </form>
+        <form method="post" action="/bos/dunning/create-profile" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Name <input type="text" name="name" /></label>
+            <label>Steps JSON <input type="text" name="steps" /></label>
+            <button type="submit">Create dunning profile</button>
+        </form>
         <form method="post" action="/bos/sso/provider-toggle" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
