@@ -1867,6 +1867,91 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosEntitiesAddMember, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosEntityWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for entity add-member.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosEntitiesAddMemberBody>(context, cancellationToken)
+                       ?? new();
+            var groupId = body.GroupId;
+            var siteKey = body.SiteKey;
+            var memberData = body.MemberData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                groupId = LiveWriteFormBinder.Long(form, "group_id", "groupId");
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                memberData = FormOrNull(form, "member_data", "memberData");
+                if (string.IsNullOrWhiteSpace(memberData))
+                {
+                    var fields = new Dictionary<string, string?>();
+                    var entityName = form["entity_name"].ToString();
+                    if (entityName.Length > 0)
+                    {
+                        fields["entity_name"] = entityName;
+                    }
+
+                    var ownership = form["ownership_pct"].ToString();
+                    if (ownership.Length > 0)
+                    {
+                        fields["ownership_pct"] = ownership;
+                    }
+
+                    var currency = form["local_currency"].ToString();
+                    if (currency.Length > 0)
+                    {
+                        fields["local_currency"] = currency;
+                    }
+
+                    var consolidation = form["consolidation"].ToString();
+                    if (consolidation.Length > 0)
+                    {
+                        fields["consolidation"] = consolidation;
+                    }
+
+                    memberData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to add an entity member.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AddMemberAsync(groupId, siteKey, memberData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosEntitiesEliminate, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2797,6 +2882,12 @@ public sealed class BosModule : ISurfaceModule
         long CustomerId = 0,
         string? OrderRef = null,
         decimal Discount = 0);
+
+    private sealed record BosEntitiesAddMemberBody(
+        bool ConfirmWrites = false,
+        long GroupId = 0,
+        string? SiteKey = null,
+        string? MemberData = null);
 
     private sealed record BosEntitiesEliminateBody(
         bool ConfirmWrites = false,
