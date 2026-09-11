@@ -278,6 +278,14 @@
             <label>Site key <input type="text" name="site_key" /></label>
             <button type="submit">Uninstall marketplace app</button>
         </form>
+        <form method="post" action="/bos/marketplace/install" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>App id <input type="text" name="app_id" /></label>
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Installed by <input type="text" name="installed_by" value="0" /></label>
+            <button type="submit">Install marketplace app</button>
+        </form>
         <form method="post" action="/bos/marketplace/review" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />

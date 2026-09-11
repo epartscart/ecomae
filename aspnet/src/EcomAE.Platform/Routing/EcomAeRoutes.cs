@@ -2053,6 +2053,8 @@ public static class EcomAeRoutes
     public const string BosSandboxApplyChange = "/bos/sandbox/apply-change";
     /// <summary>Live PHP ajax_epc_bos.php marketplace uninstall. confirmWrites=true UPDATEs epc_marketplace_installs. Super-CP only.</summary>
     public const string BosMarketplaceUninstall = "/bos/marketplace/uninstall";
+    /// <summary>Live PHP ajax_epc_bos.php marketplace install. confirmWrites=true UPSERTs epc_marketplace_installs. Super-CP only.</summary>
+    public const string BosMarketplaceInstall = "/bos/marketplace/install";
     /// <summary>Live PHP ajax_epc_bos.php marketplace review. confirmWrites=true INSERTs epc_marketplace_reviews. Super-CP only.</summary>
     public const string BosMarketplaceReview = "/bos/marketplace/review";
     /// <summary>Live PHP ajax_epc_bos.php promotions_engine record_usage. confirmWrites=true INSERTs epc_promotion_usage. Super-CP only.</summary>
