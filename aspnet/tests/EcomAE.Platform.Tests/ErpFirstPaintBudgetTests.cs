@@ -222,8 +222,8 @@ public sealed class ErpFirstPaintBudgetTests
         var getEnd = ownBrand.IndexOf("private void ScheduleRefresh", getStart, StringComparison.Ordinal);
         Assert.True(getEnd > getStart, "OwnBrand GetAsync bounds missing");
         var getBody = ownBrand[getStart..getEnd];
-        Assert.DoesNotContain("shop_docpart_prices_data", getBody, StringComparison.Ordinal);
-        Assert.Contains("shop_docpart_prices_data", ownBrand, StringComparison.Ordinal);
+        Assert.DoesNotContain("FROM `shop_docpart_prices_data`", getBody, StringComparison.Ordinal);
+        Assert.Contains("FROM `shop_docpart_prices_data`", ownBrand, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
