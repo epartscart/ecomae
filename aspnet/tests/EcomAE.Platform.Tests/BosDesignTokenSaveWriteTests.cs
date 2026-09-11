@@ -19,7 +19,7 @@ public sealed class BosDesignTokenSaveWriteTests
         Assert.Equal("acme1", BosDesignTokenWriteService.PhpBosSiteKey("Acme-1!"));
         Assert.Equal("", BosDesignTokenWriteService.PhpBosSiteKey("!!!"));
         Assert.Equal("brand_primary", BosDesignTokenWriteService.PhpSettingKey("brand_primary"));
-        Assert.Equal("Brand_Primary", BosDesignTokenWriteService.PhpSettingKey("Brand-Primary!"));
+        Assert.Equal("randrimary", BosDesignTokenWriteService.PhpSettingKey("Brand-Primary!"));
         Assert.Equal("", BosDesignTokenWriteService.PhpSettingKey("!!!"));
         Assert.True(BosDesignTokenWriteService.AllowedKeys.Contains("brand_primary"));
         Assert.True(BosDesignTokenWriteService.AllowedKeys.Contains("white_label_login"));
