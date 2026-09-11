@@ -455,6 +455,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("BosFleetSummaryApp.razor", "/bos/sandbox/apply-change"),
             ("BosFleetSummaryApp.razor", "/bos/marketplace/uninstall"),
             ("BosFleetSummaryApp.razor", "/bos/marketplace/review"),
+            ("BosFleetSummaryApp.razor", "/bos/marketplace/install"),
             ("BosFleetSummaryApp.razor", "/bos/promos/record-usage"),
             ("BosFleetSummaryApp.razor", "/bos/entities/eliminate"),
             ("BosFleetSummaryApp.razor", "/bos/payroll/approve-run"),
