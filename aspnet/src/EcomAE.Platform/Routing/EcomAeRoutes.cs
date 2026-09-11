@@ -2045,6 +2045,8 @@ public static class EcomAeRoutes
     public const string BosDunningRecordPayment = "/bos/dunning/record-payment";
     /// <summary>Live PHP ajax_epc_bos.php collections_dunning profile_create. confirmWrites=true INSERTs epc_dunning_profiles. Super-CP only.</summary>
     public const string BosDunningCreateProfile = "/bos/dunning/create-profile";
+    /// <summary>Live PHP ajax_epc_bos.php collections_dunning add_invoice. confirmWrites=true INSERTs epc_dunning_queue. Super-CP only.</summary>
+    public const string BosDunningAddInvoice = "/bos/dunning/add-invoice";
     /// <summary>Live PHP ajax_epc_bos.php sso_saml provider_toggle. confirmWrites=true UPDATEs epc_sso_providers. Super-CP only.</summary>
     public const string BosSsoProviderToggle = "/bos/sso/provider-toggle";
     /// <summary>Live PHP ajax_epc_bos.php sso_saml provider_delete. confirmWrites=true DELETEs epc_sso_providers. Super-CP only.</summary>
