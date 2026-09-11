@@ -62,6 +62,7 @@ public static class PlatformHostPolicy
         "workflows",
         "vault",
         "imports",
+        "nl-reporting",
         "industry",
     };
 

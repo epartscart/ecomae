@@ -3258,6 +3258,78 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosNlReportingCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosNlReportingWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for NL reporting create.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosNlReportingCreateBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var reportData = body.ReportData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                reportData = FormOrNull(form, "report_data", "reportData");
+                if (string.IsNullOrWhiteSpace(reportData))
+                {
+                    var fields = new Dictionary<string, string?>();
+                    foreach (var key in new[]
+                    {
+                        "name", "description", "report_type", "query_template", "parameters",
+                        "schedule", "format", "recipients", "created_by"
+                    })
+                    {
+                        var value = form[key].ToString();
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            fields[key] = value;
+                        }
+                    }
+
+                    reportData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create an NL report definition.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateAsync(siteKey, reportData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -3829,6 +3901,11 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         string? SiteKey = null,
         string? JobData = null);
+
+    private sealed record BosNlReportingCreateBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? ReportData = null);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,
