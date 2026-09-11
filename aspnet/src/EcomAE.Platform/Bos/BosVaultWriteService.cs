@@ -1,13 +1,15 @@
 using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>document_vault</c> <c>new_version</c> / <c>epc_vault_new_version</c>.
-/// Create-folder, upload, delete, restore, and schema-ensure stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>document_vault</c> <c>new_version</c> / <c>epc_vault_new_version</c>
+/// and <c>create_folder</c> / <c>epc_vault_create_folder</c>.
+/// Upload, delete, restore, and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosVaultWriteService
@@ -16,10 +18,19 @@ public interface IBosVaultWriteService
         long documentId,
         string? versionData,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreateFolderAsync(
+        string? siteKey,
+        string? name,
+        long parentId,
+        long createdBy,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class BosVaultWriteService : IBosVaultWriteService
 {
+    private static readonly Regex SiteKeySafe = new("[^a-z0-9_]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     private readonly IErpWriteConnectionFactory _connections;
 
     public BosVaultWriteService(IErpWriteConnectionFactory connections)
@@ -164,4 +175,66 @@ public sealed class BosVaultWriteService : IBosVaultWriteService
             return ErpSimpleWriteResult.Fail("db", "Vault table is missing — schema-ensure stays Classic.");
         }
     }
+
+    public async Task<ErpSimpleWriteResult> CreateFolderAsync(
+        string? siteKey,
+        string? name,
+        long parentId,
+        long createdBy,
+        CancellationToken cancellationToken = default)
+    {
+        var key = PhpBosSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing site_key");
+        }
+
+        var folderName = name ?? "";
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            var parentPath = "/";
+            if (parentId > 0)
+            {
+                var path = await ErpDb.StringAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT `path` FROM `epc_vault_folders` WHERE `id`=? AND `site_key`=?"),
+                    cancellationToken, parentId, key).ConfigureAwait(false);
+                var parentName = await ErpDb.StringAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT `name` FROM `epc_vault_folders` WHERE `id`=? AND `site_key`=?"),
+                    cancellationToken, parentId, key).ConfigureAwait(false);
+                if (path is not null || parentName is not null)
+                {
+                    parentPath = BuildParentPath(path, parentName);
+                }
+            }
+
+            object? parent = parentId == 0 ? null : parentId;
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_vault_folders` (`site_key`,`parent_id`,`name`,`path`,`created_by`) VALUES (?,?,?,?,?)"),
+                cancellationToken, key, parent, folderName, parentPath, createdBy).ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Vault folder created", id);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Vault folders table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP ajax <c>preg_replace('/[^a-z0-9_]/', '', strtolower(...))</c>.</summary>
+    public static string PhpBosSiteKey(string? raw)
+        => SiteKeySafe.Replace((raw ?? "").ToLowerInvariant(), "");
+
+    /// <summary>PHP <c>rtrim($path, '/') . '/' . $name . '/'</c>.</summary>
+    public static string BuildParentPath(string? path, string? name)
+        => (path ?? "").TrimEnd('/') + "/" + (name ?? "") + "/";
 }
