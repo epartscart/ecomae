@@ -1290,6 +1290,73 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosRmaRegister, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosRmaWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for warranty register.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosRmaRegisterBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var warrantyData = body.WarrantyData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                warrantyData = FormOrNull(form, "warranty_data", "warrantyData");
+                if (string.IsNullOrWhiteSpace(warrantyData))
+                {
+                    var fields = new Dictionary<string, object?>();
+                    foreach (var key in new[] { "product_sku", "product_name", "serial_number", "customer_id", "customer_name", "order_ref", "purchase_date", "warranty_months", "warranty_type" })
+                    {
+                        if (form.ContainsKey(key))
+                        {
+                            fields[key] = form[key].ToString();
+                        }
+                    }
+
+                    warrantyData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to register a warranty.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.RegisterAsync(siteKey, warrantyData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosDealersAutoTier, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3452,6 +3519,11 @@ public sealed class BosModule : ISurfaceModule
         long RmaId = 0,
         string? Status = null,
         string? Notes = null);
+
+    private sealed record BosRmaRegisterBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? WarrantyData = null);
 
     private sealed record BosDealersAutoTierBody(
         bool ConfirmWrites = false,

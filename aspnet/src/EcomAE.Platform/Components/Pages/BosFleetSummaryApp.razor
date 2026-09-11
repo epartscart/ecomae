@@ -230,6 +230,16 @@
             <label>Notes <input type="text" name="notes" /></label>
             <button type="submit">Transition RMA</button>
         </form>
+        <form method="post" action="/bos/rma/register" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>SKU <input type="text" name="product_sku" /></label>
+            <label>Product name <input type="text" name="product_name" /></label>
+            <label>Serial <input type="text" name="serial_number" /></label>
+            <label>Months <input type="text" name="warranty_months" value="12" /></label>
+            <button type="submit">Register warranty</button>
+        </form>
         <form method="post" action="/bos/dealers/auto-tier" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
