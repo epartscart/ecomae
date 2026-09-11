@@ -7,9 +7,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>multi_entity</c> <c>add_member</c> / <c>epc_entity_add_member</c>
-/// and <c>eliminate</c> / <c>epc_entity_eliminate</c>.
-/// Create, intercompany, and schema-ensure stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>multi_entity</c> <c>add_member</c> / <c>epc_entity_add_member</c>,
+/// <c>intercompany</c> / <c>epc_entity_record_intercompany</c>, and <c>eliminate</c> / <c>epc_entity_eliminate</c>.
+/// Create and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER. PHP always returns ok — this write does not invent id/site-key checks.
 /// </summary>
 public interface IBosEntityWriteService
@@ -18,6 +18,14 @@ public interface IBosEntityWriteService
         long groupId,
         string? siteKey,
         string? memberData,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> RecordIntercompanyAsync(
+        long groupId,
+        string? fromSiteKey,
+        string? toSiteKey,
+        decimal amount,
+        string? description,
         CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> EliminateAsync(
@@ -228,6 +236,43 @@ public sealed class BosEntityWriteService : IBosEntityWriteService
         catch (DbException)
         {
             return ErpSimpleWriteResult.Fail("db", "Entity member table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> RecordIntercompanyAsync(
+        long groupId,
+        string? fromSiteKey,
+        string? toSiteKey,
+        decimal amount,
+        string? description,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_intercompany_txns` (`group_id`,`from_site_key`,`to_site_key`,`amount`,`description`) VALUES (?,?,?,?,?)
+                    """),
+                cancellationToken,
+                groupId,
+                fromSiteKey ?? "",
+                toSiteKey ?? "",
+                amount,
+                description ?? "").ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Intercompany transaction recorded", id);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Intercompany table is missing — schema-ensure stays Classic.");
         }
     }
 

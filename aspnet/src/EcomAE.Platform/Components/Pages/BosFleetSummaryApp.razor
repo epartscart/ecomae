@@ -326,6 +326,16 @@
             <label>Consolidation <input type="text" name="consolidation" value="full" /></label>
             <button type="submit">Add entity member</button>
         </form>
+        <form method="post" action="/bos/entities/intercompany" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Group id <input type="text" name="group_id" /></label>
+            <label>From <input type="text" name="from" /></label>
+            <label>To <input type="text" name="to" /></label>
+            <label>Amount <input type="text" name="amount" /></label>
+            <label>Description <input type="text" name="description" /></label>
+            <button type="submit">Record intercompany</button>
+        </form>
         <form method="post" action="/bos/entities/eliminate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
