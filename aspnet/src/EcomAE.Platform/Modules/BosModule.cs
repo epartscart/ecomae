@@ -3403,6 +3403,61 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosDesignTokensSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosDesignTokenWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for design-token save.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosDesignTokensSaveBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var settingKey = body.SettingKey;
+            var value = body.Value;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                settingKey = FormOrNull(form, "setting_key", "settingKey");
+                value = FormOrNull(form, "value");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save a design token.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveTokenAsync(siteKey, settingKey, value, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosAjaxWriteCatalog, (IBosAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
         endpoints.MapPost(EcomAeRoutes.BosAjaxWriteRegistryDryRun, async (
@@ -3984,6 +4039,12 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         string? SiteKey = null,
         string? ReportData = null);
+
+    private sealed record BosDesignTokensSaveBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? SettingKey = null,
+        string? Value = null);
 
     private sealed record BosNotificationsPrefsSaveBody(
         bool ConfirmWrites = false,

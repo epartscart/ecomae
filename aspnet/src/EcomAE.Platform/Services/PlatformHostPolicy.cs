@@ -63,6 +63,7 @@ public static class PlatformHostPolicy
         "vault",
         "imports",
         "nl-reporting",
+        "design-tokens",
         "industry",
     };
 
