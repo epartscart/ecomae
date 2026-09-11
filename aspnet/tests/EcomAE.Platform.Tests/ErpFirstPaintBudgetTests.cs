@@ -243,7 +243,7 @@ public sealed class ErpFirstPaintBudgetTests
         Assert.Contains("ErpFirstPaint.IsActive", bridge, StringComparison.Ordinal);
         var session = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Auth/DbLegacySessionStore.cs"));
-        Assert.DoesNotContain("ErpFirstPaint.ApplyIfErp", session, StringComparison.Ordinal);
+        Assert.DoesNotContain("ApplyIfErp(", session, StringComparison.Ordinal);
         Assert.Contains("must not 500 the storefront", session, StringComparison.Ordinal);
         Assert.Contains("SessionCommandTimeoutSeconds = 3", session, StringComparison.Ordinal);
         Assert.Contains("EffectiveSessionTimeoutSeconds", session, StringComparison.Ordinal);

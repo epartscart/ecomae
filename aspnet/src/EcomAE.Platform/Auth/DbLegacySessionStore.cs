@@ -11,7 +11,7 @@ namespace EcomAE.Platform.Auth;
 public sealed class DbLegacySessionStore : ILegacySessionStore
 {
     /// <summary>
-    /// Session lookups must not use <c>ErpFirstPaint.ApplyIfErp</c> — a throw there
+    /// Session lookups must not call the paint ApplyIfErp helper — a throw there
     /// 500s every storefront/CP/ERP page. Cap to the 3s wall clock (or remaining)
     /// and fail soft instead of hanging until Cloudflare 524.
     /// </summary>
