@@ -467,6 +467,72 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosCreditSetLimit, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosCreditWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for credit set-limit.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosCreditSetLimitBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var customerId = body.CustomerId;
+            var creditLimit = body.CreditLimit;
+            var currency = body.Currency;
+            var paymentTerms = body.PaymentTerms;
+            var notes = body.Notes;
+            var nextReview = body.NextReview;
+            var approvedBy = body.ApprovedBy;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                customerId = LiveWriteFormBinder.Long(form, "customer_id", "customerId");
+                creditLimit = FormOrNull(form, "credit_limit", "creditLimit");
+                currency = FormOrNull(form, "currency");
+                paymentTerms = FormOrNull(form, "payment_terms", "paymentTerms");
+                notes = FormOrNull(form, "notes");
+                nextReview = FormOrNull(form, "next_review", "nextReview");
+                approvedBy = LiveWriteFormBinder.Long(form, "approved_by", "approvedBy");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save a credit limit.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SetLimitAsync(
+                siteKey, customerId, creditLimit, currency, paymentTerms, notes, nextReview, approvedBy, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosApiKeysRevoke, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3806,6 +3872,17 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         string? SiteKey = null,
         long CustomerId = 0);
+
+    private sealed record BosCreditSetLimitBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        long CustomerId = 0,
+        string? CreditLimit = null,
+        string? Currency = null,
+        string? PaymentTerms = null,
+        string? Notes = null,
+        string? NextReview = null,
+        long ApprovedBy = 0);
 
     private sealed record BosApiKeyRevokeBody(
         bool ConfirmWrites = false,

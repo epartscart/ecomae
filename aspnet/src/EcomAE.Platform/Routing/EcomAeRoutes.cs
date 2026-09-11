@@ -2011,6 +2011,8 @@ public static class EcomAeRoutes
     public const string BosCreditHold = "/bos/credit/hold";
     /// <summary>Live PHP ajax_epc_bos.php credit_limit release. confirmWrites=true UPDATEs epc_credit_limits. Super-CP only.</summary>
     public const string BosCreditRelease = "/bos/credit/release";
+    /// <summary>Live PHP ajax_epc_bos.php credit_limit set_limit. confirmWrites=true UPSERTs epc_credit_limits. Super-CP only.</summary>
+    public const string BosCreditSetLimit = "/bos/credit/set-limit";
     /// <summary>Live PHP ajax_epc_bos.php rest_api key_revoke. confirmWrites=true UPDATEs epc_api_keys. Super-CP only.</summary>
     public const string BosApiKeysRevoke = "/bos/api-keys/revoke";
     /// <summary>Live PHP ajax_epc_bos.php webhooks delete. confirmWrites=true UPDATEs epc_webhooks. Super-CP only.</summary>

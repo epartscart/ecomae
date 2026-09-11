@@ -126,6 +126,17 @@
             <label>Customer id <input type="text" name="customer_id" /></label>
             <button type="submit">Release credit</button>
         </form>
+        <form method="post" action="/bos/credit/set-limit" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Customer id <input type="text" name="customer_id" /></label>
+            <label>Credit limit <input type="text" name="credit_limit" /></label>
+            <label>Currency <input type="text" name="currency" value="AED" /></label>
+            <label>Payment terms <input type="text" name="payment_terms" value="net30" /></label>
+            <label>Notes <input type="text" name="notes" /></label>
+            <button type="submit">Set credit limit</button>
+        </form>
         <form method="post" action="/bos/api-keys/revoke" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
