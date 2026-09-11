@@ -1,14 +1,16 @@
 using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
 /// Live PHP <c>ajax_epc_bos.php</c> <c>subscription_billing</c> <c>cancel</c> / <c>epc_billing_cancel</c>,
-/// <c>pay</c> / <c>epc_billing_record_payment</c>, and <c>create_plan</c> / <c>epc_billing_create_plan</c>.
-/// Subscribe and schema-ensure stay Classic. This service does not invent a send.
+/// <c>pay</c> / <c>epc_billing_record_payment</c>, <c>create_plan</c> / <c>epc_billing_create_plan</c>,
+/// and <c>subscribe</c> / <c>epc_billing_subscribe</c>.
+/// Schema-ensure stays Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER. Create-plan always returns ok — this write does not invent plan-code checks.
 /// </summary>
 public interface IBosBillingWriteService
@@ -26,10 +28,17 @@ public interface IBosBillingWriteService
     Task<ErpSimpleWriteResult> CreatePlanAsync(
         string? planData,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SubscribeAsync(
+        string? siteKey,
+        long planId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class BosBillingWriteService : IBosBillingWriteService
 {
+    private static readonly Regex SiteKeySafe = new("[^a-z0-9_]", RegexOptions.CultureInvariant | RegexOptions.Compiled);
+
     private readonly IErpWriteConnectionFactory _connections;
 
     public BosBillingWriteService(IErpWriteConnectionFactory connections)
@@ -405,4 +414,112 @@ public sealed class BosBillingWriteService : IBosBillingWriteService
             return ErpSimpleWriteResult.Fail("db", "Billing plans table is missing — schema-ensure stays Classic.");
         }
     }
+
+    public async Task<ErpSimpleWriteResult> SubscribeAsync(
+        string? siteKey,
+        long planId,
+        CancellationToken cancellationToken = default)
+    {
+        var key = PhpBosSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing site_key");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional(
+                "SELECT `name`,`billing_cycle`,`base_price`,`setup_fee`,`trial_days` FROM `epc_billing_plans` WHERE `id`=? AND `active`=1");
+            ErpDb.AddParameters(command, planId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Plan not found");
+            }
+
+            var planName = reader.IsDBNull(0) ? "" : reader.GetString(0);
+            var cycle = reader.IsDBNull(1) ? "" : reader.GetString(1);
+            var basePrice = reader.IsDBNull(2) ? 0m : Convert.ToDecimal(reader.GetValue(2), CultureInfo.InvariantCulture);
+            var setupFee = reader.IsDBNull(3) ? 0m : Convert.ToDecimal(reader.GetValue(3), CultureInfo.InvariantCulture);
+            var trialDays = reader.IsDBNull(4) ? 0L : Convert.ToInt64(reader.GetValue(4), CultureInfo.InvariantCulture);
+            await reader.DisposeAsync().ConfigureAwait(false);
+
+            var start = DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            var days = CycleDays(cycle);
+            var end = DateTime.Now.AddDays(days).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            object? trialEnd = trialDays > 0
+                ? DateTime.Now.AddDays(trialDays).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)
+                : null;
+            var status = trialDays > 0 ? "trial" : "active";
+            var mrr = MonthlyRecurring(basePrice, cycle);
+
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_subscriptions` (`site_key`,`plan_id`,`status`,`current_period_start`,`current_period_end`,`trial_end`,`mrr`) VALUES (?,?,?,?,?,?,?)"),
+                cancellationToken, key, planId, status, start, end, trialEnd, mrr).ConfigureAwait(false);
+            var subId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            var invNum = InvoiceNumber(key, subId, DateTime.Now);
+            var tax = Math.Round(basePrice * 0.05m, 2, MidpointRounding.AwayFromZero);
+            var subtotal = basePrice + setupFee;
+            var total = subtotal + tax;
+            var due = DateTime.Now.AddDays(15).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            var lines = JsonSerializer.Serialize(new object[]
+            {
+                new Dictionary<string, object?> { ["description"] = planName + " subscription", ["amount"] = basePrice },
+                new Dictionary<string, object?> { ["description"] = "Setup fee", ["amount"] = setupFee },
+            });
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_billing_invoices`
+                        (`subscription_id`,`site_key`,`invoice_number`,`period_start`,`period_end`,`subtotal`,`tax`,`total`,`status`,`due_date`,`line_items`)
+                    VALUES (?,?,?,?,?,?,?,?,?,?,?)
+                    """),
+                cancellationToken, subId, key, invNum, start, end, subtotal, tax, total, "sent", due, lines).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Subscription created", subId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Billing tables are missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP ajax <c>preg_replace('/[^a-z0-9_]/', '', strtolower(...))</c>.</summary>
+    public static string PhpBosSiteKey(string? raw)
+        => SiteKeySafe.Replace((raw ?? "").ToLowerInvariant(), "");
+
+    /// <summary>PHP <c>$cycleDays[$plan['billing_cycle']] ?? 30</c>.</summary>
+    public static int CycleDays(string? cycle)
+        => cycle switch
+        {
+            "monthly" => 30,
+            "quarterly" => 90,
+            "semi_annual" => 180,
+            "annual" => 365,
+            _ => 30,
+        };
+
+    /// <summary>PHP MRR from <c>base_price</c> and <c>billing_cycle</c>.</summary>
+    public static decimal MonthlyRecurring(decimal basePrice, string? cycle)
+        => cycle switch
+        {
+            "quarterly" => Math.Round(basePrice / 3m, 2, MidpointRounding.AwayFromZero),
+            "semi_annual" => Math.Round(basePrice / 6m, 2, MidpointRounding.AwayFromZero),
+            "annual" => Math.Round(basePrice / 12m, 2, MidpointRounding.AwayFromZero),
+            _ => basePrice,
+        };
+
+    /// <summary>PHP <c>INV-</c> + upper site key + <c>Ymd</c> + padded subscription id.</summary>
+    public static string InvoiceNumber(string siteKey, long subscriptionId, DateTime now)
+        => "INV-" + siteKey.ToUpperInvariant() + "-" + now.ToString("yyyyMMdd", CultureInfo.InvariantCulture) + "-"
+           + subscriptionId.ToString(CultureInfo.InvariantCulture).PadLeft(4, '0');
 }
