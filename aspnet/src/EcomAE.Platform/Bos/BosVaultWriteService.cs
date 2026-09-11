@@ -7,10 +7,10 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>document_vault</c> <c>new_version</c> / <c>epc_vault_new_version</c>
-/// and <c>create_folder</c> / <c>epc_vault_create_folder</c>.
-/// Upload, delete, restore, and schema-ensure stay Classic. This service does not invent a send.
-/// It does not emit CREATE/ALTER.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>document_vault</c> <c>new_version</c> / <c>epc_vault_new_version</c>,
+/// <c>create_folder</c> / <c>epc_vault_create_folder</c>, and <c>upload</c> / <c>epc_vault_upload</c>.
+/// Delete, restore, and schema-ensure stay Classic. This service does not invent a send.
+/// It does not emit CREATE/ALTER. File bytes stay caller-supplied <c>file_path</c> — no disk write.
 /// </summary>
 public interface IBosVaultWriteService
 {
@@ -24,6 +24,11 @@ public interface IBosVaultWriteService
         string? name,
         long parentId,
         long createdBy,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> UploadAsync(
+        string? siteKey,
+        string? fileData,
         CancellationToken cancellationToken = default);
 }
 
@@ -87,6 +92,84 @@ public sealed class BosVaultWriteService : IBosVaultWriteService
         }
 
         return el.ValueKind == JsonValueKind.String ? (el.GetString() ?? "") : el.GetRawText();
+    }
+
+    /// <summary>PHP <c>json_encode($data['tags'] ?? array())</c> — missing/null becomes <c>[]</c>.</summary>
+    public static string EncodeTags(JsonElement root)
+    {
+        if (!root.TryGetProperty("tags", out var el) || el.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return "[]";
+        }
+
+        return el.GetRawText();
+    }
+
+    /// <summary>PHP <c>json_decode((string)($_POST['file_data'] ?? '{}'), true) ?: array()</c>.</summary>
+    public static (
+        long FolderId,
+        string Filename,
+        string MimeType,
+        long FileSize,
+        string TagsJson,
+        string AccessLevel,
+        long RetentionDays,
+        long UploadedBy,
+        string FilePath,
+        string Checksum) ParseFileData(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return (0, "", "application/octet-stream", 0, "[]", "tenant", 0, 0, "", "");
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(raw);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return (0, "", "application/octet-stream", 0, "[]", "tenant", 0, 0, "", "");
+            }
+
+            var root = doc.RootElement;
+            var folderId = root.TryGetProperty("folder_id", out var folderEl)
+                           && folderEl.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined
+                ? PhpIntval(folderEl)
+                : 0;
+            var fileSize = root.TryGetProperty("file_size", out var sizeEl)
+                           && sizeEl.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined
+                ? PhpIntval(sizeEl)
+                : 0;
+            var retention = root.TryGetProperty("retention_days", out var retEl)
+                            && retEl.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined
+                ? PhpIntval(retEl)
+                : 0;
+            var uploadedBy = root.TryGetProperty("uploaded_by", out var userEl)
+                             && userEl.ValueKind is not JsonValueKind.Null and not JsonValueKind.Undefined
+                ? PhpIntval(userEl)
+                : 0;
+            var mime = root.TryGetProperty("mime_type", out _)
+                ? JsonString(root, "mime_type")
+                : "application/octet-stream";
+            var access = root.TryGetProperty("access_level", out _)
+                ? JsonString(root, "access_level")
+                : "tenant";
+            return (
+                folderId,
+                JsonString(root, "filename"),
+                mime,
+                fileSize,
+                EncodeTags(root),
+                access,
+                retention,
+                uploadedBy,
+                JsonString(root, "file_path"),
+                JsonString(root, "checksum"));
+        }
+        catch (JsonException)
+        {
+            return (0, "", "application/octet-stream", 0, "[]", "tenant", 0, 0, "", "");
+        }
     }
 
     /// <summary>PHP <c>json_decode((string)($_POST['version_data'] ?? '{}'), true) ?: array()</c>.</summary>
@@ -227,6 +310,65 @@ public sealed class BosVaultWriteService : IBosVaultWriteService
         catch (DbException)
         {
             return ErpSimpleWriteResult.Fail("db", "Vault folders table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> UploadAsync(
+        string? siteKey,
+        string? fileData,
+        CancellationToken cancellationToken = default)
+    {
+        var key = PhpBosSiteKey(siteKey);
+        if (key.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing site_key");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        var parsed = ParseFileData(fileData);
+        object? folder = parsed.FolderId == 0 ? null : parsed.FolderId;
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_vault_documents` (`site_key`,`folder_id`,`filename`,`mime_type`,`file_size`,`tags`,`access_level`,`retention_days`,`uploaded_by`) VALUES (?,?,?,?,?,?,?,?,?)
+                    """),
+                cancellationToken,
+                key,
+                folder,
+                parsed.Filename,
+                parsed.MimeType,
+                parsed.FileSize,
+                parsed.TagsJson,
+                parsed.AccessLevel,
+                parsed.RetentionDays,
+                parsed.UploadedBy).ConfigureAwait(false);
+            var docId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_vault_versions` (`document_id`,`version_number`,`file_path`,`file_size`,`checksum`,`change_note`,`uploaded_by`) VALUES (?,1,?,?,?,?,?)
+                    """),
+                cancellationToken,
+                docId,
+                parsed.FilePath,
+                parsed.FileSize,
+                parsed.Checksum,
+                "Initial upload",
+                parsed.UploadedBy).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Vault document uploaded", docId);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Vault table is missing — schema-ensure stays Classic.");
         }
     }
 
