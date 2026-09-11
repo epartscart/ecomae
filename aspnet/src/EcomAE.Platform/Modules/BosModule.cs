@@ -1983,6 +1983,86 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosSoc2CreatePolicy, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosSoc2WriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for SOC2 create-policy.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosSoc2CreatePolicyBody>(context, cancellationToken)
+                       ?? new();
+            var policyData = body.PolicyData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                policyData = FormOrNull(form, "policy_data", "policyData");
+                if (string.IsNullOrWhiteSpace(policyData))
+                {
+                    object relatedControls = Array.Empty<object>();
+                    var relatedRaw = form["related_controls"].ToString();
+                    if (!string.IsNullOrWhiteSpace(relatedRaw))
+                    {
+                        try
+                        {
+                            using var relatedDoc = JsonDocument.Parse(relatedRaw);
+                            relatedControls = relatedDoc.RootElement.ValueKind == JsonValueKind.Array
+                                ? JsonSerializer.Deserialize<object>(relatedRaw) ?? Array.Empty<object>()
+                                : relatedRaw;
+                        }
+                        catch (JsonException)
+                        {
+                            relatedControls = relatedRaw;
+                        }
+                    }
+
+                    policyData = JsonSerializer.Serialize(new Dictionary<string, object?>
+                    {
+                        ["policy_code"] = form["policy_code"].ToString(),
+                        ["title"] = form["title"].ToString(),
+                        ["content"] = form["content"].ToString(),
+                        ["owner"] = form["owner"].ToString(),
+                        ["related_controls"] = relatedControls
+                    });
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create a SOC 2 policy.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreatePolicyAsync(policyData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosWorkflowsToggle, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2620,6 +2700,10 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         string? ControlId = null,
         string? ControlData = null);
+
+    private sealed record BosSoc2CreatePolicyBody(
+        bool ConfirmWrites = false,
+        string? PolicyData = null);
 
     private sealed record BosWorkflowsToggleBody(
         bool ConfirmWrites = false,

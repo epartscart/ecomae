@@ -2065,6 +2065,8 @@ public static class EcomAeRoutes
     public const string BosSoc2AddEvidence = "/bos/soc2/add-evidence";
     /// <summary>Live PHP ajax_epc_bos.php soc2_compliance update_control. confirmWrites=true UPDATEs epc_soc2_controls. Super-CP only.</summary>
     public const string BosSoc2UpdateControl = "/bos/soc2/update-control";
+    /// <summary>Live PHP ajax_epc_bos.php soc2_compliance create_policy. confirmWrites=true INSERTs epc_soc2_policies. Super-CP only.</summary>
+    public const string BosSoc2CreatePolicy = "/bos/soc2/create-policy";
     /// <summary>Live PHP ajax_epc_bos.php workflow_builder toggle. confirmWrites=true UPDATEs epc_workflows. Super-CP only.</summary>
     public const string BosWorkflowsToggle = "/bos/workflows/toggle";
     /// <summary>Live PHP ajax_epc_bos.php workflow_builder delete. confirmWrites=true DELETEs epc_workflows. Super-CP only.</summary>

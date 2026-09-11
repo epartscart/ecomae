@@ -5,9 +5,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>soc2_compliance</c> <c>add_evidence</c> / <c>epc_soc2_add_evidence</c>
-/// and <c>update_control</c> / <c>epc_soc2_update_control</c>.
-/// Create-policy, seed, and schema-ensure stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>soc2_compliance</c> <c>add_evidence</c> / <c>epc_soc2_add_evidence</c>,
+/// <c>update_control</c> / <c>epc_soc2_update_control</c>, and <c>create_policy</c> / <c>epc_soc2_create_policy</c>.
+/// Seed and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER.
 /// </summary>
 public interface IBosSoc2WriteService
@@ -26,6 +26,10 @@ public interface IBosSoc2WriteService
     Task<ErpSimpleWriteResult> UpdateControlAsync(
         string? controlId,
         IReadOnlyDictionary<string, string?>? data,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> CreatePolicyAsync(
+        string? policyData,
         CancellationToken cancellationToken = default);
 }
 
@@ -169,6 +173,89 @@ public sealed class BosSoc2WriteService : IBosSoc2WriteService
         catch (DbException)
         {
             return ErpSimpleWriteResult.Fail("db", "SOC 2 controls table is missing — schema-ensure stays Classic.");
+        }
+    }
+
+    /// <summary>PHP <c>json_decode((string)($_POST['policy_data'] ?? '{}'), true) ?: array()</c>.</summary>
+    public static (string PolicyCode, string Title, string Content, string Owner, string RelatedControlsJson) ParsePolicyData(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return ("", "", "", "", "[]");
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(raw);
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return ("", "", "", "", "[]");
+            }
+
+            return (
+                JsonString(doc.RootElement, "policy_code").ToUpperInvariant(),
+                JsonString(doc.RootElement, "title"),
+                JsonString(doc.RootElement, "content"),
+                JsonString(doc.RootElement, "owner"),
+                EncodeRelatedControls(doc.RootElement));
+        }
+        catch (JsonException)
+        {
+            return ("", "", "", "", "[]");
+        }
+    }
+
+    private static string JsonString(JsonElement root, string name)
+    {
+        if (!root.TryGetProperty(name, out var el) || el.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return "";
+        }
+
+        return el.ValueKind == JsonValueKind.String ? (el.GetString() ?? "") : el.GetRawText();
+    }
+
+    private static string EncodeRelatedControls(JsonElement root)
+    {
+        if (!root.TryGetProperty("related_controls", out var el) || el.ValueKind is JsonValueKind.Null or JsonValueKind.Undefined)
+        {
+            return "[]";
+        }
+
+        return JsonSerializer.Serialize(el);
+    }
+
+    public async Task<ErpSimpleWriteResult> CreatePolicyAsync(
+        string? policyData,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "Database unavailable");
+        }
+
+        var parsed = ParsePolicyData(policyData);
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_soc2_policies` (`policy_code`,`title`,`content`,`owner`,`related_controls`) VALUES (?,?,?,?,?)
+                    """),
+                cancellationToken,
+                parsed.PolicyCode,
+                parsed.Title,
+                parsed.Content,
+                parsed.Owner,
+                parsed.RelatedControlsJson).ConfigureAwait(false);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("SOC 2 policy created", id);
+        }
+        catch (DbException)
+        {
+            return ErpSimpleWriteResult.Fail("db", "SOC 2 policies table is missing — schema-ensure stays Classic.");
         }
     }
 }
