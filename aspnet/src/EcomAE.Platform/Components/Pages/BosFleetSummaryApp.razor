@@ -359,6 +359,16 @@
             <label>Discount <input type="text" name="discount" /></label>
             <button type="submit">Record promo usage</button>
         </form>
+        <form method="post" action="/bos/promos/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Name <input type="text" name="name" /></label>
+            <label>Code <input type="text" name="code" /></label>
+            <label>Type <input type="text" name="type" value="percentage" /></label>
+            <label>Value <input type="text" name="value" /></label>
+            <button type="submit">Create promotion</button>
+        </form>
         <form method="post" action="/bos/entities/add-member" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
