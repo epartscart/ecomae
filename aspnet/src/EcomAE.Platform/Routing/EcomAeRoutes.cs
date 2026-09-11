@@ -2083,6 +2083,8 @@ public static class EcomAeRoutes
     public const string BosEntitiesEliminate = "/bos/entities/eliminate";
     /// <summary>Live PHP ajax_epc_bos.php wps_payroll approve_run. confirmWrites=true UPDATEs epc_payroll_runs. Super-CP only.</summary>
     public const string BosPayrollApproveRun = "/bos/payroll/approve-run";
+    /// <summary>Live PHP ajax_epc_bos.php wps_payroll employee_add. confirmWrites=true INSERTs epc_payroll_employees. Super-CP only.</summary>
+    public const string BosPayrollEmployeeAdd = "/bos/payroll/employee-add";
     /// <summary>Live PHP ajax_epc_bos.php soc2_compliance add_evidence. confirmWrites=true INSERTs epc_soc2_evidence. Super-CP only.</summary>
     public const string BosSoc2AddEvidence = "/bos/soc2/add-evidence";
     /// <summary>Live PHP ajax_epc_bos.php soc2_compliance update_control. confirmWrites=true UPDATEs epc_soc2_controls. Super-CP only.</summary>

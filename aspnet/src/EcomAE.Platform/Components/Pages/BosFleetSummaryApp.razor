@@ -420,6 +420,17 @@
             <label>Approver id <input type="text" name="approver_id" /></label>
             <button type="submit">Approve payroll run</button>
         </form>
+        <form method="post" action="/bos/payroll/employee-add" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Employee id <input type="text" name="employee_id" /></label>
+            <label>Full name <input type="text" name="full_name" /></label>
+            <label>IBAN <input type="text" name="iban" /></label>
+            <label>Basic salary <input type="text" name="basic_salary" /></label>
+            <label>Currency <input type="text" name="currency" value="AED" /></label>
+            <button type="submit">Add payroll employee</button>
+        </form>
         <form method="post" action="/bos/soc2/add-evidence" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />

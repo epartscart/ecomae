@@ -2652,6 +2652,79 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosPayrollEmployeeAdd, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosPayrollWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for payroll employee-add.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosPayrollEmployeeAddBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var employeeData = body.EmployeeData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                employeeData = FormOrNull(form, "employee_data", "employeeData");
+                if (string.IsNullOrWhiteSpace(employeeData))
+                {
+                    var fields = new Dictionary<string, string?>();
+                    foreach (var key in new[]
+                    {
+                        "employee_id", "full_name", "labour_card_no", "mol_id", "bank_code", "iban",
+                        "bank_name", "basic_salary", "housing", "transport", "other_allowance",
+                        "currency", "department", "designation", "join_date"
+                    })
+                    {
+                        var value = form[key].ToString();
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            fields[key] = value;
+                        }
+                    }
+
+                    employeeData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to add a payroll employee.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AddEmployeeAsync(siteKey, employeeData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosSoc2AddEvidence, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3850,6 +3923,11 @@ public sealed class BosModule : ISurfaceModule
         bool ConfirmWrites = false,
         long RunId = 0,
         long ApproverId = 0);
+
+    private sealed record BosPayrollEmployeeAddBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? EmployeeData = null);
 
     private sealed record BosSoc2AddEvidenceBody(
         bool ConfirmWrites = false,
