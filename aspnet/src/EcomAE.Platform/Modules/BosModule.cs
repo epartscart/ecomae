@@ -1235,6 +1235,59 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosBillingSubscribe, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosBillingWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for billing subscribe.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosBillingSubscribeBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var planId = body.PlanId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                planId = LiveWriteFormBinder.Long(form, "plan_id", "planId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to subscribe a tenant.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SubscribeAsync(siteKey, planId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosRmaTransition, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3513,6 +3566,11 @@ public sealed class BosModule : ISurfaceModule
     private sealed record BosBillingCreatePlanBody(
         bool ConfirmWrites = false,
         string? PlanData = null);
+
+    private sealed record BosBillingSubscribeBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        long PlanId = 0);
 
     private sealed record BosRmaTransitionBody(
         bool ConfirmWrites = false,

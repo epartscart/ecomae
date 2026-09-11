@@ -2941,6 +2941,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosBillCreatePlanDb.Succeeded);
         Assert.Equal("db", bosBillCreatePlanDb.Code);
 
+        var bosBillSubscribeDb = await new BosBillingWriteService(new UnconfiguredConnections())
+            .SubscribeAsync("acme", 9);
+        Assert.False(bosBillSubscribeDb.Succeeded);
+        Assert.Equal("db", bosBillSubscribeDb.Code);
+
         var bosRmaDb = await new BosRmaWriteService(new UnconfiguredConnections())
             .TransitionAsync(9, "approved", "");
         Assert.False(bosRmaDb.Succeeded);
