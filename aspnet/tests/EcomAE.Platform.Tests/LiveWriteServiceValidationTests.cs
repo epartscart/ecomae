@@ -2996,6 +2996,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosMarketplaceInstallDb.Succeeded);
         Assert.Equal("db", bosMarketplaceInstallDb.Code);
 
+        var bosIndustryAssignDb = await new BosIndustryWriteService(new UnconfiguredConnections())
+            .AssignAsync("acme", "auto_parts", 0);
+        Assert.False(bosIndustryAssignDb.Succeeded);
+        Assert.Equal("db", bosIndustryAssignDb.Code);
+
         var bosPromoUsageDb = await new BosPromoWriteService(new UnconfiguredConnections())
             .RecordUsageAsync(9, "acme", 1, "ORD-1", 1.5m);
         Assert.False(bosPromoUsageDb.Succeeded);

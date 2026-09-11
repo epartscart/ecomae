@@ -1753,6 +1753,61 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosIndustryAssign, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosIndustryWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for industry assign.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosIndustryAssignBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var packKey = body.PackKey;
+            var appliedBy = body.AppliedBy;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                packKey = FormOrNull(form, "pack_key", "packKey");
+                appliedBy = LiveWriteFormBinder.Long(form, "applied_by", "appliedBy");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to assign an industry pack.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AssignAsync(siteKey, packKey, appliedBy, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosPromosRecordUsage, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2722,6 +2777,12 @@ public sealed class BosModule : ISurfaceModule
         long AppId = 0,
         string? SiteKey = null,
         long InstalledBy = 0);
+
+    private sealed record BosIndustryAssignBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? PackKey = null,
+        long AppliedBy = 0);
 
     private sealed record BosMarketplaceReviewBody(
         bool ConfirmWrites = false,
