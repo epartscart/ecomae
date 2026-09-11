@@ -533,6 +533,15 @@
             <label>Value <input type="text" name="value" /></label>
             <button type="submit">Save design token</button>
         </form>
+        <form method="post" action="/bos/tenant-config/set" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Group <input type="text" name="group" value="branding" /></label>
+            <label>Key <input type="text" name="key" value="company_name" /></label>
+            <label>Value <input type="text" name="value" /></label>
+            <button type="submit">Set tenant config</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
