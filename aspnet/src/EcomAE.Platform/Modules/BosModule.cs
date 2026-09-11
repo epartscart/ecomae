@@ -3082,6 +3082,78 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosVaultUpload, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosVaultWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for vault upload.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosVaultUploadBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var fileData = body.FileData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                fileData = FormOrNull(form, "file_data", "fileData");
+                if (string.IsNullOrWhiteSpace(fileData))
+                {
+                    var fields = new Dictionary<string, string?>();
+                    foreach (var key in new[]
+                    {
+                        "folder_id", "filename", "mime_type", "file_size", "tags",
+                        "access_level", "retention_days", "uploaded_by", "file_path", "checksum"
+                    })
+                    {
+                        var value = form[key].ToString();
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            fields[key] = value;
+                        }
+                    }
+
+                    fileData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to upload a vault document.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.UploadAsync(siteKey, fileData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosImportsCreate, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -3747,6 +3819,11 @@ public sealed class BosModule : ISurfaceModule
         string? Name = null,
         long ParentId = 0,
         long CreatedBy = 0);
+
+    private sealed record BosVaultUploadBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? FileData = null);
 
     private sealed record BosImportsCreateBody(
         bool ConfirmWrites = false,

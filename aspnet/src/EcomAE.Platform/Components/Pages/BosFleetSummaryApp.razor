@@ -482,6 +482,18 @@
             <label>Parent id <input type="text" name="parent_id" /></label>
             <button type="submit">Create vault folder</button>
         </form>
+        <form method="post" action="/bos/vault/upload" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Filename <input type="text" name="filename" /></label>
+            <label>File path <input type="text" name="file_path" /></label>
+            <label>Mime type <input type="text" name="mime_type" value="application/octet-stream" /></label>
+            <label>File size <input type="text" name="file_size" /></label>
+            <label>Checksum <input type="text" name="checksum" /></label>
+            <label>Folder id <input type="text" name="folder_id" /></label>
+            <button type="submit">Upload vault document</button>
+        </form>
         <form method="post" action="/bos/imports/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
