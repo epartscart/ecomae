@@ -3011,6 +3011,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosEntityAddMemberDb.Succeeded);
         Assert.Equal("db", bosEntityAddMemberDb.Code);
 
+        var bosEntityIntercompanyDb = await new BosEntityWriteService(new UnconfiguredConnections())
+            .RecordIntercompanyAsync(9, "from", "to", 10m, "note");
+        Assert.False(bosEntityIntercompanyDb.Succeeded);
+        Assert.Equal("db", bosEntityIntercompanyDb.Code);
+
         var bosEntityEliminateDb = await new BosEntityWriteService(new UnconfiguredConnections())
             .EliminateAsync(9);
         Assert.False(bosEntityEliminateDb.Succeeded);

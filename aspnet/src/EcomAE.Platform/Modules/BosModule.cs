@@ -1952,6 +1952,65 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosEntitiesIntercompany, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosEntityWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for entity intercompany.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosEntitiesIntercompanyBody>(context, cancellationToken)
+                       ?? new();
+            var groupId = body.GroupId;
+            var from = body.From;
+            var to = body.To;
+            var amount = body.Amount;
+            var description = body.Description;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                groupId = LiveWriteFormBinder.Long(form, "group_id", "groupId");
+                from = FormOrNull(form, "from");
+                to = FormOrNull(form, "to");
+                amount = BosEntityWriteService.PhpFloat(FormOrNull(form, "amount"));
+                description = FormOrNull(form, "description");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to record an intercompany txn.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.RecordIntercompanyAsync(groupId, from, to, amount, description, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosEntitiesEliminate, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -2888,6 +2947,14 @@ public sealed class BosModule : ISurfaceModule
         long GroupId = 0,
         string? SiteKey = null,
         string? MemberData = null);
+
+    private sealed record BosEntitiesIntercompanyBody(
+        bool ConfirmWrites = false,
+        long GroupId = 0,
+        string? From = null,
+        string? To = null,
+        decimal Amount = 0,
+        string? Description = null);
 
     private sealed record BosEntitiesEliminateBody(
         bool ConfirmWrites = false,
