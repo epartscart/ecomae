@@ -35,21 +35,60 @@ public sealed class EpartFrontOwnBrandService : IEpartFrontOwnBrandService
 
     public async Task<IReadOnlyList<EpartOwnBrandRow>> GetAsync(CancellationToken cancellationToken = default)
     {
+        IReadOnlyList<EpartOwnBrandRow>? stale = null;
         lock (_gate)
         {
-            if (_cache is { } hit && hit.ExpiresAt > DateTimeOffset.UtcNow)
+            if (_cache is { } hit)
             {
-                return hit.Rows;
+                if (hit.ExpiresAt > DateTimeOffset.UtcNow)
+                {
+                    return hit.Rows;
+                }
+
+                stale = hit.Rows;
             }
         }
 
-        var rows = await QueryAsync(cancellationToken);
+        // First paint must not GROUP BY shop_docpart_prices_data — that scan wedges the shop DB
+        // and blanks every frontend page. Serve stale/empty and refresh off the request.
+        if (ErpFirstPaint.IsActive)
+        {
+            if (stale is not null)
+            {
+                ScheduleRefresh();
+                return stale;
+            }
+
+            ScheduleRefresh();
+            return [];
+        }
+
+        var rows = await QueryAsync(cancellationToken).ConfigureAwait(false);
         lock (_gate)
         {
             _cache = (DateTimeOffset.UtcNow.Add(CacheTtl), rows);
         }
 
         return rows;
+    }
+
+    private void ScheduleRefresh()
+    {
+        _ = Task.Run(async () =>
+        {
+            try
+            {
+                var rows = await QueryAsync(CancellationToken.None).ConfigureAwait(false);
+                lock (_gate)
+                {
+                    _cache = (DateTimeOffset.UtcNow.Add(CacheTtl), rows);
+                }
+            }
+            catch
+            {
+                // Keep last cache; home already painted.
+            }
+        });
     }
 
     private async Task<IReadOnlyList<EpartOwnBrandRow>> QueryAsync(CancellationToken cancellationToken)

@@ -31,18 +31,39 @@
     {
         var ctx = Http.HttpContext;
         var cancellation = ctx?.RequestAborted ?? default;
-        var brands = await Dashboards.ListStorefrontGenuineBrandsAsync(cancellation);
-        if (brands.Brands.Count > 0)
+
+        // First paint must not wait on DISTINCT epc_umapi_manufacturers / synonym joins.
+        // When the shop DB is busy those reads take 10–20s and blank /en/parts.
+        // The PHP widget HTML + AJAX is the same-to-same home twin and paints immediately.
+        if (!ErpFirstPaint.IsActive)
         {
-            _html = RenderBrandGrid(brands.Brands);
-            return;
+            try
+            {
+                var brands = await Dashboards.ListStorefrontGenuineBrandsAsync(cancellation);
+                if (brands.Brands.Count > 0)
+                {
+                    _html = RenderBrandGrid(brands.Brands);
+                    return;
+                }
+            }
+            catch
+            {
+                // Fall through to the widget.
+            }
         }
 
         var pricesVisible = false;
         if (ctx is not null)
         {
-            var access = await PriceAccess.ResolveAsync(ctx, cancellation);
-            pricesVisible = access.PricesVisible;
+            try
+            {
+                var access = await PriceAccess.ResolveAsync(ctx, cancellation);
+                pricesVisible = access.PricesVisible;
+            }
+            catch
+            {
+                pricesVisible = false;
+            }
         }
 
         _html = PhpHomeWidgetHtml.AvailableBrands(pricesVisible);

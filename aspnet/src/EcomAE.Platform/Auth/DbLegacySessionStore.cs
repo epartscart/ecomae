@@ -1,7 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Data;
-using EcomAE.Platform.Presentation;
 
 namespace EcomAE.Platform.Auth;
 
@@ -10,6 +9,13 @@ namespace EcomAE.Platform.Auth;
 /// </summary>
 public sealed class DbLegacySessionStore : ILegacySessionStore
 {
+    /// <summary>
+    /// Session lookups must not share the 2s first-paint SQL budget — a timeout
+    /// there 500s every storefront/CP/ERP page. Cap independently so a wedged
+    /// shop DB fails soft instead of hanging until Cloudflare 524.
+    /// </summary>
+    private const int SessionCommandTimeoutSeconds = 5;
+
     private readonly ITenantDbConnectionFactory _connections;
 
     public DbLegacySessionStore(ITenantDbConnectionFactory connections)
@@ -32,21 +38,28 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
             return null;
         }
 
-        await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-        var email = await ScalarStringAsync(connection, LegacySessionSql.SelectUserEmail, userId, cancellationToken).ConfigureAwait(false) ?? string.Empty;
-        var userGroups = await IntListAsync(connection, LegacySessionSql.SelectUserGroupIds, "@userId", userId, cancellationToken).ConfigureAwait(false);
-        var backendGroups = await IntListAsync(connection, LegacySessionSql.SelectBackendGroupIds, null, null, cancellationToken).ConfigureAwait(false);
-        if (backendGroups.Count == 0)
+        try
         {
-            // PHP epc_auth_backend_group_ids falls back to group id 3 when none marked for_backend.
-            backendGroups = [3];
-        }
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            var email = await ScalarStringAsync(connection, LegacySessionSql.SelectUserEmail, userId, cancellationToken).ConfigureAwait(false) ?? string.Empty;
+            var userGroups = await IntListAsync(connection, LegacySessionSql.SelectUserGroupIds, "@userId", userId, cancellationToken).ConfigureAwait(false);
+            var backendGroups = await IntListAsync(connection, LegacySessionSql.SelectBackendGroupIds, null, null, cancellationToken).ConfigureAwait(false);
+            if (backendGroups.Count == 0)
+            {
+                // PHP epc_auth_backend_group_ids falls back to group id 3 when none marked for_backend.
+                backendGroups = [3];
+            }
 
-        var backendSet = backendGroups.ToHashSet();
-        var hasBackend = userGroups.Any(backendSet.Contains);
-        var effectiveGroups = await ExpandGroupAncestryAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
-        var modules = await LoadModuleAclAsync(connection, effectiveGroups, cancellationToken).ConfigureAwait(false);
-        return new LegacyAdminIdentity(email, userGroups, hasBackend, modules);
+            var backendSet = backendGroups.ToHashSet();
+            var hasBackend = userGroups.Any(backendSet.Contains);
+            var effectiveGroups = await ExpandGroupAncestryAsync(connection, userGroups, cancellationToken).ConfigureAwait(false);
+            var modules = await LoadModuleAclAsync(connection, effectiveGroups, cancellationToken).ConfigureAwait(false);
+            return new LegacyAdminIdentity(email, userGroups, hasBackend, modules);
+        }
+        catch
+        {
+            return null;
+        }
     }
 
     /// <summary>
@@ -68,7 +81,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
                 try
                 {
                     await using var command = connection.CreateCommand();
-                    ErpFirstPaint.ApplyIfErp(command);
+                    command.CommandTimeout = SessionCommandTimeoutSeconds;
                     command.CommandText = LegacySessionSql.SelectGroupParent;
                     AddParameter(command, "@groupId", current);
                     var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -100,7 +113,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
         {
             await using (var openCommand = connection.CreateCommand())
             {
-                ErpFirstPaint.ApplyIfErp(openCommand);
+                openCommand.CommandTimeout = SessionCommandTimeoutSeconds;
                 openCommand.CommandText = LegacySessionSql.SelectOpenModules;
                 await using var openReader = await openCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await openReader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -114,7 +127,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
             foreach (var groupId in groupIds.Distinct())
             {
                 await using var grantCommand = connection.CreateCommand();
-                ErpFirstPaint.ApplyIfErp(grantCommand);
+                grantCommand.CommandTimeout = SessionCommandTimeoutSeconds;
                 grantCommand.CommandText = LegacySessionSql.SelectModuleAccessForGroup;
                 AddParameter(grantCommand, "@groupId", groupId);
                 await using var grantReader = await grantCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -147,21 +160,29 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
             return false;
         }
 
-        await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
-        await using var command = connection.CreateCommand();
-        ErpFirstPaint.ApplyIfErp(command);
-        command.CommandText = sql;
-        AddParameter(command, "@session", sessionToken);
-        AddParameter(command, "@userId", userId);
+        try
+        {
+            await using var connection = await _connections.OpenAsync(null, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandTimeout = SessionCommandTimeoutSeconds;
+            command.CommandText = sql;
+            AddParameter(command, "@session", sessionToken);
+            AddParameter(command, "@userId", userId);
 
-        var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-        return Convert.ToInt32(scalar ?? 0, CultureInfo.InvariantCulture) > 0;
+            var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return Convert.ToInt32(scalar ?? 0, CultureInfo.InvariantCulture) > 0;
+        }
+        catch
+        {
+            // First-paint / DB timeout must not 500 the storefront or admin shell.
+            return false;
+        }
     }
 
     private static async Task<string?> ScalarStringAsync(DbConnection connection, string sql, int userId, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        ErpFirstPaint.ApplyIfErp(command);
+        command.CommandTimeout = SessionCommandTimeoutSeconds;
         command.CommandText = sql;
         AddParameter(command, "@userId", userId);
         var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -176,7 +197,7 @@ public sealed class DbLegacySessionStore : ILegacySessionStore
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        ErpFirstPaint.ApplyIfErp(command);
+        command.CommandTimeout = SessionCommandTimeoutSeconds;
         command.CommandText = sql;
         if (parameterName is not null && parameterValue is not null)
         {

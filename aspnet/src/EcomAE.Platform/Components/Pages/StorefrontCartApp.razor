@@ -191,7 +191,15 @@
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
 
         // Prefer storefront customer cookies (PHP DP_User) even if admin cookies are also set.
-        var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+        LegacySessionContext session;
+        try
+        {
+            session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
+        }
+        catch
+        {
+            return;
+        }
         var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
             ? new StorefrontShopper(session.UserId, 0, session.SessionId ?? "", false)
             : await Guests.ResolveAsync(ctx, createIfMissing: true, ctx.RequestAborted);
