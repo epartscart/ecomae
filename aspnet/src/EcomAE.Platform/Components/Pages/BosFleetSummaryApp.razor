@@ -553,6 +553,16 @@
             <label>Value <input type="text" name="value" /></label>
             <button type="submit">Set tenant config</button>
         </form>
+        <form method="post" action="/bos/ai-class/review" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Classification id <input type="text" name="classification_id" /></label>
+            <label>Category <input type="text" name="category" /></label>
+            <label>Subcategory <input type="text" name="subcategory" /></label>
+            <label>HS code <input type="text" name="hs_code" /></label>
+            <label>Reviewer id <input type="text" name="reviewer_id" value="0" /></label>
+            <button type="submit">Review AI class</button>
+        </form>
         <p class="help-block" style="margin:0 0 1rem">Send and broadcast stay Classic. This page does not invent a send.</p>
     }
 
