@@ -3101,6 +3101,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosWorkflowDeleteDb.Succeeded);
         Assert.Equal("db", bosWorkflowDeleteDb.Code);
 
+        var bosWorkflowCreateDb = await new BosWorkflowWriteService(new UnconfiguredConnections())
+            .CreateAsync("acme", "{\"name\":\"Ship\"}");
+        Assert.False(bosWorkflowCreateDb.Succeeded);
+        Assert.Equal("db", bosWorkflowCreateDb.Code);
+
         var bosVaultNewVersionDb = await new BosVaultWriteService(new UnconfiguredConnections())
             .NewVersionAsync(9, "{\"file_path\":\"/a.bin\"}");
         Assert.False(bosVaultNewVersionDb.Succeeded);

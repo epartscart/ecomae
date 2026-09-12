@@ -476,6 +476,7 @@ public sealed class PhpVsAspNetRemovalMatrixTests
             ("BosFleetSummaryApp.razor", "/bos/soc2/create-policy"),
             ("BosFleetSummaryApp.razor", "/bos/workflows/toggle"),
             ("BosFleetSummaryApp.razor", "/bos/workflows/delete"),
+            ("BosFleetSummaryApp.razor", "/bos/workflows/create"),
             ("BosFleetSummaryApp.razor", "/bos/vault/new-version"),
             ("BosFleetSummaryApp.razor", "/bos/vault/create-folder"),
             ("BosFleetSummaryApp.razor", "/bos/vault/upload"),

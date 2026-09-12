@@ -485,6 +485,15 @@
             <label>Workflow id <input type="text" name="workflow_id" /></label>
             <button type="submit">Delete workflow</button>
         </form>
+        <form method="post" action="/bos/workflows/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
+            <label>Site key <input type="text" name="site_key" /></label>
+            <label>Name <input type="text" name="name" /></label>
+            <label>Trigger type <input type="text" name="trigger_type" value="manual" /></label>
+            <label>Active <input type="text" name="active" value="0" /></label>
+            <button type="submit">Create workflow</button>
+        </form>
         <form method="post" action="/bos/vault/new-version" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/bos/fleet-summary-app" />
