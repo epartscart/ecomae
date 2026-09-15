@@ -66,6 +66,7 @@ public static class PlatformHostPolicy
         "design-tokens",
         "tenant-config",
         "ai-class",
+        "mfa",
         "industry",
     };
 

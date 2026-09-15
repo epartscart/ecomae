@@ -2115,6 +2115,8 @@ public static class EcomAeRoutes
     public const string BosTenantConfigSet = "/bos/tenant-config/set";
     /// <summary>Live PHP ajax_epc_bos.php ai_classification review. confirmWrites=true UPDATEs epc_ai_classifications. Super-CP only.</summary>
     public const string BosAiClassReview = "/bos/ai-class/review";
+    /// <summary>Live PHP ajax_epc_bos.php mfa_policy save. confirmWrites=true UPSERTs epc_mfa_policy. Super-CP only.</summary>
+    public const string BosMfaSave = "/bos/mfa/save";
     public const string BosTenants = "/bos/tenants";
     /// <summary>BOS fleet tenants Blazor list (JSON digest remains <see cref="BosTenants"/>).</summary>
     public const string BosTenantsApp = "/bos/tenants-app";
