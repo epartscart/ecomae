@@ -3099,6 +3099,74 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosWorkflowsCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosWorkflowWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for workflow create.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosWorkflowsCreateBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var workflowData = body.WorkflowData;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                workflowData = FormOrNull(form, "workflow_data", "workflowData");
+                if (string.IsNullOrWhiteSpace(workflowData))
+                {
+                    var fields = new Dictionary<string, string?>();
+                    foreach (var key in new[] { "name", "description", "trigger_type", "trigger_config", "active", "created_by", "steps" })
+                    {
+                        var value = form[key].ToString();
+                        if (!string.IsNullOrWhiteSpace(value))
+                        {
+                            fields[key] = value;
+                        }
+                    }
+
+                    workflowData = JsonSerializer.Serialize(fields);
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to create a workflow.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.CreateAsync(siteKey, workflowData, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosVaultNewVersion, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -4207,6 +4275,11 @@ public sealed class BosModule : ISurfaceModule
     private sealed record BosWorkflowsDeleteBody(
         bool ConfirmWrites = false,
         long WorkflowId = 0);
+
+    private sealed record BosWorkflowsCreateBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? WorkflowData = null);
 
     private sealed record BosVaultNewVersionBody(
         bool ConfirmWrites = false,

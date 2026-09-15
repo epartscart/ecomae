@@ -2097,6 +2097,8 @@ public static class EcomAeRoutes
     public const string BosWorkflowsToggle = "/bos/workflows/toggle";
     /// <summary>Live PHP ajax_epc_bos.php workflow_builder delete. confirmWrites=true DELETEs epc_workflows. Super-CP only.</summary>
     public const string BosWorkflowsDelete = "/bos/workflows/delete";
+    /// <summary>Live PHP ajax_epc_bos.php workflow_builder create. confirmWrites=true INSERTs epc_workflows + optional steps. Super-CP only.</summary>
+    public const string BosWorkflowsCreate = "/bos/workflows/create";
     /// <summary>Live PHP ajax_epc_bos.php document_vault new_version. confirmWrites=true INSERTs epc_vault_versions. Super-CP only.</summary>
     public const string BosVaultNewVersion = "/bos/vault/new-version";
     /// <summary>Live PHP ajax_epc_bos.php document_vault create_folder. confirmWrites=true INSERTs epc_vault_folders. Super-CP only.</summary>
