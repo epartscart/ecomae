@@ -69,7 +69,7 @@
 
     <section class="lo-guide-section" aria-label="System architecture diagram">
         <h2>System architecture</h2>
-        <p class="lo-guide-lede">One stack: product hosts → ASP.NET primary (:5100) → digests + Blazor consoles. PHP stays under <code>/php-reference/*</code>.</p>
+        <p class="lo-guide-lede">One stack: product hosts → platform runtime (:5100) → digests + consoles. Classic modules stay under <code>/php-reference/*</code>.</p>
         <div class="lo-guide-svg-wrap" role="img" aria-label="LifeOS stack diagram from hosts through cognitive cycle to digests">
             <svg viewBox="0 0 1100 520" class="lo-guide-svg" xmlns="http://www.w3.org/2000/svg">
                 <defs>
@@ -294,7 +294,7 @@
     <section class="lo-guide-section lo-guide-note" aria-label="Locks">
         <h2>Operator locks</h2>
         <ul>
-            <li>ASP.NET Core is product-primary; PHP reference under <code>/php-reference/*</code>.</li>
+            <li>Platform runtime is product-primary; Classic modules under <code>/php-reference/*</code>.</li>
             <li><code>cutoverAllowed=false</code>, <code>readyForPhpRemoval=false</code>, <code>RequirePhpFallback=true</code>.</li>
             <li>Product <code>/bos</code> and <code>/ip</code> are Super-CP only — tenants must 404 those paths.</li>
             <li>Live republish needs <code>FORCE_LIVE</code> after merge; merge alone does not republish :5100.</li>

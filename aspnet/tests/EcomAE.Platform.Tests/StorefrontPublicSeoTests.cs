@@ -160,11 +160,11 @@ public sealed class StorefrontPublicSeoTests
         Assert.Contains("ProductJsonLdBlock", text, StringComparison.Ordinal);
         // Brand+article CHPU: capped SEO stock + local CP cross seed; warehouse/genuine via AJAX.
         Assert.DoesNotContain("await Task.WhenAll(genuineTask, stockTask)", text, StringComparison.Ordinal);
-        Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(250))", text, StringComparison.Ordinal);
+        Assert.Contains("CancellationTokenSource(TimeSpan.FromMilliseconds(350))", text, StringComparison.Ordinal);
         Assert.Contains("ProbeStorefrontPartStockAsync", text, StringComparison.Ordinal);
         Assert.Contains("BuildStorefrontCrossSearchAsync", text, StringComparison.Ordinal);
         Assert.Contains("_chpuSeoInStock", text, StringComparison.Ordinal);
-        Assert.Contains("ajax-fast-path", text, StringComparison.Ordinal);
+        Assert.Contains("ssr-seed-fast-path", text, StringComparison.Ordinal);
         Assert.Contains("Immediate protocol-3 poll", text, StringComparison.Ordinal);
     }
 

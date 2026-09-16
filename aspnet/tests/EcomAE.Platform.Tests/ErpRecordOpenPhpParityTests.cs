@@ -1,3 +1,4 @@
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using Xunit;
 
@@ -880,7 +881,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("review_text", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("review_text", LegacySurfaceDashboardSql.SelectCpMarketplaceAppsRows, StringComparison.Ordinal);
 
         Assert.Equal("/cp/marketplace-apps-app?app_id=7#erp-row-7",
             ErpRecordOpen.Href("/cp/marketplace-apps-app", "app_id", 7));

@@ -54,7 +54,7 @@ public static class ErpPhpTabRouteMap
         ["cost_models"] = "/erp/cost-models-app",
         ["crm"] = "/erp/crm-tickets-app",
         ["crm_integration"] = "/erp/crm-board-app?tab=crm_integration",
-        ["custom_shipping"] = "/erp/fulfillment-queue-app?tab=custom_shipping",
+        ["custom_shipping"] = "/erp/carriers-app",
         ["customer_groups"] = "/erp/customer-groups-app",
         ["dashboard"] = "/erp",
         ["data_import"] = "/erp/data-migrations-app",

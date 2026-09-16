@@ -96,7 +96,7 @@ public sealed class CpCustomShippingPhpParityTests
         Assert.Contains("/cp/custom-shipping/write", shell.Notes, StringComparison.Ordinal);
         Assert.Equal("write-live-gated", catalog.First(f => f.AspNetRouteOrCapability == "/cp/custom-shipping/write").Status);
         Assert.True(EcomAE.Platform.Presentation.ErpPhpTabRouteMap.TryMapTab("custom_shipping", out var erpHref));
-        Assert.Equal("/cp/carriers-app", erpHref);
+        Assert.Equal("/erp/carriers-app", erpHref);
     }
 
     private static string FindRepoFile(string relative)

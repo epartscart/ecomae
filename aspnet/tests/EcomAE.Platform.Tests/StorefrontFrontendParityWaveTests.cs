@@ -1,3 +1,4 @@
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
@@ -186,7 +187,9 @@ public sealed class StorefrontFrontendParityWaveTests
         var text = Read("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontVinApp.razor");
         Assert.Contains("IdentString", text, StringComparison.Ordinal);
         Assert.Contains("action=\"/storefront/vin/decode\"", text, StringComparison.Ordinal);
-        Assert.Contains("@page \"/en/katalog-laximo\"", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/storefront/vin-app\"", text, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/katalog-laximo", out _, out var vinKind));
+        Assert.Equal("laximo-vin", vinKind);
         Assert.DoesNotContain("/php-reference", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Compare PHP reference", text, StringComparison.Ordinal);

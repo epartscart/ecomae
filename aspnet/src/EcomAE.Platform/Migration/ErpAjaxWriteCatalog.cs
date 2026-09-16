@@ -196,7 +196,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("ins_claim_status", "dedicated", "/erp/ajax/ins-claim-status"),
         new("hr_emp_save", "dedicated", "/erp/ajax/hr-emp-save"),
         new("hr_attendance", "dedicated", "/erp/ajax/hr-attendance"),
-        new("hr_payroll_generate", "dedicated", "/erp/ajax/hr-payroll-generate"),
+        new("hr_payroll_generate", "dedicated", "/erp/ajax/hr-payroll-generate", PhpAction: false),
         new("hr_leave_request", "dedicated", "/erp/ajax/hr-leave-request"),
         new("hr_leave_status", "dedicated", "/erp/ajax/hr-leave-status"),
         new("hr_expense_save", "dedicated", "/erp/ajax/hr-expense-save"),
@@ -242,7 +242,7 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
         new("inv_sync_warehouses", "dedicated", "/erp/ajax/inv-sync-warehouses"),
         new("inv_create_warehouse", "dedicated", "/erp/ajax/inv-create-warehouse"),
         new("inv_create_item", "dedicated", "/erp/ajax/inv-create-item"),
-        new("dim_save", "dedicated", "/erp/ajax/dim-save"),
+        new("dim_save", "dedicated", "/erp/ajax/dim-save", PhpAction: false),
         new("inv_set_reorder_level", "dedicated", "/erp/ajax/inv-set-reorder-level"),
         new("inv_record_movement", "dedicated", "/erp/ajax/inv-record-movement"),
         new("ai_query", "dedicated", "/erp/ajax/ai-query"),
@@ -351,8 +351,10 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
 
     public ErpAjaxWriteCatalogReport BuildReport()
     {
-        var dedicated = Entries.Count(e => e.Coverage == "dedicated");
-        var registry = Entries.Count(e => e.Coverage == "registry");
+        var phpActions = Entries.Where(e => e.PhpAction).ToArray();
+        var dedicated = phpActions.Count(e => e.Coverage == "dedicated");
+        var registry = phpActions.Count(e => e.Coverage == "registry");
+        var aspNetNative = Entries.Count(e => !e.PhpAction);
         return new(
             Role: "erp-ajax-write-catalog",
             Status: "building-toward-zero-php",
@@ -360,21 +362,23 @@ public sealed class ErpAjaxWriteCatalog : IErpAjaxWriteCatalog
             ReadyForPhpRemoval: false,
             PhpAuthoritative: true,
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php",
-            TotalActions: Entries.Length,
+            TotalActions: phpActions.Length,
             DedicatedDryRuns: dedicated,
             RegistryDryRuns: registry,
-            CoveragePct: Entries.Length == 0 ? 0 : (int)Math.Round(100.0 * (dedicated + registry) / Entries.Length),
+            AspNetNativeActions: aspNetNative,
+            CoveragePct: phpActions.Length == 0 ? 0 : (int)Math.Round(100.0 * (dedicated + registry) / phpActions.Length),
             Actions: Entries,
             Notes:
             [
                 "Coverage means ASP.NET dry-run gate exists (writes=0); live writes remain PHP.",
+                "aspNetNativeActions are ASP.NET-only routes with no ajax_erp.php twin; they are excluded from PHP coverage totals.",
                 "Dedicated routes keep richer validation; registry covers the long tail via POST /erp/ajax-writes/dry-run/{action}.",
                 "cutoverAllowed stays false until dual-sample + human RELEASE_OWNER_APPROVAL.md.",
             ]);
     }
 }
 
-public sealed record ErpAjaxWriteCatalogEntry(string Action, string Coverage, string AspNetRouteHint);
+public sealed record ErpAjaxWriteCatalogEntry(string Action, string Coverage, string AspNetRouteHint, bool PhpAction = true);
 
 public sealed record ErpAjaxWriteCatalogReport(
     string Role,
@@ -386,6 +390,7 @@ public sealed record ErpAjaxWriteCatalogReport(
     int TotalActions,
     int DedicatedDryRuns,
     int RegistryDryRuns,
+    int AspNetNativeActions,
     int CoveragePct,
     IReadOnlyList<ErpAjaxWriteCatalogEntry> Actions,
     IReadOnlyList<string> Notes);

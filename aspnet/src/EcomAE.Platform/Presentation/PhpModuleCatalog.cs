@@ -87,7 +87,9 @@ public static partial class PhpModuleCatalog
             reference = "/php-reference/home";
         }
 
-        return $"{surfaceAppPath}?php={Uri.EscapeDataString(reference)}";
+        // Slashes stay literal so the php= value reads as a path; '?', '&', '#' are encoded.
+        var encoded = Uri.EscapeDataString(reference).Replace("%2F", "/", StringComparison.Ordinal);
+        return $"{surfaceAppPath}?php={encoded}";
     }
 
     /// <summary>

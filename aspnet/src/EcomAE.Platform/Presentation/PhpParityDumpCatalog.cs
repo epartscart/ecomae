@@ -16,8 +16,9 @@ public static class PhpParityDumpCatalog
             return [("list", "Records")];
         }
 
+        var appSlug = AppSlug(path);
         var tabs = ErpPhpTabRouteMap.All
-            .Where(kv => NormalizePath(kv.Value) == path)
+            .Where(kv => AppSlug(NormalizePath(kv.Value)) == appSlug)
             .Select(kv => (kv.Key, LabelFor(kv.Key)))
             .GroupBy(t => t.Key, StringComparer.OrdinalIgnoreCase)
             .Select(g => g.First())
@@ -45,6 +46,20 @@ public static class PhpParityDumpCatalog
 
     public static string LabelFor(string tab)
         => ErpPhpModuleChromeCatalog.ForTab(tab).Title;
+
+    /// <summary>CP and ERP aliases of the same app (<c>/cp/x-app</c>, <c>/erp/x-app</c>) share one tab set.</summary>
+    private static string AppSlug(string path)
+    {
+        foreach (var shell in new[] { "/cp/", "/erp/" })
+        {
+            if (path.StartsWith(shell, StringComparison.OrdinalIgnoreCase))
+            {
+                return path[shell.Length..];
+            }
+        }
+
+        return path;
+    }
 
     public static string NormalizePath(string? href)
     {

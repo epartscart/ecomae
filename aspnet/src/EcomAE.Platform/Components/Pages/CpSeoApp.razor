@@ -23,12 +23,13 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
+                @* Operator note: ASP.NET-primary storefront SEO mirrors PHP epc_seo_indexing. *@
                 <p>
-                    ASP.NET-primary storefront SEO mirrors PHP <code>epc_seo_indexing</code>:
+                    Storefront SEO mirrors the Classic <code>epc_seo_indexing</code> rules:
                     CHPU part pages emit Part-number titles, regional descriptions, Product JSON-LD, and stock-aware robots.
                     Content KPIs below come from the shop <code>content</code> table (same source as CP Content editor).
                 </p>
-                <p>Live ASP.NET SEO status: home uses body-stream canonical/OG/hreflang/JSON-LD; CHPU uses PHP-parity <em>Part number</em> title + description; no product <code>.php</code> URLs in canonicals. Source: <code>@_source</code>@if (!string.IsNullOrWhiteSpace(_message)) { <text> — @_message</text> }</p>
+                <p>Live SEO status: home uses body-stream canonical/OG/hreflang/JSON-LD; CHPU uses the Classic <em>Part number</em> title + description; no product <code>.php</code> URLs in canonicals. Source: <code>@_source</code>@if (!string.IsNullOrWhiteSpace(_message)) { <text> — @_message</text> }</p>
             </div>
         </div>
     </div>
