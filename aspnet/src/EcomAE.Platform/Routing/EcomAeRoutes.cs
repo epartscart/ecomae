@@ -226,6 +226,7 @@ public static class EcomAeRoutes
     public const string ControlPanelCarriers = "/cp/carriers";
     /// <summary>CP carriers Blazor list (JSON digest remains <see cref="ControlPanelCarriers"/>).</summary>
     public const string ControlPanelCarriersApp = "/cp/carriers-app";
+    public const string ErpCarriersApp = "/erp/carriers-app";
     /// <summary>CP payment gateways (parameters/credentials omitted).</summary>
     public const string ControlPanelPaymentGateways = "/cp/payment-gateways";
     /// <summary>CP payment gateways Blazor list (JSON digest remains <see cref="ControlPanelPaymentGateways"/>).</summary>

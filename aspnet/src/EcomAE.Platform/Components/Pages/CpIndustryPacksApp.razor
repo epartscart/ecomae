@@ -11,11 +11,15 @@
 
 <PageTitle>Industry Packs · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-pack-hero { display:flex; flex-wrap:wrap; align-items:center; gap:12px; }
+    .epc-pack-hero .pull-right { margin-left:auto; }
+</style>
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">
+            <div class="panel-heading hbuilt epc-pack-hero">
                 Industry Packs
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>

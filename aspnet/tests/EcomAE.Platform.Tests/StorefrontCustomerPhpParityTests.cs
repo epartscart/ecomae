@@ -1,3 +1,4 @@
+using EcomAE.Platform.Middleware;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -37,7 +38,9 @@ public sealed class StorefrontCustomerPhpParityTests
     public void VinApp_KeepsDecodeFormAndPhpUrl()
     {
         var text = Read("StorefrontVinApp.razor");
-        Assert.Contains("@page \"/en/katalog-laximo\"", text, StringComparison.Ordinal);
+        Assert.Contains("@page \"/storefront/vin-app\"", text, StringComparison.Ordinal);
+        Assert.True(IndustryStorefrontSlugMiddleware.TryMatch("www.epartscart.com", "/en/katalog-laximo", out var vinRewrite, out _));
+        Assert.Equal("/storefront/vin-app", vinRewrite);
         Assert.Contains("action=\"/storefront/vin/decode\"", text, StringComparison.Ordinal);
         Assert.Contains("Decode VIN", text, StringComparison.Ordinal);
         Assert.Contains("StorefrontSurfaceLinks.SellerRequest", text, StringComparison.Ordinal);

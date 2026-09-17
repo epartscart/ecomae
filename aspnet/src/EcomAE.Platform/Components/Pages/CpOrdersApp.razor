@@ -61,7 +61,7 @@
         </a>
     </div>
 
-    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for OMS console · tabs Manage → Messages · item status writes on ASP.NET</p>
+    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for OMS console · tabs Manage → Messages · item status writes live here</p>
 
     <div class="epc-orders-tabs" role="tablist" aria-label="Orders tabs">
         <a class="epc-orders-tab @(_tab == "open" ? "is-active" : null)" href="@OrdersHref(tab: "open")">Open <span class="epc-tab-count">@_summary.Open</span></a>
@@ -225,7 +225,7 @@
                     <section class="epc-od__panel @(_detailTab == "manage" ? "is-active" : null)" data-epc-od-panel="manage" style="@(_detailTab == "manage" ? null : "display:none")">
                         <div class="epc-od__edit">
                             <div class="epc-od__edit-title">Update order</div>
-                            <p class="text-muted small">Item status, line price/qty/brand, staff message, courier fee, unpaid delete, comment, viewed, and supplier fulfillment write on ASP.NET. Payment / notify stay PHP.</p>
+                            <p class="text-muted small">Item status, line price/qty/brand, staff message, courier fee, unpaid delete, comment, viewed, and supplier fulfillment write live here. Payment / notify stay Classic.</p>
                             <form method="post" action="/cp/orders/set-courier" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.5rem 0">
                                 <input type="hidden" name="confirmWrites" value="true" />
                                 <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "manage")" />
@@ -374,7 +374,7 @@
                     <section class="epc-od__panel @(_detailTab == "fulfillment" ? "is-active" : null)" data-epc-od-panel="fulfillment" style="@(_detailTab == "fulfillment" ? null : "display:none")">
                         <div class="epc-of-panel">
                             <div class="epc-od__edit-title">Fulfillment</div>
-                            <p class="text-muted small">Supplier fulfillment stage writes on ASP.NET. Warehouse pick/pack queue stays on its own board. Bootstrap-from-items stays PHP.</p>
+                            <p class="text-muted small">Supplier fulfillment stage writes live here. Warehouse pick/pack queue stays on its own board. Bootstrap-from-items stays Classic.</p>
                             <form method="post" action="/cp/orders/fulfillment-set-stage" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:.5rem 0">
                                 <input type="hidden" name="confirmWrites" value="true" />
                                 <input type="hidden" name="returnUrl" value="@OrdersHref(o.Id, detailTab: "fulfillment")" />
