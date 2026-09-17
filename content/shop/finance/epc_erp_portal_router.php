@@ -50,10 +50,31 @@ function epc_erp_portal_match_request($requestUri = null)
 	return null;
 }
 
-function epc_erp_portal_canonical_base($langPrefix = '')
+/**
+ * Canonical scheme+host for every ERP portal link and redirect.
+ *
+ * A cross-host stored domain_path (e.g. epartscart.com while serving
+ * www.ecomae.com) sends the operator to another host, where this host's session
+ * cookies are absent — the ERP login/AJAX then fails CSRF. Fall back to the
+ * request host's own origin in that case.
+ */
+function epc_erp_portal_base_origin()
 {
 	global $DP_Config;
 	$base = rtrim((string) ($DP_Config->domain_path ?? ''), '/');
+	if (function_exists('epc_portal_domain_path_leaks_cross_host')
+		&& epc_portal_domain_path_leaks_cross_host($base)) {
+		$origin = function_exists('epc_portal_request_origin') ? epc_portal_request_origin() : '';
+		if ($origin !== '') {
+			$base = $origin;
+		}
+	}
+	return $base;
+}
+
+function epc_erp_portal_canonical_base($langPrefix = '')
+{
+	$base = epc_erp_portal_base_origin();
 	return $base . ($langPrefix !== '' ? $langPrefix : '') . '/erp';
 }
 
@@ -569,8 +590,7 @@ function epc_erp_portal_block_consultancy_commerce_path()
 	if (!$commercePath) {
 		return false;
 	}
-	global $DP_Config;
-	$base = rtrim((string) ($DP_Config->domain_path ?? ''), '/');
+	$base = epc_erp_portal_base_origin();
 	$langPrefix = '';
 	if (preg_match('#^/(en|ru|ar)(?:/|$)#i', $path, $lm)) {
 		$langPrefix = '/' . strtolower($lm[1]);
