@@ -1749,6 +1749,12 @@ public static class EcomAeRoutes
 
     /// <summary>Full ajax_erp.php action catalog (dedicated + registry coverage). cutoverAllowed=false.</summary>
     public const string ErpAjaxWriteCatalog = "/erp/ajax-writes/catalog";
+    /// <summary>
+    /// Legacy ERP AJAX entry (<c>content/general_pages/ajax_epc_erp.php</c>). PHP shells build this
+    /// URL via <c>epc_erp_resolve_ajax_endpoint()</c>, and nginx exact-routes the whole
+    /// <c>/content/general_pages/</c> prefix to Kestrel — so ASP.NET must answer the POST.
+    /// </summary>
+    public const string ErpAjaxPhpEndpoint = "/content/general_pages/ajax_epc_erp.php";
     /// <summary>Generic Wave B dry-run for any catalogued ajax_erp.php action (writes=0; PHP authoritative).</summary>
     public const string ErpAjaxWriteRegistryDryRun = "/erp/ajax-writes/dry-run/{action}";
     /// <summary>Wave B dry-run for PHP deploy/on-premises/setup-wizard.php (writes=0).</summary>
