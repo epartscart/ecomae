@@ -563,6 +563,64 @@ function epc_portal_guess_domain_path($host = null)
 	return ($https ? 'https' : 'http') . '://' . $host . '/';
 }
 
+/**
+ * True when a platform/industry host is about to render or redirect to a
+ * different host's domain_path.
+ *
+ * Registry/site-settings rows are per-tenant, so a stale or mis-seeded
+ * `domain_path` (e.g. epartscart.com stored on www.ecomae.com) makes the
+ * platform host emit cross-host links and 302s. The browser then follows to the
+ * other host without this host's cookies, so the follow-up POST reaches
+ * stop_csrf.php with no session — surfacing as "CSRF 4"/"CSRF 3.1".
+ *
+ * Client hosts keep honouring their own configured domain (sub-path deploys).
+ */
+function epc_portal_domain_path_leaks_cross_host($domainPath, $host = null): bool
+{
+	$path = trim((string) $domainPath);
+	if ($path === '') {
+		return false;
+	}
+	if ($host === null) {
+		$host = epc_portal_host();
+	}
+	$host = strtolower(trim((string) $host));
+	$isClientHost = function_exists('epc_portal_is_client_hostname') && epc_portal_is_client_hostname($host);
+	if ($host === '' || $isClientHost) {
+		return false;
+	}
+	$pathHost = parse_url($path, PHP_URL_HOST);
+	if (!is_string($pathHost) || $pathHost === '') {
+		return false;
+	}
+	// www/non-www of the same host is still the same tenant site.
+	return preg_replace('/^www\./', '', strtolower($pathHost)) !== preg_replace('/^www\./', '', $host);
+}
+
+/** Request host's own canonical origin — used when a stored domain_path is unsafe. */
+function epc_portal_request_origin()
+{
+	$host = epc_portal_host();
+	if ($host === '') {
+		return '';
+	}
+	return rtrim(epc_portal_guess_domain_path($host), '/');
+}
+
+/**
+ * Stored domain_path, or the request host's own origin when that stored value
+ * belongs to a different host (see epc_portal_domain_path_leaks_cross_host).
+ */
+function epc_portal_safe_domain_path($domainPath, $host = null)
+{
+	$domainPath = (string) $domainPath;
+	if (!epc_portal_domain_path_leaks_cross_host($domainPath, $host)) {
+		return $domainPath;
+	}
+	$origin = epc_portal_request_origin();
+	return $origin === '' ? $domainPath : $origin . '/';
+}
+
 function epc_portal_default_contact($profile = array())
 {
 	$host = epc_portal_host();
@@ -833,7 +891,7 @@ function epc_portal_site_profile()
 		if (!empty($platformProfile['user'])) {
 			$profile['user'] = $platformProfile['user'];
 		}
-		if (!empty($platformProfile['domain_path'])) {
+		if (!empty($platformProfile['domain_path']) && !epc_portal_domain_path_leaks_cross_host($platformProfile['domain_path'], $host)) {
 			$profile['domain_path'] = $platformProfile['domain_path'];
 		}
 	} elseif (!empty($dbSettings['industry_code']) && empty($GLOBALS['epc_industry_subdomain_active'])) {
@@ -851,7 +909,10 @@ function epc_portal_site_profile()
 	if (!empty($dbSettings['theme'])) {
 		$profile['theme'] = $dbSettings['theme'];
 	}
-	if (!empty($dbSettings['domain_path']) && !epc_portal_is_client_hostname($host) && empty($GLOBALS['epc_industry_subdomain_active'])) {
+	if (!empty($dbSettings['domain_path'])
+		&& !epc_portal_is_client_hostname($host)
+		&& empty($GLOBALS['epc_industry_subdomain_active'])
+		&& !epc_portal_domain_path_leaks_cross_host($dbSettings['domain_path'], $host)) {
 		$profile['domain_path'] = $dbSettings['domain_path'];
 	}
 	if (epc_portal_is_client_hostname($host)) {
@@ -925,7 +986,7 @@ function epc_portal_apply_config($DP_Config)
 	$site = epc_portal_site_profile();
 	$isClientHost = function_exists('epc_portal_is_client_hostname') && epc_portal_is_client_hostname();
 	if (!$isDemoIsolated && !empty($site['domain_path'])) {
-		$DP_Config->domain_path = $site['domain_path'];
+		$DP_Config->domain_path = epc_portal_safe_domain_path($site['domain_path']);
 	}
 	if (!$isDemoIsolated && !$isClientHost && !empty($site['db'])) {
 		$DP_Config->db = $site['db'];
@@ -972,7 +1033,7 @@ function epc_portal_apply_config($DP_Config)
 		$DP_Config->password = $site['password'];
 	}
 	if (!empty($site['domain_path']) && !$isDemoIsolated) {
-		$DP_Config->domain_path = $site['domain_path'];
+		$DP_Config->domain_path = epc_portal_safe_domain_path($site['domain_path']);
 	}
 	$siteCtxFile = $_SERVER['DOCUMENT_ROOT'] . '/content/general_pages/epc_site_context.php';
 	if (is_file($siteCtxFile)) {
