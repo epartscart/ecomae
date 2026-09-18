@@ -44,6 +44,41 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpAjaxWriteRegistryRequest(action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
         });
 
+        // PHP shells build this legacy URL (epc_erp_resolve_ajax_endpoint) and nginx exact-routes
+        // the whole /content/general_pages/ prefix to Kestrel, so the POST must be answered here.
+        // Until the interactive ajax_erp.php writes are ported, this returns the same
+        // writes=0 / phpAuthoritative=true dry-run envelope the /erp/ajax-writes dry-run returns.
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPhpEndpoint, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpAjaxWriteRegistryDryRun dryRun,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for ajax_epc_erp.php.");
+            }
+
+            // PHP shells post form-encoded fields (action/confirm_writes); accept JSON too.
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpAjaxPhpBody>(context, cancellationToken)
+                       ?? new ErpAjaxPhpBody();
+            var action = body.Action?.Trim() ?? string.Empty;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                if (string.IsNullOrWhiteSpace(action))
+                {
+                    action = LiveWriteFormBinder.Text(form, "action");
+                }
+
+                confirm = LiveWriteFormBinder.Flag(form, "confirm_writes", "confirmWrites");
+            }
+
+            return Results.Ok(dryRun.Evaluate(new ErpAjaxWriteRegistryRequest(action, confirm)).ToPayload(SessionPayload(session)));
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.ErpAjaxConcurrencyStatus, async (HttpContext context, ErpConcurrencyStatusBody? body, ILegacySessionValidator validator, IErpConcurrencyStatusDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpConcurrencyStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSettlementOpenDocs, async (HttpContext context, ErpSettlementOpenDocsBody? body, ILegacySessionValidator validator, IErpSettlementOpenDocsDryRun dryRun, CancellationToken cancellationToken) =>
@@ -19675,6 +19710,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpAutomationTickBody(bool ConfirmWrites = false);
     private sealed record ErpTenantConfigSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAjaxWriteRegistryBody(bool ConfirmWrites = false);
+    private sealed record ErpAjaxPhpBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record OnPremisesSetupWizardBody(string? TenantCode = null, bool ConfirmWrites = false);
     private sealed record OnPremisesBackupBody(string? Label = null, bool ConfirmWrites = false);
     private sealed record OnPremisesActivateLicenseCliBody(string? Action = null, bool ConfirmWrites = false);
