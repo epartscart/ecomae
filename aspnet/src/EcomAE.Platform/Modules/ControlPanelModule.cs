@@ -8740,10 +8740,39 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        endpoints.MapGet(EcomAeRoutes.CpBulkUploadWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpBulkUploadHubService hub,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/bulk-upload-app", "Admin CP capability required for bulk-upload read.");
+            }
+
+            var uploadId = ErpRecordOpen.ReadId(context.Request, "upload_id");
+            var detail = uploadId > 0 ? await hub.GetUploadAsync(uploadId, cancellationToken) : null;
+            if (detail is null)
+            {
+                return Results.NotFound(new { ok = false, error = new { code = "not_found", message = "Upload not found." } });
+            }
+
+            if (context.Request.Query["action"].ToString() == "csv")
+            {
+                var name = "bulk_upload_" + uploadId.ToString(CultureInfo.InvariantCulture) + ".csv";
+                return Results.File(System.Text.Encoding.UTF8.GetBytes(detail.Csv), "text/csv; charset=utf-8", name);
+            }
+
+            return Results.Ok(new { ok = true, upload = detail.Row, lines = detail.Lines, session = SessionPayload(session) });
+        });
+
         endpoints.MapPost(EcomAeRoutes.CpBulkUploadWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
             ICpBulkUploadWriteService writes,
+            ICpBulkUploadHubService hub,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8758,6 +8787,11 @@ public sealed class ControlPanelModule : ISurfaceModule
             var uploadId = body.UploadId;
             var notes = body.Notes;
             var confirm = body.ConfirmWrites;
+            var customerId = body.CustomerUserId;
+            var groupId = body.GroupId;
+            var priority = body.Priority ?? "price";
+            IReadOnlyList<int>? indexes = body.Indexes;
+            IFormFile? file = null;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -8765,38 +8799,80 @@ public sealed class ControlPanelModule : ISurfaceModule
                 uploadId = LiveWriteFormBinder.Long(form, "upload_id", "uploadId", "id");
                 notes = LiveWriteFormBinder.Text(form, "notes", "cp_notes");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                customerId = LiveWriteFormBinder.Long(form, "customer_user_id", "customerUserId", "user_id");
+                groupId = LiveWriteFormBinder.Long(form, "group_id", "groupId");
+                priority = LiveWriteFormBinder.Text(form, "priority");
+                indexes = form.ContainsKey("indexes")
+                    ? form["indexes"].Select(v => int.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out var i) && i >= 0 ? i : -1).Where(i => i >= 0).Distinct().ToArray()
+                    : null;
+                file = form.Files.GetFile("bulk_file") ?? form.Files.GetFile("file");
             }
 
-            var key = (action ?? string.Empty).Trim();
-            if (confirm && key is "mark_reviewed" or "bulk_mark_reviewed")
+            var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            var fallback = uploadId > 0
+                ? "/cp/bulk-upload-app?upload_id=" + uploadId.ToString(CultureInfo.InvariantCulture)
+                : "/cp/bulk-upload-app";
+            if (!confirm)
             {
-                var written = await writes.MarkReviewedAsync(
-                    new CpBulkUploadMarkReviewedRequest(uploadId, session.UserId, notes),
-                    cancellationToken);
-                return LiveWriteFormBinder.Complete(
-                    context,
-                    "/cp/bulk-upload-app",
-                    written.Succeeded,
-                    written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                var valid = key switch
+                {
+                    "mark_reviewed" or "bulk_mark_reviewed" => uploadId > 0,
+                    "process_upload" => customerId > 0 && file is { Length: > 0 },
+                    "add_to_cart" or "create_shop_quote" or "create_crm_quote" => uploadId > 0 && customerId > 0,
+                    _ => false,
+                };
+                return Results.Ok(new { ok = valid, status = "dry-run-validated", action = key, upload_id = uploadId, writes = 0, writesBlocked = true, cutoverAllowed = false, validation_code = "dry_run", message = "Dry-run. Set confirmWrites=true to apply.", session = SessionPayload(session) });
             }
 
-            return Results.Ok(new
+            CpBulkActionResult result;
+            switch (key)
             {
-                ok = true,
-                writes = 0,
-                wouldWrite = key is "mark_reviewed" or "bulk_mark_reviewed",
-                writesBlocked = confirm,
-                cutoverAllowed = false,
-                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
-                message = confirm
-                    ? "Process, quote, and cart stay Classic."
-                    : key is "mark_reviewed" or "bulk_mark_reviewed"
-                        ? "Dry-run. Set confirmWrites=true to mark the upload reviewed."
-                        : "Dry-run. Set confirmWrites=true to mark the upload reviewed.",
-                phpAuthoritative = true,
-                session = SessionPayload(session),
-            });
+                case "mark_reviewed":
+                case "bulk_mark_reviewed":
+                {
+                    var written = await writes.MarkReviewedAsync(new CpBulkUploadMarkReviewedRequest(uploadId, session.UserId, notes), cancellationToken);
+                    result = new CpBulkActionResult(written.Succeeded, written.Code, written.Message, written.Id, written.Writes);
+                    break;
+                }
+
+                case "process_upload":
+                    if (file is null || file.Length == 0)
+                    {
+                        result = new CpBulkActionResult(false, "invalid", "Choose an Excel/CSV file.", 0, 0);
+                        break;
+                    }
+
+                    await using (var stream = file.OpenReadStream())
+                    {
+                        result = await hub.ProcessAsync(customerId, groupId, priority, stream, file.FileName, cancellationToken);
+                    }
+
+                    break;
+                case "add_to_cart":
+                    result = await hub.AddToCartAsync(uploadId, customerId, indexes, session.UserId, cancellationToken);
+                    break;
+                case "create_shop_quote":
+                    result = await hub.CreateShopQuoteAsync(uploadId, customerId, indexes, session.UserId, cancellationToken);
+                    break;
+                case "create_crm_quote":
+                    result = await hub.CreateCrmQuoteAsync(uploadId, customerId, indexes, session.UserId, cancellationToken);
+                    break;
+                default:
+                    result = new CpBulkActionResult(false, "unknown_action", "Unknown action.", 0, 0);
+                    break;
+            }
+
+            if (result.Succeeded && result.RedirectTo.Length > 0 && LiveWriteFormBinder.WantsHtml(context))
+            {
+                return Results.Redirect(result.RedirectTo + (result.RedirectTo.Contains('?', StringComparison.Ordinal) ? '&' : '?') + "ok=" + Uri.EscapeDataString(result.Message));
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallback,
+                result.Succeeded,
+                result.Message,
+                new { ok = result.Succeeded, writes = result.Writes, id = result.Id, redirect = result.RedirectTo, phpAuthoritative = false, cutoverAllowed = false, validation_code = result.Code, message = result.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelUaeTaxCompliance, async (
@@ -15555,7 +15631,11 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Action = null,
         bool ConfirmWrites = false,
         long UploadId = 0,
-        string? Notes = null);
+        string? Notes = null,
+        long CustomerUserId = 0,
+        long GroupId = 0,
+        string? Priority = null,
+        int[]? Indexes = null);
     private sealed record CpFreeToolsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

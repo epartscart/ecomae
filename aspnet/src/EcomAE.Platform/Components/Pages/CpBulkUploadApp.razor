@@ -2,280 +2,299 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpBulkUploadHubService Hub
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Bulk upload · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<HeadContent>
+<link rel="stylesheet" href="/platform-assets/epc_bulk_cp.css?v=20260922bu" />
+<style>
+    .epc-bu-tab { text-decoration:none !important; }
+    .epc-bu-form form { display:contents; }
+    .epc-bu-inline { display:inline; }
+    .epc-bu-detail-meta .epc-bu-badge { font-size:12px; }
+</style>
+</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/bulk-upload-app" IsAdmin="_isAdmin" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <PhpCpModulePageHeader Title="Bulk upload"
-                           Subtitle="Open a row for the 280-character notes, result, and csv excerpts. mark_reviewed writes here. process / quote / cart stay Classic. This page does not invent a send."
-                           PhpTabHref="@_phpTab">
-        <a class="ghost" href="/cp/prices-upload-app">Prices upload</a>
-        <a class="ghost" href="/storefront/bulk-upload-app">Storefront bulk</a>
-        <a class="ghost" href="/cp/orders">Orders</a>
-    </PhpCpModulePageHeader>
-
-    @if (!_isAdmin)
-    {
-        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
-    }
-
-    <div class="epc-scp-kpi" aria-label="Bulk upload stats">
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Uploads</div>
-            <div class="epc-scp-kpi__val">@_summary.UploadCount.ToString(CultureInfo.InvariantCulture)</div>
+@if (!_isAdmin)
+{
+    <div class="col-lg-12"><div class="alert alert-warning">Admin CP session required. <a href="/cp/login?returnUrl=/cp/bulk-upload-app">Log in</a>.</div></div>
+}
+else
+{
+<div class="col-lg-12 epc-bu-hub">
+<div class="epc-bu">
+    <header class="epc-bu-brandbar">
+        <div class="epc-bu-brandbar__mark" aria-hidden="true"><i class="fa fa-file-excel-o"></i></div>
+        <div>
+            <div class="epc-bu-brandbar__name">Bulk Upload Control</div>
+            <div class="epc-bu-brandbar__sub">Review every storefront spare-parts list, run the same match engine from CP, then push selected lines to a customer cart, shop quote, or ERP CRM quote.</div>
         </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Uploaded lines</div>
-            <div class="epc-scp-kpi__val">@_summary.UploadedLines.ToString(CultureInfo.InvariantCulture)</div>
+        <div class="epc-bu-brandbar__actions">
+            <a class="epc-bu-chip-link" href="/storefront/bulk-upload-app" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Storefront</a>
+            <a class="epc-bu-chip-link" href="/cp/quote-requests-app"><i class="fa fa-file-text-o"></i> Quotes</a>
+            <a class="epc-bu-chip-link" href="/erp/sales-quotations-app"><i class="fa fa-briefcase"></i> ERP quotes</a>
+            <a class="epc-bu-chip-link" href="/cp/abandoned-carts-app"><i class="fa fa-shopping-cart"></i> Carts</a>
+            <a class="epc-bu-chip-link" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)"><i class="fa fa-code"></i> Classic twin</a>
         </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Available</div>
-            <div class="epc-scp-kpi__val">@_summary.AvailableCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Not found</div>
-            <div class="epc-scp-kpi__val">@_summary.NotFoundCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
+    </header>
+
+    <div class="epc-bu-kpi" role="group" aria-label="Bulk upload metrics">
+        <div class="epc-bu-kpi__item"><div class="epc-bu-kpi__icon"><i class="fa fa-database"></i></div><div><div class="epc-bu-kpi__val">@_dash.Total</div><div class="epc-bu-kpi__label">All uploads</div></div></div>
+        <div class="epc-bu-kpi__item"><div class="epc-bu-kpi__icon epc-bu-kpi__icon--amber"><i class="fa fa-eye"></i></div><div><div class="epc-bu-kpi__val">@_dash.Unreviewed</div><div class="epc-bu-kpi__label">Needs review</div></div></div>
+        <div class="epc-bu-kpi__item"><div class="epc-bu-kpi__icon epc-bu-kpi__icon--green"><i class="fa fa-calendar"></i></div><div><div class="epc-bu-kpi__val">@_dash.Today</div><div class="epc-bu-kpi__label">Today</div></div></div>
+        <div class="epc-bu-kpi__item"><div class="epc-bu-kpi__icon"><i class="fa fa-globe"></i></div><div><div class="epc-bu-kpi__val">@_dash.Storefront</div><div class="epc-bu-kpi__label">From website</div></div></div>
+        <div class="epc-bu-kpi__item"><div class="epc-bu-kpi__icon epc-bu-kpi__icon--slate"><i class="fa fa-check-circle"></i></div><div><div class="epc-bu-kpi__val">@_dash.AvailableToday</div><div class="epc-bu-kpi__label">Matched today</div></div></div>
     </div>
 
-    <div class="epc-scp-tool-grid" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;">
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">process_upload</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">ingest file</p>
-        </a>
-        <div class="epc-scp-table-card" style="padding:1rem;color:inherit;">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">mark_reviewed</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">operator review writes here</p>
-        </div>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">create_quote</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">quote handoff</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">add_to_cart</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">cart handoff</p>
-        </a>
+    @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success epc-bu-msg" role="status">@_flashOk</div> }
+    @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger epc-bu-msg" role="status">@_flashErr</div> }
+
+    <div class="epc-bu-tabs" role="tablist">
+        <a class="epc-bu-tab @(_tab == "inbox" ? "is-active" : "")" href="@_listHref"><i class="fa fa-inbox"></i> Review inbox</a>
+        <a class="epc-bu-tab @(_tab == "process" ? "is-active" : "")" href="@(_listHref + "?tab=process")"><i class="fa fa-upload"></i> Process for customer</a>
+        <a class="epc-bu-tab @(_tab == "detail" ? "is-active" : "")" href="@(_uploadId > 0 ? DetailHref(_uploadId) : _listHref + "?tab=detail")"><i class="fa fa-list"></i> Open upload</a>
     </div>
 
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    @if (_tab == "inbox")
     {
-        <div class="alert alert-success" role="status">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status">@_flashErr</div>
-    }
-
-    @if (_isAdmin)
-    {
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Mark reviewed</div>
-            <div class="panel-body">
-                <form method="post" action="/cp/bulk-upload/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "upload_id", _openedId) : _listHref)" />
-                    <input type="hidden" name="action" value="mark_reviewed" />
-                    <label>Upload <input type="text" name="upload_id" inputmode="numeric" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "0")" /></label>
-                    <label>Notes <input type="text" name="notes" maxlength="512" /></label>
-                    <button type="submit" class="btn btn-primary btn-sm">Mark reviewed</button>
+    <section class="epc-bu-panel is-on" data-panel="inbox">
+        <div class="epc-bu-section">
+            <div class="epc-bu-section__head">
+                <h3><i class="fa fa-inbox"></i> Customer &amp; CP uploads</h3>
+                <span>Same history as storefront — visible here for every customer</span>
+            </div>
+            <div class="epc-bu-section__body">
+                <form method="get" action="/cp/bulk-upload-app" class="epc-bu-toolbar">
+                    <label style="font-size:12px;font-weight:700;"><input type="checkbox" name="unreviewed" value="1" checked="@_filter.Unreviewed" /> Needs review only</label>
+                    <select name="source" class="form-control input-sm" style="width:auto;display:inline-block;">
+                        <option value="" selected="@(_filter.Source.Length == 0)">All sources</option>
+                        <option value="storefront" selected="@(_filter.Source == "storefront")">Storefront</option>
+                        <option value="cp" selected="@(_filter.Source == "cp")">CP</option>
+                    </select>
+                    <input type="text" name="q" class="form-control input-sm" style="width:200px;display:inline-block;" placeholder="File or user id" value="@_filter.Query" />
+                    <button type="submit" class="btn btn-sm btn-default"><i class="fa fa-refresh"></i> Refresh</button>
                 </form>
-                <p class="help-block" style="margin:.75rem 0 0">Process, quote, and cart stay Classic.</p>
-            </div>
-        </div>
-    }
-
-    @if (_opened is not null)
-    {
-        <div class="epc-scp-table-card" style="margin-bottom:1rem">
-            <div class="epc-scp-table-card__head">
-                <div>
-                    <h3>@OpenedCaption</h3>
-                    <p class="epc-users-hint">process / quote / cart stay on the Classic twin. File bodies omitted.</p>
-                </div>
-                <a class="btn btn-default btn-xs" href="@OpenedReturnHref">This row</a>
-                <a class="btn btn-default btn-xs" href="@_listHref">Close</a>
-            </div>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>File</dt><dd>@(string.IsNullOrWhiteSpace(_opened.FileName) ? "—" : _opened.FileName)</dd>
-                <dt>Priority</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Priority) ? "—" : _opened.Priority)</dd>
-                <dt>Source</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SourceLabel) ? "—" : _opened.SourceLabel)</dd>
-                <dt>User</dt><dd>@_opened.UserId.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Uploaded</dt><dd>@_opened.UploadedCount.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Available</dt><dd>@_opened.AvailableCount.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Cross</dt><dd>@_opened.CrossCount.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Short</dt><dd>@_opened.ShortCount.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Not found</dt><dd>@_opened.NotFoundCount.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Shop quote</dt><dd>@_opened.ShopQuoteId.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>CRM quote</dt><dd>@_opened.CrmQuoteId.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Cart added</dt><dd>@_opened.CartAddedCount.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Created</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CreatedAt) ? "—" : _opened.CreatedAt)</dd>
-                <dt>Updated</dt><dd>@(string.IsNullOrWhiteSpace(_opened.UpdatedAt) ? "—" : _opened.UpdatedAt)</dd>
-            </dl>
-            @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
-            {
-                <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
-                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.NotesExcerpt</pre>
-                @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
+                <div id="epc_bu_inbox_body">
+                @if (_history.Count == 0)
                 {
-                    <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
-            }
-            else
-            {
-                <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
-            }
-            @if (!string.IsNullOrWhiteSpace(_opened.ResultExcerpt))
-            {
-                <p class="text-muted" style="margin:.85rem 0 .35rem">result excerpt</p>
-                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.ResultExcerpt</pre>
-                @if (_opened.ResultLen > _opened.ResultExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.ResultExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.ResultLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
-            }
-            else
-            {
-                <p class="text-muted" style="margin:.85rem 0 0">No result excerpt yet.</p>
-            }
-            @if (!string.IsNullOrWhiteSpace(_opened.CsvExcerpt))
-            {
-                <p class="text-muted" style="margin:.85rem 0 .35rem">csv excerpt</p>
-                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.CsvExcerpt</pre>
-                @if (_opened.CsvLen > _opened.CsvExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.CsvExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.CsvLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
-            }
-            else
-            {
-                <p class="text-muted" style="margin:.85rem 0 0">No csv excerpt yet.</p>
-            }
-            @if (_openedSiblings.Count > 0)
-            {
-                <p class="text-muted" style="margin:1rem 0 .4rem">Same-priority siblings</p>
-                <table class="epc-scp-data-table table table-epc-pro">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>File</th>
-                            <th>Priority</th>
-                            <th>Not found</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var sib in _openedSiblings)
-                        {
-                            <tr>
-                                <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@(string.IsNullOrWhiteSpace(sib.FileName) ? "—" : sib.FileName)</td>
-                                <td>@(string.IsNullOrWhiteSpace(sib.Priority) ? "—" : sib.Priority)</td>
-                                <td>@sib.NotFoundCount.ToString(CultureInfo.InvariantCulture)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "upload_id", sib.Id)">Open</a></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p class="text-muted">No same-priority siblings yet.</p>
-            }
-        </div>
-    }
-
-    <div class="epc-scp-table-card">
-        <div class="epc-scp-table-card__head">
-            <div>
-                <h3>Upload history</h3>
-                <p class="epc-users-hint">Open uses <code>?upload_id=</code>. File bodies omitted.</p>
-            </div>
-            <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP module</a>
-        </div>
-        <table class="epc-scp-data-table table table-epc-pro">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>File</th>
-                    <th>Priority</th>
-                    <th>Uploaded</th>
-                    <th>Available</th>
-                    <th>Cross</th>
-                    <th>Short</th>
-                    <th>Not found</th>
-                    <th>Created</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_uploads.Count == 0)
-                {
-                    <tr><td colspan="10">No records yet.</td></tr>
+                    <div class="epc-bu-empty">No uploads match these filters.</div>
                 }
                 else
                 {
-                    @foreach (var row in _uploads)
-                    {
-                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td><strong>@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(row.FileName) ? "—" : row.FileName)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Priority) ? "—" : row.Priority)</td>
-                            <td>@row.UploadedCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.AvailableCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CrossCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.ShortCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.NotFoundCount.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.CreatedAt) ? "—" : row.CreatedAt)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "upload_id", row.Id)">Open</a></td>
-                        </tr>
-                    }
+                    <table class="epc-bu-table">
+                        <thead><tr><th>#</th><th>When</th><th>Customer</th><th>File</th><th>Source</th><th>Lines</th><th>Available</th><th>Cross</th><th>Not found</th><th>Review</th><th>Handoffs</th><th></th></tr></thead>
+                        <tbody>
+                        @foreach (var r in _history)
+                        {
+                            <tr>
+                                <td>@r.Id</td>
+                                <td>@r.CreatedAt</td>
+                                <td>@r.CustomerLabel</td>
+                                <td>@(r.FileName.Length == 0 ? "—" : r.FileName)</td>
+                                <td><span class="epc-bu-badge @(r.Source == "cp" ? "epc-bu-badge--blue" : "")">@r.Source</span></td>
+                                <td>@r.Uploaded</td>
+                                <td><span class="epc-bu-badge epc-bu-badge--ok">@r.Available</span></td>
+                                <td>@r.Cross</td>
+                                <td>@(r.Notfound > 0 ? r.Notfound.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                <td>@if (r.ReviewedAt.Length > 0) { <span class="epc-bu-badge epc-bu-badge--ok">Reviewed @r.ReviewedAt</span> } else { <span class="epc-bu-badge epc-bu-badge--warn">Needs review</span> }</td>
+                                <td>
+                                    @if (r.CartAdded > 0) { <span class="epc-bu-badge">Cart +@r.CartAdded</span> }
+                                    @if (r.ShopQuoteId > 0) { <a class="epc-bu-badge epc-bu-badge--blue" href="/cp/quote-requests-app?quote_id=@r.ShopQuoteId">Quote #@r.ShopQuoteId</a> }
+                                    @if (r.CrmQuoteId > 0) { <a class="epc-bu-badge epc-bu-badge--blue" href="/erp/sales-quotations-app?quote_id=@r.CrmQuoteId">ERP #@r.CrmQuoteId</a> }
+                                </td>
+                                <td><a class="btn btn-xs btn-primary" href="@DetailHref(r.Id)">Open</a></td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table>
                 }
-            </tbody>
-        </table>
-    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    }
+    else if (_tab == "process")
+    {
+    <section class="epc-bu-panel is-on" data-panel="process">
+        <div class="epc-bu-section">
+            <div class="epc-bu-section__head">
+                <h3><i class="fa fa-upload"></i> Process list for a customer</h3>
+                <span>Brand · Part · Qty columns — same engine as the website</span>
+            </div>
+            <div class="epc-bu-section__body">
+                <form method="get" action="/cp/bulk-upload-app" class="epc-bu-field" style="margin-bottom:14px;">
+                    <input type="hidden" name="tab" value="process" />
+                    <label>Customer</label>
+                    <div style="display:flex;gap:8px;max-width:520px;">
+                        <input type="text" name="customer_q" id="epc_bu_customer_q" placeholder="Email, name, phone, or user id" value="@_customerQuery" />
+                        <button type="submit" class="btn btn-default" id="epc_bu_customer_search"><i class="fa fa-search"></i></button>
+                    </div>
+                    @if (_customers.Count > 0)
+                    {
+                        <div id="epc_bu_customer_pick" class="epc-bu-customer-pick" style="display:block;max-width:520px;">
+                            @foreach (var c in _customers)
+                            {
+                                <a href="@(_listHref + "?tab=process&customer_user_id=" + c.UserId.ToString(CultureInfo.InvariantCulture) + "&customer_q=" + Uri.EscapeDataString(_customerQuery))" style="display:block;padding:10px 12px;border-bottom:1px solid #f1f5f9;font-size:13px;color:#0f172a;">@c.Label @(c.GroupId > 0 ? "· group #" + c.GroupId.ToString(CultureInfo.InvariantCulture) : "· no price group")</a>
+                            }
+                        </div>
+                    }
+                    else if (_customerQuery.Length > 0)
+                    {
+                        <div class="epc-bu-empty" style="padding:10px;">No customers found.</div>
+                    }
+                </form>
+                <form method="post" action="/cp/bulk-upload/write" enctype="multipart/form-data" onsubmit="return (document.getElementById('epc_bu_customer_id').value|0) > 0 || (alert('Select a customer first'), false);">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="action" value="process_upload" />
+                    <input type="hidden" name="returnUrl" value="@(_listHref + "?tab=process")" />
+                    <input type="hidden" name="customer_user_id" id="epc_bu_customer_id" value="@_customerId.ToString(CultureInfo.InvariantCulture)" />
+                    <div id="epc_bu_selected_customer" class="epc-bu-selected" style="margin:0 0 14px;">@(_selectedCustomer is null ? "No customer selected" : _selectedCustomer.Label)</div>
+                    <div class="epc-bu-form">
+                        <div class="epc-bu-field">
+                            <label>Price profile</label>
+                            <select id="epc_bu_group_id" name="group_id">
+                                <option value="">Customer default@(_selectedCustomer is { GroupId: > 0 } sc ? " (#" + sc.GroupId.ToString(CultureInfo.InvariantCulture) + ")" : "")</option>
+                                @foreach (var pp in _profiles)
+                                {
+                                    <option value="@pp.GroupId">@pp.Caption (#@pp.GroupId)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="epc-bu-field">
+                            <label>Priority</label>
+                            <select id="epc_bu_priority" name="priority">
+                                <option value="price">Best price</option>
+                                <option value="delivery">Fastest delivery</option>
+                            </select>
+                        </div>
+                        <div class="epc-bu-field">
+                            <label>Excel / CSV</label>
+                            <input type="file" id="epc_bu_file" name="bulk_file" accept=".xlsx,.csv,.txt,.tsv" required />
+                        </div>
+                    </div>
+                    <p style="margin-top:14px;">
+                        <button type="submit" class="btn btn-primary" id="epc_bu_process"><i class="fa fa-cogs"></i> Match &amp; open results</button>
+                    </p>
+                </form>
+            </div>
+        </div>
+    </section>
+    }
+    else
+    {
+    <section class="epc-bu-panel is-on" data-panel="detail">
+        <div class="epc-bu-section">
+            <div class="epc-bu-section__head">
+                <h3><i class="fa fa-list-alt"></i> Upload detail &amp; actions</h3>
+                <span>Add to cart · shop quote · ERP CRM quote</span>
+            </div>
+            <div class="epc-bu-section__body">
+            @if (_upload is null)
+            {
+                <div id="epc_bu_detail_body"><div class="epc-bu-empty">@(_uploadId > 0 ? "Upload not found." : "Open an upload from the inbox, or process a new file.")</div></div>
+            }
+            else
+            {
+                var u = _upload.Row;
+                <div id="epc_bu_detail_meta" class="epc-bu-detail-meta">
+                    <span class="epc-bu-badge epc-bu-badge--blue">#@u.Id</span>
+                    <span class="epc-bu-badge">@u.CustomerLabel</span>
+                    <span class="epc-bu-badge">@(u.FileName.Length == 0 ? "—" : u.FileName)</span>
+                    <span class="epc-bu-badge">@u.Source · @u.Priority</span>
+                    <span class="epc-bu-badge">group #@u.GroupId</span>
+                    <span class="epc-bu-badge epc-bu-badge--ok">@u.Available available</span>
+                    <span class="epc-bu-badge">@u.Cross cross</span>
+                    <span class="epc-bu-badge @(u.Notfound > 0 ? "epc-bu-badge--off" : "")">@u.Notfound not found</span>
+                    @if (u.ReviewedAt.Length > 0) { <span class="epc-bu-badge epc-bu-badge--ok">Reviewed @u.ReviewedAt by #@u.ReviewedBy</span> } else { <span class="epc-bu-badge epc-bu-badge--warn">Needs review</span> }
+                    @if (u.Notes.Length > 0) { <span class="epc-bu-badge">@u.Notes</span> }
+                </div>
+                <form method="post" action="/cp/bulk-upload/write" id="epc_bu_detail_form">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="upload_id" value="@u.Id" />
+                    <input type="hidden" name="customer_user_id" value="@u.UserId" />
+                    <input type="hidden" name="returnUrl" value="@DetailHref(u.Id)" />
+                    <div class="epc-bu-toolbar">
+                        <button type="submit" name="action" value="add_to_cart" class="btn btn-success btn-sm" id="epc_bu_add_cart"><i class="fa fa-shopping-cart"></i> Add selected to customer cart</button>
+                        <button type="submit" name="action" value="create_shop_quote" class="btn btn-primary btn-sm" id="epc_bu_shop_quote"><i class="fa fa-file-text-o"></i> Create shop quote</button>
+                        <button type="submit" name="action" value="create_crm_quote" class="btn btn-info btn-sm" id="epc_bu_crm_quote"><i class="fa fa-briefcase"></i> Create ERP quote</button>
+                        <button type="submit" name="action" value="mark_reviewed" class="btn btn-default btn-sm" id="epc_bu_mark_reviewed"><i class="fa fa-check"></i> Mark reviewed</button>
+                        <input type="text" name="notes" class="form-control input-sm" style="width:220px;display:inline-block;" maxlength="512" placeholder="Review notes" />
+                        <a class="btn btn-default btn-sm" href="/erp"><i class="fa fa-th-large"></i> ERP hub</a>
+                        @if (_upload.Csv.Length > 0) { <a class="btn btn-default btn-sm" href="@("/cp/bulk-upload/write?action=csv&upload_id=" + u.Id.ToString(CultureInfo.InvariantCulture))"><i class="fa fa-download"></i> CSV</a> }
+                    </div>
+                    <div id="epc_bu_detail_body">
+                    @if (_upload.Lines.Count == 0)
+                    {
+                        <div class="epc-bu-empty">No result lines stored for this upload.</div>
+                    }
+                    else
+                    {
+                        <table class="epc-bu-table">
+                            <thead><tr><th><input type="checkbox" onclick="for(const c of document.querySelectorAll('#epc_bu_detail_form input[name=indexes]')) c.checked=this.checked;" /></th><th>#</th><th>Requested</th><th>Qty</th><th>Status</th><th>Matched</th><th>Stock</th><th>Price</th><th>Days</th></tr></thead>
+                            <tbody>
+                            @foreach (var l in _upload.Lines)
+                            {
+                                <tr>
+                                    <td>@if (l.ProductObject is not null) { <input type="checkbox" name="indexes" value="@l.Index" checked /> }</td>
+                                    <td>@(l.Index + 1)</td>
+                                    <td><strong>@l.Brand</strong> @l.Article</td>
+                                    <td>@l.Qty</td>
+                                    <td><span class="epc-bu-badge @(l.Available ? "epc-bu-badge--ok" : l.MatchType.Length > 0 ? "epc-bu-badge--warn" : "epc-bu-badge--off")">@(l.StatusLabel.Length > 0 ? l.StatusLabel : (l.Available ? "Available" : "Not found"))</span></td>
+                                    <td>@if (l.ProductObject is null) { <span class="text-muted">—</span> } else { <text>@l.Manufacturer @l.ArticleShow <small class="text-muted">@l.Name</small>@(l.MatchType == "cross" ? " (cross)" : "")</text> }</td>
+                                    <td>@(l.ProductObject is null ? "—" : l.Exist.ToString(CultureInfo.InvariantCulture))</td>
+                                    <td>@(l.ProductObject is null ? "—" : l.Price.ToString("0.00", CultureInfo.InvariantCulture))</td>
+                                    <td>@(l.ProductObject is null ? "—" : l.TimeToExe.ToString(CultureInfo.InvariantCulture))</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    }
+                    </div>
+                </form>
+            }
+            </div>
+        </div>
+    </section>
+    }
+</div>
+</div>
+}
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/bulk_upload";
     private const string _listHref = "/cp/bulk-upload-app";
     private bool _isAdmin;
-    private CpBulkUploadSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpBulkUploadRowDigest> _uploads = [];
-    private long _openedId;
-    private CpBulkUploadDetail? _opened;
-    private IReadOnlyList<CpBulkUploadRowDigest> _openedSiblings = [];
+    private string _tab = "inbox";
+    private long _uploadId;
     private string _flashOk = "";
     private string _flashErr = "";
+    private CpBulkDashboard _dash = new(0, 0, 0, 0, 0);
+    private CpBulkHistoryFilter _filter = new(0, "", true, "");
+    private IReadOnlyList<CpBulkHistoryRow> _history = [];
+    private CpBulkHubUploadDetail? _upload;
+    private string _customerQuery = "";
+    private long _customerId;
+    private CpBulkCustomer? _selectedCustomer;
+    private IReadOnlyList<CpBulkCustomer> _customers = [];
+    private IReadOnlyList<CpBulkPriceProfile> _profiles = [];
 
-    private string OpenedCaption => _opened is null
-        ? ""
-        : (!string.IsNullOrWhiteSpace(_opened.FileName)
-            ? _opened.FileName
-            : ("Upload #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
-
-    private string OpenedReturnHref => _openedId > 0
-        ? _listHref + "?upload_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
-        : _listHref;
+    private static string DetailHref(long id) => _listHref + "?upload_id=" + id.ToString(CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "upload_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         if (!_isAdmin)
@@ -283,23 +302,40 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpBulkUploadDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _uploads = result.Uploads;
+        var q = ctx.Request.Query;
+        _uploadId = ErpRecordOpen.ReadId(ctx.Request, "upload_id");
+        _tab = _uploadId > 0 ? "detail" : q["tab"].ToString() switch { "process" => "process", "detail" => "detail", _ => "inbox" };
+        _dash = await Hub.DashboardAsync(ctx.RequestAborted);
 
-        if (_openedId > 0)
+        if (_tab == "inbox")
         {
-            var detail = await Dashboards.BuildCpBulkUploadDetailAsync(_openedId, ctx.RequestAborted);
-            _opened = detail.Upload;
-            _openedSiblings = detail.Siblings;
-            if (_opened is not null)
+            var hasFilterSubmit = q.ContainsKey("source") || q.ContainsKey("q") || q.ContainsKey("unreviewed");
+            _filter = new CpBulkHistoryFilter(
+                ErpRecordOpen.ReadId(ctx.Request, "user_id"),
+                q["source"].ToString() is "storefront" or "cp" ? q["source"].ToString() : "",
+                hasFilterSubmit ? q["unreviewed"].ToString() is "1" or "true" or "on" : true,
+                q["q"].ToString().Trim());
+            _history = await Hub.ListHistoryAsync(_filter, CpBulkUploadHubService.HistoryLimit, ctx.RequestAborted);
+        }
+        else if (_tab == "process")
+        {
+            _profiles = await Hub.PriceProfilesAsync(ctx.RequestAborted);
+            _customerQuery = q["customer_q"].ToString().Trim();
+            _customerId = ErpRecordOpen.ReadId(ctx.Request, "customer_user_id");
+            if (q.ContainsKey("customer_q"))
             {
-                var openedList = _uploads.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _uploads = new[] { openedList }.Concat(_uploads.Where(r => r.Id != _openedId)).ToList();
-                }
+                _customers = await Hub.SearchCustomersAsync(_customerQuery, CpBulkUploadHubService.CustomerLimit, ctx.RequestAborted);
             }
+
+            if (_customerId > 0)
+            {
+                _selectedCustomer = _customers.FirstOrDefault(c => c.UserId == _customerId)
+                    ?? (await Hub.SearchCustomersAsync(_customerId.ToString(CultureInfo.InvariantCulture), 1, ctx.RequestAborted)).FirstOrDefault();
+            }
+        }
+        else if (_uploadId > 0)
+        {
+            _upload = await Hub.GetUploadAsync(_uploadId, ctx.RequestAborted);
         }
     }
 }
