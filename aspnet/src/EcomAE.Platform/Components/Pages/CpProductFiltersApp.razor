@@ -2,240 +2,319 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpProductFilterEditorService Filters
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Product filters · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-pf-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; }
+    .epc-pf-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-pf-actions .panel_a_caption { font-size:12px; }
+    .epc-pf-list td, .epc-pf-list th { vertical-align:middle !important; }
+    .epc-pf-list tr.epc-row-open td { background:#fff8dc; }
+    .epc-pf-list .pagination { margin:8px 0 0; }
+    .epc-pf-list .epc-edit-line { display:none; }
+    .epc-pf-list tr.epc-editing .epc-edit-line { display:table-row; }
+    .epc-pf-list tr.epc-editing .epc-show-line { display:none; }
+    .epc-pf-list input.form-control { height:28px; padding:2px 6px; }
+    .epc-pf-tree { height:400px; overflow:auto; border:1px solid #e4e5e7; padding:6px; }
+    .epc-pf-tree label { display:block; font-weight:normal; margin:2px 0; cursor:pointer; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
+    @if (!_isAdmin)
+    {
+        <div class="hpanel"><div class="panel-body">
+            <div class="alert alert-warning" role="status">Sign in to the Control Panel to manage product filters. <a href="/cp/login?returnUrl=/cp/product-filters-app">Login</a></div>
+        </div></div>
+    }
+    else if (_openedId > 0 && _setting is null)
+    {
+        <div class="hpanel"><div class="panel-body">
+            <div class="alert alert-danger" role="status">Product filter #@_openedId.ToString(CultureInfo.InvariantCulture) was not found. <a href="@_listHref">Back to filters</a></div>
+        </div></div>
+    }
+    else if (_setting is not null)
+    {
+        @* ---- setting.php twin: storages scope + price/time bands ---- *@
+        var s = _setting;
+        var returnHere = _listHref + "?filter_id=" + s.Id.ToString(CultureInfo.InvariantCulture);
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Filter settings
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/setting?id=" + s.Id.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
+            </div>
+            <div class="panel-body epc-pf-actions">
+                <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fas fa-chevron-left"></i></div><div class="panel_a_caption">Back</div></a>
+                <a class="panel_a" href="javascript:void(0);" onclick="epcPfSave();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
+        <div class="row" style="margin:0">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Filter</div>
+                    <div class="panel-body">
+                        <div class="col-lg-12"><h4>
+                            @s.Caption
+                            @if (s.Name.Length > 0) { <text> <small>name:</small> @s.Name</text> }
+                        </h4></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <form id="pf_setting_form" method="post" action="/cp/product-filters/write">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@returnHere" />
+            <input type="hidden" name="action" value="save_storages" />
+            <input type="hidden" name="filter_id" value="@s.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="list_storages" id="list_storages" value="" />
+            <div class="row" style="margin:0">
+                <div class="col-lg-6" id="general_options_div">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">Warehouses included in the filter</div>
+                        <div class="panel-body">
+                            <input type="checkbox" id="check_uncheck_all" onchange="epcPfCheckAll(this.checked);" checked="@s.Storages.All(x => x.Checked)" /> <label style="cursor:pointer;" for="check_uncheck_all">Check / uncheck all</label>
+                            <div class="epc-pf-tree" id="container_A_storages">
+                                @if (s.Storages.Count == 0)
+                                {
+                                    <div class="text-muted">No warehouses yet. Create them on <a href="/cp/storages-app">Warehouses</a>.</div>
+                                }
+                                @foreach (var st in s.Storages)
+                                {
+                                    <label><input type="checkbox" class="epc-pf-storage" value="@st.Id.ToString(CultureInfo.InvariantCulture)" checked="@st.Checked" /> @st.Name <span class="text-muted">(@st.Id.ToString(CultureInfo.InvariantCulture))</span></label>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">Price range</div>
+                        <div class="panel-body">
+                            <label for="min_price">Minimum price</label><br>
+                            <input class="form-control" type="number" step="0.01" min="0" id="min_price" name="min_price" value="@(s.MinPrice > 0 ? s.MinPrice.ToString(CultureInfo.InvariantCulture) : "")" />
+                            <label for="max_price">Maximum price</label><br>
+                            <input class="form-control" type="number" step="0.01" min="0" id="max_price" name="max_price" value="@(s.MaxPrice > 0 ? s.MaxPrice.ToString(CultureInfo.InvariantCulture) : "")" />
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">Delivery time range</div>
+                        <div class="panel-body">
+                            <label for="min_time">Minimum delivery time (days)</label><br>
+                            <input class="form-control" type="number" min="0" id="min_time" name="min_time" value="@(s.MinTime > 0 ? s.MinTime.ToString(CultureInfo.InvariantCulture) : "")" />
+                            <label for="max_time">Maximum delivery time (days)</label><br>
+                            <input class="form-control" type="number" min="0" id="max_time" name="max_time" value="@(s.MaxTime > 0 ? s.MaxTime.ToString(CultureInfo.InvariantCulture) : "")" />
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <script>
+            function epcPfCheckAll(on) {
+                document.querySelectorAll('.epc-pf-storage').forEach(function (c) { c.checked = on; });
+            }
+            function epcPfSave() {
+                var ids = [];
+                document.querySelectorAll('.epc-pf-storage:checked').forEach(function (c) { ids.push(parseInt(c.value, 10)); });
+                document.getElementById('list_storages').value = JSON.stringify(ids);
+                document.getElementById('pf_setting_form').submit();
+            }
+        </script>
+    }
+    else
+    {
+        @* ---- filter_shop.php twin ---- *@
+        var l = _list;
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Product filters
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
-            <div class="panel-body">
-                <p>Open a filter for a storage-scope excerpt. Add, save, enable, scope, or delete here. Full list_storages JSON stays on the Classic twin.</p>
+            <div class="panel-body epc-pf-actions">
+                <a class="panel_a" href="javascript:void(0);" onclick="epcPfActiveAll(1);"><div class="panel_a_img"><i class="fa fa-check-square-o"></i></div><div class="panel_a_caption">Enable all</div></a>
+                <a class="panel_a" href="javascript:void(0);" onclick="epcPfActiveAll(0);"><div class="panel_a_img"><i class="fa fa-square-o"></i></div><div class="panel_a_caption">Disable all</div></a>
+                <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
             </div>
         </div>
-    </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/product-filters-app" IsAdmin="_isAdmin" />
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
 
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedFilter is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="alert alert-success" role="status">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status">@_flashErr</div>
-    }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
-            <input type="hidden" name="action" value="add" />
-            <label>Manufacturer <input type="text" name="manufacturer" placeholder="BOSCH" /></label>
-            <label>Article <input type="text" name="article" placeholder="0986AB1234" /></label>
-            <label>Name <input type="text" name="name" placeholder="Brake pad" /></label>
-            <button type="submit">Add filter</button>
-        </form>
-        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
-            <input type="hidden" name="action" value="save" />
-            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Manufacturer <input type="text" name="manufacturer" value="@(_openedFilter is not null ? _openedFilter.Manufacturer : "")" /></label>
-            <label>Article <input type="text" name="article" value="@(_openedFilter is not null ? _openedFilter.Article : "")" /></label>
-            <label>Name <input type="text" name="name" value="@(_openedFilter is not null ? _openedFilter.Name : "")" /></label>
-            <button type="submit">Save filter</button>
-        </form>
-        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
-            <input type="hidden" name="action" value="active" />
-            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Enabled
-                <select name="flag">
-                    <option value="1">Yes</option>
-                    <option value="0">No</option>
-                </select>
-            </label>
-            <button type="submit">Set enabled</button>
-        </form>
-        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
-            <input type="hidden" name="action" value="save_storages" />
-            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Storages <input type="text" name="storagesJson" placeholder="[1,2]" /></label>
-            <label>Min price <input type="number" name="minPrice" step="0.01" min="0" style="width:6rem" value="@(_openedFilter is not null ? _openedFilter.MinPrice.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Max price <input type="number" name="maxPrice" step="0.01" min="0" style="width:6rem" value="@(_openedFilter is not null ? _openedFilter.MaxPrice.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Min time <input type="number" name="minTime" min="0" style="width:5rem" value="@(_openedFilter is not null ? _openedFilter.MinTime.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Max time <input type="number" name="maxTime" min="0" style="width:5rem" value="@(_openedFilter is not null ? _openedFilter.MaxTime.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <button type="submit">Save scope</button>
-        </form>
-        <form method="post" action="/cp/product-filters/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/product-filters-app" />
-            <input type="hidden" name="action" value="del" />
-            <label>Id <input type="number" name="filterId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <button type="submit">Delete filter</button>
-        </form>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Product filter KPIs">
-        <div class="kpi"><div class="lbl">Filters</div><div class="val">@_summary.FilterCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Storage scope</div><div class="val">@_summary.WithStorageScope.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Price band</div><div class="val">@_summary.WithPriceBand.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Time band</div><div class="val">@_summary.WithTimeBand.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedFilter is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @OpenedCaption
-                    <span class="label label-default pull-right">@(_openedFilter.Active != 0 ? "enabled" : "disabled")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedFilter.Manufacturer) ? _openedFilter.Manufacturer : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedFilter.Article) ? _openedFilter.Article : "—")
-                        · price @_openedFilter.MinPrice.ToString(CultureInfo.InvariantCulture)–@_openedFilter.MaxPrice.ToString(CultureInfo.InvariantCulture)
-                        · time @_openedFilter.MinTime.ToString(CultureInfo.InvariantCulture)–@_openedFilter.MaxTime.ToString(CultureInfo.InvariantCulture)</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedFilter.StoragesExcerpt))
-                    {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedFilter.StoragesExcerpt</pre>
-                        @if (_openedFilter.StoragesLen > _openedFilter.StoragesExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_openedFilter.StoragesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedFilter.StoragesLen.ToString(CultureInfo.InvariantCulture) chars). Full list_storages JSON stays on the Classic twin.</p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No storage-scope excerpt yet.</p>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Same-manufacturer siblings</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Manufacturer</th>
-                                    <th>Article</th>
-                                    <th>Name</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="5">No same-manufacturer siblings yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Manufacturer) ? sib.Manufacturer : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Article) ? sib.Article : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Name) ? sib.Name : "—")</td>
-                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "filter_id", sib.Id)">Open</a></td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
+        <div class="row" style="margin:0">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">
+                        Add a filter
+                        <button class="btn btn-xs btn-info btn-circle" type="button" onclick="alert('A filter hides matching offers from the storefront search. Leave manufacturer empty to match any brand; leave article empty to match the whole brand.');"><i class="fa fa-info"></i></button>
                     </div>
+                    <form method="post" action="/cp/product-filters/write" id="pf_add_form">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="action" value="add" />
+                        <div class="panel-body">
+                            <div class="col-md-4"><label>Manufacturer:</label><input class="form-control" type="text" id="new_manufacturer" name="manufacturer" placeholder="Not set" /></div>
+                            <div class="col-md-4"><label>Article:</label><input class="form-control" type="text" id="new_article" name="article" placeholder="Not set" /></div>
+                            <div class="col-md-4"><label>Name:</label><input class="form-control" type="text" id="new_name" name="name" placeholder="Not set" /></div>
+                        </div>
+                        <div class="panel-footer text-right">
+                            <button id="btn_add" type="submit" class="btn btn-ar btn-success"><i class="fa fa-plus"></i> Add</button>
+                        </div>
+                    </form>
                 </div>
             </div>
         </div>
-    }
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Filters</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+        <div class="col-lg-12">
+            <div class="hpanel epc-pf-list">
+                <div class="panel-heading hbuilt" style="position:relative;">
+                    Filter list <span class="text-muted">(@l.Total.ToString(CultureInfo.InvariantCulture))</span>
+                </div>
+                <div id="div_table" class="table-responsive">
+                    <table class="table table-condensed table-striped table-bordered table-epc">
                         <thead>
                             <tr>
-                                <th>Id</th>
+                                <th style="width:60px">Active</th>
+                                <th style="width:60px">ID</th>
                                 <th>Manufacturer</th>
                                 <th>Article</th>
                                 <th>Name</th>
-                                <th>Min price</th>
-                                <th>Max price</th>
-                                <th></th>
+                                <th>Warehouses</th>
+                                <th>Price</th>
+                                <th>Time</th>
+                                <th style="width:150px"></th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (!_isAdmin)
+                        @if (l.Rows.Count == 0)
                         {
-                            <tr><td colspan="7">Sign in for live data.</td></tr>
+                            <tr><td colspan="9">No filters yet.</td></tr>
                         }
-                        else if (_rows.Count == 0)
+                        @foreach (var row in l.Rows)
                         {
-                            <tr><td colspan="7">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var row in _rows)
-                            {
-                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Manufacturer) ? row.Manufacturer : "—")</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Article) ? row.Article : "—")</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                                    <td>@row.MinPrice.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.MaxPrice.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "filter_id", row.Id)">Open</a></td>
-                                </tr>
-                            }
+                            var rid = row.Id.ToString(CultureInfo.InvariantCulture);
+                            <tr id="line_@rid" class="epc-show-line @ErpRecordOpen.RowClass(row.Id, _openedId)">
+                                <td class="text-center">
+                                    <form method="post" action="/cp/product-filters/write" id="active_form_@rid">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@PageHref(l.Page)" />
+                                        <input type="hidden" name="action" value="active" />
+                                        <input type="hidden" name="filter_id" value="@rid" />
+                                        <input type="hidden" name="flag" id="active_flag_@rid" value="@(row.Active ? "1" : "0")" />
+                                        <input type="checkbox" id="active_@rid" checked="@row.Active" onchange="epcPfActive('@rid', this.checked);" />
+                                    </form>
+                                </td>
+                                <td>@rid</td>
+                                <td>@(row.Manufacturer.Length > 0 ? row.Manufacturer : "—")</td>
+                                <td>@(row.Article.Length > 0 ? row.Article : "—")</td>
+                                <td>@(row.Name.Length > 0 ? row.Name : "—")</td>
+                                <td>@(row.StorageCount > 0 ? row.StorageCount.ToString(CultureInfo.InvariantCulture) : "all")</td>
+                                <td>@Range(row.MinPrice, row.MaxPrice)</td>
+                                <td>@Range(row.MinTime, row.MaxTime)</td>
+                                <td class="text-right">
+                                    <a class="btn btn-xs btn-default" title="Settings" href="@ErpRecordOpen.Href(_listHref, "filter_id", row.Id)"><i class="fa fa-cog"></i></a>
+                                    <a class="btn btn-xs btn-default" title="Edit" href="javascript:void(0);" onclick="epcPfEdit('@rid');"><i class="fa fa-pencil"></i></a>
+                                    <a class="btn btn-xs btn-danger" title="Delete" href="javascript:void(0);" onclick="epcPfDel('@rid');"><i class="fa fa-trash"></i></a>
+                                </td>
+                            </tr>
+                            <tr id="edit_line_@rid" class="epc-edit-line">
+                                <td></td>
+                                <td>@rid</td>
+                                <td><input class="form-control" type="text" form="save_form_@rid" name="manufacturer" id="manufacturer_edit_@rid" value="@row.Manufacturer" /></td>
+                                <td><input class="form-control" type="text" form="save_form_@rid" name="article" id="article_edit_@rid" value="@row.Article" /></td>
+                                <td><input class="form-control" type="text" form="save_form_@rid" name="name" id="name_edit_@rid" value="@row.Name" /></td>
+                                <td colspan="3"></td>
+                                <td class="text-right">
+                                    <form method="post" action="/cp/product-filters/write" id="save_form_@rid" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@PageHref(l.Page)" />
+                                        <input type="hidden" name="action" value="save" />
+                                        <input type="hidden" name="filter_id" value="@rid" />
+                                        <button class="btn btn-xs btn-success" type="submit" title="Save"><i class="fa fa-save"></i></button>
+                                    </form>
+                                    <a class="btn btn-xs btn-default" title="Cancel" href="javascript:void(0);" onclick="epcPfEditCancel('@rid');"><i class="fa fa-times"></i></a>
+                                </td>
+                            </tr>
                         }
                         </tbody>
                     </table>
+                    @if (l.PageCount > 1)
+                    {
+                        <ul class="pagination pagination-sm" style="margin-left:8px">
+                            @for (var p = 1; p <= l.PageCount; p++)
+                            {
+                                <li class="@(p == l.Page ? "active" : "")"><a href="@PageHref(p)">@p.ToString(CultureInfo.InvariantCulture)</a></li>
+                            }
+                        </ul>
+                    }
                 </div>
             </div>
         </div>
-    </div>
+
+        <form method="post" action="/cp/product-filters/write" id="pf_del_form">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <input type="hidden" name="action" value="del" />
+            <input type="hidden" name="filter_id" id="pf_del_id" value="" />
+        </form>
+        <form method="post" action="/cp/product-filters/write" id="pf_all_form">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <input type="hidden" name="action" value="active_all" />
+            <input type="hidden" name="flag" id="pf_all_flag" value="1" />
+        </form>
+        <script>
+            function epcPfEdit(id) {
+                document.getElementById('line_' + id).classList.add('epc-editing');
+                document.getElementById('edit_line_' + id).style.display = 'table-row';
+                document.getElementById('line_' + id).style.display = 'none';
+            }
+            function epcPfEditCancel(id) {
+                document.getElementById('edit_line_' + id).style.display = 'none';
+                document.getElementById('line_' + id).style.display = '';
+            }
+            function epcPfDel(id) {
+                if (!confirm('Delete this filter?')) { return; }
+                document.getElementById('pf_del_id').value = id;
+                document.getElementById('pf_del_form').submit();
+            }
+            function epcPfActive(id, on) {
+                document.getElementById('active_flag_' + id).value = on ? '1' : '0';
+                document.getElementById('active_form_' + id).submit();
+            }
+            function epcPfActiveAll(flag) {
+                var q = flag === 1 ? 'Enable all filters?' : 'Disable all filters?';
+                if (!confirm(q)) { return false; }
+                document.getElementById('pf_all_flag').value = String(flag);
+                document.getElementById('pf_all_form').submit();
+            }
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/filter";
+    private const int PageSize = 50;
     private bool _isAdmin;
-    private CpProductFiltersSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpProductFiltersRowDigest> _rows = [];
     private string _flashOk = "";
     private string _flashErr = "";
     private string _listHref = "/cp/product-filters-app";
     private long _openedId;
-    private CpProductFiltersDetail? _openedFilter;
-    private IReadOnlyList<CpProductFiltersRowDigest> _openedSiblings = [];
+    private CpProductFilterList _list = new([], 0, 1, PageSize);
+    private CpProductFilterSetting? _setting;
 
-    private string OpenedCaption => _openedFilter is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedFilter.Name)
-            ? (string.IsNullOrWhiteSpace(_openedFilter.Article)
-                ? ("Filter #" + _openedFilter.Id.ToString(CultureInfo.InvariantCulture))
-                : _openedFilter.Article)
-            : _openedFilter.Name);
+    private string PageHref(int page) => page <= 1 ? _listHref : _listHref + "?page=" + page.ToString(CultureInfo.InvariantCulture);
+
+    private static string Range(decimal lo, decimal hi)
+        => lo <= 0 && hi <= 0 ? "—" : (lo > 0 ? lo.ToString("0.##", CultureInfo.InvariantCulture) : "0") + " – " + (hi > 0 ? hi.ToString("0.##", CultureInfo.InvariantCulture) : "∞");
 
     protected override async Task OnInitializedAsync()
     {
@@ -252,23 +331,13 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpProductFiltersDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Filters;
-
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpProductFiltersDetailAsync(_openedId, ctx.RequestAborted);
-            _openedFilter = detail.Filter;
-            _openedSiblings = detail.Siblings;
-            if (_openedFilter is not null)
-            {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
+            _setting = await Filters.OpenAsync(_openedId, ctx.RequestAborted);
+            return;
         }
+
+        var page = int.TryParse(ctx.Request.Query["page"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) ? p : 1;
+        _list = await Filters.ListAsync(page, PageSize, ctx.RequestAborted);
     }
 }

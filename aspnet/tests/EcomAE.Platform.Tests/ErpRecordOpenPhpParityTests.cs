@@ -1704,24 +1704,33 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void ProductFiltersApp_OpenLoadsStoragesExcerptAndKeepsWrites()
+    public void ProductFiltersApp_IsLiveFilterShopAndSettingTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpProductFiltersApp.razor"));
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"filter_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"filter_id\", \"id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpProductFiltersDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No storage-scope excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-manufacturer siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("ICpProductFilterEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Filters.ListAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Filters.OpenAsync(", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("/cp/product-filters/write", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"action\" value=\"save_storages\"", text, StringComparison.Ordinal);
-        Assert.Contains("Add filter", text, StringComparison.Ordinal);
-        Assert.Contains("Save filter", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        foreach (var action in new[] { "add", "save", "del", "active", "active_all", "save_storages" })
+        {
+            Assert.Contains("name=\"action\" value=\"" + action + "\"", text, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("name=\"list_storages\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-pf-storage", text, StringComparison.Ordinal);
+        Assert.Contains("check_uncheck_all", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"min_price\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"max_time\"", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites\" value=\"true\"", text, StringComparison.Ordinal);
+        Assert.Contains("pagination", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpProductFiltersDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Classic twin.</p>", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
