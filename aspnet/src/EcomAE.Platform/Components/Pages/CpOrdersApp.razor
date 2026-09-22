@@ -5,9 +5,11 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpOrdersListService Orders
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -23,8 +25,8 @@
 <div class="col-lg-12 epc-scp-panel epc-scp-orders-page epc-orders-page" data-epc-oms-ssr="1">
     <div class="epc-orders-page__hero">
         <div>
-            <h2><i class="fa fa-shopping-basket"></i> Orders · OMS</h2>
-            <p>One-window order management: list on the left, full console on the right — items, fulfillment, payment, documents, and messages. Click KPI cards to filter.</p>
+            <h2><i class="fa fa-shopping-basket"></i> Orders</h2>
+            <p>Order processing: filter, sort and open orders; items, fulfillment, payment, documents and messages open in the right pane.</p>
         </div>
         @if (!string.IsNullOrWhiteSpace(_flashOk))
         {
@@ -35,118 +37,245 @@
             <p style="margin:0 0 .75rem;padding:.65rem .8rem;background:#fef2f2;border:1px solid #fecaca;color:#991b1b">@_flashErr</p>
         }
         <div class="epc-orders-page__hero-actions">
-            <a class="btn btn-primary btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment queue</a>
+            <a class="btn btn-default btn-sm" href="/cp/order-statuses-app"><i class="fa fa-tags"></i> Order statuses</a>
+            <a class="btn btn-default btn-sm" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment queue</a>
             <a class="btn btn-default btn-sm" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
-            <a class="btn btn-default btn-sm" href="/cp/sao-app"><i class="fa fa-cogs"></i> SAO</a>
-            <a class="btn btn-default btn-sm" href="@OrdersHref(sort: "id")"><i class="fa fa-sort-numeric-desc"></i> By order #</a>
-            <a class="btn btn-default btn-sm" href="@OrdersHref(sort: "last_modified")"><i class="fa fa-clock-o"></i> By last modified</a>
+            <a class="btn btn-default btn-sm" href="/cp/carts-app"><i class="fa fa-shopping-cart"></i> Carts</a>
         </div>
     </div>
 
-    <div class="epc-scp-kpi epc-scp-orders-kpi" aria-label="OMS KPIs">
-        <a class="epc-scp-kpi__card is-clickable" href="@OrdersHref(tab: "open")" title="Show open orders">
-            <div class="epc-scp-kpi__label">Open orders</div>
-            <div class="epc-scp-kpi__val">@_summary.Open</div>
-            <div class="epc-scp-kpi__hint">Click to filter · active pipeline</div>
-        </a>
-        <a class="epc-scp-kpi__card is-clickable" href="@OrdersHref(tab: "today")" title="Orders created today">
-            <div class="epc-scp-kpi__label">Today</div>
-            <div class="epc-scp-kpi__val">@_summary.Today</div>
-            <div class="epc-scp-kpi__hint">Click to filter · new today</div>
-        </a>
-        <a class="epc-scp-kpi__card is-clickable" href="@OrdersHref(tab: "pending")" title="Paid orders not finished">
-            <div class="epc-scp-kpi__label">Pending ship</div>
-            <div class="epc-scp-kpi__val">@_summary.PendingShip</div>
-            <div class="epc-scp-kpi__hint">Click to filter · paid, not finished</div>
-        </a>
-    </div>
-
-    <p class="epc-oms-keys-hint"><i class="fa fa-keyboard-o"></i> Shortcuts: click a row for OMS console · tabs Manage → Messages · item status writes live here</p>
-
     <div class="epc-orders-tabs" role="tablist" aria-label="Orders tabs">
-        <a class="epc-orders-tab @(_tab == "open" ? "is-active" : null)" href="@OrdersHref(tab: "open")">Open <span class="epc-tab-count">@_summary.Open</span></a>
-        <a class="epc-orders-tab is-completed @(_tab == "completed" ? "is-active" : null)" href="@OrdersHref(tab: "completed")">Completed <span class="epc-tab-count">@_summary.Completed</span></a>
-        <a class="epc-orders-tab @(_tab == "all" || _tab == "today" || _tab == "pending" ? "is-active" : null)" href="@OrdersHref(tab: "all")">All</a>
-    </div>
-
-    <div class="epc-orders-toolbar">
-        <span class="epc-scp-badge epc-scp-badge--high">Paid @_orders.Count(o => o.Paid is 1 or 2)</span>
-        <span class="epc-scp-badge epc-scp-badge--urgent">Unpaid @_orders.Count(o => o.Paid == 0)</span>
-        <span class="epc-orders-toolbar__hint"><i class="fa fa-columns"></i> Click a row to open OMS on the right</span>
+        <a class="epc-orders-tab @(_filter.Tab == "open" ? "is-active" : null)" href="@TabHref("open")">Open orders</a>
+        <a class="epc-orders-tab is-completed @(_filter.Tab == "completed" ? "is-active" : null)" href="@TabHref("completed")">Completed</a>
+        <a class="epc-orders-tab @(_filter.Tab == "all" ? "is-active" : null)" href="@TabHref("all")">All orders</a>
     </div>
 
     @if (!_isAdmin)
     {
-        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live OMS digests. Guest browse shows the PHP-parity shell.</div>
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load orders.</div>
     }
-
-    <div class="epc-scp-orders-workspace @(_selectedId > 0 ? "is-oms-active" : null)">
-        <div class="epc-scp-orders-workspace__list">
-            <div class="epc-scp-table-card">
-                <div class="epc-scp-table-card__head epc-orders-workspace-head">
-                    <div>
-                        <h3>@ListHeading</h3>
-                        <p class="epc-oms-hint">Select a row — OMS console opens on the right</p>
+    else
+    {
+        <div class="epc-scp-table-card epc-orders-filter-card">
+            <h4><i class="fa fa-filter"></i> Filter</h4>
+            <form method="get" action="/cp/orders" id="orders_filter_form" class="epc-orders-filter">
+                <input type="hidden" name="tab" value="@_filter.Tab" />
+                <input type="hidden" name="sort" value="@_filter.Sort" />
+                <input type="hidden" name="dir" value="@(_filter.Desc ? "desc" : "asc")" />
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label for="time_from_show">Date from</label>
+                        <input type="hidden" id="time_from" name="time_from" value="@Unix(_filter.TimeFrom)" />
+                        <input type="text" id="time_from_show" class="form-control" value="@FormatTime(_filter.TimeFrom, "")" placeholder="dd.mm.yyyy hh:mm" autocomplete="off" data-epc-unix-target="time_from" />
                     </div>
-                    <span>
-                        <a class="btn btn-default btn-xs" href="/cp/fulfillment-queue-app"><i class="fa fa-truck"></i> Fulfilment</a>
-                        <a class="btn btn-default btn-xs" href="/cp/returns-rma-app"><i class="fa fa-undo"></i> Returns</a>
-                    </span>
+                    <div class="col-md-3 form-group">
+                        <label for="time_to_show">Date to</label>
+                        <input type="hidden" id="time_to" name="time_to" value="@Unix(_filter.TimeTo)" />
+                        <input type="text" id="time_to_show" class="form-control" value="@FormatTime(_filter.TimeTo, "")" placeholder="dd.mm.yyyy hh:mm" autocomplete="off" data-epc-unix-target="time_to" />
+                    </div>
+                    <div class="col-md-2 form-group">
+                        <label for="order_id_f">Order #</label>
+                        <input type="text" id="order_id_f" name="order_id_f" class="form-control" value="@(_filter.OrderId > 0 ? _filter.OrderId.ToString(CultureInfo.InvariantCulture) : "")" />
+                    </div>
+                    <div class="col-md-2 form-group">
+                        <label for="paid">Paid</label>
+                        <select multiple="multiple" id="paid" name="paid" class="form-control">
+                            <option value="1" selected="@_filter.Paid.Contains(1)">Paid</option>
+                            <option value="2" selected="@_filter.Paid.Contains(2)">Partially paid</option>
+                            <option value="0" selected="@_filter.Paid.Contains(0)">Not paid</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 form-group">
+                        <label for="paid_type">Payment type</label>
+                        <select multiple="multiple" id="paid_type" name="paid_type" class="form-control">
+                            <option value="0" selected="@_filter.PaidType.Contains(0)">Not set</option>
+                            @foreach (var pt in _list.PaidTypes)
+                            {
+                                <option value="@pt.Id" selected="@_filter.PaidType.Contains(pt.Id)">@pt.Name</option>
+                            }
+                        </select>
+                    </div>
                 </div>
-                <div class="table-responsive">
-                    <table id="orders_table" class="footable table table-hover toggle-arrow epc-scp-data-table" data-sort="false">
-                        <thead>
-                            <tr>
-                                <th></th>
-                                <th><a href="@OrdersHref(sort: "id")">Order #</a></th>
-                                <th><a href="@OrdersHref(sort: "time")">Created</a></th>
-                                <th data-hide="phone"><a href="@OrdersHref(sort: "last_modified")">Modified</a></th>
-                                <th>Items</th>
-                                <th>Sum</th>
-                                <th data-hide="phone,tablet">Purchase</th>
-                                <th data-hide="phone,tablet">Margin</th>
-                                <th data-hide="phone,tablet">Paid</th>
-                                <th data-hide="phone,tablet">Status</th>
-                                <th data-hide="phone,tablet">Obtain</th>
-                                <th data-hide="phone,tablet">Customer</th>
-                                <th data-hide="phone,tablet">Office</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (_visibleOrders.Count == 0)
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label for="status">Status</label>
+                        <select multiple="multiple" id="status" name="status" class="form-control">
+                            @foreach (var s in _list.Statuses)
                             {
-                                <tr><td colspan="13">No records yet.</td></tr>
+                                <option value="@s.Id" selected="@_filter.Status.Contains(s.Id)">@s.Name</option>
                             }
-                            else
+                        </select>
+                    </div>
+                    <div class="col-md-2 form-group">
+                        <label for="customer_id">Customer ID</label>
+                        <input type="text" id="customer_id" name="customer_id" class="form-control" value="@(_filter.CustomerId > 0 ? _filter.CustomerId.ToString(CultureInfo.InvariantCulture) : "")" />
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label for="customer">Customer <small class="text-muted">(ID, e-mail, phone, profile fields)</small></label>
+                        <input type="text" id="customer" name="customer" class="form-control" value="@_filter.Customer" />
+                    </div>
+                    <div class="col-md-2 form-group">
+                        <label for="viewed">Viewed</label>
+                        <select id="viewed" name="viewed" class="form-control">
+                            <option value="" selected="@(_filter.Viewed < 0)">Any</option>
+                            <option value="1" selected="@(_filter.Viewed == 1)">Viewed</option>
+                            <option value="0" selected="@(_filter.Viewed == 0)">Not viewed</option>
+                        </select>
+                    </div>
+                    <div class="col-md-2 form-group">
+                        <label for="office">Office</label>
+                        <select multiple="multiple" id="office" name="office" class="form-control">
+                            @foreach (var of in _list.Offices)
                             {
-                                @foreach (var o in _visibleOrders)
+                                <option value="@of.Id" selected="@_filter.Office.Contains((int)of.Id)">@of.Caption</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="row">
+                    <div class="col-md-3 form-group">
+                        <label for="phone">Phone</label>
+                        <input type="text" id="phone" name="phone" class="form-control" value="@_filter.Phone" />
+                    </div>
+                    <div class="col-md-3 form-group">
+                        <label for="article">Article</label>
+                        <input type="text" id="article" name="article" class="form-control" value="@_filter.Article" />
+                    </div>
+                </div>
+                <button class="btn btn-success" type="submit"><i class="fa fa-filter"></i> Filter</button>
+                <a class="btn btn-primary" href="@TabHref(_filter.Tab)"><i class="fa fa-square"></i> Reset filter</a>
+                <a class="btn btn-info" href="@TabHref("open")"><i class="fa fa-toolbox"></i> Orders in process</a>
+            </form>
+        </div>
+
+        <div class="epc-scp-orders-workspace @(_selectedId > 0 ? "is-oms-active" : null)">
+            <div class="epc-scp-orders-workspace__list">
+                <div class="epc-scp-table-card">
+                    <div class="epc-scp-table-card__head epc-orders-workspace-head">
+                        <div>
+                            <h3>@ListHeading <small class="text-muted">(@_list.Total)</small></h3>
+                            <p class="epc-oms-hint">Click an order number to open it on the right</p>
+                        </div>
+                        <form method="post" action="/cp/orders/delete" id="orders_bulk_form" onsubmit="return confirm('Delete selected unpaid orders?');">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@PageHref(_list.Page)" />
+                            <input type="hidden" name="order_ids" id="orders_bulk_ids" value="" />
+                            <button type="submit" class="btn btn-danger btn-xs" onclick="return epcOrdersCollectChecked();"><i class="fa fa-trash"></i> Delete selected</button>
+                        </form>
+                    </div>
+                    <div class="table-responsive">
+                        <table id="orders_table" class="footable table table-hover toggle-arrow epc-scp-data-table" data-sort="false">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="orders_check_all" onclick="epcOrdersCheckAll(this)" /></th>
+                                    <th>@SortLink("id", "Order #")</th>
+                                    <th>@SortLink("time", "Created")</th>
+                                    <th data-hide="phone">@SortLink("last_modified", "Modified")</th>
+                                    <th>@SortLink("count_items", "Items")</th>
+                                    <th>@SortLink("price_sum", "Sum")</th>
+                                    <th data-hide="phone,tablet">@SortLink("price_purchase", "Purchase")</th>
+                                    <th data-hide="phone,tablet">@SortLink("profit", "Margin")</th>
+                                    <th data-hide="phone,tablet">@SortLink("paid", "Paid")</th>
+                                    <th data-hide="phone,tablet">@SortLink("paid_type", "Payment type")</th>
+                                    <th data-hide="phone,tablet">@SortLink("status", "Status")</th>
+                                    <th data-hide="phone,tablet">@SortLink("obtain_caption", "Obtaining mode")</th>
+                                    <th data-hide="phone,tablet">@SortLink("customer", "Customer")</th>
+                                    <th data-hide="phone,tablet">@SortLink("checks_count", "Checks")</th>
+                                    <th data-hide="phone,tablet">@SortLink("office_id", "Office")</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_list.Rows.Count == 0)
                                 {
-                                    var rowClass = "epc-scp-orders-row"
-                                        + (o.ViewedFlag == 0 ? " not_viewed" : "")
-                                        + (_selectedId == o.Id ? " is-selected" : "");
-                                    var margin = o.OrderSum - o.PurchaseSum;
-                                    <tr class="@rowClass" data-order-id="@o.Id" onclick="location.href='@OrdersHref(o.Id, detailTab: "manage")'">
-                                        <td></td>
-                                        <td><a class="epc-scp-orders-link" href="@OrdersHref(o.Id, detailTab: "manage")"><strong>#@o.Id</strong></a></td>
-                                        <td>@FormatTime(o.TimeUnix)</td>
-                                        <td>@FormatTime(o.LastModifiedUnix > 0 ? o.LastModifiedUnix : o.TimeUnix)</td>
-                                        <td>@o.CountItems</td>
-                                        <td>@o.OrderSum.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                        <td>@o.PurchaseSum.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                        <td>@margin.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                        <td>@((MarkupString)PaidBadgeHtml(o.Paid))</td>
-                                        <td><span class="epc-scp-badge @o.StatusBadgeClass">@(string.IsNullOrWhiteSpace(o.StatusName) ? $"#{o.Status}" : o.StatusName)</span></td>
-                                        <td>@(string.IsNullOrWhiteSpace(o.ObtainCaption) ? "—" : o.ObtainCaption)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(o.CustomerLabel) ? o.UserId.ToString(CultureInfo.InvariantCulture) : o.CustomerLabel)</td>
-                                        <td>@o.OfficeId</td>
-                                    </tr>
+                                    <tr><td colspan="15">No orders match the filter.</td></tr>
                                 }
+                                else
+                                {
+                                    @foreach (var o in _list.Rows)
+                                    {
+                                        var rowClass = "epc-scp-orders-row"
+                                            + (o.ViewedFlag == 0 ? " not_viewed" : "")
+                                            + (_selectedId == o.Id ? " is-selected" : "");
+                                        var st = _list.Statuses.FirstOrDefault(s => s.Id == o.Status);
+                                        var office = _list.Offices.FirstOrDefault(x => x.Id == o.OfficeId);
+                                        var paidType = _list.PaidTypes.FirstOrDefault(x => x.Id == o.PaidType);
+                                        <tr class="@rowClass" data-order-id="@o.Id">
+                                            <td><input type="checkbox" class="orders_check" name="check_order" value="@o.Id.ToString(CultureInfo.InvariantCulture)" /></td>
+                                            <td>
+                                                <a class="epc-scp-orders-link" href="@OrdersHref(o.Id, detailTab: "manage")"><strong>#@o.Id</strong></a>
+                                                @if (o.CountNotViewedMsg > 0)
+                                                {
+                                                    <span class="badge badge-danger" title="Unread customer messages">@o.CountNotViewedMsg</span>
+                                                }
+                                            </td>
+                                            <td>@FormatTime(o.Time)</td>
+                                            <td>@FormatTime(o.LastModified > 0 ? o.LastModified : o.Time)</td>
+                                            <td>
+                                                @o.CountItems
+                                                @if (_list.Items.TryGetValue(o.Id, out var its) && its.Count > 0)
+                                                {
+                                                    <details class="epc-orders-items-inline"><summary>items</summary>
+                                                        <ul>
+                                                            @foreach (var it in its)
+                                                            {
+                                                                <li>@it.Brand @it.Article @it.Name × @it.CountNeed.ToString("0.##", CultureInfo.InvariantCulture) @@ @it.Price.ToString("N2", CultureInfo.InvariantCulture)</li>
+                                                            }
+                                                        </ul>
+                                                    </details>
+                                                }
+                                            </td>
+                                            <td>@o.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                            <td>@o.PricePurchase.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                            <td>@o.Profit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                            <td>@((MarkupString)PaidBadgeHtml(o.Paid))</td>
+                                            <td>@(paidType.Name is { Length: > 0 } ? paidType.Name : "—")</td>
+                                            <td><span class="epc-scp-badge" style="@(st is { Color.Length: > 0 } ? "background:" + st.Color : null)">@(st?.Name ?? $"#{o.Status}")</span></td>
+                                            <td>@(string.IsNullOrWhiteSpace(o.ObtainCaption) ? "—" : o.ObtainCaption)</td>
+                                            <td>@(string.IsNullOrWhiteSpace(o.Customer) ? o.UserId.ToString(CultureInfo.InvariantCulture) : o.Customer)</td>
+                                            <td>@o.ChecksCount</td>
+                                            <td>@(office.Caption is { Length: > 0 } ? office.Caption : o.OfficeId.ToString(CultureInfo.InvariantCulture))</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_list.Total > _list.PageSize)
+                    {
+                        var pages = (int)Math.Ceiling(_list.Total / (double)_list.PageSize);
+                        <ul class="pagination epc-orders-pagination">
+                            @for (var p = Math.Max(1, _list.Page - 5); p <= Math.Min(pages, _list.Page + 5); p++)
+                            {
+                                <li class="@(p == _list.Page ? "active" : null)"><a href="@PageHref(p)">@p</a></li>
                             }
-                        </tbody>
-                    </table>
+                        </ul>
+                    }
+                </div>
+
+                <div class="epc-scp-table-card epc-orders-totals">
+                    <h4>Totals for the current filter</h4>
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table">
+                            <thead>
+                                <tr>
+                                    <th style="text-align:center;">Orders</th>
+                                    <th style="text-align:center;">Sum</th>
+                                    <th style="text-align:center;">Margin</th>
+                                    <th style="text-align:center;">Purchase</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td style="text-align:center;">@_list.Totals.OrdersCount</td>
+                                    <td style="text-align:center;">@_list.Totals.PriceSumTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td style="text-align:center;">@_list.Totals.ProfitSumTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td style="text-align:center;">@_list.Totals.PurchaseSumTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
-        </div>
 
         <div class="epc-scp-orders-workspace__detail" id="epc_orders_detail_pane">
             @if (_detail is null && _selectedId <= 0)
@@ -265,7 +394,6 @@
                             </ol>
                         </div>
                     </section>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/orders" IsAdmin="_isAdmin" />
 
 
                     <section class="epc-od__panel @(_detailTab == "items" ? "is-active" : null)" data-epc-od-panel="items" style="@(_detailTab == "items" ? null : "display:none")">
@@ -495,19 +623,40 @@
                 </div>
             }
         </div>
-    </div>
+        </div>
+    }
 </div>
 
+<script>
+    function epcOrdersCheckAll(src) {
+        document.querySelectorAll('#orders_table .orders_check').forEach(function (c) { c.checked = src.checked; });
+    }
+    function epcOrdersCollectChecked() {
+        var ids = [];
+        document.querySelectorAll('#orders_table .orders_check:checked').forEach(function (c) { ids.push(c.value); });
+        if (ids.length === 0) { alert('Select at least one order.'); return false; }
+        document.getElementById('orders_bulk_ids').value = ids.join(',');
+        return true;
+    }
+    document.querySelectorAll('[data-epc-unix-target]').forEach(function (inp) {
+        inp.addEventListener('change', function () {
+            var m = /^(\d{2})\.(\d{2})\.(\d{4})(?:\s+(\d{2}):(\d{2}))?$/.exec(inp.value.trim());
+            var target = document.getElementById(inp.getAttribute('data-epc-unix-target'));
+            if (!m) { target.value = ''; return; }
+            var d = new Date(+m[3], +m[2] - 1, +m[1], m[4] ? +m[4] : 0, m[5] ? +m[5] : 0, 0);
+            target.value = Math.floor(d.getTime() / 1000);
+        });
+    });
+</script>
 </PhpCpDesktopChrome>
 
 @code {
     private bool _isAdmin;
-    private CpOrdersSummary _summary = new(0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpShopOrderDigest> _orders = [];
+    private CpOrdersFilter _filter = new("open", 0, 0, 0, [], [], [], [], "", 0, -1, "", "", "id", true, 1);
+    private CpOrdersList _list = new([], 0, 1, PageSize, new(0, 0, 0, 0), [], [], [], new Dictionary<long, IReadOnlyList<CpOrdersItemRow>>(), [], []);
     private long _selectedId;
     private CpOrderDetailDigest? _detail;
-    private string _tab = "open";
-    private string _sort = "id";
+    private const int PageSize = 50;
     private string _detailTab = "manage";
     private string _flashOk = "";
     private string _flashErr = "";
@@ -538,47 +687,12 @@
         "complete",
     ];
 
-    private string ListHeading => _tab switch
+    private string ListHeading => _filter.Tab switch
     {
         "completed" => "Completed orders",
-        "all" or "today" or "pending" => "All orders",
+        "all" => "All orders",
         _ => "Open orders",
     };
-
-    private IReadOnlyList<CpShopOrderDigest> _visibleOrders
-    {
-        get
-        {
-            IEnumerable<CpShopOrderDigest> q = _orders;
-            var todayStart = new DateTimeOffset(DateTime.UtcNow.Date, TimeSpan.Zero).ToUnixTimeSeconds();
-            q = _tab switch
-            {
-                "completed" => q.Where(o => o.StatusBadgeClass.Contains("tenant", StringComparison.Ordinal)),
-                "today" => q.Where(o => o.TimeUnix >= todayStart),
-                "pending" => q.Where(o => o.Paid is 1 or 2 && !o.StatusBadgeClass.Contains("tenant", StringComparison.Ordinal)),
-                "all" => q,
-                _ => q.Where(o => !o.StatusBadgeClass.Contains("tenant", StringComparison.Ordinal)
-                                  && !o.StatusBadgeClass.Contains("urgent", StringComparison.Ordinal)),
-            };
-            q = _sort switch
-            {
-                "time" => q.OrderByDescending(o => o.TimeUnix),
-                "last_modified" => q.OrderByDescending(o => o.LastModifiedUnix > 0 ? o.LastModifiedUnix : o.TimeUnix),
-                _ => q.OrderByDescending(o => o.Id),
-            };
-            var list = q.ToList();
-            if (_selectedId > 0 && list.All(o => o.Id != _selectedId))
-            {
-                var extra = _orders.FirstOrDefault(o => o.Id == _selectedId) ?? _detail?.Order;
-                if (extra is not null)
-                {
-                    list.Insert(0, extra);
-                }
-            }
-
-            return list;
-        }
-    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -599,17 +713,7 @@
             _selectedId = oid;
         }
 
-        var tab = q["tab"].ToString();
-        if (tab is "open" or "completed" or "all" or "today" or "pending")
-        {
-            _tab = tab;
-        }
-
-        var sort = q["sort"].ToString();
-        if (sort is "id" or "time" or "last_modified")
-        {
-            _sort = sort;
-        }
+        _filter = CpOrdersListService.ReadFilter(ctx.Request);
 
         var od = q["od"].ToString();
         if (string.IsNullOrWhiteSpace(od))
@@ -627,9 +731,7 @@
             return;
         }
 
-        var result = await Dashboards.ListCpOrdersAsync(100, ctx.RequestAborted);
-        _summary = result.Summary;
-        _orders = result.Orders;
+        _list = await Orders.ListAsync(_filter, session.UserId, PageSize, ctx.RequestAborted);
 
         if (_selectedId > 0)
         {
@@ -649,43 +751,89 @@
         _detail = await Dashboards.GetCpOrderDetailAsync(orderId, cancellationToken);
         if (_detail is null)
         {
-            var row = _orders.FirstOrDefault(o => o.Id == orderId);
+            var row = _list.Rows.FirstOrDefault(o => o.Id == orderId);
             if (row is not null)
             {
+                var st = _list.Statuses.FirstOrDefault(x => x.Id == row.Status);
+                var digest = new CpShopOrderDigest(row.Id, row.Time, (int)row.UserId, row.Status, row.Paid, row.PaidType, (int)row.OfficeId, 1,
+                    row.CountItems, row.PriceSum, row.PricePurchase, row.LastModified, row.ViewedFlag, row.Customer, st?.Name ?? "", "epc-scp-badge--normal", row.ObtainCaption);
                 _detail = new CpOrderDetailDigest(
-                    row, row.OrderSum, row.PurchaseSum, 0m, row.OrderSum, row.OrderSum - row.PurchaseSum,
-                    row.CustomerLabel, row.CustomerLabel, "", [], [], [], "list", "Detail unavailable — showing list row.");
+                    digest, row.PriceSum, row.PricePurchase, 0m, row.PriceSum, row.Profit,
+                    row.Customer, row.Customer, "", [], [], [], "list", "Detail unavailable — showing list row.");
             }
         }
     }
 
-    private string OrdersHref(long? orderId = null, string? tab = null, string? sort = null, string? detailTab = null)
+    private string OrdersHref(long? orderId = null, string? detailTab = null)
     {
-        var q = new List<string>();
-        void Add(string key, string? value)
-        {
-            if (!string.IsNullOrWhiteSpace(value))
-            {
-                q.Add(Uri.EscapeDataString(key) + "=" + Uri.EscapeDataString(value));
-            }
-        }
-
+        var q = FilterQuery(_filter.Page);
         var oid = orderId ?? _selectedId;
         if (oid > 0)
         {
             q.Add("order_id=" + oid.ToString(CultureInfo.InvariantCulture));
         }
 
-        Add("tab", tab ?? _tab);
-        Add("sort", sort ?? _sort);
         var od = detailTab ?? (_selectedId > 0 ? _detailTab : null);
         if (!string.IsNullOrWhiteSpace(od) && od != "manage")
         {
-            Add("od", od);
+            q.Add("od=" + Uri.EscapeDataString(od));
         }
 
         return "/cp/orders" + (q.Count == 0 ? "" : "?" + string.Join("&", q));
     }
+
+    private string PageHref(int page) => "/cp/orders?" + string.Join("&", FilterQuery(page));
+
+    private static string TabHref(string tab) => "/cp/orders?tab=" + tab;
+
+    private string SortHref(string field)
+    {
+        var desc = _filter.Sort == field ? !_filter.Desc : true;
+        var q = FilterQuery(1, field, desc);
+        return "/cp/orders?" + string.Join("&", q);
+    }
+
+    private MarkupString SortLink(string field, string label)
+    {
+        var arrow = _filter.Sort == field ? (_filter.Desc ? " &#9660;" : " &#9650;") : "";
+        return new MarkupString("<a href=\"" + SortHref(field) + "\">" + label + arrow + "</a>");
+    }
+
+    private List<string> FilterQuery(int page, string? sort = null, bool? desc = null)
+    {
+        var q = new List<string>();
+        void Add(string key, string value)
+        {
+            if (!string.IsNullOrWhiteSpace(value))
+            {
+                q.Add(key + "=" + Uri.EscapeDataString(value));
+            }
+        }
+
+        Add("tab", _filter.Tab);
+        Add("sort", sort ?? _filter.Sort);
+        Add("dir", (desc ?? _filter.Desc) ? "desc" : "asc");
+        Add("time_from", Unix(_filter.TimeFrom));
+        Add("time_to", Unix(_filter.TimeTo));
+        Add("order_id_f", Unix(_filter.OrderId));
+        Add("status", string.Join(",", _filter.Status));
+        Add("paid", string.Join(",", _filter.Paid));
+        Add("paid_type", string.Join(",", _filter.PaidType));
+        Add("office", string.Join(",", _filter.Office));
+        Add("customer", _filter.Customer);
+        Add("customer_id", Unix(_filter.CustomerId));
+        Add("viewed", _filter.Viewed >= 0 ? _filter.Viewed.ToString(CultureInfo.InvariantCulture) : "");
+        Add("phone", _filter.Phone);
+        Add("article", _filter.Article);
+        if (page > 1)
+        {
+            Add("page", page.ToString(CultureInfo.InvariantCulture));
+        }
+
+        return q;
+    }
+
+    private static string Unix(long v) => v > 0 ? v.ToString(CultureInfo.InvariantCulture) : "";
 
     private string ClassicCardHref(long orderId)
         => OrdersHref(orderId);
@@ -697,11 +845,11 @@
         _ => "<span class=\"epc-scp-badge epc-scp-badge--urgent\">Unpaid</span>",
     };
 
-    private static string FormatTime(long unix)
+    private static string FormatTime(long unix, string empty = "—")
     {
         if (unix <= 0)
         {
-            return "—";
+            return empty;
         }
 
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture);

@@ -16,8 +16,17 @@ public sealed class CpOrdersOmsPhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor"));
         Assert.Contains("epc-orders-page", text, StringComparison.Ordinal);
         Assert.Contains("epc-orders-page__hero", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-orders-kpi", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-kpi__card", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"orders_filter_form\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-orders-totals", text, StringComparison.Ordinal);
+        Assert.Contains("ICpOrdersListService", text, StringComparison.Ordinal);
+        Assert.Contains("CpOrdersListService.ReadFilter", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"orders_check_all\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"order_ids\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        foreach (var field in new[] { "time_from", "time_to", "order_id_f", "paid", "paid_type", "status", "customer_id", "customer", "viewed", "office", "phone", "article" })
+        {
+            Assert.Contains("name=\"" + field + "\"", text, StringComparison.Ordinal);
+        }
         Assert.Contains("epc-orders-tabs", text, StringComparison.Ordinal);
         Assert.Contains("epc-orders-tab", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-orders-workspace", text, StringComparison.Ordinal);

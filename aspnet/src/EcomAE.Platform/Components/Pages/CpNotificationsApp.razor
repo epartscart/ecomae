@@ -1,327 +1,459 @@
 @page "/cp/notifications-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpNotificationSettingsEditorService Notifications
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Notifications · Control Panel · eParts Cart</PageTitle>
+<PageTitle>@(_editor is null ? "Notification settings" : _editor.Caption) · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
-<style>
-    .epc-cn { --cn-ink:#0f172a; --cn-muted:#64748b; --cn-line:#e2e8f0; --cn-soft:#f8fafc; color:var(--cn-ink); }
-    .epc-cn-hero { background:linear-gradient(125deg,#0f172a 0%,#134e4a 52%,#0f766e 100%); color:#fff; border-radius:14px; padding:20px 22px; margin:0 0 16px; }
-    .epc-cn-hero h3 { margin:0 0 6px; color:#fff; font-size:20px; }
-    .epc-cn-hero p { margin:0; opacity:.92; max-width:52rem; line-height:1.45; font-size:13px; }
-    .epc-cn-hero__actions { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
-    .epc-cn-hero__actions .btn { border:1px solid rgba(255,255,255,.28); background:rgba(255,255,255,.12); color:#fff; font-weight:600; }
-    .epc-cn-hero__actions .btn-primary { background:#fff; color:#0f172a; border-color:#fff; }
-    .epc-cn-quick { display:grid; grid-template-columns:repeat(auto-fit,minmax(200px,1fr)); gap:12px; margin:0 0 16px; }
-    .epc-cn-quick a { display:block; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px 15px; color:#0f172a; text-decoration:none !important; }
-    .epc-cn-quick strong { display:block; font-size:14px; margin-bottom:3px; }
-    .epc-cn-quick span { display:block; font-size:12px; color:#64748b; line-height:1.4; }
-    .epc-cn-guide { background:linear-gradient(135deg,#f0fdfa 0%,#f0f9ff 100%); border:1px solid #cce7e2; border-radius:12px; padding:16px 18px; margin:0 0 16px; }
-    .epc-cn-guide h4 { margin:0 0 10px; font-size:14px; font-weight:700; color:#134e4a; }
-    .epc-cn-steps { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:10px; margin:0; padding:0; list-style:none; }
-    .epc-cn-steps li { background:rgba(255,255,255,.75); border:1px solid #d9ebe7; border-radius:10px; padding:12px; font-size:12px; line-height:1.45; color:#334155; }
-    .epc-cn-steps strong { display:block; color:#0f172a; font-size:13px; margin-bottom:2px; }
-</style>
+    <link rel="stylesheet" href="/epc-static.php?f=cp/content/control/epc_comms_notify.css&amp;v=20260922" />
 </HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12 epc-cn" id="epc-cn-notify-root">
-        <div class="epc-cn-hero">
-            <h3>Notification settings</h3>
-            <p>Turn e-mail and SMS on or off for each shop event. Channel toggles write here. Edit message templates and restore factory text stay on the Classic twin. Delivery itself is configured under Communications, SMTP, and SMS Operators. This page does not invent a send.</p>
-            <div class="epc-cn-hero__actions">
-                <a class="btn btn-sm btn-primary" href="/cp/communications-test-app">Communications</a>
-                <a class="btn btn-sm" href="/cp/sms-whatsapp-app">SMS operators</a>
-                <a class="btn btn-sm" href="/cp/tenant-email-app">E-mail settings</a>
-                <a class="btn btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
-        </div>
-
-        <div class="epc-cn-quick">
-            <a class="is-email" href="/cp/tenant-email-app">
-                <strong>SMTP first</strong>
-                <span>Templates only send when e-mail/SMTP is configured.</span>
-            </a>
-            <a class="is-sms" href="/cp/sms-whatsapp-app">
-                <strong>SMS operator</strong>
-                <span>Activate one operator and set the sender number.</span>
-            </a>
-            <a class="is-templates" href="/cp/communications-test-app">
-                <strong>Test delivery</strong>
-                <span>Last-test status on Communications. Send stays Classic.</span>
-            </a>
-            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
-                <strong>Edit templates</strong>
-                <span>Template text and factory restore stay on the Classic twin.</span>
-            </a>
-        </div>
-
-        <div class="epc-cn-guide">
-            <h4>How to use this page</h4>
-            <ol class="epc-cn-steps">
-                <li><strong>Scan digest</strong>Unread and channel counts come from tenant notification tables.</li>
-                <li><strong>Toggle channels</strong>Enable or disable e-mail and SMS for events that support them.</li>
-                <li><strong>Edit a template</strong>Open the Classic twin to change subject, HTML body, or SMS text.</li>
-                <li><strong>Restore defaults</strong>Factory reset stays on the Classic twin.</li>
-                <li><strong>Verify send</strong>Test from Classic Communications so SMTP / SMS credentials are confirmed.</li>
-            </ol>
-        </div>
-    </div>
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    @if (!_isAdmin)
     {
-        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+        <div class="col-lg-12"><div class="alert alert-warning">Sign in to the Control Panel to manage notification settings.</div></div>
     }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    else if (_editor is not null)
     {
-        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
-    }
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Shop event channels</div>
-            <div class="panel-body">
-                <p class="help-block">@(_isAdmin ? $"{_settings.Count} events. Template HTML and SMS text stay off this list." : "Sign in to load channel flags.")</p>
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Name</th>
-                                <th>E-mail</th>
-                                <th>SMS</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (!_isAdmin)
-                        {
-                            <tr><td colspan="4">Sign in for live data.</td></tr>
-                        }
-                        else if (_settings.Count == 0)
-                        {
-                            <tr><td colspan="4">No notification settings yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var s in _settings)
-                            {
-                                <tr>
-                                    <td>@s.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
-                                    <td>
-                                        @if (s.ForeseenEmail == 0)
-                                        {
-                                            <span class="text-muted">n/a</span>
-                                        }
-                                        else
-                                        {
-                                            <form method="post" action="/cp/notifications/toggle" style="display:inline">
-                                                <input type="hidden" name="confirmWrites" value="true" />
-                                                <input type="hidden" name="returnUrl" value="/cp/notifications-app" />
-                                                <input type="hidden" name="notification_id" value="@s.Id.ToString(CultureInfo.InvariantCulture)" />
-                                                <input type="hidden" name="type" value="email" />
-                                                <input type="hidden" name="set_send" value="@(s.EmailOn == 0 ? "1" : "0")" />
-                                                <button type="submit" class="btn btn-xs @(s.EmailOn == 0 ? "btn-primary" : "btn-default")">@(s.EmailOn == 0 ? "Enable e-mail" : "Disable e-mail")</button>
-                                            </form>
-                                        }
-                                    </td>
-                                    <td>
-                                        @if (s.ForeseenSms == 0)
-                                        {
-                                            <span class="text-muted">n/a</span>
-                                        }
-                                        else
-                                        {
-                                            <form method="post" action="/cp/notifications/toggle" style="display:inline">
-                                                <input type="hidden" name="confirmWrites" value="true" />
-                                                <input type="hidden" name="returnUrl" value="/cp/notifications-app" />
-                                                <input type="hidden" name="notification_id" value="@s.Id.ToString(CultureInfo.InvariantCulture)" />
-                                                <input type="hidden" name="type" value="sms" />
-                                                <input type="hidden" name="set_send" value="@(s.SmsOn == 0 ? "1" : "0")" />
-                                                <button type="submit" class="btn btn-xs @(s.SmsOn == 0 ? "btn-primary" : "btn-default")">@(s.SmsOn == 0 ? "Enable SMS" : "Disable SMS")</button>
-                                            </form>
-                                        }
-                                    </td>
-                                </tr>
-                            }
-                        }
-                        </tbody>
-                    </table>
+        @* ---- notification.php twin (editor) ---- *@
+        <div class="col-lg-12 epc-cn">
+            <div class="epc-cn-hero">
+                <h3>@_editor.Caption</h3>
+                <p>Edit the e-mail and SMS template for this event. Use placeholders from the variables list. Restore factory text anytime, then Save.</p>
+                <div class="epc-cn-hero__actions">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="document.forms['save_notification_form'].submit();"><i class="fas fa-save"></i> Save</button>
+                    <button type="button" class="btn btn-sm" onclick="set_default();"><i class="fas fa-undo"></i> Restore default settings</button>
+                    <a class="btn btn-sm" href="@_listHref"><i class="fas fa-envelope-open-text"></i> Back to notifications</a>
+                    <a class="btn btn-sm" href="/cp/communications-test-app"><i class="fas fa-vial"></i> Test delivery</a>
+                    <a class="btn btn-sm" href="/cp"><i class="fas fa-home"></i> Home</a>
                 </div>
             </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/notifications-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedNote is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+            @if (!string.IsNullOrWhiteSpace(_flashOk))
+            {
+                <div class="alert alert-success" role="status">@_flashOk</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(_flashErr))
+            {
+                <div class="alert alert-danger" role="status">@_flashErr</div>
+            }
 
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Notification KPIs">
-        <div class="kpi"><div class="lbl">Notifications</div><div class="val">@_summary.NotificationCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Unread</div><div class="val">@_summary.UnreadCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Channels</div><div class="val">@_summary.ChannelCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Opened siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedNote is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedNote.Title) ? _openedNote.Title : ("Note #" + _openedNote.Id.ToString(CultureInfo.InvariantCulture)))
-                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedNote.Severity) ? _openedNote.Severity : "—")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedNote.TenantKey) ? _openedNote.TenantKey : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedNote.Channel) ? _openedNote.Channel : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedNote.Category) ? _openedNote.Category : "—")
-                        · user @_openedNote.UserId.ToString(CultureInfo.InvariantCulture)
-                        · @(_openedNote.IsRead != 0 ? "read" : "unread")
-                        · @(_openedNote.Dismissed != 0 ? "dismissed" : "open")</p>
-                    <p>Created @_openedNote.CreatedAt
-                        · read @_openedNote.ReadAt</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedNote.BodyExcerpt))
-                    {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedNote.BodyExcerpt</pre>
-                        @if (_openedNote.BodyLen > _openedNote.BodyExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_openedNote.BodyExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedNote.BodyLen.ToString(CultureInfo.InvariantCulture) chars). Full body stays on the Classic twin.</p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No body excerpt yet.</p>
-                    }
-                </div>
+            <div class="epc-cn-guide">
+                <h4>Editing guide</h4>
+                <ol class="epc-cn-steps">
+                    <li><strong>Channels</strong>Enable e-mail and/or SMS only if this event supports them.</li>
+                    <li><strong>Placeholders</strong>Insert codes like <code>%order_id%</code> from the variables panel — they are replaced at send time.</li>
+                    <li><strong>Restore</strong>Loads factory subject/body into the form; click Save to persist.</li>
+                    <li><strong>Test</strong>After saving, verify SMTP/SMS from Communications.</li>
+                </ol>
             </div>
-        </div>
 
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Category siblings</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Title</th>
-                                    <th>Severity</th>
-                                    <th>Channel</th>
-                                    <th>Created</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
+            <form method="post" name="save_notification_form" id="save_notification_form" action="/cp/notifications/save">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_editorHref" />
+                <input type="hidden" name="notification_id" value="@_editor.Id.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="lang_code" value="@_lang" />
+
+                <div class="epc-cn-edit-grid">
+                    <div class="epc-cn-side">
+                        <div class="epc-cn-card">
+                            <div class="epc-cn-card__head">
+                                <div>
+                                    <h4>Notification</h4>
+                                    <p>Event metadata</p>
+                                </div>
+                            </div>
+                            <div class="epc-cn-card__body">
+                                <dl class="epc-cn-kv">
+                                    <dt>ID</dt><dd>@_editor.Id.ToString(CultureInfo.InvariantCulture)</dd>
+                                    <dt>Name</dt><dd><code>@_editor.Name</code></dd>
+                                    <dt>Caption</dt><dd>@_editor.Caption</dd>
+                                    <dt>Event</dt><dd>@_editor.Event</dd>
+                                    <dt>Description</dt><dd>@_editor.Description</dd>
+                                    <dt>Send for not confirmed users</dt>
+                                    <dd>@(_editor.SendForNotConfirmed == 1 ? "Yes" : "No")</dd>
+                                </dl>
+                            </div>
+                        </div>
+
+                        <div class="epc-cn-card">
+                            <div class="epc-cn-card__head">
+                                <div>
+                                    <h4>Variables</h4>
+                                    <p>Placeholders replaced at send time</p>
+                                </div>
+                            </div>
+                            <div class="epc-cn-card__body" style="padding:0;">
+                                <table class="table epc-cn-vars">
+                                    <thead>
+                                        <tr>
+                                            <th>Caption</th>
+                                            <th>Code</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    @if (_editor.Vars.Count == 0)
+                                    {
+                                        <tr><td colspan="2" class="epc-cn-empty">No variables for this template.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var v in _editor.Vars)
+                                        {
+                                            <tr>
+                                                <td>@v.Caption</td>
+                                                <td><code>%@(v.Name)%</code></td>
+                                            </tr>
+                                        }
+                                    }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="epc-cn-main">
+                        <div class="epc-cn-card is-email" style="margin-bottom:14px;">
+                            <div class="epc-cn-card__head">
+                                <div>
+                                    <h4><i class="far fa-envelope"></i> E-mail</h4>
+                                    <p>Subject and HTML body</p>
+                                </div>
+                            </div>
+                            <div class="epc-cn-card__body">
+                                @if (_editor.ForeseenEmail == 1)
                                 {
-                                    <tr><td colspan="5">No category siblings yet.</td></tr>
+                                    <div class="epc-cn-field">
+                                        <label class="epc-cn-check">
+                                            <input type="checkbox" name="email_on" id="email_on" value="1" checked="@(_editor.EmailOn == 1)" />
+                                            Send e-mail for this event
+                                        </label>
+                                    </div>
+                                    <div class="epc-cn-field">
+                                        <label for="email_subject">Subject</label>
+                                        <input class="form-control" type="text" name="email_subject" id="email_subject" value="@_editor.EmailSubject" placeholder="E-mail subject" />
+                                    </div>
+                                    <div class="epc-cn-field">
+                                        <label for="email_body">Body (HTML)</label>
+                                        <textarea style="min-height:400px" class="form-control tinymce_editor" id="email_body" name="email_body">@_editor.EmailBody</textarea>
+                                    </div>
                                 }
                                 else
                                 {
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Title) ? sib.Title : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Severity) ? sib.Severity : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Channel) ? sib.Channel : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.CreatedAt) ? sib.CreatedAt : "—")</td>
-                                        </tr>
-                                    }
+                                    <p class="epc-cn-meta">E-mail is not available for this event.</p>
                                 }
-                            </tbody>
-                        </table>
+                            </div>
+                        </div>
+
+                        <div class="epc-cn-card is-sms">
+                            <div class="epc-cn-card__head">
+                                <div>
+                                    <h4><i class="fas fa-mobile-alt"></i> SMS</h4>
+                                    <p>Plain text message</p>
+                                </div>
+                            </div>
+                            <div class="epc-cn-card__body">
+                                @if (_editor.ForeseenSms == 1)
+                                {
+                                    <div class="epc-cn-field">
+                                        <label class="epc-cn-check">
+                                            <input type="checkbox" name="sms_on" id="sms_on" value="1" checked="@(_editor.SmsOn == 1)" />
+                                            Send SMS for this event
+                                        </label>
+                                    </div>
+                                    <div class="epc-cn-field">
+                                        <label for="sms_body">Text</label>
+                                        <textarea class="form-control" name="sms_body" id="sms_body" rows="5" placeholder="SMS text">@_editor.SmsBody</textarea>
+                                    </div>
+                                }
+                                else
+                                {
+                                    <p class="epc-cn-meta">SMS is not available for this event.</p>
+                                }
+                            </div>
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-    }
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Recent notifications</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Title</th>
-                                <th>Severity</th>
-                                <th>Category</th>
-                                <th>Channel</th>
-                                <th>Read</th>
-                                <th>Created</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (!_isAdmin)
-                        {
-                            <tr><td colspan="8">Sign in for live data.</td></tr>
-                        }
-                        else if (_rows.Count == 0)
-                        {
-                            <tr><td colspan="8">@(!string.IsNullOrWhiteSpace(_message) ? _message : "No records yet.")</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var row in _rows)
-                            {
-                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Severity) ? row.Severity : "—")</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Category) ? row.Category : "—")</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Channel) ? row.Channel : "—")</td>
-                                    <td>@row.IsRead.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.CreatedAt) ? row.CreatedAt : "—")</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "notif_id", row.Id)">Open</a></td>
-                                </tr>
-                            }
-                        }
-                        </tbody>
-                    </table>
+                <div class="epc-cn-sticky">
+                    <button type="submit" class="btn btn-primary"><i class="fas fa-save"></i> Save</button>
+                    <button type="button" class="btn btn-default" onclick="set_default();"><i class="fas fa-undo"></i> Restore default settings</button>
+                    <a class="btn btn-default" href="@_listHref">Back to notifications</a>
+                    <span class="epc-cn-sticky__hint">Changes apply after Save · then test under Communications</span>
+                </div>
+            </form>
+        </div>
+
+        <script src="/epc-static.php?f=cp/lib/tinymce/tinymce.min.js"></script>
+        <script>
+        window.EPC_COMMS_NOTIFY = { page: 'notification_edit' };
+        var epcCnDefaults = @((MarkupString)JsonSerializer.Serialize(new { emailSubject = _editor.DefaultEmailSubject, emailBody = _editor.DefaultEmailBody, smsBody = _editor.DefaultSmsBody }));
+        function init_TinyMCE()
+        {
+            if (typeof tinymce === 'undefined' || !document.getElementById('email_body')) { return; }
+            tinymce.baseURL = '/epc-static.php?f=cp/lib/tinymce';
+            tinymce.init({
+                selector: 'textarea.tinymce_editor',
+                toolbar: 'bold italic | fontselect | fontsizeselect | styleselect | forecolor | backcolor | code fullscreen',
+                plugins: ['code fullscreen textcolor'],
+                convert_urls: false
+            });
+        }
+        init_TinyMCE();
+        function set_default()
+        {
+            var emailOn = document.getElementById('email_on');
+            if (emailOn) {
+                emailOn.checked = true;
+                document.getElementById('email_subject').value = epcCnDefaults.emailSubject;
+                if (typeof tinymce !== 'undefined' && tinymce.get('email_body')) {
+                    tinymce.get('email_body').setContent(epcCnDefaults.emailBody);
+                } else {
+                    document.getElementById('email_body').value = epcCnDefaults.emailBody;
+                }
+            }
+            var smsOn = document.getElementById('sms_on');
+            if (smsOn) {
+                smsOn.checked = true;
+                document.getElementById('sms_body').value = epcCnDefaults.smsBody;
+            }
+            alert('Default settings were loaded into the form. Click Save to apply them.');
+        }
+        </script>
+    }
+    else
+    {
+        @* ---- notifications.php twin (list) ---- *@
+        <div class="col-lg-12 epc-cn" id="epc-cn-notify-root" data-filter="all">
+            <div class="epc-cn-hero">
+                <h3>Notification settings</h3>
+                <p>Turn e-mail and SMS on or off for each shop event, edit message templates, and restore factory text when needed. Delivery itself is configured under Communications, SMTP, and SMS Operators.</p>
+                <div class="epc-cn-hero__actions">
+                    <button type="button" class="btn btn-sm btn-primary" onclick="set_default_checked();"><i class="fas fa-undo"></i> Restore default settings</button>
+                    <a class="btn btn-sm" href="/cp/communications-test-app"><i class="fas fa-broadcast-tower"></i> Communications</a>
+                    <a class="btn btn-sm" href="/cp/sms-whatsapp-app"><i class="fas fa-mobile-alt"></i> SMS operators</a>
+                    <a class="btn btn-sm" href="/cp"><i class="fas fa-home"></i> Home</a>
                 </div>
             </div>
+
+            @if (!string.IsNullOrWhiteSpace(_flashOk))
+            {
+                <div class="alert alert-success" role="status">@_flashOk</div>
+            }
+            @if (!string.IsNullOrWhiteSpace(_flashErr))
+            {
+                <div class="alert alert-danger" role="status">@_flashErr</div>
+            }
+            @if (_openedId > 0 && _editor is null && !string.IsNullOrWhiteSpace(_openMessage))
+            {
+                <div class="alert alert-warning" role="status">@_openMessage</div>
+            }
+
+            <div class="epc-cn-quick">
+                <a class="is-email" href="/cp/config-items-app?need_config_group=3">
+                    <span class="epc-cn-quick__icon"><i class="far fa-envelope"></i></span>
+                    <strong>SMTP first</strong>
+                    <span>Templates only send when e-mail/SMTP is configured.</span>
+                </a>
+                <a class="is-sms" href="/cp/sms-whatsapp-app">
+                    <span class="epc-cn-quick__icon"><i class="fas fa-mobile-alt"></i></span>
+                    <strong>SMS operator</strong>
+                    <span>Activate one operator and set the sender number.</span>
+                </a>
+                <a class="is-templates" href="/cp/communications-test-app">
+                    <span class="epc-cn-quick__icon"><i class="fas fa-vial"></i></span>
+                    <strong>Test delivery</strong>
+                    <span>Send a test e-mail or SMS from Communications.</span>
+                </a>
+                <a href="/cp/guides-app">
+                    <span class="epc-cn-quick__icon"><i class="fas fa-book"></i></span>
+                    <strong>CP guideline</strong>
+                    <span>Where notifications fit in the order workflow.</span>
+                </a>
+            </div>
+
+            <div class="epc-cn-guide">
+                <h4>How to use this page</h4>
+                <ol class="epc-cn-steps">
+                    <li><strong>Scan channels</strong>Green = on, red = off. Click the icon to toggle e-mail or SMS for that event.</li>
+                    <li><strong>Edit a template</strong>Open the pencil to change subject, HTML body, or SMS text and placeholders.</li>
+                    <li><strong>Restore defaults</strong>Tick rows (or one row’s undo) to reset text and channel flags to factory values.</li>
+                    <li><strong>Verify send</strong>After changes, test from Communications so SMTP / SMS credentials are confirmed.</li>
+                </ol>
+            </div>
+
+            <form method="post" name="set_default_form" id="set_default_form" action="/cp/notifications/restore">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="notifications_ids" id="notifications_ids" value="" />
+            </form>
+
+            <div class="epc-cn-filter">
+                <input type="search" id="epc-cn-notify-q" placeholder="Search caption, code, event…" autocomplete="off" />
+                <button type="button" class="epc-cn-chip is-active" data-filter-chip="all">All</button>
+                <button type="button" class="epc-cn-chip" data-filter-chip="email">E-mail on</button>
+                <button type="button" class="epc-cn-chip" data-filter-chip="sms">SMS on</button>
+                <button type="button" class="epc-cn-chip" data-filter-chip="off">Both off</button>
+                <span class="epc-cn-count" id="epc-cn-notify-count">@_rows.Count.ToString(CultureInfo.InvariantCulture) / @_rows.Count.ToString(CultureInfo.InvariantCulture)</span>
+            </div>
+
+            <div class="epc-cn-table-wrap table-responsive">
+                <table class="table epc-cn-table" data-sort="false">
+                    <thead>
+                        <tr>
+                            <th><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
+                            <th>ID</th>
+                            <th>Caption</th>
+                            <th>Name</th>
+                            <th>Event</th>
+                            <th>Description</th>
+                            <th class="text-center">E-mail</th>
+                            <th class="text-center">SMS</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (_rows.Count == 0)
+                    {
+                        <tr><td colspan="9" class="epc-cn-empty">No notification templates found.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var r in _rows)
+                        {
+                            var id = r.Id.ToString(CultureInfo.InvariantCulture);
+                            var href = EditorHref(r.Id);
+                            var search = (r.Caption + " " + r.Name + " " + r.Event + " " + r.Description + " " + id).ToLowerInvariant();
+                            <tr data-notify-row data-search="@search" data-email-on="@r.EmailOn.ToString(CultureInfo.InvariantCulture)" data-sms-on="@r.SmsOn.ToString(CultureInfo.InvariantCulture)">
+                                <td><input type="checkbox" class="epc-cn-row-check" onchange="on_one_check_changed('checked_@(id)');" id="checked_@(id)" name="checked_@(id)" data-notification-id="@id" /></td>
+                                <td><a href="@href">@id</a></td>
+                                <td><a href="@href">@r.Caption</a></td>
+                                <td><a href="@href"><span class="epc-cn-muted">@r.Name</span></a></td>
+                                <td><a href="@href">@r.Event</a></td>
+                                <td><a href="@href"><span class="epc-cn-muted">@r.Description</span></a></td>
+                                <td class="text-center">
+                                    <form method="post" name="set_send_email_@(id)" action="/cp/notifications/toggle" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                                        <input type="hidden" name="type" value="email" />
+                                        <input type="hidden" name="notification_id" value="@id" />
+                                        @if (r.ForeseenEmail == 0)
+                                        {
+                                            <span class="epc-cn-toggle is-na" title="E-mail not available for this event"><i class="far fa-circle"></i></span>
+                                        }
+                                        else if (r.EmailOn == 1)
+                                        {
+                                            <input type="hidden" name="set_send" value="0" />
+                                            <button type="submit" class="epc-cn-toggle is-on" title="E-mail is on — click to switch off"><i class="fas fa-check-circle"></i></button>
+                                        }
+                                        else
+                                        {
+                                            <input type="hidden" name="set_send" value="1" />
+                                            <button type="submit" class="epc-cn-toggle is-off" title="E-mail is off — click to switch on"><i class="fas fa-minus-circle"></i></button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    <form method="post" name="set_send_sms_@(id)" action="/cp/notifications/toggle" style="display:inline">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                                        <input type="hidden" name="type" value="sms" />
+                                        <input type="hidden" name="notification_id" value="@id" />
+                                        @if (r.ForeseenSms == 0)
+                                        {
+                                            <span class="epc-cn-toggle is-na" title="SMS not available for this event"><i class="far fa-circle"></i></span>
+                                        }
+                                        else if (r.SmsOn == 1)
+                                        {
+                                            <input type="hidden" name="set_send" value="0" />
+                                            <button type="submit" class="epc-cn-toggle is-on" title="SMS is on — click to switch off"><i class="fas fa-check-circle"></i></button>
+                                        }
+                                        else
+                                        {
+                                            <input type="hidden" name="set_send" value="1" />
+                                            <button type="submit" class="epc-cn-toggle is-off" title="SMS is off — click to switch on"><i class="fas fa-minus-circle"></i></button>
+                                        }
+                                    </form>
+                                </td>
+                                <td class="text-center">
+                                    <span class="epc-cn-actions">
+                                        <button type="button" class="is-reset" title="Restore default settings" onclick="set_default_one(@id);"><i class="fas fa-undo"></i></button>
+                                        <a class="is-edit" href="@href" title="Edit template"><i class="fas fa-edit"></i></a>
+                                    </span>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
         </div>
-    </div>
+
+        <script src="/epc-static.php?f=cp/content/control/epc_comms_notify.js&amp;v=20260922"></script>
+        <script>
+        window.EPC_COMMS_NOTIFY = { page: 'notifications' };
+        function on_check_uncheck_all()
+        {
+            var all = document.getElementById('check_uncheck_all').checked;
+            var boxes = document.querySelectorAll('.epc-cn-row-check');
+            for (var i = 0; i < boxes.length; i++) { boxes[i].checked = all; }
+        }
+        function on_one_check_changed(id)
+        {
+            if (!document.getElementById(id).checked) { document.getElementById('check_uncheck_all').checked = false; }
+        }
+        function set_default_ids(ids)
+        {
+            if (!ids.length) { alert('Select at least one notification.'); return; }
+            if (!confirm('Restore factory text and channel settings for ' + ids.length + ' notification(s)?')) { return; }
+            document.getElementById('notifications_ids').value = JSON.stringify(ids);
+            document.forms['set_default_form'].submit();
+        }
+        function set_default_checked()
+        {
+            var ids = [];
+            var boxes = document.querySelectorAll('.epc-cn-row-check');
+            for (var i = 0; i < boxes.length; i++) {
+                if (boxes[i].checked) { ids.push(parseInt(boxes[i].getAttribute('data-notification-id'), 10)); }
+            }
+            set_default_ids(ids);
+        }
+        function set_default_one(id)
+        {
+            set_default_ids([id]);
+        }
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/control/notifications_settings";
     private const string _listHref = "/cp/notifications-app";
+    private const string _lang = "en";
     private bool _isAdmin;
     private string _flashOk = "";
     private string _flashErr = "";
-    private CpNotificationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpNotificationSettingDigest> _settings = [];
-    private IReadOnlyList<CpNotificationsRowDigest> _rows = [];
-    private string _message = "";
+    private string _openMessage = "";
     private long _openedId;
-    private CpNotificationsDetail? _openedNote;
-    private IReadOnlyList<CpNotificationsRowDigest> _openedSiblings = [];
+    private string _editorHref = _listHref;
+    private IReadOnlyList<CpNotificationRow> _rows = [];
+    private CpNotificationDetail? _editor;
 
-    private string OpenedCaption => _openedNote is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedNote.Title)
-            ? ("Note #" + _openedNote.Id.ToString(CultureInfo.InvariantCulture))
-            : _openedNote.Title)
-            + (string.IsNullOrWhiteSpace(_openedNote.Severity) ? "" : (" · " + _openedNote.Severity));
+    private static string EditorHref(long id) => _listHref + "?notification_id=" + id.ToString(CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "notif_id");
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "notification_id");
         _flashOk = ctx.Request.Query["ok"].ToString();
         _flashErr = ctx.Request.Query["err"].ToString();
 
@@ -332,30 +464,18 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpNotificationsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Notifications;
-        _message = result.Message;
-        var settings = await Dashboards.BuildCpNotificationSettingsDigestAsync(200, ctx.RequestAborted);
-        _settings = settings.Settings;
-
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpNotificationsDetailAsync(_openedId, ctx.RequestAborted);
-            _openedNote = detail.Notification;
-            _openedSiblings = detail.Siblings;
-            if (_openedNote is not null)
+            _editor = await Notifications.OpenAsync(_openedId, _lang, ctx.RequestAborted);
+            _editorHref = EditorHref(_openedId);
+            if (_editor is not null)
             {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
+                return;
             }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
-            }
+
+            _openMessage = "Notification #" + _openedId.ToString(CultureInfo.InvariantCulture) + " was not found.";
         }
+
+        _rows = await Notifications.ListAsync(_lang, ctx.RequestAborted);
     }
 }
