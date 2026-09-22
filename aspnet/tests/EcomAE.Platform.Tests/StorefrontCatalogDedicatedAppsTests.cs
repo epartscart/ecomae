@@ -272,8 +272,9 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
 
         var sitemap = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSitemapApp.razor"));
         Assert.Contains("class=\"hpanel\"", sitemap, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", sitemap, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/create-sitemap", sitemap, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", sitemap, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", sitemap, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", sitemap, StringComparison.Ordinal);
 
         var tabs = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpSearchTabsApp.razor"));

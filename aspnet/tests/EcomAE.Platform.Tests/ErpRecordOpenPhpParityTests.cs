@@ -1397,22 +1397,35 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void AdditionalTextsApp_OpenLoadsContentExcerptAndKeepsWrites()
+    public void AdditionalTextsApp_IsLivePhpListAndEditorTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpAdditionalTextsApp.razor"));
+        Assert.Contains("ICpAdditionalTextEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Texts.ListAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Texts.OpenByIdAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Texts.OpenByUrlAsync(", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"text_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"text_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpAdditionalTextsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No content excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No placement siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"check_uncheck_all\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"urls_to_del\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"url\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"before_main\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"title_tag\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"description_tag\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"keywords_tag\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"text\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"text_lang_str_id\"", text, StringComparison.Ordinal);
         Assert.Contains("/cp/additional-texts/write", text, StringComparison.Ordinal);
         Assert.Contains("/cp/additional-texts/delete", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("s_page", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpAdditionalTextsDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
@@ -1726,23 +1739,32 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void GeoRegionsApp_OpenLoadsCaptionExcerptAndKeepsTreeSave()
+    public void GeoRegionsApp_IsLivePhpTreeEditorTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpGeoRegionsApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"geo_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"geo_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpGeoRegionsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No caption excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-parent siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("ICpGeoTreeEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Geo.LoadAsync", text, StringComparison.Ordinal);
+        Assert.Contains("_page.ToTreeJson()", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"container_A\"", text, StringComparison.Ordinal);
+        Assert.Contains("function add_new_country()", text, StringComparison.Ordinal);
+        Assert.Contains("function add_new_region()", text, StringComparison.Ordinal);
+        Assert.Contains("function add_new_city()", text, StringComparison.Ordinal);
+        Assert.Contains("function delete_selected_item()", text, StringComparison.Ordinal);
+        Assert.Contains("function unselect_tree()", text, StringComparison.Ordinal);
+        Assert.Contains("function save_tree()", text, StringComparison.Ordinal);
+        Assert.Contains("value_lang_str_id", text, StringComparison.Ordinal);
+        Assert.Contains("from_server", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"tree_json\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"treeJson\"", text, StringComparison.Ordinal);
         Assert.Contains("/cp/geo-regions/write", text, StringComparison.Ordinal);
-        Assert.Contains("Save tree", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"hpanel\"", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpGeoRegionsDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
@@ -1759,29 +1781,35 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void DeliveryMethodsApp_OpenLoadsParametersExcerptAndKeepsWrites()
+    public void DeliveryMethodsApp_IsLivePhpTwinWithListTogglesAndEditor()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpDeliveryMethodsApp.razor"));
+        Assert.Contains("ICpObtainingModeEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Modes.ListAsync", text, StringComparison.Ordinal);
+        Assert.Contains("Modes.OpenAsync", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"obtaining_mode_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"obtaining_mode_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpDeliveryModeDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No parameters excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-available siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"obtaining_mode_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("check_uncheck_all", text, StringComparison.Ordinal);
+        Assert.Contains("s_page=", text, StringComparison.Ordinal);
         Assert.Contains("/cp/delivery-methods/write", text, StringComparison.Ordinal);
         Assert.Contains("name=\"action\" value=\"activation\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"activate_obtain_mode\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"obtain_mode_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("Save method", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"save_action\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"caption_lang_str_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"order\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"available\"", text, StringComparison.Ordinal);
+        Assert.Contains("values_from_form", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"pv_@p.Name\"", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpDeliveryModeDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("epc-del-hero", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("epc-del-kpis", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
 
@@ -1829,22 +1857,37 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void MenusApp_OpenLoadsStructureExcerptAndKeepsWrites()
+    public void MenusApp_IsLivePhpManagerAndTreeEditorTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpMenusApp.razor"));
+        Assert.Contains("ICpMenuEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Menus.ListAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Menus.OpenAsync(", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"menu_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"menu_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpMenusDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No structure excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-frontend siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"check_uncheck_all\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_list\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_tree\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_caption\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_caption_lang_str_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_ul_class\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_ul_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"is_frontend\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"container_A\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"item_info_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("a_innerhtml_mode", text, StringComparison.Ordinal);
+        Assert.Contains("link_mode", text, StringComparison.Ordinal);
         Assert.Contains("/cp/menus/write", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-users-workspace", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("s_page", text, StringComparison.Ordinal);
+        Assert.Contains("hpanel", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("menu_id=", text, StringComparison.Ordinal);
-        Assert.Contains("_selected", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpMenusDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
@@ -1894,22 +1937,39 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void OfficesApp_OpenLoadsUsersExcerptAndKeepsWrites()
+    public void OfficesApp_IsLivePhpTwinWithListEditorGeoAndStorageLinks()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpOfficesApp.razor"));
+        Assert.Contains("ICpOfficeEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Offices.ListAsync", text, StringComparison.Ordinal);
+        Assert.Contains("Offices.OpenAsync", text, StringComparison.Ordinal);
+        Assert.Contains("Offices.GeoAsync", text, StringComparison.Ordinal);
+        Assert.Contains("Offices.StoragesAsync", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"office_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"office_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpOfficesDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No staff-users excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-city siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"office_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("check_uncheck_all", text, StringComparison.Ordinal);
+        Assert.Contains("offices_to_delete", text, StringComparison.Ordinal);
+        Assert.Contains("s_page=", text, StringComparison.Ordinal);
+        Assert.Contains("CpOfficeEditor.TranslatedItems", text, StringComparison.Ordinal);
+        Assert.Contains("_lang_str_id", text, StringComparison.Ordinal);
+        Assert.Contains("users_selector", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"coordinates\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"timetable\"", text, StringComparison.Ordinal);
+        Assert.Contains("geo_list", text, StringComparison.Ordinal);
+        Assert.Contains("storages_list", text, StringComparison.Ordinal);
+        Assert.Contains("prices_ranges", text, StringComparison.Ordinal);
+        Assert.Contains("time_to_shop", text, StringComparison.Ordinal);
         Assert.Contains("/cp/offices/write", text, StringComparison.Ordinal);
         Assert.Contains("/cp/offices/delete", text, StringComparison.Ordinal);
         Assert.Contains("/cp/offices/geo", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/storages/membership", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("office_id=", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpOfficesDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
@@ -2369,22 +2429,24 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void SitemapApp_OpenLoadsContentExcerptAndKeepsClassicRebuild()
+    public void SitemapApp_IsLiveContentTreeAndCreateTwin()
     {
         var root = FindRepoRoot();
         var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpSitemapApp.razor"));
-        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
-        Assert.Contains("BuildCpSitemapDetailAsync", razor, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"sm_id\")", razor, StringComparison.Ordinal);
-        Assert.Contains("sm_id=", razor, StringComparison.Ordinal);
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"sm_id\"", razor, StringComparison.Ordinal);
-        Assert.Contains("ContentExcerpt", razor, StringComparison.Ordinal);
-        Assert.Contains("same-published siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Rebuild stays on the Classic twin", razor, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ICpSitemapEditorService", razor, StringComparison.Ordinal);
+        Assert.Contains("Sitemap.LoadAsync(", razor, StringComparison.Ordinal);
+        Assert.Contains("_page.ToTreeJson()", razor, StringComparison.Ordinal);
+        Assert.Contains("function create_sitemap()", razor, StringComparison.Ordinal);
+        Assert.Contains("function epcCheckAll(", razor, StringComparison.Ordinal);
+        Assert.Contains("id=\"container_A\"", razor, StringComparison.Ordinal);
+        Assert.Contains("id=\"url_list\"", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/create-sitemap", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\" value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("class=\"hpanel\"", razor, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Rebuild stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("content_id", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
