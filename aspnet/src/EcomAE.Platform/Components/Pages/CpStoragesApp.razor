@@ -2,252 +2,485 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpStorageEditorService Storages
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Storages · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+<div class="col-lg-12">
+<style>
+    .epc-st-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; }
+    .epc-st-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-st-actions .panel_a_caption { font-size:12px; }
+    .epc-st-list td a { color:inherit; display:block; text-decoration:none; }
+    .epc-st-list tr.epc-row-open td { background:#fff8dc; }
+    .epc-st-form .form-group { margin-bottom:10px; }
+    .epc-st-form .hr-line-dashed { border-top:1px dashed #e4e5e7; margin:12px 0; }
+    .epc-st-form .co-field { margin-bottom:8px; }
+    .epc-st-form .co-field label { display:block; font-weight:normal; }
+    .epc-st-list .pagination { margin:8px 0 0; }
+</style>
 
-    <div class="col-lg-12">
+    @if (!_isAdmin)
+    {
+        <div class="hpanel"><div class="panel-body">
+            <div class="alert alert-warning" role="status">Sign in to the Control Panel to manage warehouses. <a href="/cp/login?returnUrl=/cp/storages-app">Login</a></div>
+        </div></div>
+    }
+    else if (_editor is not null)
+    {
+        @* ---- storage.php twin: create / edit one warehouse ---- *@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
-                Storages
-                <a class="btn btn-xs btn-default pull-right" href="/erp/warehouses-app">ERP warehouses</a>
-                <a class="btn btn-xs btn-default pull-right" href="/cp/currencies-app" style="margin-right:.4rem">Currencies</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
+                @(_editor.Id > 0 ? "Edit warehouse" : "New warehouse")
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_editor.Id > 0 ? _phpTab + "/storage?id=" + _editor.Id.ToString(CultureInfo.InvariantCulture) : _phpTab + "/storage")">Classic twin</a>
             </div>
-            <div class="panel-body">
-                <p>Open a warehouse for currency, interface, and a storekeeper excerpt. Add or delete a warehouse group, create or edit a warehouse, and save office membership here. Connector secrets stay on the Classic twin.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/storages-app" IsAdmin="_isAdmin" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedStorage is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="alert alert-success" role="status">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status">@_flashErr</div>
-    }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/storages/groups" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
-            <input type="hidden" name="action" value="add_group" />
-            <label>Group name <input type="text" name="name" required /></label>
-            <label>Warehouse ids <input type="text" name="storages" required placeholder="1,2,3" /></label>
-            <button type="submit">Add group</button>
-        </form>
-        <form method="post" action="/cp/storages/groups" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
-            <input type="hidden" name="action" value="del" />
-            <label>Group id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-            <button type="submit">Delete group</button>
-        </form>
-        <form method="post" action="/cp/storages/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
-            <input type="hidden" name="action" value="create" />
-            <label>Name <input type="text" name="name" required maxlength="255" /></label>
-            <label>Short name <input type="text" name="shortName" maxlength="64" /></label>
-            <label>Currency id <input type="number" name="currency" min="1" value="1" style="width:5rem" /></label>
-            <label>Interface <input type="number" name="interfaceType" min="1" value="1" style="width:5rem" /></label>
-            <label>Storekeepers <input type="text" name="users" placeholder="1,2" /></label>
-            <label>Hidden
-                <select name="hidden">
-                    <option value="0" selected>No</option>
-                    <option value="1">Yes</option>
-                </select>
-            </label>
-            <button type="submit">Create warehouse</button>
-        </form>
-        <form method="post" action="/cp/storages/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
-            <input type="hidden" name="action" value="edit" />
-            <label>Warehouse id <input type="number" name="storageId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Name <input type="text" name="name" required maxlength="255" value="@(_openedStorage is not null ? _openedStorage.Name : "")" /></label>
-            <label>Short name <input type="text" name="shortName" maxlength="64" value="@(_openedStorage is not null ? _openedStorage.ShortName : "")" /></label>
-            <label>Hidden
-                <select name="hidden">
-                    <option value="0">No</option>
-                    <option value="1">Yes</option>
-                </select>
-            </label>
-            <button type="submit">Save warehouse</button>
-        </form>
-        <form method="post" action="/cp/storages/membership" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/storages-app" />
-            <label>Office id <input type="number" name="officeId" min="1" required value="1" style="width:6rem" /></label>
-            <label>Membership JSON <input type="text" name="storagesList" required style="width:28rem" placeholder='[{"id":1,"checked":true,"time_to_shop":0,"groups":[{"id":2,"prices_ranges":[{"max_point":-1,"markup":0}]}]}]' /></label>
-            <button type="submit">Save membership</button>
-            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/logistics/offices/office/storages_link")">Classic twin</a>
-        </form>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Storage KPIs">
-        <div class="kpi"><div class="lbl">Shown</div><div class="val">@_storages.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Visible</div><div class="val">@_visible.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Hidden</div><div class="val">@_hidden.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedStorage is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @OpenedCaption
-                    <span class="label label-default pull-right">@(_openedStorage.Hidden ? "hidden" : "visible")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedStorage.ShortName) ? _openedStorage.ShortName : "—")
-                        · currency @_openedStorage.Currency.ToString(CultureInfo.InvariantCulture)
-                        · interface @_openedStorage.InterfaceType.ToString(CultureInfo.InvariantCulture)
-                        · color @_openedStorage.BgLineColor.ToString(CultureInfo.InvariantCulture)</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedStorage.UsersExcerpt))
-                    {
-                        <p>@_openedStorage.UsersExcerpt
-                            @if (_openedStorage.UsersLen > _openedStorage.UsersExcerpt.Length)
-                            {
-                                <span class="text-muted"> (excerpt)</span>
-                            }
-                        </p>
-                    }
-                    else
-                    {
-                        <p class="text-muted">No storekeeper excerpt yet.</p>
-                    }
-                </div>
+            <div class="panel-body epc-st-actions">
+                <a class="panel_a" href="#" onclick="document.getElementById('storage_form').submit();return false;">
+                    <div class="panel_a_img"><i class="fa fa-save"></i></div>
+                    <div class="panel_a_caption">Save</div>
+                </a>
+                <a class="panel_a" href="@_listHref">
+                    <div class="panel_a_img"><i class="fa fa-list"></i></div>
+                    <div class="panel_a_caption">Warehouse list</div>
+                </a>
+                <a class="panel_a" href="/cp">
+                    <div class="panel_a_img"><i class="fa fa-power-off"></i></div>
+                    <div class="panel_a_caption">Exit</div>
+                </a>
             </div>
         </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
 
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Same-interface siblings</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>ID</th>
-                                    <th>Name</th>
-                                    <th>Short name</th>
-                                    <th>Hidden</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="5">No same-interface siblings yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var sib in _openedSiblings)
+        <form id="storage_form" class="epc-st-form" method="post" action="/cp/storages/write">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(_editor.Id > 0 ? ErpRecordOpen.Href(_listHref, "storage_id", _editor.Id) : _listHref)" />
+            <input type="hidden" name="save_action" value="@(_editor.Id > 0 ? "edit" : "create")" />
+            <input type="hidden" name="storage_id" id="storage_id" value="@_editor.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="options_from_form" value="1" />
+            <div class="row">
+            <div class="col-lg-6">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">General settings</div>
+                    <div class="panel-body form-horizontal">
+                        <div class="form-group">
+                            <label for="name_input" class="col-lg-6 control-label">Warehouse name</label>
+                            <div class="col-lg-6"><input type="text" name="name" id="name_input" value="@_editor.Name" class="form-control" required maxlength="255" /></div>
+                        </div>
+                        <div class="hr-line-dashed col-lg-12"></div>
+                        <div class="form-group">
+                            <label for="short_name_input" class="col-lg-6 control-label">Short name</label>
+                            <div class="col-lg-6"><input type="text" name="short_name" id="short_name_input" value="@_editor.ShortName" class="form-control" required maxlength="64" /></div>
+                        </div>
+                        <div class="hr-line-dashed col-lg-12"></div>
+                        <div class="form-group">
+                            <label for="hidden_input" class="col-lg-6 control-label">Hide in price search</label>
+                            <div class="col-lg-6"><input type="checkbox" name="hidden" id="hidden_input" value="1" checked="@(_editor.Hidden == 1)" /></div>
+                        </div>
+                        <div class="hr-line-dashed col-lg-12"></div>
+                        <div class="form-group">
+                            <label for="bg_line_color_input" class="col-lg-6 control-label">Highlight product row background</label>
+                            <div class="col-lg-6"><input type="checkbox" name="bg_line_color" id="bg_line_color_input" value="1" checked="@(_editor.BgLineColor == 1)" /></div>
+                        </div>
+                        <div class="hr-line-dashed col-lg-12"></div>
+                        <div class="form-group">
+                            <label for="currency_select" class="col-lg-6 control-label">Warehouse currency</label>
+                            <div class="col-lg-6">
+                                <select name="currency" id="currency_select" class="form-control">
+                                    @foreach (var c in _editor.Currencies)
                                     {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(string.IsNullOrWhiteSpace(sib.Name) ? "—" : sib.Name)</td>
-                                            <td>@(string.IsNullOrWhiteSpace(sib.ShortName) ? "—" : sib.ShortName)</td>
-                                            <td>@(sib.Hidden ? "yes" : "no")</td>
-                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "storage_id", sib.Id)">Open</a></td>
-                                        </tr>
+                                        <option value="@c.Value" selected="@(c.Value == _editor.Currency.ToString(CultureInfo.InvariantCulture))">@c.Caption</option>
                                     }
-                                }
-                            </tbody>
-                        </table>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="hr-line-dashed col-lg-12"></div>
+                        <div class="form-group">
+                            <label for="interface_type_select" class="col-lg-6 control-label">Interface type</label>
+                            <div class="col-lg-6">
+                                <select name="interface_type" id="interface_type_select" class="form-control" onchange="epcStorageInterfaceChanged(this.value)">
+                                    @foreach (var t in _editor.InterfaceTypes)
+                                    {
+                                        <option value="@t.Id.ToString(CultureInfo.InvariantCulture)" selected="@(t.Id == _editor.InterfaceType)">@t.Name</option>
+                                    }
+                                </select>
+                                <p class="help-block" id="interface_description">@(_selectedType?.Description ?? "")</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div>
+            <div class="col-lg-6">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Connection settings</div>
+                    <div class="panel-body" id="mysql_options_div_fields">
+                        @foreach (var t in _editor.InterfaceTypes)
+                        {
+                            <div class="epc-co-group" data-interface="@t.Id.ToString(CultureInfo.InvariantCulture)" style="@(t.Id == _editor.InterfaceType ? "" : "display:none")">
+                                @if (t.Fields.Count == 0)
+                                {
+                                    <p class="text-muted">This interface has no connection options.</p>
+                                }
+                                @foreach (var f in t.Fields)
+                                {
+                                    var value = _editor.ConnectionOptions.GetValueOrDefault(f.Name, "");
+                                    var enabled = t.Id == _editor.InterfaceType;
+                                    <div class="co-field">
+                                        <label for="co_@(t.Id)_@f.Name">@f.Caption</label>
+                                        @switch (f.Type)
+                                        {
+                                            case "hidden":
+                                                break;
+                                            case "checkbox":
+                                                <input type="checkbox" id="co_@(t.Id)_@f.Name" name="co_@f.Name" value="1" checked="@(value is "1" or "true")" disabled="@(!enabled)" />
+                                                break;
+                                            case "select":
+                                                <select class="form-control" id="co_@(t.Id)_@f.Name" name="co_@f.Name" disabled="@(!enabled)">
+                                                    @foreach (var o in f.Options)
+                                                    {
+                                                        <option value="@o.Value" selected="@(o.Value == value)">@o.Caption</option>
+                                                    }
+                                                </select>
+                                                break;
+                                            default:
+                                                <input class="form-control" type="@(f.Type is "number" or "color" or "password" ? f.Type : "text")" id="co_@(t.Id)_@f.Name" name="co_@f.Name" value="@(value.Length == 0 && f.Type == "color" ? "#FFFFFF" : value)" disabled="@(!enabled)" />
+                                                break;
+                                        }
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Storekeepers</div>
+                    <div class="panel-body">
+                        <label for="users_selector">Users allowed to manage this warehouse</label>
+                        <select multiple="multiple" id="users_selector" name="users_selector" class="form-control" size="8">
+                            @foreach (var u in _editor.UserOptions)
+                            {
+                                <option value="@u.UserId.ToString(CultureInfo.InvariantCulture)" selected="@_editor.Users.Contains(u.UserId)">@u.Caption</option>
+                            }
+                        </select>
+                        @if (_editor.UserOptions.Count == 0)
+                        {
+                            <p class="text-muted">No backend users found.</p>
+                        }
+                    </div>
+                </div>
+            </div>
+            </div>
+            <div class="col-lg-12" style="margin-bottom:10px">
+                <button type="submit" class="btn btn-primary">Save warehouse</button>
+                <a class="btn btn-default" href="@_listHref">Cancel</a>
+            </div>
+        </form>
+        <script>
+            function epcStorageInterfaceChanged(id) {
+                var groups = document.querySelectorAll('#mysql_options_div_fields .epc-co-group');
+                for (var i = 0; i < groups.length; i++) {
+                    var on = groups[i].getAttribute('data-interface') === String(id);
+                    groups[i].style.display = on ? '' : 'none';
+                    var ctl = groups[i].querySelectorAll('input,select');
+                    for (var j = 0; j < ctl.length; j++) { ctl[j].disabled = !on; }
+                }
+            }
+        </script>
+    }
+    else if (_groups is not null)
+    {
+        @* ---- groups.php twin ---- *@
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Warehouse groups
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/groups")">Classic twin</a>
+            </div>
+            <div class="panel-body epc-st-actions">
+                <a class="panel_a" href="@_listHref">
+                    <div class="panel_a_img"><i class="fa fa-list"></i></div>
+                    <div class="panel_a_caption">Warehouse list</div>
+                </a>
+                <a class="panel_a" href="/cp">
+                    <div class="panel_a_img"><i class="fa fa-power-off"></i></div>
+                    <div class="panel_a_caption">Exit</div>
+                </a>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
+
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Auto-handled warehouses <span class="text-muted">(auto)</span></div>
+            <div class="panel-body">
+                @if (_groups.AutoStorages.Count == 0)
+                {
+                    <p class="text-muted" style="margin:0">No auto-handled warehouses found.</p>
+                }
+                else
+                {
+                    <table class="table" style="margin:0">
+                        <thead><tr><th style="width:70px">ID</th><th>Name</th><th style="width:100px">Type</th></tr></thead>
+                        <tbody>
+                        @foreach (var s in _groups.AutoStorages)
+                        {
+                            <tr><td>@s.Id.ToString(CultureInfo.InvariantCulture)</td><td>@s.Name</td><td><span class="label label-default">@s.InterfaceType.ToString(CultureInfo.InvariantCulture)</span></td></tr>
+                        }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+
+        <div class="hpanel" id="div_table">
+            <div class="panel-heading hbuilt">Groups</div>
+            <div class="panel-body">
+                @if (_groups.Groups.Count == 0)
+                {
+                    <div class="alert alert-info" style="margin:0"><strong>No warehouse groups yet.</strong> Create a group on the right to batch async API warehouses during price search. Docpart price lists and own-warehouse (types 1 / 2 / 6) are handled automatically and do not need a group.</div>
+                }
+                else
+                {
+                    <div class="table-responsive"><table class="table table-striped" style="margin:0">
+                        <thead><tr><th style="width:70px">ID</th><th>Name</th><th>Warehouses</th><th style="width:90px"></th></tr></thead>
+                        <tbody>
+                        @foreach (var g in _groups.Groups)
+                        {
+                            <tr>
+                                <td>@g.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                <td><strong>@g.Name</strong></td>
+                                <td>
+                                    @if (g.Storages.Count == 0) { <span class="text-muted">—</span> }
+                                    else
+                                    {
+                                        @string.Join(", ", g.Storages.Select(m => m.Name + " (" + m.Id.ToString(CultureInfo.InvariantCulture) + ")"))
+                                    }
+                                </td>
+                                <td class="text-right">
+                                    <form method="post" action="/cp/storages/groups" style="display:inline" onsubmit="return confirm('Delete this group?');">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_groupsHref" />
+                                        <input type="hidden" name="action" value="del" />
+                                        <input type="hidden" name="id" value="@g.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i> Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
+                    </table></div>
+                }
+            </div>
+        </div>
+
+        <div class="row">
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Help</div>
+                <div class="panel-body" style="min-height:200px">
+                    Warehouse groups let API warehouses be queried together as one batch during price search.
+                    <hr />
+                    <p class="text-muted" style="margin:0;font-size:13px">Tip: groups only include API / connector warehouses. Price-list warehouses stay in the auto list above.</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <form method="post" action="/cp/storages/groups">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_groupsHref" />
+                    <input type="hidden" name="action" value="add_group" />
+                    <div class="panel-heading hbuilt">New group</div>
+                    <div class="panel-body">
+                        <label for="new_name">Name:</label>
+                        <input style="border-color:#a4bed4 !important" class="form-control" type="text" id="new_name" name="name" required placeholder="e.g. UAE API batch" />
+                        <div style="margin-top:15px"><label>Warehouses available for grouping:</label></div>
+                        <div id="container_A_storages" style="max-height:250px;overflow:auto">
+                            @if (_groups.Eligible.Count == 0)
+                            {
+                                <div class="text-muted" id="epc_sg_empty_tree">No API warehouses available to group. All current warehouses are auto-handled (types 1 / 2 / 6).</div>
+                            }
+                            @foreach (var e in _groups.Eligible)
+                            {
+                                <div class="checkbox"><label><input type="checkbox" name="storages" value="@e.Id.ToString(CultureInfo.InvariantCulture)" /> @e.Name <span class="text-muted">(@e.Id.ToString(CultureInfo.InvariantCulture))</span></label></div>
+                            }
+                        </div>
+                    </div>
+                    <div class="panel-footer text-right">
+                        <button type="submit" id="btn_add" class="btn btn-ar btn-primary" disabled="@(_groups.Eligible.Count == 0)"><i class="fa fa-plus"></i> Add</button>
+                    </div>
+                </form>
+            </div>
+        </div>
         </div>
     }
-
-    <div class="col-lg-12">
+    else
+    {
+        @* ---- storages.php twin: list with bulk delete ---- *@
         <div class="hpanel">
-            <div class="panel-heading hbuilt">Warehouses</div>
+            <div class="panel-heading hbuilt">
+                Actions
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body epc-st-actions">
+                <a class="panel_a" href="@(_listHref)?storage_id=new">
+                    <div class="panel_a_img"><i class="fa fa-plus"></i></div>
+                    <div class="panel_a_caption">Add warehouse</div>
+                </a>
+                <a class="panel_a" href="/cp/server-ip-app" target="_blank">
+                    <div class="panel_a_img"><i class="fas fa-network-wired"></i></div>
+                    <div class="panel_a_caption">Server IP</div>
+                </a>
+                <a class="panel_a" href="/cp/storages-app?groups=1">
+                    <div class="panel_a_img"><i class="fa fa-object-group"></i></div>
+                    <div class="panel_a_caption">Warehouse groups</div>
+                </a>
+                <a class="panel_a" href="#" onclick="epcDeleteStorages();return false;">
+                    <div class="panel_a_img"><i class="fa fa-trash"></i></div>
+                    <div class="panel_a_caption">Delete selected</div>
+                </a>
+                <a class="panel_a" href="/cp">
+                    <div class="panel_a_img"><i class="fa fa-power-off"></i></div>
+                    <div class="panel_a_caption">Exit</div>
+                </a>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
+
+        <form id="delete_storages_form" method="post" action="/cp/storages/write">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <input type="hidden" name="action" value="delete_storages" />
+            <input type="hidden" name="storages" id="storages_to_delete" value="" />
+        </form>
+        <script>
+            function epcDeleteStorages() {
+                var boxes = document.querySelectorAll('.epc-st-list input[name^="checked_"]:checked');
+                var ids = [];
+                for (var i = 0; i < boxes.length; i++) { ids.push(parseInt(boxes[i].value, 10)); }
+                if (ids.length === 0) { alert('Select at least one warehouse to delete.'); return; }
+                if (!confirm('Delete the selected warehouses?')) { return; }
+                document.getElementById('storages_to_delete').value = JSON.stringify(ids);
+                document.getElementById('delete_storages_form').submit();
+            }
+            function epcCheckAll(src) {
+                var boxes = document.querySelectorAll('.epc-st-list input[name^="checked_"]');
+                for (var i = 0; i < boxes.length; i++) { boxes[i].checked = src.checked; }
+            }
+            function epcFilterStorages(q) {
+                q = (q || '').toLowerCase();
+                var rows = document.querySelectorAll('.epc-st-list tbody tr[data-hay]');
+                for (var i = 0; i < rows.length; i++) {
+                    rows[i].style.display = rows[i].getAttribute('data-hay').indexOf(q) >= 0 ? '' : 'none';
+                }
+            }
+        </script>
+
+        <div class="hpanel epc-st-list">
+            <div class="panel-heading hbuilt">Warehouses (@_list.Total.ToString(CultureInfo.InvariantCulture))</div>
             <div class="panel-body">
+                <div style="margin-bottom:8px">
+                    <input type="search" id="epc_storages_filter" class="form-control input-sm" style="max-width:320px;" placeholder="Name, code, price list, ID…" autocomplete="off" oninput="epcFilterStorages(this.value)" />
+                </div>
                 <div class="table-responsive">
                     <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
                         <thead>
                             <tr>
+                                <th><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="epcCheckAll(this)" /></th>
                                 <th>ID</th>
+                                <th></th>
                                 <th>Name</th>
                                 <th>Short name</th>
-                                <th>Hidden</th>
+                                <th>Price list</th>
+                                <th>Interface type</th>
                                 <th></th>
+                                <th>Product type</th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (!_isAdmin)
+                        @if (_list.Rows.Count == 0)
                         {
-                            <tr><td colspan="5">Sign in for live data.</td></tr>
-                        }
-                        else if (_storages.Count == 0)
-                        {
-                            <tr><td colspan="5">No records yet.</td></tr>
+                            <tr><td colspan="9">No records yet.</td></tr>
                         }
                         else
                         {
-                            @foreach (var s in _storages)
+                            @foreach (var s in _list.Rows)
                             {
-                                <tr id="erp-row-@s.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(s.Id, _openedId)">
-                                    <td>@s.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(s.Name) ? "—" : s.Name)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(s.ShortName) ? "—" : s.ShortName)</td>
-                                    <td>@(s.Hidden ? "yes" : "no")</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "storage_id", s.Id)">Open</a></td>
+                                var open = ErpRecordOpen.Href(_listHref, "storage_id", s.Id);
+                                var hay = (s.Id + " " + s.Name + " " + s.ShortName + " " + s.PriceList + " " + s.InterfaceTypeName).ToLowerInvariant();
+                                <tr id="erp-row-@s.Id.ToString(CultureInfo.InvariantCulture)" data-hay="@hay">
+                                    <td><input type="checkbox" id="checked_@s.Id.ToString(CultureInfo.InvariantCulture)" name="checked_@s.Id.ToString(CultureInfo.InvariantCulture)" value="@s.Id.ToString(CultureInfo.InvariantCulture)" /></td>
+                                    <td><a href="@open">@s.Id.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    <td>@if (s.Hidden == 1) { <i class="fa fa-ban" aria-hidden="true" title="Hidden in price search"></i> }</td>
+                                    <td><a href="@open">@s.Name</a></td>
+                                    <td><a href="@open">@s.ShortName</a></td>
+                                    <td><a href="@open">@s.PriceList</a></td>
+                                    <td><a href="@open">@s.InterfaceTypeName</a></td>
+                                    <td style="width:40px;text-align:center">@if (s.Icon.Length > 0) { <i class="@s.Icon" style="font-size:20px" aria-hidden="true"></i> }</td>
+                                    <td><a href="@open">@s.ProductTypeName</a></td>
                                 </tr>
                             }
                         }
                         </tbody>
                     </table>
                 </div>
+                @if (_list.Pages > 1)
+                {
+                    <ul class="pagination pagination-sm">
+                        @for (var i = 1; i <= _list.Pages; i++)
+                        {
+                            <li class="paginate_button @(i == _list.Page ? "active" : "")">
+                                @if (i == _list.Page) { <a href="#">@i.ToString(CultureInfo.InvariantCulture)</a> }
+                                else { <a href="@(_listHref)?s_page=@i.ToString(CultureInfo.InvariantCulture)">@i.ToString(CultureInfo.InvariantCulture)</a> }
+                            </li>
+                        }
+                    </ul>
+                }
             </div>
         </div>
-    </div>
+
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Office membership
+                <a class="btn btn-default btn-xs pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/logistics/offices/office/storages_link")">Classic twin</a>
+            </div>
+            <div class="panel-body">
+                <form method="post" action="/cp/storages/membership" class="form-inline">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_listHref" />
+                    <label>Office ID <input type="number" name="officeId" min="1" required value="1" class="form-control input-sm" style="width:6rem" /></label>
+                    <label>Membership JSON <input type="text" name="storagesList" required class="form-control input-sm" style="width:28rem" placeholder='[{"id":1,"checked":true,"time_to_shop":0,"groups":[]}]' /></label>
+                    <button type="submit" class="btn btn-sm btn-default">Save membership</button>
+                </form>
+                <p class="help-block" style="margin-top:6px">Groups are managed on the <a href="/cp/storages-app?groups=1">warehouse groups</a> page (<a href="/cp/storages/groups">/cp/storages/groups</a> writes).</p>
+            </div>
+        </div>
+    }
+</div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/logistics/storages";
     private bool _isAdmin;
-    private IReadOnlyList<CpStorageDigest> _storages = [];
-    private int _visible;
-    private int _hidden;
-    private int _limit = 200;
     private string _flashOk = "";
     private string _flashErr = "";
     private string _listHref = "/cp/storages-app";
-    private long _openedId;
-    private CpStorageDetail? _openedStorage;
-    private IReadOnlyList<CpStorageDigest> _openedSiblings = [];
-
-    private string OpenedCaption => _openedStorage is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedStorage.Name)
-            ? (string.IsNullOrWhiteSpace(_openedStorage.ShortName)
-                ? ("Warehouse #" + _openedStorage.Id.ToString(CultureInfo.InvariantCulture))
-                : _openedStorage.ShortName)
-            : _openedStorage.Name);
+    private CpStorageList _list = new([], 0, 1, 30);
+    private CpStorageEditor? _editor;
+    private CpStorageInterfaceType? _selectedType;
+    private CpStorageGroupsPage? _groups;
+    private const string _groupsHref = "/cp/storages-app?groups=1";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "storage_id", "id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -257,26 +490,37 @@
             return;
         }
 
-        var result = await Dashboards.ListCpStoragesAsync(_limit, ctx.RequestAborted);
-        _storages = result.Storages;
-        _hidden = _storages.Count(s => s.Hidden);
-        _visible = _storages.Count - _hidden;
-
-        if (_openedId > 0)
+        if (ctx.Request.Query["groups"].ToString() == "1")
         {
-            var detail = await Dashboards.BuildCpStoragesDetailAsync(_openedId, ctx.RequestAborted);
-            _openedStorage = detail.Storage;
-            _openedSiblings = detail.Siblings;
-            if (_openedStorage is not null)
+            _groups = await Storages.GroupsAsync(ctx.RequestAborted);
+            return;
+        }
+
+        var rawId = ctx.Request.Query["storage_id"].ToString();
+        if (string.Equals(rawId, "new", StringComparison.OrdinalIgnoreCase))
+        {
+            _editor = await Storages.OpenAsync(0, ctx.RequestAborted);
+        }
+        else
+        {
+            var id = ErpRecordOpen.ReadId(ctx.Request, "storage_id", "id");
+            if (id > 0)
             {
-                var openedList = _storages.FirstOrDefault(s => s.Id == _openedId);
-                if (openedList is not null)
+                _editor = await Storages.OpenAsync(id, ctx.RequestAborted);
+                if (_editor is null)
                 {
-                    _storages = new[] { openedList }.Concat(_storages.Where(s => s.Id != _openedId)).ToList();
-                    _hidden = _storages.Count(s => s.Hidden);
-                    _visible = _storages.Count - _hidden;
+                    _flashErr = "Warehouse #" + id.ToString(CultureInfo.InvariantCulture) + " was not found.";
                 }
             }
         }
+
+        if (_editor is not null)
+        {
+            _selectedType = _editor.InterfaceTypes.FirstOrDefault(t => t.Id == _editor.InterfaceType);
+            return;
+        }
+
+        var page = int.TryParse(ctx.Request.Query["s_page"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) && p > 0 ? p : 1;
+        _list = await Storages.ListAsync(page, 30, ctx.RequestAborted);
     }
 }
