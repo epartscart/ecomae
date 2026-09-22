@@ -1519,13 +1519,39 @@ public sealed class ControlPanelModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.CpCreateSitemap, async (HttpContext context, CpCreateSitemapBody? body, ILegacySessionValidator validator, ICpCreateSitemapDryRun dryRun, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.CpCreateSitemap, async (HttpContext context, ILegacySessionValidator validator, ICpCreateSitemapDryRun dryRun, ICpSitemapEditorService sitemap, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required.");
-            body ??= new CpCreateSitemapBody(null, false);
-            return Results.Ok(dryRun.Evaluate(new CpCreateSitemapRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session)));
-        });
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/sitemap-app", "Admin CP capability required for sitemap.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCreateSitemapBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var urlList = body.UrlList;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                urlList = LiveWriteFormBinder.Text(form, "url_list", "urlList");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new CpCreateSitemapRequest(action, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await sitemap.CreateAsync(urlList, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/sitemap-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.CpLangSetIsCustom, async (
             HttpContext context,
@@ -13588,7 +13614,7 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpLangSetUsedFoundBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, int UsedFound = -1);
     private sealed record CpLangSearchUsedFoundBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpVersionGetUpdatePackBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpCreateSitemapBody(string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpCreateSitemapBody(string? Action = null, string? UrlList = null, bool ConfirmWrites = false);
     private sealed record CpLangSaveTranslationBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, string? LangCode = null, string? Value = null);
     private sealed record CpLangSaveDescriptionBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, string? Value = null);
     private sealed record CpLangCreateStringBody(
