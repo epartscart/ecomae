@@ -14,6 +14,8 @@ public interface ICpPriceConfigsWriteService
 {
     Task<IReadOnlyList<CpPriceConfigRow>> ListAsync(CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<CpPriceConfigTenantOption>> ListTenantOptionsAsync(CancellationToken cancellationToken = default);
+
     Task<ErpSimpleWriteResult> SaveAsync(
         CpPriceConfigSaveRequest request,
         CancellationToken cancellationToken = default);
@@ -36,6 +38,8 @@ public sealed record CpPriceConfigSaveRequest(
     int Priority,
     bool Active,
     string? Notes);
+
+public sealed record CpPriceConfigTenantOption(string SiteKey, string Label);
 
 public sealed record CpPriceConfigRow(
     long Id,
@@ -129,6 +133,35 @@ public sealed class CpPriceConfigsWriteService : ICpPriceConfigsWriteService
                     (int)ReadLong(reader, 9),
                     ReadLong(reader, 10) != 0,
                     ReadString(reader, 11)));
+            }
+
+            return rows;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    public async Task<IReadOnlyList<CpPriceConfigTenantOption>> ListTenantOptionsAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `site_key`, IFNULL(`trade_name`, '') FROM `epc_portal_tenants` WHERE `site_key` <> '' ORDER BY `is_demo` DESC, `erp_only_shared` DESC, `site_key` ASC";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpPriceConfigTenantOption>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var key = ReadString(reader, 0);
+                var trade = ReadString(reader, 1).Trim();
+                rows.Add(new CpPriceConfigTenantOption(key, (trade.Length > 0 ? trade : key) + " (" + key + ")"));
             }
 
             return rows;
