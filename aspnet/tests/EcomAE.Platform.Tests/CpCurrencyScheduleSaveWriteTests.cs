@@ -35,8 +35,12 @@ public sealed class CpCurrencyScheduleSaveWriteTests
         Assert.Contains("name=\"enabled\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"timezone\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"hour\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/currencies/save-rates\"", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/currencies/live-rates/apply\"", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/currencies/schedule-run-now\"", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/currencies/set-available\"", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("stay Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);
@@ -50,8 +54,11 @@ public sealed class CpCurrencyScheduleSaveWriteTests
         Assert.Equal("write-live-gated", write.Status);
         Assert.Contains("schedule_save", write.Notes, StringComparison.Ordinal);
         Assert.Contains("epc_price_settings", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("ajax_currency_live_rates.php", write.Notes, StringComparison.Ordinal);
+        foreach (var route in new[] { EcomAeRoutes.CpCurrenciesSaveRates, EcomAeRoutes.CpCurrenciesLiveApply, EcomAeRoutes.CpCurrenciesScheduleRunNow })
+        {
+            Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.Single(item => item.AspNetRouteOrCapability == route).Status);
+        }
     }
 
     [Fact]
@@ -66,9 +73,7 @@ public sealed class CpCurrencyScheduleSaveWriteTests
         Assert.Contains("fx_live_auto_enabled", service, StringComparison.Ordinal);
         Assert.Contains("fx_live_auto_timezone", service, StringComparison.Ordinal);
         Assert.Contains("fx_live_auto_hour", service, StringComparison.Ordinal);
-        Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_price_settings`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);

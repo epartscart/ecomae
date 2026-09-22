@@ -998,6 +998,10 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpManufacturerSynonymWriteService
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrossWriteService, EcomAE.Platform.Cp.CpCrossWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditWriteService, EcomAE.Platform.Cp.CpPricesEditWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyWriteService, EcomAE.Platform.Cp.CpCurrencyWriteService>();
+builder.Services.AddHttpClient(EcomAE.Platform.Cp.CpCurrencyLiveRatesService.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(12));
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyLiveRatesService, EcomAE.Platform.Cp.CpCurrencyLiveRatesService>();
+builder.Services.Configure<EcomAE.Platform.Cp.CpCurrencyFxScheduleOptions>(builder.Configuration.GetSection(EcomAE.Platform.Cp.CpCurrencyFxScheduleOptions.SectionName));
+builder.Services.AddHostedService<EcomAE.Platform.Cp.CpCurrencyFxScheduleHostedService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnWriteService, EcomAE.Platform.Cp.CpReturnWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTaxToolkitWriteService, EcomAE.Platform.Cp.CpTaxToolkitWriteService>();

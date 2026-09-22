@@ -2,9 +2,11 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpCurrencyLiveRatesService LiveRates
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -13,132 +15,293 @@
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Currencies
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
-            <div class="panel-body">
-                <p>Save one ISO rate, mark currencies available, or save the nightly FX schedule here when confirmWrites is set. Live FX pull stays on the Classic twin. This page does not invent a send.</p>
+            <div class="panel-body epc-cur-actions">
+                @if (_canWrite)
+                {
+                    <button type="submit" form="rates_save_form" class="btn btn-default"><i class="fa fa-save"></i> Save rates</button>
+                    <button type="button" class="btn btn-default" onclick="epcCurSetAvailable(1)"><i class="fa fa-toggle-on"></i> Enable selected</button>
+                    <button type="button" class="btn btn-default" onclick="epcCurSetAvailable(0)"><i class="fa fa-toggle-off"></i> Disable selected</button>
+                }
+                <a class="btn btn-info" href="/cp/currencies-app?fx=preview"><i class="fa fa-refresh"></i> Fetch live rates</a>
+                @if (_canWrite)
+                {
+                    <form method="post" action="/cp/currencies/live-rates/apply" style="display:inline">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                        <button type="submit" class="btn btn-success"><i class="fa fa-check"></i> Apply live rates</button>
+                    </form>
+                }
+                <a class="btn btn-default" href="/cp"><i class="fa fa-power-off"></i> Exit</a>
+                @if (_canWrite)
+                {
+                    <form method="post" action="/cp/currencies/set-rate" class="form-inline" style="display:inline-block;margin-left:12px">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                        <input type="text" class="form-control input-sm" name="isoCode" maxlength="3" placeholder="ISO" style="width:5rem" required />
+                        <input type="text" class="form-control input-sm" name="rate" placeholder="rate" style="width:7rem" required />
+                        <button type="submit" class="btn btn-sm btn-default">Set single rate</button>
+                    </form>
+                }
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/currencies-app" IsAdmin="_isAdmin" />
 
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="alert alert-success" role="status">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status">@_flashErr</div>
-    }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/currencies/set-rate" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
-            <label>ISO <input type="text" name="isoCode" required maxlength="3" /></label>
-            <label>Rate <input type="text" name="rate" required /></label>
-            <button type="submit">Save rate</button>
-        </form>
-        <form method="post" action="/cp/currencies/set-available" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
-            <label>ISO codes <input type="text" name="isoCodes" required placeholder="USD,EUR" /></label>
-            <label>Available
-                <select name="available">
-                    <option value="1">yes</option>
-                    <option value="0">no</option>
-                </select>
-            </label>
-            <button type="submit">Set available</button>
-        </form>
-        <form method="post" action="/cp/currencies/schedule-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
-            <label>Nightly FX
-                <select name="enabled">
-                    <option value="1" selected>on</option>
-                    <option value="0">off</option>
-                </select>
-            </label>
-            <label>Timezone <input type="text" name="timezone" maxlength="64" value="Asia/Dubai" /></label>
-            <label>Hour <input type="number" name="hour" min="0" max="23" value="2" required style="width:5rem" /></label>
-            <button type="submit">Save schedule</button>
-        </form>
-        <p class="help-block" style="margin:0 0 1rem">Live FX pull, apply, and run-now stay Classic. This page does not invent a send.</p>
-    }
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Live FX vs main currency</div>
+            <div class="panel-body">
+                <p class="text-muted" style="margin:0 0 10px;font-size:13px;">
+                    Fetches mid-market rates against your main shop currency (<strong>@_mainCaption</strong>).
+                    Source priority: ExchangeRate-API (open.er-api.com) → ExchangeRate-API v4 → FloatRates.
+                    Shop rate = how many main-currency units equal <em>1</em> unit of the listed currency.
+                </p>
+                @if (_preview is null)
+                {
+                    <p class="help-block">Click <strong>Fetch live rates</strong> to compare current shop rates with live market rates before applying.</p>
+                }
+                else if (!_preview.Ok)
+                {
+                    <div class="alert alert-danger" role="alert">Live FX fetch failed: @_preview.Error</div>
+                }
+                else
+                {
+                    <div class="alert alert-info" role="status">
+                        Provider: <strong>@_preview.Provider</strong> · As of: @(_preview.AsOf.Length == 0 ? "—" : _preview.AsOf) · Base: @_preview.BaseAlpha
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-condensed table-striped">
+                            <thead>
+                                <tr><th>ISO</th><th>Code</th><th>Current rate</th><th>Live rate</th><th>Diff %</th><th>Main</th></tr>
+                            </thead>
+                            <tbody>
+                            @foreach (var r in _preview.Rows)
+                            {
+                                var diffClass = r.DiffPct is null ? "" : Math.Abs(r.DiffPct.Value) >= 1m ? "text-danger" : "text-success";
+                                <tr>
+                                    <td>@r.IsoCode</td>
+                                    <td>@r.IsoName</td>
+                                    <td>@r.CurrentRate.ToString("0.######", CultureInfo.InvariantCulture)</td>
+                                    <td>@(r.LiveRate is null ? "—" : r.LiveRate.Value.ToString("0.######", CultureInfo.InvariantCulture))</td>
+                                    <td class="@diffClass">@(r.DiffPct is null ? "—" : r.DiffPct.Value.ToString("+0.###;-0.###;0", CultureInfo.InvariantCulture) + "%")</td>
+                                    <td>@(r.IsMain ? "yes" : "")</td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_canWrite)
+                    {
+                        <button type="button" class="btn btn-sm btn-primary" onclick="epcCurFillFromLive()">Fill form fields from live rates</button>
+                        <form method="post" action="/cp/currencies/live-rates/apply" style="display:inline;margin-left:6px">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                            <button type="submit" class="btn btn-sm btn-success">Save live rates to database</button>
+                        </form>
+                    }
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Daily auto update (night)</div>
+            <div class="panel-body">
+                <p class="text-muted" style="margin:0 0 12px;font-size:13px;">
+                    Automatically fetch and apply live FX rates once per night using the same providers as above.
+                    The worker tick is safe to call every minute — it only applies when the nightly window is due.
+                </p>
+                @if (_canWrite)
+                {
+                    <form method="post" action="/cp/currencies/schedule-save" class="row" style="margin-bottom:10px">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                        <div class="col-sm-3">
+                            <label style="font-weight:600">Enabled</label>
+                            <div><label class="checkbox-inline" style="padding-left:0"><input type="checkbox" name="enabled" value="1" checked="@_schedule.Enabled" /> Daily auto update</label></div>
+                        </div>
+                        <div class="col-sm-3">
+                            <label for="epc_fx_tz" style="font-weight:600">Timezone</label>
+                            <input id="epc_fx_tz" type="text" class="form-control input-sm" name="timezone" maxlength="64" value="@_schedule.Timezone" />
+                        </div>
+                        <div class="col-sm-2">
+                            <label for="epc_fx_hour" style="font-weight:600">Night hour</label>
+                            <select id="epc_fx_hour" class="form-control input-sm" name="hour">
+                                @for (var h = 0; h <= 23; h++)
+                                {
+                                    <option value="@h" selected="@(h == _schedule.Hour)">@h.ToString("00", CultureInfo.InvariantCulture):00</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-sm-4">
+                            <label style="font-weight:600">Actions</label>
+                            <div>
+                                <button type="submit" class="btn btn-sm btn-primary">Save schedule</button>
+                                <button type="submit" class="btn btn-sm btn-success" form="fx_run_now_form">Run now</button>
+                            </div>
+                        </div>
+                    </form>
+                    <form id="fx_run_now_form" method="post" action="/cp/currencies/schedule-run-now">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                    </form>
+                }
+                <div style="font-size:13px;color:#334155;line-height:1.55">
+                    <div><strong>Status:</strong> @(_schedule.Enabled ? "enabled" : "disabled") · @_schedule.Hour.ToString("00", CultureInfo.InvariantCulture):00 @_schedule.Timezone</div>
+                    <div><strong>Local now:</strong> @_schedule.LocalNow</div>
+                    <div><strong>Due now:</strong> @(_schedule.Due ? "yes" : "no")</div>
+                    <div><strong>Next window:</strong> @_schedule.NextWindow</div>
+                    <div><strong>Last run:</strong> @_lastRunText</div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">Rates</div>
             <div class="panel-body">
-                <p class="help-block">@_currencies.Count shown (limit @_limit) · @_available available · @_unavailable unavailable.</p>
+                <p class="help-block">@_currencies.Count currencies · @_available available · @_unavailable unavailable.</p>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>ISO</th>
-                                <th>Name</th>
-                                <th>Short</th>
-                                <th>Rate</th>
-                                <th>Available</th>
-                                <th>Sort</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (_currencies.Count == 0)
-                        {
-                            <tr><td colspan="8">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var c in _currencies)
-                            {
+                    <form method="post" action="/cp/currencies/save-rates" id="rates_save_form" name="rates_save_form">
+                        <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                            <thead>
                                 <tr>
-                                    <td>@c.Id</td>
-                                    <td>@(string.IsNullOrWhiteSpace(c.IsoCode) ? "—" : c.IsoCode)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(c.IsoName) ? "—" : c.IsoName)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(c.CaptionShort) ? "—" : c.CaptionShort)</td>
-                                    <td>@c.Rate.ToString("0.####", CultureInfo.InvariantCulture)</td>
-                                    <td>@(c.Available ? "yes" : "no")</td>
-                                    <td>@c.SortOrder</td>
-                                    <td>
-                                        @if (_isAdmin && !string.IsNullOrWhiteSpace(c.IsoCode))
-                                        {
-                                            <form method="post" action="/cp/currencies/set-available" style="display:inline">
-                                                <input type="hidden" name="confirmWrites" value="true" />
-                                                <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
-                                                <input type="hidden" name="isoCodes" value="@c.IsoCode" />
-                                                <input type="hidden" name="available" value="@(c.Available ? "0" : "1")" />
-                                                <button type="submit">@(c.Available ? "Disable" : "Enable")</button>
-                                            </form>
-                                        }
-                                    </td>
+                                    @if (_canWrite)
+                                    {
+                                        <th style="width:28px"><input type="checkbox" id="epc_cur_check_all" onclick="epcCurCheckAll(this)" /></th>
+                                    }
+                                    <th>ID</th>
+                                    <th>ISO</th>
+                                    <th>Name</th>
+                                    <th>Short</th>
+                                    <th>Rate</th>
+                                    <th>Available</th>
+                                    <th>Sort</th>
+                                    <th></th>
                                 </tr>
+                            </thead>
+                            <tbody>
+                            @if (_currencies.Count == 0)
+                            {
+                                <tr><td colspan="9">No currencies configured yet.</td></tr>
                             }
+                            else
+                            {
+                                @foreach (var c in _currencies)
+                                {
+                                    var isMain = c.IsoCode == _mainIso;
+                                    <tr class="@(isMain ? "info" : "")">
+                                        @if (_canWrite)
+                                        {
+                                            <td><input type="checkbox" class="epc-cur-check" value="@c.IsoCode" disabled="@isMain" /></td>
+                                        }
+                                        <td>@c.Id</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.IsoCode) ? "—" : c.IsoCode)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.IsoName) ? "—" : c.IsoName)@(isMain ? " (main)" : "")</td>
+                                        <td>@(string.IsNullOrWhiteSpace(c.CaptionShort) ? "—" : c.CaptionShort)</td>
+                                        <td>
+                                            @if (_canWrite && !string.IsNullOrWhiteSpace(c.IsoCode))
+                                            {
+                                                <input type="text" class="form-control input-sm epc-cur-rate" style="width:9rem" name="rate_@c.IsoCode" data-iso-name="@c.IsoName" value="@c.Rate.ToString("0.######", CultureInfo.InvariantCulture)" required />
+                                            }
+                                            else
+                                            {
+                                                @c.Rate.ToString("0.######", CultureInfo.InvariantCulture)
+                                            }
+                                        </td>
+                                        <td>@(c.Available ? "yes" : "no")</td>
+                                        <td>@c.SortOrder</td>
+                                        <td>
+                                            @if (_canWrite && !string.IsNullOrWhiteSpace(c.IsoCode) && !isMain)
+                                            {
+                                                <button type="submit" class="btn btn-xs btn-default" form="avail_@c.Id">@(c.Available ? "Disable" : "Enable")</button>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            }
+                            </tbody>
+                        </table>
+                    </form>
+                    @if (_canWrite)
+                    {
+                        @foreach (var c in _currencies.Where(x => !string.IsNullOrWhiteSpace(x.IsoCode) && x.IsoCode != _mainIso))
+                        {
+                            <form id="avail_@c.Id" method="post" action="/cp/currencies/set-available">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                                <input type="hidden" name="isoCodes" value="@c.IsoCode" />
+                                <input type="hidden" name="available" value="@(c.Available ? "0" : "1")" />
+                            </form>
                         }
-                        </tbody>
-                    </table>
+                        <form id="bulk_available_form" method="post" action="/cp/currencies/set-available">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
+                            <input type="hidden" name="isoCodes" id="epc_cur_bulk_iso" value="" />
+                            <input type="hidden" name="available" id="epc_cur_bulk_available" value="1" />
+                        </form>
+                    }
                 </div>
             </div>
         </div>
     </div>
+
+    @if (_canWrite)
+    {
+        <script>
+            function epcCurCheckAll(master) {
+                document.querySelectorAll('.epc-cur-check:not([disabled])').forEach(function (cb) { cb.checked = master.checked; });
+            }
+            function epcCurSetAvailable(available) {
+                var codes = Array.prototype.slice.call(document.querySelectorAll('.epc-cur-check:checked')).map(function (cb) { return cb.value; });
+                if (codes.length === 0) { alert('Select at least one currency first.'); return; }
+                document.getElementById('epc_cur_bulk_iso').value = codes.join(',');
+                document.getElementById('epc_cur_bulk_available').value = String(available);
+                document.getElementById('bulk_available_form').submit();
+            }
+            function epcCurFillFromLive() {
+                var live = @_liveRatesJson;
+                document.querySelectorAll('.epc-cur-rate').forEach(function (input) {
+                    var iso = input.getAttribute('name').substring(5);
+                    if (Object.prototype.hasOwnProperty.call(live, iso)) { input.value = live[iso]; }
+                });
+            }
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/nastrojka-kursov-valyut";
     private bool _isAdmin;
+    private bool _canWrite;
     private IReadOnlyList<CpCurrencyDigest> _currencies = [];
     private int _available;
     private int _unavailable;
-    private int _limit = 200;
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _mainIso = "";
+    private string _mainCaption = "—";
+    private CpCurrencyLivePreview? _preview;
+    private CpCurrencyFxSchedule _schedule = CpCurrencyLiveRatesService.BuildSchedule(true, "Asia/Dubai", 2, 0, "", "", "", DateTimeOffset.UtcNow);
+    private string _lastRunText = "never";
+    private MarkupString _liveRatesJson = new("{}");
 
     protected override async Task OnInitializedAsync()
     {
@@ -149,14 +312,47 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _canWrite = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.ListCpCurrenciesAsync(_limit, ctx.RequestAborted);
+        var result = await Dashboards.ListCpCurrenciesAsync(500, ctx.RequestAborted);
         _currencies = result.Currencies;
         _available = _currencies.Count(c => c.Available);
         _unavailable = _currencies.Count(c => !c.Available);
+
+        _schedule = await LiveRates.GetScheduleAsync(ctx.RequestAborted);
+        if (_schedule.LastRunAt > 0)
+        {
+            var when = DateTimeOffset.FromUnixTimeSeconds(_schedule.LastRunAt).ToString("yyyy-MM-dd HH:mm 'UTC'", CultureInfo.InvariantCulture);
+            _lastRunText = $"{when} · {(_schedule.LastStatus.Length == 0 ? "—" : _schedule.LastStatus)}"
+                           + (_schedule.LastProvider.Length == 0 ? "" : $" · {_schedule.LastProvider}")
+                           + (_schedule.LastMessage.Length == 0 ? "" : $" · {_schedule.LastMessage}");
+        }
+
+        if (string.Equals(ctx.Request.Query["fx"].ToString(), "preview", StringComparison.OrdinalIgnoreCase))
+        {
+            _preview = await LiveRates.PreviewAsync(ctx.RequestAborted);
+            if (_preview.Ok)
+            {
+                var map = _preview.Rows
+                    .Where(r => r.LiveRate is not null && r.IsoCode.Length > 0)
+                    .ToDictionary(r => r.IsoCode, r => r.LiveRate!.Value.ToString("0.######", CultureInfo.InvariantCulture), StringComparer.Ordinal);
+                _liveRatesJson = new MarkupString(System.Text.Json.JsonSerializer.Serialize(map));
+            }
+        }
+
+        var (mainIso, mainAlpha) = await LiveRates.GetMainCurrencyAsync(ctx.RequestAborted);
+        _mainIso = mainIso;
+        var mainRow = _currencies.FirstOrDefault(c => c.IsoCode == _mainIso)
+                      ?? _currencies.FirstOrDefault(c => string.Equals(c.IsoName, mainAlpha, StringComparison.OrdinalIgnoreCase));
+        if (mainRow is not null)
+        {
+            _mainIso = mainRow.IsoCode;
+        }
+
+        _mainCaption = mainRow is null ? mainAlpha : $"{mainRow.IsoName} ({mainRow.IsoCode})";
     }
 }

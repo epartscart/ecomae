@@ -6308,6 +6308,168 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpCurrenciesSaveRates, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin CP capability required for currency rates.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, message = "Form post with rate_<iso> fields required." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var rates = new Dictionary<string, string>(StringComparer.Ordinal);
+            foreach (var key in form.Keys)
+            {
+                if (key.StartsWith("rate_", StringComparison.Ordinal) && key.Length > 5)
+                {
+                    rates[key[5..]] = form[key].ToString();
+                }
+            }
+
+            var written = await writes.SaveRatesAsync(rates, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/currencies-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.CpCurrenciesLivePreview, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyLiveRatesService live,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin capability required for live FX preview.");
+            }
+
+            var preview = await live.PreviewAsync(cancellationToken);
+            return Results.Json(new
+            {
+                ok = preview.Ok,
+                error = preview.Error,
+                base_iso_code = preview.BaseIsoCode,
+                base_alpha = preview.BaseAlpha,
+                provider = preview.Provider,
+                as_of = preview.AsOf,
+                fetched_at = preview.FetchedAt,
+                rows = preview.Rows.Select(r => new
+                {
+                    id = r.Id,
+                    iso_code = r.IsoCode,
+                    iso_name = r.IsoName,
+                    caption = r.Caption,
+                    available = r.Available ? 1 : 0,
+                    is_main = r.IsMain ? 1 : 0,
+                    current_rate = r.CurrentRate,
+                    live_rate = r.LiveRate,
+                    has_live = r.LiveRate is null ? 0 : 1,
+                    diff_pct = r.DiffPct
+                })
+            });
+        });
+        endpoints.MapPost(EcomAeRoutes.CpCurrenciesLiveApply, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyLiveRatesService live,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin CP capability required to apply live FX rates.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCurrenciesLiveApplyBody>(context, cancellationToken) ?? new();
+            var isoCodes = body.IsoCodes;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                isoCodes = string.Join(",", form["isoCodes"].Concat(form["iso_codes"]).Where(v => !string.IsNullOrWhiteSpace(v)));
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, validation_code = "dry_run", message = "Set confirmWrites=true to apply live FX rates on ASP.NET.", session = SessionPayload(session) });
+            }
+
+            var only = CpCurrencyWriteService.ParseIsoList(isoCodes);
+            var applied = await live.ApplyAsync(only.Count == 0 ? null : only, cancellationToken);
+            var message = applied.Ok
+                ? $"Applied live rates from {applied.Provider}: {applied.Updated} updated, {applied.Skipped} skipped."
+                : applied.Error;
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/currencies-app",
+                applied.Ok,
+                message,
+                new { ok = applied.Ok, updated = applied.Updated, skipped = applied.Skipped, provider = applied.Provider, as_of = applied.AsOf, error = applied.Error, message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.CpCurrenciesScheduleGet, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyLiveRatesService live,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin capability required for FX schedule.");
+            }
+
+            var schedule = await live.GetScheduleAsync(cancellationToken);
+            return Results.Json(new { ok = true, schedule = SchedulePayload(schedule) });
+        });
+        endpoints.MapPost(EcomAeRoutes.CpCurrenciesScheduleRunNow, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCurrencyLiveRatesService live,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/currencies-app", "Admin CP capability required to run the FX schedule.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCurrenciesScheduleRunNowBody>(context, cancellationToken) ?? new();
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, validation_code = "dry_run", message = "Set confirmWrites=true to run the nightly FX apply now on ASP.NET.", session = SessionPayload(session) });
+            }
+
+            var tick = await live.TickAsync(force: true, cancellationToken);
+            var message = tick.Ok
+                ? $"FX run completed via {tick.Provider}: {tick.Updated} rate(s) updated."
+                : tick.Error;
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/currencies-app",
+                tick.Ok,
+                message,
+                new { ok = tick.Ok, ran = tick.Ran, updated = tick.Updated, provider = tick.Provider, as_of = tick.AsOf, error = tick.Error, message, schedule = SchedulePayload(tick.Schedule), session = SessionPayload(session) });
+        }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelApiClients, async (
             HttpContext context,
@@ -13227,6 +13389,23 @@ public sealed class ControlPanelModule : ISurfaceModule
         int Enabled = 0,
         string? Timezone = null,
         int Hour = 2);
+    private sealed record CpCurrenciesLiveApplyBody(bool ConfirmWrites = false, string? IsoCodes = null);
+    private sealed record CpCurrenciesScheduleRunNowBody(bool ConfirmWrites = false);
+
+    private static object SchedulePayload(CpCurrencyFxSchedule s) => new
+    {
+        enabled = s.Enabled ? 1 : 0,
+        timezone = s.Timezone,
+        hour = s.Hour,
+        last_run_at = s.LastRunAt,
+        last_status = s.LastStatus,
+        last_provider = s.LastProvider,
+        last_message = s.LastMessage,
+        local_now = s.LocalNow,
+        local_date = s.LocalDate,
+        due = s.Due,
+        next_window = s.NextWindow
+    };
     private sealed record CpPricesEditWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
