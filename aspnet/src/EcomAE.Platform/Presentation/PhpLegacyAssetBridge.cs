@@ -239,6 +239,9 @@ public static class PhpLegacyAssetBridge
                      // CP Accessories Marketplace (PHP accessories_listings.php / taxonomy panel)
                      ("/platform-assets/epc_accessories_cp.css",
                          "cp/content/shop/accessories/epc_accessories_cp.css"),
+                     // CP Bulk upload hub (PHP bulk_upload_hub.php)
+                     ("/platform-assets/epc_bulk_cp.css",
+                         "content/general_pages/epc_bulk_cp.css"),
                      // CP Users console (PHP user_manager / user.php dual-pane)
                      ("/platform-assets/epc_users_cp.css",
                          "cp/content/users/epc_users_cp.css"),
