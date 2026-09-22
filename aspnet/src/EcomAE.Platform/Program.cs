@@ -1007,6 +1007,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformGovernanceWriteService,
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmConvertWriteService, EcomAE.Platform.Cp.CpCrmConvertWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Platform.Cp.CpWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopDeskService, EcomAE.Platform.Cp.CpWorkshopDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmDeskService, EcomAE.Platform.Cp.CpCrmDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCsrfGuard, EcomAE.Platform.Cp.CpCsrfGuard>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWorkshopWriteService, EcomAE.Platform.Storefront.StorefrontWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCollectionsDunningWriteService, EcomAE.Platform.Cp.CpCollectionsDunningWriteService>();

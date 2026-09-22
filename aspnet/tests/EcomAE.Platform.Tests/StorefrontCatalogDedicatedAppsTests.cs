@@ -371,7 +371,9 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         var board = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpCrmBoardApp.razor"));
         Assert.Contains("class=\"hpanel\"", board, StringComparison.Ordinal);
         Assert.Contains("Classic twin", board, StringComparison.Ordinal);
-        Assert.DoesNotContain("epc-crm-hero", board, StringComparison.Ordinal);
+        Assert.Contains("epc-crm-shell epc-crm-enterprise", board, StringComparison.Ordinal);
+        Assert.Contains("epc-crm-hero", board, StringComparison.Ordinal);
+        Assert.Contains("epc-crm-kpi", board, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-crm-kpis", board, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference", board, StringComparison.Ordinal);
 

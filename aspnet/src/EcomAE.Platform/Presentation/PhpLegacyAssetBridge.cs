@@ -184,6 +184,16 @@ public static class PhpLegacyAssetBridge
                          "cp/content/shop/workshop/epc_workshop.css"),
                      ("/platform-assets/epc_workshop.js",
                          "cp/content/shop/workshop/epc_workshop.js"),
+                     ("/platform-assets/epc_erp_ui.css",
+                         "content/shop/finance/epc_erp_ui.css"),
+                     ("/platform-assets/epc_erp_professional.css",
+                         "content/shop/finance/epc_erp_professional.css"),
+                     ("/platform-assets/epc_crm_ui.css",
+                         "content/shop/finance/epc_crm_ui.css"),
+                     ("/platform-assets/epc_crm_enterprise.css",
+                         "content/shop/finance/epc_crm_enterprise.css"),
+                     ("/platform-assets/epc_crm_board.js",
+                         "cp/content/shop/crm/epc_crm_board.js"),
                  })
         {
             var localRelative = relative;

@@ -23,14 +23,12 @@ public sealed class CpCrmConvertWriteTests
         Assert.Contains("name=\"action\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"convert_lead\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"lead_id\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"csrf_guard_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
-        Assert.Contains("Email/phone omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-crm-convert-form", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("_opened.Email", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("_opened.Phone", razor, StringComparison.Ordinal);
     }
 
     [Fact]

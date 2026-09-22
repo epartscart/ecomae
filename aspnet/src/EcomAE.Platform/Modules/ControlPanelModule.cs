@@ -2487,7 +2487,17 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpCrmActionDryRun dryRun,
+            ICpCsrfGuard csrf,
+            ICpCrmDeskService desk,
             ICpCrmWriteService writes,
+            ICpCrmOpportunityWriteService opportunities,
+            ICpCrmConvertWriteService converts,
+            ICpCrmActivityWriteService activities,
+            ICpCrmQuoteWriteService quotes,
+            ICpCrmTicketWriteService tickets,
+            ICpCrmProjectWriteService projects,
+            ICpCrmContractWriteService contracts,
+            ICpCrmExpenseWriteService expenses,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -2497,71 +2507,453 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/crm-board-app", "Admin CP or ERP capability required for CRM write.");
             }
 
-            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpCrmActionBody>(context, cancellationToken)
-                       ?? new();
-            var action = body.Action;
-            var id = body.Id;
-            var company = body.Company;
-            var contactName = body.ContactName;
-            var email = body.Email;
-            var phone = body.Phone;
-            var source = body.Source;
-            var status = body.Status;
-            var ownerUserId = body.OwnerUserId;
-            var expectedValue = body.ExpectedValue;
-            var notes = body.Notes;
-            var confirm = body.ConfirmWrites;
-            if (context.Request.HasFormContentType)
-            {
-                var form = await context.Request.ReadFormAsync(cancellationToken);
-                action = LiveWriteFormBinder.Text(form, "action");
-                id = LiveWriteFormBinder.Long(form, "id", "lead_id", "leadId");
-                company = LiveWriteFormBinder.Text(form, "company");
-                contactName = LiveWriteFormBinder.Text(form, "contact_name", "contactName");
-                email = LiveWriteFormBinder.Text(form, "email");
-                phone = LiveWriteFormBinder.Text(form, "phone");
-                source = LiveWriteFormBinder.Text(form, "source");
-                status = LiveWriteFormBinder.Text(form, "status");
-                ownerUserId = LiveWriteFormBinder.Long(form, "owner_user_id", "ownerUserId", "owner");
-                expectedValue = LiveWriteFormBinder.Dec(form, "expected_value", "expectedValue", "amount");
-                notes = LiveWriteFormBinder.Text(form, "notes");
-                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
-            }
+            var input = context.Request.HasFormContentType
+                ? CpCrmActionInput.FromForm(await context.Request.ReadFormAsync(cancellationToken))
+                : await CpCrmActionInput.FromJsonAsync(context, cancellationToken);
+            var key = input.Text("action");
+            var confirm = input.Flag("confirmWrites", "confirm_writes");
+            var canonical = key.StartsWith("crm_", StringComparison.Ordinal) ? key.Substring(4) : key;
+            var sessionPayload = SessionPayload(session);
 
-            var key = (action ?? string.Empty).Trim();
-            if (confirm && key is "save_lead" or "crm_save_lead")
+            IResult Json(bool ok, string message, object? extra = null, string? tab = null, long? openId = null, string? openKey = null)
             {
-                var owner = ownerUserId;
-                if (id <= 0 && owner <= 0)
+                var dest = "/cp/crm-board-app" + (tab is null ? string.Empty : "?tab=" + tab);
+                if (ok && openId is > 0 && openKey is not null)
                 {
-                    owner = session.UserId;
+                    dest += (dest.Contains('?', StringComparison.Ordinal) ? "&" : "?") + openKey + "=" + openId.Value.ToString(CultureInfo.InvariantCulture);
                 }
 
-                var written = await writes.SaveLeadAsync(
-                    id, company, contactName, email, phone, source, status, owner, expectedValue, notes, cancellationToken);
-                var dest = written.Succeeded && written.Id > 0
-                    ? "/cp/crm-board-app?lead_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
-                    : "/cp/crm-board-app";
-                return LiveWriteFormBinder.Complete(
-                    context,
-                    dest,
-                    written.Succeeded,
-                    written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                var payload = new Dictionary<string, object?>(StringComparer.Ordinal)
+                {
+                    ["status"] = ok,
+                    ["ok"] = ok,
+                    ["message"] = message,
+                    ["phpAuthoritative"] = false,
+                    ["cutoverAllowed"] = false,
+                    ["session"] = sessionPayload,
+                };
+                if (extra is not null)
+                {
+                    foreach (var prop in extra.GetType().GetProperties())
+                    {
+                        payload[prop.Name] = prop.GetValue(extra);
+                    }
+                }
+
+                var accept = context.Request.Headers.Accept.ToString();
+                var xhr = accept.Contains("application/json", StringComparison.OrdinalIgnoreCase)
+                          || context.Request.Headers.XRequestedWith.Count > 0;
+                if (xhr)
+                {
+                    return Results.Json(payload, statusCode: ok ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+                }
+
+                return LiveWriteFormBinder.Complete(context, dest, ok, message, payload);
             }
 
-            if (confirm && key is "delete_lead" or "crm_delete_lead")
+            var isRead = canonical is "get_lead" or "get_opportunity" or "get_ticket" or "get_project" or "get_timeline"
+                or "won_hint" or "customer_360" or "score_lead" or "quote_tax" or "dashboard" or "pipeline" or "adv_dashboard";
+            if (!isRead && !confirm)
             {
-                var written = await writes.DeleteLeadAsync(id, cancellationToken);
-                return LiveWriteFormBinder.Complete(
-                    context,
-                    "/cp/crm-board-app",
-                    written.Succeeded,
-                    written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                return Results.Ok(dryRun.Evaluate(new CpCrmActionRequest(key, confirm)).ToPayload(sessionPayload));
             }
 
-            return Results.Ok(dryRun.Evaluate(new CpCrmActionRequest(action, confirm)).ToPayload(SessionPayload(session)));
+            var verdict = await csrf.VerifyAsync(context, session, input.TextOrNull(CpCsrfGuard.FieldName), cancellationToken);
+            if (!verdict.Ok)
+            {
+                return Json(false, verdict.Message, new { validation_code = verdict.Code, error = verdict.Message });
+            }
+
+            var id = input.Long("id");
+            switch (canonical)
+            {
+                case "save_lead":
+                {
+                    var leadId = input.Long("id", "lead_id", "leadId");
+                    var owner = input.Long("owner_user_id", "ownerUserId", "owner");
+                    if (leadId <= 0 && owner <= 0)
+                    {
+                        owner = session.UserId;
+                    }
+
+                    var written = await writes.SaveLeadAsync(
+                        leadId,
+                        input.Text("company"),
+                        input.Text("contact_name", "contactName"),
+                        input.Text("email"),
+                        input.Text("phone"),
+                        input.Text("source"),
+                        input.Text("status"),
+                        owner,
+                        input.Dec("expected_value", "expectedValue", "amount"),
+                        input.TextOrNull("notes"),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Lead saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "leads", written.Id, "lead_id");
+                }
+
+                case "delete_lead":
+                {
+                    var written = await writes.DeleteLeadAsync(input.Long("id", "lead_id", "leadId"), cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Lead removed" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "leads");
+                }
+
+                case "save_opportunity":
+                {
+                    var written = await opportunities.SaveAsync(
+                        new CpCrmOpportunitySaveRequest(
+                            id,
+                            input.Long("lead_id"),
+                            input.Text("title"),
+                            input.Text("stage"),
+                            input.Dec("amount"),
+                            input.Int("probability"),
+                            input.TextOrNull("close_date"),
+                            input.Has("owner_user_id") ? input.Long("owner_user_id") : session.UserId,
+                            input.Long("linked_user_id"),
+                            input.TextOrNull("notes")),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Opportunity saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "opportunities", written.Id, "opportunity_id");
+                }
+
+                case "update_stage":
+                {
+                    var written = await opportunities.UpdateStageAsync(id, input.Text("stage"), cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Stage updated" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "pipeline");
+                }
+
+                case "convert_lead":
+                {
+                    var written = await converts.ConvertLeadAsync(
+                        input.Long("lead_id", "id"),
+                        input.Has("owner_user_id") ? input.Long("owner_user_id") : session.UserId,
+                        cancellationToken);
+                    return Json(written.Succeeded,
+                        written.Succeeded ? "Lead converted to opportunity #" + written.Id.ToString(CultureInfo.InvariantCulture) : written.Message,
+                        new { opportunity_id = written.Id, writes = written.Writes, validation_code = written.Code }, "opportunities", written.Id, "opportunity_id");
+                }
+
+                case "won_hint":
+                {
+                    var hint = await desk.WonHintAsync(input.Long("opportunity_id", "id"), cancellationToken);
+                    return Json(true, hint.Hint, new { hint = hint.Hint, linked_user_id = hint.LinkedUserId, amount = hint.Amount, title = hint.Title });
+                }
+
+                case "get_timeline":
+                {
+                    var tl = await desk.TimelineAsync(input.Text("entity_type").Length > 0 ? input.Text("entity_type") : "lead", input.Long("entity_id"), cancellationToken);
+                    return tl is null
+                        ? Json(false, "Entity not found")
+                        : Json(true, "OK", new
+                        {
+                            entity_type = tl.EntityType,
+                            entity = new { id = tl.EntityId, caption = tl.EntityCaption },
+                            activities = tl.Activities,
+                            quotes = tl.Quotes,
+                            linked_user_id = tl.LinkedUserId,
+                            orders = tl.Orders,
+                            has_commerce = tl.HasCommerce,
+                        });
+                }
+
+                case "save_activity":
+                {
+                    var written = await activities.SaveAsync(
+                        new CpCrmActivitySaveRequest(
+                            id,
+                            input.Text("activity_type"),
+                            input.Text("related_type"),
+                            input.Long("related_id"),
+                            input.TextOrNull("due_date"),
+                            input.Flag("done"),
+                            input.Has("owner_user_id") ? input.Long("owner_user_id") : session.UserId,
+                            input.TextOrNull("notes")),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Activity saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "activities");
+                }
+
+                case "toggle_activity":
+                {
+                    var written = await activities.ToggleDoneAsync(id, input.Flag("done"), cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Activity updated" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "activities");
+                }
+
+                case "dashboard":
+                {
+                    var data = await desk.DashboardAsync(cancellationToken);
+                    return Json(true, "OK", new { data });
+                }
+
+                case "adv_dashboard":
+                {
+                    var data = await desk.LoadAsync("intelligence", "", cancellationToken);
+                    return Json(true, "OK", new { data = data.Intelligence });
+                }
+
+                case "pipeline":
+                {
+                    var board = await desk.PipelineAsync(cancellationToken);
+                    return Json(true, "OK", new { board });
+                }
+
+                case "save_quote":
+                {
+                    var written = await quotes.SaveAsync(
+                        new CpCrmQuoteSaveRequest(
+                            id,
+                            input.Long("opportunity_id"),
+                            input.Long("lead_id"),
+                            input.Long("customer_user_id"),
+                            input.TextOrNull("quote_number"),
+                            input.Text("status"),
+                            input.TextOrNull("notes"),
+                            input.TextOrNull("line_description"),
+                            input.Has("line_qty") ? input.Dec("line_qty") : 1m,
+                            input.Dec("line_unit_price")),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Quote saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "quotes", written.Id, "quote_id");
+                }
+
+                case "accept_quote":
+                {
+                    var r = await quotes.AcceptAsync(input.Long("quote_id", "id"), cancellationToken);
+                    return Json(r.Succeeded,
+                        r.Succeeded ? "Quote accepted — order #" + r.OrderId.ToString(CultureInfo.InvariantCulture) : r.Message,
+                        new { quote_id = r.QuoteId, order_id = r.OrderId }, "quotes", r.QuoteId, "quote_id");
+                }
+
+                case "quote_preview":
+                {
+                    var r = await quotes.PreviewAsync(input.Long("quote_id", "id"), cancellationToken);
+                    return Json(r.Succeeded, r.Succeeded ? "Preview ready" : r.Message, new { preview_url = r.Path }, "quotes");
+                }
+
+                case "quote_email":
+                {
+                    var r = await quotes.QueueEmailAsync(input.Long("quote_id", "id"), input.TextOrNull("email"), cancellationToken);
+                    return Json(r.Succeeded,
+                        r.Succeeded ? "Email queued to " + r.To + " (stub log saved)" : r.Message,
+                        new { to = r.To, queued = r.Queued, preview_url = r.PreviewPath }, "quotes");
+                }
+
+                case "quote_tax":
+                {
+                    var t = await quotes.TaxTotalsAsync(input.Long("quote_id", "id"), cancellationToken);
+                    return Json(true, "OK", new
+                    {
+                        tax = new
+                        {
+                            quote_id = t.QuoteId,
+                            subtotal = t.Subtotal,
+                            tax_rate = t.TaxRate,
+                            tax_amount = t.TaxAmount,
+                            total = t.Total,
+                            tax_label = t.TaxLabel,
+                            currency = t.Currency,
+                            engine = t.Engine,
+                        },
+                    });
+                }
+
+                case "save_ticket":
+                {
+                    var written = await tickets.SaveAsync(
+                        new CpCrmTicketSaveRequest(
+                            id,
+                            input.Long("customer_user_id"),
+                            input.Long("order_id"),
+                            input.Text("subject"),
+                            input.Text("status"),
+                            input.Text("priority"),
+                            input.Long("assigned_user_id"),
+                            input.TextOrNull("message"),
+                            session.UserId),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Ticket saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "tickets", written.Id, "ticket_id");
+                }
+
+                case "update_ticket_status":
+                {
+                    var written = await tickets.UpdateStatusAsync(
+                        id, input.TextOrNull("status"), input.TextOrNull("priority"), input.TextOrNull("message"), session.UserId, cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Ticket updated" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "tickets", id, "ticket_id");
+                }
+
+                case "save_project":
+                {
+                    var written = await projects.SaveAsync(
+                        new CpCrmProjectSaveRequest(
+                            id,
+                            input.Text("name"),
+                            input.Long("opportunity_id"),
+                            input.Long("order_id"),
+                            input.Text("status"),
+                            input.Int("progress_pct"),
+                            input.TextOrNull("start_date"),
+                            input.TextOrNull("end_date"),
+                            input.Has("owner_user_id") ? input.Long("owner_user_id") : session.UserId,
+                            input.TextOrNull("notes")),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Project saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "projects", written.Id, "project_id");
+                }
+
+                case "save_project_task":
+                {
+                    var projectId = input.Long("project_id");
+                    var written = await projects.SaveTaskAsync(
+                        new CpCrmProjectTaskSaveRequest(
+                            projectId,
+                            input.Text("title"),
+                            input.Text("status"),
+                            input.Int("progress_pct"),
+                            input.Dec("hours_est"),
+                            input.TextOrNull("due_date")),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Task added" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "projects", projectId, "project_id");
+                }
+
+                case "save_contract":
+                {
+                    var written = await contracts.SaveAsync(
+                        new CpCrmContractSaveRequest(
+                            id,
+                            input.Long("customer_user_id"),
+                            input.Text("title"),
+                            input.Dec("amount"),
+                            input.Text("billing_interval"),
+                            input.TextOrNull("next_billing_date"),
+                            input.Text("status"),
+                            input.TextOrNull("notes")),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Contract saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "contracts");
+                }
+
+                case "save_expense":
+                {
+                    var written = await expenses.SaveAsync(
+                        new CpCrmExpenseSaveRequest(
+                            id,
+                            input.Has("employee_user_id") ? input.Long("employee_user_id") : session.UserId,
+                            input.Dec("amount"),
+                            input.Text("category"),
+                            input.Text("status"),
+                            input.TextOrNull("receipt_note")),
+                        cancellationToken);
+                    return Json(written.Succeeded, written.Succeeded ? "Expense saved" : written.Message,
+                        new { id = written.Id, writes = written.Writes, validation_code = written.Code }, "expenses");
+                }
+
+                case "approve_expense":
+                {
+                    var r = await expenses.ApproveAsync(input.Long("expense_id", "id"), input.Flag("post_cash"), session.UserId, cancellationToken);
+                    var msg = r.Succeeded
+                        ? "Expense approved" + (r.CashEntryId > 0 ? " (cash entry #" + r.CashEntryId.ToString(CultureInfo.InvariantCulture) + ")" : string.Empty)
+                        : r.Message;
+                    return Json(r.Succeeded, msg, new { expense_id = r.ExpenseId, cash_entry_id = r.CashEntryId }, "expenses");
+                }
+
+                case "get_lead":
+                {
+                    var lead = await desk.GetLeadAsync(id, cancellationToken);
+                    return lead is null
+                        ? Json(false, "Lead not found")
+                        : Json(true, "OK", new
+                        {
+                            lead = new
+                            {
+                                id = lead.Id, company = lead.Company, contact_name = lead.ContactName, email = lead.Email, phone = lead.Phone,
+                                source = lead.Source, status = lead.Status, owner_user_id = lead.OwnerUserId, expected_value = lead.ExpectedValue,
+                                notes = lead.Notes, time_created = lead.TimeCreated, time_updated = lead.TimeUpdated,
+                                lead_score = lead.Score.Score, lead_band = lead.Score.Band, score_reasons = lead.Score.Reasons,
+                            },
+                        });
+                }
+
+                case "score_lead":
+                {
+                    var score = await desk.ScoreLeadAsync(id, cancellationToken);
+                    return Json(true, "OK", new { score = new { score = score.Score, band = score.Band, reasons = score.Reasons } });
+                }
+
+                case "get_opportunity":
+                {
+                    var opp = await desk.GetOpportunityAsync(id, cancellationToken);
+                    return opp is null
+                        ? Json(false, "Opportunity not found")
+                        : Json(true, "OK", new
+                        {
+                            opportunity = new
+                            {
+                                id = opp.Id, lead_id = opp.LeadId, title = opp.Title, stage = opp.Stage, amount = opp.Amount, probability = opp.Probability,
+                                close_date = opp.CloseDate, owner_user_id = opp.OwnerUserId, linked_user_id = opp.LinkedUserId, notes = opp.Notes,
+                            },
+                        });
+                }
+
+                case "get_ticket":
+                {
+                    var t = await desk.GetTicketAsync(id, cancellationToken);
+                    return t is null
+                        ? Json(false, "Ticket not found")
+                        : Json(true, "OK", new
+                        {
+                            ticket = new
+                            {
+                                id = t.Ticket.Id, customer_user_id = t.Ticket.CustomerUserId, order_id = t.Ticket.OrderId, subject = t.Ticket.Subject,
+                                status = t.Ticket.Status, priority = t.Ticket.Priority, assigned_user_id = t.Ticket.AssignedUserId,
+                                time_created = t.Ticket.TimeCreated, time_updated = t.Ticket.TimeUpdated,
+                                messages = t.Messages.Select(m => new { id = m.Id, author_user_id = m.AuthorUserId, is_staff = m.IsStaff ? 1 : 0, body = m.Body, time_created = m.TimeCreated }),
+                            },
+                        });
+                }
+
+                case "get_project":
+                {
+                    var p = await desk.GetProjectAsync(id, cancellationToken);
+                    return p is null
+                        ? Json(false, "Project not found")
+                        : Json(true, "OK", new
+                        {
+                            project = new
+                            {
+                                id = p.Project.Id, name = p.Project.Name, opportunity_id = p.Project.OpportunityId, order_id = p.Project.OrderId,
+                                status = p.Project.Status, progress_pct = p.Project.ProgressPct, start_date = p.Project.StartDate, end_date = p.Project.EndDate,
+                                owner_user_id = p.Project.OwnerUserId, notes = p.Project.Notes,
+                                tasks = p.Tasks.Select(t => new { id = t.Id, title = t.Title, status = t.Status, progress_pct = t.ProgressPct, hours_est = t.HoursEst, hours_logged = t.HoursLogged, due_date = t.DueDate }),
+                            },
+                        });
+                }
+
+                case "customer_360":
+                {
+                    var c = await desk.Customer360Async(input.Long("user_id"), cancellationToken);
+                    return Json(true, "OK", new
+                    {
+                        customer360 = new
+                        {
+                            user_id = c.UserId,
+                            opportunities = new { count = c.OppCount, open_value = c.OppOpenValue, won_value = c.OppWonValue },
+                            quotes = new { count = c.QuoteCount, accepted = c.QuoteAccepted, value = c.QuoteValue },
+                            tickets = new { open = c.TicketsOpen, total = c.TicketsTotal },
+                            sales = new { orders = c.SalesOrders, revenue = c.SalesRevenue },
+                        },
+                    });
+                }
+
+                default:
+                    return Json(false, "Unknown CRM action", new { validation_code = "unknown_action" });
+            }
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.CpModuleAjaxWriteCatalog, (ICpModuleAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
@@ -8351,7 +8743,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_crm_* KPIs + leads (email/phone omitted on the list). Open ?lead_id= loads a 280-char notes excerpt. save_lead / delete_lead POST /cp/crm/action and convert_lead POST /cp/crm/leads/convert when confirmWrites=true. Quote email stays Classic."
+                note = "Full crm_main.php twin: 12 tabs over epc_crm_* (dashboard, intelligence, pipeline, leads, opportunities, accounts, quotes, activities, tickets, projects, contracts, expenses). All ajax_crm actions POST /cp/crm/action (convert_lead also /cp/crm/leads/convert) with csrf_guard_key when confirmWrites=true; quote email uses the PHP queue stub."
             });
         });
 
@@ -15011,19 +15403,6 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? ReceiptFooter = null);
     private sealed record CpPortalSaveSettingsBody(string? Action = null, bool ConfirmWrites = false);
     private sealed record CpPortalDeploySiteBody(string? Action = null, bool ConfirmWrites = false);
-    private sealed record CpCrmActionBody(
-        string? Action = null,
-        bool ConfirmWrites = false,
-        long Id = 0,
-        string? Company = null,
-        string? ContactName = null,
-        string? Email = null,
-        string? Phone = null,
-        string? Source = null,
-        string? Status = null,
-        long OwnerUserId = 0,
-        decimal ExpectedValue = 0,
-        string? Notes = null);
     private sealed record CpModuleAjaxWriteRegistryBody(bool ConfirmWrites = false);
     private sealed record CpModuleAjaxWriteDedicatedBody(bool ConfirmWrites = false);
     private sealed record CpLangSetIsCustomBody(string? Action = null, bool ConfirmWrites = false, string? StrKey = null, int IsCustom = -1);
