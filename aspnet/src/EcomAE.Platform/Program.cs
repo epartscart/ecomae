@@ -749,6 +749,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsWhatsappWriteService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPluginsWriteService, EcomAE.Platform.Cp.CpPluginsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTemplatesWriteService, EcomAE.Platform.Cp.CpTemplatesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpNotificationSettingsWriteService, EcomAE.Platform.Cp.CpNotificationSettingsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpNotificationSettingsEditorService, EcomAE.Platform.Cp.CpNotificationSettingsEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPromoWriteService, EcomAE.Platform.Cp.CpPromoWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpObtainingModeWriteService, EcomAE.Platform.Cp.CpObtainingModeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpGeoTreeWriteService, EcomAE.Platform.Cp.CpGeoTreeWriteService>();

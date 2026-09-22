@@ -496,8 +496,12 @@ public static class EcomAeRoutes
     public const string ControlPanelNotifications = "/cp/notifications";
     /// <summary>CP Notifications Blazor list (JSON digest remains <see cref="ControlPanelNotifications"/>).</summary>
     public const string ControlPanelNotificationsApp = "/cp/notifications-app";
-    /// <summary>PHP <c>notifications.php</c> <c>action=set_send</c>. <c>confirmWrites=true</c> toggles <c>email_on</c> / <c>sms_on</c>. Template edit, factory restore, and send stay Classic.</summary>
+    /// <summary>PHP <c>notifications.php</c> <c>action=set_send</c>. <c>confirmWrites=true</c> toggles <c>email_on</c> / <c>sms_on</c>.</summary>
     public const string ControlPanelNotificationsToggle = "/cp/notifications/toggle";
+    /// <summary>PHP <c>notifications.php</c> <c>action=set_default</c>. <c>confirmWrites=true</c> restores factory template text (all languages) and channel flags for the selected ids.</summary>
+    public const string ControlPanelNotificationsRestore = "/cp/notifications/restore";
+    /// <summary>PHP <c>notification.php</c> <c>action=save</c>. <c>confirmWrites=true</c> saves subject / e-mail body / SMS body translations and channel flags.</summary>
+    public const string ControlPanelNotificationsSave = "/cp/notifications/save";
     public const string ControlPanelPortalSettings = "/cp/portal-settings";
     /// <summary>Super-CP-only portal fleet Blazor list (JSON digest remains <see cref="ControlPanelPortalSettings"/>).</summary>
     public const string ControlPanelPortalSettingsApp = "/cp/portal-settings-app";

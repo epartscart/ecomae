@@ -1291,34 +1291,31 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void NotificationsApp_OpenLoadsBodyExcerptAndKeepsHero()
+    public void NotificationsApp_OpenLoadsPhpEditorTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpNotificationsApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"notif_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"notif_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpNotificationsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No body excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No category siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        // PHP notification.php is reached as ?notification_id=; the editor replaces the list (no digest excerpt / siblings).
+        Assert.Contains("ReadId(ctx.Request, \"notification_id\")", text, StringComparison.Ordinal);
+        Assert.Contains("?notification_id=", text, StringComparison.Ordinal);
+        Assert.Contains("Notifications.OpenAsync", text, StringComparison.Ordinal);
+        Assert.Contains("Notifications.ListAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-cn-hero", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cn-edit-grid", text, StringComparison.Ordinal);
+        Assert.Contains("was not found.", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpNotificationsDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("metadata", text, StringComparison.Ordinal);
         Assert.DoesNotContain("action_url", text, StringComparison.Ordinal);
 
-        Assert.Equal("/cp/notifications-app?notif_id=7#erp-row-7",
-            ErpRecordOpen.Href("/cp/notifications-app", "notif_id", 7));
         Assert.Equal(
-            "/cp/notifications-app?notif_id=7",
+            "/cp/notifications-app?notification_id=7",
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/notifications-app",
-                "/CP/control/notifications_settings?notif_id=7"));
+                "/CP/control/notifications_settings/notification?notification_id=7"));
     }
 
     [Fact]

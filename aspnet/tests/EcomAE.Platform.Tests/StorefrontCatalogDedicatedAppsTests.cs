@@ -196,10 +196,12 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         var notify = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpNotificationsApp.razor"));
         Assert.Contains("epc-cn-hero", notify, StringComparison.Ordinal);
         Assert.Contains("epc-cn-quick", notify, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", notify, StringComparison.Ordinal);
         Assert.Contains("/cp/notifications/toggle", notify, StringComparison.Ordinal);
+        Assert.Contains("/cp/notifications/restore", notify, StringComparison.Ordinal);
+        Assert.Contains("/cp/notifications/save", notify, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", notify, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref", notify, StringComparison.Ordinal);
+        Assert.Contains("/cp/communications-test-app", notify, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", notify, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w20-hero", notify, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w20-kpis", notify, StringComparison.Ordinal);
 

@@ -12009,6 +12009,116 @@ public sealed class ControlPanelModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelNotificationsRestore, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpNotificationSettingsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/notifications-app", "Admin CP capability required for notification restore.");
+            }
+
+            IReadOnlyList<long> ids;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ids = CpNotificationSettingsWriteService.ParseIds(string.Join(",", form["notifications_ids"].ToArray().Concat(form["ids"].ToArray())));
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpNotificationRestoreBody>(context, cancellationToken) ?? new();
+                ids = CpNotificationSettingsWriteService.ParseIds(body.NotificationsIds);
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    ids,
+                    message = "Set confirmWrites=true to restore factory notification settings.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.RestoreDefaultsAsync(ids, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelNotificationsApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelNotificationsSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpNotificationSettingsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/notifications-app", "Admin CP capability required for notification template save.");
+            }
+
+            CpNotificationSaveRequest request;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                request = new CpNotificationSaveRequest(
+                    LiveWriteFormBinder.Long(form, "notification_id", "notificationId"),
+                    form.ContainsKey("email_on") && LiveWriteFormBinder.Text(form, "email_on") is not "0" and not "false",
+                    LiveWriteFormBinder.Text(form, "email_subject"),
+                    LiveWriteFormBinder.Text(form, "email_body"),
+                    form.ContainsKey("sms_on") && LiveWriteFormBinder.Text(form, "sms_on") is not "0" and not "false",
+                    LiveWriteFormBinder.Text(form, "sms_body"),
+                    LiveWriteFormBinder.Text(form, "lang_code", "lang"));
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpNotificationSaveBody>(context, cancellationToken) ?? new();
+                request = new CpNotificationSaveRequest(body.NotificationId, body.EmailOn, body.EmailSubject, body.EmailBody, body.SmsOn, body.SmsBody, body.LangCode);
+                confirm = body.ConfirmWrites;
+            }
+
+            var editorUrl = EcomAeRoutes.ControlPanelNotificationsApp + "?notification_id=" + request.NotificationId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    notification_id = request.NotificationId,
+                    message = "Set confirmWrites=true to save the notification template.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveAsync(request, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                editorUrl,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelPortalSettings, async (
             HttpContext context,
             int? limit,
@@ -14812,6 +14922,16 @@ public sealed class ControlPanelModule : ISurfaceModule
         long NotificationId = 0,
         string? Type = null,
         int SetSend = 0,
+        bool ConfirmWrites = false);
+    private sealed record CpNotificationRestoreBody(string? NotificationsIds = null, bool ConfirmWrites = false);
+    private sealed record CpNotificationSaveBody(
+        long NotificationId = 0,
+        bool EmailOn = false,
+        string? EmailSubject = null,
+        string? EmailBody = null,
+        bool SmsOn = false,
+        string? SmsBody = null,
+        string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record CpPromoSaveBody(
         long Id = 0,
