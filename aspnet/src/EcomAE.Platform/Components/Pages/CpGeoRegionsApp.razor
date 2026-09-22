@@ -2,208 +2,218 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpGeoTreeEditorService Geo
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Geo / regions · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Geo nodes · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-geo-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; cursor:pointer; }
+    .epc-geo-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-geo-actions .panel_a_caption { font-size:12px; }
+    #container_A { height:350px; overflow:auto; border:1px solid #e4e5e7; background:#fff; }
+    #container_A ul { list-style:none; margin:0; padding-left:18px; }
+    #container_A > ul { padding-left:4px; }
+    #container_A li > .epc-geo-row { display:flex; align-items:center; gap:6px; padding:3px 6px; cursor:pointer; border-radius:3px; }
+    #container_A li > .epc-geo-row:hover { background:#f5f7fa; }
+    #container_A li.epc-sel > .epc-geo-row { background:#dbeeff; }
+    #container_A .epc-geo-tog { width:14px; color:#888; font-size:11px; text-align:center; }
+    #container_A li.epc-closed > ul { display:none; }
+    #container_A .epc-geo-val { flex:1; }
+    #container_A .epc-geo-val input { width:100%; border:1px solid #3498db; padding:1px 4px; font:inherit; }
+    #container_A .epc-geo-lvl { color:#999; font-size:11px; }
+    #container_A .epc-geo-mv { color:#999; font-size:11px; visibility:hidden; }
+    #container_A li.epc-sel > .epc-geo-row .epc-geo-mv { visibility:visible; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Geo / regions
-                <a class="btn btn-xs btn-default pull-right" href="/cp/offices-app">Offices</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>Open a node for a caption excerpt. Save the tree here. Full lang translations and Webix editor chrome stay on the Classic twin.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/geo-regions-app" IsAdmin="_isAdmin" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedNode is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    @if (!_isAdmin)
     {
-        <div class="alert alert-success" role="status">@_flashOk</div>
+        <div class="col-lg-12"><div class="hpanel"><div class="panel-body">
+            <div class="alert alert-warning" role="status">Sign in to the Control Panel to manage geo nodes. <a href="/cp/login?returnUrl=/cp/geo-regions-app">Login</a></div>
+        </div></div></div>
     }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    else
     {
-        <div class="alert alert-danger" role="status">@_flashErr</div>
-    }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/geo-regions/write" style="display:flex;flex-direction:column;gap:.45rem;margin:0 0 1rem;max-width:52rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/geo-regions-app" />
-            <label>Tree JSON
-                <textarea name="treeJson" required rows="8" style="width:100%;font-family:ui-monospace,monospace;font-size:.82rem" placeholder='[{"id":1,"level":1,"value":"UAE","value_lang_str_id":"0","parent":0,"from_server":1,"count":1}]'></textarea>
-            </label>
-            <p style="margin:0;color:#475569;font-size:.82rem">Webix hierarchy or linear list. Nodes not listed are deleted. Empty tree is refused.</p>
-            <button type="submit">Save tree</button>
-        </form>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Geo region KPIs">
-        <div class="kpi"><div class="lbl">Nodes</div><div class="val">@_summary.NodeCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Level 1</div><div class="val">@_summary.Level1Count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Level 2</div><div class="val">@_summary.Level2Count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Mapped offices</div><div class="val">@_summary.MappedOfficeCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedNode is not null)
-    {
+        @* ---- geo_tree.php twin ---- *@
         <div class="col-lg-12">
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
-                    @OpenedCaption
-                    <span class="label label-default pull-right">level @_openedNode.Level.ToString(CultureInfo.InvariantCulture)</span>
+                    Geography (countries, regions, cities)
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
                 </div>
-                <div class="panel-body">
-                    <p>Parent @_openedNode.Parent.ToString(CultureInfo.InvariantCulture)
-                        · order @_openedNode.SortOrder.ToString(CultureInfo.InvariantCulture)
-                        · children @_openedNode.ChildCount.ToString(CultureInfo.InvariantCulture)
-                        · lang @_openedNode.ValueLangId.ToString(CultureInfo.InvariantCulture)</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedNode.CaptionExcerpt))
-                    {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedNode.CaptionExcerpt</pre>
-                        @if (_openedNode.CaptionLen > _openedNode.CaptionExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_openedNode.CaptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedNode.CaptionLen.ToString(CultureInfo.InvariantCulture) chars). Full lang translation stays on the Classic twin.</p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No caption excerpt yet.</p>
-                    }
+                <div class="panel-body epc-geo-actions">
+                    <a class="panel_a" onclick="add_new_country();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-flag"></i></div><div class="panel_a_caption">Add country</div></a>
+                    <a class="panel_a" onclick="add_new_region();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-shield"></i></div><div class="panel_a_caption">Add region</div></a>
+                    <a class="panel_a" onclick="add_new_city();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-building"></i></div><div class="panel_a_caption">Add city</div></a>
+                    <a class="panel_a" onclick="delete_selected_item();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-trash-o"></i></div><div class="panel_a_caption">Delete</div></a>
+                    <a class="panel_a" onclick="unselect_tree();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-square-o"></i></div><div class="panel_a_caption">Unselect</div></a>
+                    <a class="panel_a" onclick="save_tree();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                    <a class="panel_a" href="/cp/offices-app"><div class="panel_a_img"><i class="fa fa-building-o"></i></div><div class="panel_a_caption">Offices</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
                 </div>
             </div>
         </div>
 
-        <div class="col-lg-12">
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
+
+        <form name="form_to_save" id="form_to_save" method="post" action="/cp/geo-regions/write" style="display:none">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <input type="hidden" name="lang_code" value="en" />
+            <input name="save_tree" id="save_tree" type="hidden" value="ok" />
+            <input name="treeJson" id="tree_json" type="hidden" value="" />
+        </form>
+
+        <div class="col-lg-6">
             <div class="hpanel">
-                <div class="panel-heading hbuilt">Same-parent siblings</div>
+                <div class="panel-heading hbuilt">Geo nodes tree</div>
                 <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Level</th>
-                                    <th>Parent</th>
-                                    <th>Order</th>
-                                    <th>Children</th>
-                                    <th>Lang id</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="7">No same-parent siblings yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.Level.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.Parent.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.ChildCount.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.ValueLangId.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "geo_id", sib.Id)">Open</a></td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                    <div id="container_A"></div>
                 </div>
             </div>
         </div>
-    }
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Help</div>
+                <div class="panel-body">
+                    Select a node and use the toolbar: a region is added into the selected country, a city into the selected region.
+                    Double-click a node to rename it; use the arrows on the selected node to change its order. Nodes removed here are deleted from the database on save.
+                    Nodes: @_page.Nodes.Count.ToString(CultureInfo.InvariantCulture).
+                </div>
+            </div>
+        </div>
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Nodes</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Level</th>
-                                <th>Parent</th>
-                                <th>Order</th>
-                                <th>Children</th>
-                                <th>Lang id</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (!_isAdmin)
-                        {
-                            <tr><td colspan="7">Sign in for live data.</td></tr>
-                        }
-                        else if (_rows.Count == 0)
-                        {
-                            <tr><td colspan="7">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var row in _rows)
-                            {
-                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.Level.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.Parent.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.ChildCount.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.ValueLangId.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "geo_id", row.Id)">Open</a></td>
-                                </tr>
-                            }
-                        }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
+        <script>
+            var next_id = @_page.NextId.ToString(CultureInfo.InvariantCulture);
+            var saved_tree = @((MarkupString)_page.ToTreeJson());
+            var epcSel = null;
+            var LEVEL_NAMES = { 1: 'country', 2: 'region', 3: 'city' };
+
+            function epcNode(item, level) {
+                var li = document.createElement('li');
+                li.setAttribute('data-id', item.id);
+                li.setAttribute('data-lang', item.value_lang_str_id || '0');
+                li.setAttribute('data-from-server', item.from_server ? '1' : '0');
+                li.setAttribute('data-level', level);
+                var row = document.createElement('div');
+                row.className = 'epc-geo-row';
+                row.innerHTML = '<span class="epc-geo-tog"></span><span class="epc-geo-val"></span><span class="epc-geo-lvl"></span>' +
+                    '<span class="epc-geo-mv" onclick="move_selected(-1);event.stopPropagation();" title="Up">&#9650;</span>' +
+                    '<span class="epc-geo-mv" onclick="move_selected(1);event.stopPropagation();" title="Down">&#9660;</span>';
+                row.querySelector('.epc-geo-val').textContent = item.value || '';
+                row.querySelector('.epc-geo-lvl').textContent = LEVEL_NAMES[level] || ('level ' + level);
+                row.onclick = function () { epcSelect(li); };
+                row.ondblclick = function (e) { e.stopPropagation(); epcEdit(li); };
+                row.querySelector('.epc-geo-tog').onclick = function (e) { e.stopPropagation(); li.classList.toggle('epc-closed'); epcRefreshToggle(li); };
+                li.appendChild(row);
+                var ul = document.createElement('ul');
+                (item.data || []).forEach(function (c) { ul.appendChild(epcNode(c, level + 1)); });
+                li.appendChild(ul);
+                epcRefreshToggle(li);
+                return li;
+            }
+            function epcRefreshToggle(li) {
+                var has = li.querySelector(':scope > ul > li') !== null;
+                li.querySelector(':scope > .epc-geo-row > .epc-geo-tog').textContent = has ? (li.classList.contains('epc-closed') ? '+' : '\u2212') : '';
+            }
+            function epcSelect(li) {
+                if (epcSel) epcSel.classList.remove('epc-sel');
+                epcSel = li;
+                if (li) li.classList.add('epc-sel');
+            }
+            function epcEdit(li) {
+                var val = li.querySelector(':scope > .epc-geo-row > .epc-geo-val');
+                if (val.querySelector('input')) return;
+                var old = val.textContent;
+                var inp = document.createElement('input');
+                inp.type = 'text'; inp.value = old;
+                function stop(commit) { val.textContent = commit && inp.value.trim() !== '' ? inp.value.trim() : old; }
+                inp.onblur = function () { stop(true); };
+                inp.onkeydown = function (e) { if (e.key === 'Enter') { e.preventDefault(); inp.blur(); } if (e.key === 'Escape') { stop(false); } };
+                val.textContent = ''; val.appendChild(inp); inp.focus(); inp.select();
+            }
+            function epcAdd(parentLi, level, caption) {
+                var ul = parentLi ? parentLi.querySelector(':scope > ul') : document.querySelector('#container_A > ul');
+                var li = epcNode({ id: next_id, value: caption, value_lang_str_id: '0', from_server: 0, data: [] }, level);
+                ul.appendChild(li);
+                next_id++;
+                if (parentLi) { parentLi.classList.remove('epc-closed'); epcRefreshToggle(parentLi); }
+                epcSelect(li);
+                epcEdit(li);
+            }
+            function add_new_country() { epcAdd(null, 1, 'New country'); }
+            function add_new_region() {
+                if (!epcSel || epcSel.getAttribute('data-level') !== '1') { alert('Select a country to add a region into.'); return; }
+                epcAdd(epcSel, 2, 'New region');
+            }
+            function add_new_city() {
+                if (!epcSel || epcSel.getAttribute('data-level') !== '2') { alert('Select a region to add a city into.'); return; }
+                epcAdd(epcSel, 3, 'New city');
+            }
+            function delete_selected_item() {
+                if (!epcSel) return;
+                var parent = epcSel.parentNode.closest('li');
+                epcSel.parentNode.removeChild(epcSel);
+                epcSel = null;
+                if (parent) epcRefreshToggle(parent);
+            }
+            function move_selected(dir) {
+                if (!epcSel) return;
+                var sib = dir < 0 ? epcSel.previousElementSibling : epcSel.nextElementSibling;
+                if (!sib) return;
+                if (dir < 0) epcSel.parentNode.insertBefore(epcSel, sib); else epcSel.parentNode.insertBefore(sib, epcSel);
+            }
+            function unselect_tree() { epcSelect(null); }
+            function epcSerialize(ul, parentId, level) {
+                var out = [];
+                Array.prototype.forEach.call(ul.children, function (li) {
+                    var kids = epcSerialize(li.querySelector(':scope > ul'), parseInt(li.getAttribute('data-id'), 10), level + 1);
+                    out.push({
+                        id: parseInt(li.getAttribute('data-id'), 10),
+                        value: li.querySelector(':scope > .epc-geo-row > .epc-geo-val').textContent,
+                        value_lang_str_id: li.getAttribute('data-lang'),
+                        from_server: parseInt(li.getAttribute('data-from-server'), 10),
+                        $level: level, $parent: parentId, $count: kids.length,
+                        data: kids
+                    });
+                });
+                return out;
+            }
+            function save_tree() {
+                var dump = epcSerialize(document.querySelector('#container_A > ul'), 0, 1);
+                if (dump.length === 0) { alert('At least one country is required.'); return; }
+                document.getElementById('tree_json').value = JSON.stringify(dump);
+                document.getElementById('form_to_save').submit();
+            }
+            function tree_start_init() {
+                var box = document.getElementById('container_A');
+                var ul = document.createElement('ul');
+                saved_tree.forEach(function (n) { ul.appendChild(epcNode(n, 1)); });
+                box.appendChild(ul);
+            }
+            tree_start_init();
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/geo/nodes";
+    private const string _listHref = "/cp/geo-regions-app";
     private bool _isAdmin;
-    private CpGeoRegionsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpGeoRegionsRowDigest> _rows = [];
     private string _flashOk = "";
     private string _flashErr = "";
-    private string _listHref = "/cp/geo-regions-app";
-    private long _openedId;
-    private CpGeoRegionsDetail? _openedNode;
-    private IReadOnlyList<CpGeoRegionsRowDigest> _openedSiblings = [];
-
-    private string OpenedCaption => _openedNode is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedNode.CaptionExcerpt)
-            ? ("Node #" + _openedNode.Id.ToString(CultureInfo.InvariantCulture))
-            : _openedNode.CaptionExcerpt);
+    private CpGeoTreePage _page = new([], 1);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "geo_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -213,23 +223,6 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpGeoRegionsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Nodes;
-
-        if (_openedId > 0)
-        {
-            var detail = await Dashboards.BuildCpGeoRegionsDetailAsync(_openedId, ctx.RequestAborted);
-            _openedNode = detail.Node;
-            _openedSiblings = detail.Siblings;
-            if (_openedNode is not null)
-            {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
-        }
+        _page = await Geo.LoadAsync(ctx.RequestAborted);
     }
 }

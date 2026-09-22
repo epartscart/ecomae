@@ -1726,23 +1726,32 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void GeoRegionsApp_OpenLoadsCaptionExcerptAndKeepsTreeSave()
+    public void GeoRegionsApp_IsLivePhpTreeEditorTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpGeoRegionsApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"geo_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"geo_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpGeoRegionsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No caption excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-parent siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        Assert.Contains("ICpGeoTreeEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Geo.LoadAsync", text, StringComparison.Ordinal);
+        Assert.Contains("_page.ToTreeJson()", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"container_A\"", text, StringComparison.Ordinal);
+        Assert.Contains("function add_new_country()", text, StringComparison.Ordinal);
+        Assert.Contains("function add_new_region()", text, StringComparison.Ordinal);
+        Assert.Contains("function add_new_city()", text, StringComparison.Ordinal);
+        Assert.Contains("function delete_selected_item()", text, StringComparison.Ordinal);
+        Assert.Contains("function unselect_tree()", text, StringComparison.Ordinal);
+        Assert.Contains("function save_tree()", text, StringComparison.Ordinal);
+        Assert.Contains("value_lang_str_id", text, StringComparison.Ordinal);
+        Assert.Contains("from_server", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"tree_json\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"treeJson\"", text, StringComparison.Ordinal);
         Assert.Contains("/cp/geo-regions/write", text, StringComparison.Ordinal);
-        Assert.Contains("Save tree", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"hpanel\"", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpGeoRegionsDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
