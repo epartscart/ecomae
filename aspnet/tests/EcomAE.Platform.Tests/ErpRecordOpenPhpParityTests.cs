@@ -1459,17 +1459,16 @@ public sealed class ErpRecordOpenPhpParityTests
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpSystemRequestsApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"vin_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"vin_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpSystemRequestsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No request excerpt yet.", text, StringComparison.Ordinal);
+        Assert.Contains("@inject ICpVinRequestsService Requests", text, StringComparison.Ordinal);
+        Assert.Contains("Query[\"vin_id\"]", text, StringComparison.Ordinal);
+        Assert.Contains("Requests.OpenAsync(_vinId", text, StringComparison.Ordinal);
+        Assert.Contains("Requests.ListAsync(_filter, CpVinRequestsService.ReadPage(ctx.Request)", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"erp-row-@id\"", text, StringComparison.Ordinal);
         Assert.Contains("No messages yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-user siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("/cp/requests/set-vin-viewed", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/requests/send-message", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpSystemRequestsDigestAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);

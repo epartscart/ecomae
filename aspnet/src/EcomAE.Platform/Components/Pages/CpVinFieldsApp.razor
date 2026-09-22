@@ -1,0 +1,224 @@
+@page "/cp/vin-fields-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Text.Json
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Presentation
+@inject ICpVinFieldsService Fields
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Request fields · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<style>
+    .epc-vf-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; cursor:pointer; }
+    .epc-vf-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-vf-actions .panel_a_img.epc-grey { color:#fff; background:#b9babb; }
+    .epc-vf-actions .panel_a_img.epc-green { color:#fff; background:#62cb31; }
+    .epc-vf-actions .panel_a_img.epc-red { color:#fff; background:#e74c3c; }
+    .epc-vf-actions .panel_a_caption { font-size:12px; }
+    #container_A { height:350px; overflow:auto; border:1px solid #dde; background:#fff; }
+    #container_A .epc-vf-item { padding:6px 10px; border-bottom:1px solid #eef; cursor:pointer; display:flex; align-items:center; gap:8px; }
+    #container_A .epc-vf-item.selected { background:#dbeafe; }
+    #container_A .epc-vf-item .epc-vf-drag { color:#aab; cursor:move; }
+    #container_A .epc-vf-item .epc-vf-key { color:#889; font-size:11px; margin-left:auto; }
+    #container_A .epc-vf-item.epc-hidden { color:#999; font-style:italic; }
+    #content_info_div .form-group { margin-bottom:4px; }
+    #content_info_div .control-label { text-align:right; padding-top:7px; }
+    #content_info_div input[type=checkbox].form-control { width:auto; height:auto; box-shadow:none; }
+</style>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning">Admin CP session required. <a href="/cp/login?returnUrl=/cp/vin-fields-app">Log in</a>.</div></div>
+    }
+    else
+    {
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                </div>
+                <div class="panel-body epc-vf-actions">
+                    <a class="panel_a" href="/cp/system-requests-app"><div class="panel_a_img epc-grey"><i class="fa fa-chevron-left"></i></div><div class="panel_a_caption">Back</div></a>
+                    <a class="panel_a" onclick="add_new_item();" href="javascript:void(0);"><div class="panel_a_img epc-green"><i class="fa fa-plus"></i></div><div class="panel_a_caption">Add field</div></a>
+                    <a class="panel_a" onclick="delete_selected_item();" href="javascript:void(0);"><div class="panel_a_img epc-red"><i class="fa fa-trash"></i></div><div class="panel_a_caption">Delete field</div></a>
+                    <a class="panel_a" onclick="unselect_tree();" href="javascript:void(0);"><div class="panel_a_img"><i class="fa fa-square-o"></i></div><div class="panel_a_caption">Deselect</div></a>
+                    <a class="panel_a" href="javascript:void(0);" onclick="save_tree();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Request fields</div>
+                <div class="panel-body">
+                    <p class="text-muted" style="margin:0 0 6px;font-size:12px">Click to select, double-click to rename, drag <i class="fa fa-bars"></i> to reorder. Changes are stored when you press Save.</p>
+                    <div id="container_A"></div>
+                </div>
+            </div>
+        </div>
+        <div class="col-lg-6" id="content_info_div_col" style="display:none">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Field parameters</div>
+                <div class="panel-body">
+                    <div id="content_info_div"></div>
+                </div>
+            </div>
+        </div>
+
+        <form name="form_to_save" id="form_to_save" method="post" action="/cp/requests/vin-fields/save" style="display:none">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/vin-fields-app" />
+            <input type="hidden" name="save_action" value="ok" />
+            <input type="hidden" name="tree_json" id="tree_json" value="" />
+        </form>
+
+        <script>
+            var epcVinFields = @((MarkupString)_fieldsJson);
+            var epcVinReserved = @((MarkupString)_reservedJson);
+            var epcSelected = -1;
+            var epcDragIndex = -1;
+            function esc(s) { return String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+            function renderTree() {
+                var c = document.getElementById("container_A");
+                var html = "";
+                for (var i = 0; i < epcVinFields.length; i++) {
+                    var f = epcVinFields[i];
+                    html += "<div class=\"epc-vf-item" + (i === epcSelected ? " selected" : "") + (f.show == '1' || f.show === 1 || f.show === true ? "" : " epc-hidden") + "\" draggable=\"true\" data-i=\"" + i + "\" onclick=\"selectItem(" + i + ")\" ondblclick=\"renameItem(" + i + ")\" ondragstart=\"epcDragIndex=" + i + "\" ondragover=\"event.preventDefault()\" ondrop=\"dropItem(" + i + ")\">";
+                    html += "<i class=\"fa fa-bars epc-vf-drag\"></i><span>" + f.value + "</span><span class=\"epc-vf-key\">" + esc(f.name) + (f.required == '1' ? " *" : "") + "</span></div>";
+                }
+                if (epcVinFields.length === 0) { html = "<div class=\"epc-vf-item text-muted\">No fields. Use Add field.</div>"; }
+                c.innerHTML = html;
+                onSelected();
+            }
+            function selectItem(i) { epcSelected = i; renderTree(); }
+            function renameItem(i) {
+                var f = epcVinFields[i];
+                var v = prompt("Field caption", f.value.replace(/&quot;/g, '"').replace(/&amp;/g, "&"));
+                if (v !== null) { f.value = esc(v); renderTree(); }
+            }
+            function dropItem(target) {
+                if (epcDragIndex < 0 || epcDragIndex === target) return;
+                var moved = epcVinFields.splice(epcDragIndex, 1)[0];
+                epcVinFields.splice(target, 0, moved);
+                epcSelected = target; epcDragIndex = -1; renderTree();
+            }
+            function row(label, inner) { return "<div class=\"form-group\"><label class=\"col-lg-6 control-label\">" + label + "</label><div class=\"col-lg-6\">" + inner + "</div></div><div class=\"hr-line-dashed col-lg-12\"></div>"; }
+            function onSelected() {
+                var col = document.getElementById("content_info_div_col");
+                var div = document.getElementById("content_info_div");
+                if (epcSelected < 0 || epcSelected >= epcVinFields.length) { div.innerHTML = ""; col.style.display = "none"; return; }
+                col.style.display = "block";
+                var node = epcVinFields[epcSelected];
+                var idShow = node.is_new ? "new" : node.id;
+                var html = row("ID", idShow) + row("Caption", node.value);
+                if (node.name != "client_vin") {
+                    html += row("Key", "<input type=\"text\" onkeyup=\"dynamicApplying('name');\" id=\"name\" value=\"" + esc(node.name) + "\" class=\"form-control\" />");
+                }
+                html += row("Max length", "<input type=\"text\" onkeyup=\"dynamicApplying('maxlen');\" id=\"maxlen\" value=\"" + esc(node.maxlen) + "\" class=\"form-control\" />");
+                html += row("Regular expression", "<input type=\"text\" onkeyup=\"dynamicApplying('regexp');\" id=\"regexp\" value=\"" + node.regexp + "\" class=\"form-control\" />");
+                html += row("Example", "<input type=\"text\" onkeyup=\"dynamicApplying('example');\" id=\"example\" value=\"" + node.example + "\" class=\"form-control\" />");
+                if (node.name != "client_vin") {
+                    html += row("Required", "<input type=\"checkbox\" onchange=\"dynamicApplyingCheckboxes('required');\" id=\"required\" class=\"form-control\" " + (node.required == '1' ? "checked" : "") + " />");
+                    html += row("Show", "<input type=\"checkbox\" onchange=\"dynamicApplyingCheckboxes('show');\" id=\"show\" class=\"form-control\" " + (node.show == '1' ? "checked" : "") + " />");
+                }
+                div.innerHTML = html + "<div class=\"clearfix\"></div>";
+            }
+            function dynamicApplying(attr) {
+                var node = epcVinFields[epcSelected];
+                var v = document.getElementById(attr).value;
+                node[attr] = attr === "name" || attr === "maxlen" ? v : v.replace(/"/g, "&quot;");
+                var key = document.querySelectorAll("#container_A .epc-vf-item")[epcSelected];
+                if (attr === "name" && key) { key.querySelector(".epc-vf-key").textContent = v + (node.required == '1' ? " *" : ""); }
+            }
+            function dynamicApplyingCheckboxes(type) {
+                var node = epcVinFields[epcSelected];
+                node[type] = document.getElementById(type).checked ? '1' : '0';
+            }
+            function add_new_item() {
+                epcVinFields.push({ id: 0, is_new: true, value: "New field", name: "", old_name: "", maxlen: 0, regexp: "", example: "", show: '0', required: '0', value_lang_str_id: 0, regexp_lang_str_id: 0, example_lang_str_id: 0 });
+                epcSelected = epcVinFields.length - 1;
+                renderTree();
+            }
+            function delete_selected_item() {
+                if (epcSelected < 0) return;
+                if (epcVinFields[epcSelected].name == 'client_vin') { alert('The client_vin field cannot be deleted.'); return; }
+                epcVinFields.splice(epcSelected, 1);
+                epcSelected = -1;
+                renderTree();
+            }
+            function unselect_tree() { epcSelected = -1; renderTree(); }
+            function save_tree() {
+                var keys = {};
+                for (var i = 0; i < epcVinFields.length; i++) {
+                    var f = epcVinFields[i];
+                    if (f.name == "") { alert("Fill the key for the field: " + f.value); return; }
+                    if (!/^[a-z_]+$/.test(f.name)) { alert("The key of field " + f.value + " must contain only lowercase latin letters and underscores."); return false; }
+                    if (epcVinReserved.indexOf(f.name) >= 0) { alert("The key " + f.name + " is reserved (users table column)."); return false; }
+                    if (keys[f.name]) { alert("The key " + f.name + " is used more than once."); return false; }
+                    keys[f.name] = true;
+                }
+                document.getElementById("tree_json").value = JSON.stringify(epcVinFields);
+                document.getElementById("form_to_save").submit();
+            }
+            renderTree();
+        </script>
+    }
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/requests/polya-vin-zaprosa";
+
+    private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _fieldsJson = "[]";
+    private string _reservedJson = "[]";
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        var fields = await Fields.ListAsync(ctx.RequestAborted);
+        var payload = fields.Select(f => new
+        {
+            id = f.Id,
+            is_new = false,
+            value = f.Caption,
+            name = f.Name,
+            old_name = f.Name,
+            maxlen = f.MaxLen,
+            regexp = f.Regexp,
+            example = f.Example,
+            show = f.Show ? "1" : "0",
+            required = f.Required ? "1" : "0",
+            value_lang_str_id = f.CaptionLangStrId,
+            regexp_lang_str_id = f.RegexpLangStrId,
+            example_lang_str_id = f.ExampleLangStrId,
+        });
+        _fieldsJson = JsonSerializer.Serialize(payload, _json);
+        _reservedJson = JsonSerializer.Serialize(CpVinFieldsService.ReservedUserColumns, _json);
+    }
+
+    private static readonly JsonSerializerOptions _json = new(JsonSerializerDefaults.Web)
+    {
+        Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Default,
+    };
+}
