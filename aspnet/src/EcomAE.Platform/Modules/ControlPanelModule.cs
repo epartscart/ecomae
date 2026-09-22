@@ -5402,6 +5402,52 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpConfigWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpConfigEditorService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/config-items-app", "Admin CP capability required for settings.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Post the settings form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var group = (int)Math.Clamp(LiveWriteFormBinder.Long(form, "need_config_group", "needConfigGroup"), 0, int.MaxValue);
+            var returnUrl = group > 0 ? "/cp/config-items-app?need_config_group=" + group.ToString(CultureInfo.InvariantCulture) : "/cp/config-items-app";
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save settings to config.php from ASP.NET.",
+                    fields = form.Count,
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(form, group, LiveWriteFormBinder.Text(form, "langCode", "lang_code"), domainPath, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnUrl,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,

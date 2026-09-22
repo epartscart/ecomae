@@ -1,99 +1,260 @@
 @page "/cp/config-items-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Net
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpConfigEditorService Config
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Config Items · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Settings · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-cfg { margin-bottom:24px; }
+    .epc-cfg-legend { display:flex; gap:.6rem; flex-wrap:wrap; margin:.4rem 0 0; }
+    .epc-cfg-pill { display:inline-block; padding:2px 10px; border-radius:999px; background:#eef2f7; color:#334155; font-size:12px; }
+    .epc-cfg-actions { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin:0 0 12px; }
+    .epc-cfg-layout { display:flex; gap:16px; align-items:flex-start; }
+    .epc-cfg-nav { flex:0 0 220px; position:sticky; top:8px; background:#fff; border:1px solid #e4e5e7; padding:10px; }
+    .epc-cfg-nav__title { font-weight:600; font-size:12px; text-transform:uppercase; color:#64748b; margin-bottom:6px; }
+    .epc-cfg-nav a { display:block; padding:5px 6px; color:#334155; font-size:13px; border-radius:4px; }
+    .epc-cfg-nav a:hover { background:#f1f5f9; text-decoration:none; }
+    .epc-cfg-main { flex:1 1 auto; min-width:0; }
+    .epc-cfg-card { margin-bottom:14px; }
+    .epc-cfg-card__title { font-weight:600; }
+    .epc-cfg-field { display:flex; gap:12px; align-items:flex-start; padding:6px 0; border-bottom:1px dashed #eef2f7; margin:0; }
+    .epc-cfg-field:last-child { border-bottom:0; }
+    .epc-cfg-field__label { flex:0 0 34%; font-weight:500; color:#334155; padding-top:6px; }
+    .epc-cfg-field__label code { font-size:11px; color:#94a3b8; display:block; font-weight:400; }
+    .epc-cfg-field__ctrl { flex:1 1 auto; min-width:0; }
+    .epc-cfg-field__ctrl textarea { min-height:90px; }
+    .epc-cfg-hint { color:#64748b; font-size:12px; margin-top:3px; }
+    .epc-cfg-sticky-save { display:flex; gap:12px; align-items:center; justify-content:space-between; padding:10px 12px; background:#fff; border:1px solid #e4e5e7; }
+    @@media (max-width: 900px) { .epc-cfg-layout { flex-direction:column; } .epc-cfg-nav { position:static; flex-basis:auto; width:100%; } .epc-cfg-field { flex-direction:column; } }
+</style>
+</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <div class="col-lg-12">
+    <div class="col-lg-12 epc-cfg">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
-                Config items
-                <a class="btn btn-xs btn-default pull-right" href="/cp/api-clients-app">API clients</a>
+                Settings
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Configuration field catalog from tenant tables. Edit values on the Classic twin.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/config-items-app" IsAdmin="_isAdmin" />
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Items</div>
-            <div class="panel-body">
-                <p class="help-block">@_items.Count shown (limit @_limit) · @_visible visible · @_groups config groups.</p>
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Caption</th>
-                                <th>Type</th>
-                                <th>Group</th>
-                                <th>Visible</th>
-                                <th>Order</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (_items.Count == 0)
-                        {
-                            <tr><td colspan="6">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var item in _items)
-                            {
-                                <tr>
-                                    <td>@(string.IsNullOrWhiteSpace(item.Name) ? "—" : item.Name)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(item.Caption) ? "—" : item.Caption)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(item.Type) ? "—" : item.Type)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(item.ConfigGroup) ? "—" : item.ConfigGroup)</td>
-                                    <td>@(item.Visible ? "yes" : "no")</td>
-                                    <td>@item.Order.ToString(CultureInfo.InvariantCulture)</td>
-                                </tr>
-                            }
-                        }
-                        </tbody>
-                    </table>
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/config-items-app")</p>
+                <p class="text-muted" style="margin:0">Site-wide settings that power the control panel and the public storefront. Values are stored in <code>config.php</code>, so the classic modules read the same settings.</p>
+                <div class="epc-cfg-legend">
+                    <span class="epc-cfg-pill">@_groups.Count.ToString(CultureInfo.InvariantCulture) groups</span>
+                    <span class="epc-cfg-pill">@_itemCount.ToString(CultureInfo.InvariantCulture) parameters</span>
+                    <span class="epc-cfg-pill">Source: @_source</span>
+                    @if (_needGroup > 0)
+                    {
+                        <span class="epc-cfg-pill">Group filter #@_needGroup.ToString(CultureInfo.InvariantCulture) · <a href="/cp/config-items-app">show all</a></span>
+                    }
                 </div>
             </div>
         </div>
+
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="alert alert-success" role="status">@_flashOk</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="alert alert-danger" role="status">@_flashErr</div>
+        }
+        @if (!_isAdmin)
+        {
+            <div class="alert alert-warning" role="status">Sign in with an admin CP session to manage settings. <a href="/cp/login?returnUrl=/cp/config-items-app">Sign in</a></div>
+        }
+        else if (!string.IsNullOrWhiteSpace(_message))
+        {
+            <div class="alert alert-warning" role="status">@_message</div>
+        }
+
+        <form method="post" action="/cp/config-items/write" name="save_config_form" id="save_config_form">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+            <input type="hidden" name="langCode" value="en" />
+            <input type="hidden" name="need_config_group" value="@_needGroup" />
+
+            @if (_canSave)
+            {
+                <div class="epc-cfg-actions">
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save settings</button>
+                    <a class="btn btn-default" href="/cp"><i class="fa fa-home"></i> Control panel</a>
+                    <button type="button" class="btn btn-white" onclick="epcCfgToggleAll()"><i class="fa fa-arrows-v"></i> Collapse / expand all</button>
+                </div>
+            }
+
+            <div class="epc-cfg-layout">
+                <aside class="epc-cfg-nav" aria-label="Settings groups">
+                    <div class="epc-cfg-nav__title">Jump to group</div>
+                    @foreach (var g in _groups)
+                    {
+                        <a href="@(_returnUrl + "#epc-cfg-group-" + g.Id.ToString(CultureInfo.InvariantCulture))">@g.Caption <small style="opacity:.7">(@g.Items.Count.ToString(CultureInfo.InvariantCulture))</small></a>
+                    }
+                    @if (_groups.Count == 0)
+                    {
+                        <span class="text-muted">No visible groups.</span>
+                    }
+                </aside>
+
+                <div class="epc-cfg-main">
+                    @foreach (var g in _groups)
+                    {
+                        <div class="hpanel epc-cfg-card" id="@("epc-cfg-group-" + g.Id.ToString(CultureInfo.InvariantCulture))">
+                            <div class="panel-heading hbuilt">
+                                <div class="panel-tools"><a class="showhide" href="javascript:void(0)" onclick="epcCfgToggle(this)"><i class="fa fa-chevron-up"></i></a></div>
+                                <div class="epc-cfg-card__title">@g.Caption <small style="font-weight:500;color:#64748b">· @g.Items.Count.ToString(CultureInfo.InvariantCulture)</small></div>
+                            </div>
+                            <div class="panel-body">
+                                @if (g.Items.Count == 0)
+                                {
+                                    <p class="text-muted" style="margin:0">No visible parameters in this group.</p>
+                                }
+                                @foreach (var item in g.Items)
+                                {
+                                    <div class="form-group epc-cfg-field">
+                                        <label for="@item.Name" class="epc-cfg-field__label control-label">
+                                            @item.Caption
+                                            <code>@item.Name</code>
+                                        </label>
+                                        <div class="epc-cfg-field__ctrl">
+                                            @if (item.IsTranslated)
+                                            {
+                                                <input type="hidden" name="@(item.Name + "_lang_str_id")" value="@item.LangStrId" />
+                                            }
+                                            @switch (item.Type)
+                                            {
+                                                case "password":
+                                                    <input class="form-control" type="password" name="@item.Name" id="@item.Name" value="" placeholder="Leave empty to keep the current password" autocomplete="new-password" disabled="@(!_canSave)" />
+                                                    break;
+                                                case "checkbox":
+                                                    <input type="checkbox" name="@item.Name" id="@item.Name" value="1" checked="@PhpConfigFile.IsTruthy(item.CurrentValue)" disabled="@(!_canSave)" />
+                                                    break;
+                                                case "select":
+                                                    <select class="form-control" name="@item.Name" id="@item.Name" disabled="@(!_canSave)">
+                                                        @foreach (var o in item.Options)
+                                                        {
+                                                            <option value="@o.Value" selected="@(o.Value == item.CurrentValue)">@WebUtility.HtmlDecode(o.Caption)</option>
+                                                        }
+                                                    </select>
+                                                    break;
+                                                case "textarea":
+                                                    <textarea class="form-control" name="@item.Name" id="@item.Name" disabled="@(!_canSave)">@Display(item)</textarea>
+                                                    break;
+                                                case "number":
+                                                    <input class="form-control" type="number" step="any" name="@item.Name" id="@item.Name" value="@Display(item)" disabled="@(!_canSave)" />
+                                                    break;
+                                                case "color":
+                                                    <input class="form-control" type="color" name="@item.Name" id="@item.Name" value="@Display(item)" disabled="@(!_canSave)" />
+                                                    break;
+                                                case "hidden":
+                                                    <input type="hidden" name="@item.Name" id="@item.Name" value="@Display(item)" />
+                                                    <span class="text-muted">@Display(item)</span>
+                                                    break;
+                                                case "image":
+                                                case "image_file":
+                                                    <input class="form-control" type="text" name="@item.Name" id="@item.Name" value="@Display(item)" placeholder="/content/files/images/…" disabled="@(!_canSave)" />
+                                                    @if (!string.IsNullOrWhiteSpace(item.CurrentValue))
+                                                    {
+                                                        <img src="@item.CurrentValue" alt="" style="max-width:90px;max-height:90px;margin-top:4px;display:block" />
+                                                    }
+                                                    break;
+                                                default:
+                                                    <input class="form-control" type="text" name="@item.Name" id="@item.Name" value="@Display(item)" disabled="@(!_canSave)" />
+                                                    break;
+                                            }
+                                            @if (!string.IsNullOrWhiteSpace(item.Hint))
+                                            {
+                                                <div class="epc-cfg-hint">@WebUtility.HtmlDecode(item.Hint)</div>
+                                            }
+                                            @if (item.Name == "epc_global_locations_countries")
+                                            {
+                                                <div class="epc-cfg-hint">Write one complete location block, leave one blank line, then write the next location block.</div>
+                                            }
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    }
+
+                    @if (_canSave)
+                    {
+                        <div class="epc-cfg-sticky-save">
+                            <div class="text-muted">Changes write to <code>config.php</code>. Frontend-facing values apply on the next page load.</div>
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save settings</button>
+                        </div>
+                    }
+                </div>
+            </div>
+        </form>
+
+    <script>
+        function epcCfgToggle(a) {
+            var body = a.closest('.hpanel').querySelector('.panel-body');
+            var hidden = body.style.display === 'none';
+            body.style.display = hidden ? '' : 'none';
+            a.querySelector('i').className = hidden ? 'fa fa-chevron-up' : 'fa fa-chevron-down';
+        }
+        function epcCfgToggleAll() {
+            document.querySelectorAll('.epc-cfg-card .showhide').forEach(epcCfgToggle);
+        }
+    </script>
     </div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/control/config_edit";
     private bool _isAdmin;
-    private IReadOnlyList<CpConfigItemMetaDigest> _items = [];
-    private int _visible;
-    private int _groups;
-    private int _limit = 200;
+    private bool _canSave;
+    private int _needGroup;
+    private int _itemCount;
+    private string _returnUrl = "/cp/config-items-app";
+    private string _source = "";
+    private string _message = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private IReadOnlyList<CpConfigGroup> _groups = [];
+
+    private static string Display(CpConfigItem item)
+    {
+        var v = WebUtility.HtmlDecode(item.CurrentValue ?? string.Empty);
+        return item.Name is "epc_head_office_address" or "epc_global_locations_countries" ? v.Replace("\\n", "\n", StringComparison.Ordinal) : v;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        if (int.TryParse(ctx.Request.Query["need_config_group"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var g) && g > 0)
+        {
+            _needGroup = g;
+            _returnUrl = "/cp/config-items-app?need_config_group=" + g.ToString(CultureInfo.InvariantCulture);
+        }
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.ListCpConfigItemsMetaAsync(_limit, ctx.RequestAborted);
-        _items = result.Items;
-        _visible = _items.Count(i => i.Visible);
-        _groups = _items.Select(i => i.ConfigGroup).Where(g => !string.IsNullOrWhiteSpace(g)).Distinct(StringComparer.OrdinalIgnoreCase).Count();
+        var result = await Config.ReadAsync(_needGroup, ctx.RequestAborted);
+        _groups = result.Groups;
+        _source = result.Source;
+        _message = result.Message;
+        _canSave = result.ConfigFileWritable;
+        _itemCount = _groups.Sum(x => x.Items.Count);
     }
 }

@@ -245,7 +245,11 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
 
         var config = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpConfigItemsApp.razor"));
         Assert.Contains("class=\"hpanel\"", config, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", config, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/config-items/write\"", config, StringComparison.Ordinal);
+        Assert.Contains("name=\"need_config_group\"", config, StringComparison.Ordinal);
+        Assert.Contains("_lang_str_id", config, StringComparison.Ordinal);
+        Assert.Contains("case \"password\":", config, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", config, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ci-hero", config, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ci-kpis", config, StringComparison.Ordinal);
 

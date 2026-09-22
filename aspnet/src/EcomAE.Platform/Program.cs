@@ -758,6 +758,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSliderWriteService, EcomAE.Plat
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpProductFilterWriteService, EcomAE.Platform.Cp.CpProductFilterWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOrderStatusWriteService, EcomAE.Platform.Cp.CpOrderStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpGroupTreeWriteService, EcomAE.Platform.Cp.CpGroupTreeWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpConfigEditorService, EcomAE.Platform.Cp.CpConfigEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPartsAgentWriteService, EcomAE.Platform.Cp.CpPartsAgentWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosNotificationWriteService, EcomAE.Platform.Bos.BosNotificationWriteService>();

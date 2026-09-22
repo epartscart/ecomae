@@ -1282,6 +1282,9 @@ public static class EcomAeRoutes
     public const string ControlPanelOrderStatusesApp = "/cp/order-statuses-app";
     /// <summary>PHP user_groups.php save_tree. <c>confirmWrites=true</c> upserts/deletes the <c>groups</c> hierarchy.</summary>
     public const string CpGroupsWrite = "/cp/groups/write";
+
+    /// <summary>PHP config_edit.php save_config. <c>confirmWrites=true</c> rewrites <c>config.php</c> values under PhpDocRoot.</summary>
+    public const string CpConfigWrite = "/cp/config-items/write";
     /// <summary>PHP quote_requests.php admin_note. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
     public const string CpQuoteSaveNote = "/cp/quote-requests/note";
     /// <summary>PHP quote_requests.php save_quote line quoting. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
