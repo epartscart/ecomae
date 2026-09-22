@@ -1,13 +1,13 @@
 @page "/cp/users-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpUserEditorService Users
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject NavigationManager Nav
 
 <PageTitle>Users · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -15,566 +15,636 @@
 {
     <link rel="stylesheet" href="@href" />
 }
+<style>
+    .epc-users-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; cursor:pointer; }
+    .epc-users-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-users-actions .panel_a_caption { font-size:12px; }
+    .table-epc td a { color:inherit; display:block; }
+    .table-epc th a { color:inherit; text-decoration:none; }
+    .table-epc tr.epc-locked td { background-color:#fbe9e7 !important; }
+    .filter_panel .form-group { margin-bottom:6px; }
+    .epc-row-icons a { display:inline-block; width:22px; height:22px; margin-right:3px; text-align:center; line-height:22px; color:#555; }
+    .epc-group-tree ul { list-style:none; padding-left:18px; margin:0; }
+    .epc-group-tree li { padding:2px 0; }
+    .epc-group-tree .fa { margin-left:4px; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <PhpCpModulePageHeader Title="Users"
-                           Subtitle="PHP user_manager parity — list on the left, account console on the right. Manage profile, groups, balance, and jump to related modules."
-                           PhpTabHref="/CP/control/users">
-        <a class="ghost" href="/cp/groups-app">Groups</a>
-        <a class="ghost" href="/cp/customer-board-app">Customer board</a>
-        <a class="ghost" href="/cp/credit-limits-app">Credit limits</a>
-        <a class="ghost" href="/cp/orders">Orders · OMS</a>
-    </PhpCpModulePageHeader>
-
-    <div class="col-lg-12 epc-scp-panel epc-users-page">
-        <div class="epc-users-page__hero">
-            <div>
-                <h2><i class="fa fa-users"></i> Users · account console</h2>
-                <p>Same-to-same with PHP <code>users/usermanager</code> and <code>users/usermanager/user</code>: open a row to inspect profile, groups, balance, recent orders, and linked modules. Staff comment, lock/unlock, create, password, and vendor approve / suspend / reject write live here.</p>
-            </div>
-            <div class="epc-users-page__hero-actions">
-                <a class="btn btn-primary btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
-                <a class="btn btn-default btn-sm" href="/cp/customer-board-app"><i class="fa fa-id-card-o"></i> Customer board</a>
-                <a class="btn btn-default btn-sm" href="/cp/abandoned-carts-app"><i class="fa fa-shopping-cart"></i> Abandoned carts</a>
-                <a class="btn btn-default btn-sm" href="/cp/credit-limits-app"><i class="fa fa-credit-card"></i> Credit limits</a>
-            </div>
-        </div>
-
-        <div class="epc-scp-kpi" aria-label="Users KPIs">
-            <div class="epc-scp-kpi__card">
-                <div class="epc-scp-kpi__label">Shown (limit @_limit)</div>
-                <div class="epc-scp-kpi__val">@_visibleUsers.Count</div>
-            </div>
-            <div class="epc-scp-kpi__card">
-                <div class="epc-scp-kpi__label">Unlocked in page</div>
-                <div class="epc-scp-kpi__val">@_unlocked</div>
-            </div>
-            <div class="epc-scp-kpi__card">
-                <div class="epc-scp-kpi__label">Locked in page</div>
-                <div class="epc-scp-kpi__val">@(_visibleUsers.Count - _unlocked)</div>
-            </div>
-            <div class="epc-scp-kpi__card">
-                <div class="epc-scp-kpi__label">Selected</div>
-                <div class="epc-scp-kpi__val">@(_selectedId > 0 ? $"#{_selectedId}" : "—")</div>
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="hpanel"><div class="panel-body">
+            <div class="alert alert-warning" role="status">Sign in to the Control Panel to manage users. <a href="/cp/login?returnUrl=/cp/users-app">Login</a></div>
+        </div></div></div>
+    }
+    else if (_editor is not null)
+    {
+        var e = _editor;
+        var isNew = e.UserId <= 0;
+        @* ---- user.php twin ---- *@
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    @(isNew ? "New user" : "User #" + e.UserId.ToString(CultureInfo.InvariantCulture))
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(isNew ? _phpEditTab : _phpEditTab + "?user_id=" + e.UserId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
+                </div>
+                <div class="panel-body epc-users-actions">
+                    <a class="panel_a" href="javascript:void(0);" onclick="save_action();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                    <a class="panel_a" href="/cp/users-app"><div class="panel_a_img"><i class="fa fa-users"></i></div><div class="panel_a_caption">Users</div></a>
+                    @if (!isNew)
+                    {
+                        <a class="panel_a" href="/cp/orders?customer_id=@e.UserId.ToString(CultureInfo.InvariantCulture)"><div class="panel_a_img"><i class="fa fa-shopping-cart"></i></div><div class="panel_a_caption">Orders</div></a>
+                        <a class="panel_a" href="/cp/credit-limits-app?user_id=@e.UserId.ToString(CultureInfo.InvariantCulture)"><div class="panel_a_img"><i class="fa fa-credit-card"></i></div><div class="panel_a_caption">Balance</div></a>
+                        <a class="panel_a" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpEditTab + "?user_id=" + e.UserId.ToString(CultureInfo.InvariantCulture))" title="Sign in as this user (opens the classic twin)"><div class="panel_a_img"><i class="fa fa-key"></i></div><div class="panel_a_caption">Login as user</div></a>
+                        <a class="panel_a" href="/cp/statistics-app?user_id=@e.UserId.ToString(CultureInfo.InvariantCulture)"><div class="panel_a_img"><i class="fa fa-bar-chart"></i></div><div class="panel_a_caption">Statistics</div></a>
+                    }
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                </div>
             </div>
         </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
 
-        <div class="epc-users-toolbar">
-            <form method="get" action="/cp/users-app">
-                @if (_selectedId > 0)
-                {
-                    <input type="hidden" name="user_id" value="@_selectedId.ToString(CultureInfo.InvariantCulture)" />
-                }
-                <input type="search" name="q" value="@_query" placeholder="Filter email, phone, or user id…" aria-label="Filter users" />
-                <button type="submit" class="btn btn-default btn-sm"><i class="fa fa-search"></i> Filter</button>
-                @if (!string.IsNullOrWhiteSpace(_query))
-                {
-                    <a class="btn btn-default btn-sm" href="@DetailHref(0, null)">Clear</a>
-                }
-            </form>
-            <span class="epc-users-toolbar__hint"><i class="fa fa-columns"></i> Open a row — detail console loads on the right</span>
-        </div>
-
-        @if (!string.IsNullOrWhiteSpace(_flashOk))
-        {
-            <div class="alert alert-success" role="status">@_flashOk</div>
-        }
-        @if (!string.IsNullOrWhiteSpace(_flashErr))
-        {
-            <div class="alert alert-danger" role="status">@_flashErr</div>
-        }
-        @if (_isAdmin)
-        {
-            <form method="post" action="/cp/users/set-comment" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
-                <label>User id <input type="number" name="userId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
-                <label>Staff comment <input type="text" name="comment" maxlength="4000" style="width:18rem" /></label>
-                <button type="submit" class="btn btn-xs btn-primary">Save comment</button>
-            </form>
-            <form method="post" action="/cp/users/set-unlocked" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
-                <label>User id <input type="number" name="userId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
-                <label>Account
-                    <select name="unlocked">
-                        <option value="1">Unlock</option>
-                        <option value="0">Lock (ends sessions)</option>
-                    </select>
-                </label>
-                <button type="submit" class="btn btn-xs btn-default">Apply lock</button>
-            </form>
-            <form method="post" action="/cp/users/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/users-app" />
-                <label>Email <input type="email" name="email" maxlength="255" style="width:14rem" /></label>
-                <label>Phone <input type="text" name="phone" maxlength="64" style="width:10rem" /></label>
-                <label>Password <input type="password" name="password" required maxlength="200" autocomplete="new-password" style="width:10rem" /></label>
-                <label>Account
-                    <select name="unlocked">
-                        <option value="1" selected>Unlocked</option>
-                        <option value="0">Locked</option>
-                    </select>
-                </label>
-                <label>Groups <input type="text" name="groups" placeholder="1,2" style="width:6rem" /></label>
-                <label>Profile JSON <input type="text" name="fieldsJson" placeholder='[{"name":"firstname","value":"Ada"}]' style="width:16rem" /></label>
-                <button type="submit" class="btn btn-xs btn-primary">Create user</button>
-            </form>
-            <form method="post" action="/cp/users/set-password" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
-                <label>User id <input type="number" name="userId" min="1" required value="@(_selectedId > 0 ? _selectedId.ToString(CultureInfo.InvariantCulture) : "")" style="width:6rem" /></label>
-                <label>New password <input type="password" name="password" required maxlength="200" autocomplete="new-password" style="width:10rem" /></label>
-                <button type="submit" class="btn btn-xs btn-default">Set password</button>
-            </form>
-            <form method="post" action="/cp/vendors/approvals" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@(_selectedId > 0 ? DetailHref(_selectedId, _query, "profile") : "/cp/users-app")" />
-                <label>Vendor account id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-                <label>Action
-                    <select name="action">
-                        <option value="approve">Approve</option>
-                        <option value="suspend">Suspend</option>
-                        <option value="reject">Reject</option>
-                    </select>
-                </label>
-                <button type="submit" class="btn btn-xs btn-primary">Apply vendor status</button>
-                <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/vendor_approvals")">Classic twin</a>
-            </form>
-        }
-        @if (!_isAdmin)
-        {
-            <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live users. Guest browse shows the PHP-parity shell.</div>
-        }
-        else if (!string.IsNullOrWhiteSpace(_message))
-        {
-            <div class="alert alert-warning" role="status">@_message <span class="text-muted small">(@_source)</span></div>
-        }
-
-        <div class="epc-scp-users-workspace @(_selectedId > 0 ? "is-detail-active" : null)">
-            <div class="epc-scp-users-workspace__list">
-                <div class="epc-scp-table-card">
-                    <div class="epc-scp-table-card__head">
-                        <div>
-                            <h3>User accounts</h3>
-                            <p class="epc-users-hint">PHP user_manager list — select a row for the account console</p>
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Account</div>
+                <div class="panel-body form-horizontal">
+                    @if (!isNew)
+                    {
+                        <div class="form-group"><label class="col-lg-6 control-label">ID</label><div class="col-lg-6"><p class="form-control-static">@e.UserId.ToString(CultureInfo.InvariantCulture)</p></div></div>
+                    }
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="reg_variant_selector">Registration variant</label>
+                        <div class="col-lg-6">
+                            <select id="reg_variant_selector" class="form-control" onchange="regenerateFields();">
+                                @foreach (var v in e.Variants)
+                                {
+                                    <option value="@v.Id.ToString(CultureInfo.InvariantCulture)" selected="@(v.Id == e.RegVariant)">@v.Caption</option>
+                                }
+                            </select>
                         </div>
-                        <span>
-                            <a class="btn btn-default btn-xs" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Groups</a>
-                            <a class="btn btn-default btn-xs" href="/cp/admin-sessions-app"><i class="fa fa-key"></i> Sessions</a>
-                        </span>
                     </div>
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="unlocked_checkbox">Unlocked</label>
+                        <div class="col-lg-6"><input type="checkbox" id="unlocked_checkbox" checked="@e.Unlocked" /></div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="email">E-mail</label>
+                        <div class="col-lg-6"><input type="text" id="email" class="form-control" value="@e.Email" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="email_confirmed">E-mail confirmed</label>
+                        <div class="col-lg-6"><input type="checkbox" id="email_confirmed" checked="@e.EmailConfirmed" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="phone">Phone</label>
+                        <div class="col-lg-6"><input type="text" id="phone" class="form-control" placeholder="9005556677" value="@e.Phone" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="phone_confirmed">Phone confirmed</label>
+                        <div class="col-lg-6"><input type="checkbox" id="phone_confirmed" checked="@e.PhoneConfirmed" /></div>
+                    </div>
+                    <div class="hr-line-dashed"></div>
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="password">Password</label>
+                        <div class="col-lg-6"><input type="password" id="password" class="form-control" autocomplete="new-password" placeholder="@(isNew ? "Required" : "Leave empty to keep")" /></div>
+                    </div>
+                    <div class="form-group">
+                        <label class="col-lg-6 control-label" for="password_repeat">Repeat password</label>
+                        <div class="col-lg-6"><input type="password" id="password_repeat" class="form-control" autocomplete="new-password" /></div>
+                    </div>
+                    <div id="additional_fields_div"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Groups</div>
+                <div class="panel-body epc-group-tree" id="groups_tree">
+                    @if (e.Groups.Count == 0)
+                    {
+                        <p class="text-muted">No groups defined. <a href="/cp/groups-app">Groups</a></p>
+                    }
+                    else
+                    {
+                        @RenderGroupTree(e, 0)
+                    }
+                </div>
+            </div>
+            @if (!isNew)
+            {
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Balance</div>
+                    <div class="panel-body"><h3 style="margin:0">@e.Balance.ToString("N2", CultureInfo.InvariantCulture)</h3></div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Staff comment</div>
+                    <div class="panel-body">
+                        <form method="post" action="/cp/users/set-comment">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@EditorHref(e.UserId)" />
+                            <input type="hidden" name="userId" value="@e.UserId.ToString(CultureInfo.InvariantCulture)" />
+                            <textarea id="user_comment" name="comment" rows="6" maxlength="4000" style="width:100%;font-size:14px;font-weight:bold">@e.Comment</textarea>
+                            <button type="submit" class="btn btn-xs btn-default" style="margin-top:6px">Save comment</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Set password only</div>
+                    <div class="panel-body">
+                        <form method="post" action="/cp/users/set-password" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@EditorHref(e.UserId)" />
+                            <input type="hidden" name="userId" value="@e.UserId.ToString(CultureInfo.InvariantCulture)" />
+                            <label>New password <input type="password" name="password" required maxlength="200" autocomplete="new-password" class="form-control" style="width:12rem" /></label>
+                            <button type="submit" class="btn btn-xs btn-default">Set password</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Vendor approval</div>
+                    <div class="panel-body">
+                        <form method="post" action="/cp/vendors/approvals" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@EditorHref(e.UserId)" />
+                            <input type="hidden" name="id" value="@e.UserId.ToString(CultureInfo.InvariantCulture)" />
+                            <label>Action
+                                <select name="action" class="form-control">
+                                    <option value="approve">Approve</option>
+                                    <option value="suspend">Suspend</option>
+                                    <option value="reject">Reject</option>
+                                </select>
+                            </label>
+                            <button type="submit" class="btn btn-xs btn-primary">Apply vendor status</button>
+                            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/vendor_approvals")">Classic twin</a>
+                        </form>
+                    </div>
+                </div>
+            }
+        </div>
+
+        <form id="save_form" method="post" action="@(isNew ? "/cp/users/create" : "/cp/users/update")" style="display:none">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(isNew ? "/cp/users-app" : EditorHref(e.UserId))" />
+            <input type="hidden" name="save_action" id="save_action" value="@(isNew ? "create" : "update")" />
+            <input type="hidden" name="user_id" id="user_id" value="@e.UserId.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="reg_variant" id="reg_variant" value="" />
+            <input type="hidden" name="unlocked" id="unlocked" value="" />
+            <input type="hidden" name="fields_json" id="fields_json" value="" />
+            <input type="hidden" name="groups" id="groups" value="" />
+            <input type="hidden" name="email" id="email_form" value="" />
+            <input type="hidden" name="email_confirmed" id="email_confirmed_form" value="" />
+            <input type="hidden" name="phone" id="phone_form" value="" />
+            <input type="hidden" name="phone_confirmed" id="phone_confirmed_form" value="" />
+            <input type="hidden" name="password" id="password_form" value="" />
+        </form>
+
+        <script>
+            var reg_fields = @((MarkupString)RegFieldsJson(e));
+            var user_groups_list = @((MarkupString)JsonSerializer.Serialize(e.GroupIds));
+            function esc(s) { return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;'); }
+            function regenerateFields() {
+                var variant = parseInt(document.getElementById('reg_variant_selector').value, 10);
+                var html = '';
+                for (var i = 0; i < reg_fields.length; i++) {
+                    var f = reg_fields[i];
+                    if (f.show_for.indexOf(variant) < 0) { continue; }
+                    var star = f.required_for.indexOf(variant) >= 0 ? '*' : '';
+                    html += '<div class="form-group"><label class="col-lg-6 control-label">' + esc(f.caption) + star + '</label><div class="col-lg-6">';
+                    html += '<input onkeyup="dynamicApplying(\'' + esc(f.name) + '\');" type="text" name="' + esc(f.name) + '" id="' + esc(f.name) + '" value="' + esc(f.value_buffer) + '" class="form-control" maxlength="' + (f.maxlen > 0 ? f.maxlen : 255) + '" />';
+                    html += '</div></div><div class="hr-line-dashed col-lg-12"></div>';
+                }
+                if (html.length > 0) { html = '<div class="col-lg-12 text-center"><h3><strong>Additional fields</strong></h3></div>' + html; }
+                document.getElementById('additional_fields_div').innerHTML = html;
+            }
+            function dynamicApplying(name) {
+                var v = document.getElementById(name).value;
+                for (var i = 0; i < reg_fields.length; i++) { if (reg_fields[i].name === name) { reg_fields[i].value_buffer = v; break; } }
+            }
+            function save_action() {
+                var variant = parseInt(document.getElementById('reg_variant_selector').value, 10);
+                var email = document.getElementById('email').value.trim();
+                var phone = document.getElementById('phone').value.trim();
+                var pwd = document.getElementById('password').value;
+                var rep = document.getElementById('password_repeat').value;
+                if (email.length === 0 && phone.length === 0) { alert('Enter an e-mail or a phone.'); return; }
+                if (pwd !== rep) { alert('Passwords do not match.'); return; }
+                if (@(isNew ? "true" : "false") && pwd.length === 0) { alert('Password is required.'); return; }
+                var fields = [];
+                for (var i = 0; i < reg_fields.length; i++) {
+                    var f = reg_fields[i];
+                    if (f.show_for.indexOf(variant) < 0) { continue; }
+                    if (f.required_for.indexOf(variant) >= 0 && f.value_buffer.trim().length === 0) { alert('Field "' + f.caption + '" is required.'); return; }
+                    if (f.regexp && f.regexp.length > 0 && f.value_buffer.length > 0) {
+                        try { if (!(new RegExp(f.regexp)).test(f.value_buffer)) { alert('Field "' + f.caption + '" has an invalid value.'); return; } } catch (ex) { }
+                    }
+                    fields.push({ name: f.name, value: f.value_buffer });
+                }
+                var groups = [];
+                var boxes = document.querySelectorAll('#groups_tree input[type=checkbox]:checked');
+                for (var b = 0; b < boxes.length; b++) { groups.push(parseInt(boxes[b].value, 10)); }
+                document.getElementById('reg_variant').value = variant;
+                document.getElementById('unlocked').value = document.getElementById('unlocked_checkbox').checked ? '1' : '0';
+                document.getElementById('fields_json').value = JSON.stringify(fields);
+                document.getElementById('groups').value = JSON.stringify(groups);
+                document.getElementById('email_form').value = email;
+                document.getElementById('email_confirmed_form').value = document.getElementById('email_confirmed').checked ? '1' : '0';
+                document.getElementById('phone_form').value = phone;
+                document.getElementById('phone_confirmed_form').value = document.getElementById('phone_confirmed').checked ? '1' : '0';
+                document.getElementById('password_form').value = pwd;
+                document.getElementById('save_form').submit();
+            }
+            regenerateFields();
+        </script>
+    }
+    else
+    {
+        var l = _list!;
+        @* ---- user_manager.php twin ---- *@
+        <PhpCpModulePageHeader Title="Users"
+                               Subtitle="PHP user_manager twin: filter, sort and page the users table; open a row for the user.php editor (profile fields, groups, balance, comment)."
+                               PhpTabHref="@_phpTab">
+            <a class="ghost" href="/cp/groups-app">Groups</a>
+            <a class="ghost" href="/cp/orders">Orders</a>
+            <a class="ghost" href="/cp/credit-limits-app">Balances</a>
+        </PhpCpModulePageHeader>
+        <div class="col-lg-12 epc-users-page">
+            <div class="epc-scp-kpi" aria-label="Users KPIs">
+                <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Total (filtered)</div><div class="epc-scp-kpi__val">@l.Total.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Unlocked in page</div><div class="epc-scp-kpi__val">@l.Rows.Count(r => r.Unlocked).ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Locked in page</div><div class="epc-scp-kpi__val">@l.Rows.Count(r => !r.Unlocked).ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="epc-scp-kpi__card"><div class="epc-scp-kpi__label">Page</div><div class="epc-scp-kpi__val">@l.Page.ToString(CultureInfo.InvariantCulture) / @l.PageCount.ToString(CultureInfo.InvariantCulture)</div></div>
+            </div>
+        </div>
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Users
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                </div>
+                <div class="panel-body epc-users-actions">
+                    <a class="panel_a" href="/cp/users-app?new=1"><div class="panel_a_img"><i class="fa fa-user-plus"></i></div><div class="panel_a_caption">Create user</div></a>
+                    <a class="panel_a" href="javascript:void(0);" onclick="delete_users();"><div class="panel_a_img"><i class="fa fa-trash-o"></i></div><div class="panel_a_caption">Delete</div></a>
+                    <a class="panel_a" href="/cp/groups-app"><div class="panel_a_img"><i class="fa fa-sitemap"></i></div><div class="panel_a_caption">Groups</div></a>
+                    <a class="panel_a" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/polya-registracii")"><div class="panel_a_img"><i class="fa fa-list-alt"></i></div><div class="panel_a_caption">Registration fields</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                </div>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
+        @if (_notFound) { <div class="col-lg-12"><div class="alert alert-danger" role="status">User #@_selectedId.ToString(CultureInfo.InvariantCulture) was not found.</div></div> }
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Filter</div>
+                <div class="panel-body filter_panel">
+                    <form method="get" action="/cp/users-app" class="form-horizontal" id="filter_form">
+                        <input type="hidden" name="sort" value="@l.SortField" />
+                        <input type="hidden" name="dir" value="@(l.SortAsc ? "asc" : "desc")" />
+                        <div class="row">
+                            <div class="col-lg-3">
+                                <div class="form-group"><label class="col-lg-5 control-label" for="user_id">ID</label><div class="col-lg-7"><input type="text" id="user_id" name="f_user_id" class="form-control" value="@l.Filter.UserId" style="@(l.Filter.UserId.Length > 0 ? "background:#b9fcab" : "")" /></div></div>
+                                <div class="form-group"><label class="col-lg-5 control-label" for="group_id">Group</label><div class="col-lg-7">
+                                    <select id="group_id" name="f_group_id" class="form-control" style="@(l.Filter.GroupId >= 0 ? "background:#b9fcab" : "")">
+                                        <option value="-1" selected="@(l.Filter.GroupId < 0)">— any —</option>
+                                        @foreach (var g in l.Groups.OrderBy(g => g.Level).ThenBy(g => g.Id))
+                                        {
+                                            <option value="@g.Id.ToString(CultureInfo.InvariantCulture)" selected="@(g.Id == l.Filter.GroupId)">@(new string('·', Math.Max(0, g.Level)))@g.Value</option>
+                                        }
+                                    </select></div></div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group"><label class="col-lg-5 control-label" for="f_email">E-mail</label><div class="col-lg-7"><input type="text" id="f_email" name="f_email" class="form-control" value="@l.Filter.Email" style="@(l.Filter.Email.Length > 0 ? "background:#b9fcab" : "")" /></div></div>
+                                <div class="form-group"><label class="col-lg-5 control-label" for="f_phone">Phone</label><div class="col-lg-7"><input type="text" id="f_phone" name="f_phone" class="form-control" value="@l.Filter.Phone" style="@(l.Filter.Phone.Length > 0 ? "background:#b9fcab" : "")" /></div></div>
+                            </div>
+                            <div class="col-lg-3">
+                                <div class="form-group"><label class="col-lg-5 control-label" for="f_unlocked">Unlocked</label><div class="col-lg-7">
+                                    <select id="f_unlocked" name="f_unlocked" class="form-control" style="@(l.Filter.Unlocked >= 0 ? "background:#b9fcab" : "")">
+                                        <option value="-1" selected="@(l.Filter.Unlocked < 0)">— any —</option>
+                                        <option value="1" selected="@(l.Filter.Unlocked == 1)">Yes</option>
+                                        <option value="0" selected="@(l.Filter.Unlocked == 0)">No</option>
+                                    </select></div></div>
+                                @foreach (var f in l.FilterFields)
+                                {
+                                    var fv = FilterFieldValue(l, f.Name);
+                                    <div class="form-group"><label class="col-lg-5 control-label" for="ff_@f.Name">@f.Caption</label><div class="col-lg-7"><input type="text" id="ff_@f.Name" name="ff_@f.Name" class="form-control" value="@fv" style="@(fv.Length > 0 ? "background:#b9fcab" : "")" /></div></div>
+                                }
+                            </div>
+                            <div class="col-lg-3">
+                                <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-filter"></i> Apply</button>
+                                <a class="btn btn-sm btn-default" href="/cp/users-app">Reset</a>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Users list — @l.Total.ToString(CultureInfo.InvariantCulture) total, page @l.Page.ToString(CultureInfo.InvariantCulture) / @l.PageCount.ToString(CultureInfo.InvariantCulture)
+                </div>
+                <div class="panel-body epc-scp-table-card">
                     <div class="table-responsive">
-                        <table class="epc-scp-data-table table table-epc-pro table-hover">
+                        <table class="epc-scp-data-table table table-striped table-bordered table-hover table-epc" id="users_table">
                             <thead>
                                 <tr>
-                                    <th>User ID</th>
-                                    <th>Email</th>
-                                    <th>Phone</th>
-                                    <th>Unlocked</th>
-                                    <th>Registered</th>
-                                    <th>Last visit</th>
+                                    <th><input type="checkbox" id="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
+                                    <th>@SortLink(l, "user_id", "ID")</th>
                                     <th></th>
+                                    <th>Groups</th>
+                                    <th>@SortLink(l, "reg_variant", "Reg. variant")</th>
+                                    <th>@SortLink(l, "email", "E-mail")</th>
+                                    <th>@SortLink(l, "phone", "Phone")</th>
+                                    @foreach (var c in l.TableColumns)
+                                    {
+                                        <th>@SortLink(l, c.Name, c.Caption)</th>
+                                    }
+                                    <th>@SortLink(l, "time_registered", "Registered")</th>
+                                    <th>@SortLink(l, "time_last_visit", "Last visit")</th>
+                                    <th>@SortLink(l, "admin_created", "Created by admin")</th>
+                                    <th>@SortLink(l, "balance", "Balance")</th>
+                                    <th class="text-center">@SortLink(l, "unlocked", "Unlocked")</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                @if (_visibleUsers.Count == 0)
+                                @if (l.Rows.Count == 0)
                                 {
-                                    <tr><td colspan="7">No records yet.</td></tr>
+                                    <tr><td colspan="@((13 + l.TableColumns.Count).ToString(CultureInfo.InvariantCulture))" class="text-muted">No users match the filter.</td></tr>
                                 }
-                                else
+                                @foreach (var r in l.Rows)
                                 {
-                                    @foreach (var u in _visibleUsers)
-                                    {
-                                        var rowClass = "epc-scp-users-row" + (_selectedId == u.UserId ? " is-selected" : "");
-                                        <tr class="@rowClass">
-                                            <td>
-                                                <a class="epc-scp-users-link" href="@DetailHref(u.UserId, _query)">
-                                                    <strong>@u.UserId</strong>
-                                                </a>
-                                            </td>
-                                            <td>@(string.IsNullOrWhiteSpace(u.Email) ? "—" : u.Email)</td>
-                                            <td>@(string.IsNullOrWhiteSpace(u.Phone) ? "—" : u.Phone)</td>
-                                            <td>
-                                                @if (u.Unlocked == 1)
+                                    var id = r.UserId.ToString(CultureInfo.InvariantCulture);
+                                    var href = EditorHref(r.UserId);
+                                    <tr id="erp-row-@id" class="@(r.Unlocked ? "" : "epc-locked")">
+                                        <td><input type="checkbox" class="epc-user-check" id="checked_@id" name="checked_@id" value="@id" onchange="on_one_check_changed();" /></td>
+                                        <td><a href="@href">@id</a></td>
+                                        <td class="epc-row-icons" style="white-space:nowrap">
+                                            <a href="/cp/orders?customer_id=@id" title="Orders"><i class="fa fa-shopping-cart"></i></a>
+                                            <a href="/cp/credit-limits-app?user_id=@id" title="Balance"><i class="fa fa-credit-card"></i></a>
+                                            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpEditTab + "?user_id=" + id)" title="Login as user (PHP twin)"><i class="fa fa-key"></i></a>
+                                            <a href="/cp/statistics-app?user_id=@id" title="Statistics"><i class="fa fa-bar-chart"></i></a>
+                                        </td>
+                                        <td>@((MarkupString)string.Join(";<br>", r.Groups.Select(System.Net.WebUtility.HtmlEncode)))</td>
+                                        <td><a href="@href">@r.RegVariantCaption</a></td>
+                                        <td>
+                                            <a href="@href" style="display:inline">@r.Email</a>
+                                            @if (r.Email.Length > 0)
+                                            {
+                                                @if (r.EmailConfirmed) { <i class="fa fa-check-circle" style="color:#0A0" title="Confirmed"></i> } else { <i class="fa fa-exclamation-triangle" style="color:#F00" title="Not confirmed"></i> }
+                                            }
+                                        </td>
+                                        <td>
+                                            <a href="@href" style="display:inline">@r.Phone</a>
+                                            @if (r.Phone.Length > 0)
+                                            {
+                                                @if (r.PhoneConfirmed) { <i class="fa fa-check-circle" style="color:#0A0" title="Confirmed"></i> } else { <i class="fa fa-exclamation-triangle" style="color:#F00" title="Not confirmed"></i> }
+                                            }
+                                        </td>
+                                        @foreach (var pv in r.ProfileValues)
+                                        {
+                                            <td><a href="@href">@pv</a></td>
+                                        }
+                                        <td><a href="@href">@Stamp(r.TimeRegistered)</a></td>
+                                        <td><a href="@href">@(r.TimeLastVisit > 0 ? Stamp(r.TimeLastVisit) : "never")</a></td>
+                                        <td><a href="@href">@(r.AdminCreated ? "Yes" : "No")</a></td>
+                                        <td style="white-space:nowrap"><a href="@href">@r.Balance.ToString("N2", CultureInfo.InvariantCulture)</a></td>
+                                        <td class="text-center">
+                                            <form method="post" action="/cp/users/set-unlocked" style="margin:0">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="@ListHref(l, l.Page)" />
+                                                <input type="hidden" name="userId" value="@id" />
+                                                <input type="hidden" name="unlocked" value="@(r.Unlocked ? "0" : "1")" />
+                                                @if (r.Unlocked)
                                                 {
-                                                    <span class="epc-scp-badge epc-scp-badge--ok">Yes</span>
+                                                    <button type="submit" class="btn btn-xs btn-success" title="Block"><i class="fa fa-unlock"></i></button>
                                                 }
                                                 else
                                                 {
-                                                    <span class="epc-scp-badge epc-scp-badge--off">No</span>
+                                                    <button type="submit" class="btn btn-xs btn-danger" title="Unblock"><i class="fa fa-lock"></i></button>
                                                 }
-                                            </td>
-                                            <td>@FormatTime(u.TimeRegistered)</td>
-                                            <td>@FormatTime(u.TimeLastVisit)</td>
-                                            <td class="epc-scp-actions-cell">
-                                                <a href="@DetailHref(u.UserId, _query)">Open</a>
-                                            </td>
-                                        </tr>
-                                    }
+                                            </form>
+                                        </td>
+                                    </tr>
                                 }
                             </tbody>
                         </table>
                     </div>
+                    @if (l.PageCount > 1)
+                    {
+                        <ul class="pagination pagination-sm" style="margin:6px 0 0">
+                            @for (var p = 1; p <= l.PageCount; p++)
+                            {
+                                <li class="@(p == l.Page ? "active" : "")"><a href="@ListHref(l, p)">@p.ToString(CultureInfo.InvariantCulture)</a></li>
+                            }
+                        </ul>
+                    }
                 </div>
             </div>
-
-            <div class="epc-scp-users-workspace__detail" id="epc_users_detail_pane">
-                @if (_detail is null)
-                {
-                    <div class="epc-ud__empty">
-                        <i class="fa fa-user"></i>
-                        <p>Select a user to manage</p>
-                        <span class="text-muted small">One-window console: profile, groups, balance, orders, and related modules</span>
-                    </div>
-                }
-                else
-                {
-                    var d = _detail;
-                    var tab = string.IsNullOrWhiteSpace(_detailTab) ? "profile" : _detailTab;
-                    <div class="epc-ud" data-user-id="@d.UserId">
-                        <div class="epc-ud__head">
-                            <div class="epc-ud__title-row">
-                                <h3 class="epc-ud__title">
-                                    @(string.IsNullOrWhiteSpace(d.DisplayName) ? $"User #{d.UserId}" : d.DisplayName)
-                                    <span class="epc-ud__tag">User</span>
-                                </h3>
-                                @if (d.Unlocked == 1)
-                                {
-                                    <span class="epc-scp-badge epc-scp-badge--ok">Unlocked</span>
-                                }
-                                else
-                                {
-                                    <span class="epc-scp-badge epc-scp-badge--off">Locked</span>
-                                }
-                            </div>
-                            <div class="epc-ud__meta">
-                                <span><i class="fa fa-hashtag"></i> ID @d.UserId</span>
-                                <span><i class="fa fa-envelope-o"></i> @(string.IsNullOrWhiteSpace(d.Email) ? "—" : d.Email)</span>
-                                <span><i class="fa fa-phone"></i> @(string.IsNullOrWhiteSpace(d.Phone) ? "—" : d.Phone)</span>
-                                <span><i class="fa fa-clock-o"></i> Reg @FormatTime(d.TimeRegistered)</span>
-                                <span><i class="fa fa-refresh"></i> Visit @FormatTime(d.TimeLastVisit)</span>
-                            </div>
-                            <div class="epc-ud__chips">
-                                <span class="epc-scp-badge epc-scp-badge--normal">Reg variant @d.RegVariant</span>
-                                <span class="epc-scp-badge @(d.EmailConfirmed == 1 ? "epc-scp-badge--ok" : "epc-scp-badge--off")">Email @(d.EmailConfirmed == 1 ? "confirmed" : "unconfirmed")</span>
-                                <span class="epc-scp-badge @(d.PhoneConfirmed == 1 ? "epc-scp-badge--ok" : "epc-scp-badge--off")">Phone @(d.PhoneConfirmed == 1 ? "confirmed" : "unconfirmed")</span>
-                                <span class="epc-scp-badge epc-scp-badge--normal">@d.Groups.Count groups</span>
-                            </div>
-                            <div class="epc-ud__totals">
-                                <div>
-                                    <span>Balance</span>
-                                    <strong class="@(d.Balance >= 0 ? "is-ok" : "is-bad")">@d.Balance.ToString("N2", CultureInfo.InvariantCulture)</strong>
-                                </div>
-                                <div>
-                                    <span>Orders</span>
-                                    <strong>@d.OrderCount.ToString(CultureInfo.InvariantCulture)</strong>
-                                </div>
-                                <div>
-                                    <span>Garage / sessions</span>
-                                    <strong>@d.GarageCount.ToString(CultureInfo.InvariantCulture) / @d.SessionCount.ToString(CultureInfo.InvariantCulture)</strong>
-                                </div>
-                            </div>
-                        </div>
-
-                        <nav class="epc-ud__tabs" aria-label="User detail tabs">
-                            <a class="@(tab == "profile" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "profile")">Profile</a>
-                            <a class="@(tab == "groups" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "groups")">Groups</a>
-                            <a class="@(tab == "orders" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "orders")">Orders</a>
-                            <a class="@(tab == "related" ? "is-active" : null)" href="@DetailHref(d.UserId, _query, "related")">Related modules</a>
-                        </nav>
-
-                        @if (tab == "profile")
-                        {
-                            <section class="epc-ud__panel">
-                                <div class="epc-ud__section-title">Account</div>
-                                <dl class="epc-ud__grid">
-                                    <dt>User ID</dt><dd>@d.UserId</dd>
-                                    <dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(d.Email) ? "—" : d.Email)</dd>
-                                    <dt>Phone</dt><dd>@(string.IsNullOrWhiteSpace(d.Phone) ? "—" : d.Phone)</dd>
-                                    <dt>Unlocked</dt><dd>@(d.Unlocked == 1 ? "Yes" : "No")</dd>
-                                    <dt>Reg variant</dt><dd>@d.RegVariant</dd>
-                                    <dt>Registered</dt><dd>@FormatTime(d.TimeRegistered)</dd>
-                                    <dt>Last visit</dt><dd>@FormatTime(d.TimeLastVisit)</dd>
-                                </dl>
-
-                                @if (d.ProfileFields.Count > 0)
-                                {
-                                    <div class="epc-ud__section-title" style="margin-top:16px">Profile fields</div>
-                                    <dl class="epc-ud__grid">
-                                        @foreach (var field in d.ProfileFields.OrderBy(kv => kv.Key, StringComparer.OrdinalIgnoreCase))
-                                        {
-                                            <dt>@field.Key</dt>
-                                            <dd>@(string.IsNullOrWhiteSpace(field.Value) ? "—" : field.Value)</dd>
-                                        }
-                                    </dl>
-                                }
-
-                                <div class="epc-ud__actions">
-                                    <a class="btn btn-primary btn-sm" href="@PhpReferenceEditorHref(d.UserId)"><i class="fa fa-pencil"></i> Classic editor</a>
-                                    <a class="btn btn-default btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Orders · OMS</a>
-                                    <a class="btn btn-default btn-sm" href="@DetailHref(0, _query)"><i class="fa fa-times"></i> Close detail</a>
-                                </div>
-                                <p class="text-muted small" style="margin-top:10px">Create, password, lock/unlock, and staff comment write live here. Auth-as-user stays on the classic editor.</p>
-                            </section>
-    <PhpParityModuleBody AppPath="/cp/users-app" IsAdmin="_isAdmin" />
-
-                        }
-                        else if (tab == "groups")
-                        {
-                            <section class="epc-ud__panel">
-                                <div class="epc-ud__section-title">Group membership</div>
-                                @if (d.Groups.Count == 0)
-                                {
-                                    <p class="text-muted">No groups bound.</p>
-                                }
-                                else
-                                {
-                                    @foreach (var g in d.Groups)
-                                    {
-                                        <span class="epc-ud__group-chip">
-                                            #@g.GroupId · @(string.IsNullOrWhiteSpace(g.Name) ? "Group" : g.Name)
-                                            @if (g.ForBackend)
-                                            {
-                                                <text> · backend</text>
-                                            }
-                                            @if (!g.Unblocked)
-                                            {
-                                                <text> · blocked</text>
-                                            }
-                                        </span>
-                                    }
-                                }
-                                <div class="epc-ud__actions">
-                                    <a class="btn btn-default btn-sm" href="/cp/groups-app"><i class="fa fa-sitemap"></i> Manage groups</a>
-                                </div>
-                            </section>
-                        }
-                        else if (tab == "orders")
-                        {
-                            <section class="epc-ud__panel">
-                                <div class="epc-ud__section-title">Recent orders (@d.OrderCount total)</div>
-                                <div class="table-responsive">
-                                    <table class="table table-condensed epc-ud__orders">
-                                        <thead>
-                                            <tr>
-                                                <th>Order #</th>
-                                                <th>Created</th>
-                                                <th>Paid</th>
-                                                <th>Status</th>
-                                                <th></th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @if (d.RecentOrders.Count == 0)
-                                            {
-                                                <tr><td colspan="5">No orders yet.</td></tr>
-                                            }
-                                            else
-                                            {
-                                                @foreach (var o in d.RecentOrders)
-                                                {
-                                                    <tr>
-                                                        <td><strong>#@o.Id</strong></td>
-                                                        <td>@FormatTime(o.TimeUnix)</td>
-                                                        <td>@PaidLabel(o.Paid)</td>
-                                                        <td>#@o.Status</td>
-                                                        <td><a href="@($"/cp/orders?order_id={o.Id.ToString(CultureInfo.InvariantCulture)}")">Open OMS</a></td>
-                                                    </tr>
-                                                }
-                                            }
-                                        </tbody>
-                                    </table>
-                                </div>
-                                <div class="epc-ud__actions">
-                                    <a class="btn btn-default btn-sm" href="/cp/orders"><i class="fa fa-shopping-basket"></i> Full OMS list</a>
-                                    <a class="btn btn-default btn-sm" href="/cp/abandoned-carts-app"><i class="fa fa-shopping-cart"></i> Abandoned carts</a>
-                                </div>
-                            </section>
-                        }
-                        else
-                        {
-                            <section class="epc-ud__panel">
-                                <div class="epc-ud__section-title">Related modules</div>
-                                <div class="epc-ud__related">
-                                    <a href="/cp/orders">
-                                        <strong>Orders · OMS</strong>
-                                        <span>@d.OrderCount orders · open console</span>
-                                    </a>
-                                    <a href="/cp/groups-app">
-                                        <strong>Groups</strong>
-                                        <span>@d.Groups.Count bound · ACL tree</span>
-                                    </a>
-                                    <a href="/cp/credit-limits-app">
-                                        <strong>Credit limits</strong>
-                                        <span>Balance @d.Balance.ToString("N2", CultureInfo.InvariantCulture)</span>
-                                    </a>
-                                    <a href="/cp/collections-dunning-app">
-                                        <strong>Collections</strong>
-                                        <span>Dunning / AR follow-up</span>
-                                    </a>
-                                    <a href="/cp/abandoned-carts-app">
-                                        <strong>Abandoned carts</strong>
-                                        <span>Recover cart intent</span>
-                                    </a>
-                                    <a href="/cp/customer-board-app">
-                                        <strong>Customer board</strong>
-                                        <span>CRM-style customer list</span>
-                                    </a>
-                                    <a href="/cp/admin-sessions-app">
-                                        <strong>Admin sessions</strong>
-                                        <span>@d.SessionCount session row(s)</span>
-                                    </a>
-                                    <a href="/cp/web-tracker-app">
-                                        <strong>Web tracker</strong>
-                                        <span>Browse / session analytics</span>
-                                    </a>
-                                    <a href="@PhpReferenceEditorHref(d.UserId)">
-                                        <strong>Classic editor</strong>
-                                        <span>Compare twin (may 503)</span>
-                                    </a>
-                                </div>
-                            </section>
-                        }
-                    </div>
-                }
-            </div>
         </div>
-    </div>
 
+        <form id="delete_form" method="post" action="/cp/users/delete" style="display:none">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@ListHref(l, l.Page)" />
+            <input type="hidden" name="ids" id="delete_ids" value="" />
+        </form>
+        <script>
+            function on_check_uncheck_all() {
+                var on = document.getElementById('check_uncheck_all').checked;
+                var boxes = document.querySelectorAll('.epc-user-check');
+                for (var i = 0; i < boxes.length; i++) { boxes[i].checked = on; }
+            }
+            function on_one_check_changed() {
+                var boxes = document.querySelectorAll('.epc-user-check');
+                var all = boxes.length > 0;
+                for (var i = 0; i < boxes.length; i++) { if (!boxes[i].checked) { all = false; break; } }
+                document.getElementById('check_uncheck_all').checked = all;
+            }
+            function checked_ids() {
+                var ids = [];
+                var boxes = document.querySelectorAll('.epc-user-check:checked');
+                for (var i = 0; i < boxes.length; i++) { ids.push(parseInt(boxes[i].value, 10)); }
+                return ids;
+            }
+            function delete_users() {
+                var ids = checked_ids();
+                if (ids.length === 0) { alert('Select users first.'); return; }
+                if (!confirm('Delete ' + ids.length + ' user(s)? Profiles and group bindings are removed too.')) { return; }
+                document.getElementById('delete_ids').value = JSON.stringify(ids);
+                document.getElementById('delete_form').submit();
+            }
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
+    private const string _phpTab = "/CP/users/usermanager";
+    private const string _phpEditTab = "/CP/users/usermanager/user";
+    private const int _pageSize = 50;
+
     private bool _isAdmin;
-    private IReadOnlyList<CpUserDigest> _users = [];
-    private IReadOnlyList<CpUserDigest> _visibleUsers = [];
-    private CpUserDetailDigest? _detail;
-    private int _selectedId;
-    private int _unlocked;
-    private int _limit = 100;
-    private string _source = "n/a";
-    private string _message = "";
-    private string _query = "";
-    private string _detailTab = "profile";
+    private bool _notFound;
+    private long _selectedId;
+    private CpUserList? _list;
+    private CpUserEditor? _editor;
     private string _flashOk = "";
     private string _flashErr = "";
 
-    protected override async Task OnInitializedAsync()
-    {
-        var ctx = Http.HttpContext;
-        if (ctx is null)
-        {
-            return;
-        }
+    private static string EditorHref(long userId) => "/cp/users-app?user_id=" + userId.ToString(CultureInfo.InvariantCulture);
 
-        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
-        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+    private static string Stamp(long unix) => unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).ToString("dd.MM.yyyy HH:mm:ss", CultureInfo.InvariantCulture);
 
-        if (ctx.Request.Query.TryGetValue("user_id", out var userRaw)
-            && int.TryParse(userRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid)
-            && uid > 0)
-        {
-            _selectedId = uid;
-        }
+    private static string FilterFieldValue(CpUserList l, string name)
+        => l.Filter.Fields is not null && l.Filter.Fields.TryGetValue(name, out var v) ? v : "";
 
-        if (ctx.Request.Query.TryGetValue("q", out var qRaw) && !string.IsNullOrWhiteSpace(qRaw))
-        {
-            _query = qRaw.ToString().Trim();
-        }
-
-        if (ctx.Request.Query.TryGetValue("tab", out var tabRaw) && !string.IsNullOrWhiteSpace(tabRaw))
-        {
-            _detailTab = tabRaw.ToString().Trim().ToLowerInvariant();
-        }
-
-        if (!_isAdmin)
-        {
-            return;
-        }
-
-        var result = await Dashboards.ListCpUsersAsync(_limit, ctx.RequestAborted);
-        _users = result.Users;
-        _source = result.Source;
-        _message = result.Message;
-        _visibleUsers = FilterUsers(_users, _query);
-        _unlocked = _visibleUsers.Count(u => u.Unlocked == 1);
-
-        if (_selectedId > 0)
-        {
-            _detail = await Dashboards.GetCpUserDetailAsync(_selectedId, ctx.RequestAborted);
-            if (_detail is null)
-            {
-                var row = _users.FirstOrDefault(u => u.UserId == _selectedId);
-                if (row is not null)
-                {
-                    _detail = new CpUserDetailDigest(
-                        row.UserId, row.Email, 0, row.Phone, 0, row.Unlocked, 0,
-                        row.TimeRegistered, row.TimeLastVisit, 0m, 0, 0, 0,
-                        row.Email,
-                        new Dictionary<string, string>(), [], [],
-                        "list", "Detail unavailable — showing list row.");
-                }
-            }
-        }
-    }
-
-    private static IReadOnlyList<CpUserDigest> FilterUsers(IReadOnlyList<CpUserDigest> users, string query)
-    {
-        if (string.IsNullOrWhiteSpace(query))
-        {
-            return users;
-        }
-
-        var q = query.Trim();
-        return users.Where(u =>
-                u.UserId.ToString(CultureInfo.InvariantCulture).Contains(q, StringComparison.OrdinalIgnoreCase)
-                || (u.Email?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
-                || (u.Phone?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false)
-                || (u.DisplayName?.Contains(q, StringComparison.OrdinalIgnoreCase) ?? false))
-            .ToList();
-    }
-
-    private static string DetailHref(int userId, string? query, string? tab = null)
+    private static string ListHref(CpUserList l, int page, string? sort = null, bool? asc = null)
     {
         var parts = new List<string>();
-        if (userId > 0)
+        var s = sort ?? l.SortField;
+        var a = asc ?? l.SortAsc;
+        if (s != "user_id") parts.Add("sort=" + Uri.EscapeDataString(s));
+        if (!a) parts.Add("dir=desc");
+        if (page > 1) parts.Add("s_page=" + page.ToString(CultureInfo.InvariantCulture));
+        if (l.Filter.UserId.Length > 0) parts.Add("f_user_id=" + Uri.EscapeDataString(l.Filter.UserId));
+        if (l.Filter.GroupId >= 0) parts.Add("f_group_id=" + l.Filter.GroupId.ToString(CultureInfo.InvariantCulture));
+        if (l.Filter.Email.Length > 0) parts.Add("f_email=" + Uri.EscapeDataString(l.Filter.Email));
+        if (l.Filter.Phone.Length > 0) parts.Add("f_phone=" + Uri.EscapeDataString(l.Filter.Phone));
+        if (l.Filter.Unlocked >= 0) parts.Add("f_unlocked=" + l.Filter.Unlocked.ToString(CultureInfo.InvariantCulture));
+        if (l.Filter.Fields is not null)
         {
-            parts.Add("user_id=" + userId.ToString(CultureInfo.InvariantCulture));
-        }
-
-        if (!string.IsNullOrWhiteSpace(query))
-        {
-            parts.Add("q=" + Uri.EscapeDataString(query));
-        }
-
-        if (!string.IsNullOrWhiteSpace(tab) && !tab.Equals("profile", StringComparison.OrdinalIgnoreCase))
-        {
-            parts.Add("tab=" + Uri.EscapeDataString(tab));
+            foreach (var kv in l.Filter.Fields.Where(kv => kv.Value.Length > 0))
+            {
+                parts.Add("ff_" + Uri.EscapeDataString(kv.Key) + "=" + Uri.EscapeDataString(kv.Value));
+            }
         }
 
         return parts.Count == 0 ? "/cp/users-app" : "/cp/users-app?" + string.Join("&", parts);
     }
 
-    private static string PhpReferenceEditorHref(int userId)
-        => PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/users/usermanager/user?user_id=" + userId.ToString(CultureInfo.InvariantCulture));
-
-    private static string PaidLabel(int paid) => paid switch
+    private static RenderFragment SortLink(CpUserList l, string field, string caption) => builder =>
     {
-        1 => "Paid",
-        2 => "Partial",
-        _ => "Unpaid",
-    };
-
-    private static string FormatTime(long unix)
-    {
-        if (unix <= 0)
+        var active = l.SortField == field;
+        var nextAsc = !active || !l.SortAsc;
+        builder.OpenElement(0, "a");
+        builder.AddAttribute(1, "class", "epc_sorter");
+        builder.AddAttribute(2, "href", ListHref(l, 1, field, nextAsc));
+        builder.AddContent(3, caption);
+        if (active)
         {
-            return "—";
+            builder.OpenElement(4, "i");
+            builder.AddAttribute(5, "class", l.SortAsc ? "fa fa-sort-asc" : "fa fa-sort-desc");
+            builder.CloseElement();
         }
 
-        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+        builder.CloseElement();
+    };
+
+    private static RenderFragment RenderGroupTree(CpUserEditor e, long parent) => builder =>
+    {
+        var children = e.Groups.Where(g => g.Parent == parent && g.Id != parent).OrderBy(g => g.Id).ToList();
+        if (children.Count == 0) return;
+        builder.OpenElement(0, "ul");
+        var seq = 1;
+        foreach (var g in children)
+        {
+            builder.OpenElement(seq++, "li");
+            builder.OpenElement(seq++, "label");
+            builder.AddAttribute(seq++, "style", "font-weight:normal;cursor:pointer");
+            builder.OpenElement(seq++, "input");
+            builder.AddAttribute(seq++, "type", "checkbox");
+            builder.AddAttribute(seq++, "class", "epc-group-check");
+            builder.AddAttribute(seq++, "value", g.Id.ToString(CultureInfo.InvariantCulture));
+            builder.AddAttribute(seq++, "checked", e.GroupIds.Contains(g.Id));
+            builder.CloseElement();
+            builder.AddContent(seq++, " " + g.Value);
+            if (g.ForRegistrated) { builder.OpenElement(seq++, "i"); builder.AddAttribute(seq++, "class", "fa fa-check text-success"); builder.AddAttribute(seq++, "title", "Registered users"); builder.CloseElement(); }
+            if (g.ForGuests) { builder.OpenElement(seq++, "i"); builder.AddAttribute(seq++, "class", "fa fa-user-o"); builder.AddAttribute(seq++, "title", "Guests"); builder.CloseElement(); }
+            if (g.ForBackend) { builder.OpenElement(seq++, "i"); builder.AddAttribute(seq++, "class", "fa fa-shield text-primary"); builder.AddAttribute(seq++, "title", "Backend"); builder.CloseElement(); }
+            if (!g.Unblocked) { builder.OpenElement(seq++, "i"); builder.AddAttribute(seq++, "class", "fa fa-lock text-danger"); builder.AddAttribute(seq++, "title", "Blocked"); builder.CloseElement(); }
+            builder.CloseElement();
+            builder.AddContent(seq++, RenderGroupTree(e, g.Id));
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    private static string RegFieldsJson(CpUserEditor e)
+    {
+        var items = e.Fields.Select(f => new
+        {
+            name = f.Name,
+            caption = f.Caption,
+            show_for = ParseIntArray(f.ShowFor),
+            required_for = ParseIntArray(f.RequiredFor),
+            maxlen = f.MaxLen,
+            regexp = f.Regexp,
+            widget_type = f.WidgetType,
+            value_buffer = e.Profile.TryGetValue(f.Name, out var v) ? v : ""
+        });
+        return JsonSerializer.Serialize(items);
+    }
+
+    private static int[] ParseIntArray(string json)
+    {
+        try
+        {
+            return JsonSerializer.Deserialize<int[]>(json) ?? [];
+        }
+        catch (JsonException)
+        {
+            return [];
+        }
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var q = ctx.Request.Query;
+        _flashOk = q["ok"].ToString() ?? "";
+        _flashErr = q["err"].ToString() ?? "";
+        _selectedId = ErpRecordOpen.ReadId(ctx.Request, "user_id");
+        var isNew = q["new"].ToString() == "1";
+        var page = int.TryParse(q["s_page"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) && p > 0 ? p : 1;
+        var sort = q["sort"].ToString();
+        var asc = q["dir"].ToString() != "desc";
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var key in q.Keys.Where(k => k.StartsWith("ff_", StringComparison.Ordinal)))
+        {
+            fields[key[3..]] = (q[key].ToString() ?? "").Trim();
+        }
+
+        var filter = new CpUserFilter(
+            (q["f_user_id"].ToString() ?? "").Trim(),
+            long.TryParse(q["f_group_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var gid) ? gid : -1,
+            (q["f_email"].ToString() ?? "").Trim(),
+            (q["f_phone"].ToString() ?? "").Trim(),
+            int.TryParse(q["f_unlocked"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var ul) ? ul : -1,
+            fields);
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        if (_selectedId > 0 || isNew)
+        {
+            _editor = await Users.OpenAsync(_selectedId, ctx.RequestAborted);
+            if (_editor is not null)
+            {
+                return;
+            }
+
+            _notFound = _selectedId > 0;
+        }
+
+        _list = await Users.ListAsync(page, _pageSize, string.IsNullOrWhiteSpace(sort) ? "user_id" : sort, asc, filter, ctx.RequestAborted);
     }
 }

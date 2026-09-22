@@ -9,27 +9,66 @@ namespace EcomAE.Platform.Tests;
 public sealed class CpUsersConsolePhpParityTests
 {
     [Fact]
-    public void CpUsersApp_EmitsDualPaneConsoleMarkers()
+    public void CpUsersApp_IsLiveUserManagerAndUserEditorTwin()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpUsersApp.razor"));
         Assert.Contains("PhpCpModulePageHeader", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-kpi", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-kpi__card", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-table-card", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-data-table", text, StringComparison.Ordinal);
         Assert.Contains("epc-users-page", text, StringComparison.Ordinal);
-        Assert.Contains("epc-users-page__hero", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-users-workspace", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-users-workspace__list", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-users-workspace__detail", text, StringComparison.Ordinal);
-        Assert.Contains("epc-ud", text, StringComparison.Ordinal);
-        Assert.Contains("user_id=", text, StringComparison.Ordinal);
-        Assert.Contains("GetCpUserDetailAsync", text, StringComparison.Ordinal);
         Assert.Contains("CpUsersConsoleStylesheets", text, StringComparison.Ordinal);
-        Assert.Contains("/cp/groups-app", text, StringComparison.Ordinal);
-        Assert.Contains("/cp/orders", text, StringComparison.Ordinal);
-        Assert.Contains("/cp/credit-limits-app", text, StringComparison.Ordinal);
+        Assert.Contains("ICpUserEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Users.ListAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Users.OpenAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("CpUserFilter(", text, StringComparison.Ordinal);
+        foreach (var marker in new[]
+        {
+            "f_user_id", "f_group_id", "f_email", "f_phone", "f_unlocked", "ff_",
+            "SortLink(l, \"user_id\"", "SortLink(l, \"balance\"", "SortLink(l, \"unlocked\"", "s_page=",
+            "l.TableColumns", "r.ProfileValues", "r.Groups", "RegVariantCaption",
+            "reg_variant_selector", "additional_fields_div", "regenerateFields", "groups_tree", "RenderGroupTree",
+            "fields_json", "name=\"groups\"", "email_confirmed", "phone_confirmed", "save_action",
+            "/cp/users/create", "/cp/users/update", "/cp/users/set-password", "/cp/users/delete", "/cp/users/set-unlocked", "/cp/users/set-comment",
+            "name=\"confirmWrites\" value=\"true\"", "delete_users()", "user_id=",
+            "/CP/users/usermanager", "/cp/groups-app", "/cp/orders", "/cp/credit-limits-app"
+        })
+        {
+            Assert.Contains(marker, text, StringComparison.Ordinal);
+        }
+
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetCpUserDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("GetCpUsersAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(phpHref)", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CpUserServices_ExposeListEditorUpdateDelete()
+    {
+        var reader = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Cp/CpUserEditorService.cs"));
+        Assert.Contains("interface ICpUserEditorService", reader, StringComparison.Ordinal);
+        Assert.Contains("Task<CpUserList> ListAsync(", reader, StringComparison.Ordinal);
+        Assert.Contains("Task<CpUserEditor?> OpenAsync(", reader, StringComparison.Ordinal);
+        Assert.Contains("shop_users_accounting", reader, StringComparison.Ordinal);
+        Assert.Contains("users_profiles", reader, StringComparison.Ordinal);
+        Assert.Contains("users_groups_bind", reader, StringComparison.Ordinal);
+        Assert.Contains("reg_fields", reader, StringComparison.Ordinal);
+        Assert.Contains("reg_variants", reader, StringComparison.Ordinal);
+
+        var writer = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Cp/CpUserWriteService.cs"));
+        Assert.Contains("Task<ErpSimpleWriteResult> UpdateAsync(", writer, StringComparison.Ordinal);
+        Assert.Contains("Task<ErpSimpleWriteResult> DeleteAsync(", writer, StringComparison.Ordinal);
+
+        var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
+        Assert.Contains("CpUsersUpdate = \"/cp/users/update\"", routes, StringComparison.Ordinal);
+        Assert.Contains("CpUsersDelete = \"/cp/users/delete\"", routes, StringComparison.Ordinal);
+
+        var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
+        Assert.Contains("EcomAeRoutes.CpUsersUpdate", module, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.CpUsersDelete", module, StringComparison.Ordinal);
+
+        var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
+        Assert.Contains("ICpUserEditorService, EcomAE.Platform.Cp.CpUserEditorService", program, StringComparison.Ordinal);
     }
 
     [Fact]

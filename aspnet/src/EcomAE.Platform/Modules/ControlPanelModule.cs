@@ -1316,6 +1316,125 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpUsersUpdate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpUserWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/users-app", "Admin CP capability required for user update.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpUsersUpdateBody>(context, cancellationToken) ?? new();
+            var userId = body.UserId;
+            var email = body.Email;
+            var emailConfirmed = body.EmailConfirmed;
+            var phone = body.Phone;
+            var phoneConfirmed = body.PhoneConfirmed;
+            var password = body.Password;
+            var unlocked = body.Unlocked;
+            var regVariant = body.RegVariant;
+            var fieldsJson = body.FieldsJson ?? body.Fields;
+            var groupsJson = body.GroupsJson ?? body.Groups;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                userId = LiveWriteFormBinder.Long(form, "userId", "user_id");
+                email = LiveWriteFormBinder.Text(form, "email");
+                emailConfirmed = LiveWriteFormBinder.Int(form, "emailConfirmed", "email_confirmed");
+                phone = LiveWriteFormBinder.Text(form, "phone");
+                phoneConfirmed = LiveWriteFormBinder.Int(form, "phoneConfirmed", "phone_confirmed");
+                password = LiveWriteFormBinder.Text(form, "password");
+                unlocked = LiveWriteFormBinder.Int(form, "unlocked");
+                regVariant = LiveWriteFormBinder.Int(form, "regVariant", "reg_variant");
+                fieldsJson = LiveWriteFormBinder.Text(form, "fieldsJson", "fields_json", "fields");
+                groupsJson = LiveWriteFormBinder.Text(form, "groupsJson", "groups_json", "groups");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the user on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.UpdateAsync(
+                userId,
+                email,
+                emailConfirmed,
+                phone,
+                phoneConfirmed,
+                password,
+                unlocked,
+                regVariant,
+                fieldsJson,
+                groupsJson,
+                session.UserId,
+                session.SessionId,
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/users-app?user_id=" + userId.ToString(CultureInfo.InvariantCulture),
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpUsersDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpUserWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/users-app", "Admin CP capability required for user delete.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpUsersDeleteBody>(context, cancellationToken) ?? new();
+            var ids = body.Ids ?? body.UsersIds;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ids = LiveWriteFormBinder.Text(form, "ids", "users_ids", "users_array");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to delete the selected users on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.DeleteAsync(ids, session.UserId, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/users-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPricesImportCsv, async (
             HttpContext context,
             CpPricesImportCsvBody? body,
@@ -14033,6 +14152,21 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Groups = null,
         bool ConfirmWrites = false);
     private sealed record CpUsersSetPasswordBody(long UserId = 0, string? Password = null, bool ConfirmWrites = false);
+    private sealed record CpUsersUpdateBody(
+        long UserId = 0,
+        string? Email = null,
+        int EmailConfirmed = 0,
+        string? Phone = null,
+        int PhoneConfirmed = 0,
+        string? Password = null,
+        int Unlocked = 1,
+        int RegVariant = 1,
+        string? FieldsJson = null,
+        string? Fields = null,
+        string? GroupsJson = null,
+        string? Groups = null,
+        bool ConfirmWrites = false);
+    private sealed record CpUsersDeleteBody(string? Ids = null, string? UsersIds = null, bool ConfirmWrites = false);
     private sealed record CpPricesImportCsvBody(long SessionId, bool ConfirmWrites = false);
     private sealed record CpPricesCompleteSessionBody(long SessionId = 0, long PriceId = 0, bool ConfirmWrites = false);
     private sealed record CpMultivendorMinPriceAclSaveBody(

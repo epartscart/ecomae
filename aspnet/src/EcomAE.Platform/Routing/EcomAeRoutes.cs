@@ -1242,6 +1242,10 @@ public static class EcomAeRoutes
     public const string CpUsersCreate = "/cp/users/create";
     /// <summary>PHP <c>users/user.php</c> password UPDATE. <c>confirmWrites=true</c> writes bcrypt and drops other sessions.</summary>
     public const string CpUsersSetPassword = "/cp/users/set-password";
+    /// <summary>PHP user.php save_action=update. <c>confirmWrites=true</c> writes via <c>ICpUserWriteService.UpdateAsync</c>.</summary>
+    public const string CpUsersUpdate = "/cp/users/update";
+    /// <summary>PHP user_manager.php delete_users (id list). The acting admin cannot delete itself. <c>confirmWrites=true</c> writes via <c>ICpUserWriteService.DeleteAsync</c>.</summary>
+    public const string CpUsersDelete = "/cp/users/delete";
     /// <summary>Wave B dry-run for PHP cp/content/shop/prices_upload/ajax_5_import_csv_to_db.php (writes=0).</summary>
     public const string CpPricesImportCsv = "/cp/prices/import-csv";
     /// <summary>PHP ajax_6_complete_session last_updated / records_count. <c>confirmWrites=true</c> writes via <c>ICpPricesUploadWriteService</c>.</summary>
