@@ -630,7 +630,13 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
                 var one = LiveWriteFormBinder.Long(form, "orderId", "order_id");
-                ids = one > 0 ? [one] : ids;
+                var many = form["order_ids"]
+                    .SelectMany(v => (v ?? "").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    .Select(v => long.TryParse(v, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : 0)
+                    .Where(n => n > 0)
+                    .Distinct()
+                    .ToList();
+                ids = one > 0 ? [one] : many.Count > 0 ? many : ids;
             }
 
             if (confirm)

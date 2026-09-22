@@ -100,7 +100,7 @@ public sealed class CpModulePhpLookParityTests
         var text = File.ReadAllText(FindRepoFile(
             "aspnet/src/EcomAE.Platform/Components/Pages/CpOrdersApp.razor"));
         Assert.Contains("epc-orders-page__hero", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-kpi__card", text, StringComparison.Ordinal);
+        Assert.Contains("epc-orders-filter-card", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-orders-workspace", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-data-table", text, StringComparison.Ordinal);
         Assert.Contains("CpOrdersOmsStylesheets", text, StringComparison.Ordinal);
