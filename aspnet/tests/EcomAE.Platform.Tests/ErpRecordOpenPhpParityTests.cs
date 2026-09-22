@@ -1645,26 +1645,41 @@ public sealed class ErpRecordOpenPhpParityTests
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpStoragesApp.razor"));
+        Assert.Contains("ICpStorageEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Storages.ListAsync", text, StringComparison.Ordinal);
+        Assert.Contains("Storages.OpenAsync", text, StringComparison.Ordinal);
+        Assert.Contains("Storages.GroupsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"storage_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"storage_id\", \"id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpStoragesDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No storekeeper excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-interface siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        // storages.php list controls
+        Assert.Contains("check_uncheck_all", text, StringComparison.Ordinal);
+        Assert.Contains("epc_storages_filter", text, StringComparison.Ordinal);
+        Assert.Contains("storages_to_delete", text, StringComparison.Ordinal);
+        Assert.Contains("delete_storages", text, StringComparison.Ordinal);
+        Assert.Contains("s_page", text, StringComparison.Ordinal);
+        // storage.php editor controls
+        Assert.Contains("name_input", text, StringComparison.Ordinal);
+        Assert.Contains("short_name_input", text, StringComparison.Ordinal);
+        Assert.Contains("currency_select", text, StringComparison.Ordinal);
+        Assert.Contains("interface_type_select", text, StringComparison.Ordinal);
+        Assert.Contains("mysql_options_div_fields", text, StringComparison.Ordinal);
+        Assert.Contains("users_selector", text, StringComparison.Ordinal);
+        Assert.Contains("options_from_form", text, StringComparison.Ordinal);
+        // groups.php
+        Assert.Contains("container_A_storages", text, StringComparison.Ordinal);
+        Assert.Contains("add_group", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("/cp/storages/groups", text, StringComparison.Ordinal);
         Assert.Contains("/cp/storages/write", text, StringComparison.Ordinal);
         Assert.Contains("/cp/storages/membership", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpStoragesDetailAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-st-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-st-kpis", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("connection_options", text, StringComparison.Ordinal);
 
         Assert.Equal("/cp/storages-app?storage_id=5#erp-row-5",
             ErpRecordOpen.Href("/cp/storages-app", "storage_id", 5));

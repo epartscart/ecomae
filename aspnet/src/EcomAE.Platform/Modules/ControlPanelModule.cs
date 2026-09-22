@@ -4335,6 +4335,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var name = body.Name;
             var storages = body.Storages;
             var confirm = body.ConfirmWrites;
+            var groupsReturn = "/cp/storages-app";
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -4343,6 +4344,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 name = LiveWriteFormBinder.Text(form, "name");
                 storages = LiveWriteFormBinder.Text(form, "storages");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                if (!string.IsNullOrWhiteSpace(postedReturn) && postedReturn.StartsWith("/cp/storages-app", StringComparison.Ordinal))
+                {
+                    groupsReturn = postedReturn;
+                }
             }
 
             if (!confirm)
@@ -4365,7 +4371,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 : await writes.AddAsync(name, storages, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/storages-app",
+                groupsReturn,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -4374,6 +4380,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpStorageWriteService writes,
+            ICpStorageEditorService editor,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -4395,6 +4402,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             var hidden = body.Hidden;
             var bgLineColor = body.BgLineColor;
             var confirm = body.ConfirmWrites;
+            var storagesReturn = "/cp/storages-app";
+            string? deleteIds = null;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -4410,6 +4419,27 @@ public sealed class ControlPanelModule : ISurfaceModule
                 hidden = LiveWriteFormBinder.Int(form, "hidden");
                 bgLineColor = LiveWriteFormBinder.Int(form, "bgLineColor", "bg_line_color");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                deleteIds = LiveWriteFormBinder.Text(form, "storages", "storages_to_delete");
+                var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                if (!string.IsNullOrWhiteSpace(postedReturn) && postedReturn.StartsWith("/cp/storages-app", StringComparison.Ordinal))
+                {
+                    storagesReturn = postedReturn;
+                }
+
+                if (string.IsNullOrWhiteSpace(usersJson) && form.ContainsKey("users_selector"))
+                {
+                    usersJson = "[" + string.Join(",", form["users_selector"].Where(v => long.TryParse(v, out _))) + "]";
+                }
+
+                if (string.IsNullOrWhiteSpace(optionsJson) && LiveWriteFormBinder.Flag(form, "options_from_form"))
+                {
+                    var type = await editor.InterfaceTypeAsync(interfaceType, cancellationToken);
+                    optionsJson = CpStorageEditorService.ConnectionOptionsFromForm(form, type);
+                    if (string.IsNullOrWhiteSpace(handlerFolder) && type is not null)
+                    {
+                        handlerFolder = type.HandlerFolder;
+                    }
+                }
             }
 
             if (!confirm)
@@ -4427,14 +4457,31 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+            if (key is "delete_storages" or "delete")
+            {
+                var ids = CpStorageEditorService.ParseIdList(deleteIds ?? string.Empty);
+                var deleted = await editor.DeleteAsync(ids, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/storages-app",
+                    deleted.Succeeded,
+                    deleted.Message,
+                    new { ok = deleted.Succeeded, writes = deleted.Writes, phpAuthoritative = false, validation_code = deleted.Code, message = deleted.Message, session = SessionPayload(session) });
+            }
+
             var written = key is "edit" or "update"
                 ? await writes.UpdateAsync(
                     storageId, name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, cancellationToken)
                 : await writes.CreateAsync(
                     name, shortName, currency, interfaceType, usersJson, optionsJson, handlerFolder, hidden, bgLineColor, cancellationToken);
+            if (written.Succeeded && written.Id > 0 && storagesReturn == "/cp/storages-app")
+            {
+                storagesReturn = "/cp/storages-app?storage_id=" + written.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/storages-app",
+                storagesReturn,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
