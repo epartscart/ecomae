@@ -2,207 +2,238 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpManufacturerSynonymWriteService Synonyms
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Brand synonyms · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Manufacturer synonyms · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
-                Brand synonyms
-                <a class="btn btn-xs btn-default pull-right" href="/cp/module-ajax/writes/catalog" style="margin-right:.4rem">Write catalog</a>
+                Manufacturer synonyms
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/synonyms-app")</p>
-                <p>Open a manufacturer to see synonym ids the dump hides. Manufacturer and synonym add/save/delete write here when confirmWrites is set.</p>
+            <div class="panel-body epc-syn-actions">
+                <a class="panel_a" href="/cp">
+                    <div class="panel_a_img"><i class="fa fa-power-off"></i></div>
+                    <div class="panel_a_caption">Exit</div>
+                </a>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/synonyms-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
+<div class="col-lg-12">
+<style>
+    .epc-syn-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; }
+    .epc-syn-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-syn-actions .panel_a_caption { font-size:12px; }
+    .my_table { width:100%; margin-bottom:20px; }
+    .my_table td:nth-child(2) { width:120px; text-align:right; }
+    .my_table_2 { width:100%; }
+    .my_table_2 td:nth-child(2) { width:195px; text-align:right; }
+    .manufacturer, .synonym { border:1px solid #fff; position:relative; }
+    .manufacturer_name, .synonym_name { padding:10px; cursor:pointer; display:block; color:inherit; text-decoration:none; }
+    .manufacturer:hover, .manufacturer_active, .synonym:hover, .synonym_active { background:#eee; border:1px solid #ddd; }
+    .manufacturer_edit, .synonym_edit { display:none; padding:6px; }
+    .btn_block { position:absolute; display:inline-block; right:10px; top:4px; }
+    .btn_block form { display:inline; }
+    .epc-syn-scroll { max-height:600px; overflow-y:auto; border-top:1px solid #34495e; padding-top:10px; }
+</style>
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedManufacturer is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Brand synonym KPIs">
-        <div class="kpi"><div class="lbl">Manufacturers</div><div class="val">@_manufacturerCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Synonyms</div><div class="val">@_synonymCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Orphans</div><div class="val">@_orphanCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Mapped</div><div class="val">@_mappedCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_isAdmin)
+    @if (!_isAdmin)
     {
-        <div style="display:grid;gap:.65rem;margin:0 0 1rem">
-            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_listHref" />
-                <input type="hidden" name="action" value="add_manufacturer" />
-                <label>Manufacturer name <input type="text" name="name" required maxlength="255" /></label>
-                <button type="submit">Add manufacturer</button>
-            </form>
-            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHref" />
-                <input type="hidden" name="action" value="save_manufacturer" />
-                <label>Manufacturer id <input type="number" name="id" min="1" required value="@OpenedIdValue" /></label>
-                <label>Name <input type="text" name="name" required maxlength="255" value="@OpenedNameValue" /></label>
-                <button type="submit">Save manufacturer</button>
-            </form>
-            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHref" />
-                <input type="hidden" name="action" value="del_manufacturer" />
-                <label>Manufacturer id <input type="number" name="id" min="1" required value="@OpenedIdValue" /></label>
-                <button type="submit">Delete manufacturer</button>
-            </form>
-            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHref" />
-                <input type="hidden" name="action" value="add_synonym" />
-                <label>Manufacturer id <input type="number" name="manufacturerId" min="1" required value="@OpenedIdValue" /></label>
-                <label>Synonym <input type="text" name="name" required maxlength="255" /></label>
-                <button type="submit">Add synonym</button>
-            </form>
-            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHref" />
-                <input type="hidden" name="action" value="save_synonym" />
-                <label>Synonym id <input type="number" name="id" min="1" required /></label>
-                <label>Synonym <input type="text" name="name" required maxlength="255" /></label>
-                <button type="submit">Save synonym</button>
-            </form>
-            <form method="post" action="/cp/synonyms/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="@_returnHref" />
-                <input type="hidden" name="action" value="del_synonym" />
-                <label>Synonym id <input type="number" name="id" min="1" required /></label>
-                <button type="submit">Delete synonym</button>
-            </form>
-        </div>
+        <div class="alert alert-warning" role="status">Sign in with an admin CP session to manage manufacturer synonyms. <a href="/cp/login?returnUrl=/cp/synonyms-app">Sign in</a></div>
     }
+</div>
 
-    @if (_openedManufacturer is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedManufacturer.Name) ? _openedManufacturer.Name : ("Manufacturer #" + _openedManufacturer.Id.ToString(CultureInfo.InvariantCulture)))
-                </div>
-                <div class="panel-body">
-                    <p>Manufacturer id: <strong>@_openedManufacturer.Id.ToString(CultureInfo.InvariantCulture)</strong></p>
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Synonym id</th>
-                                    <th>Synonym</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSynonyms.Count == 0)
-                                {
-                                    <tr><td colspan="2">No synonyms yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var row in _openedSynonyms)
-                                    {
-                                        <tr>
-                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.Synonym) ? row.Synonym : "—")</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <p class="help-block">@_manufacturerCount.ToString(CultureInfo.InvariantCulture) Manufacturers · @_synonymCount.ToString(CultureInfo.InvariantCulture) Synonyms · @_orphanCount.ToString(CultureInfo.InvariantCulture) Orphans · @_mappedCount.ToString(CultureInfo.InvariantCulture) Mapped.</p>
-
-    <div class="col-lg-12">
+    <div class="col-lg-6">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
+            <div class="panel-heading hbuilt">
+                Manufacturers
+                <button class="btn btn-xs btn-info btn-circle" type="button" title="Manufacturers are the canonical brand names. Click a manufacturer to manage its synonyms on the right."><i class="fa fa-info"></i></button>
+            </div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-        <thead>
-            <tr>
-                    <th>Manufacturer</th>
-                    <th>Synonym</th>
-                    <th>Manufacturer id</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
+                @if (_isAdmin)
                 {
-                    <tr id="erp-row-@row.ManufacturerId.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.ManufacturerId, _openedId)">
-                            <td>@(!string.IsNullOrWhiteSpace(row.Manufacturer) ? row.Manufacturer : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Synonym) ? row.Synonym : "—")</td>
-                            <td>@row.ManufacturerId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "manufacturer_id", row.ManufacturerId)">Open</a></td>
-                    </tr>
+                    <form method="post" action="/cp/synonyms/write">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_returnHref" />
+                        <input type="hidden" name="action" value="add_manufacturer" />
+                        <table class="my_table">
+                            <tr>
+                                <td><input class="form-control" type="text" id="new_manufacturer" name="name" required maxlength="255" placeholder="New manufacturer" /></td>
+                                <td><button type="submit" class="btn btn-ar btn-primary"><i class="fa fa-plus"></i> Add</button></td>
+                            </tr>
+                        </table>
+                    </form>
                 }
-            }
-        </tbody>
-                    </table>
+                <div id="manufacturers_div" class="epc-syn-scroll">
+                    @if (_manufacturers.Count == 0)
+                    {
+                        <p class="text-muted">@(_isAdmin ? "No manufacturers yet." : "")</p>
+                    }
+                    @foreach (var m in _manufacturers)
+                    {
+                        var mid = m.Id.ToString(CultureInfo.InvariantCulture);
+                        <div class="manufacturer @(m.Id == _openedId ? "manufacturer_active" : "")" id="erp-row-@mid">
+                            <div id="manufacturer_@mid">
+                                <a id="manufacturer_name_@mid" class="manufacturer_name" href="@ErpRecordOpen.Href(_listHref, "manufacturer_id", m.Id)">@m.Name</a>
+                                @if (_isAdmin)
+                                {
+                                    <div class="btn_block">
+                                        <a class="btn btn-sm btn-primary" title="Edit" href="javascript:void(0)" onclick="epcSynEdit('manufacturer', '@mid')"><i class="fas fa-pencil-alt"></i></a>
+                                        <form method="post" action="/cp/synonyms/write" onsubmit="return confirm('Delete this manufacturer and all its synonyms?');">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="action" value="del_manufacturer" />
+                                            <input type="hidden" name="id" value="@mid" />
+                                            <button type="submit" class="btn btn-sm btn-primary" title="Delete"><i class="fa fa-times"></i></button>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                            @if (_isAdmin)
+                            {
+                                <div class="manufacturer_edit" id="manufacturer_edit_block_@mid">
+                                    <form method="post" action="/cp/synonyms/write">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_returnHref" />
+                                        <input type="hidden" name="action" value="save_manufacturer" />
+                                        <input type="hidden" name="id" value="@mid" />
+                                        <table class="my_table_2">
+                                            <tr>
+                                                <td><input class="form-control" type="text" id="manufacturer_edit_@mid" name="name" value="@m.Name" required maxlength="255" /></td>
+                                                <td>
+                                                    <button type="submit" class="btn btn-sm btn-primary"><i class="far fa-save"></i> Save</button>
+                                                    <a class="btn btn-sm btn-primary" href="javascript:void(0)" onclick="epcSynCancel('manufacturer', '@mid')"><i class="fa fa-chevron-left"></i> Cancel</a>
+                                                </td>
+                                            </tr>
+                                        </table>
+                                    </form>
+                                </div>
+                            }
+                        </div>
+                    }
                 </div>
             </div>
         </div>
     </div>
 
-    <div class="epc-nw-note">Add, save, and delete manufacturer and synonym write when confirmWrites is set. List and get stay on the digest.</div>
-
+    <div class="col-lg-6">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Synonyms @(_opened is not null ? "· " + _opened.Name : "")</div>
+            <div class="panel-body" id="synonyms_div">
+                @if (_opened is null)
+                {
+                    <p>Select a manufacturer on the left to view and manage its synonyms.</p>
+                }
+                else
+                {
+                    var oid = _opened.Id.ToString(CultureInfo.InvariantCulture);
+                    if (_isAdmin)
+                    {
+                        <form method="post" action="/cp/synonyms/write">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_returnHref" />
+                            <input type="hidden" name="action" value="add_synonym" />
+                            <input type="hidden" name="manufacturer_id" value="@oid" />
+                            <table class="my_table">
+                                <tr>
+                                    <td><input class="form-control" type="text" id="new_synonym" name="name" required maxlength="255" placeholder="New synonym" /></td>
+                                    <td><button type="submit" class="btn btn-ar btn-primary"><i class="fa fa-plus" aria-hidden="true"></i> Add</button></td>
+                                </tr>
+                            </table>
+                        </form>
+                    }
+                    <div class="epc-syn-scroll">
+                        @if (_synonyms.Count == 0)
+                        {
+                            <p class="text-muted">No synonyms yet.</p>
+                        }
+                        @foreach (var s in _synonyms)
+                        {
+                            var sid = s.Id.ToString(CultureInfo.InvariantCulture);
+                            <div class="synonym">
+                                <div id="synonym_@sid">
+                                    <div id="synonym_name_@sid" class="synonym_name">@s.Synonym</div>
+                                    @if (_isAdmin)
+                                    {
+                                        <div class="btn_block">
+                                            <a class="btn btn-sm btn-primary" title="Edit" href="javascript:void(0)" onclick="epcSynEdit('synonym', '@sid')"><i class="fas fa-pencil-alt"></i></a>
+                                            <form method="post" action="/cp/synonyms/write" onsubmit="return confirm('Delete this synonym?');">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="returnUrl" value="@_returnHref" />
+                                                <input type="hidden" name="action" value="del_synonym" />
+                                                <input type="hidden" name="id" value="@sid" />
+                                                <button type="submit" class="btn btn-sm btn-primary" title="Delete"><i class="fa fa-times"></i></button>
+                                            </form>
+                                        </div>
+                                    }
+                                </div>
+                                @if (_isAdmin)
+                                {
+                                    <div class="synonym_edit" id="synonym_edit_block_@sid">
+                                        <form method="post" action="/cp/synonyms/write">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="@_returnHref" />
+                                            <input type="hidden" name="action" value="save_synonym" />
+                                            <input type="hidden" name="id" value="@sid" />
+                                            <table class="my_table_2">
+                                                <tr>
+                                                    <td><input class="form-control" type="text" id="synonym_edit_@sid" name="name" value="@s.Synonym" required maxlength="255" /></td>
+                                                    <td>
+                                                        <button type="submit" class="btn btn-sm btn-primary"><i class="far fa-save"></i> Save</button>
+                                                        <a class="btn btn-sm btn-primary" href="javascript:void(0)" onclick="epcSynCancel('synonym', '@sid')"><i class="fa fa-chevron-left"></i> Cancel</a>
+                                                    </td>
+                                                </tr>
+                                            </table>
+                                        </form>
+                                    </div>
+                                }
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+<div class="col-lg-12">
+<script>
+    function epcSynEdit(kind, id) {
+        document.getElementById(kind + '_' + id).style.display = 'none';
+        document.getElementById(kind + '_edit_block_' + id).style.display = 'block';
+        var i = document.getElementById(kind + '_edit_' + id); if (i) { i.focus(); i.select(); }
+    }
+    function epcSynCancel(kind, id) {
+        document.getElementById(kind + '_edit_' + id).value = document.getElementById(kind + '_name_' + id).textContent.trim();
+        document.getElementById(kind + '_edit_block_' + id).style.display = 'none';
+        document.getElementById(kind + '_' + id).style.display = 'block';
+    }
+</script>
+</div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/manufacturers_synonyms";
     private const string _listHref = "/cp/synonyms-app";
     private bool _isAdmin;
-    private int _manufacturerCount = 0;
-    private int _synonymCount = 0;
-    private int _orphanCount = 0;
-    private int _mappedCount = 0;
-    private IReadOnlyList<CpSynonymsRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
     private long _openedId;
     private string _returnHref = "/cp/synonyms-app";
-    private CpSynonymManufacturerDetail? _openedManufacturer;
-    private IReadOnlyList<CpSynonymChildDigest> _openedSynonyms = [];
-
-    private string OpenedCaption => _openedManufacturer is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedManufacturer.Name) ? ("Manufacturer #" + _openedManufacturer.Id.ToString(CultureInfo.InvariantCulture)) : _openedManufacturer.Name);
-
-    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
-    private string OpenedNameValue => _openedManufacturer is null ? "" : _openedManufacturer.Name;
+    private IReadOnlyList<CpManufacturerRow> _manufacturers = [];
+    private CpManufacturerRow? _opened;
+    private IReadOnlyList<CpManufacturerSynonymRow> _synonyms = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -212,42 +243,27 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "manufacturer_id");
-        _returnHref = _openedId > 0
-            ? ErpRecordOpen.Href(_listHref, "manufacturer_id", _openedId).Split('#')[0]
-            : _listHref;
+        _returnHref = _openedId > 0 ? "/cp/synonyms-app?manufacturer_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/cp/synonyms-app";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpSynonymsDigestAsync(200, ctx.RequestAborted);
-        _manufacturerCount = result.Summary.ManufacturerCount;
-        _synonymCount = result.Summary.SynonymCount;
-        _orphanCount = result.Summary.OrphanCount;
-        _mappedCount = result.Summary.MappedCount;
-        _rows = result.Rows;
-        _source = result.Source;
-        _message = result.Message;
-
+        _manufacturers = await Synonyms.GetManufacturersAsync(ctx.RequestAborted);
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpSynonymDetailAsync(_openedId, ctx.RequestAborted);
-            _openedManufacturer = detail.Manufacturer;
-            _openedSynonyms = detail.Synonyms;
-            if (_openedManufacturer is not null)
+            _opened = _manufacturers.FirstOrDefault(m => m.Id == _openedId);
+            if (_opened is null)
             {
-                var openedList = _rows.Where(r => r.ManufacturerId == _openedId).ToList();
-                if (openedList.Count > 0)
-                {
-                    _rows = openedList.Concat(_rows.Where(r => r.ManufacturerId != _openedId)).ToList();
-                }
+                _flashErr = "Manufacturer #" + _openedId.ToString(CultureInfo.InvariantCulture) + " was not found.";
+                _returnHref = "/cp/synonyms-app";
             }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
+            else
             {
-                _message = detail.Message;
+                _synonyms = await Synonyms.GetSynonymsAsync(_openedId, ctx.RequestAborted);
             }
         }
     }

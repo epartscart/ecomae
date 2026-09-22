@@ -1603,26 +1603,29 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void SearchTabsApp_OpenLoadsParametersExcerptAndKeepsWrites()
+    public void SearchTabsApp_OpenRendersPhpTabEditorAndKeepsWrites()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpSearchTabsApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"tab_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"tab_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpSearchTabsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No parameters excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No enabled siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        // search_tab.php twin: general settings + schema-driven special settings, json_encode($_POST) parameters.
+        Assert.Contains("ICpSearchTabEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_caption\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_caption_lang_str_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_order\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_enabled\" value=\"tab_enabled\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"params_from_form\"", text, StringComparison.Ordinal);
+        Assert.Contains("case \"multiselect\":", text, StringComparison.Ordinal);
+        Assert.Contains("case \"completed_html\":", text, StringComparison.Ordinal);
+        // search_tabs.php twin: list with per-row on/off activation forms and s_page pagination.
         Assert.Contains("/cp/search-tabs/write", text, StringComparison.Ordinal);
         Assert.Contains("name=\"action\" value=\"activation\"", text, StringComparison.Ordinal);
-        Assert.Contains("Save tab", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"activate_tab\"", text, StringComparison.Ordinal);
+        Assert.Contains("s_page", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Full parameters JSON stays on the Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
@@ -4552,20 +4555,33 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void CrossesApp_OpenLoadsPairAndSiblings()
+    public void CrossesApp_IsPhpTwinWithSearchTableAndCsv()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpCrossesApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"cross_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        // crosses.php: add panel + CSV import, search filters, delete-by-search, sortable table with inline edit, pagination, CSV download.
+        Assert.Contains("ICpCrossWriteService", text, StringComparison.Ordinal);
+        Assert.Contains("Crosses.SearchAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref + _queryTail, \"cross_id\"", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"cross_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpCrossPairDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        foreach (var id in new[] { "new_article", "new_manufacturer_article", "new_analog", "new_manufacturer_analog", "file_csv", "search_article", "search_manufacturer", "search_null", "search_id_from", "search_id_before" })
+        {
+            Assert.Contains("id=\"" + id + "\"", text, StringComparison.Ordinal);
+        }
+        foreach (var action in new[] { "add_crosses", "import_csv", "save_crosses", "del_crosses", "del_search_crosses" })
+        {
+            Assert.Contains("name=\"action\" value=\"" + action + "\"", text, StringComparison.Ordinal);
+        }
+        Assert.Contains("enctype=\"multipart/form-data\"", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/crosses/download.csv", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"table table-striped table_crosses\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cross-banner", text, StringComparison.Ordinal);
+        Assert.Contains("pagination_box", text, StringComparison.Ordinal);
+        Assert.Contains("No records", text, StringComparison.Ordinal);
         Assert.Contains("/cp/crosses/write", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpCrossPairDetailAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-x-hero", text, StringComparison.Ordinal);
@@ -4580,20 +4596,30 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void SynonymsApp_OpenLoadsManufacturerAndSynonymIds()
+    public void SynonymsApp_IsTwoColumnPhpTwinWithInlineEdit()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpSynonymsApp.razor"));
+        // manufacturers_synonyms.php: left manufacturers list (add/edit/delete), right synonyms of the active one.
+        Assert.Contains("ICpManufacturerSynonymWriteService", text, StringComparison.Ordinal);
+        Assert.Contains("GetManufacturersAsync", text, StringComparison.Ordinal);
+        Assert.Contains("GetSynonymsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"manufacturer_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"manufacturer_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpSynonymDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"manufacturers_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"synonyms_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("manufacturer_active", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"my_table\"", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"btn_block\"", text, StringComparison.Ordinal);
+        foreach (var action in new[] { "add_manufacturer", "save_manufacturer", "del_manufacturer", "add_synonym", "save_synonym", "del_synonym" })
+        {
+            Assert.Contains("name=\"action\" value=\"" + action + "\"", text, StringComparison.Ordinal);
+        }
         Assert.Contains("No synonyms yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("/cp/synonyms/write", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpSynonymsDigestAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-nw-hero", text, StringComparison.Ordinal);

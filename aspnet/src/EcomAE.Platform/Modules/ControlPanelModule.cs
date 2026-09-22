@@ -4958,6 +4958,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var parametersValues = body.ParametersValues;
             var langCode = body.LangCode;
             var confirm = body.ConfirmWrites;
+            var searchTabsReturn = "/cp/search-tabs-app";
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -4969,8 +4970,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                 captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id", "tab_caption_lang_str_id");
                 sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order", "tab_order", "order");
                 parametersValues = LiveWriteFormBinder.Text(form, "parametersValues", "parameters_values");
+                if (string.IsNullOrWhiteSpace(parametersValues) && LiveWriteFormBinder.Flag(form, "params_from_form"))
+                {
+                    parametersValues = CpSearchTabEditorService.ParametersFromForm(form);
+                }
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                if (!string.IsNullOrWhiteSpace(postedReturn) && postedReturn.StartsWith("/cp/search-tabs-app", StringComparison.Ordinal))
+                {
+                    searchTabsReturn = postedReturn;
+                }
             }
 
             if (!confirm)
@@ -5013,7 +5023,7 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/search-tabs-app",
+                searchTabsReturn,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -7812,9 +7822,17 @@ public sealed class ControlPanelModule : ISurfaceModule
             var idFrom = body.IdFrom;
             var idBefore = body.IdBefore;
             var confirm = body.ConfirmWrites;
+            var crossesReturn = "/cp/crosses-app";
+            IFormFile? csvFile = null;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
+                csvFile = form.Files.GetFile("file");
+                var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                if (!string.IsNullOrWhiteSpace(postedReturn) && postedReturn.StartsWith("/cp/crosses-app", StringComparison.Ordinal))
+                {
+                    crossesReturn = postedReturn;
+                }
                 action = LiveWriteFormBinder.Text(form, "action");
                 id = LiveWriteFormBinder.Long(form, "id");
                 article = LiveWriteFormBinder.Text(form, "article");
@@ -7843,6 +7861,23 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var key = (action ?? string.Empty).Trim();
+            if (key is "import_csv" or "add_crosses_csv")
+            {
+                if (csvFile is null || csvFile.Length == 0)
+                {
+                    return LiveWriteFormBinder.Complete(context, crossesReturn, false, "Choose a CSV file first.", new { ok = false, validation_code = "invalid", message = "Choose a CSV file first." });
+                }
+
+                await using var csvStream = csvFile.OpenReadStream();
+                var imported = await writes.ImportCsvAsync(csvStream, cancellationToken);
+                var summary = "CSV: " + imported.Added.ToString(System.Globalization.CultureInfo.InvariantCulture) + " cross(es) added, "
+                    + imported.Skipped.ToString(System.Globalization.CultureInfo.InvariantCulture) + " skipped of "
+                    + imported.Rows.ToString(System.Globalization.CultureInfo.InvariantCulture) + " row(s)."
+                    + (imported.Errors.Count > 0 ? " " + string.Join(" ", imported.Errors.Take(3)) : string.Empty);
+                return LiveWriteFormBinder.Complete(context, crossesReturn, imported.Added > 0 || imported.Rows == 0 || imported.Errors.Count == 0, summary,
+                    new { ok = imported.Added > 0, writes = imported.Added, added = imported.Added, skipped = imported.Skipped, rows = imported.Rows, errors = imported.Errors, phpAuthoritative = false, message = summary, session = SessionPayload(session) });
+            }
+
             ErpSimpleWriteResult written = key switch
             {
                 "save_crosses" or "save-crosses" or "save" =>
@@ -7857,11 +7892,29 @@ public sealed class ControlPanelModule : ISurfaceModule
             };
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/crosses-app",
+                crossesReturn,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+
+        endpoints.MapGet(EcomAeRoutes.CpCrossesDownloadCsv, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCrossWriteService crosses,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Redirect("/cp/login?returnUrl=/cp/crosses-app");
+            }
+
+            context.Response.ContentType = "text/csv; charset=utf-8";
+            context.Response.Headers.ContentDisposition = "attachment; filename=\"crosses_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmm", System.Globalization.CultureInfo.InvariantCulture) + ".csv\"";
+            await crosses.WriteCsvAsync(context.Response.Body, cancellationToken);
+            return Results.Empty;
+        });
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelHrOverview, async (
             HttpContext context,
@@ -12466,6 +12519,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var id = body.Id;
             var name = body.Name;
             var confirm = body.ConfirmWrites;
+            var synonymsReturn = "/cp/synonyms-app";
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -12473,6 +12527,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 id = LiveWriteFormBinder.Long(form, "id", "manufacturerId", "manufacturer_id");
                 name = LiveWriteFormBinder.Text(form, "name", "synonym");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                if (!string.IsNullOrWhiteSpace(postedReturn) && postedReturn.StartsWith("/cp/synonyms-app", StringComparison.Ordinal))
+                {
+                    synonymsReturn = postedReturn;
+                }
             }
 
             if (!confirm)
@@ -12506,9 +12565,18 @@ public sealed class ControlPanelModule : ISurfaceModule
                     await writes.DeleteSynonymAsync(id, cancellationToken),
                 _ => ErpSimpleWriteResult.Fail("invalid", "Unknown synonyms action."),
             };
+            if (written.Succeeded && key is "add_manufacturer" or "add-manufacturer" && written.Id > 0)
+            {
+                synonymsReturn = "/cp/synonyms-app?manufacturer_id=" + written.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+            else if (written.Succeeded && key is "del_manufacturer" or "delete_manufacturer" or "del-manufacturer")
+            {
+                synonymsReturn = "/cp/synonyms-app";
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/synonyms-app",
+                synonymsReturn,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
