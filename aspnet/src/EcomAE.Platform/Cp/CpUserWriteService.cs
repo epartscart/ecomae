@@ -32,6 +32,28 @@ public interface ICpUserWriteService
         string? password,
         string? keepSession,
         CancellationToken cancellationToken = default);
+
+    /// <summary>PHP user.php save_action=update: users row, profile rewrite, group rebind, session purge rules.</summary>
+    Task<ErpSimpleWriteResult> UpdateAsync(
+        long userId,
+        string? email,
+        int emailConfirmed,
+        string? phone,
+        int phoneConfirmed,
+        string? password,
+        int unlocked,
+        int regVariant,
+        string? fieldsJson,
+        string? groupsJson,
+        long actorUserId,
+        string? actorSession,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>PHP user_manager.php delete_users: users + users_profiles + users_groups_bind + sessions. The acting admin cannot delete itself.</summary>
+    Task<ErpSimpleWriteResult> DeleteAsync(
+        string? idsJson,
+        long actorUserId,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class CpUserWriteService : ICpUserWriteService
@@ -340,6 +362,265 @@ public sealed class CpUserWriteService : ICpUserWriteService
 
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Password updated.", userId);
+    }
+
+    public async Task<ErpSimpleWriteResult> UpdateAsync(
+        long userId,
+        string? email,
+        int emailConfirmed,
+        string? phone,
+        int phoneConfirmed,
+        string? password,
+        int unlocked,
+        int regVariant,
+        string? fieldsJson,
+        string? groupsJson,
+        long actorUserId,
+        string? actorSession,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A user id is required.");
+        }
+
+        var plain = password ?? string.Empty;
+        if (plain.Length > 200)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Password is too long.");
+        }
+
+        var fields = ParseProfileFields(fieldsJson);
+        if (fields.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", fields.Error);
+        }
+
+        var groups = ParseGroups(groupsJson);
+        if (groups.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", groups.Error);
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var emailNorm = await NormalizeContactAsync(connection, "email", email, emailConfirmed, cancellationToken).ConfigureAwait(false);
+        if (emailNorm.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", emailNorm.Error);
+        }
+
+        var phoneNorm = await NormalizeContactAsync(connection, "phone", phone, phoneConfirmed, cancellationToken).ConfigureAwait(false);
+        if (phoneNorm.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", phoneNorm.Error);
+        }
+
+        if (emailNorm.Value is null && phoneNorm.Value is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "At least one contact (email or phone) is required.");
+        }
+
+        var existing = await FindExistingUserAsync(connection, emailNorm.Value, phoneNorm.Value, cancellationToken).ConfigureAwait(false);
+        if (existing > 0 && existing != userId)
+        {
+            return ErpSimpleWriteResult.Fail("exists", "Another user already has this email or phone.");
+        }
+
+        if (actorUserId == userId)
+        {
+            var current = new List<long>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = ErpDb.Positional("SELECT `group_id` FROM `users_groups_bind` WHERE `user_id` = ? ORDER BY `group_id`");
+                ErpDb.AddParameters(cmd, userId);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    current.Add(reader.GetInt64(0));
+                }
+            }
+
+            if (!current.OrderBy(g => g).SequenceEqual(groups.GroupIds.Select(g => (long)g).OrderBy(g => g)))
+            {
+                return ErpSimpleWriteResult.Fail("forbidden", "You cannot change the groups of your own account.");
+            }
+
+            if (unlocked != 1)
+            {
+                return ErpSimpleWriteResult.Fail("forbidden", "You cannot lock your own account.");
+            }
+        }
+
+        var unlockedFlag = unlocked == 1 ? 1 : 0;
+        var variant = regVariant > 0 ? regVariant : 1;
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            int rows;
+            if (plain.Length > 0)
+            {
+                rows = await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        "UPDATE `users` SET `email`=?, `email_confirmed`=?, `phone`=?, `phone_confirmed`=?, `password`=?, `unlocked`=?, `reg_variant`=? WHERE `user_id` = ?"),
+                    cancellationToken,
+                    emailNorm.Value, emailNorm.Confirmed, phoneNorm.Value, phoneNorm.Confirmed, HashStaffPassword(plain), unlockedFlag, variant, userId).ConfigureAwait(false);
+            }
+            else
+            {
+                rows = await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        "UPDATE `users` SET `email`=?, `email_confirmed`=?, `phone`=?, `phone_confirmed`=?, `unlocked`=?, `reg_variant`=? WHERE `user_id` = ?"),
+                    cancellationToken,
+                    emailNorm.Value, emailNorm.Confirmed, phoneNorm.Value, phoneNorm.Confirmed, unlockedFlag, variant, userId).ConfigureAwait(false);
+            }
+
+            if (rows <= 0)
+            {
+                var exists = await ErpDb.LongAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `users` WHERE `user_id` = ?"),
+                    cancellationToken,
+                    userId).ConfigureAwait(false);
+                if (exists <= 0)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("not_found", "User not found.");
+                }
+            }
+
+            var writes = 1;
+            if (plain.Length > 0 && (emailNorm.Confirmed == 1 || phoneNorm.Confirmed == 1))
+            {
+                var keep = (actorSession ?? string.Empty).Trim();
+                writes += await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("DELETE FROM `sessions` WHERE `user_id` = ? AND `session` != ?"),
+                    cancellationToken,
+                    userId, keep).ConfigureAwait(false);
+            }
+
+            writes += await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `users_profiles` WHERE `user_id` = ?"),
+                cancellationToken,
+                userId).ConfigureAwait(false);
+            foreach (var field in fields.Fields)
+            {
+                writes += await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("INSERT INTO `users_profiles` (`user_id`, `data_key`, `data_value`) VALUES (?,?,?)"),
+                    cancellationToken,
+                    userId, field.Name, field.Value).ConfigureAwait(false);
+            }
+
+            writes += await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `users_groups_bind` WHERE `user_id` = ?"),
+                cancellationToken,
+                userId).ConfigureAwait(false);
+            foreach (var groupId in groups.GroupIds)
+            {
+                writes += await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("INSERT INTO `users_groups_bind` (`user_id`, `group_id`) VALUES (?,?)"),
+                    cancellationToken,
+                    userId, groupId).ConfigureAwait(false);
+            }
+
+            if (unlockedFlag == 0 || (emailNorm.Confirmed == 0 && phoneNorm.Confirmed == 0))
+            {
+                writes += await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional("DELETE FROM `sessions` WHERE `user_id` = ?"),
+                    cancellationToken,
+                    userId).ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "User saved.", userId, Math.Max(writes, 1));
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save the account.");
+        }
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteAsync(
+        string? idsJson,
+        long actorUserId,
+        CancellationToken cancellationToken = default)
+    {
+        var parsed = CpMenuWriteService.ParseIds(idsJson);
+        if (parsed.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", parsed.Error);
+        }
+
+        if (parsed.Ids.Contains(actorUserId))
+        {
+            return ErpSimpleWriteResult.Fail("forbidden", "You cannot delete your own account.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var placeholders = string.Join(",", parsed.Ids.Select(_ => "?"));
+        var args = parsed.Ids.Cast<object>().ToArray();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var writes = 0;
+            foreach (var table in new[] { "users_profiles", "users_groups_bind", "sessions" })
+            {
+                writes += await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional($"DELETE FROM `{table}` WHERE `user_id` IN ({placeholders})"),
+                    cancellationToken,
+                    args).ConfigureAwait(false);
+            }
+
+            var deleted = await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional($"DELETE FROM `users` WHERE `user_id` IN ({placeholders})"),
+                cancellationToken,
+                args).ConfigureAwait(false);
+            if (deleted <= 0)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("not_found", "No users were deleted.");
+            }
+
+            writes += deleted;
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", $"Deleted {deleted} user(s).", parsed.Ids[0], writes);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not delete the selected users.");
+        }
     }
 
     /// <summary>PHP <c>epc_password_hash</c> bcrypt cost 12.</summary>
