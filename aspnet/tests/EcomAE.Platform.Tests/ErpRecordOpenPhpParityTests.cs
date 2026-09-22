@@ -1823,24 +1823,52 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void PagesApp_OpenLoadsBodyExcerptAndKeepsWrites()
+    public void PagesApp_IsLivePhpContentManagerEditorAndTreeTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpPagesApp.razor"));
+        Assert.Contains("ICpContentEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Content.ListAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Content.OpenAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Content.TreeAsync(", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"content_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"content_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpPagesDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No body excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-parent siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"check_uncheck_all\"", text, StringComparison.Ordinal);
+        Assert.Contains("\"direct_list\"", text, StringComparison.Ordinal);
+        Assert.Contains("id_filter_input", text, StringComparison.Ordinal);
+        Assert.Contains("content_content_filter_input", text, StringComparison.Ordinal);
+        Assert.Contains("meta_data_filter_input", text, StringComparison.Ordinal);
+        Assert.Contains("_sorter", text, StringComparison.Ordinal);
+        Assert.Contains("s_page", text, StringComparison.Ordinal);
+        Assert.Contains("set_main_flag()", text, StringComparison.Ordinal);
+        Assert.Contains("set_published_flag_action(", text, StringComparison.Ordinal);
+        Assert.Contains("delete_action()", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"content_array\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"value_input\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"alias_input\"", text, StringComparison.Ordinal);
+        Assert.Contains("alias_autotranslit", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"title_tag_input\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"content_type_select\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"groups_selector\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"parent_input\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"content_value_area\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"content_tree\"", text, StringComparison.Ordinal);
+        Assert.Contains("tree_save()", text, StringComparison.Ordinal);
         Assert.Contains("/cp/content/published", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/main", text, StringComparison.Ordinal);
         Assert.Contains("/cp/content/body", text, StringComparison.Ordinal);
         Assert.Contains("/cp/content/save", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-users-workspace", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/tree", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/content/delete", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("is_frontend", text, StringComparison.Ordinal);
+        Assert.Contains("hpanel", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("content_id=", text, StringComparison.Ordinal);
-        Assert.Contains("_selected", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpPagesDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
