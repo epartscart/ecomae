@@ -2479,6 +2479,41 @@ public sealed class ControlPanelModule : ISurfaceModule
                 make = j.Make, model = j.Model, year = j.Year, bay_id = j.BayId, tech_id = j.TechId, bay_name = j.BayName, tech_name = j.TechName, grand_total = j.GrandTotal,
             };
         }).DisableAntiforgery();
+
+        // PHP-shaped ajax_procurement.php dispatcher (procurement_main.php JS + no-script forms).
+        endpoints.MapPost(EcomAeRoutes.CpProcurementAjax, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpProcurementWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(new { status = false, message = "Access denied" });
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(new { status = false, message = "Unknown action" });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var action = LiveWriteFormBinder.Text(form, "action");
+            try
+            {
+                var result = await CpProcurementAjax.DispatchAsync(action, form, writes, session.UserId, cancellationToken);
+                return LiveWriteFormBinder.Complete(context, EcomAeRoutes.ControlPanelProcurementApp, result.Ok, result.Message, result.Payload, StatusCodes.Status200OK);
+            }
+            catch (ErpWriteException ex)
+            {
+                return LiveWriteFormBinder.Complete(context, EcomAeRoutes.ControlPanelProcurementApp, false, ex.Message, new { status = false, message = ex.Message }, StatusCodes.Status200OK);
+            }
+            catch (System.Data.Common.DbException ex)
+            {
+                return LiveWriteFormBinder.Complete(context, EcomAeRoutes.ControlPanelProcurementApp, false, ex.Message, new { status = false, message = ex.Message }, StatusCodes.Status200OK);
+            }
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPortalSaveSettings, async (HttpContext context, CpPortalSaveSettingsBody? body, ILegacySessionValidator validator, ICpPortalSaveSettingsDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpPortalDeploySite, async (HttpContext context, CpPortalDeploySiteBody? body, ILegacySessionValidator validator, ICpPortalDeploySiteDryRun dryRun, CancellationToken cancellationToken) =>

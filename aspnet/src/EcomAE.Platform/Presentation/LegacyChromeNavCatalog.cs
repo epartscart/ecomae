@@ -19,7 +19,7 @@ public static class LegacyChromeNavCatalog
         new("Customers", "/cp/users-app", "Users & customers"),
         new("Documents", "/cp/document-control-app", "Documents"),
         new("ERP", "/erp", "ERP shell"),
-        new("Purchase", "/cp/purchase-requests-app", "Procurement"),
+        new("Purchase", "/cp/procurement-app", "Procurement"),
         new("Channels", "/cp/marketplace-channels-app", "Sales channels"),
         new("Logistics", "/cp/carriers-app", "Logistics"),
         // PHP leftover control_groups after primaries (DB order 743/745/740/741/742).

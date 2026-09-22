@@ -63,7 +63,7 @@ public static class PhpSurfaceLinkMap
         ("shop/crosses", "/cp/crosses-app"),
         ("shop/crm", "/cp/crm-board-app"),
         ("shop/pos", "/cp/pos-overview-app"),
-        ("shop/procurement", "/cp/purchase-requests-app"),
+        ("shop/procurement", "/cp/procurement-app"),
         ("shop/eparts-cata", "/cp/product-catalogue-app"),
         ("shop/eparts-mod", "/cp/product-catalogue-app"),
 
@@ -137,7 +137,7 @@ public static class PhpSurfaceLinkMap
         ("shop/taby-poiska", "/cp/search-tabs-app"),
         ("taby-poiska", "/cp/search-tabs-app"),
         ("control/shop/docpart/crosses", "/cp/crosses-app"),
-        ("control/shop/procurement", "/cp/purchase-requests-app"),
+        ("control/shop/procurement", "/cp/procurement-app"),
         ("control/shop/multivendor", "/cp/prices-upload-app"),
         ("multivendor", "/cp/prices-upload-app"),
         // BocNav / brochure holdouts that previously collapsed to bare /cp.
@@ -209,8 +209,8 @@ public static class PhpSurfaceLinkMap
         ("control/portal/tenant_control", "/cp/tenants-app"),
         ("control/portal/portal", "/cp/portal-settings-app"),
         ("shop/document_control/document_control", "/cp/document-control-app"),
-        ("shop/procurement/procurement", "/cp/purchase-requests-app"),
-        ("shop/procurement", "/cp/purchase-requests-app"),
+        ("shop/procurement/procurement", "/cp/procurement-app"),
+        ("shop/procurement", "/cp/procurement-app"),
         ("shop/price-management", "/cp/price-lists-app"),
         ("shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app"),
         ("shop/finance/epc_collections_dunning", "/cp/collections-dunning-app"),

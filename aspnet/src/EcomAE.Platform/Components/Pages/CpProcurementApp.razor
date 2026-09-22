@@ -1,0 +1,640 @@
+@page "/cp/procurement-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ICpProcurementDeskService Desk
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Procurement &amp; suppliers · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+    <link rel="stylesheet" href="/content/shop/finance/epc_erp_ui_css.php?v=20260518">
+    <style>
+        .epc-proc-hero { background: linear-gradient(135deg, #0f172a 0%, #1e4d3a 100%); color: #fff; border-radius: 10px; padding: 20px 22px; margin-bottom: 16px; }
+        .epc-proc-hero h3 { margin: 0 0 8px; color: #fff; }
+        .epc-proc-kpi { display: flex; flex-wrap: wrap; gap: 12px; margin-bottom: 16px; }
+        .epc-proc-kpi .kpi { flex: 1 1 120px; min-width: 100px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; padding: 12px; }
+        .epc-proc-kpi .lbl { font-size: 10px; color: #64748b; text-transform: uppercase; }
+        .epc-proc-kpi .val { font-size: 18px; font-weight: 700; color: #1e4d3a; }
+        .epc-proc-nav .btn { margin: 0 4px 6px 0; }
+        .epc-proc-msg { display: none; margin: 10px 0; }
+        .epc-proc-note { border-left: 4px solid #f59e0b; padding: 10px 14px; background: #fffbeb; margin-bottom: 14px; border-radius: 0 6px 6px 0; }
+        .epc-proc-name { font-weight: 700; color: #0f172a; }
+        .epc-proc-code { display:inline-block; margin-top:3px; font-size:11px; font-weight:700; letter-spacing:.03em; color:#0f766e; background:#ecfdf5; border:1px solid #a7f3d0; border-radius:999px; padding:2px 8px; }
+        .epc-proc-sub { color:#64748b; font-size:12px; margin-top:2px; }
+        .epc-proc-recon { margin-top:22px; padding-top:8px; border-top:1px solid #e2e8f0; }
+        .epc-proc-recon h4 { margin-top:0; }
+    </style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to open procurement.</div>
+    }
+    else
+    {
+        <div class="col-lg-12 epc-erp-shell epc-cp-page-frame">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    <i class="fa fa-industry"></i> Procurement &amp; suppliers
+                    <span class="pull-right">
+                        <a class="btn btn-default btn-xs" href="@ErpPayablesUrl"><i class="fa fa-calculator"></i> ERP payables</a>
+                        <a class="btn btn-default btn-xs" href="@PriceUrl"><i class="fa fa-tags"></i> Price lists</a>
+                    </span>
+                </div>
+                <div class="panel-body">
+
+                    <div class="epc-proc-hero">
+                        <h3><i class="fa fa-truck"></i> Supplier procurement — not warehouse stock</h3>
+                        <p style="margin:0;opacity:.92;">
+                            Manage <strong>suppliers</strong> (legal entity, TRN, payment terms), <strong>purchase bills</strong>,
+                            <strong>payments</strong>, and <strong>advances</strong>. Warehouse/storages hold stock and price lists — link optionally here.
+                        </p>
+                    </div>
+
+                    <div id="epc_proc_msg" class="alert epc-proc-msg @(_flashOk.Length > 0 ? "alert-success" : _flashErr.Length > 0 ? "alert-danger" : "")" style="@(_flashOk.Length > 0 || _flashErr.Length > 0 ? "display:block" : "")">@(_flashOk.Length > 0 ? _flashOk : _flashErr)</div>
+                    @if (!string.IsNullOrWhiteSpace(_desk.Error))
+                    {
+                        <div class="alert alert-danger">@_desk.Error</div>
+                    }
+
+                    <div class="epc-proc-nav">
+                        @foreach (var (key, label) in CpProcurementDeskService.Tabs)
+                        {
+                            <a class="btn btn-sm @(_tab == key ? "btn-primary" : "btn-default")" href="@TabUrl(key)">@label</a>
+                        }
+                    </div>
+
+                    @if (_tab == "dashboard")
+                    {
+                        <div class="epc-proc-kpi">
+                            <div class="kpi"><div class="lbl">Active suppliers</div><div class="val">@_desk.Dashboard.Suppliers</div></div>
+                            <div class="kpi"><div class="lbl">With TRN</div><div class="val">@_desk.Dashboard.SuppliersWithTrn</div></div>
+                            <div class="kpi"><div class="lbl">Purchase bills</div><div class="val">@_desk.Dashboard.PurchaseInvoices</div></div>
+                            <div class="kpi"><div class="lbl">Payable balance</div><div class="val">@Money(_desk.Dashboard.PayableBalance)</div></div>
+                            <div class="kpi"><div class="lbl">Advances paid</div><div class="val">@Money(_desk.Dashboard.AdvancesPaid)</div></div>
+                            <div class="kpi"><div class="lbl">Warehouses</div><div class="val">@_desk.Dashboard.Warehouses <small>(@_desk.Dashboard.WarehousesLinked linked)</small></div></div>
+                        </div>
+                        <div class="epc-proc-note">
+                            <strong>Warehouse ≠ supplier.</strong> Warehouses (<a href="@StoragesUrl">Logistics → Storages</a>) are operational price/stock sources.
+                            Suppliers are financial/legal entities for purchase bills and UAE input VAT. Optional link: one supplier per warehouse for auto-naming.
+                        </div>
+                        <h4>Quick actions</h4>
+                        <p>
+                            <a class="btn btn-primary btn-sm" href="@TabUrl("suppliers")">Add supplier</a>
+                            <a class="btn btn-default btn-sm" href="@TabUrl("purchases")">Record purchase bill</a>
+                            <a class="btn btn-default btn-sm" href="@TabUrl("payments")">Pay supplier</a>
+                            <a class="btn btn-default btn-sm" href="@TabUrl("fulfillment")">Order fulfillment</a>
+                        </p>
+                    }
+                    else if (_tab == "suppliers")
+                    {
+                        <div class="epc-proc-note">
+                            Show <strong>full legal / warehouse name</strong> together with the <strong>vendor code</strong> (storefront short name).
+                            Link the warehouse so customer order lines (`t2_storage_id`) can be reconciled to purchase bills.
+                            Prices come from the linked warehouse — <a href="@PriceUrl">Price management</a>.
+                        </div>
+                        <form method="post" action="@EcomAeRoutes.CpProcurementAjax" style="display:inline">
+                            <input type="hidden" name="action" value="sync_suppliers" />
+                            <input type="hidden" name="returnUrl" value="@TabUrl("suppliers")" />
+                            <p>
+                                <button type="submit" class="btn btn-sm btn-default" id="epc_proc_sync_wh"><i class="fa fa-link"></i> Sync warehouses → full name + vendor code</button>
+                            </p>
+                        </form>
+                        <table class="table table-striped table-bordered table-condensed">
+                            <thead>
+                                <tr>
+                                    <th>Full name</th>
+                                    <th>Vendor code</th>
+                                    <th>TRN</th>
+                                    <th>Country</th>
+                                    <th>Warehouse</th>
+                                    <th>Payable</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_desk.Suppliers.Count == 0)
+                                {
+                                    <tr><td colspan="7" class="text-muted">No suppliers yet. Sync warehouses or create one below.</td></tr>
+                                }
+                                @foreach (var s in _desk.Suppliers)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="epc-proc-name">@s.FullName</div>
+                                            @if (s.WarehouseName.Length > 0 && !string.Equals(s.WarehouseName, s.FullName, StringComparison.OrdinalIgnoreCase))
+                                            {
+                                                <div class="epc-proc-sub">WH: @s.WarehouseName</div>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (s.VendorCode.Length > 0)
+                                            {
+                                                <span class="epc-proc-code">@s.VendorCode</span>
+                                            }
+                                            else
+                                            {
+                                                <span class="text-muted">—</span>
+                                            }
+                                        </td>
+                                        <td>@Dash(s.Trn)</td>
+                                        <td>@(s.CountryCode.Length > 0 ? s.CountryCode : "AE")
+                                            @if (s.VatRegistered)
+                                            {
+                                                <span class="label label-success">VAT</span>
+                                            }
+                                        </td>
+                                        <td>@Dash(s.WarehouseName)</td>
+                                        <td>@Money(s.Balance)</td>
+                                        <td>
+                                            <a class="btn btn-xs btn-primary" href="@TabUrl("suppliers", "supplier_id=" + s.Id)">Open</a>
+                                            <a class="btn btn-xs btn-default" href="@TabUrl("suppliers", "supplier_id=" + s.Id + "#epc_proc_recon")">Orders</a>
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+
+                        @if (_desk.EditSupplier is { } edit)
+                        {
+                            <h4>Edit supplier #@edit.Id — @edit.DisplayLabel</h4>
+                            <form id="epc_proc_form_update_sup" class="form-horizontal" method="post" action="@EcomAeRoutes.CpProcurementAjax">
+                                <input type="hidden" name="action" value="update_supplier" />
+                                <input type="hidden" name="returnUrl" value="@TabUrl("suppliers", "supplier_id=" + edit.Id)" />
+                                <input type="hidden" name="supplier_id" value="@edit.Id" />
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-group"><label class="col-sm-4">Full / legal name</label><div class="col-sm-8"><input type="text" name="name" class="form-control input-sm" value="@edit.FullName" required></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Vendor code</label><div class="col-sm-8"><input type="text" name="vendor_code" class="form-control input-sm" value="@edit.VendorCode" placeholder="e.g. R-UAE, TV6388"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">TRN (VAT)</label><div class="col-sm-8"><input type="text" name="trn" class="form-control input-sm" value="@edit.Trn"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Country</label><div class="col-sm-8"><input type="text" name="country_code" class="form-control input-sm" value="@(edit.CountryCode.Length > 0 ? edit.CountryCode : "AE")"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">VAT registered</label><div class="col-sm-8"><label class="checkbox-inline"><input type="checkbox" name="vat_registered" value="1" checked="@edit.VatRegistered"> UAE @VatPct% input VAT</label></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Legal reg no.</label><div class="col-sm-8"><input type="text" name="legal_reg_no" class="form-control input-sm" value="@edit.LegalRegNo"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Reg type</label><div class="col-sm-8">
+                                            <select name="legal_reg_type" class="form-control input-sm">
+                                                @foreach (var (k, lbl) in LegalRegTypes)
+                                                {
+                                                    <option value="@k" selected="@((edit.LegalRegType.Length > 0 ? edit.LegalRegType : "TL") == k)">@lbl</option>
+                                                }
+                                            </select>
+                                        </div></div>
+                                        <div class="form-group"><label class="col-sm-4">Authority</label><div class="col-sm-8"><input type="text" name="authority_name" class="form-control input-sm" value="@edit.AuthorityName"></div></div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-group"><label class="col-sm-4">Address</label><div class="col-sm-8"><input type="text" name="address_line1" class="form-control input-sm" value="@edit.AddressLine1"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">City</label><div class="col-sm-8"><input type="text" name="city" class="form-control input-sm" value="@(edit.City.Length > 0 ? edit.City : "Dubai")"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Emirate</label><div class="col-sm-8"><input type="text" name="emirate" class="form-control input-sm" value="@(edit.Emirate.Length > 0 ? edit.Emirate : "Dubai")"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">E-mail</label><div class="col-sm-8"><input type="email" name="contact_email" class="form-control input-sm" value="@edit.ContactEmail"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Phone</label><div class="col-sm-8"><input type="text" name="contact_phone" class="form-control input-sm" value="@edit.ContactPhone"></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Payment terms</label><div class="col-sm-8"><input type="text" name="payment_terms" class="form-control input-sm" value="@edit.PaymentTerms" placeholder="Net 30, advance, etc."></div></div>
+                                        <div class="form-group"><label class="col-sm-4">Link warehouse</label><div class="col-sm-8">
+                                            <select name="storage_id" class="form-control input-sm">
+                                                <option value="">— None —</option>
+                                                @foreach (var w in _desk.Warehouses)
+                                                {
+                                                    <option value="@w.Id" selected="@(edit.StorageId == w.Id)">@w.Name@(w.VendorCode.Length > 0 ? " [" + w.VendorCode + "]" : "")</option>
+                                                }
+                                            </select>
+                                            <p class="help-block" style="margin:4px 0 0;">Links customer order lines for reconciliation.</p>
+                                        </div></div>
+                                        <div class="form-group"><label class="col-sm-4">Notes</label><div class="col-sm-8"><textarea name="notes" class="form-control input-sm" rows="2">@edit.Notes</textarea></div></div>
+                                    </div>
+                                </div>
+                                <button type="submit" class="btn btn-primary">Save supplier profile</button>
+                                <a class="btn btn-default" href="@TabUrl("suppliers")">Back to list</a>
+                            </form>
+
+                            <div class="epc-proc-recon" id="epc_proc_recon">
+                                <h4><i class="fa fa-exchange"></i> Customer order reconciliation</h4>
+                                <p class="text-muted" style="margin-top:0;">
+                                    Orders with lines from this supplier’s warehouse, plus purchase bills already tied to an order.
+                                    Use this to match supplier cost against customer order detail.
+                                </p>
+                                @if (_desk.SupplierOrders.Count == 0)
+                                {
+                                    <div class="alert alert-info" style="margin-bottom:0;">No linked customer orders yet. Link a warehouse above, or record a purchase bill with an order ID.</div>
+                                }
+                                else
+                                {
+                                    <table class="table table-striped table-bordered table-condensed">
+                                        <thead>
+                                            <tr>
+                                                <th>Order</th>
+                                                <th>Date</th>
+                                                <th>Customer</th>
+                                                <th>Lines</th>
+                                                <th>Purchase ex</th>
+                                                <th>Sale ex</th>
+                                                <th>Purchase bills</th>
+                                                <th></th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            @foreach (var so in _desk.SupplierOrders)
+                                            {
+                                                <tr>
+                                                    <td><strong>#@so.OrderId</strong></td>
+                                                    <td>@(so.Time > 0 ? DateMin(so.Time) : "—")</td>
+                                                    <td>@(so.CustomerEmail.Length > 0 ? so.CustomerEmail : "User #" + so.UserId)</td>
+                                                    <td>@so.LineCount</td>
+                                                    <td>@Money(so.PurchaseEx)</td>
+                                                    <td>@Money(so.SaleEx)</td>
+                                                    <td>
+                                                        @if (so.PurchaseBills > 0)
+                                                        {
+                                                            <span class="label label-success">@so.PurchaseBills linked</span>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="label label-warning">Open</span>
+                                                        }
+                                                    </td>
+                                                    <td>
+                                                        <a class="btn btn-xs btn-primary" href="@OrderDetailUrl(so.OrderId)">Order detail</a>
+                                                        @if (so.PurchaseBills <= 0)
+                                                        {
+                                                            <a class="btn btn-xs btn-default" href="@TabUrl("purchases")">Create bill</a>
+                                                        }
+                                                    </td>
+                                                </tr>
+                                            }
+                                        </tbody>
+                                    </table>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <h4>Add supplier</h4>
+                            <form id="epc_proc_form_supplier" class="form-inline" method="post" action="@EcomAeRoutes.CpProcurementAjax">
+                                <input type="hidden" name="action" value="create_supplier" />
+                                <input type="hidden" name="returnUrl" value="@TabUrl("suppliers")" />
+                                <input type="text" name="name" class="form-control input-sm" placeholder="Full / legal name" required>
+                                <input type="text" name="vendor_code" class="form-control input-sm" placeholder="Vendor code">
+                                <input type="text" name="trn" class="form-control input-sm" placeholder="TRN">
+                                <input type="text" name="country_code" class="form-control input-sm" value="AE" placeholder="Country">
+                                <input type="email" name="contact_email" class="form-control input-sm" placeholder="E-mail">
+                                <label class="checkbox-inline"><input type="checkbox" name="vat_registered" value="1" checked> VAT reg.</label>
+                                <button type="submit" class="btn btn-sm btn-primary">Create</button>
+                            </form>
+                        }
+                    }
+                    else if (_tab == "purchases")
+                    {
+                        <p class="text-muted">Record supplier purchase bills (ex VAT). @VatPct% input VAT auto for UAE VAT-registered suppliers.</p>
+                        <table class="table table-striped table-bordered table-condensed">
+                            <thead><tr><th>ID</th><th>Date</th><th>Supplier</th><th>Invoice #</th><th>Order</th><th>Ex VAT</th><th>VAT</th><th>Total</th></tr></thead>
+                            <tbody>
+                                @foreach (var p in _desk.Purchases)
+                                {
+                                    <tr>
+                                        <td>@p.Id</td>
+                                        <td>@DateOnly(p.PurchaseDate)</td>
+                                        <td>@SupplierLabelFor(p.SupplierId, p.SupplierName)</td>
+                                        <td>@p.InvoiceNumber</td>
+                                        <td>
+                                            @if (p.OrderId > 0)
+                                            {
+                                                <a href="@OrderDetailUrl(p.OrderId)">#@p.OrderId</a>
+                                            }
+                                            else
+                                            {
+                                                @("—")
+                                            }
+                                        </td>
+                                        <td>@Money(p.AmountExVat)</td>
+                                        <td>@Money(p.VatAmount)</td>
+                                        <td>@Money(p.TotalAmount)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <h4>Record purchase bill</h4>
+                        <form id="epc_proc_form_purchase" class="form-inline" method="post" action="@EcomAeRoutes.CpProcurementAjax">
+                            <input type="hidden" name="action" value="create_purchase" />
+                            <input type="hidden" name="returnUrl" value="@TabUrl("purchases")" />
+                            <select name="supplier_id" class="form-control input-sm" required>
+                                <option value="">Supplier</option>
+                                @foreach (var s in _desk.Suppliers)
+                                {
+                                    <option value="@s.Id">@s.DisplayLabel</option>
+                                }
+                            </select>
+                            <input type="text" name="invoice_number" class="form-control input-sm" placeholder="Supplier invoice #">
+                            <input type="number" step="0.01" name="amount_ex_vat" class="form-control input-sm" placeholder="Amount ex VAT" required>
+                            <input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID (opt.)">
+                            <input type="text" name="note" class="form-control input-sm" placeholder="Note">
+                            <button type="submit" class="btn btn-sm btn-primary">Record bill</button>
+                        </form>
+                        <h4>From order cost</h4>
+                        <p class="text-muted" style="font-size:12px;">Creates ERP purchase bill and receives inventory from order line articles (qty from <code>count_need</code>, cost from <code>t2_price_purchase</code>).</p>
+                        <form id="epc_proc_form_purchase_order" class="form-inline" method="post" action="@EcomAeRoutes.CpProcurementAjax">
+                            <input type="hidden" name="action" value="purchase_from_order" />
+                            <input type="hidden" name="returnUrl" value="@TabUrl("purchases")" />
+                            <input type="number" name="order_id" class="form-control input-sm" placeholder="Order ID" required>
+                            <select name="supplier_id" class="form-control input-sm" required>
+                                <option value="">Supplier</option>
+                                @foreach (var s in _desk.Suppliers)
+                                {
+                                    <option value="@s.Id">@s.DisplayLabel</option>
+                                }
+                            </select>
+                            <button type="submit" class="btn btn-sm btn-default">Generate bill</button>
+                        </form>
+                    }
+                    else if (_tab == "payments")
+                    {
+                        <table class="table table-striped table-bordered table-condensed">
+                            <thead><tr><th>Supplier</th><th>TRN</th><th>Payable balance</th><th></th></tr></thead>
+                            <tbody>
+                                @foreach (var s in _desk.Suppliers)
+                                {
+                                    <tr>
+                                        <td>
+                                            <div class="epc-proc-name">@s.FullName</div>
+                                            @if (s.VendorCode.Length > 0)
+                                            {
+                                                <span class="epc-proc-code">@s.VendorCode</span>
+                                            }
+                                        </td>
+                                        <td>@Dash(s.Trn)</td>
+                                        <td><strong>@Money(s.Balance)</strong></td>
+                                        <td><a class="btn btn-xs btn-default" href="@(ErpPayablesUrl + "&supplier_id=" + s.Id)">Ledger</a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <h4>Record supplier payment</h4>
+                        <form id="epc_proc_form_pay" class="form-inline" method="post" action="@EcomAeRoutes.CpProcurementAjax">
+                            <input type="hidden" name="action" value="supplier_payment" />
+                            <input type="hidden" name="returnUrl" value="@TabUrl("payments")" />
+                            <select name="supplier_id" class="form-control input-sm" required>
+                                <option value="">Supplier</option>
+                                @foreach (var s in _desk.Suppliers)
+                                {
+                                    <option value="@s.Id">@s.DisplayLabel</option>
+                                }
+                            </select>
+                            <select name="account_id" class="form-control input-sm" required>
+                                <option value="">Pay from</option>
+                                @foreach (var a in _desk.Accounts)
+                                {
+                                    <option value="@a.Id">@a.Name (@Money(a.Balance))</option>
+                                }
+                            </select>
+                            <input type="number" step="0.01" name="amount" class="form-control input-sm" placeholder="Amount AED" required>
+                            <input type="text" name="reference" class="form-control input-sm" placeholder="Reference">
+                            <button type="submit" class="btn btn-sm btn-warning">Post payment</button>
+                        </form>
+                        <p class="text-muted">For advance payments before goods received, use the <a href="@TabUrl("advances")">Advances</a> tab.</p>
+                    }
+                    else if (_tab == "advances")
+                    {
+                        <p class="text-muted">Advance payments to suppliers (pre-payment before invoice). Recorded as supplier payment + procurement advance log.</p>
+                        <table class="table table-striped table-bordered table-condensed">
+                            <thead><tr><th>Date</th><th>Supplier</th><th>Amount</th><th>Reference</th><th>Note</th></tr></thead>
+                            <tbody>
+                                @foreach (var a in _desk.Advances)
+                                {
+                                    <tr>
+                                        <td>@DateMin(a.Time)</td>
+                                        <td>@a.SupplierName</td>
+                                        <td>@Money(a.Amount)</td>
+                                        <td>@a.Reference</td>
+                                        <td>@a.Note</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        <form id="epc_proc_form_advance" class="form-inline" method="post" action="@EcomAeRoutes.CpProcurementAjax">
+                            <input type="hidden" name="action" value="record_advance" />
+                            <input type="hidden" name="returnUrl" value="@TabUrl("advances")" />
+                            <select name="supplier_id" class="form-control input-sm" required>
+                                <option value="">Supplier</option>
+                                @foreach (var s in _desk.Suppliers)
+                                {
+                                    <option value="@s.Id">@s.DisplayLabel</option>
+                                }
+                            </select>
+                            <select name="account_id" class="form-control input-sm" required>
+                                <option value="">Pay from</option>
+                                @foreach (var a in _desk.Accounts)
+                                {
+                                    <option value="@a.Id">@Money(a.Balance) — @a.Name</option>
+                                }
+                            </select>
+                            <input type="number" step="0.01" name="amount" class="form-control input-sm" placeholder="Advance AED" required>
+                            <input type="text" name="reference" class="form-control input-sm" placeholder="Reference">
+                            <input type="text" name="note" class="form-control input-sm" placeholder="Note">
+                            <button type="submit" class="btn btn-sm btn-warning">Record advance</button>
+                        </form>
+                    }
+                    else if (_tab == "fulfillment")
+                    {
+                        <p>Track supplier → stock → customer delivery. Full pipeline in ERP Fulfilment tab.</p>
+                        <div class="epc-proc-kpi">
+                            <div class="kpi"><div class="lbl">Orders (30d)</div><div class="val">@_desk.Fulfilment.TotalOrders</div></div>
+                            <div class="kpi"><div class="lbl">delivery done</div><div class="val">@_desk.Fulfilment.DeliveryDone</div></div>
+                            <div class="kpi"><div class="lbl">returns open</div><div class="val">@_desk.Fulfilment.ReturnsOpen</div></div>
+                        </div>
+                        <p>
+                            <a class="btn btn-primary btn-sm" href="@ErpFulfilmentUrl"><i class="fa fa-exchange"></i> ERP Fulfilment</a>
+                            <a class="btn btn-default btn-sm" href="@OrdersUrl"><i class="fa fa-shopping-cart"></i> Orders</a>
+                        </p>
+                    }
+                    else if (_tab == "warehouses")
+                    {
+                        <div class="epc-proc-note">
+                            <strong>Warehouses are not suppliers.</strong> They store price lists and stock locations.
+                            Configure prices in <a href="@PriceUrl">Price management</a>.
+                            Optionally link a warehouse to a supplier record for naming convenience only.
+                        </div>
+                        <table class="table table-striped table-bordered table-condensed">
+                            <thead><tr><th>Warehouse</th><th>Linked supplier</th><th></th></tr></thead>
+                            <tbody>
+                                @foreach (var w in _desk.Warehouses)
+                                {
+                                    <tr>
+                                        <td>@w.Name <small class="text-muted">#@w.Id</small></td>
+                                        <td>@(w.SupplierId > 0 ? "Supplier #" + w.SupplierId : "—")</td>
+                                        <td>
+                                            <a class="btn btn-xs btn-default" href="@StoragesUrl">Open storages</a>
+                                            @if (w.SupplierId > 0)
+                                            {
+                                                <a class="btn btn-xs btn-primary" href="@TabUrl("suppliers", "supplier_id=" + w.SupplierId)">Edit supplier</a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                    else if (_tab == "guide")
+                    {
+                        <div class="epc-proc-note">
+                            <strong>Procurement panel</strong> handles suppliers, purchase bills, payments, and advances.
+                            <strong>Warehouse/storages</strong> are separate — they hold price lists and stock, not legal supplier data.
+                        </div>
+
+                        <h4><i class="fa fa-sitemap"></i> End-to-end procurement flow</h4>
+                        <ol>
+                            <li><strong>Supplier master</strong> — Tab <em>Suppliers</em>: legal name, TRN, country, address, payment terms. Required for UAE input VAT on purchases.</li>
+                            <li><strong>Price source</strong> — Parts prices come from warehouse price lists (<a href="@PriceUrl">Price management</a>). Link warehouse optionally on supplier profile.</li>
+                            <li><strong>Purchase bill</strong> — Tab <em>Purchase bills</em>: record supplier invoice (ex VAT). VAT @VatPct% added for UAE VAT-registered suppliers.</li>
+                            <li><strong>Advance payment</strong> — Tab <em>Advances</em>: pay supplier before goods/invoice (prepayment).</li>
+                            <li><strong>Payment</strong> — Tab <em>Payments</em>: settle payable balance when invoice is due.</li>
+                            <li><strong>Fulfillment</strong> — Tab <em>Fulfillment</em> + <a href="@ErpFulfilmentUrl">ERP Fulfilment</a>: supplier paid → goods in → deliver to customer.</li>
+                            <li><strong>GL / VAT</strong> — Purchases post to ERP payables and UAE VAT input. See <a href="@ErpVatReturnUrl">ERP UAE VAT</a>.</li>
+                        </ol>
+
+                        <h4><i class="fa fa-warehouse"></i> Warehouse vs supplier</h4>
+                        <table class="table table-bordered table-condensed">
+                            <thead><tr><th>Warehouse (storage)</th><th>Supplier (procurement)</th></tr></thead>
+                            <tbody>
+                                <tr><td>Price list, stock location, catalog source</td><td>Legal entity, TRN, purchase invoice, payable</td></tr>
+                                <tr><td><a href="@StoragesUrl">Logistics → Storages</a></td><td>This panel → Suppliers</td></tr>
+                                <tr><td>Many warehouses possible</td><td>One supplier record per vendor; optional warehouse link</td></tr>
+                            </tbody>
+                        </table>
+
+                        <h4><i class="fa fa-check-square-o"></i> UAE e-invoicing (purchase side)</h4>
+                        <p>For B2B purchases, ensure supplier TRN and address are complete on the supplier profile.
+                        Seller-side e-invoices for your sales are in <a href="@ErpEinvoiceUrl">ERP → E-Invoicing</a>.</p>
+
+                        <h4>Live snapshot</h4>
+                        <ul>
+                            <li>Suppliers: @_desk.Dashboard.Suppliers (@_desk.Dashboard.SuppliersWithTrn with TRN)</li>
+                            <li>Purchase bills: @_desk.Dashboard.PurchaseInvoices</li>
+                            <li>Payable: @Money(_desk.Dashboard.PayableBalance) AED</li>
+                            <li>Advances: @Money(_desk.Dashboard.AdvancesPaid) AED</li>
+                        </ul>
+                    }
+
+                </div>
+            </div>
+        </div>
+
+        <script>
+        (function(){
+            var postUrl = @System.Text.Json.JsonSerializer.Serialize(EcomAeRoutes.CpProcurementAjax);
+            var msgEl = document.getElementById('epc_proc_msg');
+            function showMsg(ok, text) {
+                if (!msgEl) return;
+                msgEl.className = 'alert epc-proc-msg ' + (ok ? 'alert-success' : 'alert-danger');
+                msgEl.textContent = text;
+                msgEl.style.display = 'block';
+            }
+            function parseJsonResponse(r) {
+                return r.text().then(function(t) {
+                    try { return JSON.parse(t); }
+                    catch (e) { throw new Error('Invalid JSON (HTTP ' + r.status + '). Refresh and try again.'); }
+                });
+            }
+            function postAction(action, form) {
+                var fd = form ? new FormData(form) : new FormData();
+                fd.delete('returnUrl');
+                fd.set('action', action);
+                return fetch(postUrl, { method: 'POST', body: fd, credentials: 'same-origin', headers: { 'Accept': 'application/json' } })
+                    .then(parseJsonResponse)
+                    .then(function(j){
+                        showMsg(!!j.status, j.message || (j.status ? 'OK' : 'Error'));
+                        if (j.status) setTimeout(function(){ location.reload(); }, 800);
+                    })
+                    .catch(function(e){ showMsg(false, e.message || 'Request failed'); });
+            }
+            function bindForm(id, action) {
+                var f = document.getElementById(id);
+                if (!f) return;
+                f.addEventListener('submit', function(ev){ ev.preventDefault(); postAction(action, f); });
+            }
+            bindForm('epc_proc_form_supplier', 'create_supplier');
+            bindForm('epc_proc_form_update_sup', 'update_supplier');
+            bindForm('epc_proc_form_purchase', 'create_purchase');
+            bindForm('epc_proc_form_purchase_order', 'purchase_from_order');
+            bindForm('epc_proc_form_pay', 'supplier_payment');
+            bindForm('epc_proc_form_advance', 'record_advance');
+            var syncBtn = document.getElementById('epc_proc_sync_wh');
+            if (syncBtn) syncBtn.addEventListener('click', function(ev){ ev.preventDefault(); postAction('sync_suppliers'); });
+        })();
+        </script>
+    }
+</PhpCpDesktopChrome>
+
+@code {
+    private const string ErpPayablesUrl = "/erp/payables-app?tab=payables";
+    private const string ErpFulfilmentUrl = "/erp/fulfillment-queue-app";
+    private const string ErpVatReturnUrl = "/erp/vat-app?tab=vat_return";
+    private const string ErpEinvoiceUrl = "/erp/einvoice-documents-app";
+    private const string OrdersUrl = "/cp/orders";
+    private const string StoragesUrl = EcomAeRoutes.ControlPanelStoragesApp;
+    private const string PriceUrl = EcomAeRoutes.ControlPanelPriceListsApp;
+
+    private static readonly IReadOnlyList<(string Key, string Label)> LegalRegTypes =
+    [
+        ("TL", "Trade licence"),
+        ("EID", "Emirates ID"),
+        ("PAS", "Passport"),
+        ("CD", "Other"),
+    ];
+
+    private bool _isAdmin;
+    private string _tab = "dashboard";
+    private long _supplierId;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpProcurementDesk _desk = CpProcurementDesk.Unavailable("");
+
+    private string VatPct => _desk.VatRate.ToString("N2", CultureInfo.InvariantCulture);
+
+    /// <summary>PHP <c>epc_procurement_tab_url</c>.</summary>
+    private static string TabUrl(string tab, string extra = "")
+    {
+        var url = EcomAeRoutes.ControlPanelProcurementApp + "?tab=" + Uri.EscapeDataString(tab);
+        return extra.Length > 0 ? url + "&" + extra.TrimStart('&') : url;
+    }
+
+    private static string OrderDetailUrl(long orderId) => OrdersUrl + "?order_id=" + orderId.ToString(CultureInfo.InvariantCulture);
+
+    /// <summary>PHP <c>epc_proc_money</c>.</summary>
+    private static string Money(decimal v) => v.ToString("#,##0.00", CultureInfo.InvariantCulture);
+
+    private static string Dash(string s) => string.IsNullOrWhiteSpace(s) ? "—" : s;
+
+    private static string DateOnly(long unix) => DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+
+    private static string DateMin(long unix) => DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+    private string SupplierLabelFor(long supplierId, string fallback)
+    {
+        var s = _desk.Suppliers.FirstOrDefault(x => x.Id == supplierId);
+        return s is null ? fallback : s.DisplayLabel;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        var tab = ctx.Request.Query["tab"].ToString();
+        _tab = CpProcurementDeskService.Tabs.Any(t => t.Key == tab) ? tab : "dashboard";
+        _supplierId = ErpRecordOpen.ReadId(ctx.Request, "supplier_id");
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _desk = await Desk.LoadAsync(_tab, _supplierId, ctx.RequestAborted);
+    }
+}
