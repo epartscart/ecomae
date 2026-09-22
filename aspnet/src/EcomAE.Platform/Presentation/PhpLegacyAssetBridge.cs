@@ -217,6 +217,9 @@ public static class PhpLegacyAssetBridge
                          "cp/content/shop/order_process/epc_orders_cp.css"),
                      ("/platform-assets/epc_statuses_cp.css",
                          "cp/content/shop/order_process/epc_statuses_cp.css"),
+                     // CP Accessories Marketplace (PHP accessories_listings.php / taxonomy panel)
+                     ("/platform-assets/epc_accessories_cp.css",
+                         "cp/content/shop/accessories/epc_accessories_cp.css"),
                      // CP Users console (PHP user_manager / user.php dual-pane)
                      ("/platform-assets/epc_users_cp.css",
                          "cp/content/users/epc_users_cp.css"),
@@ -467,7 +470,7 @@ public static class PhpLegacyAssetBridge
         return string.Join("\n", parts);
     }
 
-    private static string FindRepoRoot(IWebHostEnvironment env)
+    internal static string FindRepoRoot(IWebHostEnvironment env)
     {
         var candidates = new List<string>();
         var envRoot = Environment.GetEnvironmentVariable("ECOMAE_PHP_SOURCE_ROOT");

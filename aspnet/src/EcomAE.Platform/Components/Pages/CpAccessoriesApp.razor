@@ -2,325 +2,824 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpAccessoriesListService Acc
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Accessories · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Accessories Marketplace · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<link rel="stylesheet" href="/platform-assets/epc_accessories_cp.css?v=20260922acc" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <div class="col-lg-12">
+
+@if (!_isAdmin)
+{
+    <div class="col-lg-12 epc-acc-cp">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Accessories
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
+            <div class="panel-heading hbuilt">Accessories Marketplace</div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/accessories-app")</p>
-                <p>Open a listing to see description and photos. Listing, taxonomy, and photo writes stay here. Multipart photo bytes stay Classic.</p>
+                <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to manage accessories listings.</div>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/accessories-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedListing is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Accessories KPIs">
-        <div class="kpi"><div class="lbl">Listings</div><div class="val">@_listingCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Published</div><div class="val">@_publishedCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Categories</div><div class="val">@_categoryCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Photos</div><div class="val">@_photoCount.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedListing is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedListing.Title) ? _openedListing.Title : ("Listing #" + _openedListing.Id.ToString(CultureInfo.InvariantCulture)))
-                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedListing.Status) ? _openedListing.Status : "—")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedListing.Make) ? _openedListing.Make : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedListing.Model) ? _openedListing.Model : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedListing.Year) ? _openedListing.Year : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedListing.City) ? _openedListing.City : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedListing.ConditionType) ? _openedListing.ConditionType : "—")</p>
-                    <p>Price: <strong>@_openedListing.Price.ToString("0.00", CultureInfo.InvariantCulture)</strong>
-                        @(!string.IsNullOrWhiteSpace(_openedListing.Currency) ? _openedListing.Currency : "AED")
-                        · Compare @_openedListing.ComparePrice.ToString("0.00", CultureInfo.InvariantCulture)
-                        · Stock @_openedListing.StockQty.ToString(CultureInfo.InvariantCulture)
-                        · @(_openedListing.Featured ? "featured" : "standard")</p>
-                    <p>Category @_openedListing.CategoryId.ToString(CultureInfo.InvariantCulture)
-                        · Subcategory @_openedListing.SubcategoryId.ToString(CultureInfo.InvariantCulture)
-                        · Photos @_openedListing.PhotoCount.ToString(CultureInfo.InvariantCulture)</p>
-                    @if (string.IsNullOrWhiteSpace(_openedListing.Description))
+}
+else if (_view == "taxonomy")
+{
+    <div class="col-lg-12 epc-acc-cp">
+        @Flash()
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Categories &amp; sub-categories
+                <span class="pull-right muted">Add / rename / deactivate / remove · <a href="@_listHref">← Back to listings</a></span>
+            </div>
+            <div class="panel-body">
+                <form method="post" action="/cp/accessories/taxonomy/write" class="filters" style="margin-bottom:14px;">
+                    <input type="hidden" name="action" value="save_category" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@TaxBase" />
+                    <input class="form-control w-q" name="label" required placeholder="New category label" />
+                    <select class="form-control" name="parent_id">
+                        <option value="0">Top-level category</option>
+                        @foreach (var p in _adminTree)
+                        {
+                            <option value="@p.Id">Sub of: @p.Label</option>
+                        }
+                    </select>
+                    <input class="form-control" type="number" name="sort_order" min="0" placeholder="Sort" style="width:90px;" />
+                    <button type="submit" class="btn btn-primary btn-sm">Add category / sub</button>
+                </form>
+                <table class="table table-striped table-condensed table-epc">
+                    <thead>
+                        <tr>
+                            <th>Category</th>
+                            <th>Slug</th>
+                            <th>Sort</th>
+                            <th>Status</th>
+                            <th>Sub-categories</th>
+                            <th style="min-width:220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (_adminTree.Count == 0)
                     {
-                        <p class="text-muted">No description yet.</p>
+                        <tr><td colspan="6" class="muted">No categories yet — add above.</td></tr>
+                    }
+                    @foreach (var p in _adminTree)
+                    {
+                        <tr>
+                            <td><strong>@p.Label</strong></td>
+                            <td class="muted">@p.Slug</td>
+                            <td>@p.SortOrder</td>
+                            <td>@ActiveLabel(p.Active)</td>
+                            <td>@p.Children.Count</td>
+                            <td>@CategoryActions(p, 0, "Delete category and its empty sub-categories?")</td>
+                        </tr>
+                        @foreach (var c in p.Children)
+                        {
+                            <tr>
+                                <td class="muted" style="padding-left:28px;">↳ @c.Label</td>
+                                <td class="muted">@c.Slug</td>
+                                <td>@c.SortOrder</td>
+                                <td>@ActiveLabel(c.Active)</td>
+                                <td class="muted">sub</td>
+                                <td>@CategoryActions(c, p.Id, "Delete this sub-category?")</td>
+                            </tr>
+                        }
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Filter lists — Make · Model · Year · City · Condition
+            </div>
+            <div class="panel-body">
+                <ul class="nav nav-pills" style="margin-bottom:14px;">
+                    @foreach (var (key, label) in CpAccessoriesListService.TermTypes)
+                    {
+                        <li class="@(key == _termType ? "active" : null)"><a href="@TermHref(key)">@label</a></li>
+                    }
+                </ul>
+                <form method="post" action="/cp/accessories/taxonomy/write" class="filters" style="margin-bottom:14px;">
+                    <input type="hidden" name="action" value="save_term" />
+                    <input type="hidden" name="term_type" value="@_termType" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@TermHref(_termType)" />
+                    <input class="form-control w-q" name="label" required placeholder="Add @TermTypeLabel" />
+                    @if (_termType == "model")
+                    {
+                        <select class="form-control" name="parent_id">
+                            <option value="0">Any make (general)</option>
+                            @foreach (var mk in _makeTerms)
+                            {
+                                <option value="@mk.Id">@mk.Label</option>
+                            }
+                        </select>
                     }
                     else
                     {
-                        <p>@_openedListing.Description</p>
+                        <input type="hidden" name="parent_id" value="0" />
                     }
-                    @if (!string.IsNullOrWhiteSpace(_openedListing.ImageUrl))
+                    <input class="form-control" type="number" name="sort_order" min="0" placeholder="Sort" style="width:90px;" />
+                    <button type="submit" class="btn btn-primary btn-sm">Add @TermTypeLabel</button>
+                </form>
+                <table class="table table-striped table-condensed table-epc">
+                    <thead>
+                        <tr>
+                            <th>Label</th>
+                            <th>Value</th>
+                            @if (_termType == "model")
+                            {
+                                <th>Make</th>
+                            }
+                            <th>Sort</th>
+                            <th>Status</th>
+                            <th style="min-width:220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (_terms.Count == 0)
                     {
-                        <p>Image: @_openedListing.ImageUrl</p>
+                        <tr><td colspan="6" class="muted">No terms yet — add above (or seed from taxonomy JSON on first load).</td></tr>
                     }
-                    @if (!string.IsNullOrWhiteSpace(_openedListing.ExternalUrl))
+                    @foreach (var term in _terms)
                     {
-                        <p>External: @_openedListing.ExternalUrl</p>
+                        <tr>
+                            <td><strong>@term.Label</strong></td>
+                            <td class="muted">@term.Value</td>
+                            @if (_termType == "model")
+                            {
+                                <td class="muted">@(_makeTerms.FirstOrDefault(m => m.Id == term.ParentId)?.Label ?? "—")</td>
+                            }
+                            <td>@term.SortOrder</td>
+                            <td>@ActiveLabel(term.Active)</td>
+                            <td>
+                                <form method="post" action="/cp/accessories/taxonomy/write" style="display:inline-block;margin:0 4px 4px 0;">
+                                    <input type="hidden" name="action" value="save_term" />
+                                    <input type="hidden" name="id" value="@term.Id" />
+                                    <input type="hidden" name="term_type" value="@_termType" />
+                                    <input type="hidden" name="parent_id" value="@term.ParentId" />
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@TermHref(_termType)" />
+                                    <input class="form-control input-sm" name="label" value="@term.Label" style="width:140px;display:inline-block;" />
+                                    <input class="form-control input-sm" type="number" name="sort_order" value="@term.SortOrder" style="width:70px;display:inline-block;" />
+                                    <button class="btn btn-xs btn-default" type="submit">Save</button>
+                                </form>
+                                <form method="post" action="/cp/accessories/taxonomy/write" style="display:inline;">
+                                    <input type="hidden" name="action" value="set_term_active" />
+                                    <input type="hidden" name="id" value="@term.Id" />
+                                    <input type="hidden" name="active" value="@(term.Active ? "0" : "1")" />
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@TermHref(_termType)" />
+                                    <button class="btn btn-xs btn-warning" type="submit">@(term.Active ? "Deactivate" : "Activate")</button>
+                                </form>
+                                <form method="post" action="/cp/accessories/taxonomy/write" style="display:inline;" onsubmit="return confirm('Remove this term?');">
+                                    <input type="hidden" name="action" value="delete_term" />
+                                    <input type="hidden" name="id" value="@term.Id" />
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@TermHref(_termType)" />
+                                    <button class="btn btn-xs btn-danger" type="submit">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
                     }
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Photo id</th>
-                                    <th>File</th>
-                                    <th>Primary</th>
-                                    <th>Sort</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedPhotos.Count == 0)
-                                {
-                                    <tr><td colspan="4">No photos yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var row in _openedPhotos)
-                                    {
-                                        <tr>
-                                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.FileName) ? row.FileName : "—")</td>
-                                            <td>@(row.IsPrimary ? "yes" : "no")</td>
-                                            <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <p class="help-block">@_listingCount.ToString(CultureInfo.InvariantCulture) Listings · @_publishedCount.ToString(CultureInfo.InvariantCulture) Published · @_categoryCount.ToString(CultureInfo.InvariantCulture) Categories · @_photoCount.ToString(CultureInfo.InvariantCulture) Photos.</p>
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Title</th>
-                    <th>Make</th>
-                    <th>Model</th>
-                    <th>Price</th>
-                    <th>Status</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Make) ? row.Make : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Model) ? row.Model : "—")</td>
-                            <td>@row.Price.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "listing_id", row.Id)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-                    </table>
-                </div>
+                    </tbody>
+                </table>
+                <p class="muted">These lists power storefront filters and the listing form dropdowns on Accessories Marketplace.</p>
             </div>
         </div>
     </div>
+}
+else if (_view == "edit")
+{
+    var isNew = _listing is null;
+    var l = _listing;
+    <div class="col-lg-12 epc-acc-cp">
+        @Flash()
+        <ErpOpenedRecordBanner Id="_openedId" Found="@(_listing is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                @(isNew ? "Add accessories listing" : ("Edit listing #" + l!.Id.ToString(CultureInfo.InvariantCulture)))
+                <span class="pull-right">
+                    @if (!isNew)
+                    {
+                        <a class="btn btn-xs btn-info" href="@StorefrontHref" target="_blank" rel="noopener" title="Open this listing on the storefront">
+                            <i class="fa fa-external-link"></i> View on storefront
+                        </a>
+                    }
+                    <a href="@_backList">← Back to list</a>
+                </span>
+            </div>
+            <div class="panel-body">
+                <p class="muted">Fill one category at a time. Published ads appear on <a href="/en/accessories-spare-parts" target="_blank">/en/accessories-spare-parts</a>.
+                    @if (!isNew)
+                    {
+                        <text>· </text><a href="@StorefrontHref" target="_blank" rel="noopener">Open this product on storefront</a>
+                    }
+                </p>
+                <form method="post" action="/cp/accessories/listings/write" id="epcAccListingForm">
+                    <input type="hidden" name="action" value="save" />
+                    <input type="hidden" name="id" value="@(l?.Id ?? 0)" />
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@(isNew ? _listHref + "?edit=0" : EditHref(l!.Id))" />
 
-    <form id="listings" method="post" action="/cp/accessories/listings/write" style="display:flex;flex-direction:column;gap:.45rem;margin:1rem 0;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_returnHref" />
-        <input type="hidden" name="action" value="save" />
-        <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
-            <label>Listing id <input type="number" name="listingId" min="0" value="@OpenedListingIdOrZero" style="width:6rem" title="0 = create" /></label>
-            <label>Category id <input type="number" name="categoryId" min="1" required style="width:6rem" value="@OpenedCategoryValue" /></label>
-            <label>Subcategory id <input type="number" name="subcategoryId" min="0" value="@OpenedSubcategoryValue" style="width:6rem" /></label>
-            <label>Title <input type="text" name="title" required value="@OpenedTitleValue" /></label>
-            <label>Make <input type="text" name="make" value="@OpenedMakeValue" /></label>
-            <label>Model <input type="text" name="model" value="@OpenedModelValue" /></label>
-            <label>Price <input type="number" name="price" min="0" step="0.01" value="@OpenedPriceValue" style="width:7rem" /></label>
-            <label>Status
-                <select name="status">
-                    <option value="published">published</option>
-                    <option value="draft">draft</option>
-                </select>
-            </label>
+                    <div class="form-grid">
+                        <div>
+                            <label>Category *</label>
+                            <select name="category" id="epc-acc-cp-cat" class="form-control" required>
+                                <option value="">Select…</option>
+                                @foreach (var p in _tree)
+                                {
+                                    <option value="@p.Slug" selected="@(l?.CategorySlug == p.Slug)">@p.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Sub category</label>
+                            <select name="subcategory" id="epc-acc-cp-sub" class="form-control" data-selected="@(l?.SubcategorySlug ?? "")">
+                                <option value="">Optional…</option>
+                                @foreach (var p in _tree)
+                                {
+                                    @foreach (var c in p.Children)
+                                    {
+                                        <option value="@c.Slug" data-parent="@p.Slug" selected="@(l?.SubcategorySlug == c.Slug)">@c.Label</option>
+                                    }
+                                }
+                            </select>
+                        </div>
+                        <div class="full">
+                            <label>Title *</label>
+                            <input class="form-control" name="title" required maxlength="255" value="@(l?.Title ?? "")" placeholder="Car Brake Pads for Toyota Corolla - 2018 | Dubai" />
+                        </div>
+                        <div class="full">
+                            <label>Description</label>
+                            <textarea class="form-control" name="description" rows="3">@(l?.Description ?? "")</textarea>
+                        </div>
+                        <div>
+                            <label>Make</label>
+                            <select name="make" class="form-control">
+                                <option value="">—</option>
+                                @foreach (var m in _makeTerms)
+                                {
+                                    <option value="@m.Label" selected="@(l?.Make == m.Label)">@m.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Model</label>
+                            @if (_modelTerms.Count > 0)
+                            {
+                                <select name="model" class="form-control">
+                                    <option value="">—</option>
+                                    @foreach (var mt in _modelTerms)
+                                    {
+                                        <option value="@mt.Label" selected="@(l?.Model == mt.Label)">@mt.Label</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input class="form-control" name="model" value="@(l?.Model ?? "")" />
+                            }
+                        </div>
+                        <div>
+                            <label>Year</label>
+                            @if (_yearTerms.Count > 0)
+                            {
+                                <select name="year" class="form-control">
+                                    <option value="">—</option>
+                                    @foreach (var y in _yearTerms)
+                                    {
+                                        <option value="@y.Label" selected="@(l?.Year == y.Label)">@y.Label</option>
+                                    }
+                                </select>
+                            }
+                            else
+                            {
+                                <input class="form-control" name="year" maxlength="16" value="@(l?.Year ?? "")" placeholder="2018" />
+                            }
+                        </div>
+                        <div>
+                            <label>City</label>
+                            <select name="city" class="form-control">
+                                <option value="">—</option>
+                                @foreach (var c in _cityTerms)
+                                {
+                                    <option value="@c.Label" selected="@(l?.City == c.Label)">@c.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Condition</label>
+                            <select name="condition_type" class="form-control">
+                                @foreach (var (value, label) in ConditionOptions)
+                                {
+                                    <option value="@value" selected="@((l?.ConditionType ?? "new") == value)">@label</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Status</label>
+                            <select name="status" class="form-control">
+                                @foreach (var (value, label) in StatusOptions)
+                                {
+                                    <option value="@value" selected="@((l?.Status ?? "published") == value)">@label</option>
+                                }
+                            </select>
+                        </div>
+                        <div>
+                            <label>Price (AED)</label>
+                            <input class="form-control" type="number" step="1" min="0" name="price" value="@(l is null ? "" : l.Price.ToString("0.##", CultureInfo.InvariantCulture))" />
+                        </div>
+                        <div>
+                            <label>Compare price (AED)</label>
+                            <input class="form-control" type="number" step="1" min="0" name="compare_price" value="@(l is null ? "" : l.ComparePrice.ToString("0.##", CultureInfo.InvariantCulture))" />
+                        </div>
+                        <div>
+                            <label>Currency</label>
+                            <select class="form-control" name="currency">
+                                <option value="AED" selected>AED</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label>Stock qty</label>
+                            <input class="form-control" type="number" min="0" name="stock_qty" value="@(l?.StockQty ?? 0)" />
+                        </div>
+                        <div>
+                            <label>Photo count</label>
+                            <input class="form-control" type="number" min="1" name="photo_count" id="epcAccPhotoCount" value="@Math.Max(1, l?.PhotoCount ?? 1)" readonly title="Updated automatically from uploaded photos" />
+                            <small class="muted">Auto-updated from gallery</small>
+                        </div>
+                        <div>
+                            <label>Featured</label>
+                            <select name="featured" class="form-control">
+                                <option value="0" selected="@(l is null || !l.Featured)">No</option>
+                                <option value="1" selected="@(l is not null && l.Featured)">Yes</option>
+                            </select>
+                        </div>
+                        <div class="full epc-acc-photos-block" id="epcAccPhotosBlock">
+                            <label>Photos</label>
+                            <p class="muted" style="margin-top:0;">
+                                @if (isNew)
+                                {
+                                    <text>Save the listing first, then upload photos here — previews appear in the gallery.</text>
+                                }
+                                else
+                                {
+                                    <text>Upload photos to see previews immediately. Cover photo is used on the storefront card.</text>
+                                }
+                            </p>
+                            <div class="epc-acc-photo-gallery" id="epcAccPhotoGallery">
+                                @if (_photos.Count == 0 && !string.IsNullOrWhiteSpace(l?.ImageUrl))
+                                {
+                                    <figure class="epc-acc-photo-card epc-acc-photo-card--legacy">
+                                        <a href="@l!.ImageUrl" target="_blank" rel="noopener"><img src="@l.ImageUrl" alt="Current cover" /></a>
+                                        <figcaption>Current cover (URL)</figcaption>
+                                    </figure>
+                                }
+                                else if (_photos.Count == 0)
+                                {
+                                    <span class="muted">No photos yet.</span>
+                                }
+                                @foreach (var ph in _photos)
+                                {
+                                    <figure class="epc-acc-photo-card @(ph.IsPrimary ? "is-cover" : null)" data-photo-id="@ph.Id">
+                                        <a href="@ph.Url" target="_blank" rel="noopener"><img src="@ph.Url" alt="Listing photo" /></a>
+                                        @if (ph.IsPrimary)
+                                        {
+                                            <span class="epc-acc-photo-badge">Cover</span>
+                                        }
+                                        <div class="epc-acc-photo-actions">
+                                            @if (!ph.IsPrimary)
+                                            {
+                                                <button type="submit" class="btn btn-xs btn-default epc-acc-photo-primary" form="@("epcAccPhotoPrimary" + ph.Id)">Set cover</button>
+                                            }
+                                            <button type="submit" class="btn btn-xs btn-danger epc-acc-photo-delete" form="@("epcAccPhotoDelete" + ph.Id)">Remove</button>
+                                        </div>
+                                    </figure>
+                                }
+                            </div>
+                            <div class="full" style="margin-top:10px;">
+                                <label>Cover image URL <span class="muted">(optional override)</span></label>
+                                <input class="form-control" name="image_url" id="epcAccImageUrl" value="@(l?.ImageUrl ?? "")" placeholder="/content/files/images/accessories/…" />
+                            </div>
+                        </div>
+                        <div class="full">
+                            <label>Optional seller / outbound URL</label>
+                            <input class="form-control" name="external_url" value="@(l?.ExternalUrl ?? "")" placeholder="https://… (leave blank — storefront opens /accessories-spare-parts?id=…)" />
+                            <p class="muted" style="margin:6px 0 0;">Do not put category browse links here. “View ad” always opens the listing detail page with photos.</p>
+                        </div>
+                    </div>
+                    <div style="margin-top:16px;">
+                        <button type="submit" class="btn btn-primary">@(isNew ? "Publish listing" : "Save changes")</button>
+                        <a class="btn btn-default" href="@_backList">Cancel</a>
+                    </div>
+                </form>
+
+                @if (!isNew)
+                {
+                    <form method="post" action="/cp/accessories/photos" enctype="multipart/form-data" class="epc-acc-photo-upload" style="margin-top:12px;">
+                        <input type="hidden" name="action" value="upload" />
+                        <input type="hidden" name="listing_id" value="@l!.Id" />
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@EditHref(l.Id)" />
+                        <input type="file" name="photos[]" id="epcAccPhotoInput" accept="image/jpeg,image/png,image/gif,image/webp" multiple required />
+                        <button type="submit" class="btn btn-default" id="epcAccPhotoUploadBtn"><i class="fa fa-upload"></i> Upload now</button>
+                        <span class="muted">JPG, PNG, GIF or WEBP · max 8 MB each</span>
+                    </form>
+                    @foreach (var ph in _photos)
+                    {
+                        <form method="post" action="/cp/accessories/photos" id="@("epcAccPhotoPrimary" + ph.Id)">
+                            <input type="hidden" name="action" value="set_primary" />
+                            <input type="hidden" name="listing_id" value="@l!.Id" />
+                            <input type="hidden" name="photo_id" value="@ph.Id" />
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@EditHref(l.Id)" />
+                        </form>
+                        <form method="post" action="/cp/accessories/photos" id="@("epcAccPhotoDelete" + ph.Id)" onsubmit="return confirm('Remove this photo?');">
+                            <input type="hidden" name="action" value="delete" />
+                            <input type="hidden" name="listing_id" value="@l!.Id" />
+                            <input type="hidden" name="photo_id" value="@ph.Id" />
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@EditHref(l.Id)" />
+                        </form>
+                    }
+                }
+            </div>
         </div>
-        <label>Description <input type="text" name="description" style="width:100%" value="@OpenedDescriptionValue" /></label>
-        <button type="submit">Save listing</button>
-    </form>
-    <form method="post" action="/cp/accessories/listings/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_returnHref" />
-        <input type="hidden" name="action" value="set_status" />
-        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
-        <label>Status
-            <select name="status">
-                <option value="published">published</option>
-                <option value="draft">draft</option>
-            </select>
-        </label>
-        <button type="submit">Set listing status</button>
-    </form>
-    <form method="post" action="/cp/accessories/listings/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_returnHref" />
-        <input type="hidden" name="action" value="delete" />
-        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
-        <button type="submit">Delete listing</button>
-    </form>
+    </div>
+    <script>
+    (function () {
+        var cat = document.getElementById('epc-acc-cp-cat');
+        var sub = document.getElementById('epc-acc-cp-sub');
+        if (!cat || !sub) return;
+        var all = Array.prototype.slice.call(sub.querySelectorAll('option[data-parent]'));
+        function fill(keep) {
+            var slug = cat.value;
+            all.forEach(function (o) {
+                var show = o.getAttribute('data-parent') === slug;
+                o.hidden = !show;
+                o.disabled = !show;
+                if (!show && o.selected) { o.selected = false; }
+            });
+            if (!keep) { sub.value = ''; }
+        }
+        cat.addEventListener('change', function () { fill(false); });
+        fill(true);
+    })();
+    </script>
+}
+else
+{
+    <div class="col-lg-12 epc-acc-cp">
+        @Flash()
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Accessories Marketplace
+                <span class="pull-right">
+                    <a class="btn btn-xs btn-primary" href="@(_listHref + "?new=1")">+ Add listing</a>
+                    <a class="btn btn-xs btn-default" href="@TaxBase">Manage categories &amp; filters</a>
+                    <a class="btn btn-xs btn-default" href="/en/accessories-spare-parts" target="_blank">View storefront</a>
+                </span>
+            </div>
+            <div class="panel-body">
+                <p>
+                    <strong>@_result.Total.ToString(CultureInfo.InvariantCulture)</strong> listings
+                    @if (_result.StatusCounts.Count > 0)
+                    {
+                        <span class="muted">(@string.Join(" · ", _result.StatusCounts.Select(kv => kv.Key + ": " + kv.Value.ToString(CultureInfo.InvariantCulture))))</span>
+                    }
+                    — put real products into PakWheels-style categories one by one.
+                </p>
 
-    <form id="taxonomy" method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_listHref" />
-        <input type="hidden" name="action" value="save_category" />
-        <label>Category id <input type="number" name="id" min="0" value="0" style="width:6rem" title="0 = create" /></label>
-        <label>Parent id <input type="number" name="parentId" min="0" value="0" style="width:6rem" /></label>
-        <label>Label <input type="text" name="label" required /></label>
-        <button type="submit">Save category</button>
-    </form>
-    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_listHref" />
-        <input type="hidden" name="action" value="set_category_active" />
-        <label>Category id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-        <label>Active <input type="checkbox" name="active" value="1" checked /></label>
-        <button type="submit">Set category active</button>
-    </form>
-    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_listHref" />
-        <input type="hidden" name="action" value="delete_category" />
-        <label>Category id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-        <button type="submit">Delete category</button>
-    </form>
-    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_listHref" />
-        <input type="hidden" name="action" value="save_term" />
-        <label>Term id <input type="number" name="id" min="0" value="0" style="width:6rem" title="0 = create" /></label>
-        <label>Type <input type="text" name="termType" value="make" required style="width:8rem" /></label>
-        <label>Label <input type="text" name="label" required /></label>
-        <button type="submit">Save term</button>
-    </form>
-    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_listHref" />
-        <input type="hidden" name="action" value="set_term_active" />
-        <label>Term id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-        <label>Active <input type="checkbox" name="active" value="1" checked /></label>
-        <button type="submit">Set term active</button>
-    </form>
-    <form method="post" action="/cp/accessories/taxonomy/write" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_listHref" />
-        <input type="hidden" name="action" value="delete_term" />
-        <label>Term id <input type="number" name="id" min="1" required style="width:6rem" /></label>
-        <button type="submit">Delete term</button>
-    </form>
+                <form method="get" action="@_listHref" class="filters form-inline" style="margin-bottom:12px;">
+                    <input type="text" class="form-control w-q" name="q" value="@_filter.Q" placeholder="Search title / make / id" />
+                    <select name="category" id="epc-acc-cp-f-cat" class="form-control">
+                        <option value="">All categories</option>
+                        @foreach (var p in _tree)
+                        {
+                            <option value="@p.Slug" selected="@(_filter.Category == p.Slug)">@p.Label</option>
+                        }
+                    </select>
+                    <select name="subcategory" id="epc-acc-cp-f-sub" class="form-control">
+                        <option value="">All sub categories</option>
+                        @foreach (var p in _tree)
+                        {
+                            @foreach (var c in p.Children)
+                            {
+                                <option value="@c.Slug" data-parent="@p.Slug" selected="@(_filter.Subcategory == c.Slug)">@c.Label</option>
+                            }
+                        }
+                    </select>
+                    <select name="status" class="form-control">
+                        <option value="">All statuses</option>
+                        @foreach (var st in CpAccessoriesListService.Statuses)
+                        {
+                            <option value="@st" selected="@(_filter.Status == st)">@st</option>
+                        }
+                    </select>
+                    <select name="make" class="form-control">
+                        <option value="">All makes</option>
+                        @foreach (var m in _makeTerms)
+                        {
+                            <option value="@m.Label" selected="@(_filter.Make == m.Label)">@m.Label</option>
+                        }
+                    </select>
+                    <button type="submit" class="btn btn-default">Filter</button>
+                    <a class="btn btn-link" href="@_listHref">Reset</a>
+                </form>
 
-    <form id="photos" method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_returnHref" />
-        <input type="hidden" name="action" value="upload" />
-        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
-        <label>Image name <input type="text" name="fileName" placeholder="acc-cover.png" required /></label>
-        <label>Primary <input type="checkbox" name="asPrimary" value="1" /></label>
-        <button type="submit">Save photo</button>
-    </form>
-    <form method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_returnHref" />
-        <input type="hidden" name="action" value="set_primary" />
-        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
-        <label>Photo id <input type="number" name="photoId" min="1" required style="width:6rem" /></label>
-        <button type="submit">Set primary photo</button>
-    </form>
-    <form method="post" action="/cp/accessories/photos" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
-        <input type="hidden" name="confirmWrites" value="true" />
-        <input type="hidden" name="returnUrl" value="@_returnHref" />
-        <input type="hidden" name="action" value="delete" />
-        <label>Listing id <input type="number" name="listingId" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
-        <label>Photo id <input type="number" name="photoId" min="1" required style="width:6rem" /></label>
-        <button type="submit">Delete photo</button>
-    </form>
+                <table class="table table-striped table-condensed table-epc">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Photo</th>
+                            <th>Title</th>
+                            <th>Category</th>
+                            <th>Vehicle</th>
+                            <th>City</th>
+                            <th>Price (AED)</th>
+                            <th>Status</th>
+                            <th>Updated</th>
+                            <th style="min-width:220px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                    @if (_result.Items.Count == 0)
+                    {
+                        <tr><td colspan="10">No listings match these filters. <a href="@(_listHref + "?new=1")">Add the first one</a>.</td></tr>
+                    }
+                    @foreach (var row in _result.Items)
+                    {
+                        var badge = row.Status == "published" ? "badge-pub" : (row.Status == "draft" ? "badge-draft" : "badge-unpub");
+                        <tr id="@("erp-row-" + row.Id.ToString(CultureInfo.InvariantCulture))">
+                            <td>
+                                @row.Id
+                                @if (row.Featured)
+                                {
+                                    <span class="feat" title="Featured">★</span>
+                                }
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrWhiteSpace(row.ImageUrl))
+                                {
+                                    <img class="epc-acc-list-thumb" src="@row.ImageUrl" alt="" />
+                                }
+                                else
+                                {
+                                    <span class="epc-acc-list-thumb--empty" title="No photo"><i class="fa fa-camera"></i></span>
+                                }
+                            </td>
+                            <td>
+                                <strong>@row.Title</strong>
+                                @if (!string.IsNullOrWhiteSpace(row.SubcategoryLabel))
+                                {
+                                    <div class="muted">@row.SubcategoryLabel</div>
+                                }
+                            </td>
+                            <td>@row.CategoryLabel</td>
+                            <td class="muted">@(string.Join(" ", new[] { row.Make, row.Model, row.Year }.Where(s => s.Length > 0)))</td>
+                            <td>@row.City</td>
+                            <td>AED @row.Price.ToString("N0", CultureInfo.InvariantCulture)</td>
+                            <td><span class="badge @badge">@row.Status</span></td>
+                            <td class="muted">@(row.UpdatedAt > 0 ? DateTimeOffset.FromUnixTimeSeconds(row.UpdatedAt).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "")</td>
+                            <td>
+                                <a class="btn btn-xs btn-info" href="@CpAccessoriesListService.StorefrontUrl(row.Id, row.CategorySlug, row.SubcategorySlug)" target="_blank" rel="noopener" title="View on storefront">
+                                    <i class="fa fa-external-link"></i> View
+                                </a>
+                                <a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "listing_id", row.Id).Split('#')[0]">Edit</a>
+                                @if (row.Status == "published")
+                                {
+                                    <form method="post" action="/cp/accessories/listings/write" style="display:inline;" onsubmit="return confirm('Unpublish this ad?');">
+                                        <input type="hidden" name="action" value="set_status" />
+                                        <input type="hidden" name="id" value="@row.Id" />
+                                        <input type="hidden" name="status" value="unpublished" />
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_backList" />
+                                        <button type="submit" class="btn btn-xs btn-warning">Unpublish</button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <form method="post" action="/cp/accessories/listings/write" style="display:inline;">
+                                        <input type="hidden" name="action" value="set_status" />
+                                        <input type="hidden" name="id" value="@row.Id" />
+                                        <input type="hidden" name="status" value="published" />
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_backList" />
+                                        <button type="submit" class="btn btn-xs btn-success">Publish</button>
+                                    </form>
+                                }
+                                <form method="post" action="/cp/accessories/listings/write" style="display:inline;" onsubmit="return confirm('Delete listing #@row.Id permanently?');">
+                                    <input type="hidden" name="action" value="delete" />
+                                    <input type="hidden" name="id" value="@row.Id" />
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="@_backList" />
+                                    <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
 
-    <div class="epc-nw-note">Listing save/status/delete, photo filename attach, and taxonomy write here. Multipart photo bytes stay Classic.</div>
+                @if (_result.Pages > 1)
+                {
+                    <ul class="pagination">
+                        @for (var p = 1; p <= _result.Pages; p++)
+                        {
+                            <li class="@(p == _result.Page ? "active" : null)"><a href="@PageHref(p)">@p</a></li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Categories ready to fill
+                <span class="pull-right"><a class="btn btn-xs btn-default" href="@TaxBase">Add / remove categories &amp; filters</a></span>
+            </div>
+            <div class="panel-body">
+                <table class="table table-condensed">
+                    <thead><tr><th>Category</th><th>Sub categories</th><th></th></tr></thead>
+                    <tbody>
+                    @foreach (var p in _tree)
+                    {
+                        <tr>
+                            <td><strong>@p.Label</strong></td>
+                            <td>@p.Children.Count</td>
+                            <td>
+                                <a href="@(_listHref + "?category=" + Uri.EscapeDataString(p.Slug))">View ads</a>
+                                ·
+                                <a href="@(_listHref + "?new=1")">Add</a>
+                            </td>
+                        </tr>
+                    }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <script>
+    (function () {
+        var cat = document.getElementById('epc-acc-cp-f-cat');
+        var sub = document.getElementById('epc-acc-cp-f-sub');
+        if (!cat || !sub) return;
+        var all = Array.prototype.slice.call(sub.querySelectorAll('option[data-parent]'));
+        function fill(keep) {
+            var slug = cat.value;
+            all.forEach(function (o) {
+                var show = o.getAttribute('data-parent') === slug;
+                o.hidden = !show;
+                o.disabled = !show;
+                if (!show && o.selected) { o.selected = false; }
+            });
+            if (!keep) { sub.value = ''; }
+        }
+        cat.addEventListener('change', function () { fill(false); });
+        fill(true);
+    })();
+    </script>
+}
 
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/accessories";
     private const string _listHref = "/cp/accessories-app";
+    private const string TaxBase = _listHref + "?tab=taxonomy";
+
+    private static readonly (string Value, string Label)[] StatusOptions =
+    [
+        ("published", "Published"),
+        ("draft", "Draft"),
+        ("unpublished", "Unpublished"),
+    ];
+
     private bool _isAdmin;
-    private int _listingCount = 0;
-    private int _publishedCount = 0;
-    private int _categoryCount = 0;
-    private int _photoCount = 0;
-    private IReadOnlyList<CpAccessoriesRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private string _view = "list";
+    private string _termType = "make";
+    private string _flashOk = "";
+    private string _flashErr = "";
     private long _openedId;
-    private string _returnHref = "/cp/accessories-app";
-    private CpAccessoriesListingDetail? _openedListing;
-    private IReadOnlyList<CpAccessoriesPhotoDigest> _openedPhotos = [];
+    private string _backList = _listHref;
+    private CpAccListFilter _filter = new("", "", "", "", "", 1, 50);
+    private CpAccListResult _result = new([], 0, 1, 1, new Dictionary<string, int>());
+    private IReadOnlyList<CpAccCategoryNode> _tree = [];
+    private IReadOnlyList<CpAccCategoryNode> _adminTree = [];
+    private IReadOnlyList<CpAccTerm> _makeTerms = [];
+    private IReadOnlyList<CpAccTerm> _modelTerms = [];
+    private IReadOnlyList<CpAccTerm> _yearTerms = [];
+    private IReadOnlyList<CpAccTerm> _cityTerms = [];
+    private IReadOnlyList<CpAccTerm> _conditionTerms = [];
+    private IReadOnlyList<CpAccTerm> _terms = [];
+    private CpAccListingRow? _listing;
+    private IReadOnlyList<CpAccPhoto> _photos = [];
 
-    private string OpenedCaption => _openedListing is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedListing.Title) ? ("Listing #" + _openedListing.Id.ToString(CultureInfo.InvariantCulture)) : _openedListing.Title);
+    private string TermTypeLabel => CpAccessoriesListService.TermTypes.First(t => t.Key == _termType).Label;
 
-    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
-    private string OpenedListingIdOrZero => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "0";
-    private string OpenedCategoryValue => _openedListing is null || _openedListing.CategoryId <= 0
-        ? ""
-        : _openedListing.CategoryId.ToString(CultureInfo.InvariantCulture);
-    private string OpenedSubcategoryValue => _openedListing is null
-        ? "0"
-        : _openedListing.SubcategoryId.ToString(CultureInfo.InvariantCulture);
-    private string OpenedTitleValue => _openedListing?.Title ?? "";
-    private string OpenedMakeValue => _openedListing?.Make ?? "";
-    private string OpenedModelValue => _openedListing?.Model ?? "";
-    private string OpenedPriceValue => _openedListing is null
-        ? "0"
-        : _openedListing.Price.ToString(CultureInfo.InvariantCulture);
-    private string OpenedDescriptionValue => _openedListing?.Description ?? "";
+    private IEnumerable<(string Value, string Label)> ConditionOptions => _conditionTerms.Count > 0
+        ? _conditionTerms.Select(t => (t.Value, t.Label))
+        : [("new", "New"), ("used", "Used")];
+
+    private string OpenedCaption => _listing is null ? "" : (_listing.Title.Length > 0 ? _listing.Title : "Listing #" + _listing.Id.ToString(CultureInfo.InvariantCulture));
+
+    private string StorefrontHref => _listing is null
+        ? "/en/accessories-spare-parts"
+        : CpAccessoriesListService.StorefrontUrl(_listing.Id, _listing.CategorySlug, _listing.SubcategorySlug);
+
+    private static string EditHref(long id) => _listHref + "?edit=" + id.ToString(CultureInfo.InvariantCulture);
+
+    private static string TermHref(string key) => TaxBase + "&term=" + Uri.EscapeDataString(key);
+
+    private string ListQuery()
+    {
+        var parts = new List<string>();
+        void Add(string k, string v)
+        {
+            if (v.Length > 0) parts.Add(k + "=" + Uri.EscapeDataString(v));
+        }
+
+        Add("q", _filter.Q);
+        Add("category", _filter.Category);
+        Add("subcategory", _filter.Subcategory);
+        Add("status", _filter.Status);
+        Add("make", _filter.Make);
+        return string.Join("&", parts);
+    }
+
+    private string PageHref(int page)
+    {
+        var qs = ListQuery();
+        return _listHref + "?" + (qs.Length > 0 ? qs + "&" : "") + "page=" + page.ToString(CultureInfo.InvariantCulture);
+    }
+
+    private RenderFragment Flash() => __builder =>
+    {
+        if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="alert alert-success">@_flashOk</div>
+        }
+        if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="alert alert-danger">@_flashErr</div>
+        }
+    };
+
+    private static RenderFragment ActiveLabel(bool active) => __builder =>
+    {
+        if (active)
+        {
+            <span class="label badge-pub">Active</span>
+        }
+        else
+        {
+            <span class="label badge-unpub">Off</span>
+        }
+    };
+
+    private RenderFragment CategoryActions(CpAccCategoryNode node, long parentId, string confirmText) => __builder =>
+    {
+        <form method="post" action="/cp/accessories/taxonomy/write" style="display:inline-block;margin:0 4px 4px 0;">
+            <input type="hidden" name="action" value="save_category" />
+            <input type="hidden" name="id" value="@node.Id" />
+            <input type="hidden" name="parent_id" value="@parentId" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@TaxBase" />
+            <input class="form-control input-sm" name="label" value="@node.Label" style="width:140px;display:inline-block;" />
+            <input class="form-control input-sm" type="number" name="sort_order" value="@node.SortOrder" style="width:70px;display:inline-block;" />
+            <button class="btn btn-xs btn-default" type="submit">Save</button>
+        </form>
+        <form method="post" action="/cp/accessories/taxonomy/write" style="display:inline;">
+            <input type="hidden" name="action" value="set_category_active" />
+            <input type="hidden" name="id" value="@node.Id" />
+            <input type="hidden" name="active" value="@(node.Active ? "0" : "1")" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@TaxBase" />
+            <button class="btn btn-xs btn-warning" type="submit">@(node.Active ? "Deactivate" : "Activate")</button>
+        </form>
+        <form method="post" action="/cp/accessories/taxonomy/write" style="display:inline;" onsubmit="return confirm('@confirmText');">
+            <input type="hidden" name="action" value="delete_category" />
+            <input type="hidden" name="id" value="@node.Id" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@TaxBase" />
+            <button class="btn btn-xs btn-danger" type="submit">Delete</button>
+        </form>
+    };
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "listing_id");
-        _returnHref = _openedId > 0
-            ? ErpRecordOpen.Href(_listHref, "listing_id", _openedId).Split('#')[0]
-            : _listHref;
+        var q = ctx.Request.Query;
+        _flashOk = q["ok"].ToString();
+        _flashErr = q["err"].ToString();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
@@ -329,32 +828,49 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpAccessoriesDigestAsync(200, ctx.RequestAborted);
-        _listingCount = result.Summary.ListingCount;
-        _publishedCount = result.Summary.PublishedCount;
-        _categoryCount = result.Summary.CategoryCount;
-        _photoCount = result.Summary.PhotoCount;
-        _rows = result.Rows;
-        _source = result.Source;
-        _message = result.Message;
+        _filter = CpAccessoriesListService.ReadFilter(ctx.Request);
+        var qs = ListQuery();
+        _backList = _listHref + (qs.Length > 0 ? "?" + qs : "");
 
-        if (_openedId > 0)
+        _tree = await Acc.CategoryTreeAsync(false, ctx.RequestAborted);
+        _makeTerms = await Acc.TermsAsync("make", false, ctx.RequestAborted);
+
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "listing_id", "edit");
+        var isNew = q["new"].ToString() == "1" || q["edit"].ToString() == "0";
+
+        if (q["tab"].ToString() == "taxonomy")
         {
-            var detail = await Dashboards.BuildCpAccessoriesListingDetailAsync(_openedId, ctx.RequestAborted);
-            _openedListing = detail.Listing;
-            _openedPhotos = detail.Photos;
-            if (_openedListing is not null)
+            _view = "taxonomy";
+            _termType = CpAccessoriesListService.NormalizeTermType(q["term"].ToString());
+            _adminTree = await Acc.CategoryTreeAsync(true, ctx.RequestAborted);
+            _makeTerms = await Acc.TermsAsync("make", true, ctx.RequestAborted);
+            _terms = await Acc.TermsAsync(_termType, true, ctx.RequestAborted);
+            return;
+        }
+
+        if (_openedId > 0 || isNew)
+        {
+            _view = "edit";
+            _modelTerms = await Acc.TermsAsync("model", false, ctx.RequestAborted);
+            _yearTerms = await Acc.TermsAsync("year", false, ctx.RequestAborted);
+            _cityTerms = await Acc.TermsAsync("city", false, ctx.RequestAborted);
+            _conditionTerms = await Acc.TermsAsync("condition", false, ctx.RequestAborted);
+            if (_openedId > 0)
             {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
+                _listing = await Acc.GetListingAsync(_openedId, ctx.RequestAborted);
+                if (_listing is null)
                 {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
+                    _flashErr = _flashErr.Length > 0 ? _flashErr : "Listing #" + _openedId.ToString(CultureInfo.InvariantCulture) + " not found.";
+                }
+                else
+                {
+                    _photos = await Acc.PhotosAsync(_openedId, ctx.RequestAborted);
                 }
             }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
-            }
+
+            return;
         }
+
+        _result = await Acc.SearchAsync(_filter, ctx.RequestAborted);
     }
 }

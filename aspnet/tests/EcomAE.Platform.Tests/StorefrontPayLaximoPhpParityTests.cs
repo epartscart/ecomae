@@ -230,11 +230,12 @@ public sealed class StorefrontPayLaximoPhpParityTests
         Assert.Contains("voc_type\" value=\"JVG\"", gl, StringComparison.Ordinal);
         var accessories = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpAccessoriesApp.razor"));
         Assert.Contains("action=\"/cp/accessories/photos\"", accessories, StringComparison.Ordinal);
-        Assert.Contains("Save photo", accessories, StringComparison.Ordinal);
+        Assert.Contains("enctype=\"multipart/form-data\"", accessories, StringComparison.Ordinal);
+        Assert.Contains("Upload now", accessories, StringComparison.Ordinal);
         Assert.Contains("action=\"/cp/accessories/listings/write\"", accessories, StringComparison.Ordinal);
-        Assert.Contains("Save listing", accessories, StringComparison.Ordinal);
+        Assert.Contains("Save changes", accessories, StringComparison.Ordinal);
         Assert.Contains("action=\"/cp/accessories/taxonomy/write\"", accessories, StringComparison.Ordinal);
-        Assert.Contains("Save category", accessories, StringComparison.Ordinal);
+        Assert.Contains("Add category / sub", accessories, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", accessories, StringComparison.Ordinal);
         var einvoice = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpEinvoiceDocumentsApp.razor"));
         Assert.Contains("action=\"/erp/ajax/einvoice-save-seller\"", einvoice, StringComparison.Ordinal);
