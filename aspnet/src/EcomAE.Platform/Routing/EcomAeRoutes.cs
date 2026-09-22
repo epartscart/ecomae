@@ -345,6 +345,8 @@ public static class EcomAeRoutes
     public const string ControlPanelReturnsRmaApp = "/cp/returns-rma-app";
     /// <summary>CP returns manager twin (PHP <c>shop/returns-manager</c>: list / detail / reasons_statuses).</summary>
     public const string ControlPanelReturnsApp = "/cp/returns-app";
+    /// <summary>CP price management (PHP <c>shop/pricing/price_management.php</c> twin).</summary>
+    public const string ControlPanelPriceManagementApp = "/cp/price-management-app";
     /// <summary>CP commerce isolation audit (report_json omitted).</summary>
     public const string ControlPanelIsolationAudit = "/cp/isolation-audit";
     /// <summary>CP isolation-audit Blazor list (JSON digest remains <see cref="ControlPanelIsolationAudit"/>).</summary>
@@ -1329,6 +1331,8 @@ public static class EcomAeRoutes
     public const string CpApiClientsToggle = "/cp/api-clients/toggle";
     /// <summary>PHP epc_pm_storage_panel.php rule save (ON DUPLICATE KEY) and DELETE.</summary>
     public const string CpPriceStorageRules = "/cp/prices/storage-rules";
+    /// <summary>CP price management POST dispatcher (price_management.php + epc_pm_storage_panel.php actions).</summary>
+    public const string CpPriceManagementAction = "/cp/price-management/action";
     /// <summary>PHP content_manager.php set_published_flag (single id). System pages stay locked.</summary>
     public const string CpContentPublished = "/cp/content/published";
     /// <summary>PHP content_manager.php set_main_flag.</summary>

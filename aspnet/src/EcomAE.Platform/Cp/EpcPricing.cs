@@ -142,6 +142,23 @@ public static class EpcPricing
         return Math.Round(price, 2, MidpointRounding.AwayFromZero);
     }
 
+    public sealed record PriceStep(string Type, string Label, decimal Percent, decimal PriceAfter);
+
+    /// <summary>PHP <c>epc_pricing_apply_price_rules</c> result incl. the <c>breakdown</c> array.</summary>
+    public sealed record PriceRulesResult(
+        bool Visible,
+        string HiddenReason,
+        decimal BasePrice,
+        decimal FinalPrice,
+        decimal MarkupDecimal,
+        IReadOnlyList<PriceStep> Steps)
+    {
+        public decimal TotalMarginPercent => BasePrice > 0m ? Math.Round((FinalPrice / BasePrice - 1m) * 100m, 2, MidpointRounding.AwayFromZero) : 0m;
+
+        public SellFromPurchase ToSellFromPurchase(decimal purchase)
+            => new(Visible, Visible ? FinalPrice : purchase, purchase, MarkupDecimal);
+    }
+
     public static async Task<SellFromPurchase> ApplyPriceRulesAsync(
         DbConnection connection,
         int groupId,
@@ -152,79 +169,84 @@ public static class EpcPricing
         int storageId,
         CancellationToken cancellationToken)
     {
+        var result = await ApplyPriceRulesWithBreakdownAsync(connection, groupId, brand, price, markupDecimal, article, storageId, cancellationToken).ConfigureAwait(false);
+        return result.ToSellFromPurchase(price);
+    }
+
+    public static async Task<PriceRulesResult> ApplyPriceRulesWithBreakdownAsync(
+        DbConnection connection,
+        int groupId,
+        string? brand,
+        decimal price,
+        decimal markupDecimal,
+        string? article,
+        int storageId,
+        CancellationToken cancellationToken)
+    {
+        var basePrice = price;
         var brandNorm = NormalizeBrand(brand);
         var articleNorm = NormalizeArticle(article);
+        var steps = new List<PriceStep>();
+
+        PriceRulesResult Hidden(string reason) => new(false, reason, basePrice, basePrice, markupDecimal, steps);
+
         var storage = await StorageRuleAsync(connection, storageId, cancellationToken).ConfigureAwait(false);
         if (storage.Matched && storage.Visible == 0)
         {
-            return new SellFromPurchase(false, price, price, markupDecimal);
+            return Hidden("Supplier / warehouse hidden");
         }
 
         var storageBrand = await StorageBrandRuleAsync(connection, storageId, brandNorm, cancellationToken).ConfigureAwait(false);
         if (storageBrand.Matched && storageBrand.Visible == 0)
         {
-            return new SellFromPurchase(false, price, price, markupDecimal);
+            return Hidden("Brand hidden for this supplier");
         }
 
         var storageArticle = await StorageArticleRuleAsync(connection, storageId, brandNorm, articleNorm, cancellationToken).ConfigureAwait(false);
         if (storageArticle.Matched && storageArticle.Visible == 0)
         {
-            return new SellFromPurchase(false, price, price, markupDecimal);
+            return Hidden("Article hidden for this supplier");
         }
 
         var brandRule = await BrandRuleAsync(connection, groupId, brandNorm, cancellationToken).ConfigureAwait(false);
         if (brandRule.Visible == 0)
         {
-            return new SellFromPurchase(false, price, price, markupDecimal);
+            return Hidden("Brand hidden for this profile");
         }
 
         var articleRule = await ArticleRuleAsync(connection, groupId, brandNorm, articleNorm, cancellationToken).ConfigureAwait(false);
         if (articleRule.Matched && articleRule.Visible == 0)
         {
-            return new SellFromPurchase(false, price, price, markupDecimal);
+            return Hidden("Article hidden for this profile");
         }
 
-        if (storage.Matched && storage.MarginPercent != 0m)
+        void Step(string type, string label, decimal percent)
         {
-            (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, storage.MarginPercent);
+            if (percent == 0m)
+            {
+                return;
+            }
+
+            (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, percent);
+            steps.Add(new PriceStep(type, label, percent, Math.Round(price, 2, MidpointRounding.AwayFromZero)));
         }
 
-        if (storageBrand.Matched && storageBrand.MarginPercent != 0m)
-        {
-            (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, storageBrand.MarginPercent);
-        }
-
-        if (storageArticle.Matched && storageArticle.MarginPercent != 0m)
-        {
-            (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, storageArticle.MarginPercent);
-        }
+        if (storage.Matched) Step("storage", "Supplier overall margin", storage.MarginPercent);
+        if (storageBrand.Matched) Step("storage_brand", "Supplier brand margin (" + brandNorm + ")", storageBrand.MarginPercent);
+        if (storageArticle.Matched) Step("storage_article", "Supplier article margin (" + brandNorm + " " + articleNorm + ")", storageArticle.MarginPercent);
 
         var profileMargin = await ProfileMarginPercentAsync(connection, groupId, cancellationToken).ConfigureAwait(false);
-        if (profileMargin != 0m)
-        {
-            (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, profileMargin);
-        }
-
-        if (brandRule.MarginPercent != 0m)
-        {
-            (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, brandRule.MarginPercent);
-        }
-
-        if (articleRule.Matched && articleRule.MarginPercent != 0m)
-        {
-            (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, articleRule.MarginPercent);
-        }
+        Step("profile", "Profile overall margin", profileMargin);
+        Step("brand", "Brand margin (" + brandNorm + ")", brandRule.MarginPercent);
+        if (articleRule.Matched) Step("article", "Article margin (" + brandNorm + " " + articleNorm + ")", articleRule.MarginPercent);
 
         if (await IsGuestGroupAsync(connection, groupId, cancellationToken).ConfigureAwait(false))
         {
             var guest = await GuestMarginPercentAsync(connection, cancellationToken).ConfigureAwait(false);
-            if (guest != 0m)
-            {
-                (price, markupDecimal) = ApplyMarginStep(price, markupDecimal, guest);
-            }
+            Step("guest", "Guest / non-login margin", guest);
         }
 
-        return new SellFromPurchase(true, price, price, markupDecimal);
+        return new PriceRulesResult(true, "", basePrice, price, markupDecimal, steps);
     }
 
     private sealed record Rule(int Visible, decimal MarginPercent, bool Matched);

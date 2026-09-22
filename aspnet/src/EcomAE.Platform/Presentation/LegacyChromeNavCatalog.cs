@@ -72,6 +72,7 @@ public static class LegacyChromeNavCatalog
         new("Industry packs", "/cp/industry-packs-app"),
         new("Jewellery retail", "/cp/jewellery-retail-app"),
         new("Price lists", "/cp/price-lists-app"),
+        new("Price management", "/cp/price-management-app"),
         new("Auto price", "/cp/auto-price-app"),
         new("UAE tax compliance", "/cp/uae-tax-compliance-app"),
         new("Budgets", "/cp/budgets-app"),
