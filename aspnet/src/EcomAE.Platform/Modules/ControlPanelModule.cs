@@ -4958,6 +4958,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var parametersValues = body.ParametersValues;
             var langCode = body.LangCode;
             var confirm = body.ConfirmWrites;
+            var searchTabsReturn = "/cp/search-tabs-app";
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -4969,8 +4970,17 @@ public sealed class ControlPanelModule : ISurfaceModule
                 captionLangStrId = LiveWriteFormBinder.Text(form, "captionLangStrId", "caption_lang_str_id", "tab_caption_lang_str_id");
                 sortOrder = LiveWriteFormBinder.Int(form, "sortOrder", "sort_order", "tab_order", "order");
                 parametersValues = LiveWriteFormBinder.Text(form, "parametersValues", "parameters_values");
+                if (string.IsNullOrWhiteSpace(parametersValues) && LiveWriteFormBinder.Flag(form, "params_from_form"))
+                {
+                    parametersValues = CpSearchTabEditorService.ParametersFromForm(form);
+                }
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                if (!string.IsNullOrWhiteSpace(postedReturn) && postedReturn.StartsWith("/cp/search-tabs-app", StringComparison.Ordinal))
+                {
+                    searchTabsReturn = postedReturn;
+                }
             }
 
             if (!confirm)
@@ -5013,7 +5023,7 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/search-tabs-app",
+                searchTabsReturn,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });

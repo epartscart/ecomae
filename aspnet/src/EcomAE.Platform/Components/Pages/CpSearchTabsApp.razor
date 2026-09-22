@@ -2,9 +2,9 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpSearchTabEditorService Tabs
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -12,21 +12,17 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Search tabs
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>Open a tab for a parameters excerpt. Enable or save a tab here. Full parameters JSON stays on the Classic twin.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/search-tabs-app" IsAdmin="_isAdmin" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedTab is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+<div class="col-lg-12">
+<style>
+    .epc-stab-toggle { border:0; background:transparent; padding:0; cursor:pointer; font-size:20px; line-height:1; }
+    .epc-stab-toggle.on { color:#62cb31; }
+    .epc-stab-toggle.off { color:#c0c4cc; }
+    .epc-stab-actions .panel_a { display:inline-block; text-align:center; margin-right:18px; text-decoration:none; color:#333; }
+    .epc-stab-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-stab-actions .panel_a_caption { font-size:12px; }
+    .form-horizontal .control-label { text-align:right; }
+    .epc-stab-ms { min-height:9rem; width:100%; }
+</style>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -36,185 +32,219 @@
     {
         <div class="alert alert-danger" role="status">@_flashErr</div>
     }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/search-tabs/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/search-tabs-app" />
-            <input type="hidden" name="action" value="activation" />
-            <label>Tab id <input type="number" name="tabId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Enabled
-                <select name="enabled">
-                    <option value="1">Yes</option>
-                    <option value="0">No</option>
-                </select>
-            </label>
-            <button type="submit">Set enabled</button>
-        </form>
-        <form method="post" action="/cp/search-tabs/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/search-tabs-app" />
-            <input type="hidden" name="action" value="save" />
-            <label>Tab id <input type="number" name="tabId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Caption <input type="text" name="caption" required value="@(_openedTab is not null ? _openedTab.Caption : "")" /></label>
-            <label>Sort <input type="number" name="sortOrder" value="@(_openedTab is not null ? _openedTab.SortOrder.ToString(CultureInfo.InvariantCulture) : "0")" style="width:5rem" /></label>
-            <label>Enabled
-                <select name="enabled">
-                    <option value="1">Yes</option>
-                    <option value="0">No</option>
-                </select>
-            </label>
-            <label>Parameters JSON <input type="text" name="parametersValues" placeholder="{}" /></label>
-            <button type="submit">Save tab</button>
-        </form>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Search tab KPIs">
-        <div class="kpi"><div class="lbl">Tabs</div><div class="val">@_summary.TabCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Enabled</div><div class="val">@_summary.EnabledCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Disabled</div><div class="val">@_summary.DisabledCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Max order</div><div class="val">@_summary.MaxOrder.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedTab is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @OpenedCaption
-                    <span class="label label-default pull-right">@(_openedTab.Enabled != 0 ? "enabled" : "disabled")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedTab.Name) ? _openedTab.Name : "—")
-                        · order @_openedTab.SortOrder.ToString(CultureInfo.InvariantCulture)</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedTab.ParametersExcerpt))
-                    {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedTab.ParametersExcerpt</pre>
-                        @if (_openedTab.ParametersLen > _openedTab.ParametersExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_openedTab.ParametersExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedTab.ParametersLen.ToString(CultureInfo.InvariantCulture) chars). Full parameters JSON stays on the Classic twin.</p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No parameters excerpt yet.</p>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Enabled siblings</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Caption</th>
-                                    <th>Order</th>
-                                    <th>Enabled</th>
-                                    <th></th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="5">No enabled siblings yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Caption) ? sib.Caption : "—")</td>
-                                            <td>@sib.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.Enabled.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "tab_id", sib.Id)">Open</a></td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
+</div>
 
     <div class="col-lg-12">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">Tabs</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Caption</th>
-                                <th>Order</th>
-                                <th>Enabled</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (!_isAdmin)
-                        {
-                            <tr><td colspan="5">Sign in for live data.</td></tr>
-                        }
-                        else if (_rows.Count == 0)
-                        {
-                            <tr><td colspan="5">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var row in _rows)
-                            {
-                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
-                                    <td>@row.SortOrder.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.Enabled.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "tab_id", row.Id)">Open</a></td>
-                                </tr>
-                            }
-                        }
-                        </tbody>
-                    </table>
-                </div>
+            <div class="panel-heading hbuilt">
+                Actions
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body epc-stab-actions">
+                @if (_editor is not null && _isAdmin)
+                {
+                    <a class="panel_a" href="javascript:void(0);" onclick="document.forms['save_form'].submit();">
+                        <div class="panel_a_img"><i class="fa fa-save"></i></div>
+                        <div class="panel_a_caption">Save</div>
+                    </a>
+                    <a class="panel_a" href="/cp/search-tabs-app">
+                        <div class="panel_a_img"><i class="fa fa-folder-open"></i></div>
+                        <div class="panel_a_caption">Search tabs</div>
+                    </a>
+                }
+                <a class="panel_a" href="/cp">
+                    <div class="panel_a_img"><i class="fa fa-power-off"></i></div>
+                    <div class="panel_a_caption">Exit</div>
+                </a>
             </div>
         </div>
     </div>
+
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Sign in with an admin CP session to manage search tabs. <a href="/cp/login?returnUrl=/cp/search-tabs-app">Sign in</a></div></div>
+    }
+    else if (_editor is not null)
+    {
+        <form method="post" name="save_form" action="/cp/search-tabs/write">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="params_from_form" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/search-tabs-app?tab_id=@_editor.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="action" value="save" />
+            <input type="hidden" name="tab_id" value="@_editor.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="langCode" value="@_lang" />
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">General settings of tab @(_editor.Name.Length > 0 ? "· " + _editor.Name : "")</div>
+                    <div class="panel-body form-horizontal">
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Tab name</label>
+                            <div class="col-sm-8">
+                                <input type="text" class="form-control" name="tab_caption" value="@_editor.Caption" />
+                                <input type="hidden" name="tab_caption_lang_str_id" value="@_editor.CaptionKey" />
+                            </div>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Display order</label>
+                            <div class="col-sm-8"><input type="number" class="form-control" name="tab_order" value="@_editor.Order.ToString(CultureInfo.InvariantCulture)" /></div>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                        <div class="form-group">
+                            <label class="col-sm-4 control-label">Enabled</label>
+                            <div class="col-sm-8"><input type="checkbox" name="tab_enabled" value="tab_enabled" checked="@(_editor.Enabled == 1)" /></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            @if (_editor.Groups.Count > 0)
+            {
+                <div class="col-lg-12">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">Special settings of tab</div>
+                        <div class="panel-body form-horizontal">
+                            @foreach (var group in _editor.Groups)
+                            {
+                                <div class="hpanel">
+                                    <div class="panel-heading hbuilt">@group.Caption</div>
+                                    <div class="panel-body">
+                                        @{ var e = 0; }
+                                        @foreach (var el in group.Elements)
+                                        {
+                                            if (e++ > 0)
+                                            {
+                                                <div class="hr-line-dashed"></div>
+                                            }
+                                            <div class="form-group">
+                                                <label class="col-sm-4 control-label">@el.Caption</label>
+                                                <div class="col-sm-8">
+                                                    @switch (el.Type)
+                                                    {
+                                                        case "text":
+                                                            <input type="text" class="form-control" name="@el.Name" value="@el.Value" />
+                                                            break;
+                                                        case "number":
+                                                            <input type="number" class="form-control" name="@el.Name" value="@el.Value" />
+                                                            break;
+                                                        case "checkbox":
+                                                            <input type="checkbox" name="@el.Name" value="1" checked="@(el.Value is "1" or "on" or "true")" />
+                                                            break;
+                                                        case "multiselect":
+                                                            <select multiple="multiple" class="form-control epc-stab-ms" name="@(el.Name)[]" id="@el.Name" size="@Math.Min(Math.Max(el.Options.Count, 3), 12)">
+                                                                @foreach (var opt in el.Options)
+                                                                {
+                                                                    <option value="@opt.Value" selected="@el.Values.Contains(opt.Value)">@opt.Caption</option>
+                                                                }
+                                                            </select>
+                                                            <span class="help-block">@el.Values.Count.ToString(CultureInfo.InvariantCulture) of @el.Options.Count.ToString(CultureInfo.InvariantCulture) selected · Ctrl/Cmd-click to multi-select</span>
+                                                            break;
+                                                        case "completed_html":
+                                                            @((MarkupString)el.Html)
+                                                            @foreach (var f in el.HtmlFieldValues)
+                                                            {
+                                                                <script>document.getElementById(@System.Text.Json.JsonSerializer.Serialize(f.Key)).value = @System.Text.Json.JsonSerializer.Serialize(f.Value);</script>
+                                                            }
+                                                            break;
+                                                        default:
+                                                            <input type="text" class="form-control" name="@el.Name" value="@el.Value" />
+                                                            break;
+                                                    }
+                                                </div>
+                                            </div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            }
+        </form>
+    }
+    else
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Search tabs</div>
+                <div class="panel-body">
+                    @if (!string.IsNullOrWhiteSpace(_list.Message))
+                    {
+                        <div class="alert alert-warning" role="status">@_list.Message</div>
+                    }
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="check_uncheck_all" onchange="document.querySelectorAll('.epc-stab-chk').forEach(c=>c.checked=this.checked)" /></th>
+                                    <th>ID</th>
+                                    <th>Name</th>
+                                    <th>Order</th>
+                                    <th class="text-center">Enabled</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @if (_pageRows.Count == 0)
+                            {
+                                <tr><td colspan="5" class="text-muted">No search tabs.</td></tr>
+                            }
+                            @foreach (var row in _pageRows)
+                            {
+                                var href = "/cp/search-tabs-app?tab_id=" + row.Id.ToString(CultureInfo.InvariantCulture);
+                                <tr>
+                                    <td><input type="checkbox" class="epc-stab-chk" name="checked_@row.Id" /></td>
+                                    <td><a href="@href">@row.Id.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    <td><a href="@href">@row.Caption</a>@(row.Name.Length > 0 ? " " : "")<small class="text-muted">@row.Name</small></td>
+                                    <td><a href="@href">@row.Order.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    <td class="text-center">
+                                        <form method="post" action="/cp/search-tabs/write" style="display:inline">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="/cp/search-tabs-app?s_page=@_page.ToString(CultureInfo.InvariantCulture)" />
+                                            <input type="hidden" name="action" value="activation" />
+                                            <input type="hidden" name="activate_tab" value="@(row.Enabled == 1 ? "0" : "1")" />
+                                            <input type="hidden" name="tab_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <button type="submit" class="epc-stab-toggle @(row.Enabled == 1 ? "on" : "off")" title="@(row.Enabled == 1 ? "Enabled — click to disable" : "Disabled — click to enable")" aria-label="@(row.Enabled == 1 ? "Disable tab" : "Enable tab")">
+                                                <i class="fa @(row.Enabled == 1 ? "fa-toggle-on" : "fa-toggle-off")"></i>
+                                            </button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_pageCount > 1)
+                    {
+                        <div class="row"><div class="col-lg-12 text-center"><div class="dataTables_paginate paging_simple_numbers"><ul class="pagination">
+                            @for (var i = 0; i < _pageCount; i++)
+                            {
+                                <li class="paginate_button @(i == _page ? "active" : "")"><a href="/cp/search-tabs-app?s_page=@i.ToString(CultureInfo.InvariantCulture)">@i.ToString(CultureInfo.InvariantCulture)</a></li>
+                            }
+                        </ul></div></div></div>
+                    }
+                </div>
+            </div>
+        </div>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/taby-poiska";
+    private const int _pageSize = 20;
     private bool _isAdmin;
-    private CpSearchTabsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpSearchTabsRowDigest> _rows = [];
+    private string _lang = "en";
     private string _flashOk = "";
     private string _flashErr = "";
-    private string _listHref = "/cp/search-tabs-app";
-    private long _openedId;
-    private CpSearchTabsDetail? _openedTab;
-    private IReadOnlyList<CpSearchTabsRowDigest> _openedSiblings = [];
-
-    private string OpenedCaption => _openedTab is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedTab.Caption)
-            ? (string.IsNullOrWhiteSpace(_openedTab.Name)
-                ? ("Tab #" + _openedTab.Id.ToString(CultureInfo.InvariantCulture))
-                : _openedTab.Name)
-            : _openedTab.Caption);
+    private CpSearchTabList _list = new([], "n/a", "");
+    private IReadOnlyList<CpSearchTabListRow> _pageRows = [];
+    private int _page;
+    private int _pageCount;
+    private CpSearchTabEditor? _editor;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "tab_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -224,23 +254,22 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpSearchTabsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Tabs;
-
-        if (_openedId > 0)
+        var openedId = long.TryParse(ctx.Request.Query["tab_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0;
+        if (openedId > 0)
         {
-            var detail = await Dashboards.BuildCpSearchTabsDetailAsync(_openedId, ctx.RequestAborted);
-            _openedTab = detail.Tab;
-            _openedSiblings = detail.Siblings;
-            if (_openedTab is not null)
+            _editor = await Tabs.OpenAsync(openedId, _lang, ctx.RequestAborted);
+            if (_editor is null)
             {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
+                _flashErr = "Search tab #" + openedId.ToString(CultureInfo.InvariantCulture) + " was not found.";
             }
+        }
+
+        if (_editor is null)
+        {
+            _list = await Tabs.ListAsync(_lang, ctx.RequestAborted);
+            _pageCount = (_list.Rows.Count + _pageSize - 1) / _pageSize;
+            _page = int.TryParse(ctx.Request.Query["s_page"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) ? Math.Clamp(p, 0, Math.Max(_pageCount - 1, 0)) : 0;
+            _pageRows = _list.Rows.Skip(_page * _pageSize).Take(_pageSize).ToList();
         }
     }
 }

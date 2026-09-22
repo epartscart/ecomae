@@ -1603,26 +1603,29 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void SearchTabsApp_OpenLoadsParametersExcerptAndKeepsWrites()
+    public void SearchTabsApp_OpenRendersPhpTabEditorAndKeepsWrites()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpSearchTabsApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"tab_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"tab_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpSearchTabsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No parameters excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No enabled siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        // search_tab.php twin: general settings + schema-driven special settings, json_encode($_POST) parameters.
+        Assert.Contains("ICpSearchTabEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_caption\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_caption_lang_str_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_order\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"tab_enabled\" value=\"tab_enabled\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"params_from_form\"", text, StringComparison.Ordinal);
+        Assert.Contains("case \"multiselect\":", text, StringComparison.Ordinal);
+        Assert.Contains("case \"completed_html\":", text, StringComparison.Ordinal);
+        // search_tabs.php twin: list with per-row on/off activation forms and s_page pagination.
         Assert.Contains("/cp/search-tabs/write", text, StringComparison.Ordinal);
         Assert.Contains("name=\"action\" value=\"activation\"", text, StringComparison.Ordinal);
-        Assert.Contains("Save tab", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"activate_tab\"", text, StringComparison.Ordinal);
+        Assert.Contains("s_page", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Full parameters JSON stays on the Classic twin", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
