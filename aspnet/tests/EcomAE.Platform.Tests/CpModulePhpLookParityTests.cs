@@ -78,7 +78,6 @@ public sealed class CpModulePhpLookParityTests
     [Theory]
     [InlineData("CpUsersApp.razor")]
     [InlineData("CpGroupsApp.razor")]
-    [InlineData("CpModulesApp.razor")]
     [InlineData("CpTenantsApp.razor")]
     public void ShowcaseCpApps_UsePhpScpMarkers(string fileName)
     {

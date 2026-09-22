@@ -17,6 +17,8 @@ namespace EcomAE.Platform.Cp;
 /// </summary>
 public interface ICpConfigEditorService
 {
+    string ConfigPath { get; }
+
     Task<CpConfigEditorReadResult> ReadAsync(int needConfigGroup, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SaveAsync(IFormCollection form, int needConfigGroup, string? langCode, string? domainPath, CancellationToken cancellationToken = default);

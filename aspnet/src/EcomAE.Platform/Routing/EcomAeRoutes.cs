@@ -565,13 +565,23 @@ public static class EcomAeRoutes
     public const string ControlPanelPluginsManager = "/cp/plugins-manager";
     /// <summary>CP Plugins manager Blazor list (JSON digest remains <see cref="ControlPanelPluginsManager"/>).</summary>
     public const string ControlPanelPluginsManagerApp = "/cp/plugins-manager-app";
-    /// <summary>PHP <c>plugins_manager.php</c> <c>plugins_action_type=activated</c>. <c>confirmWrites=true</c> toggles <c>plugins.activated</c>. Delete, lock, and 2FA plugin 10 activate stay Classic.</summary>
+    /// <summary>PHP <c>plugins_manager.php</c> <c>plugins_action_type=activated</c>. <c>confirmWrites=true</c> toggles <c>plugins.activated</c> (plugin 10 runs the PHP 2FA channel check).</summary>
     public const string ControlPanelPluginsActivate = "/cp/plugins-manager/activate";
+    /// <summary>PHP <c>plugins_manager.php</c> <c>plugins_action_type=delete</c>: removes <c>dirs_files</c> and the <c>plugins</c> rows.</summary>
+    public const string ControlPanelPluginsDelete = "/cp/plugins-manager/delete";
+    /// <summary>PHP <c>plugin_edit.php</c> <c>save_plugin_action</c>: caption/description translations, activated, order, data_value JSON.</summary>
+    public const string ControlPanelPluginsSave = "/cp/plugins-manager/save";
+    /// <summary>PHP <c>plugins_manager.php</c> / <c>templates_manager.php</c> edit_mode cookie switch (frontend|backend).</summary>
+    public const string ControlPanelControlEditMode = "/cp/control/edit-mode";
     public const string ControlPanelTemplatesManager = "/cp/templates-manager";
     /// <summary>CP Templates manager Blazor list (JSON digest remains <see cref="ControlPanelTemplatesManager"/>).</summary>
     public const string ControlPanelTemplatesManagerApp = "/cp/templates-manager-app";
-    /// <summary>PHP <c>templates_manager.php</c> <c>set_current</c>. <c>confirmWrites=true</c> sets one current template per frontend/backend group. Delete and generate_style stay Classic.</summary>
+    /// <summary>PHP <c>templates_manager.php</c> <c>set_current</c>. <c>confirmWrites=true</c> sets one current template per frontend/backend group.</summary>
     public const string ControlPanelTemplatesSetCurrent = "/cp/templates-manager/set-current";
+    /// <summary>PHP <c>templates_manager.php</c> <c>templates_action_type=delete</c>: removes non-current templates (folder + row).</summary>
+    public const string ControlPanelTemplatesDelete = "/cp/templates-manager/delete";
+    /// <summary>PHP <c>template_edit.php</c> <c>save_template_action</c>: caption, current flag, data_value JSON, generate_style.</summary>
+    public const string ControlPanelTemplatesSave = "/cp/templates-manager/save";
     public const string ControlPanelDesignTokens = "/cp/design-tokens";
     /// <summary>CP Design tokens Blazor list (JSON digest remains <see cref="ControlPanelDesignTokens"/>).</summary>
     public const string ControlPanelDesignTokensApp = "/cp/design-tokens-app";

@@ -1,0 +1,55 @@
+@using EcomAE.Platform.Cp
+@* PHP content/control/get_widget.php twin for templates/plugins data_structure fields. Value posts back as dv[name]; multilang text posts dv_lang_[name] = str id. *@
+@{
+    var name = "dv[" + Field.Name + "]";
+}
+@if (Field.Multilang)
+{
+    <input type="hidden" name="dv_lang_@Field.Name" value="@Field.LangStrId" />
+}
+@switch (Field.Type)
+{
+    case "hidden":
+        <input type="hidden" name="@name" id="@Field.Name" value="@Field.Value" />
+        break;
+    case "checkbox":
+        <input type="hidden" name="@name" id="@Field.Name" value="@(Field.Value == "1" ? "1" : "0")" />
+        <input type="checkbox" id="@(Field.Name)_cb" data-dv="@Field.Name" checked="@(Field.Value == "1")" onchange="document.getElementById(this.getAttribute('data-dv')).value = this.checked ? '1' : '0';" />
+        break;
+    case "select":
+    case "radio":
+        <select name="@name" id="@Field.Name" class="form-control">
+            @foreach (var o in Field.Options)
+            {
+                <option value="@o.Value" selected="@(o.Value == Field.Value)">@o.Caption</option>
+            }
+        </select>
+        break;
+    case "textarea":
+        <textarea name="@name" id="@Field.Name" class="form-control" rows="4">@Field.Value</textarea>
+        break;
+    case "number":
+        <input type="number" name="@name" id="@Field.Name" value="@Field.Value" class="form-control" />
+        break;
+    case "color":
+        <input type="color" name="@name" id="@Field.Name" value="@(Field.Value.Length > 0 ? Field.Value : "#000000")" class="form-control" style="max-width:120px" />
+        break;
+    case "password":
+        <input type="password" name="@name" id="@Field.Name" value="@Field.Value" class="form-control" />
+        break;
+    case "image":
+    case "image_file":
+        <input type="text" name="@name" id="@Field.Name" value="@Field.Value" class="form-control" placeholder="Image URL" />
+        @if (Field.Value.Length > 0)
+        {
+            <img style="max-width:100%;max-height:120px;display:block;margin-top:4px" src="@Field.Value" alt="" />
+        }
+        break;
+    default:
+        <input type="text" name="@name" id="@Field.Name" value="@Field.Value" class="form-control" />
+        break;
+}
+
+@code {
+    [Parameter, EditorRequired] public CpWidgetField Field { get; set; } = default!;
+}
