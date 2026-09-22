@@ -5827,6 +5827,51 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.CpQuoteAltOptions, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpQuoteRequestEditorService quotes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (!PhpParityDumpCatalog.HasStaffAccess(session))
+            {
+                return Results.Json(new { status = false, message = "Access denied" }, statusCode: StatusCodes.Status403Forbidden);
+            }
+
+            var quoteId = long.TryParse(context.Request.Query["quote_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var q) ? q : 0;
+            var lineId = long.TryParse(context.Request.Query["line_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var l) ? l : 0;
+            if (quoteId <= 0 || lineId <= 0)
+            {
+                return Results.BadRequest(new { status = false, message = "quote_id and line_id required" });
+            }
+
+            var options = await quotes.AltOptionsAsync(quoteId, lineId, cancellationToken);
+            if (options is null)
+            {
+                return Results.NotFound(new { status = false, message = "Quote line not found (registered customers only) or requested article missing" });
+            }
+
+            return Results.Ok(new
+            {
+                status = true,
+                quoteId = options.QuoteId,
+                lineId = options.LineId,
+                requested = new { brand = options.RequestedBrand, article = options.RequestedArticle, name = options.RequestedName },
+                alternatives = options.Alternatives.Select(a => new
+                {
+                    key = a.Key,
+                    brand = a.Brand,
+                    article = a.Article,
+                    articleShow = a.ArticleShow,
+                    name = a.Name,
+                    source = a.Source,
+                    inStock = a.InStock,
+                    warehouses = a.Warehouses.Select(w => new { storageId = w.StorageId, label = w.Label, price = w.Price, qty = w.Qty, delivery = w.Delivery })
+                }),
+                warehousesAll = options.WarehousesAll.Select(w => new { storageId = w.StorageId, label = w.Label })
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.CpQuoteSend, async (
             HttpContext context,
             ILegacySessionValidator validator,
