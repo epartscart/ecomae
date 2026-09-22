@@ -1114,6 +1114,73 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             return Results.Ok(dryRun.Evaluate(new CpSetUsersVinViewedRequest(ids.FirstOrDefault(), false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpSendVinMessage, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpUserWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/system-requests-app", "Admin CP capability required for VIN messages.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, message = "Form body required." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var vinId = LiveWriteFormBinder.Long(form, "vinId", "vin_id");
+            var text = LiveWriteFormBinder.Text(form, "text");
+            var back = "/cp/system-requests-app?vin_id=" + vinId.ToString(CultureInfo.InvariantCulture);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new { ok = true, status = "dry-run-validated", writes = 0, writesBlocked = true, intended = new { vinId, text }, session = SessionPayload(session) });
+            }
+
+            var written = await writes.SendVinMessageAsync(vinId, text, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                back,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpVinFieldsSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpVinFieldsService fields,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/vin-fields-app", "Admin CP capability required for request fields.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, message = "Form body required." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var treeJson = LiveWriteFormBinder.Text(form, "tree_json", "treeJson");
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                var parsed = CpVinFieldsService.ParseTree(treeJson);
+                return Results.Ok(new { ok = parsed.Error is null, status = "dry-run-validated", writes = 0, writesBlocked = true, fields = parsed.Items.Count, message = parsed.Error, session = SessionPayload(session) });
+            }
+
+            var written = await fields.SaveAsync(treeJson, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/vin-fields-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpSetUserComment, async (
             HttpContext context,
             ILegacySessionValidator validator,

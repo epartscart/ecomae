@@ -1250,6 +1250,10 @@ public static class EcomAeRoutes
     public const string CpReturnAction = "/cp/returns/action";
     /// <summary>VIN viewed flag. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_users_vin_viewed.php.</summary>
     public const string CpSetUsersVinViewed = "/cp/requests/set-vin-viewed";
+    /// <summary>PHP content/requests/ajax_send_message.php (manager=1) twin: manager reply on a VIN request.</summary>
+    public const string CpSendVinMessage = "/cp/requests/send-message";
+    /// <summary>PHP cp/content/requests/vin_fields_edit.php save_action twin (tree_json).</summary>
+    public const string CpVinFieldsSave = "/cp/requests/vin-fields/save";
     /// <summary>Staff user comment. <c>confirmWrites=true</c> is the live twin of PHP ajax_set_user_comment.php.</summary>
     public const string CpSetUserComment = "/cp/users/set-comment";
     /// <summary>User lock/unlock. <c>confirmWrites=true</c> is the live twin of PHP user_manager.php unlock_user.</summary>
