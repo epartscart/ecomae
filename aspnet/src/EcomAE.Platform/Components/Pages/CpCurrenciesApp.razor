@@ -263,28 +263,25 @@
         </div>
     </div>
 
-    @if (_canWrite)
-    {
-        <script>
-            function epcCurCheckAll(master) {
-                document.querySelectorAll('.epc-cur-check:not([disabled])').forEach(function (cb) { cb.checked = master.checked; });
-            }
-            function epcCurSetAvailable(available) {
-                var codes = Array.prototype.slice.call(document.querySelectorAll('.epc-cur-check:checked')).map(function (cb) { return cb.value; });
-                if (codes.length === 0) { alert('Select at least one currency first.'); return; }
-                document.getElementById('epc_cur_bulk_iso').value = codes.join(',');
-                document.getElementById('epc_cur_bulk_available').value = String(available);
-                document.getElementById('bulk_available_form').submit();
-            }
-            function epcCurFillFromLive(button) {
-                var live = JSON.parse(button.getAttribute('data-live-rates') || '{}');
-                document.querySelectorAll('.epc-cur-rate').forEach(function (input) {
-                    var iso = input.getAttribute('name').substring(5);
-                    if (Object.prototype.hasOwnProperty.call(live, iso)) { input.value = live[iso]; }
-                });
-            }
-        </script>
-    }
+    <script>
+        function epcCurCheckAll(master) {
+            document.querySelectorAll('.epc-cur-check:not([disabled])').forEach(function (cb) { cb.checked = master.checked; });
+        }
+        function epcCurSetAvailable(available) {
+            var codes = Array.prototype.slice.call(document.querySelectorAll('.epc-cur-check:checked')).map(function (cb) { return cb.value; });
+            if (codes.length === 0) { alert('Select at least one currency first.'); return; }
+            document.getElementById('epc_cur_bulk_iso').value = codes.join(',');
+            document.getElementById('epc_cur_bulk_available').value = String(available);
+            document.getElementById('bulk_available_form').submit();
+        }
+        function epcCurFillFromLive(button) {
+            var live = JSON.parse(button.getAttribute('data-live-rates') || '{}');
+            document.querySelectorAll('.epc-cur-rate').forEach(function (input) {
+                var iso = input.getAttribute('name').substring(5);
+                if (Object.prototype.hasOwnProperty.call(live, iso)) { input.value = live[iso]; }
+            });
+        }
+    </script>
 </PhpCpDesktopChrome>
 
 @code {
