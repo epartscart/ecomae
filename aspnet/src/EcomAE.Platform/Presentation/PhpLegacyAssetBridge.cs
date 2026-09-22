@@ -85,6 +85,25 @@ public static class PhpLegacyAssetBridge
             });
         }
 
+        // Uploaded media root managed by the CP file manager (PHP served this directly from the docroot).
+        var filesRoot = Path.GetFullPath(Path.Combine(repoRoot, "content", "files"));
+        endpoints.MapGet("/content/files/{**relativePath}", (string? relativePath) =>
+        {
+            var rel = Cp.CpFileManagerService.NormalizeRelative(relativePath);
+            if (string.IsNullOrEmpty(rel))
+            {
+                return Results.NotFound();
+            }
+
+            var path = Path.GetFullPath(Path.Combine(filesRoot, rel.Replace('/', Path.DirectorySeparatorChar)));
+            if (!path.StartsWith(filesRoot + Path.DirectorySeparatorChar, StringComparison.Ordinal) || !File.Exists(path))
+            {
+                return Results.NotFound();
+            }
+
+            return Results.File(path, ContentTypeFor(path));
+        });
+
         // BOC top mega-menu behaviour (Super CP console).
         endpoints.MapGet("/content/general_pages/epc_boc_topnav_js.php", () =>
         {
@@ -436,6 +455,9 @@ public static class PhpLegacyAssetBridge
             ".svg" => "image/svg+xml",
             ".png" => "image/png",
             ".jpg" or ".jpeg" => "image/jpeg",
+            ".gif" => "image/gif",
+            ".webp" => "image/webp",
+            ".pdf" => "application/pdf",
             ".woff2" => "font/woff2",
             ".woff" => "font/woff",
             ".ttf" => "font/ttf",

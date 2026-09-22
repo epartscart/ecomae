@@ -1,0 +1,250 @@
+@page "/cp/packs-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Presentation
+@inject ICpPacksService Packs
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Packs manager · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-pk-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; }
+    .epc-pk-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-pk-actions .panel_a_caption { font-size:12px; }
+    .epc-pk-list td a { color:inherit; display:block; text-decoration:none; }
+    .epc-pk-list .pagination { margin:8px 0 0; }
+    .epc-pk-info td:first-child { width:220px; color:#6a6c6f; }
+    .epc-pk-list-ul { margin:0; padding-left:18px; }
+    .epc-pk-setup .form-control { max-width:420px; }
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning">Admin CP session required. <a href="/cp/login?returnUrl=/cp/packs-app">Log in</a>.</div></div>
+    }
+    else if (_setup)
+    {
+        @* ---- setup_page.php twin ---- *@
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/packs/setup")">Classic twin</a>
+                </div>
+                <div class="panel-body epc-pk-actions">
+                    <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('pack_setup_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-upload"></i></div><div class="panel_a_caption">Setup</div></a>
+                    <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fa fa-compact-disc"></i></div><div class="panel_a_caption">Packs</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                </div>
+            </div>
+        </div>
+        @Flash()
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Pack setup</div>
+                <div class="panel-body epc-pk-setup">
+                    <form id="pack_setup_form" method="post" action="/cp/packs/write" enctype="multipart/form-data" onsubmit="return document.getElementById('pack_file').files.length > 0 || (alert('Choose a pack .zip file'), false);">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="action" value="setup" />
+                        <input type="hidden" name="setup_pack" id="setup_pack" value="setup_pack" />
+                        <div class="form-group">
+                            <label for="pack_file">Pack archive (.zip containing pack.json)</label>
+                            <input class="form-control" type="file" name="pack_file" id="pack_file" accept="multipart/x-zip,application/zip,application/x-zip-compressed,application/x-compressed" required />
+                        </div>
+                        <p class="help-block">The archive is unpacked into cp/tmp/pack_setup, pack.json is validated (caption, name, version, files, templates, plugins, module prototypes), files are copied to their server paths and extensions are registered. Packs with the same technical name must be deleted first. The temporary folder is cleared afterwards.</p>
+                        <button type="submit" class="btn btn-primary">Setup pack</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else if (_packId > 0)
+    {
+        @* ---- pack_control.php twin ---- *@
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/packs/pack_control?pack_id=" + _packId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
+                </div>
+                <div class="panel-body epc-pk-actions">
+                    @if (_pack is not null)
+                    {
+                        <form id="pack_delete_form" method="post" action="/cp/packs/write" style="display:inline;" onsubmit="return confirm('Delete this pack together with its templates, plugins, module prototypes and files?');">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="action" value="delete" />
+                            <input type="hidden" name="pack_id" value="@_packId.ToString(CultureInfo.InvariantCulture)" />
+                            <input type="hidden" name="returnUrl" value="@_listHref" />
+                            <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('pack_delete_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-trash"></i></div><div class="panel_a_caption">Delete</div></a>
+                        </form>
+                    }
+                    <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fa fa-compact-disc"></i></div><div class="panel_a_caption">Packs</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                </div>
+            </div>
+        </div>
+        @Flash()
+        @if (_pack is null)
+        {
+            <div class="col-lg-12"><div class="alert alert-danger">Pack #@_packId.ToString(CultureInfo.InvariantCulture) was not found.</div></div>
+        }
+        else
+        {
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Pack information</div>
+                    <div class="panel-body">
+                        <table class="table table-condensed epc-pk-info">
+                            <tbody>
+                                <tr><td>ID</td><td>@_pack.Pack.Id.ToString(CultureInfo.InvariantCulture)</td></tr>
+                                <tr><td>Caption</td><td>@_pack.Pack.Caption</td></tr>
+                                <tr><td>Technical name</td><td>@_pack.Pack.Name</td></tr>
+                                <tr><td>Author</td><td>@_pack.Pack.Author</td></tr>
+                                <tr><td>Version</td><td>@_pack.Pack.Version</td></tr>
+                                <tr><td>Setup time</td><td>@Stamp(_pack.Pack.TimeSetup)</td></tr>
+                                <tr><td>Files</td><td>
+                                    @if (_pack.Files.Count == 0) { <span class="text-muted">—</span> }
+                                    else { <ul class="epc-pk-list-ul">@foreach (var f in _pack.Files) { <li>@(f.ServerPath.TrimEnd('/') + "/" + f.FileName)</li> }</ul> }
+                                </td></tr>
+                                <tr><td>Templates</td><td>@Components(_pack.Templates, "/cp/templates-manager-app?template_id=")</td></tr>
+                                <tr><td>Module prototypes</td><td>@Components(_pack.ModulesPrototypes, "/cp/modules-app?module_id=")</td></tr>
+                                <tr><td>Plugins</td><td>@Components(_pack.Plugins, "/cp/plugins-manager-app?plugin_id=")</td></tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        @* ---- packs_manager.php twin ---- *@
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                </div>
+                <div class="panel-body epc-pk-actions">
+                    <a class="panel_a" href="@(_listHref + "?setup=1")"><div class="panel_a_img"><i class="fa fa-upload"></i></div><div class="panel_a_caption">Setup pack</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                </div>
+            </div>
+        </div>
+        @Flash()
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Packs (@_list.Total.ToString(CultureInfo.InvariantCulture))</div>
+                <div class="panel-body epc-pk-list">
+                    @if (_list.Items.Count == 0)
+                    {
+                        <p class="text-muted">No packs are installed. Use <a href="@(_listHref + "?setup=1")">Setup pack</a> to install one.</p>
+                    }
+                    else
+                    {
+                        <table class="table table-striped table-hover table-condensed table-epc">
+                            <thead>
+                                <tr><th>ID</th><th>Caption</th><th>Version</th><th>Author</th><th>Technical name</th><th>Setup time</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var p in _list.Items)
+                                {
+                                    var href = _listHref + "?pack_id=" + p.Id.ToString(CultureInfo.InvariantCulture);
+                                    <tr id="@("erp-row-" + p.Id.ToString(CultureInfo.InvariantCulture))">
+                                        <td><a href="@href">@p.Id.ToString(CultureInfo.InvariantCulture)</a></td>
+                                        <td><a href="@href">@p.Caption</a></td>
+                                        <td><a href="@href">@p.Version</a></td>
+                                        <td><a href="@href">@p.Author</a></td>
+                                        <td><a href="@href">@p.Name</a></td>
+                                        <td><a href="@href">@Stamp(p.TimeSetup)</a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                        @if (_list.Pages > 1)
+                        {
+                            <ul class="pagination pagination-sm">
+                                @for (var i = 0; i < _list.Pages; i++)
+                                {
+                                    <li class="@(i == _list.Page ? "active" : "")"><a href="@PageHref(i)">@((i + 1).ToString(CultureInfo.InvariantCulture))</a></li>
+                                }
+                            </ul>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    }
+</PhpCpDesktopChrome>
+
+@code {
+    private const string _phpTab = "/CP/packs/packs_manager";
+    private const string _listHref = "/cp/packs-app";
+    private bool _isAdmin;
+    private bool _setup;
+    private long _packId;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpPagedList<CpPackRow> _list = new([], 0, 0, 0);
+    private CpPackDetail? _pack;
+
+    private static string PageHref(int page) => page <= 0 ? _listHref : _listHref + "?s_page=" + page.ToString(CultureInfo.InvariantCulture);
+
+    private static string Stamp(long unix) => unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+
+    private RenderFragment Flash() => __builder =>
+    {
+        if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
+    };
+
+    private static RenderFragment Components(IReadOnlyList<CpPackComponent> items, string hrefPrefix) => __builder =>
+    {
+        if (items.Count == 0) { <span class="text-muted">—</span> }
+        else
+        {
+            <ul class="epc-pk-list-ul">
+                @foreach (var c in items)
+                {
+                    <li>@if (c.Id > 0) { <a href="@(hrefPrefix + c.Id.ToString(CultureInfo.InvariantCulture))">@c.Caption</a> <span class="text-muted">#@c.Id.ToString(CultureInfo.InvariantCulture)</span> } else { @c.Caption }</li>
+                }
+            </ul>
+        }
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _setup = ctx.Request.Query["setup"].ToString() is "1" or "true";
+        if (_setup)
+        {
+            return;
+        }
+
+        if (long.TryParse(ctx.Request.Query["pack_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0)
+        {
+            _packId = id;
+            _pack = await Packs.OpenAsync(id, ctx.RequestAborted);
+            return;
+        }
+
+        _list = await Packs.ListAsync(CpTemplatesPluginsService.ReadPage(ctx.Request), ctx.RequestAborted);
+    }
+}

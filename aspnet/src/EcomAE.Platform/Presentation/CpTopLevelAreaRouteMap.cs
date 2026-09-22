@@ -14,7 +14,7 @@ public static class CpTopLevelAreaRouteMap
         ["lang"] = "/cp/languages-app",
         ["menu"] = "/cp/menus-app",
         ["modules_control"] = "/cp/modules-app",
-        ["packs_control"] = "/cp/industry-packs-app",
+        ["packs_control"] = "/cp/packs-app",
         ["plugins_control"] = "/cp/plugins-manager-app",
         ["requests"] = "/cp/system-requests-app",
         ["templates_control"] = "/cp/templates-manager-app",

@@ -92,10 +92,11 @@ public static class PhpSurfaceLinkMap
         ("templates_control", "/cp/templates-manager-app"),
         ("templates/templates_manager", "/cp/templates-manager-app"),
         ("templates/", "/cp/templates-manager-app"),
-        ("packs_control", "/cp/industry-packs-app"),
-        ("packs/packs_manager", "/cp/industry-packs-app"),
-        ("packs/setup", "/cp/industry-packs-app"),
-        ("packs/", "/cp/industry-packs-app"),
+        ("packs_control", "/cp/packs-app"),
+        ("packs/packs_manager", "/cp/packs-app"),
+        ("packs/setup", "/cp/packs-app?setup=1"),
+        ("packs/pack_control", "/cp/packs-app"),
+        ("packs/", "/cp/packs-app"),
         ("lang/page_lang", "/cp/languages-app"),
         ("control/lang", "/cp/languages-app"),
         ("content/dopolnitelnye-teksty", "/cp/additional-texts-app"),
@@ -1585,7 +1586,7 @@ public static class PhpSurfaceLinkMap
         if (topLevel.Equals("packs_control", StringComparison.OrdinalIgnoreCase)
             || topLevel.Equals("packs", StringComparison.OrdinalIgnoreCase))
         {
-            return "/cp/industry-packs-app";
+            return ErpRecordOpen.PreserveRecordQuery("/cp/packs-app", value);
         }
 
         if (topLevel.Equals("plugins_control", StringComparison.OrdinalIgnoreCase)
@@ -1709,6 +1710,7 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/workflows-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/workflows-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/templates-manager-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/packs-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/plugins-manager-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/sitemap-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/price-lists-app", StringComparison.OrdinalIgnoreCase)
