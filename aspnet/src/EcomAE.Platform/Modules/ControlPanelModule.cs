@@ -4757,6 +4757,12 @@ public sealed class ControlPanelModule : ISurfaceModule
             var written = key is "edit" or "update"
                 ? await writes.UpdateAsync(request, cancellationToken)
                 : await writes.CreateAsync(request, cancellationToken);
+            if (written.Succeeded && written.Id > 0 && context.Request.HasFormContentType && LiveWriteFormBinder.WantsHtml(context))
+            {
+                var dest = "/cp/offices-app?office_id=" + written.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+                return Results.Redirect(dest + "&ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/offices-app",
