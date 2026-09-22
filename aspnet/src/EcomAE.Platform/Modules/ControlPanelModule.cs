@@ -13269,6 +13269,99 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.CpPacksWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPacksService packs,
+            IOptions<PhpReferenceOptions> reference,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/packs-app", "Admin CP capability required for pack setup/delete.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, message = "Form body required." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var action = LiveWriteFormBinder.Text(form, "action").ToLowerInvariant();
+            if (action.Length == 0 && form.ContainsKey("setup_pack")) action = "setup";
+            var packId = LiveWriteFormBinder.Long(form, "pack_id");
+            var returnTo = LiveWriteFormBinder.ReturnUrl(context, "/cp/packs-app");
+            var docRoot = PhpDocRoot(reference.Value);
+            var file = form.Files.GetFile("pack_file");
+
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                var valid = action switch
+                {
+                    "setup" => file is not null && file.Length > 0 && file.Length <= CpPacksService.MaxZipBytes && Path.GetExtension(file.FileName).Equals(".zip", StringComparison.OrdinalIgnoreCase),
+                    "delete" => packId > 0,
+                    _ => false,
+                };
+                return Results.Ok(new { ok = valid, status = "dry-run-validated", action, pack_id = packId, writes = 0, writesBlocked = true, session = SessionPayload(session) });
+            }
+
+            ErpSimpleWriteResult written;
+            long newId = 0;
+            switch (action)
+            {
+                case "setup":
+                    if (file is null || file.Length == 0)
+                    {
+                        written = ErpSimpleWriteResult.Fail("invalid", "Choose a pack .zip file.");
+                        break;
+                    }
+
+                    if (file.Length > CpPacksService.MaxZipBytes || !Path.GetExtension(file.FileName).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+                    {
+                        written = ErpSimpleWriteResult.Fail("invalid", "Only .zip archives up to 64 MB are accepted.");
+                        break;
+                    }
+
+                    await using (var stream = file.OpenReadStream())
+                    {
+                        var installed = await packs.InstallAsync(stream, docRoot, session.UserId, cancellationToken);
+                        newId = installed.PackId;
+                        written = new ErpSimpleWriteResult(installed.Succeeded, installed.Code, installed.Message, installed.PackId, installed.Writes);
+                    }
+
+                    if (written.Succeeded)
+                    {
+                        returnTo = "/cp/packs-app?pack_id=" + newId.ToString(CultureInfo.InvariantCulture);
+                    }
+
+                    break;
+                case "delete":
+                    written = await packs.DeleteAsync(packId, docRoot, cancellationToken);
+                    break;
+                default:
+                    written = ErpSimpleWriteResult.Fail("invalid", "Unknown action.");
+                    break;
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnTo,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    action,
+                    pack_id = written.Succeeded && newId > 0 ? newId : packId,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelFileManager, async (
             HttpContext context,
             int? limit,

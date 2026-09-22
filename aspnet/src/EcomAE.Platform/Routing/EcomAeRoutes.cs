@@ -1502,6 +1502,8 @@ public static class EcomAeRoutes
     public const string CpLangDeleteNotUsed = "/cp/lang/delete-not-used";
     /// <summary>Wave B dry-run for PHP cp/content/packs_control/ajax_delete_pack.php (writes=0).</summary>
     public const string CpPacksDelete = "/cp/packs/delete";
+    /// <summary>PHP packs_control twin: action=setup (multipart pack_file zip) or action=delete (pack_id). <c>confirmWrites=true</c> installs / removes the pack and its templates, plugins, module prototypes and files.</summary>
+    public const string CpPacksWrite = "/cp/packs/write";
     /// <summary>Channel toggle. <c>confirmWrites=true</c> + action=toggle_channel is the live twin of PHP ajax_channels.php.</summary>
     public const string CpChannelsWrite = "/cp/channels/write";
     /// <summary>Carrier toggle. <c>confirmWrites=true</c> + action=toggle_carrier is the live twin of PHP ajax_logistics.php.</summary>

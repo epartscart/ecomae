@@ -528,7 +528,7 @@ public static class LegacyDesktopChromeCatalog
                 new("plugins-manager", "Plugins manager", "/CP/plugins/plugins_manager", "fa-puzzle-piece", "Modules"),
                 new("templates-manager", "Templates manager", "/CP/templates/templates_manager", "fa-palette", "Modules"),
                 new("debug-console", "Debug", "/CP/system/debug", "fa-bug", "Modules"),
-                new("industry-packs", "Industry packs", "/CP/packs/packs_manager", "fa-compact-disc", "Modules"),
+                new("packs-manager", "Packs manager", "/CP/packs/packs_manager", "fa-compact-disc", "Modules"),
                 new("pack-setup", "Pack setup", "/CP/packs/setup", "fa-upload", "Modules"),
             ];
         }

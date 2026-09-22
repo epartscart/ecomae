@@ -752,6 +752,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTemplatesPluginsService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVinRequestsService, EcomAE.Platform.Cp.CpVinRequestsService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVinFieldsService, EcomAE.Platform.Cp.CpVinFieldsService>();
 builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpFileManagerService, EcomAE.Platform.Cp.CpFileManagerService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPacksService, EcomAE.Platform.Cp.CpPacksService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpNotificationSettingsWriteService, EcomAE.Platform.Cp.CpNotificationSettingsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpNotificationSettingsEditorService, EcomAE.Platform.Cp.CpNotificationSettingsEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOrdersListService, EcomAE.Platform.Cp.CpOrdersListService>();

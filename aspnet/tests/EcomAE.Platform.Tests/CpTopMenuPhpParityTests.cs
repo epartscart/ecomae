@@ -53,7 +53,7 @@ public sealed class CpTopMenuPhpParityTests
         AssertContainsAspNet(modules, "/cp/plugins-manager-app");
         AssertContainsAspNet(modules, "/cp/templates-manager-app");
         AssertContainsAspNet(modules, "/cp/debug-console-app");
-        AssertContainsAspNet(modules, "/cp/industry-packs-app");
+        AssertContainsAspNet(modules, "/cp/packs-app");
     }
 
     [Fact]

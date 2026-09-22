@@ -81,8 +81,8 @@ public sealed class CpPhpParityTests
     // Brochure / alias paths that previously collapsed to bare /cp on epartscart.com
     [InlineData("/CP/lang", "/cp/languages-app")]
     [InlineData("/CP/requests", "/cp/system-requests-app")]
-    [InlineData("/CP/packs/packs_manager", "/cp/industry-packs-app")]
-    [InlineData("/CP/packs/setup", "/cp/industry-packs-app")]
+    [InlineData("/CP/packs/packs_manager", "/cp/packs-app")]
+    [InlineData("/CP/packs/setup", "/cp/packs-app?setup=1")]
     [InlineData("/CP/plugins/plugins_manager", "/cp/plugins-manager-app")]
     [InlineData("/CP/templates/templates_manager", "/cp/templates-manager-app")]
     [InlineData("/CP/content/slider", "/cp/slider-banners-app")]
