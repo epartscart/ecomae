@@ -8,11 +8,14 @@ namespace EcomAE.Platform.Cp;
 /// <summary>
 /// Live PHP <c>currencies_turning.php</c> rate / available-flag UPDATE twins
 /// and <c>epc_currency_live_schedule_save</c> UPSERT of nightly FX schedule keys.
-/// Live FX pull / apply / run-now stay Classic. This service does not invent a send.
+/// Live FX pull / apply / run-now live in <see cref="ICpCurrencyLiveRatesService"/>.
 /// </summary>
 public interface ICpCurrencyWriteService
 {
     Task<ErpSimpleWriteResult> SetRateAsync(string? isoCode, decimal rate, CancellationToken cancellationToken = default);
+
+    /// <summary>PHP <c>save_action=general</c>: every listed currency must carry a positive rate; all rows are updated.</summary>
+    Task<ErpSimpleWriteResult> SaveRatesAsync(IReadOnlyDictionary<string, string> ratesByIso, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SetAvailableAsync(
         string? isoCodes,
@@ -38,10 +41,10 @@ public sealed class CpCurrencyWriteService : ICpCurrencyWriteService
 
     public async Task<ErpSimpleWriteResult> SetRateAsync(string? isoCode, decimal rate, CancellationToken cancellationToken = default)
     {
-        var iso = NormalizeIso(isoCode);
-        if (iso.Length != 3)
+        var iso = NormalizeCurrencyCode(isoCode);
+        if (iso.Length == 0)
         {
-            return ErpSimpleWriteResult.Fail("invalid", "A 3-letter ISO currency code is required.");
+            return ErpSimpleWriteResult.Fail("invalid", "A 3-letter or 3-digit ISO currency code is required.");
         }
 
         if (rate <= 0)
@@ -56,13 +59,61 @@ public sealed class CpCurrencyWriteService : ICpCurrencyWriteService
 
         var money = decimal.Round(rate, 6, MidpointRounding.AwayFromZero);
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(
+        var writes = await ErpDb.ExecuteAsync(
             connection,
             null,
-            ErpDb.Positional("UPDATE `shop_currencies` SET `rate` = ? WHERE `iso_code` = ?"),
+            ErpDb.Positional("UPDATE `shop_currencies` SET `rate` = ? WHERE `iso_code` = ? OR UPPER(`iso_name`) = ?"),
             cancellationToken,
-            money.ToString(CultureInfo.InvariantCulture), iso);
-        return ErpSimpleWriteResult.Ok("Currency rate saved.", 0);
+            money.ToString(CultureInfo.InvariantCulture), iso, iso).ConfigureAwait(false);
+        return writes == 0
+            ? ErpSimpleWriteResult.Fail("not_found", $"No currency matches '{iso}'.")
+            : new ErpSimpleWriteResult(true, "ok", $"Currency rate saved for {iso}.", writes, writes);
+    }
+
+    public async Task<ErpSimpleWriteResult> SaveRatesAsync(IReadOnlyDictionary<string, string> ratesByIso, CancellationToken cancellationToken = default)
+    {
+        if (ratesByIso.Count == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "No currency rates were submitted.");
+        }
+
+        var parsed = new List<(string Iso, decimal Rate)>();
+        foreach (var (rawIso, rawRate) in ratesByIso)
+        {
+            var iso = NormalizeCurrencyCode(rawIso);
+            if (iso.Length == 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", $"Invalid currency code '{rawIso}'.");
+            }
+
+            if (!decimal.TryParse((rawRate ?? string.Empty).Trim().Replace(',', '.'), NumberStyles.Float, CultureInfo.InvariantCulture, out var rate) || rate <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", $"Rate for {iso} must be a number greater than zero.");
+            }
+
+            parsed.Add((iso, decimal.Round(rate, 6, MidpointRounding.AwayFromZero)));
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var writes = 0;
+        foreach (var (iso, rate) in parsed)
+        {
+            writes += await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("UPDATE `shop_currencies` SET `rate` = ? WHERE `iso_code` = ? OR UPPER(`iso_name`) = ?"),
+                cancellationToken,
+                rate.ToString(CultureInfo.InvariantCulture), iso, iso).ConfigureAwait(false);
+        }
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new ErpSimpleWriteResult(true, "ok", $"Saved rates for {parsed.Count} currenc{(parsed.Count == 1 ? "y" : "ies")}.", writes, writes);
     }
 
     public async Task<ErpSimpleWriteResult> SetAvailableAsync(
@@ -151,6 +202,10 @@ public sealed class CpCurrencyWriteService : ICpCurrencyWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpDb.TryExecuteAsync(
+                connection,
+                "CREATE TABLE IF NOT EXISTS `epc_price_settings` (`setting_key` varchar(128) NOT NULL, `setting_value` text, PRIMARY KEY (`setting_key`)) ENGINE=InnoDB DEFAULT CHARSET=utf8",
+                cancellationToken).ConfigureAwait(false);
             await UpsertSettingAsync(connection, "fx_live_auto_enabled", flag.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
             await UpsertSettingAsync(connection, "fx_live_auto_timezone", tz, cancellationToken).ConfigureAwait(false);
             await UpsertSettingAsync(connection, "fx_live_auto_hour", hour.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);

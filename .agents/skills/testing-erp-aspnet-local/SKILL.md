@@ -223,3 +223,25 @@ digest checks.
   remains styled. Separate styling assertions from healthy data-backed rendering.
   HeadOutlet may be absent in SSR; inspect the body fallback and computed styles as
   well as the head, rather than equating missing HeadContent with missing styling.
+
+## CP currency UI fixtures and corroboration
+- `/cp/currencies-app` requires PHP-owned `shop_currencies` and `config_items`
+  fixtures on an empty throwaway database. Follow `epc-currency-setup.php`:
+  numeric `iso_code` values `784`, `840`, `978` correspond to `iso_name`
+  `AED`, `USD`, `EUR`; `config_items(name,value)` sets `shop_currency=784`.
+  The rates grid reads `id`, `iso_code`, `iso_name`, `caption_short`, `rate`,
+  `available`, and `order`. Do not substitute alpha-only ISO fixtures: test both
+  numeric ISO input and alphabetic name input against the actual stored keys.
+- Compare DB values after single-rate writes even when the UI reports success;
+  zero-row updates can otherwise masquerade as successful currency changes.
+- The live FX service initializes `rate_source`, `rate_updated_at`, and
+  `epc_price_settings`. Verify rates AND audit metadata after Apply; verify
+  `fx_live_auto_last_status` and `fx_live_auto_last_message` after Run now.
+  Leave `Cp:CurrencyFxSchedule:Enabled` disabled for deterministic manual tests.
+- For JSON-only confirmation gates, use same-origin browser `fetch` without
+  extracting cookies. Compare deterministic `mysqldump --skip-comments
+  --skip-dump-date` snapshots of both currency/settings tables after each call.
+- If incognito navigation to the local host never reaches Kestrel, use the
+  normal browser's Log out control and retry the anonymous route there.
+  Confirm the redirect in Kestrel logs; do not attribute a proxy/browser-only
+  redirect loop to the application without a corresponding local request.
