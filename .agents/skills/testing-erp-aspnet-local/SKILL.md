@@ -245,3 +245,30 @@ digest checks.
   normal browser's Log out control and retry the anonymous route there.
   Confirm the redirect in Kestrel logs; do not attribute a proxy/browser-only
   redirect loop to the application without a corresponding local request.
+
+## CP status, groups, configuration, languages and statistics
+- Minimal ERP fixtures may lack PHP-owned CP metadata. Inspect each service's
+  SELECT columns before seeding the throwaway DB. Status persistence uses
+  `shop_orders_statuses_ref` and `shop_orders_items_statuses_ref`, with captions
+  joined through `lang_text_strings_translation`; do not assume table names from
+  the UI labels. Groups require role flags plus `parent`, `level`, and `order`.
+- For config-file write tests, launch Kestrel with
+  `EcomAE__PhpReference__PhpDocRoot` pointing to an isolated temporary directory
+  containing a minimal `config.php` class. Preserve a baseline including the
+  `<?php` prefix, comments, unrelated properties and a password property.
+  Seed `config_groups` and full `config_items` editor metadata, then use
+  `?need_config_group=<fixture-id>` to constrain the UI.
+- Language configuration updates both `lang_languages` (`lang_code`, `active`,
+  `is_default`) and the PHP file's `multilang` property. Compare both DB and file
+  after invalid default/active combinations; compare group and translation
+  snapshots after invalid group-role changes.
+- Translation scopes use active languages. Seed fully translated, partially
+  translated and untranslated keys. Status/group writes also create translated
+  strings, so broad QA searches can match those too; `_` can act as a SQL LIKE
+  wildcard. Check returned keys and language cells rather than counts alone.
+- Seed `shop_stat_article_queries` with Unix timestamps relative to the machine
+  date, repeated IPs, two articles/brands, and an older out-of-week row. This
+  distinguishes hit counts, distinct IPs, daily bars and 7/30-day quick links.
+- Anonymous CP page access may be intercepted by middleware before a component's
+  inline warning renders. Record the actual redirect and mark the warning
+  unreachable rather than claiming it appeared.
