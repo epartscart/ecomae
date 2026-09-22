@@ -2,180 +2,293 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpTemplatesPluginsService Templates
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Templates manager · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-tp-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; }
+    .epc-tp-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-tp-actions .panel_a_caption { font-size:12px; }
+    .epc-tp-list td a { color:inherit; display:block; text-decoration:none; }
+    .epc-tp-list .a_col_img { width:20px; height:20px; }
+    .epc-tp-list .pagination { margin:8px 0 0; }
+    .epc-tp-form .form-group { margin-bottom:10px; }
+    .epc-tp-form .hr-line-dashed { border-top:1px dashed #e4e5e7; margin:12px 0; }
+    .epc-tp-form .control-label { text-align:right; padding-top:7px; }
+    .epc-tp-form img.epc-preview { max-width:100%; max-height:120px; display:block; margin-top:4px; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Templates manager
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>Installed storefront and CP templates. Set current writes here. Delete and style generate stay on the Classic twin.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/templates-manager-app" IsAdmin="_isAdmin" />
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    @if (!_isAdmin)
     {
-        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+        <div class="col-lg-12"><div class="alert alert-warning">Admin CP session required. <a href="/cp/login?returnUrl=/cp/templates-manager-app">Log in</a>.</div></div>
     }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    else if (_editId > 0)
     {
-        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
-    }
-
-    @if (_opened is not null)
-    {
+        @* ---- template_edit.php twin ---- *@
         <div class="col-lg-12">
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
-                    @OpenedCaption
-                    <a class="btn btn-xs btn-default pull-right" href="@OpenedReturnHref">This row</a>
-                    <a class="btn btn-xs btn-default pull-right" href="@_listHref" style="margin-right:.35rem">Close</a>
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/templates/template?template_id=" + _editId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
                 </div>
-                <div class="panel-body">
-                    <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                        <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                        <dt>Caption</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Caption) ? "—" : _opened.Caption)</dd>
-                        <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
-                        <dt>Current</dt><dd>@_opened.Current.ToString(CultureInfo.InvariantCulture)</dd>
-                        <dt>Frontend</dt><dd>@_opened.IsFrontend.ToString(CultureInfo.InvariantCulture)</dd>
-                        <dt>Phone</dt><dd>@_opened.PhoneSupport.ToString(CultureInfo.InvariantCulture)</dd>
-                        <dt>Tablet</dt><dd>@_opened.TabletSupport.ToString(CultureInfo.InvariantCulture)</dd>
-                    </dl>
-                    @if (_opened.Current != 0)
-                    {
-                        <p class="text-muted" style="margin:.85rem 0 0">This is the current template. Delete stays on the Classic twin.</p>
-                    }
-                    else
-                    {
-                        <form method="post" action="/cp/templates-manager/set-current" class="form-inline" style="margin:.85rem 0 0">
-                            <input type="hidden" name="confirmWrites" value="true" />
-                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-                            <input type="hidden" name="template_id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
-                            <button type="submit" class="btn btn-sm btn-primary">Set current</button>
-                        </form>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_opened.DataValueExcerpt))
-                    {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DataValueExcerpt</pre>
-                        @if (_opened.DataValueLen > _opened.DataValueExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_opened.DataValueExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.DataValueLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted" style="margin:.85rem 0 0">No data_value excerpt yet.</p>
-                    }
-                    @if (_openedSiblings.Count > 0)
-                    {
-                        <p class="text-muted" style="margin:1rem 0 .4rem">Same-frontend siblings</p>
-                        <div class="table-responsive">
-                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-                                <thead>
-                                    <tr>
-                                        <th>Id</th>
-                                        <th>Caption</th>
-                                        <th>Name</th>
-                                        <th>Current</th>
-                                        <th></th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Caption) ? sib.Caption : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Name) ? sib.Name : "—")</td>
-                                            <td>@sib.Current.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "tpl_id", sib.Id)">Open</a></td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
-                    }
-                    else
-                    {
-                        <p class="text-muted">No same-frontend siblings yet.</p>
-                    }
+                <div class="panel-body epc-tp-actions">
+                    <a class="panel_a" href="javascript:void(0);" onclick="epcSaveTemplate();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                    <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fa fa-paint-brush"></i></div><div class="panel_a_caption">Templates</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
                 </div>
             </div>
         </div>
-    }
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Templates</div>
-            <div class="panel-body">
-                <p class="help-block">@_summary.TemplateCount.ToString(CultureInfo.InvariantCulture) templates · @_summary.FrontendCount.ToString(CultureInfo.InvariantCulture) frontend · current FE @_summary.CurrentFrontendCount.ToString(CultureInfo.InvariantCulture) · current BE @_summary.CurrentBackendCount.ToString(CultureInfo.InvariantCulture).</p>
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Caption</th>
-                                <th>Name</th>
-                                <th>Current</th>
-                                <th>Frontend</th>
-                                <th></th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (_rows.Count == 0)
-                        {
-                            <tr><td colspan="7">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var row in _rows)
+        @if (_edit is null)
+        {
+            <div class="col-lg-12"><div class="alert alert-danger">Template #@_editId.ToString(CultureInfo.InvariantCulture) was not found.</div></div>
+        }
+        else
+        {
+            <form id="template_form" method="post" action="/cp/templates-manager/save" class="form-horizontal epc-tp-form">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@EditHref(_edit.Id)" />
+                <input type="hidden" name="save_template_action" value="save_template_action" />
+                <input type="hidden" name="id" value="@_edit.Id.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="name" value="@_edit.Name" />
+                <input type="hidden" name="is_frontend" value="@_edit.IsFrontend.ToString(CultureInfo.InvariantCulture)" />
+                <div class="col-lg-6">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">Template</div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label for="caption_input" class="col-lg-6 control-label">Caption</label>
+                                <div class="col-lg-6">
+                                    <input type="text" name="caption" id="caption_input" value="@_edit.Caption" class="form-control" required />
+                                </div>
+                            </div>
+                            @if (!_edit.Current)
                             {
-                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Caption) ? row.Caption : "—")</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                                    <td>@row.Current.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.IsFrontend.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "tpl_id", row.Id)">Open</a></td>
-                                    <td>
-                                        @if (row.Current != 0)
+                                <div class="hr-line-dashed col-lg-12"></div>
+                                <div class="form-group">
+                                    <label for="current_checkbox" class="col-lg-6 control-label">Set as current</label>
+                                    <div class="col-lg-6">
+                                        <input type="checkbox" name="current" id="current_checkbox" value="1" />
+                                    </div>
+                                </div>
+                            }
+                            else
+                            {
+                                <div class="hr-line-dashed col-lg-12"></div>
+                                <div class="form-group">
+                                    <label class="col-lg-6 control-label">Current</label>
+                                    <div class="col-lg-6"><p class="form-control-static"><img class="a_col_img" style="width:20px" src="/cp/templates/bootstrap_admin/images/star.png" alt="current" /> This template is current</p></div>
+                                </div>
+                            }
+                            <div class="hr-line-dashed col-lg-12"></div>
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Folder</label>
+                                <div class="col-lg-6"><p class="form-control-static">@(_edit.IsFrontend == 1 ? "/templates/" : "/cp/templates/")@_edit.Name</p></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                @if (_edit.Fields.Count > 0)
+                {
+                    <div class="col-lg-6">
+                        <div class="hpanel">
+                            <div class="panel-heading hbuilt">Special settings</div>
+                            <div class="panel-body">
+                                @for (var i = 0; i < _edit.Fields.Count; i++)
+                                {
+                                    var f = _edit.Fields[i];
+                                    var hidden = f.Type == "hidden";
+                                    if (i > 0 && !hidden) { <div class="hr-line-dashed col-lg-12"></div> }
+                                    if (hidden)
+                                    {
+                                        <CpDataStructureWidget Field="f" />
+                                        continue;
+                                    }
+                                    <div class="form-group">
+                                        <label for="@f.Name" class="col-lg-6 control-label">@f.Caption</label>
+                                        <div class="col-lg-6">
+                                            <CpDataStructureWidget Field="f" />
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            </form>
+            <script>
+                function epcSaveTemplate() {
+                    var c = document.getElementById('caption_input');
+                    if (!c.value.trim()) { alert('Caption is required.'); c.focus(); return; }
+                    document.getElementById('template_form').requestSubmit();
+                }
+            </script>
+        }
+    }
+    else
+    {
+        @* ---- templates_manager.php twin ---- *@
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                </div>
+                <div class="panel-body epc-tp-actions">
+                    <a class="panel_a" href="javascript:void(0);" onclick="setCurrent(0);"><div class="panel_a_img"><i class="fa fa-star"></i></div><div class="panel_a_caption">Set current</div></a>
+                    <a class="panel_a" href="javascript:void(0);" onclick="deleteTemplates(0);"><div class="panel_a_img"><i class="fa fa-trash"></i></div><div class="panel_a_caption">Delete</div></a>
+                    @if (_isFrontend == 1)
+                    {
+                        <a class="panel_a" href="javascript:void(0);" onclick="epcEditMode('backend');"><div class="panel_a_img"><i class="fa fa-cogs"></i></div><div class="panel_a_caption">Backend editing</div></a>
+                    }
+                    else
+                    {
+                        <a class="panel_a" href="javascript:void(0);" onclick="epcEditMode('frontend');"><div class="panel_a_img"><i class="fa fa-desktop"></i></div><div class="panel_a_caption">Frontend editing</div></a>
+                    }
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                </div>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
+
+        <form name="templates_manager_action_form" id="templates_manager_action_form" method="post" action="/cp/templates-manager/set-current" style="display:none">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@PageHref(_list.Page)" />
+            <input type="hidden" name="templates_action" value="templates_action" />
+            <input type="hidden" name="templates_action_type" id="templates_action_type" value="" />
+            <input type="hidden" name="templates_list" id="templates_list" value="" />
+            <input type="hidden" name="template_id" id="template_id" value="" />
+            <input type="hidden" name="is_frontend" value="@_isFrontend.ToString(CultureInfo.InvariantCulture)" />
+        </form>
+        <form id="edit_mode_form" method="post" action="/cp/control/edit-mode" style="display:none">
+            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <input type="hidden" name="edit_mode" id="edit_mode" value="" />
+        </form>
+
+        <div class="col-lg-12">
+            <div class="hpanel epc-tp-list">
+                <div class="panel-heading hbuilt">@(_isFrontend == 1 ? "Storefront templates" : "Control panel templates")</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped" id="templates_table">
+                            <thead>
+                                <tr>
+                                    <th style="width:30px"><input type="checkbox" id="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
+                                    <th style="width:70px">ID</th>
+                                    <th>Caption</th>
+                                    <th style="width:90px">Phone</th>
+                                    <th style="width:90px">Tablet</th>
+                                    <th class="text-center" style="width:90px">Current</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @if (_list.Items.Count == 0)
+                            {
+                                <tr><td colspan="6" class="text-muted">No @(_isFrontend == 1 ? "storefront" : "control panel") templates are installed.</td></tr>
+                            }
+                            @foreach (var t in _list.Items)
+                            {
+                                var id = t.Id.ToString(CultureInfo.InvariantCulture);
+                                <tr>
+                                    <td><input type="checkbox" class="epc-row-check" data-id="@id" id="checked_@id" name="checked_@id" onchange="on_one_check_changed('checked_@id');" /></td>
+                                    <td><a href="@EditHref(t.Id)">@id</a></td>
+                                    <td><a href="@EditHref(t.Id)">@t.Caption</a></td>
+                                    <td>@if (t.PhoneSupport) { <i class="fa fa-check text-success"></i> }</td>
+                                    <td>@if (t.TabletSupport) { <i class="fa fa-check text-success"></i> }</td>
+                                    <td class="text-center">
+                                        @if (t.Current)
                                         {
-                                            <span class="text-muted">Current</span>
+                                            <i class="fa fa-star" style="color:#f0ad4e" title="Current template"></i>
                                         }
                                         else
                                         {
-                                            <form method="post" action="/cp/templates-manager/set-current" style="display:inline">
-                                                <input type="hidden" name="confirmWrites" value="true" />
-                                                <input type="hidden" name="returnUrl" value="@_listHref" />
-                                                <input type="hidden" name="template_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
-                                                <button type="submit" class="btn btn-xs btn-primary">Set current</button>
-                                            </form>
+                                            <a href="javascript:void(0);" onclick="setCurrent(@id);" title="Set current" style="display:inline"><i class="fa fa-star-o"></i></a>
                                         }
                                     </td>
                                 </tr>
                             }
-                        }
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_list.Pages > 1)
+                    {
+                        <div class="row">
+                            <div class="col-lg-12 text-center">
+                                <div class="dataTables_paginate paging_simple_numbers">
+                                    <ul class="pagination">
+                                        @for (var i = 0; i < _list.Pages; i++)
+                                        {
+                                            var n = (i + 1).ToString(CultureInfo.InvariantCulture);
+                                            if (i == _list.Page)
+                                            {
+                                                <li class="paginate_button active"><a href="javascript:void(0);">@n</a></li>
+                                            }
+                                            else
+                                            {
+                                                <li class="paginate_button"><a href="@PageHref(i)">@n</a></li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
         </div>
-    </div>
+        <script>
+            var currentTemplate = @_currentId.ToString(CultureInfo.InvariantCulture);
+            function epcChecked() {
+                var ids = [];
+                document.querySelectorAll('#templates_table .epc-row-check:checked').forEach(function (c) { ids.push(parseInt(c.getAttribute('data-id'), 10)); });
+                return ids;
+            }
+            function on_check_uncheck_all() {
+                var on = document.getElementById('check_uncheck_all').checked;
+                document.querySelectorAll('#templates_table .epc-row-check').forEach(function (c) { c.checked = on; });
+            }
+            function on_one_check_changed(id) {
+                if (!document.getElementById(id).checked) { document.getElementById('check_uncheck_all').checked = false; }
+            }
+            function setCurrent(id) {
+                var ids = id > 0 ? [id] : epcChecked();
+                if (ids.length == 0) { alert('Select a template first.'); return; }
+                if (ids.length > 1) { alert('Only one template can be current. Select exactly one.'); return; }
+                if (ids[0] == currentTemplate) { return; }
+                var f = document.getElementById('templates_manager_action_form');
+                f.action = '/cp/templates-manager/set-current';
+                document.getElementById('templates_action_type').value = 'set_current';
+                document.getElementById('template_id').value = ids[0];
+                document.getElementById('templates_list').value = JSON.stringify(ids);
+                f.submit();
+            }
+            function deleteTemplates(id) {
+                var ids = id > 0 ? [id] : epcChecked();
+                if (ids.length == 0) { alert('Select templates to delete.'); return; }
+                if (ids.indexOf(currentTemplate) >= 0) { alert('The current template cannot be deleted.'); return; }
+                if (!confirm('Delete ' + ids.length + ' template(s)? The template folder is removed too.')) { return; }
+                var f = document.getElementById('templates_manager_action_form');
+                f.action = '/cp/templates-manager/delete';
+                document.getElementById('templates_action_type').value = 'delete';
+                document.getElementById('template_id').value = '';
+                document.getElementById('templates_list').value = JSON.stringify(ids);
+                f.submit();
+            }
+            function epcEditMode(mode) {
+                document.getElementById('edit_mode').value = mode;
+                document.getElementById('edit_mode_form').submit();
+            }
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
@@ -184,56 +297,41 @@
     private bool _isAdmin;
     private string _flashOk = "";
     private string _flashErr = "";
-    private CpTemplatesManagerSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpTemplatesManagerRowDigest> _rows = [];
-    private long _openedId;
-    private CpTemplatesManagerDetail? _opened;
-    private IReadOnlyList<CpTemplatesManagerRowDigest> _openedSiblings = [];
+    private int _isFrontend = 1;
+    private long _editId;
+    private long _currentId;
+    private CpPagedList<CpTemplateRow> _list = new([], 0, 0, 0);
+    private CpTemplateDetail? _edit;
 
-    private string OpenedCaption => _opened is null
-        ? ""
-        : (!string.IsNullOrWhiteSpace(_opened.Caption)
-            ? _opened.Caption
-            : (!string.IsNullOrWhiteSpace(_opened.Name)
-                ? _opened.Name
-                : ("Template #" + _opened.Id.ToString(CultureInfo.InvariantCulture))));
+    private static string EditHref(long id) => _listHref + "?template_id=" + id.ToString(CultureInfo.InvariantCulture);
 
-    private string OpenedReturnHref => _openedId > 0
-        ? _listHref + "?tpl_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
-        : _listHref;
+    private static string PageHref(int page) => page <= 0 ? _listHref : _listHref + "?s_page=" + page.ToString(CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "tpl_id");
         _flashOk = ctx.Request.Query["ok"].ToString();
         _flashErr = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpTemplatesManagerDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Templates;
-
-        if (_openedId > 0)
+        _isFrontend = CpTemplatesPluginsService.ReadIsFrontend(ctx.Request);
+        var rawId = ctx.Request.Query["template_id"].ToString();
+        if (rawId.Length == 0) rawId = ctx.Request.Query["tpl_id"].ToString();
+        if (long.TryParse(rawId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0)
         {
-            var detail = await Dashboards.BuildCpTemplatesManagerDetailAsync(_openedId, ctx.RequestAborted);
-            _opened = detail.Template;
-            _openedSiblings = detail.Siblings;
-            if (_opened is not null)
-            {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
+            _editId = id;
+            _edit = await Templates.TemplateAsync(id, _isFrontend, ctx.RequestAborted);
+            return;
         }
+
+        _list = await Templates.TemplatesAsync(_isFrontend, CpTemplatesPluginsService.ReadPage(ctx.Request), ctx.RequestAborted);
+        _currentId = _list.Items.FirstOrDefault(t => t.Current)?.Id ?? 0;
     }
 }

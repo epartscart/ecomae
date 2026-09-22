@@ -1,7 +1,9 @@
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Cp;
+using Microsoft.Extensions.Options;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
@@ -12667,15 +12669,232 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var written = await writes.SetCurrentAsync(new CpTemplatesSetCurrentRequest(templateId), cancellationToken);
-            var dest = written.Id > 0
-                ? EcomAeRoutes.ControlPanelTemplatesManagerApp + "?tpl_id=" + written.Id.ToString(CultureInfo.InvariantCulture)
-                : EcomAeRoutes.ControlPanelTemplatesManagerApp;
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelTemplatesManagerApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelTemplatesDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTemplatesWriteService writes,
+            IOptions<PhpReferenceOptions> reference,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/templates-manager-app", "Admin CP capability required for template delete.");
+            }
+
+            IReadOnlyList<long> ids = [];
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ids = CpTemplatesWriteService.ParseIds(LiveWriteFormBinder.Text(form, "templates_list", "templatesList"), LiveWriteFormBinder.Long(form, "template_id", "templateId", "tpl_id"));
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpTemplatesDeleteBody>(context, cancellationToken) ?? new();
+                ids = CpTemplatesWriteService.ParseIds(body.TemplatesList, body.TemplateId);
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to delete templates.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.DeleteAsync(new CpTemplatesDeleteRequest(ids, PhpDocRoot(reference.Value)), cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelTemplatesManagerApp,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelTemplatesSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpTemplatesWriteService writes,
+            IOptions<PhpReferenceOptions> reference,
+            IOptions<EcomAeOptions> options,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/templates-manager-app", "Admin CP capability required for template save.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, error = new { code = "form_required", message = "Template save expects the PHP save_template_action form." } });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var id = LiveWriteFormBinder.Long(form, "id", "template_id");
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (!confirm)
+            {
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to save the template.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.SaveAsync(
+                new CpTemplateSaveRequest(
+                    id,
+                    LiveWriteFormBinder.Text(form, "caption"),
+                    LiveWriteFormBinder.Flag(form, "current"),
+                    DataValueFromForm(form),
+                    PhpDocRoot(reference.Value),
+                    reference.Value.TenantPhpBaseUrl,
+                    options.Value.SecretSuccession),
+                cancellationToken);
+            var dest = EcomAeRoutes.ControlPanelTemplatesManagerApp + "?template_id=" + id.ToString(CultureInfo.InvariantCulture);
             return LiveWriteFormBinder.Complete(
                 context,
                 dest,
                 written.Succeeded,
                 written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelPluginsDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPluginsWriteService writes,
+            IOptions<PhpReferenceOptions> reference,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/plugins-manager-app", "Admin CP capability required for plugin delete.");
+            }
+
+            long pluginId = 0;
+            string? pluginsList = null;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                pluginId = LiveWriteFormBinder.Long(form, "plugin_id", "pluginId");
+                pluginsList = LiveWriteFormBinder.Text(form, "plugins_list", "pluginsList");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+            else
+            {
+                var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPluginsActivateBody>(context, cancellationToken) ?? new();
+                pluginId = body.PluginId;
+                pluginsList = body.PluginsList;
+                confirm = body.ConfirmWrites;
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to delete plugins.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.DeleteAsync(new CpPluginsDeleteRequest(pluginsList, pluginId, PhpDocRoot(reference.Value)), cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelPluginsManagerApp,
+                written.Succeeded,
+                written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelPluginsSave, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPluginsWriteService writes,
+            ICpConfigEditorService config,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/plugins-manager-app", "Admin CP capability required for plugin save.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, error = new { code = "form_required", message = "Plugin save expects the PHP save_plugin_action form." } });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var id = LiveWriteFormBinder.Long(form, "id", "plugin_id");
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            if (!confirm)
+            {
+                return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, phpAuthoritative = true, validation_code = "dry_run", message = "Set confirmWrites=true to save the plugin.", session = SessionPayload(session) });
+            }
+
+            var langIds = new Dictionary<string, string>(StringComparer.Ordinal);
+            var langNames = new List<string>();
+            foreach (var key in form.Keys)
+            {
+                if (key.StartsWith("dv_lang_", StringComparison.Ordinal))
+                {
+                    var name = key["dv_lang_".Length..];
+                    langIds[name] = form[key].ToString();
+                    langNames.Add(name);
+                }
+            }
+
+            var written = await writes.SaveAsync(
+                new CpPluginSaveRequest(
+                    id,
+                    LiveWriteFormBinder.Text(form, "caption"),
+                    LiveWriteFormBinder.Text(form, "caption_lang_str_id"),
+                    LiveWriteFormBinder.Text(form, "description"),
+                    LiveWriteFormBinder.Text(form, "description_lang_str_id"),
+                    LiveWriteFormBinder.Flag(form, "activated") ? 1 : 0,
+                    LiveWriteFormBinder.Int(form, "order"),
+                    DataValueFromForm(form),
+                    langIds,
+                    langNames,
+                    await PhpConfigValuesAsync(config, cancellationToken)),
+                cancellationToken);
+            var dest = EcomAeRoutes.ControlPanelPluginsManagerApp + "?plugin_id=" + id.ToString(CultureInfo.InvariantCulture);
+            return LiveWriteFormBinder.Complete(
+                context,
+                dest,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ControlPanelControlEditMode, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login", "Admin CP capability required.");
+            }
+
+            var mode = "frontend";
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                mode = LiveWriteFormBinder.Text(form, "edit_mode", "mode");
+            }
+
+            mode = string.Equals(mode, "backend", StringComparison.OrdinalIgnoreCase) ? "backend" : "frontend";
+            context.Response.Cookies.Append(
+                CpTemplatesPluginsService.EditModeCookie,
+                mode,
+                new CookieOptions { Path = "/", HttpOnly = false, SameSite = SameSiteMode.Lax, Expires = DateTimeOffset.UtcNow.AddYears(1) });
+            return Results.Redirect(LiveWriteFormBinder.ReturnUrl(context, EcomAeRoutes.ControlPanelTemplatesManagerApp));
         }).DisableAntiforgery();
 
         endpoints.MapGet(EcomAeRoutes.ControlPanelDesignTokens, async (
@@ -13862,6 +14081,42 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
     }
 
+    private static string PhpDocRoot(PhpReferenceOptions reference)
+        => (reference.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
+
+    /// <summary>PHP <c>data_value[name]</c> posted as <c>dv[name]</c> form fields.</summary>
+    private static Dictionary<string, string> DataValueFromForm(IFormCollection form)
+    {
+        var values = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var key in form.Keys)
+        {
+            if (key.StartsWith("dv[", StringComparison.Ordinal) && key.EndsWith(']'))
+            {
+                values[key[3..^1]] = form[key].ToString();
+            }
+        }
+
+        return values;
+    }
+
+    private static async Task<IReadOnlyDictionary<string, string>> PhpConfigValuesAsync(ICpConfigEditorService config, CancellationToken cancellationToken)
+    {
+        var path = config.ConfigPath;
+        if (path.Length == 0 || !File.Exists(path))
+        {
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+
+        try
+        {
+            return PhpConfigFile.Values(PhpConfigFile.Parse(await File.ReadAllTextAsync(path, cancellationToken)));
+        }
+        catch (IOException)
+        {
+            return new Dictionary<string, string>(StringComparer.Ordinal);
+        }
+    }
+
     private static IResult Unauthorized(string message) => Results.Json(
         new { ok = false, error = new { code = "unauthorized", message } },
         statusCode: StatusCodes.Status401Unauthorized);
@@ -14991,6 +15246,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         int FlagValue = 0,
         bool ConfirmWrites = false);
     private sealed record CpTemplatesSetCurrentBody(long TemplateId = 0, bool ConfirmWrites = false);
+    private sealed record CpTemplatesDeleteBody(long TemplateId = 0, string? TemplatesList = null, bool ConfirmWrites = false);
     private sealed record CpNotificationToggleBody(
         long NotificationId = 0,
         string? Type = null,

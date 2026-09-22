@@ -297,7 +297,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
     {
         var plugins = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpPluginsManagerApp.razor"));
         Assert.Contains("class=\"hpanel\"", plugins, StringComparison.Ordinal);
-        Assert.Contains("HasStaffAccess", plugins, StringComparison.Ordinal);
+        Assert.Contains("_isAdmin", plugins, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", plugins, StringComparison.Ordinal);
 
         var templates = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpTemplatesManagerApp.razor"));

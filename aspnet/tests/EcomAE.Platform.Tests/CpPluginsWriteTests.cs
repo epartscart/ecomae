@@ -48,7 +48,7 @@ public class CpPluginsWriteTests
         var src = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ControlPanelPluginsActivate", src);
         Assert.Contains("ICpPluginsWriteService", src);
-        Assert.Contains("Backend 2FA plugin activate stays on the Classic twin", File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPluginsWriteService.cs")));
+        Assert.Contains("TwoFactorChannelReadyAsync", File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPluginsWriteService.cs")));
     }
 
     [Fact]
