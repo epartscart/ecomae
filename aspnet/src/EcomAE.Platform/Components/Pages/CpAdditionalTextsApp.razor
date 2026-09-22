@@ -2,245 +2,272 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpAdditionalTextEditorService Texts
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Additional texts · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-at-actions { display:flex; flex-wrap:wrap; gap:.25rem; }
+    .epc-at-actions .panel_a { display:inline-block; text-align:center; padding:.5rem .9rem; color:#6a6c6f; text-decoration:none; }
+    .epc-at-actions .panel_a_img { font-size:22px; }
+    .epc-at-actions .panel_a_caption { font-size:12px; }
+    .epc-at-editor textarea { min-height:320px; font-family:monospace; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+    @if (!_isAdmin)
+    {
+        <div class="hpanel"><div class="panel-body">
+            <div class="alert alert-warning" role="status">Sign in to the Control Panel to manage additional texts. <a href="/cp/login?returnUrl=/cp/additional-texts-app">Login</a></div>
+        </div></div>
+    }
+    else if (_editorMode)
+    {
+        @* ---- text_for_url.php twin ---- *@
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Additional text for URL
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+            <div class="panel-body epc-at-actions">
+                <a class="panel_a" href="javascript:void(0);" onclick="document.forms['text_form'].submit();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                @if (_editor is not null && !string.IsNullOrWhiteSpace(_editor.Url))
+                {
+                    <a class="panel_a" href="@_editor.Url" target="_blank" rel="noopener"><div class="panel_a_img"><i class="fa fa-eye"></i></div><div class="panel_a_caption">View page</div></a>
+                }
+                <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
 
-    <div class="col-lg-12">
+        <form id="text_form" name="text_form" method="post" action="/cp/additional-texts/write" class="epc-at-editor">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(_listHref + "?url=" + Uri.EscapeDataString(_editor?.Url ?? _requestedUrl))" />
+            <input type="hidden" name="action" value="save" />
+            <input type="hidden" name="lang_code" value="en" />
+            <input type="hidden" name="text_lang_str_id" value="@(_editor?.ContentLangStrId ?? "")" />
+            <input type="hidden" name="title_tag_lang_str_id" value="@(_editor?.TitleLangStrId ?? "")" />
+            <input type="hidden" name="description_tag_lang_str_id" value="@(_editor?.DescriptionLangStrId ?? "")" />
+            <input type="hidden" name="keywords_tag_lang_str_id" value="@(_editor?.KeywordsLangStrId ?? "")" />
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Page parameters</div>
+                    <div class="panel-body">
+                        <div class="form-horizontal">
+                            <div class="form-group col-lg-6">
+                                <label for="page_url" class="col-lg-6 control-label">Page URL (path after the domain)</label>
+                                <div class="col-lg-6"><input type="text" class="form-control" name="url" id="page_url" required value="@(_editor?.Url ?? _requestedUrl)" /></div>
+                            </div>
+                            <div class="hr-line-dashed col-lg-12 hidden-lg"></div>
+                            <div class="form-group col-lg-6">
+                                <label for="before_main_check" class="col-lg-9 control-label">Show text before main content</label>
+                                <div class="col-lg-3"><input type="checkbox" class="form-control" name="before_main" id="before_main_check" value="1" checked="@(_editor is not null && _editor.BeforeMain != 0)" /></div>
+                            </div>
+                            <div class="hr-line-dashed col-lg-12"></div>
+                            <div class="form-group col-lg-6">
+                                <label for="title_tag_input" class="col-lg-6 control-label">Title tag</label>
+                                <div class="col-lg-6"><input type="text" class="form-control" name="title_tag" id="title_tag_input" value="@(_editor?.TitleTag ?? "")" /></div>
+                            </div>
+                            <div class="hr-line-dashed col-lg-12 hidden-lg"></div>
+                            <div class="form-group col-lg-6">
+                                <label for="description_tag_input" class="col-lg-6 control-label">Description tag</label>
+                                <div class="col-lg-6"><input type="text" class="form-control" name="description_tag" id="description_tag_input" value="@(_editor?.DescriptionTag ?? "")" /></div>
+                            </div>
+                            <div class="hr-line-dashed col-lg-12"></div>
+                            <div class="form-group col-lg-6">
+                                <label for="keywords_tag_input" class="col-lg-6 control-label">Keywords tag</label>
+                                <div class="col-lg-6"><input type="text" class="form-control" name="keywords_tag" id="keywords_tag_input" value="@(_editor?.KeywordsTag ?? "")" /></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Text (HTML)</div>
+                    <div class="panel-body">
+                        <textarea class="form-control" id="content_value_area" name="text">@(_editor?.Content ?? "")</textarea>
+                    </div>
+                </div>
+            </div>
+        </form>
+    }
+    else
+    {
+        @* ---- text_for_url_list.php twin ---- *@
         <div class="hpanel">
             <div class="panel-heading hbuilt">
                 Additional texts
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
-            <div class="panel-body">
-                <p>SEO and extra copy for storefront URLs. Open a row for a content excerpt. Save or delete here.</p>
+            <div class="panel-body epc-at-actions">
+                <a class="panel_a" href="@(_listHref)?url=&new=1"><div class="panel_a_img"><i class="fa fa-plus"></i></div><div class="panel_a_caption">Add</div></a>
+                <a class="panel_a" href="javascript:void(0);" onclick="delete_selected();"><div class="panel_a_img"><i class="fa fa-trash-o"></i></div><div class="panel_a_caption">Delete</div></a>
+                <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
             </div>
         </div>
-    </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/additional-texts-app" IsAdmin="_isAdmin" />
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
 
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedText is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="alert alert-success" role="status">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status">@_flashErr</div>
-    }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/additional-texts/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/additional-texts-app" />
-            <label>URL <input type="text" name="url" required placeholder="/shop/demo" value="@(_openedText is not null ? _openedText.Url : "")" /></label>
-            <label>Title <input type="text" name="titleTag" value="@(_openedText is not null ? _openedText.TitleTag : "")" /></label>
-            <label>Description <input type="text" name="descriptionTag" /></label>
-            <label>Keywords <input type="text" name="keywordsTag" value="@(_openedText is not null ? _openedText.KeywordsTag : "")" /></label>
-            <label>Before main
-                <select name="beforeMain">
-                    <option value="0">No</option>
-                    <option value="1">Yes</option>
-                </select>
-            </label>
-            <label>Body <input type="text" name="content" placeholder="HTML or text" style="width:16rem" /></label>
-            <button type="submit">Save text</button>
-        </form>
-        <form method="post" action="/cp/additional-texts/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/additional-texts-app" />
-            <label>Ids <input type="text" name="ids" required placeholder="[1] or 1,2" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <button type="submit">Delete texts</button>
-        </form>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Additional text KPIs">
-        <div class="kpi"><div class="lbl">Texts</div><div class="val">@_summary.TextCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Before main</div><div class="val">@_summary.BeforeMainCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">With title</div><div class="val">@_summary.WithTitleCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Placement siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedText is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedText.TitleTag) ? _openedText.TitleTag : (!string.IsNullOrWhiteSpace(_openedText.Url) ? _openedText.Url : ("Text #" + _openedText.Id.ToString(CultureInfo.InvariantCulture))))
-                    <span class="label label-default pull-right">@(_openedText.BeforeMain != 0 ? "before main" : "after")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedText.Url) ? _openedText.Url : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedText.KeywordsTag) ? _openedText.KeywordsTag : "—")</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedText.DescriptionExcerpt))
-                    {
-                        <p>@_openedText.DescriptionExcerpt
-                            @if (_openedText.DescriptionLen > _openedText.DescriptionExcerpt.Length)
-                            {
-                                <span class="text-muted"> (excerpt)</span>
-                            }
-                        </p>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_openedText.ContentExcerpt))
-                    {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedText.ContentExcerpt</pre>
-                        @if (_openedText.ContentLen > _openedText.ContentExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_openedText.ContentExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedText.ContentLen.ToString(CultureInfo.InvariantCulture) chars). Full HTML stays on the Classic twin.</p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No content excerpt yet.</p>
-                    }
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Placement siblings</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>URL</th>
-                                    <th>Before</th>
-                                    <th>Title</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="4">No placement siblings yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Url) ? sib.Url : "—")</td>
-                                            <td>@sib.BeforeMain.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.TitleTag) ? sib.TitleTag : "—")</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <div class="col-lg-12">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">Texts</div>
+            <div class="panel-heading hbuilt">Search by URL</div>
             <div class="panel-body">
+                <form method="get" action="@_listHref" class="form-inline">
+                    <input type="text" class="form-control" name="search" placeholder="/shop/..." value="@_list.Search" />
+                    <label style="margin:0 .5rem"><input type="checkbox" name="exact" value="1" checked="@_list.ExactSearch" /> exact match</label>
+                    <input type="hidden" name="sort" value="@_list.SortField" />
+                    <input type="hidden" name="dir" value="@(_list.SortDesc ? "desc" : "asc")" />
+                    <button type="submit" class="btn btn-ar btn-primary">Search</button>
+                    @if (_list.Search.Length > 0) { <a class="btn btn-ar btn-default" href="@_listHref">Reset</a> }
+                </form>
+            </div>
+        </div>
+
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Texts list</div>
+            <div class="panel-body">
+                <form id="delete_form" method="post" action="/cp/additional-texts/delete" style="margin:0">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@_pageHref" />
+                    <input type="hidden" name="action" value="delete" />
+                    <input type="hidden" id="urls_to_del" name="urls_to_del" value="" />
+                </form>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                    <table class="table table-condensed table-striped table-epc" id="texts_table">
                         <thead>
                             <tr>
-                                <th>Id</th>
-                                <th>URL</th>
-                                <th>Before</th>
-                                <th>Title</th>
-                                <th></th>
+                                <th style="width:50px;"><input type="checkbox" id="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
+                                <th style="width:80px;"><a href="@SortHref("id")" id="id_sorter">ID @SortMark("id")</a></th>
+                                <th><a href="@SortHref("url")" id="url_sorter">URL @SortMark("url")</a></th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (!_isAdmin)
+                        @if (_list.Rows.Count == 0)
                         {
-                            <tr><td colspan="5">Sign in for live data.</td></tr>
+                            <tr><td colspan="3" class="text-muted">No additional texts yet.</td></tr>
                         }
-                        else if (_rows.Count == 0)
+                        @foreach (var r in _list.Rows)
                         {
-                            <tr><td colspan="5">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var row in _rows)
-                            {
-                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.Url) ? row.Url : "—")</td>
-                                    <td>@row.BeforeMain.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.TitleTag) ? row.TitleTag : "—")</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "text_id", row.Id)">Open</a></td>
-                                </tr>
-                            }
+                            var idText = r.Id.ToString(CultureInfo.InvariantCulture);
+                            var open = ErpRecordOpen.Href(_listHref, "text_id", r.Id);
+                            <tr id="erp-row-@idText">
+                                <td><input type="checkbox" class="epc-text-check" id="checked_@idText" value="@idText" onchange="on_one_check_changed();" /></td>
+                                <td><a href="@open">@idText</a></td>
+                                <td><a href="@open">@r.Url</a></td>
+                            </tr>
                         }
                         </tbody>
                     </table>
                 </div>
+                @if (_list.Pages > 1)
+                {
+                    <div class="row"><div class="col-lg-12 text-center"><div class="dataTables_paginate paging_simple_numbers"><ul class="pagination">
+                        @for (var i = 1; i <= _list.Pages; i++)
+                        {
+                            <li class="paginate_button @(i == _list.Page ? "active" : "")">
+                                @if (i == _list.Page) { <a href="javascript:void(0);">@i.ToString(CultureInfo.InvariantCulture)</a> }
+                                else { <a href="@PageHref(i)">@i.ToString(CultureInfo.InvariantCulture)</a> }
+                            </li>
+                        }
+                    </ul></div></div></div>
+                }
             </div>
         </div>
-    </div>
+        <script>
+            function on_check_uncheck_all() {
+                var state = document.getElementById('check_uncheck_all').checked;
+                document.querySelectorAll('.epc-text-check').forEach(function (c) { c.checked = state; });
+            }
+            function on_one_check_changed() {
+                var all = true;
+                document.querySelectorAll('.epc-text-check').forEach(function (c) { if (!c.checked) all = false; });
+                document.getElementById('check_uncheck_all').checked = all;
+            }
+            function delete_selected() {
+                var ids = [];
+                document.querySelectorAll('.epc-text-check:checked').forEach(function (c) { ids.push(parseInt(c.value, 10)); });
+                if (ids.length === 0) { alert('Select at least one text to delete.'); return; }
+                if (!confirm('Delete ' + ids.length + ' selected text(s)?')) { return; }
+                document.getElementById('urls_to_del').value = JSON.stringify(ids);
+                document.forms['delete_form'].submit();
+            }
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/content/dopolnitelnye-teksty";
     private const string _listHref = "/cp/additional-texts-app";
     private bool _isAdmin;
-    private CpAdditionalTextsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpAdditionalTextsRowDigest> _rows = [];
+    private bool _editorMode;
+    private string _requestedUrl = "";
     private string _flashOk = "";
     private string _flashErr = "";
-    private long _openedId;
-    private CpAdditionalTextsDetail? _openedText;
-    private IReadOnlyList<CpAdditionalTextsRowDigest> _openedSiblings = [];
+    private string _pageHref = _listHref;
+    private CpAdditionalTextEditor? _editor;
+    private CpAdditionalTextList _list = new([], 0, 1, 20, "id", true, "", false);
 
-    private string OpenedCaption => _openedText is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedText.TitleTag)
-            ? (string.IsNullOrWhiteSpace(_openedText.Url)
-                ? ("Text #" + _openedText.Id.ToString(CultureInfo.InvariantCulture))
-                : _openedText.Url)
-            : _openedText.TitleTag);
+    private string SortHref(string field)
+    {
+        var desc = _list.SortField == field ? !_list.SortDesc : field == "id";
+        return Query(1, field, desc);
+    }
+
+    private string SortMark(string field) => _list.SortField != field ? "" : (_list.SortDesc ? "▼" : "▲");
+
+    private string PageHref(int page) => Query(page, _list.SortField, _list.SortDesc);
+
+    private string Query(int page, string sort, bool desc)
+    {
+        var q = _listHref + "?sort=" + sort + "&dir=" + (desc ? "desc" : "asc");
+        if (page > 1) q += "&s_page=" + page.ToString(CultureInfo.InvariantCulture);
+        if (_list.Search.Length > 0) q += "&search=" + Uri.EscapeDataString(_list.Search) + (_list.ExactSearch ? "&exact=1" : "");
+        return q;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "text_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpAdditionalTextsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Texts;
-
-        if (_openedId > 0)
+        var textId = ErpRecordOpen.ReadId(ctx.Request, "text_id");
+        _requestedUrl = ctx.Request.Query["url"].ToString() ?? "";
+        var isNew = ctx.Request.Query.ContainsKey("new");
+        if (textId > 0)
         {
-            var detail = await Dashboards.BuildCpAdditionalTextsDetailAsync(_openedId, ctx.RequestAborted);
-            _openedText = detail.Text;
-            _openedSiblings = detail.Siblings;
-            if (_openedText is not null)
-            {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
+            _editorMode = true;
+            _editor = await Texts.OpenByIdAsync(textId, ctx.RequestAborted);
+            if (_editor is null) _flashErr = "Additional text #" + textId.ToString(CultureInfo.InvariantCulture) + " was not found.";
+            return;
         }
+
+        if (isNew || _requestedUrl.Length > 0)
+        {
+            _editorMode = true;
+            _editor = _requestedUrl.Length > 0 ? await Texts.OpenByUrlAsync(_requestedUrl, ctx.RequestAborted) : null;
+            return;
+        }
+
+        var page = int.TryParse(ctx.Request.Query["s_page"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) && p > 0 ? p : 1;
+        var sort = ctx.Request.Query["sort"].ToString();
+        var dir = ctx.Request.Query["dir"].ToString();
+        var desc = dir.Length == 0 ? sort != "url" : dir == "desc";
+        var exact = ctx.Request.Query["exact"].ToString() is "1" or "on" or "true";
+        _list = await Texts.ListAsync(page, 20, sort, desc, ctx.Request.Query["search"].ToString(), exact, ctx.RequestAborted);
+        _pageHref = PageHref(_list.Page);
     }
 }

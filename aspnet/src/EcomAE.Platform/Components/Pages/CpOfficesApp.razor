@@ -1,233 +1,422 @@
 @page "/cp/offices-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpOfficeEditorService Offices
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Offices · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-of-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; }
+    .epc-of-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-of-actions .panel_a_caption { font-size:12px; }
+    .epc-of-list td a { color:inherit; display:block; text-decoration:none; }
+    .epc-of-list tr.epc-row-open td { background:#fff8dc; }
+    .epc-of-list .pagination { margin:8px 0 0; }
+    .epc-of-form .form-group { margin-bottom:10px; }
+    .epc-of-form .hr-line-dashed { border-top:1px dashed #e4e5e7; margin:12px 0; }
+    .epc-of-tree { height:350px; overflow:auto; border:1px solid #e4e5e7; padding:6px; }
+    .epc-of-tree label { display:block; font-weight:normal; margin:2px 0; }
+    .epc-of-sl table td, .epc-of-sl table th { vertical-align:middle; }
+    .epc-of-sl .epc-range input { width:110px; display:inline-block; }
+    .epc-of-sl .epc-groups { display:none; }
+    .epc-of-sl tr.epc-on .epc-groups { display:block; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/offices-app" IsAdmin="_isAdmin" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-
-    <PhpCpModulePageHeader Title="Offices / pickup points"
-                           Subtitle="PHP offices.php parity — create, edit, and delete shop_offices plus office-name lang strings on this host. Membership is on Warehouses."
-                           PhpTabHref="@_phpTab">
-        <a class="ghost" href="/cp/storages-app">Storages</a>
-        <a class="ghost" href="/cp/delivery-methods-app">Obtaining modes</a>
-        <a class="ghost" href="/cp/geo-regions-app">Geo</a>
-    </PhpCpModulePageHeader>
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
-    }
     @if (!_isAdmin)
     {
-        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+        <div class="hpanel"><div class="panel-body">
+            <div class="alert alert-warning" role="status">Sign in to the Control Panel to manage offices. <a href="/cp/login?returnUrl=/cp/offices-app">Login</a></div>
+        </div></div>
+    }
+    else if (_geo is not null)
+    {
+        @* ---- office_geo_nodes.php twin ---- *@
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Office geography: @_geo.OfficeCaption
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/office/geo_nodes?office_id=" + _geo.OfficeId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
+            </div>
+            <div class="panel-body epc-of-actions">
+                <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('geo_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                <a class="panel_a" href="javascript:void(0);" onclick="epcGeoAll(true);"><div class="panel_a_img"><i class="fa fa-check-square-o"></i></div><div class="panel_a_caption">Check all</div></a>
+                <a class="panel_a" href="javascript:void(0);" onclick="epcGeoAll(false);"><div class="panel_a_img"><i class="fa fa-square-o"></i></div><div class="panel_a_caption">Uncheck all</div></a>
+                <a class="panel_a" href="@ErpRecordOpen.Href(_listHref, "office_id", _geo.OfficeId)"><div class="panel_a_img"><i class="fa fa-pencil"></i></div><div class="panel_a_caption">Office</div></a>
+                <a class="panel_a" href="@(_listHref)?office_id=@_geo.OfficeId.ToString(CultureInfo.InvariantCulture)&amp;storages=1"><div class="panel_a_img"><i class="fa fa-cubes"></i></div><div class="panel_a_caption">Warehouses</div></a>
+                <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fa fa-list"></i></div><div class="panel_a_caption">Offices</div></a>
+                <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
+        <div class="row">
+            <div class="col-lg-6">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Regions served</div>
+                    <div class="panel-body">
+                        <form name="geo_form" id="geo_form" method="post" action="/cp/offices/geo" onsubmit="return epcGeoSubmit();">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@(_listHref)?office_id=@_geo.OfficeId.ToString(CultureInfo.InvariantCulture)&amp;geo=1" />
+                            <input type="hidden" name="save_action" value="save_action" />
+                            <input type="hidden" name="office_id" value="@_geo.OfficeId.ToString(CultureInfo.InvariantCulture)" />
+                            <input type="hidden" name="geo_list" id="geo_list" value="" />
+                            <div class="epc-of-tree" id="container_A">
+                                @if (_geo.Nodes.Count == 0)
+                                {
+                                    <div class="text-muted">No geo nodes yet. Create the tree on <a href="/cp/geo-regions-app">Geo regions</a>.</div>
+                                }
+                                @foreach (var n in _geo.Nodes)
+                                {
+                                    <label style="padding-left:@((n.Level * 18).ToString(CultureInfo.InvariantCulture))px">
+                                        <input type="checkbox" class="epc-geo" value="@n.Id.ToString(CultureInfo.InvariantCulture)" checked="@n.Checked" />
+                                        @n.Caption <span class="text-muted">(@n.Id.ToString(CultureInfo.InvariantCulture))</span>
+                                    </label>
+                                }
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-6">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Help</div>
+                    <div class="panel-body">Tick the countries, regions and cities this office serves. Checkout offers the office to customers located in a ticked node. Save replaces the whole <code>shop_offices_geo_map</code> set for the office.</div>
+                </div>
+            </div>
+        </div>
+        <script>
+            function epcGeoAll(state) { document.querySelectorAll('.epc-geo').forEach(function (c) { c.checked = state; }); }
+            function epcGeoSubmit() {
+                var ids = [];
+                document.querySelectorAll('.epc-geo:checked').forEach(function (c) { ids.push(parseInt(c.value, 10)); });
+                document.getElementById('geo_list').value = JSON.stringify(ids);
+                return true;
+            }
+        </script>
+    }
+    else if (_storages is not null)
+    {
+        @* ---- office_storages_link.php twin ---- *@
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Warehouses of office: @_storages.OfficeCaption
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/office/storages_link?office_id=" + _storages.OfficeId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
+            </div>
+            <div class="panel-body epc-of-actions">
+                <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('sl_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                <a class="panel_a" href="@ErpRecordOpen.Href(_listHref, "office_id", _storages.OfficeId)"><div class="panel_a_img"><i class="fa fa-pencil"></i></div><div class="panel_a_caption">Office</div></a>
+                <a class="panel_a" href="@(_listHref)?office_id=@_storages.OfficeId.ToString(CultureInfo.InvariantCulture)&amp;geo=1"><div class="panel_a_img"><i class="fa fa-globe"></i></div><div class="panel_a_caption">Geography</div></a>
+                <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fa fa-list"></i></div><div class="panel_a_caption">Offices</div></a>
+                <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
+        <div class="hpanel epc-of-sl">
+            <div class="panel-heading hbuilt">Connected warehouses, delivery time and markups per user group</div>
+            <div class="panel-body">
+                <form id="sl_form" method="post" action="/cp/storages/membership" onsubmit="return epcSlSubmit();">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@(_listHref)?office_id=@_storages.OfficeId.ToString(CultureInfo.InvariantCulture)&amp;storages=1" />
+                    <input type="hidden" name="office_id" value="@_storages.OfficeId.ToString(CultureInfo.InvariantCulture)" />
+                    <input type="hidden" name="storages_list" id="storages_list" value="" />
+                    @if (_storages.Storages.Count == 0)
+                    {
+                        <div class="alert alert-info" style="margin:0">No warehouses yet. Create one on <a href="/cp/storages-app">Warehouses</a>.</div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                        <table class="table table-condensed table-striped" id="sl_table">
+                            <thead><tr><th style="width:30px"></th><th style="width:60px">ID</th><th>Warehouse</th><th style="width:110px">Type</th><th style="width:160px">Delivery time to office, days</th></tr></thead>
+                            <tbody>
+                            @foreach (var s in _storages.Storages)
+                            {
+                                var sid = s.StorageId.ToString(CultureInfo.InvariantCulture);
+                                <tr class="epc-sl-row @(s.Checked ? "epc-on" : "")" data-storage="@sid">
+                                    <td><input type="checkbox" class="epc-sl-on" checked="@s.Checked" onchange="this.closest('tr').classList.toggle('epc-on', this.checked);" /></td>
+                                    <td>@sid</td>
+                                    <td>
+                                        @s.Name
+                                        <div class="epc-groups" style="margin-top:6px">
+                                            <table class="table table-bordered" style="margin:0;background:#fff">
+                                                <thead><tr><th style="width:220px">User group</th><th>Price ranges (upper bound, -1 = ∞) and markup %</th></tr></thead>
+                                                <tbody>
+                                                @foreach (var g in s.Groups)
+                                                {
+                                                    var gid = g.GroupId.ToString(CultureInfo.InvariantCulture);
+                                                    var caption = _storages.UserGroups.FirstOrDefault(u => u.Id == g.GroupId).Caption ?? gid;
+                                                    <tr class="epc-sl-group" data-group="@gid">
+                                                        <td>@caption <span class="text-muted">(@gid)</span></td>
+                                                        <td>
+                                                            <div class="epc-ranges">
+                                                            @foreach (var r in g.Ranges)
+                                                            {
+                                                                <div class="epc-range" style="margin-bottom:3px">
+                                                                    up to <input class="form-control input-sm epc-max" type="number" step="0.01" value="@r.MaxPoint.ToString(CultureInfo.InvariantCulture)" readonly="@(r.MaxPoint < 0)" />
+                                                                    markup <input class="form-control input-sm epc-markup" type="number" step="0.01" value="@r.Markup.ToString(CultureInfo.InvariantCulture)" /> %
+                                                                    @if (r.MaxPoint >= 0) { <a href="javascript:void(0);" class="btn btn-xs btn-default" onclick="this.parentNode.remove();"><i class="fa fa-trash"></i></a> }
+                                                                </div>
+                                                            }
+                                                            </div>
+                                                            <a href="javascript:void(0);" class="btn btn-xs btn-default" onclick="epcSlAddRange(this);"><i class="fa fa-plus"></i> Add range</a>
+                                                        </td>
+                                                    </tr>
+                                                }
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </td>
+                                    <td>@(s.ProductType == 2 ? "Price list" : s.ProductType == 1 ? "Catalog" : "")</td>
+                                    <td><input class="form-control input-sm epc-time" type="number" min="0" value="@s.TimeToShop.ToString(CultureInfo.InvariantCulture)" /></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                        </div>
+                        <button type="submit" class="btn btn-primary">Save</button>
+                    }
+                </form>
+            </div>
+        </div>
+        <script>
+            function epcSlAddRange(btn) {
+                var box = btn.parentNode.querySelector('.epc-ranges');
+                var inf = box.lastElementChild;
+                var div = document.createElement('div');
+                div.className = 'epc-range'; div.style.marginBottom = '3px';
+                div.innerHTML = 'up to <input class="form-control input-sm epc-max" type="number" step="0.01" value="0" /> markup <input class="form-control input-sm epc-markup" type="number" step="0.01" value="0" /> % <a href="javascript:void(0);" class="btn btn-xs btn-default" onclick="this.parentNode.remove();"><i class="fa fa-trash"></i></a>';
+                box.insertBefore(div, inf);
+            }
+            function epcSlSubmit() {
+                var list = [];
+                document.querySelectorAll('.epc-sl-row').forEach(function (row) {
+                    var item = { id: parseInt(row.getAttribute('data-storage'), 10), checked: row.querySelector('.epc-sl-on').checked, time_to_shop: parseInt(row.querySelector('.epc-time').value || '0', 10), groups: [] };
+                    row.querySelectorAll('.epc-sl-group').forEach(function (g) {
+                        var ranges = [];
+                        g.querySelectorAll('.epc-range').forEach(function (r) {
+                            ranges.push({ max_point: parseFloat(r.querySelector('.epc-max').value || '-1'), markup: parseFloat(r.querySelector('.epc-markup').value || '0') });
+                        });
+                        ranges.sort(function (x, y) { if (y.max_point == -1) return -1; if (x.max_point == -1) return 1; return x.max_point - y.max_point; });
+                        item.groups.push({ id: parseInt(g.getAttribute('data-group'), 10), prices_ranges: ranges });
+                    });
+                    list.push(item);
+                });
+                document.getElementById('storages_list').value = JSON.stringify(list);
+                return true;
+            }
+        </script>
+    }
+    else if (_editor is not null)
+    {
+        @* ---- office.php twin: create / edit one office ---- *@
+        var idText = _editor.Id.ToString(CultureInfo.InvariantCulture);
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                @(_editor.Id > 0 ? "Edit office" : "New office")
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_editor.Id > 0 ? _phpTab + "/office?office_id=" + idText : _phpTab + "/office")">Classic twin</a>
+            </div>
+            <div class="panel-body epc-of-actions">
+                <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('office_form').requestSubmit();"><div class="panel_a_img"><i class="fa fa-save"></i></div><div class="panel_a_caption">Save</div></a>
+                <a class="panel_a" href="@_listHref"><div class="panel_a_img"><i class="fa fa-list"></i></div><div class="panel_a_caption">Offices</div></a>
+                @if (_editor.Id > 0)
+                {
+                    <a class="panel_a" href="@(_listHref)?office_id=@idText&amp;geo=1"><div class="panel_a_img"><i class="fa fa-globe"></i></div><div class="panel_a_caption">Geography</div></a>
+                    <a class="panel_a" href="@(_listHref)?office_id=@idText&amp;storages=1"><div class="panel_a_img"><i class="fa fa-cubes"></i></div><div class="panel_a_caption">Warehouses</div></a>
+                }
+                <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+            </div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
+
+        <form id="office_form" method="post" action="/cp/offices/write" class="epc-of-form" onsubmit="return epcOfficeSubmit();">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@(_editor.Id > 0 ? ErpRecordOpen.Href(_listHref, "office_id", _editor.Id) : _listHref)" />
+            <input type="hidden" name="save_action" value="@(_editor.Id > 0 ? "edit" : "create")" />
+            <input type="hidden" name="office_id" value="@idText" />
+            <input type="hidden" name="lang_code" value="en" />
+            <input type="hidden" name="users" id="users" value="" />
+            @foreach (var item in CpOfficeEditor.TranslatedItems)
+            {
+                <input type="hidden" name="@(item)_lang_str_id" value="@_editor.LangStrId(item)" />
+            }
+            <div class="row">
+                <div class="col-lg-6">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">Office details</div>
+                        <div class="panel-body">
+                            <div class="form-group"><label class="control-label" for="caption_input">Name</label><input class="form-control" type="text" id="caption_input" name="caption" required value="@_editor.Value("caption")" /></div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group"><label class="control-label" for="country_input">Country</label><input class="form-control" type="text" id="country_input" name="country" value="@_editor.Value("country")" /></div>
+                            <div class="form-group"><label class="control-label" for="region_input">Region</label><input class="form-control" type="text" id="region_input" name="region" value="@_editor.Value("region")" /></div>
+                            <div class="form-group"><label class="control-label" for="city_input">City</label><input class="form-control" type="text" id="city_input" name="city" value="@_editor.Value("city")" /></div>
+                            <div class="form-group"><label class="control-label" for="address_input">Address</label><input class="form-control" type="text" id="address_input" name="address" value="@_editor.Value("address")" /></div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group"><label class="control-label" for="phone_input">Phone</label><input class="form-control" type="text" id="phone_input" name="phone" value="@_editor.Phone" /></div>
+                            <div class="form-group"><label class="control-label" for="email_input">E-mail</label><input class="form-control" type="text" id="email_input" name="email" value="@_editor.Email" /></div>
+                            <div class="form-group"><label class="control-label" for="coordinates_input">Map coordinates</label><input class="form-control" type="text" id="coordinates_input" name="coordinates" placeholder="25.2048, 55.2708" value="@_editor.Coordinates" /></div>
+                            <div class="hr-line-dashed"></div>
+                            <div class="form-group"><label class="control-label" for="description_input">Description</label><textarea class="form-control" id="description_input" name="description" rows="3">@_editor.Value("description")</textarea></div>
+                            <div class="form-group"><label class="control-label" for="timetable_input">Working hours</label><textarea class="form-control" id="timetable_input" name="timetable" rows="3">@_editor.Value("timetable")</textarea></div>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-lg-6">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">Office staff</div>
+                        <div class="panel-body">
+                            <div class="form-group">
+                                <label class="control-label" for="users_selector">Users who manage this office</label>
+                                <select class="form-control" multiple="multiple" id="users_selector" size="12">
+                                    @foreach (var u in _editor.UserOptions)
+                                    {
+                                        <option value="@u.UserId.ToString(CultureInfo.InvariantCulture)" selected="@_editor.Users.Contains(u.UserId)">@u.Caption</option>
+                                    }
+                                </select>
+                                @if (_editor.UserOptions.Count == 0) { <p class="help-block">No backend users found in the administrator group tree.</p> }
+                            </div>
+                        </div>
+                        <div class="panel-footer text-right">
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+                            <a class="btn btn-default" href="@_listHref">Cancel</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+        <script>
+            function epcOfficeSubmit() {
+                var ids = [];
+                document.querySelectorAll('#users_selector option:checked').forEach(function (o) { ids.push(parseInt(o.value, 10)); });
+                document.getElementById('users').value = JSON.stringify(ids);
+                return true;
+            }
+        </script>
     }
     else
     {
-        <form method="post" action="/cp/offices/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?office_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
-            <input type="hidden" name="action" value="create" />
-            <label>Name <input type="text" name="caption" required /></label>
-            <label>Country <input type="text" name="country" /></label>
-            <label>Region <input type="text" name="region" /></label>
-            <label>City <input type="text" name="city" /></label>
-            <label>Address <input type="text" name="address" /></label>
-            <label>Phone <input type="text" name="phone" /></label>
-            <label>Email <input type="text" name="email" /></label>
-            <label>Coordinates <input type="text" name="coordinates" /></label>
-            <label>Staff users <input type="text" name="users" placeholder="1,2" /></label>
-            <button type="submit">Create office</button>
-        </form>
-        <form method="post" action="/cp/offices/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?office_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
-            <input type="hidden" name="action" value="edit" />
-            <label>Office id <input type="number" name="officeId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Name <input type="text" name="caption" required /></label>
-            <label>City <input type="text" name="city" /></label>
-            <label>Address <input type="text" name="address" /></label>
-            <label>Phone <input type="text" name="phone" /></label>
-            <label>Staff users <input type="text" name="users" placeholder="1" /></label>
-            <button type="submit">Save office</button>
-        </form>
-        <form method="post" action="/cp/offices/delete" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?office_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
-            <label>Office ids <input type="text" name="officeIds" required placeholder="[2] or 2,3" /></label>
-            <button type="submit">Delete offices</button>
-            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-        </form>
-        <form method="post" action="/cp/offices/geo" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?office_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
-            <label>Office id <input type="number" name="officeId" min="1" required value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "1")" style="width:6rem" /></label>
-            <label>Geo ids <input type="text" name="geoList" placeholder="[1,2] or empty to unlink" /></label>
-            <button type="submit">Save geo</button>
-            <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}/office/geo_nodes")">Classic geo</a>
-        </form>
-    }
-
-    <div class="epc-scp-kpi" aria-label="Office stats">
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Offices</div>
-            <div class="epc-scp-kpi__val">@_summary.OfficeCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Mapped storages</div>
-            <div class="epc-scp-kpi__val">@_summary.MappedStorageCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Geo mapped</div>
-            <div class="epc-scp-kpi__val">@_summary.GeoMappedCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-    </div>
-
-    <div class="epc-scp-table-card">
-        <div class="epc-scp-table-card__head">
-            <div>
-                <h3>Pickup points</h3>
-                <p class="epc-users-hint">Open a row for country, region, email, coordinates, and a staff-users excerpt. Description and timetable stay on the Classic twin.</p>
+        @* ---- offices.php twin: list with bulk delete ---- *@
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">
+                Offices (pickup points)
+                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
-            <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-        </div>
-        <table class="epc-scp-data-table table table-epc-pro">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Caption</th>
-                    <th>City, address</th>
-                    <th>Phone</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_offices.Count == 0)
-                {
-                    <tr><td colspan="5">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _offices)
-                    {
-                        var cityAddress = string.Join(", ", new[] { row.City, row.Address }.Where(s => !string.IsNullOrWhiteSpace(s)));
-                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td><strong>@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Caption) ? "—" : row.Caption)</td>
-                            <td>@(string.IsNullOrWhiteSpace(cityAddress) ? "—" : cityAddress)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Phone) ? "—" : row.Phone)</td>
-                            <td>
-                                <a href="@ErpRecordOpen.Href(_listHref, "office_id", row.Id)">Open</a>
-                                ·
-                                <a href="/cp/storages-app">Membership</a>
-                                ·
-                                <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref($"{_phpTab}/office?office_id={row.Id.ToString(CultureInfo.InvariantCulture)}")">Classic twin</a>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
-
-    @if (_opened is not null)
-    {
-        <div class="epc-scp-table-card" style="margin-top:1rem">
-            <div class="epc-scp-table-card__head">
-                <div>
-                    <h3>@OpenedCaption</h3>
-                    <p class="epc-users-hint">Office field preview. Description and timetable stay on the Classic twin.</p>
-                </div>
-                <a class="btn btn-default btn-xs" href="@_listHref">Close</a>
+            <div class="panel-body epc-of-actions">
+                <a class="panel_a" href="@(_listHref)?office_id=new"><div class="panel_a_img"><i class="fa fa-plus"></i></div><div class="panel_a_caption">Add</div></a>
+                <a class="panel_a" href="javascript:void(0);" onclick="deleteOffices();"><div class="panel_a_img"><i class="fa fa-trash"></i></div><div class="panel_a_caption">Delete</div></a>
+                <a class="panel_a" href="/cp/storages-app"><div class="panel_a_img"><i class="fa fa-cubes"></i></div><div class="panel_a_caption">Warehouses</div></a>
+                <a class="panel_a" href="/cp/delivery-methods-app"><div class="panel_a_img"><i class="fa fa-truck"></i></div><div class="panel_a_caption">Obtaining modes</div></a>
+                <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
             </div>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Country</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Country) ? "—" : _opened.Country)</dd>
-                <dt>Region</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Region) ? "—" : _opened.Region)</dd>
-                <dt>Email</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Email) ? "—" : _opened.Email)</dd>
-                <dt>Coordinates</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Coordinates) ? "—" : _opened.Coordinates)</dd>
-            </dl>
-            @if (!string.IsNullOrWhiteSpace(_opened.UsersExcerpt))
-            {
-                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.UsersExcerpt</pre>
-                @if (_opened.UsersLen > _opened.UsersExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.UsersExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.UsersLen.ToString(CultureInfo.InvariantCulture) chars). Full staff list stays on the Classic twin.</p>
-                }
-            }
-            else
-            {
-                <p class="text-muted" style="margin:.85rem 0 0">No staff-users excerpt yet.</p>
-            }
-            @if (_openedSiblings.Count > 0)
-            {
-                <p class="epc-users-hint" style="margin:1rem 0 .4rem">Same city</p>
-                <table class="table table-condensed table-striped table-epc">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Caption</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var sib in _openedSiblings)
-                        {
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="alert alert-success" role="status">@_flashOk</div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="alert alert-danger" role="status">@_flashErr</div> }
+
+        <form name="delete_offices_form" id="delete_offices_form" method="post" action="/cp/offices/delete">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@_listHref" />
+            <input type="hidden" name="action" value="delete_offices" />
+            <input type="hidden" name="offices" id="offices_to_delete" value="" />
+        </form>
+
+        <div class="hpanel epc-of-list">
+            <div class="panel-heading hbuilt">Office list</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped" id="offices_table">
+                        <thead>
                             <tr>
-                                <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@(string.IsNullOrWhiteSpace(sib.Caption) ? "—" : sib.Caption)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "office_id", sib.Id)">Open</a></td>
+                                <th style="width:30px"><input type="checkbox" id="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
+                                <th style="width:70px">ID</th>
+                                <th>Name</th>
+                                <th>Address</th>
+                                <th style="width:160px">Phone</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                        @if (_list.Rows.Count == 0)
+                        {
+                            <tr><td colspan="5" class="text-muted">No offices yet. Use <strong>Add</strong> to create the first pickup point.</td></tr>
+                        }
+                        @foreach (var o in _list.Rows)
+                        {
+                            var idText = o.Id.ToString(CultureInfo.InvariantCulture);
+                            var open = ErpRecordOpen.Href(_listHref, "office_id", o.Id);
+                            var addr = string.Join(", ", new[] { o.City, o.Address }.Where(x => x.Length > 0));
+                            <tr id="erp-row-@idText">
+                                <td><input type="checkbox" class="epc-office-check" id="checked_@idText" value="@idText" onchange="on_one_check_changed();" /></td>
+                                <td><a href="@open">@idText</a></td>
+                                <td><a href="@open">@o.Caption</a></td>
+                                <td><a href="@open">@addr</a></td>
+                                <td><a href="@open">@o.Phone</a></td>
                             </tr>
                         }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p class="text-muted">No same-city siblings yet.</p>
-            }
+                        </tbody>
+                    </table>
+                </div>
+                @if (_list.Pages > 1)
+                {
+                    <div class="row"><div class="col-lg-12 text-center"><div class="dataTables_paginate paging_simple_numbers"><ul class="pagination">
+                        @for (var i = 1; i <= _list.Pages; i++)
+                        {
+                            <li class="paginate_button @(i == _list.Page ? "active" : "")">
+                                @if (i == _list.Page) { <a href="javascript:void(0);">@i.ToString(CultureInfo.InvariantCulture)</a> }
+                                else { <a href="@(_listHref)?s_page=@i.ToString(CultureInfo.InvariantCulture)">@i.ToString(CultureInfo.InvariantCulture)</a> }
+                            </li>
+                        }
+                    </ul></div></div></div>
+                }
+            </div>
         </div>
+        <script>
+            function on_check_uncheck_all() {
+                var state = document.getElementById('check_uncheck_all').checked;
+                document.querySelectorAll('.epc-office-check').forEach(function (c) { c.checked = state; });
+            }
+            function on_one_check_changed() {
+                var all = true;
+                document.querySelectorAll('.epc-office-check').forEach(function (c) { if (!c.checked) all = false; });
+                document.getElementById('check_uncheck_all').checked = all;
+            }
+            function getCheckedElements() {
+                var ids = [];
+                document.querySelectorAll('.epc-office-check:checked').forEach(function (c) { ids.push(parseInt(c.value, 10)); });
+                return ids;
+            }
+            function deleteOffices() {
+                var offices = getCheckedElements();
+                if (offices.length == 0) { alert('Select at least one office to delete.'); return; }
+                if (!confirm('Delete the selected offices? Their warehouse and geography links are removed too.')) { return; }
+                document.getElementById('offices_to_delete').value = JSON.stringify(offices);
+                document.getElementById('delete_offices_form').submit();
+            }
+        </script>
     }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/logistics/offices";
     private bool _isAdmin;
-    private long _openedId;
-    private CpOfficesSummary _summary = new(0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpOfficeDigest> _offices = [];
-    private CpOfficeDetail? _opened;
-    private IReadOnlyList<CpOfficeDigest> _openedSiblings = [];
     private string _flashOk = "";
     private string _flashErr = "";
     private string _listHref = "/cp/offices-app";
-
-    private string OpenedCaption =>
-        !string.IsNullOrWhiteSpace(_opened?.Caption)
-            ? _opened.Caption
-            : (_openedId > 0 ? ("Office #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+    private CpOfficeList _list = new([], 0, 1, 30);
+    private CpOfficeEditor? _editor;
+    private CpOfficeGeoPage? _geo;
+    private CpOfficeStoragesPage? _storages;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "office_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
@@ -237,14 +426,36 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpOfficesDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _offices = result.Offices;
-        if (_openedId > 0)
+        var rawId = ctx.Request.Query["office_id"].ToString();
+        if (string.Equals(rawId, "new", StringComparison.OrdinalIgnoreCase))
         {
-            var detail = await Dashboards.BuildCpOfficesDetailAsync(_openedId, ctx.RequestAborted);
-            _opened = detail.Office;
-            _openedSiblings = detail.Siblings;
+            _editor = await Offices.OpenAsync(0, ctx.RequestAborted);
+            return;
         }
+
+        var id = ErpRecordOpen.ReadId(ctx.Request, "office_id", "id");
+        if (id > 0)
+        {
+            if (ctx.Request.Query["geo"].ToString() == "1")
+            {
+                _geo = await Offices.GeoAsync(id, ctx.RequestAborted);
+                if (_geo is not null) return;
+            }
+            else if (ctx.Request.Query["storages"].ToString() == "1")
+            {
+                _storages = await Offices.StoragesAsync(id, ctx.RequestAborted);
+                if (_storages is not null) return;
+            }
+            else
+            {
+                _editor = await Offices.OpenAsync(id, ctx.RequestAborted);
+                if (_editor is not null) return;
+            }
+
+            _flashErr = "Office #" + id.ToString(CultureInfo.InvariantCulture) + " was not found.";
+        }
+
+        var page = int.TryParse(ctx.Request.Query["s_page"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var p) && p > 0 ? p : 1;
+        _list = await Offices.ListAsync(page, 30, ctx.RequestAborted);
     }
 }

@@ -522,7 +522,7 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
     }
 
     /// <summary>storage.php users_selector: users bound to the backend root group or any group nested under it.</summary>
-    private static async Task<List<CpStorageUserOption>> BackendUsersAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task<List<CpStorageUserOption>> BackendUsersAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         var list = new List<CpStorageUserOption>();
         try

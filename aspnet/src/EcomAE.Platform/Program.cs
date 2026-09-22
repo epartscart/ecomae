@@ -763,6 +763,13 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangConfiguratorService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStatisticsReportService, EcomAE.Platform.Cp.CpStatisticsReportService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSearchTabEditorService, EcomAE.Platform.Cp.CpSearchTabEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpStorageEditorService, EcomAE.Platform.Cp.CpStorageEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOfficeEditorService, EcomAE.Platform.Cp.CpOfficeEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpObtainingModeEditorService, EcomAE.Platform.Cp.CpObtainingModeEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpGeoTreeEditorService, EcomAE.Platform.Cp.CpGeoTreeEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSliderEditorService, EcomAE.Platform.Cp.CpSliderEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAdditionalTextEditorService, EcomAE.Platform.Cp.CpAdditionalTextEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSitemapEditorService, EcomAE.Platform.Cp.CpSitemapEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMenuEditorService, EcomAE.Platform.Cp.CpMenuEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPartsAgentWriteService, EcomAE.Platform.Cp.CpPartsAgentWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosNotificationWriteService, EcomAE.Platform.Bos.BosNotificationWriteService>();

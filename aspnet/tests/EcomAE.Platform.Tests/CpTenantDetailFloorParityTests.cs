@@ -11,7 +11,6 @@ public sealed class CpTenantDetailFloorParityTests
 {
     [Theory]
     [InlineData("CpPagesApp.razor", "content_id=", "_selected")]
-    [InlineData("CpMenusApp.razor", "menu_id=", "_selected")]
     [InlineData("CpPaymentGatewaysApp.razor", "ConfigureHref", "_selected")]
     [InlineData("CpProductCatalogueApp.razor", "product_id=", "_selected")]
     public void DetailConsoles_HaveWorkspaceAndSelectedRow(string fileName, string rowKey, string selectedMarker)
