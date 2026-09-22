@@ -11123,12 +11123,25 @@ public sealed class ControlPanelModule : ISurfaceModule
             var action = body.Action;
             var id = body.Id;
             var confirm = body.ConfirmWrites;
+            var ids = CpAbandonedCartsWriteService.ParseIds(body.Ids);
+            var returnUrl = "/cp/abandoned-carts-app";
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 action = LiveWriteFormBinder.Text(form, "action");
                 id = LiveWriteFormBinder.Long(form, "id", "cart_id");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                ids = CpAbandonedCartsWriteService.ParseIds(string.Join(",", form["ids"].ToArray().Concat(form["records_to_del[]"].ToArray())));
+                var ret = LiveWriteFormBinder.Text(form, "returnUrl") ?? "";
+                if (ret.StartsWith("/cp/", StringComparison.Ordinal))
+                {
+                    returnUrl = ret;
+                }
+            }
+
+            if (id > 0 && !ids.Contains(id))
+            {
+                ids = ids.Append(id).ToList();
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -11139,10 +11152,10 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             if (confirm && key is "delete" or "delete_cart" or "delete_line")
             {
-                var written = await writes.DeleteAsync(id, cancellationToken);
+                var written = await writes.DeleteManyAsync(ids, cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/abandoned-carts-app",
+                    returnUrl,
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -11155,11 +11168,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 wouldWrite = key is "delete" or "delete_cart" or "delete_line",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
-                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                ids,
+                validation_code = confirm ? "unknown_action" : "dry_run",
                 message = confirm
-                    ? "Catalogue reserve release stay Classic."
-                    : "Dry-run. Set confirmWrites=true to delete a type-2 cart line.",
-                phpAuthoritative = true,
+                    ? "Unknown action; only delete is supported."
+                    : "Dry-run. Set confirmWrites=true to delete the selected cart line(s).",
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();
@@ -14177,7 +14191,8 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpAbandonedCartsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
-        long Id = 0);
+        long Id = 0,
+        string? Ids = null);
     private sealed record CpNlReportingWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

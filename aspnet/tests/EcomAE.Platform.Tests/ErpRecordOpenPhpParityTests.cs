@@ -4909,11 +4909,11 @@ public sealed class ErpRecordOpenPhpParityTests
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpAbandonedCartsApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"cart_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_selfHref, \"cart_id\"", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"cart_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpAbandonedCartsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No sibling lines yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.RowClass(r.Id, _openedId)", text, StringComparison.Ordinal);
+        Assert.Contains("r.Id == _openedId ? \"epc-open\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpAbandonedCartsDetailAsync", text, StringComparison.Ordinal);
 
         Assert.Equal("/erp/aml-compliance-app?kyc_id=7#erp-row-7",
             ErpRecordOpen.Href("/erp/aml-compliance-app", "kyc_id", 7));

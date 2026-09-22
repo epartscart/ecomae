@@ -2,266 +2,318 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpAbandonedCartsEditorService Carts
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Abandoned carts · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Carts · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-carts-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; }
+    .epc-carts-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-carts-actions .panel_a_caption { font-size:12px; }
+    .epc-carts-filter .form-group { margin-bottom:10px; }
+    .epc-carts-filter .control-label { text-align:right; padding-top:7px; }
+    .epc-carts-filter .epc-active { background:#b9fcab; }
+    .epc-carts-list td, .epc-carts-list th { vertical-align:middle !important; white-space:nowrap; }
+    .epc-carts-list th a { color:#333; }
+    .epc-carts-list th a.epc-sorted { font-weight:bold; text-decoration:underline; }
+    .epc-carts-list tr.epc-details-row { display:none; }
+    .epc-carts-list tr.epc-details-row.epc-open { display:table-row; }
+    .epc-carts-list tr.epc-details-row td { background:#fafafa; }
+    .epc-carts-list .epc-toggle { cursor:pointer; color:#3498db; }
+    .epc-carts-list tr.epc-row-open td { background:#fff8dc; }
+    .epc-carts-list .pagination { margin:8px 0 0; }
+</style>
+
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Abandoned carts
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/abandoned-carts-app")</p>
-                <p>Open a line to see lead time, stock, and the other lines in the same cart. Delete a type-2 line here. Catalogue reserve release stays on the Classic twin. This page does not invent a send.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/abandoned-carts-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    @if (!_isAdmin)
     {
-        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+        <div class="hpanel"><div class="panel-body">
+            <div class="alert alert-warning" role="status">Sign in to the Control Panel to manage customer carts. <a href="/cp/login?returnUrl=/cp/abandoned-carts-app">Login</a></div>
+        </div></div>
     }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    else
     {
-        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
-    }
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedLine is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Abandoned cart KPIs">
-        <div class="kpi"><div class="lbl">Cart lines</div><div class="val">@_summary.LineCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Guest lines</div><div class="val">@_summary.GuestLineCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">User lines</div><div class="val">@_summary.UserLineCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Guest sessions</div><div class="val">@_summary.GuestSessionCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Users with carts</div><div class="val">@_summary.UserCartCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Cart sum</div><div class="val">@_summary.CartSum.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedLine is not null)
-    {
+        var f = _filter;
         <div class="col-lg-12">
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedLine.Article) ? _openedLine.Article : ("Line #" + _openedLine.Id.ToString(CultureInfo.InvariantCulture)))
-                    <span class="label label-default pull-right">@(_openedLine.SessionId > 0 ? "guest" : "user")</span>
+                    Carts
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
                 </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedLine.Manufacturer) ? _openedLine.Manufacturer : "—")
-                        · <strong>@(!string.IsNullOrWhiteSpace(_openedLine.Name) ? _openedLine.Name : "—")</strong></p>
-                    <p>Price: <strong>@_openedLine.Price.ToString("N2", CultureInfo.InvariantCulture)</strong>
-                        × @_openedLine.CountNeed.ToString(CultureInfo.InvariantCulture)
-                        = <strong>@_openedLine.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</strong></p>
-                    <p>Lead time: @(!string.IsNullOrWhiteSpace(_openedLine.TimeToExe) ? _openedLine.TimeToExe : "—")
-                        · Guaranteed: @(!string.IsNullOrWhiteSpace(_openedLine.TimeToExeGuaranteed) ? _openedLine.TimeToExeGuaranteed : "—")</p>
-                    <p>Min order: @_openedLine.MinOrder.ToString("0.####", CultureInfo.InvariantCulture)
-                        · Stock: @_openedLine.Exist.ToString("0.####", CultureInfo.InvariantCulture)</p>
-                    <p>User @_openedLine.UserId.ToString(CultureInfo.InvariantCulture)
-                        · Session @_openedLine.SessionId.ToString(CultureInfo.InvariantCulture)
-                        · @FormatTime(_openedLine.TimeUnix)</p>
-                    @if (_isAdmin && _openedLine.ProductType == 2)
-                    {
-                        <form method="post" action="/cp/abandoned-carts/write" class="well" style="margin:.85rem 0 0">
-                            <input type="hidden" name="confirmWrites" value="true" />
-                            <input type="hidden" name="returnUrl" value="@_listHref" />
-                            <input type="hidden" name="action" value="delete" />
-                            <input type="hidden" name="id" value="@_openedLine.Id.ToString(CultureInfo.InvariantCulture)" />
-                            <button type="submit" class="btn btn-default">Delete line</button>
-                        </form>
-                        <p class="help-block" style="margin:.75rem 0 0">Catalogue reserve release stay Classic.</p>
-                    }
-                    else if (_isAdmin)
-                    {
-                        <p class="help-block" style="margin:.75rem 0 0">Catalogue reserve release stay Classic.</p>
-                    }
+                <div class="panel-body epc-carts-actions">
+                    <a class="panel_a" href="javascript:void(0);" onclick="epcCartsDeleteChecked();"><div class="panel_a_img"><i class="fa fa-trash"></i></div><div class="panel_a_caption">Delete</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
                 </div>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Filter</div>
+                <form method="get" action="@_listHref" id="epc-carts-filter" class="form-horizontal epc-carts-filter">
+                    <input type="hidden" name="sort" value="@f.Sort" />
+                    <input type="hidden" name="dir" value="@(f.Desc ? "desc" : "asc")" />
+                    <div class="panel-body filter_panel">
+                        <div class="row">
+                            <div class="col-lg-4">
+                                <div class="form-group">
+                                    <label class="col-lg-6 control-label">Date from</label>
+                                    <div class="col-lg-6">
+                                        <input type="datetime-local" id="time_from_show" class="form-control @(f.TimeFrom > 0 ? "epc-active" : "")" value="@LocalInput(f.TimeFrom)" onchange="epcCartsSyncTime(this,'time_from');" />
+                                        <input type="hidden" name="time_from" id="time_from" value="@(f.TimeFrom > 0 ? f.TimeFrom.ToString(CultureInfo.InvariantCulture) : "")" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="form-group">
+                                    <label class="col-lg-6 control-label">Date to</label>
+                                    <div class="col-lg-6">
+                                        <input type="datetime-local" id="time_to_show" class="form-control @(f.TimeTo > 0 ? "epc-active" : "")" value="@LocalInput(f.TimeTo)" onchange="epcCartsSyncTime(this,'time_to');" />
+                                        <input type="hidden" name="time_to" id="time_to" value="@(f.TimeTo > 0 ? f.TimeTo.ToString(CultureInfo.InvariantCulture) : "")" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="form-group">
+                                    <label class="col-lg-6 control-label">Customer</label>
+                                    <div class="col-lg-6">
+                                        <input type="text" name="customer" id="customer" class="form-control @(f.Customer.Length > 0 ? "epc-active" : "")" value="@f.Customer" placeholder="ID, e-mail, name or phone" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-lg-4">
+                                <div class="form-group">
+                                    <label class="col-lg-6 control-label">Warehouse</label>
+                                    <div class="col-lg-6">
+                                        <select name="storage_id" id="storage_id" class="form-control @(f.StorageId > 0 ? "epc-active" : "")">
+                                            <option value="0">All</option>
+                                            @foreach (var s in _list.Storages)
+                                            {
+                                                <option value="@s.Id.ToString(CultureInfo.InvariantCulture)" selected="@(s.Id == f.StorageId)">@s.Name</option>
+                                            }
+                                        </select>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="panel-footer">
+                        <div class="row">
+                            <div class="col-lg-12 float-e-margins">
+                                <button class="btn btn-success" type="submit"><i class="fa fa-filter"></i> Apply filter</button>
+                                <a class="btn btn-default" href="@_listHref"><i class="fa fa-times"></i> Reset</a>
+                            </div>
+                        </div>
+                    </div>
+                </form>
             </div>
         </div>
 
         <div class="col-lg-12">
             <div class="hpanel">
-                <div class="panel-heading hbuilt">Cart lines</div>
+                <div class="panel-heading hbuilt">
+                    Cart lines
+                    <span class="pull-right">@_list.Total.ToString(CultureInfo.InvariantCulture) record(s)</span>
+                </div>
                 <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Manufacturer</th>
-                                    <th>Article</th>
-                                    <th>Name</th>
-                                    <th class="text-right">Price</th>
-                                    <th class="text-right">Qty</th>
-                                    <th class="text-right">Sum</th>
-                                    <th>Lead</th>
-                                    <th>Stock</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="9">No sibling lines yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var line in _openedSiblings)
+                    <form method="post" action="/cp/abandoned-carts/write" id="epc-carts-form" onsubmit="return epcCartsConfirmDelete();">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="action" value="delete" />
+                        <input type="hidden" name="returnUrl" value="@_selfHref" />
+                        <div class="table-responsive">
+                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-carts-list">
+                                <thead>
+                                    <tr>
+                                        <th><input type="checkbox" id="check_uncheck_all" onchange="epcCartsCheckAll(this);" /></th>
+                                        <th></th>
+                                        <th>@SortLink("id", "ID")</th>
+                                        <th>@SortLink("manufacturer", "Manufacturer")</th>
+                                        <th>@SortLink("article", "Article")</th>
+                                        <th>@SortLink("product_name", "Name")</th>
+                                        <th class="text-right">@SortLink("price", "Price")</th>
+                                        <th class="text-right">@SortLink("count_need", "Qty")</th>
+                                        <th class="text-right">@SortLink("price_sum", "Sum")</th>
+                                        <th class="text-right">@SortLink("price_purchase_sum", "Purchase sum")</th>
+                                        <th class="text-right">@SortLink("profit", "Profit")</th>
+                                        <th>@SortLink("time", "Added")</th>
+                                        <th>@SortLink("user_id", "Customer")</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (_list.Rows.Count == 0)
                                     {
-                                        <tr class="@ErpRecordOpen.RowClass(line.Id, _openedId)">
-                                            <td>@line.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(line.Manufacturer) ? line.Manufacturer : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(line.Article) ? line.Article : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(line.Name) ? line.Name : "—")</td>
-                                            <td class="text-right">@line.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                            <td class="text-right">@line.CountNeed.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td class="text-right"><strong>@line.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
-                                            <td>@(!string.IsNullOrWhiteSpace(line.TimeToExe) ? line.TimeToExe : "—")</td>
-                                            <td>@line.Exist.ToString("0.####", CultureInfo.InvariantCulture)</td>
+                                        <tr><td colspan="13">@(f.Any ? "No cart lines match the filter." : "No cart lines.")</td></tr>
+                                    }
+                                    @foreach (var r in _list.Rows)
+                                    {
+                                        var rid = r.Id.ToString(CultureInfo.InvariantCulture);
+                                        <tr id="erp-row-@rid" class="@ErpRecordOpen.RowClass(r.Id, _openedId)">
+                                            <td><input type="checkbox" name="records_to_del[]" value="@rid" id="checked_@rid" class="epc-cart-check" /></td>
+                                            <td><span class="epc-toggle" onclick="epcCartsToggle('@rid');" title="Reserved stock details"><i class="fa fa-plus-square-o"></i></span></td>
+                                            <td><a href="@ErpRecordOpen.Href(_selfHref, "cart_id", r.Id)" title="Permalink to this cart line">@rid</a></td>
+                                            <td>@(r.Manufacturer.Length > 0 ? r.Manufacturer : "—")</td>
+                                            <td>@(r.Article.Length > 0 ? r.Article : "—")</td>
+                                            <td style="white-space:normal">@(r.ProductName.Length > 0 ? r.ProductName : "—")</td>
+                                            <td class="text-right">@r.Price.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@r.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@r.PriceSum.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right">@r.PricePurchaseSum.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td class="text-right @(r.Profit < 0 ? "text-danger" : "")">@r.Profit.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td>@FormatTime(r.Time)</td>
+                                            <td>
+                                                @if (r.UserId > 0)
+                                                {
+                                                    <a href="/cp/users-app?user_id=@r.UserId.ToString(CultureInfo.InvariantCulture)" title="Customer #@r.UserId.ToString(CultureInfo.InvariantCulture)">@(r.CustomerLabel.Length > 0 ? r.CustomerLabel : ("#" + r.UserId.ToString(CultureInfo.InvariantCulture)))</a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">guest</span>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr class="epc-details-row @(r.Id == _openedId ? "epc-open" : "")" id="epc-details-@rid">
+                                            <td></td>
+                                            <td colspan="12">
+                                                <table class="table table-condensed" style="margin:0;width:auto;min-width:50%">
+                                                    <thead>
+                                                        <tr><th>Warehouse</th><th>Stock record</th><th class="text-right">Purchase price</th><th class="text-right">Reserved</th><th class="text-right">Purchase sum</th></tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        @foreach (var d in r.Details)
+                                                        {
+                                                            <tr>
+                                                                <td>@d.StorageName</td>
+                                                                <td>@d.StorageRecordId</td>
+                                                                <td class="text-right">@d.PricePurchase.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                                                <td class="text-right">@d.CountReserved.ToString("0.##", CultureInfo.InvariantCulture)</td>
+                                                                <td class="text-right">@d.PricePurchaseSum.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                                            </tr>
+                                                        }
+                                                        <tr>
+                                                            <td colspan="2"></td>
+                                                            <td class="text-right"><strong>Total</strong></td>
+                                                            <td class="text-right"><strong>@r.CountNeed.ToString("0.##", CultureInfo.InvariantCulture)</strong></td>
+                                                            <td class="text-right"><strong>@r.PricePurchaseSum.ToString("0.00", CultureInfo.InvariantCulture)</strong></td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </td>
                                         </tr>
                                     }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
+                                </tbody>
+                            </table>
+                        </div>
+                    </form>
+                    @if (_list.PageCount > 1)
+                    {
+                        <ul class="pagination">
+                            @for (var p = 1; p <= _list.PageCount; p++)
+                            {
+                                <li class="@(p == _list.Page ? "active" : "")"><a href="@PageHref(p)">@p.ToString(CultureInfo.InvariantCulture)</a></li>
+                            }
+                        </ul>
+                    }
                 </div>
             </div>
         </div>
+
+        <script>
+            function epcCartsSyncTime(el, target) {
+                var v = el.value ? Math.floor(new Date(el.value).getTime() / 1000) : '';
+                document.getElementById(target).value = v;
+                el.classList.toggle('epc-active', !!v);
+            }
+            function epcCartsCheckAll(master) {
+                document.querySelectorAll('.epc-cart-check').forEach(function (c) { c.checked = master.checked; });
+            }
+            function epcCartsToggle(id) {
+                var row = document.getElementById('epc-details-' + id);
+                if (row) { row.classList.toggle('epc-open'); }
+            }
+            function epcCartsChecked() {
+                return Array.prototype.filter.call(document.querySelectorAll('.epc-cart-check'), function (c) { return c.checked; });
+            }
+            function epcCartsConfirmDelete() {
+                var n = epcCartsChecked().length;
+                if (n === 0) { alert('Select at least one cart line.'); return false; }
+                return confirm('Delete ' + n + ' selected cart line(s)? Reserved stock will be released.');
+            }
+            function epcCartsDeleteChecked() {
+                var form = document.getElementById('epc-carts-form');
+                if (epcCartsConfirmDelete()) { form.submit(); }
+            }
+        </script>
     }
-
-    <p class="help-block">@_summary.LineCount.ToString(CultureInfo.InvariantCulture) Cart lines · @_summary.GuestLineCount.ToString(CultureInfo.InvariantCulture) Guest / session lines · @_summary.UserLineCount.ToString(CultureInfo.InvariantCulture) User lines · @_summary.GuestSessionCount.ToString(CultureInfo.InvariantCulture) Guest sessions · @_summary.UserCartCount.ToString(CultureInfo.InvariantCulture) Users with carts · @_summary.CartSum.ToString("N2", CultureInfo.InvariantCulture) Cart sum.</p>
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Manufacturer</th>
-                    <th>Article</th>
-                    <th>Name</th>
-                    <th>Price</th>
-                    <th>Qty</th>
-                    <th>Sum</th>
-                    <th>Checked</th>
-                    <th>Product type</th>
-                    <th>When</th>
-                    <th>User</th>
-                    <th>Session</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="13">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Manufacturer) ? row.Manufacturer : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Article) ? row.Article : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Name) ? row.Name : "—")</td>
-                            <td>@row.Price.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td>@row.CountNeed.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.PriceSum.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td>@row.CheckedForOrder.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.ProductType.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@FormatTime(row.TimeUnix)</td>
-                            <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.SessionId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "cart_id", row.Id)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-    </div>
-
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/orders/carts";
     private const string _listHref = "/cp/abandoned-carts-app";
+    private const int _pageSize = 50;
     private bool _isAdmin;
-    private CpAbandonedCartsSummary _summary = new(0, 0, 0, 0, 0, 0m, "n/a", "");
-    private IReadOnlyList<CpAbandonedCartsRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private CpCartsFilter _filter = new(0, 0, "", 0, "id", true, 1);
+    private CpCartsList _list = new([], 0, 1, _pageSize, []);
+    private string _selfHref = _listHref;
     private long _openedId;
-    private CpAbandonedCartsLineDetail? _openedLine;
-    private IReadOnlyList<CpAbandonedCartsLineDetail> _openedSiblings = [];
     private string _flashOk = "";
     private string _flashErr = "";
-
-    private string OpenedCaption => _openedLine is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedLine.Article) ? ("Cart line #" + _openedLine.Id.ToString(CultureInfo.InvariantCulture)) : _openedLine.Article)
-            + " · " + (_openedLine.SessionId > 0 ? "guest" : "user");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "cart_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ErpRecordOpen.ReadId(ctx.Request, "cart_id");
+        _filter = CpAbandonedCartsEditorService.ReadFilter(ctx.Request);
+        _selfHref = PageHref(_filter.Page);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpAbandonedCartsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Carts;
-        _source = result.Source;
-        _message = result.Message;
-
-        if (_openedId > 0)
-        {
-            var detail = await Dashboards.BuildCpAbandonedCartsDetailAsync(_openedId, ctx.RequestAborted);
-            _openedLine = detail.Line;
-            _openedSiblings = detail.Siblings;
-            if (_openedLine is not null)
-            {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
-            }
-        }
+        _list = await Carts.ListAsync(_filter, _pageSize, ctx.RequestAborted);
     }
+
+    private string BaseQuery(string sort, bool desc)
+    {
+        var f = _filter;
+        var parts = new List<string>();
+        if (f.TimeFrom > 0) parts.Add("time_from=" + f.TimeFrom.ToString(CultureInfo.InvariantCulture));
+        if (f.TimeTo > 0) parts.Add("time_to=" + f.TimeTo.ToString(CultureInfo.InvariantCulture));
+        if (f.Customer.Length > 0) parts.Add("customer=" + Uri.EscapeDataString(f.Customer));
+        if (f.StorageId > 0) parts.Add("storage_id=" + f.StorageId.ToString(CultureInfo.InvariantCulture));
+        parts.Add("sort=" + sort);
+        parts.Add("dir=" + (desc ? "desc" : "asc"));
+        return string.Join("&", parts);
+    }
+
+    private string PageHref(int page)
+        => _listHref + "?" + BaseQuery(_filter.Sort, _filter.Desc) + "&page=" + page.ToString(CultureInfo.InvariantCulture);
+
+    private MarkupString SortLink(string field, string caption)
+    {
+        var active = string.Equals(_filter.Sort, field, StringComparison.Ordinal);
+        var desc = active ? !_filter.Desc : field is "id" or "time";
+        var href = _listHref + "?" + BaseQuery(field, desc) + "&page=1";
+        var arrow = active ? (_filter.Desc ? " &darr;" : " &uarr;") : "";
+        return new MarkupString("<a href=\"" + href + "\" class=\"" + (active ? "epc-sorted" : "") + "\" id=\"" + field + "_sorter\">" + caption + arrow + "</a>");
+    }
+
+    private static string LocalInput(long unix)
+        => unix <= 0 ? "" : DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd'T'HH:mm", CultureInfo.InvariantCulture);
 
     private static string FormatTime(long unix)
-    {
-        if (unix <= 0)
-        {
-            return "—";
-        }
-
-        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-    }
+        => unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("dd.MM.yyyy H:mm", CultureInfo.InvariantCulture);
 }
