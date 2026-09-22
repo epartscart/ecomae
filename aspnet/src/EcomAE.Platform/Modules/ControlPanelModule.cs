@@ -5402,6 +5402,53 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpLangConfigure, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLangConfiguratorService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/languages-app", "Admin CP capability required for language configuration.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Post the language configurator form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var multilang = LiveWriteFormBinder.Flag(form, "multilang_on", "multilangOn");
+            var active = form["langs_active"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!.Trim()).ToList();
+            var def = LiveWriteFormBinder.Text(form, "lang_default", "langDefault");
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the language configuration on ASP.NET.",
+                    multilang,
+                    active,
+                    def,
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveConfigurationAsync(multilang, active, def, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/languages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpConfigWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,

@@ -4,7 +4,8 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@using EcomAE.Platform.Cp
+@inject ICpLangConfiguratorService Langs
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -19,12 +20,10 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Language list digest plus native editor writes. Flags, translation UPSERT, description, unused-custom delete, and create-string write here. Used-found scan stays Classic.</p>
+                <p style="margin:0">Multilanguage configurator (active languages, default language, multilang mode) and the translation editor for interface strings. Configuration is stored in <code>lang_languages</code> and <code>config.php</code>, so the classic modules and the storefront read the same settings.</p>
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/languages-app" IsAdmin="_isAdmin" />
-
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -132,41 +131,165 @@
 
     <div class="col-lg-12">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">Installed languages</div>
+            <div class="panel-heading hbuilt">Multilanguage configuration</div>
             <div class="panel-body">
-                <p class="help-block">@_summary.LanguageCount.ToString(CultureInfo.InvariantCulture) languages · @_summary.ActiveCount.ToString(CultureInfo.InvariantCulture) active · @_summary.DefaultCount.ToString(CultureInfo.InvariantCulture) default · @_summary.InactiveCount.ToString(CultureInfo.InvariantCulture) inactive.</p>
+                @if (_isAdmin && !string.IsNullOrWhiteSpace(_cfg.Message))
+                {
+                    <div class="alert alert-warning" role="status">@_cfg.Message</div>
+                }
+                <form method="post" action="/cp/lang/configure" id="lang_configurator_form">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/languages-app" />
+                    <div class="form-group" style="display:flex;gap:.6rem;align-items:center">
+                        <label for="multilang_on" style="margin:0">Multilanguage mode</label>
+                        <input type="checkbox" name="multilang_on" id="multilang_on" value="1" checked="@_cfg.MultilangOn" disabled="@(!_canConfigure)" onchange="epcLangToggleActive()" />
+                        <span class="text-muted">When off, only the default language is active on the storefront.</span>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-condensed table-striped" id="lang_configurator_table">
+                            <thead>
+                                <tr><th>ID</th><th>Language</th><th>Code</th><th>Active</th><th>Default</th></tr>
+                            </thead>
+                            <tbody>
+                            @if (_cfg.Languages.Count == 0)
+                            {
+                                <tr><td colspan="5">No languages installed in <code>lang_languages</code>.</td></tr>
+                            }
+                            @foreach (var l in _cfg.Languages)
+                            {
+                                <tr>
+                                    <td>@l.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@l.Caption</td>
+                                    <td><code>@l.LangCode</code></td>
+                                    <td><input class="active_langs_checkbox" type="checkbox" name="langs_active" value="@l.LangCode" id="@("active_" + l.LangCode)" checked="@(l.Active == 1)" disabled="@(!_canConfigure)" /></td>
+                                    <td><input type="radio" name="lang_default" value="@l.LangCode" checked="@(l.IsDefault == 1)" disabled="@(!_canConfigure)" required /></td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_canConfigure)
+                    {
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save language configuration</button>
+                    }
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Translation editor</div>
+            <div class="panel-body">
+                <form method="get" action="/cp/languages-app" style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:end;margin-bottom:.8rem">
+                    <label>Search key / description / text <input type="text" name="q" value="@_search.Query" class="form-control" style="width:18rem" /></label>
+                    <label>Translated
+                        <select name="scope" class="form-control">
+                            <option value="all" selected="@(_search.Scope == "all")">all strings</option>
+                            <option value="full" selected="@(_search.Scope == "full")">fully translated</option>
+                            <option value="partial" selected="@(_search.Scope == "partial")">partially translated</option>
+                            <option value="none" selected="@(_search.Scope == "none")">not translated</option>
+                            <option value="missing" selected="@(_search.Scope == "missing")">missing any language</option>
+                        </select>
+                    </label>
+                    <label>Custom
+                        <select name="custom" class="form-control">
+                            <option value="" selected="@(string.IsNullOrEmpty(_search.OnlyCustom))">any</option>
+                            <option value="1" selected="@(_search.OnlyCustom == "1")">custom only</option>
+                            <option value="0" selected="@(_search.OnlyCustom == "0")">system only</option>
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-default"><i class="fa fa-search"></i> Find</button>
+                </form>
+                @if (_isAdmin)
+                {
+                    <p class="help-block">@_strings.Total.ToString(CultureInfo.InvariantCulture) strings · page @_strings.Page.ToString(CultureInfo.InvariantCulture) of @_pages.ToString(CultureInfo.InvariantCulture) · languages: @string.Join(", ", _strings.Languages)</p>
+                }
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                    <table class="table table-condensed table-striped" id="lang_editor_table">
                         <thead>
                             <tr>
-                                <th>Code</th>
-                                <th>Active</th>
-                                <th>Default</th>
-                                <th></th>
+                                <th>Key</th>
+                                <th>Description</th>
+                                @foreach (var lang in _strings.Languages)
+                                {
+                                    <th>@lang</th>
+                                }
+                                <th>Flags</th>
                             </tr>
                         </thead>
                         <tbody>
-                        @if (_rows.Count == 0)
+                        @if (!_isAdmin)
                         {
-                            <tr><td colspan="4">No records yet.</td></tr>
+                            <tr><td colspan="@(3 + _strings.Languages.Count)">Sign in with an admin CP session to edit translations.</td></tr>
                         }
-                        else
+                        else if (_strings.Rows.Count == 0)
                         {
-                            @foreach (var row in _rows)
-                            {
-                                <tr>
-                                    <td>@(!string.IsNullOrWhiteSpace(row.LangCode) ? row.LangCode : "—")</td>
-                                    <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.IsDefault.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a></td>
-                                </tr>
-                            }
+                            <tr><td colspan="@(3 + _strings.Languages.Count)">No strings match.</td></tr>
+                        }
+                        @foreach (var row in _strings.Rows)
+                        {
+                            <tr>
+                                <td><code>@row.StrKey</code></td>
+                                <td>
+                                    <form method="post" action="/cp/lang/save-description" style="display:flex;gap:.3rem">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                        <input type="hidden" name="strKey" value="@row.StrKey" />
+                                        <input type="text" name="value" value="@row.Description" class="form-control input-sm" style="min-width:10rem" />
+                                        <button type="submit" class="btn btn-xs btn-default" title="Save description"><i class="fa fa-save"></i></button>
+                                    </form>
+                                </td>
+                                @foreach (var lang in _strings.Languages)
+                                {
+                                    <td>
+                                        <form method="post" action="/cp/lang/save-translation" style="display:flex;gap:.3rem">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                            <input type="hidden" name="strKey" value="@row.StrKey" />
+                                            <input type="hidden" name="langCode" value="@lang" />
+                                            <input type="text" name="value" value="@(row.Translations.TryGetValue(lang, out var t) ? t : string.Empty)" class="form-control input-sm @(row.Translations.ContainsKey(lang) ? "" : "epc-lang-missing")" style="min-width:12rem" placeholder="not translated" />
+                                            <button type="submit" class="btn btn-xs btn-default" title="Save @lang"><i class="fa fa-save"></i></button>
+                                        </form>
+                                    </td>
+                                }
+                                <td style="white-space:nowrap">
+                                    <span class="label @(row.IsCustom == 1 ? "label-info" : "label-default")">@(row.IsCustom == 1 ? "custom" : "system")</span>
+                                    @if (row.IsError == 1) { <span class="label label-danger">error</span> }
+                                    @if (row.Same != "no" && row.Same.Length > 0) { <span class="label label-warning">same: @row.Same</span> }
+                                    @if (row.UsedFound == 2) { <span class="label label-warning">unused</span> }
+                                </td>
+                            </tr>
                         }
                         </tbody>
                     </table>
                 </div>
+                @if (_isAdmin && _pages > 1)
+                {
+                    <div style="display:flex;gap:.5rem">
+                        @if (_strings.Page > 1) { <a class="btn btn-default btn-sm" href="@PageHref(_strings.Page - 1)">&laquo; Previous</a> }
+                        @if (_strings.Page < _pages) { <a class="btn btn-default btn-sm" href="@PageHref(_strings.Page + 1)">Next &raquo;</a> }
+                    </div>
+                }
             </div>
         </div>
+    <style>
+        .epc-lang-missing { background:#fff7ed; }
+    </style>
+    <script>
+        function epcLangToggleActive() {
+            var on = document.getElementById('multilang_on').checked;
+            document.querySelectorAll('#lang_configurator_table .active_langs_checkbox').forEach(function (cb) { cb.disabled = !on; });
+        }
+        document.addEventListener('DOMContentLoaded', function () {
+            var f = document.getElementById('lang_configurator_form');
+            if (!f) return;
+            f.addEventListener('submit', function () {
+                document.querySelectorAll('#lang_configurator_table .active_langs_checkbox').forEach(function (cb) { cb.disabled = false; });
+            });
+            if (document.getElementById('multilang_on') && !document.getElementById('multilang_on').disabled) { epcLangToggleActive(); }
+        });
+    </script>
     </div>
 
 </PhpCpDesktopChrome>
@@ -174,12 +297,17 @@
 @code {
     private const string _phpTab = "/CP/lang";
     private bool _isAdmin;
-    private CpLanguagesSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpLanguagesRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private bool _canConfigure;
+    private CpLangConfiguratorReadResult _cfg = new([], false, false, "n/a", "");
+    private CpLangStringSearch _search = CpLangStringSearch.Default;
+    private CpLangStringSearchResult _strings = new([], [], 0, 1, 50, "n/a", "");
+    private int _pages = 1;
+    private string _returnUrl = "/cp/languages-app";
     private string _flashOk = "";
     private string _flashErr = "";
+
+    private string PageHref(int page)
+        => "/cp/languages-app?q=" + Uri.EscapeDataString(_search.Query ?? "") + "&scope=" + _search.Scope + "&custom=" + (_search.OnlyCustom ?? "") + "&page=" + page.ToString(CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,17 +316,27 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        var scope = ctx.Request.Query["scope"].ToString();
+        var custom = ctx.Request.Query["custom"].ToString();
+        _ = int.TryParse(ctx.Request.Query["page"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var page);
+        _search = new CpLangStringSearch(
+            ctx.Request.Query["q"].ToString(),
+            scope is "full" or "partial" or "none" or "missing" ? scope : "all",
+            custom is "1" or "0" ? custom : null,
+            Math.Max(1, page),
+            50);
+        _returnUrl = PageHref(_search.Page);
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpLanguagesDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Languages;
-        _source = result.Source;
-        _message = result.Message;
+        _cfg = await Langs.ReadAsync(ctx.RequestAborted);
+        _canConfigure = _cfg.ConfigFileWritable && _cfg.Languages.Count > 0;
+        _strings = await Langs.SearchStringsAsync(_search, ctx.RequestAborted);
+        _pages = (int)Math.Max(1, (_strings.Total + _strings.PageSize - 1) / _strings.PageSize);
     }
 }
