@@ -2,9 +2,9 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpStatisticsReportService Reports
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -12,6 +12,23 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+<div class="col-lg-12">
+<style>
+    .epc-st-filters { display:flex; flex-wrap:wrap; gap:.6rem; align-items:end; }
+    .epc-st-filters label { display:flex; flex-direction:column; font-size:12px; color:#475569; gap:2px; }
+    .epc-st-kpis { display:flex; gap:.6rem; flex-wrap:wrap; margin:.6rem 0 0; }
+    .epc-st-kpi { flex:1 1 140px; border:1px solid #e4e5e7; background:#fff; padding:8px 10px; }
+    .epc-st-kpi .lbl { font-size:11px; text-transform:uppercase; color:#64748b; }
+    .epc-st-kpi .val { font-size:20px; font-weight:600; }
+    .epc-st-chart { display:flex; align-items:flex-end; gap:2px; height:180px; border-bottom:1px solid #cbd5e1; padding:0 2px; overflow-x:auto; }
+    .epc-st-bar { flex:1 1 0; min-width:6px; background:#3498db; position:relative; }
+    .epc-st-bar:hover { background:#1d6fa5; }
+    .epc-st-bar[data-zero="1"] { background:#e2e8f0; }
+    .epc-st-axis { display:flex; justify-content:space-between; font-size:11px; color:#64748b; margin-top:3px; }
+    .epc-st-hits { display:inline-block; min-width:2.5rem; text-align:right; }
+</style>
+</div>
+
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
@@ -20,88 +37,166 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/statistics-app")</p>
+                <form method="get" action="/cp/statistics-app" class="epc-st-filters">
+                    <label>Report
+                        <select name="report" id="statistics_type_select" class="form-control" onchange="this.form.submit()">
+                            <option value="article_queries_rating" selected="@(_req.Report == "article_queries_rating")">Article query rating</option>
+                            <option value="article_queries_time_chart" selected="@(_req.Report == "article_queries_time_chart")">Article queries over time</option>
+                        </select>
+                    </label>
+                    <label>From <input type="date" name="from" class="form-control" value="@_req.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" /></label>
+                    <label>To <input type="date" name="to" class="form-control" value="@_req.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" /></label>
+                    <label>Article <input type="text" name="article" class="form-control" value="@_req.Article" placeholder="contains…" /></label>
+                    <label>Brand <input type="text" name="brand" class="form-control" value="@_req.Brand" placeholder="contains…" /></label>
+                    <label>Top
+                        <select name="limit" class="form-control">
+                            @foreach (var n in new[] { 50, 100, 200, 500 })
+                            {
+                                <option value="@n" selected="@(_req.Limit == n)">@n</option>
+                            }
+                        </select>
+                    </label>
+                    <button type="submit" class="btn btn-primary"><i class="fa fa-filter"></i> Apply</button>
+                    <a class="btn btn-default" href="/cp/statistics-app?report=@_req.Report&from=@_today.AddDays(-6).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)&to=@_today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">7 days</a>
+                    <a class="btn btn-default" href="/cp/statistics-app?report=@_req.Report&from=@_today.AddDays(-29).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)&to=@_today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">30 days</a>
+                    <a class="btn btn-default" href="/cp/statistics-app?report=@_req.Report&from=@_today.AddDays(-364).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)&to=@_today.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">12 months</a>
+                </form>
+                @if (_isAdmin)
+                {
+                    <div class="epc-st-kpis">
+                        <div class="epc-st-kpi"><div class="lbl">Queries</div><div class="val">@_report.TotalHits.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+                        <div class="epc-st-kpi"><div class="lbl">Unique articles</div><div class="val">@_report.UniqueArticles.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+                        <div class="epc-st-kpi"><div class="lbl">Unique visitors (IP)</div><div class="val">@_report.UniqueIps.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+                        <div class="epc-st-kpi"><div class="lbl">Days in range</div><div class="val">@_report.Days.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+                    </div>
+                }
             </div>
         </div>
     </div>
-    <PhpParityModuleBody AppPath="/cp/statistics-app" IsAdmin="_isAdmin" />
 
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Sign in with an admin CP session to view statistics. <a href="/cp/login?returnUrl=/cp/statistics-app">Sign in</a></div></div>
+    }
+    else if (!string.IsNullOrWhiteSpace(_report.Message))
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">@_report.Message</div></div>
+    }
 
-    <p class="help-block">@_orderCount.ToString(CultureInfo.InvariantCulture) Orders · @_queryCount.ToString(CultureInfo.InvariantCulture) Queries · @_uniqueArticles.ToString(CultureInfo.InvariantCulture) Unique articles · @_activeDays.ToString(CultureInfo.InvariantCulture) Active days.</p>
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-        <thead>
-            <tr>
-                    <th>Article</th>
-                    <th>Brand</th>
-                    <th>Hits</th>
-                    <th>Last seen</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="5">No records yet.</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Article) ? row.Article : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Brand) ? row.Brand : "—")</td>
-                            <td>@row.Hits.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.LastSeen.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
-                    </table>
+    @if (_isAdmin && _req.Report == "article_queries_time_chart")
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Article queries per day · @_req.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture) – @_req.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</div>
+                <div class="panel-body">
+                    <div class="epc-st-chart" role="img" aria-label="Queries per day">
+                        @foreach (var d in _report.Days)
+                        {
+                            var pct = _maxDay == 0 ? 0 : (int)Math.Round(100.0 * d.Hits / _maxDay);
+                            <div class="epc-st-bar" data-zero="@(d.Hits == 0 ? "1" : "0")" style="height:@(Math.Max(pct, 1))%" title="@d.Day.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture): @d.Hits.ToString(CultureInfo.InvariantCulture) queries, @d.UniqueArticles.ToString(CultureInfo.InvariantCulture) articles"></div>
+                        }
+                    </div>
+                    <div class="epc-st-axis"><span>@_req.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</span><span>peak @_maxDay.ToString(CultureInfo.InvariantCulture)/day</span><span>@_req.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</span></div>
+                    <div class="table-responsive" style="margin-top:10px;max-height:320px;overflow:auto">
+                        <table class="table table-condensed table-striped">
+                            <thead><tr><th>Day</th><th>Queries</th><th>Unique articles</th><th></th></tr></thead>
+                            <tbody>
+                            @foreach (var d in _report.Days.Where(x => x.Hits > 0).OrderByDescending(x => x.Day))
+                            {
+                                <tr>
+                                    <td>@d.Day.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</td>
+                                    <td><span class="epc-st-hits">@d.Hits.ToString(CultureInfo.InvariantCulture)</span></td>
+                                    <td>@d.UniqueArticles.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td><a href="/cp/statistics-app?report=article_queries_rating&from=@d.Day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)&to=@d.Day.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)">rating for this day</a></td>
+                                </tr>
+                            }
+                            @if (_report.Days.All(x => x.Hits == 0))
+                            {
+                                <tr><td colspan="4" class="text-muted">No article queries in this range.</td></tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <div class="epc-nw-note">Read-only commerce statistics. Live supplier poll and write analytics remain PHP.</div>
+    }
+    else if (_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Article query rating · top @_req.Limit.ToString(CultureInfo.InvariantCulture) · @_req.From.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture) – @_req.To.ToString("dd.MM.yyyy", CultureInfo.InvariantCulture)</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                            <thead>
+                                <tr><th>#</th><th>Article</th><th>Brand</th><th>Queries</th><th>Visitors (IP)</th><th>Share</th><th>Last query</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                            @if (_report.Rating.Count == 0)
+                            {
+                                <tr><td colspan="8" class="text-muted">No article queries in this range.</td></tr>
+                            }
+                            @{ var i = 0; }
+                            @foreach (var row in _report.Rating)
+                            {
+                                i++;
+                                var share = _report.TotalHits == 0 ? 0 : 100.0 * row.Hits / _report.TotalHits;
+                                <tr>
+                                    <td>@i.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td><strong>@(row.Article.Length > 0 ? row.Article : "—")</strong></td>
+                                    <td>@(row.Brand.Length > 0 ? row.Brand : "—")</td>
+                                    <td><span class="epc-st-hits">@row.Hits.ToString(CultureInfo.InvariantCulture)</span></td>
+                                    <td>@row.UniqueIps.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@share.ToString("0.0", CultureInfo.InvariantCulture)%</td>
+                                    <td>@(row.LastSeen > 0 ? DateTimeOffset.FromUnixTimeSeconds(row.LastSeen).ToString("dd.MM.yyyy HH:mm", CultureInfo.InvariantCulture) : "—")</td>
+                                    <td>
+                                        @if (row.Article.Length > 0)
+                                        {
+                                            <a href="/search?q=@Uri.EscapeDataString(row.Article)" target="_blank" rel="noopener">search</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
 
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/statistics/statistics";
     private bool _isAdmin;
-    private int _orderCount = 0;
-    private int _queryCount = 0;
-    private int _uniqueArticles = 0;
-    private int _activeDays = 0;
-    private IReadOnlyList<CpStatisticsRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private DateOnly _today = DateOnly.FromDateTime(DateTime.UtcNow);
+    private CpStatisticsReportRequest _req = CpStatisticsReportRequest.Default(DateOnly.FromDateTime(DateTime.UtcNow));
+    private CpStatisticsReport _report = new(CpStatisticsReportRequest.Default(DateOnly.FromDateTime(DateTime.UtcNow)), 0, 0, 0, [], [], "n/a", "");
+    private long _maxDay;
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        var q = ctx.Request.Query;
+        var report = q["report"].ToString() == "article_queries_time_chart" ? "article_queries_time_chart" : "article_queries_rating";
+        var from = DateOnly.TryParseExact(q["from"], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var f) ? f : _today.AddDays(-29);
+        var to = DateOnly.TryParseExact(q["to"], "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var t) ? t : _today;
+        var limit = int.TryParse(q["limit"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var l) ? l : 100;
+        _req = new CpStatisticsReportRequest(report, from, to, q["article"].ToString(), q["brand"].ToString(), limit);
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpStatisticsDigestAsync(200, ctx.RequestAborted);
-        _orderCount = result.Summary.OrderCount;
-        _queryCount = result.Summary.QueryCount;
-        _uniqueArticles = result.Summary.UniqueArticles;
-        _activeDays = result.Summary.ActiveDays;
-        _rows = result.Rows;
-        _source = result.Source;
-        _message = result.Message;
+        _report = await Reports.BuildAsync(_req, ctx.RequestAborted);
+        _req = _report.Request;
+        _maxDay = _report.Days.Count == 0 ? 0 : _report.Days.Max(d => d.Hits);
     }
 }
