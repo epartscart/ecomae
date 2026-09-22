@@ -202,3 +202,24 @@ digest checks.
 
 ## Devin Secrets Needed
 - `ECOMAE_OPERATOR_PASSWORD` — operator login password (type via `xdotool type -- "$VAR"`, never print it).
+
+## Carrier / custom-shipping UI fixtures and permission limits
+- On a throwaway tenant DB, initialize PHP-owned shipping tables from the `CREATE TABLE`
+  definitions in `content/shop/finance/epc_custom_shipping.php` before saving a declaration.
+  The ASP.NET write path may not initialize them; absent tables can cause HTTP 500.
+- Populated carrier-list testing also needs `epc_carrier_accounts` and `epc_carrier_shipments`;
+  their authoritative local schema is in `content/shop/channels/epc_channel_schema.php`.
+  Seed a clearly named demo carrier locally; do not call a live carrier integration.
+- `/cp/carriers-app` and `/erp/carriers-app` share `/cp/custom-shipping/write`.
+  Verify the redirect stays on the starting surface and corroborate
+  `epc_custom_shipping_declarations` plus `epc_custom_shipping_declaration_items`.
+  The form requires company, entry date and declaration date. Native browser date pickers
+  avoid malformed segmented dates produced by pasting ISO strings into date inputs.
+- Before planning ERP-only capability tests, inspect `Auth/LegacyAdminPermissionSets.cs`.
+  If `ForRequestHost` grants CP and ERP together to all admins, changing DB groups or
+  session rows cannot produce an ERP-only principal. Report that scenario untested;
+  do not modify authentication or substitute an anonymous session as proof.
+- Missing `epc_industry_packs` may yield a rendered database-error row while the hero
+  remains styled. Separate styling assertions from healthy data-backed rendering.
+  HeadOutlet may be absent in SSR; inspect the body fallback and computed styles as
+  well as the head, rather than equating missing HeadContent with missing styling.
