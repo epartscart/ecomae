@@ -1,193 +1,312 @@
 @page "/cp/groups-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Net
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpGroupTreeWriteService Writes
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Groups · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-groups-page { margin-bottom:24px; }
+    .epc-groups-card { margin-bottom:14px; }
+    .epc-gr-grid td, .epc-gr-grid th { vertical-align:middle !important; white-space:nowrap; }
+    .epc-gr-grid input[type=text] { min-width:10rem; }
+    .epc-gr-grid .epc-gr-desc { min-width:14rem; }
+    .epc-gr-grid .epc-gr-flag { text-align:center; }
+    .epc-gr-grid .epc-gr-handle { color:#94a3b8; cursor:grab; }
+    .epc-gr-grid .epc-gr-indent { display:inline-block; color:#cbd5e1; }
+    .epc-gr-actions { display:flex; gap:.5rem; flex-wrap:wrap; align-items:center; margin-top:.6rem; }
+    .epc-gr-legend { display:flex; gap:1rem; flex-wrap:wrap; margin:0; }
+    .epc-gr-legend li { list-style:none; }
+    .epc-gr-legend .label { font-size:11px; }
+</style>
+</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/groups-app" IsAdmin="_isAdmin" />
 
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+    <div class="col-lg-12 epc-groups-page">
+        <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpCpModulePageHeader Title="Groups & roles"
-                           Subtitle="Open a row for the 280-character description excerpt. Tree save stays on the Classic twin."
-                           PhpTabHref="@_phpTab">
-        <a class="ghost" href="/cp/users-app">Users list</a>
-    </PhpCpModulePageHeader>
+        <PhpCpModulePageHeader Title="Groups &amp; roles"
+                               Subtitle="Edit names, nesting, blocking and the guests / registration / backend roles, then save the whole tree in one transaction."
+                               PhpTabHref="@_phpTab">
+            <a class="ghost" href="/cp/users-app">Users list</a>
+        </PhpCpModulePageHeader>
 
-    <div class="epc-scp-kpi" aria-label="Groups KPIs">
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Shown</div>
-            <div class="epc-scp-kpi__val">@_groups.Count</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Backend groups</div>
-            <div class="epc-scp-kpi__val">@_backend</div>
-        </div>
-    </div>
-
-    <div class="epc-scp-table-card">
-        <div class="epc-scp-table-card__head">
-            <div>
-                <h3>Groups</h3>
-                <p class="epc-users-hint">Open uses <code>?ugroup_id=</code>. Full tree editor stays on the Classic twin.</p>
+        <div class="epc-scp-kpi" aria-label="Groups KPIs">
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Groups</div>
+                <div class="epc-scp-kpi__val">@_groups.Count.ToString(CultureInfo.InvariantCulture)</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Backend groups</div>
+                <div class="epc-scp-kpi__val">@_backend.ToString(CultureInfo.InvariantCulture)</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Blocked</div>
+                <div class="epc-scp-kpi__val">@_blocked.ToString(CultureInfo.InvariantCulture)</div>
+            </div>
+            <div class="epc-scp-kpi__card">
+                <div class="epc-scp-kpi__label">Max depth</div>
+                <div class="epc-scp-kpi__val">@_depth.ToString(CultureInfo.InvariantCulture)</div>
             </div>
         </div>
-        <table class="epc-scp-data-table table table-epc-pro">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Backend</th>
-                    <th>Guests</th>
-                    <th>Registered</th>
-                    <th>Unblocked</th>
-                    <th>Parent</th>
-                    <th>Level</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_groups.Count == 0)
-                {
-                    <tr><td colspan="9">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var g in _groups)
-                    {
-                        <tr id="erp-row-@g.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(g.Id, _openedId)">
-                            <td><strong>@g.Id</strong></td>
-                            <td>@g.Value</td>
-                            <td>@(g.ForBackend ? "yes" : "—")</td>
-                            <td>@(g.ForGuests ? "yes" : "—")</td>
-                            <td>@(g.ForRegistrated ? "yes" : "—")</td>
-                            <td>@(g.Unblocked ? "yes" : "no")</td>
-                            <td>@g.Parent</td>
-                            <td><span class="epc-scp-badge">L@g.Level</span></td>
-                            <td class="epc-scp-actions-cell">
-                                <a href="@ErpRecordOpen.Href(_listHref, "ugroup_id", g.Id)">Open</a>
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
 
-    @if (_opened is not null)
-    {
-        <div class="epc-scp-table-card" style="margin-top:1rem">
-            <div class="epc-scp-table-card__head">
-                <div>
-                    <h3>@OpenedCaption</h3>
-                    <p class="epc-users-hint">Group field preview. Tree save stays on the Classic twin.</p>
+        <div class="hpanel">
+            <div class="panel-body">
+                <p>@CpPhpModuleCopy.PurposeFor("/cp/groups-app")</p>
+                <p class="text-muted" style="margin:0 0 .5rem">
+                    Edit group names and descriptions, nest a group under a parent, block or unblock it, and pick which single group receives
+                    guests, new registrations and backend administrators. Removed rows are deleted on save. Open uses <code>?ugroup_id=</code>.
+                </p>
+                <ul class="epc-gr-legend">
+                    <li><span class="label label-info">Guests</span> group applied to anonymous visitors</li>
+                    <li><span class="label label-success">Registered</span> group assigned on sign-up</li>
+                    <li><span class="label label-danger">Backend</span> group that grants Control Panel access</li>
+                    <li><span class="label label-default">% info</span> shows technical pricing info in quotations</li>
+                </ul>
+            </div>
+        </div>
+
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="alert alert-success" role="status">@_flashOk</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="alert alert-danger" role="status">@_flashErr</div>
+        }
+        @if (!_isAdmin)
+        {
+            <div class="alert alert-warning" role="status">Sign in with an admin CP session to manage groups. <a href="/cp/login?returnUrl=/cp/groups-app">Sign in</a></div>
+        }
+        else if (_source != "database")
+        {
+            <div class="alert alert-warning" role="status">Groups could not be loaded: @_message</div>
+        }
+
+        <form method="post" action="/cp/groups/write" id="epc_groups_form">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/cp/groups-app" />
+            <input type="hidden" name="langCode" value="en" />
+
+            <div class="epc-scp-table-card epc-groups-card">
+                <div class="epc-scp-table-card__head">
+                    <div>
+                        <h3>Group tree</h3>
+                        <p class="epc-users-hint">Rows are shown parent-first; drag to reorder siblings. Level and child counts are recomputed on save.</p>
+                    </div>
                 </div>
-                <a class="btn btn-default btn-xs" href="@_listHref">Close</a>
+                <div>
+                    <div class="table-responsive">
+                        <table class="epc-scp-data-table table table-condensed table-epc-pro epc-gr-grid" id="epc_gr_grid">
+                            <thead>
+                                <tr>
+                                    <th></th>
+                                    <th>Id</th>
+                                    <th>Name</th>
+                                    <th>Parent</th>
+                                    <th>Description</th>
+                                    <th class="epc-gr-flag" title="Unblocked">Active</th>
+                                    <th class="epc-gr-flag" title="Group for guests">Guests</th>
+                                    <th class="epc-gr-flag" title="Group for new registrations">Registered</th>
+                                    <th class="epc-gr-flag" title="Backend administrators">Backend</th>
+                                    <th class="epc-gr-flag" title="Technical info in pricing">% info</th>
+                                    <th></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                            @{ var gi = 0; }
+                            @foreach (var row in _ordered)
+                            {
+                                var k = "g_" + gi.ToString(CultureInfo.InvariantCulture) + "_";
+                                var marker = gi.ToString(CultureInfo.InvariantCulture);
+                                <tr draggable="true" id="@("erp-row-" + row.Id.ToString(CultureInfo.InvariantCulture))" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
+                                    <td class="epc-gr-handle" title="Drag to reorder">&#9776;<input type="hidden" name="g_idx" value="@marker" /></td>
+                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)<input type="hidden" name="@(k + "id")" value="@row.Id" /><input type="hidden" name="@(k + "value_lang_str_id")" value="@row.ValueLangStrId" /><input type="hidden" name="@(k + "description_lang_str_id")" value="@row.DescriptionLangStrId" /></td>
+                                    <td>
+                                        <span class="epc-gr-indent">@Indent(row.Level)</span>
+                                        <input class="form-control input-sm" type="text" name="@(k + "value")" value="@WebUtility.HtmlDecode(row.Value)" maxlength="255" required disabled="@(!_isAdmin)" style="display:inline-block;width:auto" />
+                                    </td>
+                                    <td>
+                                        <select class="form-control input-sm epc-gr-parent" name="@(k + "parent")" disabled="@(!_isAdmin)">
+                                            <option value="0" selected="@(row.Parent == 0)">— root —</option>
+                                            @foreach (var p in _ordered)
+                                            {
+                                                if (p.Id == row.Id) { continue; }
+                                                <option value="@p.Id" selected="@(row.Parent == p.Id)">@p.Id.ToString(CultureInfo.InvariantCulture) · @WebUtility.HtmlDecode(p.Value)</option>
+                                            }
+                                        </select>
+                                    </td>
+                                    <td><input class="form-control input-sm epc-gr-desc" type="text" name="@(k + "description")" value="@WebUtility.HtmlDecode(row.Description)" maxlength="2000" disabled="@(!_isAdmin)" /></td>
+                                    <td class="epc-gr-flag"><input type="checkbox" name="@(k + "unblocked")" value="1" checked="@(row.Unblocked == 1)" disabled="@(!_isAdmin)" /></td>
+                                    <td class="epc-gr-flag"><input type="radio" name="g_for_guests" value="@marker" checked="@(row.ForGuests == 1)" disabled="@(!_isAdmin)" /></td>
+                                    <td class="epc-gr-flag"><input type="radio" name="g_for_registrated" value="@marker" checked="@(row.ForRegistrated == 1)" disabled="@(!_isAdmin)" /></td>
+                                    <td class="epc-gr-flag"><input type="radio" name="g_for_backend" value="@marker" checked="@(row.ForBackend == 1)" disabled="@(!_isAdmin)" /></td>
+                                    <td class="epc-gr-flag"><input type="checkbox" name="@(k + "for_percentage")" value="1" checked="@(row.ForPercentage == 1)" disabled="@(!_isAdmin)" /></td>
+                                    <td>
+                                        <a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "ugroup_id", row.Id)">Open</a>
+                                        @if (_isAdmin) { <button type="button" class="btn btn-xs btn-danger" onclick="epcGrRemove(this)" title="Remove (deleted on save)">&times;</button> }
+                                    </td>
+                                </tr>
+                                gi++;
+                            }
+                            @if (_ordered.Count == 0)
+                            {
+                                <tr class="epc-gr-empty"><td colspan="11" class="text-muted">No groups yet — add one below.</td></tr>
+                            }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_isAdmin)
+                    {
+                        <div class="epc-gr-actions">
+                            <button type="button" class="btn btn-sm btn-default" onclick="epcGrAdd()">+ Add group</button>
+                            <span class="text-muted">New groups can be nested under an existing group; save first to nest under another new group.</span>
+                        </div>
+                    }
+                </div>
             </div>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Parent</dt><dd>@_opened.Parent.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Level</dt><dd>@_opened.Level.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Children</dt><dd>@_opened.ChildCount.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Order</dt><dd>@_opened.SortOrder.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Percentage</dt><dd>@(_opened.ForPercentage ? "yes" : "no")</dd>
-                <dt>Backend</dt><dd>@(_opened.ForBackend ? "yes" : "—")</dd>
-                <dt>Unblocked</dt><dd>@(_opened.Unblocked ? "yes" : "no")</dd>
-            </dl>
-            @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
-            {
-                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.85rem 0 0">@_opened.DescriptionExcerpt</pre>
-                @if (_opened.DescriptionLen > _opened.DescriptionExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars). Tree save stays on the Classic twin.</p>
-                }
-            }
-            else
-            {
-                <p class="text-muted" style="margin:.85rem 0 0">No description excerpt yet.</p>
-            }
-            @if (_openedSiblings.Count > 0)
-            {
-                <p class="epc-users-hint" style="margin:1rem 0 .4rem">Same parent</p>
-                <table class="table table-condensed table-striped table-epc">
-                    <thead>
-                        <tr>
-                            <th>ID</th>
-                            <th>Name</th>
-                            <th>Level</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var sib in _openedSiblings)
-                        {
-                            <tr>
-                                <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                <td>@(string.IsNullOrWhiteSpace(sib.Value) ? "—" : sib.Value)</td>
-                                <td>@sib.Level.ToString(CultureInfo.InvariantCulture)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "ugroup_id", sib.Id)">Open</a></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p class="text-muted">No same-parent siblings yet.</p>
-            }
-        </div>
-    }
 
+            @if (_isAdmin)
+            {
+                <div class="hpanel epc-groups-card">
+                    <div class="panel-body epc-gr-actions">
+                        <button type="submit" class="btn btn-primary">Save groups</button>
+                        <a class="btn btn-default" href="/cp/groups-app">Reset</a>
+                        <span class="text-muted">One guests, one registered and one backend group are required; all three must be active and never under the backend group.</span>
+                    </div>
+                </div>
+            }
+        </form>
+
+    <script>
+        function epcGrRemove(btn) {
+            var tr = btn.closest('tr');
+            if (tr && confirm('Remove this group? It is deleted when you save.')) { tr.parentNode.removeChild(tr); }
+        }
+        function epcGrAdd() {
+            var tbody = document.getElementById('epc_gr_grid').querySelector('tbody');
+            var empty = tbody.querySelector('.epc-gr-empty'); if (empty) { tbody.removeChild(empty); }
+            var idx = Date.now() % 100000000;
+            var k = 'g_' + idx + '_';
+            var first = tbody.querySelector('select.epc-gr-parent');
+            var options = first ? first.innerHTML : '<option value="0">— root —</option>';
+            var tr = document.createElement('tr'); tr.setAttribute('draggable', 'true');
+            tr.innerHTML = '<td class="epc-gr-handle">&#9776;<input type="hidden" name="g_idx" value="' + idx + '"></td>'
+                + '<td>new<input type="hidden" name="' + k + 'id" value="0"><input type="hidden" name="' + k + 'value_lang_str_id" value="0"><input type="hidden" name="' + k + 'description_lang_str_id" value="0"></td>'
+                + '<td><input class="form-control input-sm" type="text" name="' + k + 'value" maxlength="255" required placeholder="Group name" style="display:inline-block;width:auto"></td>'
+                + '<td><select class="form-control input-sm epc-gr-parent" name="' + k + 'parent">' + options + '</select></td>'
+                + '<td><input class="form-control input-sm epc-gr-desc" type="text" name="' + k + 'description" maxlength="2000" placeholder="Description"></td>'
+                + '<td class="epc-gr-flag"><input type="checkbox" name="' + k + 'unblocked" value="1" checked></td>'
+                + '<td class="epc-gr-flag"><input type="radio" name="g_for_guests" value="' + idx + '"></td>'
+                + '<td class="epc-gr-flag"><input type="radio" name="g_for_registrated" value="' + idx + '"></td>'
+                + '<td class="epc-gr-flag"><input type="radio" name="g_for_backend" value="' + idx + '"></td>'
+                + '<td class="epc-gr-flag"><input type="checkbox" name="' + k + 'for_percentage" value="1"></td>'
+                + '<td><button type="button" class="btn btn-xs btn-danger" onclick="epcGrRemove(this)">&times;</button></td>';
+            var sel = tr.querySelector('select'); sel.value = '0';
+            tbody.appendChild(tr);
+            epcGrWireDrag(tr);
+            tr.querySelector('input[type=text]').focus();
+        }
+        var epcGrDragging = null;
+        function epcGrWireDrag(tr) {
+            tr.addEventListener('dragstart', function () { epcGrDragging = tr; });
+            tr.addEventListener('dragover', function (e) {
+                e.preventDefault();
+                if (!epcGrDragging || epcGrDragging === tr || epcGrDragging.parentNode !== tr.parentNode) { return; }
+                var rect = tr.getBoundingClientRect();
+                var after = (e.clientY - rect.top) > rect.height / 2;
+                tr.parentNode.insertBefore(epcGrDragging, after ? tr.nextSibling : tr);
+            });
+            tr.addEventListener('dragend', function () { epcGrDragging = null; });
+        }
+        document.querySelectorAll('.epc-gr-grid tbody tr[draggable]').forEach(epcGrWireDrag);
+    </script>
+    </div>
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/users/usergroups";
+    private const string _phpTab = "/CP/users/user_groups";
     private bool _isAdmin;
-    private IReadOnlyList<CpGroupDigest> _groups = [];
+    private IReadOnlyList<CpGroupTreeRow> _groups = [];
+    private List<CpGroupTreeRow> _ordered = [];
     private int _backend;
-    private string _source = "n/a";
+    private int _blocked;
+    private string _source = "";
     private string _message = "";
-    private string _listHref = "/cp/groups-app";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private int _depth;
     private long _openedId;
-    private CpGroupDetail? _opened;
-    private IReadOnlyList<CpGroupDigest> _openedSiblings = [];
+    private CpGroupTreeRow? _opened;
+    private const string _listHref = "/cp/groups-app";
 
-    private string OpenedCaption =>
-        !string.IsNullOrWhiteSpace(_opened?.Value)
-            ? _opened.Value
-            : (_openedId > 0 ? ("Group #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+    private string OpenedCaption => _opened is null
+        ? string.Empty
+        : "Group #" + _opened.Id.ToString(CultureInfo.InvariantCulture) + " · " + WebUtility.HtmlDecode(_opened.Value)
+          + " (level " + _opened.Level.ToString(CultureInfo.InvariantCulture) + ", " + _opened.ChildCount.ToString(CultureInfo.InvariantCulture) + " children)";
+
+    private static string Indent(int level)
+        => level <= 1 ? string.Empty : string.Concat(Enumerable.Repeat("\u2500", (level - 1) * 2)) + "\u2514 ";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "ugroup_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.ListCpGroupsAsync(200, ctx.RequestAborted);
+        var result = await Writes.ReadAsync(ctx.RequestAborted);
         _groups = result.Groups;
-        _backend = _groups.Count(g => g.ForBackend);
         _source = result.Source;
         _message = result.Message;
-        if (_openedId > 0)
+        _backend = _groups.Count(g => g.ForBackend == 1);
+        _blocked = _groups.Count(g => g.Unblocked != 1);
+        _ordered = OrderTree(_groups);
+        _depth = _groups.Count == 0 ? 0 : _groups.Max(g => g.Level);
+        _opened = _openedId > 0 ? _groups.FirstOrDefault(g => g.Id == _openedId) : null;
+    }
+
+    private static List<CpGroupTreeRow> OrderTree(IReadOnlyList<CpGroupTreeRow> rows)
+    {
+        var ids = rows.Select(r => r.Id).ToHashSet();
+        var ordered = new List<CpGroupTreeRow>(rows.Count);
+        var seen = new HashSet<long>();
+        void Walk(long parent, int depth)
         {
-            var detail = await Dashboards.BuildCpGroupsDetailAsync(_openedId, ctx.RequestAborted);
-            _opened = detail.Group;
-            _openedSiblings = detail.Siblings;
+            if (depth > 32) return;
+            foreach (var r in rows.Where(r => r.Parent == parent).OrderBy(r => r.SortOrder).ThenBy(r => r.Id))
+            {
+                if (seen.Add(r.Id)) { ordered.Add(r); Walk(r.Id, depth + 1); }
+            }
         }
+
+        Walk(0, 0);
+        foreach (var r in rows.Where(r => !seen.Contains(r.Id) && !ids.Contains(r.Parent)).OrderBy(r => r.SortOrder))
+        {
+            if (seen.Add(r.Id)) { ordered.Add(r); Walk(r.Id, 1); }
+        }
+
+        foreach (var r in rows.Where(r => !seen.Contains(r.Id)))
+        {
+            ordered.Add(r);
+        }
+
+        return ordered;
     }
 }

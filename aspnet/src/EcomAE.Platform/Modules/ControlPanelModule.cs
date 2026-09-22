@@ -5313,6 +5313,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 ordersJson = LiveWriteFormBinder.Text(form, "ordersJson", "orders_statuses", "orders");
                 itemsJson = LiveWriteFormBinder.Text(form, "itemsJson", "orders_items_statuses", "items");
+                if (CpOrderStatusGridForm.HasGrid(form))
+                {
+                    ordersJson = CpOrderStatusGridForm.ToJson(form, CpOrderStatusGridForm.OrderPrefix, CpOrderStatusGridForm.OrderFlags) ?? ordersJson;
+                    itemsJson = CpOrderStatusGridForm.ToJson(form, CpOrderStatusGridForm.ItemPrefix, CpOrderStatusGridForm.ItemFlags) ?? itemsJson;
+                }
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
@@ -5340,6 +5345,155 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpGroupsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpGroupTreeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/groups-app", "Admin CP capability required for groups.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Post the groups grid as a form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var parsed = CpGroupTreeWriteService.ParseForm(form);
+            if (parsed.Error is not null)
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/groups-app",
+                    false,
+                    parsed.Error,
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = parsed.Error, session = SessionPayload(session) });
+            }
+
+            if (!confirm)
+            {
+                var check = CpGroupTreeWriteService.Validate(parsed.Rows);
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = check.Error is null ? "dry_run" : "invalid",
+                    message = check.Error ?? "Set confirmWrites=true to save groups on ASP.NET.",
+                    rows = parsed.Rows.Count,
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(parsed.Rows, LiveWriteFormBinder.Text(form, "langCode", "lang_code"), domainPath, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/groups-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpLangConfigure, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpLangConfiguratorService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/languages-app", "Admin CP capability required for language configuration.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Post the language configurator form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var multilang = LiveWriteFormBinder.Flag(form, "multilang_on", "multilangOn");
+            var active = form["langs_active"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!.Trim()).ToList();
+            var def = LiveWriteFormBinder.Text(form, "lang_default", "langDefault");
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save the language configuration on ASP.NET.",
+                    multilang,
+                    active,
+                    def,
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveConfigurationAsync(multilang, active, def, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/languages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpConfigWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpConfigEditorService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/config-items-app", "Admin CP capability required for settings.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Post the settings form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var group = (int)Math.Clamp(LiveWriteFormBinder.Long(form, "need_config_group", "needConfigGroup"), 0, int.MaxValue);
+            var returnUrl = group > 0 ? "/cp/config-items-app?need_config_group=" + group.ToString(CultureInfo.InvariantCulture) : "/cp/config-items-app";
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save settings to config.php from ASP.NET.",
+                    fields = form.Count,
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(form, group, LiveWriteFormBinder.Text(form, "langCode", "lang_code"), domainPath, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnUrl,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,

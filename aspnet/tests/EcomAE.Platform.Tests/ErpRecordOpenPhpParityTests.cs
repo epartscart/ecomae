@@ -2021,7 +2021,7 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void GroupsApp_OpenLoadsDescriptionExcerpt()
+    public void GroupsApp_OpenHighlightsRowInEditableTree()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
@@ -2029,10 +2029,14 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"ugroup_id\"", text, StringComparison.Ordinal);
         Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"ugroup_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpGroupsDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No description excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-parent siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.RowClass(row.Id, _openedId)", text, StringComparison.Ordinal);
+        Assert.Contains("ICpGroupTreeWriteService", text, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/groups/write\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"g_idx\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"g_for_backend\"", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("stays on the Classic twin", text, StringComparison.Ordinal);
         Assert.Contains("epc-scp-kpi", text, StringComparison.Ordinal);
         Assert.Contains("PhpCpModulePageHeader", text, StringComparison.Ordinal);
         Assert.Contains("ugroup_id=", text, StringComparison.Ordinal);

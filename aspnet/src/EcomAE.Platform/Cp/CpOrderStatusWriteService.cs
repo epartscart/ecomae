@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
-using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
@@ -27,7 +26,12 @@ public sealed record CpOrderStatusRow(
     int ForPaid,
     int ForFinish,
     int ForInverse,
-    int SortOrder);
+    int SortOrder,
+    string NameKey = "",
+    int ToManagerEmail = 0,
+    int ToManagerSms = 0,
+    int ToCustomerEmail = 0,
+    int ToCustomerSms = 0);
 
 public sealed record CpItemStatusRow(
     long Id,
@@ -36,7 +40,17 @@ public sealed record CpItemStatusRow(
     int ForCreated,
     int ForFinish,
     int CountFlag,
-    int SortOrder);
+    int SortOrder,
+    string NameKey = "",
+    int IssueFlag = 0,
+    int ToManagerEmail = 0,
+    int ToManagerSms = 0,
+    int ToCustomerEmail = 0,
+    int ToCustomerSms = 0,
+    int ForReturn = 0,
+    int CheckForReturn = 0,
+    int CompleteReturn = 0,
+    int RejectReturn = 0);
 
 public sealed record CpOrderStatusReadResult(
     IReadOnlyList<CpOrderStatusRow> Orders,
@@ -48,7 +62,7 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
 {
     private const int MaxRows = 80;
     private readonly IErpWriteConnectionFactory _connections;
-    private int _createdStrings;
+    private readonly CpCustomTranslationWriter _translations = new("STATUSES EDITING");
 
     public CpOrderStatusWriteService(IErpWriteConnectionFactory connections)
     {
@@ -218,7 +232,9 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                     SELECT s.`id`, IFNULL(t.`value`, IFNULL(s.`name`,'')) AS caption, IFNULL(s.`color`,'') AS color,
                     IFNULL(s.`for_created`,0) AS for_created, IFNULL(s.`for_paid`,0) AS for_paid,
                     IFNULL(s.`for_finish`,0) AS for_finish, IFNULL(s.`for_inverse`,0) AS for_inverse,
-                    IFNULL(s.`order`,0) AS sort_order
+                    IFNULL(s.`order`,0) AS sort_order, IFNULL(s.`name`,'') AS name_key,
+                    IFNULL(s.`to_manager_email`,0) AS to_manager_email, IFNULL(s.`to_manager_sms`,0) AS to_manager_sms,
+                    IFNULL(s.`to_customer_email`,0) AS to_customer_email, IFNULL(s.`to_customer_sms`,0) AS to_customer_sms
                     FROM `shop_orders_statuses_ref` s
                     LEFT JOIN `lang_text_strings_translation` t ON t.`str_key` = s.`name` AND t.`lang_code` = 'en'
                     ORDER BY s.`order` ASC, s.`id` ASC
@@ -235,7 +251,12 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                         Convert.ToInt32(reader["for_paid"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["for_finish"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["for_inverse"], CultureInfo.InvariantCulture),
-                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["to_manager_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_manager_sms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_sms"], CultureInfo.InvariantCulture)));
                 }
             }
 
@@ -245,7 +266,12 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                 cmd.CommandText = """
                     SELECT s.`id`, IFNULL(t.`value`, IFNULL(s.`name`,'')) AS caption, IFNULL(s.`color`,'') AS color,
                     IFNULL(s.`for_created`,0) AS for_created, IFNULL(s.`for_finish`,0) AS for_finish,
-                    IFNULL(s.`count_flag`,0) AS count_flag, IFNULL(s.`order`,0) AS sort_order
+                    IFNULL(s.`count_flag`,0) AS count_flag, IFNULL(s.`order`,0) AS sort_order,
+                    IFNULL(s.`name`,'') AS name_key, IFNULL(s.`issue_flag`,0) AS issue_flag,
+                    IFNULL(s.`to_manager_email`,0) AS to_manager_email, IFNULL(s.`to_manager_sms`,0) AS to_manager_sms,
+                    IFNULL(s.`to_customer_email`,0) AS to_customer_email, IFNULL(s.`to_customer_sms`,0) AS to_customer_sms,
+                    IFNULL(s.`for_return`,0) AS for_return, IFNULL(s.`check_for_return`,0) AS check_for_return,
+                    IFNULL(s.`complete_return`,0) AS complete_return, IFNULL(s.`reject_return`,0) AS reject_return
                     FROM `shop_orders_items_statuses_ref` s
                     LEFT JOIN `lang_text_strings_translation` t ON t.`str_key` = s.`name` AND t.`lang_code` = 'en'
                     ORDER BY s.`order` ASC, s.`id` ASC
@@ -261,7 +287,17 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                         Convert.ToInt32(reader["for_created"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["for_finish"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["count_flag"], CultureInfo.InvariantCulture),
-                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["issue_flag"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_manager_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_manager_sms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_sms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["for_return"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["check_for_return"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["complete_return"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["reject_return"], CultureInfo.InvariantCulture)));
                 }
             }
 
@@ -465,7 +501,7 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
             keep.Cast<object?>().ToArray()).ConfigureAwait(false);
     }
 
-    private async Task<string> RequireTranslationAsync(
+    private Task<string> RequireTranslationAsync(
         System.Data.Common.DbConnection connection,
         System.Data.Common.DbTransaction transaction,
         string? langStrId,
@@ -473,130 +509,9 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
         string langCode,
         string? domainPath,
         CancellationToken cancellationToken)
-    {
-        var existingKey = (langStrId ?? string.Empty).Trim();
-        if (existingKey is "0")
-        {
-            existingKey = string.Empty;
-        }
+        => _translations.SaveAsync(connection, transaction, langStrId, value, langCode, domainPath, cancellationToken);
 
-        var isCustom = 0L;
-        var hasTranslation = 0L;
-        if (existingKey.Length > 0)
-        {
-            isCustom = await ErpDb.LongAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("SELECT `is_custom` FROM `lang_text_strings` WHERE `str_key` = ? LIMIT 1"),
-                cancellationToken,
-                existingKey).ConfigureAwait(false);
-            if (isCustom == 0)
-            {
-                var found = await ErpDb.LongAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-                    cancellationToken,
-                    existingKey).ConfigureAwait(false);
-                if (found == 0)
-                {
-                    existingKey = string.Empty;
-                }
-            }
-
-            if (existingKey.Length > 0)
-            {
-                hasTranslation = await ErpDb.LongAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = ?"),
-                    cancellationToken,
-                    existingKey,
-                    langCode).ConfigureAwait(false);
-            }
-        }
-
-        string key;
-        if (existingKey.Length == 0 || isCustom == 0)
-        {
-            key = await AllocateStrKeyAsync(connection, transaction, domainPath, cancellationToken).ConfigureAwait(false);
-            await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("INSERT INTO `lang_text_strings` (`description`, `same`, `is_error`, `is_custom`, `str_key`) VALUES (?,?,?,?,?)"),
-                cancellationToken,
-                "STATUSES EDITING",
-                null,
-                0,
-                1,
-                key).ConfigureAwait(false);
-            hasTranslation = 0;
-        }
-        else
-        {
-            key = existingKey;
-        }
-
-        if (hasTranslation > 0)
-        {
-            await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("UPDATE `lang_text_strings_translation` SET `value` = ? WHERE `str_key` = ? AND `lang_code` = ?"),
-                cancellationToken,
-                value,
-                key,
-                langCode).ConfigureAwait(false);
-        }
-        else
-        {
-            await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("INSERT INTO `lang_text_strings_translation` (`value`, `str_key`, `lang_code`) VALUES (?,?,?)"),
-                cancellationToken,
-                value,
-                key,
-                langCode).ConfigureAwait(false);
-        }
-
-        return key;
-    }
-
-    private async Task<string> AllocateStrKeyAsync(
-        System.Data.Common.DbConnection connection,
-        System.Data.Common.DbTransaction transaction,
-        string? domainPath,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 0; attempt < 80; attempt++)
-        {
-            _createdStrings++;
-            var key = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)
-                      + "_"
-                      + _createdStrings.ToString(CultureInfo.InvariantCulture)
-                      + "_"
-                      + LegacyPasswordVerifier.Md5Hex(domainPath ?? string.Empty);
-            var found = await ErpDb.LongAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-                cancellationToken,
-                key).ConfigureAwait(false);
-            if (found == 0)
-            {
-                return key;
-            }
-        }
-
-        throw new ErpWriteException("Could not allocate a status translation key.");
-    }
-
-    private static string NormalizeLang(string? langCode)
-    {
-        var lang = (langCode ?? string.Empty).Trim().ToLowerInvariant();
-        return lang.Length is < 2 or > 16 ? "en" : lang;
-    }
+    private static string NormalizeLang(string? langCode) => CpCustomTranslationWriter.NormalizeLang(langCode);
 
     private static JsonElement GetProperty(JsonElement item, params string[] names)
     {

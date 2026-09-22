@@ -169,8 +169,10 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("epc-statuses-page", text, StringComparison.Ordinal);
         Assert.Contains("epc-statuses-card", text, StringComparison.Ordinal);
         Assert.Contains("/cp/order-statuses/write", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"ordersJson\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"itemsJson\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"os_idx\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"is_idx\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"ordersJson\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-kpis", text, StringComparison.Ordinal);
@@ -243,7 +245,11 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
 
         var config = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpConfigItemsApp.razor"));
         Assert.Contains("class=\"hpanel\"", config, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", config, StringComparison.Ordinal);
+        Assert.Contains("action=\"/cp/config-items/write\"", config, StringComparison.Ordinal);
+        Assert.Contains("name=\"need_config_group\"", config, StringComparison.Ordinal);
+        Assert.Contains("_lang_str_id", config, StringComparison.Ordinal);
+        Assert.Contains("case \"password\":", config, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", config, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ci-hero", config, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-ci-kpis", config, StringComparison.Ordinal);
 
