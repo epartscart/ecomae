@@ -1299,6 +1299,8 @@ public static class EcomAeRoutes
     public const string CpQuoteSaveLines = "/cp/quote-requests/save-lines";
     /// <summary>PHP quote_requests.php send_quote. <c>confirmWrites=true</c> writes via <c>ICpQuoteWriteService</c>.</summary>
     public const string CpQuoteSend = "/cp/quote-requests/send";
+    /// <summary>PHP ajax_epc_quote_alt_options.php: cross/OEM alternatives + supplier warehouses for a quote line (JSON, staff read).</summary>
+    public const string CpQuoteAltOptions = "/cp/quote-requests/alt-options";
     /// <summary>PHP epc_vendor_approvals.php approve / suspend / reject. <c>confirmWrites=true</c> writes via <c>ICpVendorApprovalWriteService</c>.</summary>
     public const string CpVendorApprovals = "/cp/vendors/approvals";
     /// <summary>PHP epc_api_clients_manage.php revoke/activate. Super CP only.</summary>
