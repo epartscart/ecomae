@@ -58,7 +58,7 @@
                 <div class="alert alert-danger" role="status">@_flashErr</div>
             }
 
-            @if (_isAdmin)
+            @if (_canWrite)
             {
                 <form method="post" action="/cp/logistics/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                     <input type="hidden" name="confirmWrites" value="true" />
@@ -229,7 +229,7 @@
                                     <td>@Blank(row.Status)</td>
                                     <td>@Blank(row.DeclarationNumber)</td>
                                     <td>
-                                        @if (_isAdmin && !string.Equals(row.Status, "submitted", StringComparison.OrdinalIgnoreCase))
+                                        @if (_canWrite && !string.Equals(row.Status, "submitted", StringComparison.OrdinalIgnoreCase))
                                         {
                                             <form method="post" action="/cp/custom-shipping/write" style="display:inline">
                                                 <input type="hidden" name="confirmWrites" value="true" />
@@ -259,6 +259,7 @@
     private const string _phpErpShipping = "/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping";
     private const string _defaultItemsJson = """[{"hs_code":"8708.99","country_of_origin":"AE","description":"Oil filter","quantity":1,"unit":"PCS"}]""";
     private bool _isAdmin;
+    private bool _canWrite;
     private CpCarriersSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpCarrierDigest> _carriers = [];
     private IReadOnlyList<CpCustomShippingDeclarationRow> _declarations = [];
@@ -277,7 +278,8 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _canWrite = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;

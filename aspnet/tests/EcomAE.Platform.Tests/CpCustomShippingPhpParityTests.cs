@@ -38,6 +38,18 @@ public sealed class CpCustomShippingPhpParityTests
     }
 
     [Fact]
+    public void CpCarriersApp_ErpAliasReadsForStaffButWritesStayCpGated()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpCarriersApp.razor"));
+        Assert.Contains("@page \"/erp/carriers-app\"", text, StringComparison.Ordinal);
+        Assert.Contains("_isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);", text, StringComparison.Ordinal);
+        Assert.Contains("_canWrite = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains(\"cp\");", text, StringComparison.Ordinal);
+        Assert.Contains("@if (_canWrite)", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"@_returnHref\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("value=\"/cp/carriers-app\"", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ProgramAndRoutes_RegisterCustomShippingWrite()
     {
         var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
