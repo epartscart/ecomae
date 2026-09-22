@@ -1857,22 +1857,37 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void MenusApp_OpenLoadsStructureExcerptAndKeepsWrites()
+    public void MenusApp_IsLivePhpManagerAndTreeEditorTwin()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpMenusApp.razor"));
+        Assert.Contains("ICpMenuEditorService", text, StringComparison.Ordinal);
+        Assert.Contains("Menus.ListAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("Menus.OpenAsync(", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"menu_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"menu_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpMenusDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No structure excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No same-frontend siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"check_uncheck_all\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_list\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_tree\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_caption\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_caption_lang_str_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_ul_class\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"menu_ul_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"is_frontend\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"container_A\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"item_info_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("a_innerhtml_mode", text, StringComparison.Ordinal);
+        Assert.Contains("link_mode", text, StringComparison.Ordinal);
         Assert.Contains("/cp/menus/write", text, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-users-workspace", text, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
+        Assert.Contains("s_page", text, StringComparison.Ordinal);
+        Assert.Contains("hpanel", text, StringComparison.Ordinal);
+        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", text, StringComparison.Ordinal);
         Assert.Contains("menu_id=", text, StringComparison.Ordinal);
-        Assert.Contains("_selected", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpMenusDetailAsync", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("excerpt yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);

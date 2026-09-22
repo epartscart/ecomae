@@ -6258,6 +6258,13 @@ public sealed class ControlPanelModule : ISurfaceModule
                     cancellationToken);
             }
 
+            if (normalized == "create" && written.Succeeded && written.Id > 0 && context.Request.HasFormContentType && LiveWriteFormBinder.WantsHtml(context))
+            {
+                var dest = "/cp/menus-app?menu_id=" + written.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    + "&is_frontend=" + (isFrontend > 0 ? "1" : "0");
+                return Results.Redirect(dest + "&ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/menus-app",
