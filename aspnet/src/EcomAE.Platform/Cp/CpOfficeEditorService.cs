@@ -389,7 +389,7 @@ public sealed class CpOfficeEditorService : ICpOfficeEditorService
     }
 
     /// <summary>PHP <c>translate_str_by_id()</c>: numeric keys resolve through <c>lang_text_strings_translation</c>; anything else is literal.</summary>
-    private static Func<string, Task<string>> Translator(DbConnection connection, CancellationToken cancellationToken)
+    internal static Func<string, Task<string>> Translator(DbConnection connection, CancellationToken cancellationToken)
     {
         var cache = new Dictionary<string, string>(StringComparer.Ordinal);
         return async key =>

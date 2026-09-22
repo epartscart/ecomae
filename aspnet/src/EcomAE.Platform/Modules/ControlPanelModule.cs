@@ -4864,6 +4864,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpObtainingModeWriteService writes,
+            ICpObtainingModeEditorService editor,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -4894,6 +4895,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 parametersValues = LiveWriteFormBinder.Text(form, "parametersValues", "parameters_values");
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                if (LiveWriteFormBinder.Flag(form, "values_from_form") && modeId > 0)
+                {
+                    var current = await editor.OpenAsync(modeId, cancellationToken);
+                    parametersValues = CpObtainingModeEditorService.ParametersValuesFromForm(form, current?.Parameters ?? []);
+                }
             }
 
             if (!confirm)
