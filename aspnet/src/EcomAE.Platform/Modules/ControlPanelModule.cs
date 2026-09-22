@@ -5313,6 +5313,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 ordersJson = LiveWriteFormBinder.Text(form, "ordersJson", "orders_statuses", "orders");
                 itemsJson = LiveWriteFormBinder.Text(form, "itemsJson", "orders_items_statuses", "items");
+                if (CpOrderStatusGridForm.HasGrid(form))
+                {
+                    ordersJson = CpOrderStatusGridForm.ToJson(form, CpOrderStatusGridForm.OrderPrefix, CpOrderStatusGridForm.OrderFlags) ?? ordersJson;
+                    itemsJson = CpOrderStatusGridForm.ToJson(form, CpOrderStatusGridForm.ItemPrefix, CpOrderStatusGridForm.ItemFlags) ?? itemsJson;
+                }
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }

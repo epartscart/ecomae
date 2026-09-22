@@ -169,8 +169,10 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("epc-statuses-page", text, StringComparison.Ordinal);
         Assert.Contains("epc-statuses-card", text, StringComparison.Ordinal);
         Assert.Contains("/cp/order-statuses/write", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"ordersJson\"", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"itemsJson\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"os_idx\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"is_idx\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"ordersJson\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-kpis", text, StringComparison.Ordinal);

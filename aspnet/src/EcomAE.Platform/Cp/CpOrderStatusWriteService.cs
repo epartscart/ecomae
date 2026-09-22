@@ -27,7 +27,12 @@ public sealed record CpOrderStatusRow(
     int ForPaid,
     int ForFinish,
     int ForInverse,
-    int SortOrder);
+    int SortOrder,
+    string NameKey = "",
+    int ToManagerEmail = 0,
+    int ToManagerSms = 0,
+    int ToCustomerEmail = 0,
+    int ToCustomerSms = 0);
 
 public sealed record CpItemStatusRow(
     long Id,
@@ -36,7 +41,17 @@ public sealed record CpItemStatusRow(
     int ForCreated,
     int ForFinish,
     int CountFlag,
-    int SortOrder);
+    int SortOrder,
+    string NameKey = "",
+    int IssueFlag = 0,
+    int ToManagerEmail = 0,
+    int ToManagerSms = 0,
+    int ToCustomerEmail = 0,
+    int ToCustomerSms = 0,
+    int ForReturn = 0,
+    int CheckForReturn = 0,
+    int CompleteReturn = 0,
+    int RejectReturn = 0);
 
 public sealed record CpOrderStatusReadResult(
     IReadOnlyList<CpOrderStatusRow> Orders,
@@ -218,7 +233,9 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                     SELECT s.`id`, IFNULL(t.`value`, IFNULL(s.`name`,'')) AS caption, IFNULL(s.`color`,'') AS color,
                     IFNULL(s.`for_created`,0) AS for_created, IFNULL(s.`for_paid`,0) AS for_paid,
                     IFNULL(s.`for_finish`,0) AS for_finish, IFNULL(s.`for_inverse`,0) AS for_inverse,
-                    IFNULL(s.`order`,0) AS sort_order
+                    IFNULL(s.`order`,0) AS sort_order, IFNULL(s.`name`,'') AS name_key,
+                    IFNULL(s.`to_manager_email`,0) AS to_manager_email, IFNULL(s.`to_manager_sms`,0) AS to_manager_sms,
+                    IFNULL(s.`to_customer_email`,0) AS to_customer_email, IFNULL(s.`to_customer_sms`,0) AS to_customer_sms
                     FROM `shop_orders_statuses_ref` s
                     LEFT JOIN `lang_text_strings_translation` t ON t.`str_key` = s.`name` AND t.`lang_code` = 'en'
                     ORDER BY s.`order` ASC, s.`id` ASC
@@ -235,7 +252,12 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                         Convert.ToInt32(reader["for_paid"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["for_finish"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["for_inverse"], CultureInfo.InvariantCulture),
-                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["to_manager_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_manager_sms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_sms"], CultureInfo.InvariantCulture)));
                 }
             }
 
@@ -245,7 +267,12 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                 cmd.CommandText = """
                     SELECT s.`id`, IFNULL(t.`value`, IFNULL(s.`name`,'')) AS caption, IFNULL(s.`color`,'') AS color,
                     IFNULL(s.`for_created`,0) AS for_created, IFNULL(s.`for_finish`,0) AS for_finish,
-                    IFNULL(s.`count_flag`,0) AS count_flag, IFNULL(s.`order`,0) AS sort_order
+                    IFNULL(s.`count_flag`,0) AS count_flag, IFNULL(s.`order`,0) AS sort_order,
+                    IFNULL(s.`name`,'') AS name_key, IFNULL(s.`issue_flag`,0) AS issue_flag,
+                    IFNULL(s.`to_manager_email`,0) AS to_manager_email, IFNULL(s.`to_manager_sms`,0) AS to_manager_sms,
+                    IFNULL(s.`to_customer_email`,0) AS to_customer_email, IFNULL(s.`to_customer_sms`,0) AS to_customer_sms,
+                    IFNULL(s.`for_return`,0) AS for_return, IFNULL(s.`check_for_return`,0) AS check_for_return,
+                    IFNULL(s.`complete_return`,0) AS complete_return, IFNULL(s.`reject_return`,0) AS reject_return
                     FROM `shop_orders_items_statuses_ref` s
                     LEFT JOIN `lang_text_strings_translation` t ON t.`str_key` = s.`name` AND t.`lang_code` = 'en'
                     ORDER BY s.`order` ASC, s.`id` ASC
@@ -261,7 +288,17 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
                         Convert.ToInt32(reader["for_created"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["for_finish"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["count_flag"], CultureInfo.InvariantCulture),
-                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt32(reader["sort_order"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["name_key"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(reader["issue_flag"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_manager_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_manager_sms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_email"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["to_customer_sms"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["for_return"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["check_for_return"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["complete_return"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader["reject_return"], CultureInfo.InvariantCulture)));
                 }
             }
 
