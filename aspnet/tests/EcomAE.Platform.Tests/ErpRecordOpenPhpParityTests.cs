@@ -4583,20 +4583,30 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void SynonymsApp_OpenLoadsManufacturerAndSynonymIds()
+    public void SynonymsApp_IsTwoColumnPhpTwinWithInlineEdit()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpSynonymsApp.razor"));
+        // manufacturers_synonyms.php: left manufacturers list (add/edit/delete), right synonyms of the active one.
+        Assert.Contains("ICpManufacturerSynonymWriteService", text, StringComparison.Ordinal);
+        Assert.Contains("GetManufacturersAsync", text, StringComparison.Ordinal);
+        Assert.Contains("GetSynonymsAsync", text, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"manufacturer_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"manufacturer_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpSynonymDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"manufacturers_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"synonyms_div\"", text, StringComparison.Ordinal);
+        Assert.Contains("manufacturer_active", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"my_table\"", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"btn_block\"", text, StringComparison.Ordinal);
+        foreach (var action in new[] { "add_manufacturer", "save_manufacturer", "del_manufacturer", "add_synonym", "save_synonym", "del_synonym" })
+        {
+            Assert.Contains("name=\"action\" value=\"" + action + "\"", text, StringComparison.Ordinal);
+        }
         Assert.Contains("No synonyms yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("/cp/synonyms/write", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpSynonymsDigestAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-nw-hero", text, StringComparison.Ordinal);

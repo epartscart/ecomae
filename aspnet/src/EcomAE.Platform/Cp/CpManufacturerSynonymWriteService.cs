@@ -1,11 +1,21 @@
+using System.Data.Common;
+using System.Globalization;
 using System.Text;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
-/// <summary>Live PHP <c>manufacturers_synonyms/ajax_operations.php</c> write twins. List/get stay digest.</summary>
+public sealed record CpManufacturerRow(long Id, string Name);
+
+public sealed record CpManufacturerSynonymRow(long Id, long ManufacturerId, string Synonym);
+
+/// <summary>Live PHP <c>manufacturers_synonyms/ajax_operations.php</c> twins (get_/add_/save_/del_ manufacturer + synonym).</summary>
 public interface ICpManufacturerSynonymWriteService
 {
+    Task<IReadOnlyList<CpManufacturerRow>> GetManufacturersAsync(CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpManufacturerSynonymRow>> GetSynonymsAsync(long manufacturerId, CancellationToken cancellationToken = default);
+
     Task<ErpSimpleWriteResult> AddManufacturerAsync(string? name, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SaveManufacturerAsync(long id, string? name, CancellationToken cancellationToken = default);
@@ -26,6 +36,63 @@ public sealed class CpManufacturerSynonymWriteService : ICpManufacturerSynonymWr
     public CpManufacturerSynonymWriteService(IErpWriteConnectionFactory connections)
     {
         _connections = connections;
+    }
+
+    public async Task<IReadOnlyList<CpManufacturerRow>> GetManufacturersAsync(CancellationToken cancellationToken = default)
+    {
+        var rows = new List<CpManufacturerRow>();
+        if (!_connections.IsConfigured)
+        {
+            return rows;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = "SELECT `id`, IFNULL(`name`,'') FROM `shop_docpart_manufacturers` ORDER BY `name` ASC";
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpManufacturerRow(Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture), reader.GetString(1)));
+            }
+        }
+        catch (DbException)
+        {
+        }
+
+        return rows;
+    }
+
+    public async Task<IReadOnlyList<CpManufacturerSynonymRow>> GetSynonymsAsync(long manufacturerId, CancellationToken cancellationToken = default)
+    {
+        var rows = new List<CpManufacturerSynonymRow>();
+        if (manufacturerId <= 0 || !_connections.IsConfigured)
+        {
+            return rows;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = ErpDb.Positional("SELECT `id`, `manufacturer_id`, IFNULL(`synonym`,'') FROM `shop_docpart_manufacturers_synonyms` WHERE `manufacturer_id` = ? ORDER BY `synonym` ASC");
+            ErpDb.AddParameters(cmd, manufacturerId);
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpManufacturerSynonymRow(
+                    Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture),
+                    reader.GetString(2)));
+            }
+        }
+        catch (DbException)
+        {
+        }
+
+        return rows;
     }
 
     public async Task<ErpSimpleWriteResult> AddManufacturerAsync(string? name, CancellationToken cancellationToken = default)

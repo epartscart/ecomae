@@ -12476,6 +12476,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var id = body.Id;
             var name = body.Name;
             var confirm = body.ConfirmWrites;
+            var synonymsReturn = "/cp/synonyms-app";
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -12483,6 +12484,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 id = LiveWriteFormBinder.Long(form, "id", "manufacturerId", "manufacturer_id");
                 name = LiveWriteFormBinder.Text(form, "name", "synonym");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var postedReturn = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                if (!string.IsNullOrWhiteSpace(postedReturn) && postedReturn.StartsWith("/cp/synonyms-app", StringComparison.Ordinal))
+                {
+                    synonymsReturn = postedReturn;
+                }
             }
 
             if (!confirm)
@@ -12516,9 +12522,18 @@ public sealed class ControlPanelModule : ISurfaceModule
                     await writes.DeleteSynonymAsync(id, cancellationToken),
                 _ => ErpSimpleWriteResult.Fail("invalid", "Unknown synonyms action."),
             };
+            if (written.Succeeded && key is "add_manufacturer" or "add-manufacturer" && written.Id > 0)
+            {
+                synonymsReturn = "/cp/synonyms-app?manufacturer_id=" + written.Id.ToString(System.Globalization.CultureInfo.InvariantCulture);
+            }
+            else if (written.Succeeded && key is "del_manufacturer" or "delete_manufacturer" or "del-manufacturer")
+            {
+                synonymsReturn = "/cp/synonyms-app";
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
-                "/cp/synonyms-app",
+                synonymsReturn,
                 written.Succeeded,
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
