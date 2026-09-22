@@ -1512,6 +1512,8 @@ public static class EcomAeRoutes
     public const string CpPaymentsWrite = "/cp/payments/write";
     /// <summary>Workshop assign / save_bay / save_tech. <c>confirmWrites=true</c> is the live twin of those PHP actions.</summary>
     public const string CpWorkshopWrite = "/cp/workshop/write";
+    /// <summary>PHP-shaped <c>ajax_workshop_endpoint.php</c> dispatcher (all actions incl. seed_demo / get_job / list_jobs / list_appointments) used by epc_workshop.js.</summary>
+    public const string CpWorkshopTerminalAjax = "/cp/workshop/terminal-ajax";
     /// <summary>Catalogue min-limit. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_products.php save_product_*_limit.</summary>
     public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
     /// <summary>Category-template create/delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php create/delete. File image upload and from-category disk copy stay PHP.</summary>

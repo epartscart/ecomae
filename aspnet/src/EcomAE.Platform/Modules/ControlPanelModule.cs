@@ -2285,6 +2285,200 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Results.Json(new { status = false, message = ex.Message });
             }
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpWorkshopTerminalAjax, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpWorkshopWriteService writes,
+            ICpWorkshopDeskService desk,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(new { status = false, message = "Access denied" });
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(new { status = false, message = "Unknown action" });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var action = LiveWriteFormBinder.Text(form, "action");
+            try
+            {
+                switch (action)
+                {
+                    case "seed_demo":
+                    {
+                        var r = await desk.SeedDemoAsync(cancellationToken);
+                        return Results.Json(new { status = true, message = "Demo data ready", seeded = new { bays = r.Bays, techs = r.Techs, jobs = r.Jobs } });
+                    }
+
+                    case "create_job":
+                    {
+                        var r = await writes.CreateJobAsync(
+                            new CpWorkshopCreateJobRequest(
+                                LiveWriteFormBinder.Text(form, "job_no"),
+                                LiveWriteFormBinder.Text(form, "status"),
+                                LiveWriteFormBinder.Text(form, "customer_name"),
+                                LiveWriteFormBinder.Text(form, "customer_phone"),
+                                LiveWriteFormBinder.Text(form, "customer_email"),
+                                LiveWriteFormBinder.Long(form, "customer_id"),
+                                LiveWriteFormBinder.Text(form, "plate"),
+                                LiveWriteFormBinder.Text(form, "vin"),
+                                LiveWriteFormBinder.Text(form, "make"),
+                                LiveWriteFormBinder.Text(form, "model"),
+                                LiveWriteFormBinder.Text(form, "year"),
+                                LiveWriteFormBinder.Int(form, "odometer"),
+                                LiveWriteFormBinder.Text(form, "complaint"),
+                                LiveWriteFormBinder.Long(form, "bay_id"),
+                                LiveWriteFormBinder.Long(form, "tech_id"),
+                                LiveWriteFormBinder.Flag(form, "estimate_approved"),
+                                LiveWriteFormBinder.Flag(form, "under_warranty"),
+                                LiveWriteFormBinder.Text(form, "notes"),
+                                LiveWriteFormBinder.Long(form, "time_promised"),
+                                LiveWriteFormBinder.Text(form, "labour_desc"),
+                                form.ContainsKey("labour_hours") ? LiveWriteFormBinder.Dec(form, "labour_hours") : 1m,
+                                form.ContainsKey("labour_rate") ? LiveWriteFormBinder.Dec(form, "labour_rate") : 150m,
+                                LiveWriteFormBinder.Text(form, "part_desc"),
+                                form.ContainsKey("part_qty") ? LiveWriteFormBinder.Dec(form, "part_qty") : 1m,
+                                LiveWriteFormBinder.Dec(form, "part_price")),
+                            cancellationToken);
+                        if (!r.Succeeded)
+                        {
+                            return Results.Json(new { status = false, message = r.Message });
+                        }
+
+                        var card = await desk.GetJobAsync(r.Id, cancellationToken);
+                        return Results.Json(new { status = true, message = "Job created", job_id = r.Id, job = card is null ? null : new { header = card.Header, lines = card.Lines } });
+                    }
+
+                    case "set_status":
+                    {
+                        var r = await writes.SetStatusAsync(LiveWriteFormBinder.Long(form, "job_id"), LiveWriteFormBinder.Text(form, "status"), cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Succeeded ? "Status updated" : r.Message });
+                    }
+
+                    case "assign":
+                    {
+                        var r = await writes.AssignAsync(LiveWriteFormBinder.Long(form, "job_id"), LiveWriteFormBinder.Long(form, "bay_id"), LiveWriteFormBinder.Long(form, "tech_id"), cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Succeeded ? "Assigned" : r.Message });
+                    }
+
+                    case "add_line":
+                    {
+                        var r = await writes.AddLineAsync(
+                            new CpWorkshopAddLineRequest(
+                                LiveWriteFormBinder.Long(form, "job_id"),
+                                LiveWriteFormBinder.Text(form, "line_type"),
+                                LiveWriteFormBinder.Text(form, "description"),
+                                LiveWriteFormBinder.Long(form, "item_id"),
+                                form.ContainsKey("qty") ? LiveWriteFormBinder.Dec(form, "qty") : 1m,
+                                LiveWriteFormBinder.Dec(form, "unit_price"),
+                                form.ContainsKey("tax_percent") ? LiveWriteFormBinder.Dec(form, "tax_percent") : 5m,
+                                form.ContainsKey("chargeable") ? LiveWriteFormBinder.Int(form, "chargeable") : 1),
+                            cancellationToken);
+                        if (!r.Succeeded)
+                        {
+                            return Results.Json(new { status = false, message = r.Message });
+                        }
+
+                        var card = await desk.GetJobAsync(LiveWriteFormBinder.Long(form, "job_id"), cancellationToken);
+                        return Results.Json(new { status = true, message = "Line added", line_id = r.Id, job = card is null ? null : new { header = card.Header, lines = card.Lines } });
+                    }
+
+                    case "get_job":
+                    {
+                        var card = await desk.GetJobAsync(LiveWriteFormBinder.Long(form, "job_id"), cancellationToken);
+                        return card is null
+                            ? Results.Json(new { status = false, message = "Not found" })
+                            : Results.Json(new { status = true, job = new { header = card.Header, lines = card.Lines } });
+                    }
+
+                    case "list_jobs":
+                    {
+                        var jobs = await desk.ListJobsAsync(LiveWriteFormBinder.Text(form, "status"), 200, cancellationToken);
+                        return Results.Json(new { status = true, jobs = jobs.Select(WorkshopJobJson), dashboard = await desk.DashboardAsync(cancellationToken) });
+                    }
+
+                    case "save_bay":
+                    {
+                        var r = await writes.SaveBayAsync(
+                            LiveWriteFormBinder.Long(form, "id"),
+                            LiveWriteFormBinder.Text(form, "code"),
+                            LiveWriteFormBinder.Text(form, "name"),
+                            form.ContainsKey("active") ? LiveWriteFormBinder.Int(form, "active") : 1,
+                            LiveWriteFormBinder.Int(form, "sort_order"),
+                            cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Succeeded ? "Bay saved" : r.Message });
+                    }
+
+                    case "save_tech":
+                    {
+                        var r = await writes.SaveTechAsync(
+                            LiveWriteFormBinder.Long(form, "id"),
+                            LiveWriteFormBinder.Text(form, "name"),
+                            LiveWriteFormBinder.Text(form, "phone"),
+                            LiveWriteFormBinder.Text(form, "skill"),
+                            form.ContainsKey("active") ? LiveWriteFormBinder.Int(form, "active") : 1,
+                            cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Succeeded ? "Technician saved" : r.Message });
+                    }
+
+                    case "create_appointment":
+                    {
+                        var r = await writes.CreateAppointmentAsync(
+                            new CpWorkshopCreateAppointmentRequest(
+                                LiveWriteFormBinder.Text(form, "ref_no"),
+                                LiveWriteFormBinder.Text(form, "status"),
+                                LiveWriteFormBinder.Text(form, "customer_name"),
+                                LiveWriteFormBinder.Text(form, "customer_phone"),
+                                LiveWriteFormBinder.Text(form, "customer_email"),
+                                LiveWriteFormBinder.Long(form, "customer_id"),
+                                LiveWriteFormBinder.Long(form, "garage_id"),
+                                LiveWriteFormBinder.Text(form, "plate"),
+                                LiveWriteFormBinder.Text(form, "make"),
+                                LiveWriteFormBinder.Text(form, "model"),
+                                LiveWriteFormBinder.Text(form, "year"),
+                                LiveWriteFormBinder.Text(form, "service_type"),
+                                LiveWriteFormBinder.Text(form, "notes"),
+                                LiveWriteFormBinder.Long(form, "time_slot")),
+                            cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Succeeded ? "Appointment created" : r.Message, appointment_id = r.Id });
+                    }
+
+                    case "convert_appointment":
+                    {
+                        var r = await writes.ConvertAppointmentAsync(LiveWriteFormBinder.Long(form, "appointment_id"), cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Succeeded ? "Job created from appointment" : r.Message, job_id = r.Id });
+                    }
+
+                    case "list_appointments":
+                    {
+                        var rows = await desk.ListAppointmentsAsync(100, cancellationToken);
+                        return Results.Json(new
+                        {
+                            status = true,
+                            appointments = rows.Select(a => new { id = a.Id, ref_no = a.RefNo, time_slot = a.TimeSlot, customer_name = a.CustomerName, customer_phone = a.CustomerPhone, plate = a.Plate, make = a.Make, model = a.Model, service_type = a.ServiceType, status = a.Status, job_id = a.JobId }),
+                        });
+                    }
+
+                    default:
+                        return Results.Json(new { status = false, message = "Unknown action" });
+                }
+            }
+            catch (System.Data.Common.DbException ex)
+            {
+                return Results.Json(new { status = false, message = ex.Message });
+            }
+
+            static object WorkshopJobJson(CpWorkshopJobRow j) => new
+            {
+                id = j.Id, job_no = j.JobNo, status = j.Status, customer_name = j.CustomerName, customer_phone = j.CustomerPhone, plate = j.Plate,
+                make = j.Make, model = j.Model, year = j.Year, bay_id = j.BayId, tech_id = j.TechId, bay_name = j.BayName, tech_name = j.TechName, grand_total = j.GrandTotal,
+            };
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPortalSaveSettings, async (HttpContext context, CpPortalSaveSettingsBody? body, ILegacySessionValidator validator, ICpPortalSaveSettingsDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpPortalDeploySite, async (HttpContext context, CpPortalDeploySiteBody? body, ILegacySessionValidator validator, ICpPortalDeploySiteDryRun dryRun, CancellationToken cancellationToken) =>

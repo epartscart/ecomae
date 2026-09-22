@@ -56,7 +56,11 @@ public sealed class CpWorkshopWritePhpParityTests
         Assert.Contains("value=\"convert_appointment\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"customer_name\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"labour_desc\"", text, StringComparison.Ordinal);
-        Assert.Contains("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-ws-checkin-form\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-ws-seed\"", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/epc_workshop.js", text, StringComparison.Ordinal);
+        Assert.Contains("/platform-assets/epc_workshop.css", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpSurfaceLinkMap.PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
@@ -71,11 +75,12 @@ public sealed class CpWorkshopWritePhpParityTests
         Assert.Contains("create_job", notes, StringComparison.Ordinal);
         Assert.Contains("add_line", notes, StringComparison.Ordinal);
         Assert.Contains("create_appointment", notes, StringComparison.Ordinal);
-        Assert.Contains("seed stays PHP", notes, StringComparison.Ordinal);
+        Assert.Contains("seed_demo", notes, StringComparison.Ordinal);
+        Assert.Contains("/cp/workshop/terminal-ajax", notes, StringComparison.Ordinal);
         var row = PhpVsAspNetRemovalMatrix.Rows.First(r => r.Id == "cp-workshop");
         Assert.Equal("aspnet", row.WritesOwner);
         Assert.Contains("create_job", row.Note, StringComparison.Ordinal);
-        Assert.Contains("Seed stays PHP", row.Note, StringComparison.Ordinal);
+        Assert.Contains("seed_demo", row.Note, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
