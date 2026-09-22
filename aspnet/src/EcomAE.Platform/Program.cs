@@ -749,6 +749,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsWhatsappWriteService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPluginsWriteService, EcomAE.Platform.Cp.CpPluginsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTemplatesWriteService, EcomAE.Platform.Cp.CpTemplatesWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpNotificationSettingsWriteService, EcomAE.Platform.Cp.CpNotificationSettingsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpNotificationSettingsEditorService, EcomAE.Platform.Cp.CpNotificationSettingsEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOrdersListService, EcomAE.Platform.Cp.CpOrdersListService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPromoWriteService, EcomAE.Platform.Cp.CpPromoWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpObtainingModeWriteService, EcomAE.Platform.Cp.CpObtainingModeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpGeoTreeWriteService, EcomAE.Platform.Cp.CpGeoTreeWriteService>();
@@ -756,6 +758,9 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSearchTabWriteService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAdditionalTextWriteService, EcomAE.Platform.Cp.CpAdditionalTextWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSliderWriteService, EcomAE.Platform.Cp.CpSliderWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpProductFilterWriteService, EcomAE.Platform.Cp.CpProductFilterWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpProductFilterEditorService, EcomAE.Platform.Cp.CpProductFilterEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAbandonedCartsEditorService, EcomAE.Platform.Cp.CpAbandonedCartsEditorService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpQuoteRequestEditorService, EcomAE.Platform.Cp.CpQuoteRequestEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpOrderStatusWriteService, EcomAE.Platform.Cp.CpOrderStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpGroupTreeWriteService, EcomAE.Platform.Cp.CpGroupTreeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpConfigEditorService, EcomAE.Platform.Cp.CpConfigEditorService>();
