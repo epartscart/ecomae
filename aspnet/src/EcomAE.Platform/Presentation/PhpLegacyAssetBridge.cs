@@ -176,6 +176,10 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_web_tracker.js"),
                      ("/platform-assets/epc_sku_media.css",
                          "content/shop/catalogue/epc_sku_media.css"),
+                     ("/platform-assets/epc_pos.css",
+                         "content/shop/pos/epc_pos.css"),
+                     ("/platform-assets/epc_pos_terminal.js",
+                         "content/shop/pos/epc_pos_terminal.js"),
                  })
         {
             var localRelative = relative;

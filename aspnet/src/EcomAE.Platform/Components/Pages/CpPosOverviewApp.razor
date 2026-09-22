@@ -11,12 +11,16 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject ICpPosWriteService PosWrites
+@inject ICpPosTerminalService Terminal
 
-<PageTitle>POS Overview · Control Panel · eParts Cart</PageTitle>
+<PageTitle>POS Terminal · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_pos.css?v=20260922pos" />
 <style>
-        .epc-pos-forms { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; margin:0 0 1rem; }
+        .epc-pos-admin { margin-top:1rem; }
+        .epc-pos-admin summary { cursor:pointer; font-weight:700; padding:.5rem .2rem; color:#0c4a6e; }
+        .epc-pos-forms { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; margin:.5rem 0 1rem; }
         .epc-pos-form { background:#fff; border:1px solid #e2e8f0; border-radius:.55rem; padding:.85rem .95rem; }
         .epc-pos-form h2 { margin:0 0 .55rem; font-size:.95rem; }
         .epc-pos-form form { display:flex; flex-wrap:wrap; gap:.45rem; align-items:end; }
@@ -30,21 +34,6 @@
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                POS overview
-                <a class="btn btn-xs btn-default pull-right" href="/cp/tax-toolkits-app">Tax toolkits</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/pos-overview-app")</p>
-                <p>Open or close a register, complete a sale, save settings, and save a jewellery POS advance here.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/pos-overview-app" IsAdmin="_isAdmin" />
-
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
         <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
@@ -54,28 +43,231 @@
         <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
     }
 
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">POS Terminal</div>
+                <div class="panel-body"><p>Sign in to the Control Panel to use the register.</p></div>
+            </div>
+        </div>
+    }
+    else if (!_ctx.PosEnabled)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning">POS is disabled for this tenant. Enable it in Super CP → POS overview or contact your administrator.</div></div>
+    }
+    else
+    {
+        <div class="col-lg-12 epc-pos-wrap" id="epc-pos-app"
+             data-ajax-url="@EcomAeRoutes.CpPosTerminalAjax"
+             data-pos-url="@EcomAeRoutes.CpPosTerminalReceiptOpen"
+             data-csrf=""
+             data-session-id="@_sessionId"
+             data-session-open="@(_ctx.OpenSession is null ? "0" : "1")"
+             data-currency="@_ctx.Currency"
+             data-tax-label="@_ctx.TaxLabel"
+             data-tax-rate="@_taxRate"
+             data-warehouse-id="@_ctx.WarehouseId.ToString(CultureInfo.InvariantCulture)">
+
+            <header class="epc-pos-brand">
+                <div class="epc-pos-brand__mark"><i class="fa fa-cash-register" aria-hidden="true"></i></div>
+                <div class="epc-pos-brand__text">
+                    <div class="epc-pos-brand__name">POS Terminal</div>
+                    <div class="epc-pos-brand__sub">@_ctx.RegisterName@(_ctx.CountryCode.Length > 0 ? " · " + _ctx.CountryCode : "") · @_ctx.Currency · @_ctx.TaxLabel @_taxRate%</div>
+                </div>
+                <div class="epc-pos-brand__links">
+                    <a class="epc-pos-chip-link" href="#epc-pos-admin"><i class="fa fa-cog"></i> Settings</a>
+                    <a class="epc-pos-chip-link" href="@EcomAeRoutes.ErpInventoryStockApp"><i class="fa fa-warehouse"></i> Warehouses</a>
+                    <a class="epc-pos-chip-link" href="@EcomAeRoutes.ErpSalesOrdersApp"><i class="fa fa-file-invoice"></i> ERP sales</a>
+                </div>
+            </header>
+
+            <div class="epc-pos-kpi" role="group" aria-label="Shift metrics">
+                <div class="epc-pos-kpi__card"><div class="epc-pos-kpi__icon"><i class="fa fa-receipt"></i></div><div><div class="epc-pos-kpi__label">Today sales</div><div class="epc-pos-kpi__value" id="epc-pos-kpi-today">@_ctx.TodaySales.ToString(CultureInfo.InvariantCulture)</div></div></div>
+                <div class="epc-pos-kpi__card"><div class="epc-pos-kpi__icon"><i class="fa fa-coins"></i></div><div><div class="epc-pos-kpi__label">Today total</div><div class="epc-pos-kpi__value" id="epc-pos-kpi-today-total">@_ctx.Currency @_ctx.TodayTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div></div>
+                <div class="epc-pos-kpi__card"><div class="epc-pos-kpi__icon"><i class="fa fa-chart-line"></i></div><div><div class="epc-pos-kpi__label">Week sales</div><div class="epc-pos-kpi__value">@_ctx.WeekSales.ToString(CultureInfo.InvariantCulture) · @_ctx.Currency @_ctx.WeekTotal.ToString("N2", CultureInfo.InvariantCulture)</div></div></div>
+                <div class="epc-pos-kpi__card"><div class="epc-pos-kpi__icon"><i class="fa fa-percent"></i></div><div><div class="epc-pos-kpi__label">@_ctx.TaxLabel rate</div><div class="epc-pos-kpi__value">@_taxRate%</div></div></div>
+                <div class="epc-pos-kpi__card"><div class="epc-pos-kpi__icon"><i class="fa fa-store"></i></div><div><div class="epc-pos-kpi__label">Register</div><div class="epc-pos-kpi__value epc-pos-kpi__value--sm">@_ctx.RegisterName</div></div></div>
+            </div>
+
+            <div id="epc-pos-msg" class="epc-pos-msg" role="status" aria-live="polite"></div>
+
+            <div class="epc-pos-session" id="epc-pos-session-bar">
+                <div class="epc-pos-session__status">
+                    @if (_ctx.OpenSession is not null)
+                    {
+                        <span class="epc-pos-badge epc-pos-badge-open"><i class="fa fa-circle"></i> Shift open</span>
+                        <span class="epc-pos-session__meta"><strong>@_ctx.OpenSession.SessionNo</strong> · Float @_ctx.Currency @_ctx.OpenSession.OpeningFloat.ToString("N2", CultureInfo.InvariantCulture)</span>
+                        <button type="button" class="epc-pos-btn epc-pos-btn-muted" id="epc-pos-close-session"><i class="fa fa-lock"></i> Close shift</button>
+                    }
+                    else
+                    {
+                        <span class="epc-pos-badge epc-pos-badge-closed"><i class="fa fa-lock"></i> No open shift</span>
+                        <span class="epc-pos-session__meta">Open the register before checkout</span>
+                        <button type="button" class="epc-pos-btn epc-pos-btn-primary" id="epc-pos-open-session"><i class="fa fa-unlock"></i> Open register</button>
+                    }
+                </div>
+                <div class="epc-pos-session__warehouse">
+                    <label for="epc-pos-warehouse">Stock warehouse</label>
+                    <select id="epc-pos-warehouse" name="warehouse_id" aria-label="Stock warehouse">
+                        @if (_ctx.Warehouses.Count == 0)
+                        {
+                            <option value="@_ctx.WarehouseId.ToString(CultureInfo.InvariantCulture)">@_ctx.WarehouseName</option>
+                        }
+                        else
+                        {
+                            @foreach (var wh in _ctx.Warehouses)
+                            {
+                                <option value="@wh.Id.ToString(CultureInfo.InvariantCulture)" selected="@(wh.Id == _ctx.WarehouseId)">@wh.Label</option>
+                            }
+                        }
+                    </select>
+                </div>
+                <div class="epc-pos-session__keys" aria-label="Keyboard shortcuts">
+                    <span><kbd>Enter</kbd> search</span>
+                    <span><kbd>F2</kbd> focus scan</span>
+                    <span><kbd>F4</kbd> customer</span>
+                    <span><kbd>F9</kbd> checkout</span>
+                </div>
+            </div>
+
+            <div class="epc-pos-grid">
+                <section class="epc-pos-panel epc-pos-panel--catalog" aria-label="Product search">
+                    <div class="epc-pos-panel-head">
+                        <div><i class="fa fa-barcode"></i> Scan / search products</div>
+                        <span class="epc-pos-panel-head__hint">SKU · barcode · brand · name</span>
+                    </div>
+                    <div class="epc-pos-panel-body">
+                        <div class="epc-pos-search">
+                            <input type="search" id="epc-pos-q" placeholder="Scan barcode or type SKU / name…" autocomplete="off" autofocus aria-label="Product search">
+                            <button type="button" class="epc-pos-btn epc-pos-btn-primary" id="epc-pos-search-btn" title="Search"><i class="fa fa-search"></i> Search</button>
+                        </div>
+                        <div id="epc-pos-products" class="epc-pos-products">
+                            <div class="epc-pos-empty epc-pos-empty--graphical">
+                                <div class="epc-pos-empty__icon"><i class="fa fa-search"></i></div>
+                                <div class="epc-pos-empty__title">Ready to scan</div>
+                                <p class="epc-pos-empty__text">Type a SKU, barcode, or product name. A single exact match adds to the cart automatically.</p>
+                                <ol class="epc-pos-empty__steps"><li>Scan or search</li><li>Adjust qty &amp; discount</li><li>Take payment</li></ol>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section class="epc-pos-panel epc-pos-panel--cart" aria-label="Cart and payment">
+                    <div class="epc-pos-panel-head">
+                        <div><i class="fa fa-shopping-basket"></i> Cart &amp; checkout</div>
+                        <span class="epc-pos-panel-head__hint" id="epc-pos-cart-count">0 lines</span>
+                    </div>
+                    <div class="epc-pos-panel-body epc-pos-panel-body--cart">
+                        <div class="epc-pos-block epc-pos-customer">
+                            <div class="epc-pos-block__label"><i class="fa fa-user"></i> Customer</div>
+                            <div class="epc-pos-customer__row">
+                                <input type="text" id="epc-pos-customer-q" placeholder="Search name, email, phone…" autocomplete="off" aria-label="Customer search">
+                                <button type="button" class="epc-pos-btn epc-pos-btn-muted" id="epc-pos-customer-walkin" title="Reset to walk-in"><i class="fa fa-walking"></i> Walk-in</button>
+                            </div>
+                            <div id="epc-pos-customer-pick" class="epc-pos-customer-pick" style="display:none"></div>
+                            <input type="hidden" id="epc-pos-customer-user" value="0">
+                            <input type="hidden" id="epc-pos-customer-contact" value="0">
+                            <div id="epc-pos-customer-label" class="epc-pos-customer__selected"><i class="fa fa-check-circle"></i> Walk-in guest</div>
+                        </div>
+
+                        <div class="epc-pos-block epc-pos-block--grow">
+                            <div class="epc-pos-block__label"><i class="fa fa-list"></i> Line items <span class="epc-pos-block__hint">qty · price · % off · amount off</span></div>
+                            <div id="epc-pos-cart" class="epc-pos-cart-lines">
+                                <div class="epc-pos-empty epc-pos-empty--compact">Cart is empty — add products from search</div>
+                            </div>
+                        </div>
+
+                        <div class="epc-pos-block epc-pos-totals" aria-label="Totals">
+                            <div class="epc-pos-total-row"><span>Subtotal (ex @_ctx.TaxLabel)</span><span><span class="epc-pos-cur">@_ctx.Currency</span> <span id="epc-pos-subtotal">0.00</span></span></div>
+                            <div class="epc-pos-total-row"><span>Discount</span><span><span class="epc-pos-cur">@_ctx.Currency</span> <span id="epc-pos-discount">0.00</span></span></div>
+                            <div class="epc-pos-total-row"><span>@_ctx.TaxLabel (<span id="epc-pos-tax-rate-lbl">@_taxRate</span>%)</span><span><span class="epc-pos-cur">@_ctx.Currency</span> <span id="epc-pos-vat">0.00</span></span></div>
+                            <div class="epc-pos-total-row grand"><span>Total due</span><span><span class="epc-pos-cur">@_ctx.Currency</span> <span id="epc-pos-total">0.00</span></span></div>
+                        </div>
+
+                        <div class="epc-pos-block epc-pos-pay">
+                            <div class="epc-pos-block__label"><i class="fa fa-credit-card"></i> Payment method</div>
+                            <div class="epc-pos-pay-btns" id="epc-pos-pay-mode" role="group" aria-label="Payment method">
+                                <button type="button" class="epc-pos-btn epc-pos-btn-muted active" data-pay="cash"><i class="fa fa-money-bill"></i> Cash</button>
+                                <button type="button" class="epc-pos-btn epc-pos-btn-muted" data-pay="card"><i class="fa fa-credit-card"></i> Card</button>
+                                <button type="button" class="epc-pos-btn epc-pos-btn-muted" data-pay="split"><i class="fa fa-divide"></i> Split</button>
+                            </div>
+                            <div id="epc-pos-cash-fields" class="epc-pos-pay-fields">
+                                <div class="epc-pos-field">
+                                    <label for="epc-pos-tendered">Cash tendered (@_ctx.Currency)</label>
+                                    <input type="number" step="0.01" min="0" id="epc-pos-tendered" placeholder="0.00" inputmode="decimal">
+                                </div>
+                                <div class="epc-pos-change" id="epc-pos-change-wrap">Change <strong id="epc-pos-change">@_ctx.Currency 0.00</strong></div>
+                            </div>
+                            <div id="epc-pos-split-fields" class="epc-pos-pay-fields" style="display:none">
+                                <div class="epc-pos-field">
+                                    <label for="epc-pos-cash-amt">Cash amount (@_ctx.Currency)</label>
+                                    <input type="number" step="0.01" min="0" id="epc-pos-cash-amt" placeholder="0.00" inputmode="decimal">
+                                </div>
+                                <div class="epc-pos-field">
+                                    <label for="epc-pos-card-amt">Card amount (@_ctx.Currency)</label>
+                                    <input type="number" step="0.01" min="0" id="epc-pos-card-amt" placeholder="0.00" inputmode="decimal">
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="epc-pos-block">
+                            <div class="epc-pos-field">
+                                <label for="epc-pos-notes">Sale notes <span class="epc-pos-block__hint">(optional · saved on ERP order)</span></label>
+                                <input type="text" id="epc-pos-notes" maxlength="240" placeholder="e.g. counter pickup, invoice reference…">
+                            </div>
+                        </div>
+
+                        <div class="epc-pos-actions">
+                            <button type="button" class="epc-pos-btn epc-pos-btn-success epc-pos-btn-lg" id="epc-pos-checkout" disabled><i class="fa fa-check-circle"></i> Complete sale</button>
+                            <button type="button" class="epc-pos-btn epc-pos-btn-muted epc-pos-btn-lg" id="epc-pos-clear"><i class="fa fa-trash"></i> Clear cart</button>
+                        </div>
+                        <p class="epc-pos-footnote">Checkout creates ERP sales order → invoice → receipt voucher and stock out from the selected warehouse.</p>
+                    </div>
+                </section>
+            </div>
+        </div>
+        <script src="/platform-assets/epc_pos_terminal.js?v=20260922pos" defer></script>
+    }
+
     @if (_isAdmin)
     {
+        <div class="col-lg-12">
+        <details class="epc-pos-admin" id="epc-pos-admin">
+            <summary>Register administration (settings, jewellery advance, no-script fallback)</summary>
         <div class="epc-pos-forms" aria-label="POS writes">
             <div class="epc-pos-form">
-                <h2>Open register</h2>
-                <form method="post" action="/cp/pos/open-session">
+                <h2>Save settings</h2>
+                <form method="post" action="/cp/pos/save-settings">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
-                    <label>Opening float <input type="text" name="openingFloat" value="0" inputmode="decimal" /></label>
-                    <label>Register <input type="text" name="registerName" value="@_summary.RegisterName" /></label>
-                    <button type="submit">Open session</button>
-                </form>
-            </div>
-            <div class="epc-pos-form">
-                <h2>Close register</h2>
-                <form method="post" action="/cp/pos/close-session">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
-                    <label>Session id <input type="text" name="sessionId" value="" inputmode="numeric" placeholder="open session" /></label>
-                    <label>Closing cash <input type="text" name="closingCash" value="0" inputmode="decimal" /></label>
-                    <label>Notes <input type="text" name="notes" /></label>
-                    <button type="submit">Close session</button>
+                    <label>Enabled
+                        <select name="posEnabled">
+                            @if (_ctx.PosEnabled)
+                            {
+                                <option value="true" selected>enabled</option>
+                                <option value="false">off</option>
+                            }
+                            else
+                            {
+                                <option value="true">enabled</option>
+                                <option value="false" selected>off</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Register <input type="text" name="registerName" value="@_ctx.RegisterName" /></label>
+                    <label>Default warehouse
+                        <select name="defaultWarehouseId">
+                            <option value="0">auto</option>
+                            @foreach (var wh in _ctx.Warehouses)
+                            {
+                                <option value="@wh.Id.ToString(CultureInfo.InvariantCulture)" selected="@(wh.Id == _ctx.WarehouseId)">@wh.Label</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Header <input type="text" name="receiptHeader" /></label>
+                    <label>Footer <input type="text" name="receiptFooter" value="Thank you for your purchase" /></label>
+                    <button type="submit">Save settings</button>
                 </form>
             </div>
             <div class="epc-pos-form">
@@ -91,15 +283,37 @@
                 </form>
             </div>
             <div class="epc-pos-form">
-                <h2>Complete sale</h2>
+                <h2>Open register (no-script)</h2>
+                <form method="post" action="/cp/pos/open-session">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Opening float <input type="text" name="openingFloat" value="0" inputmode="decimal" /></label>
+                    <label>Register <input type="text" name="registerName" value="@_ctx.RegisterName" /></label>
+                    <button type="submit">Open session</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Close register (no-script)</h2>
+                <form method="post" action="/cp/pos/close-session">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <label>Session id <input type="text" name="sessionId" value="@(_sessionId > 0 ? _sessionId.ToString(CultureInfo.InvariantCulture) : "")" inputmode="numeric" placeholder="open session" /></label>
+                    <label>Closing cash <input type="text" name="closingCash" value="0" inputmode="decimal" /></label>
+                    <label>Notes <input type="text" name="notes" /></label>
+                    <button type="submit">Close session</button>
+                </form>
+            </div>
+            <div class="epc-pos-form">
+                <h2>Complete sale (no-script, single line)</h2>
                 <form method="post" action="/cp/pos/complete-sale">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
+                    <input type="hidden" name="sessionId" value="@(_sessionId > 0 ? _sessionId.ToString(CultureInfo.InvariantCulture) : "")" />
                     <label>Name <input type="text" name="name" required /></label>
                     <label>Qty <input type="text" name="qty" value="1" inputmode="decimal" /></label>
                     <label>Unit price ex <input type="text" name="unitPriceEx" value="0" inputmode="decimal" /></label>
                     <label>SKU <input type="text" name="sku" /></label>
-                    <label>Warehouse id <input type="text" name="warehouseId" value="" inputmode="numeric" /></label>
+                    <label>Warehouse id <input type="text" name="warehouseId" value="@_ctx.WarehouseId.ToString(CultureInfo.InvariantCulture)" inputmode="numeric" /></label>
                     <label>Payment
                         <select name="paymentMethod">
                             <option value="cash">cash</option>
@@ -107,58 +321,14 @@
                             <option value="split">split</option>
                         </select>
                     </label>
-                    <label>Tax % <input type="text" name="taxRate" value="0" inputmode="decimal" /></label>
                     <label>Customer <input type="text" name="customerLabel" value="Walk-in guest" /></label>
                     <button type="submit">Complete sale</button>
                 </form>
             </div>
-            <div class="epc-pos-form">
-                <h2>Search products</h2>
-                <form method="get" action="/cp/pos-overview-app">
-                    <label>Query <input type="text" name="productQ" value="@_productQ" /></label>
-                    <button type="submit">Search products</button>
-                </form>
-            </div>
-            <div class="epc-pos-form">
-                <h2>Search customers</h2>
-                <form method="get" action="/cp/pos-overview-app">
-                    <label>Query <input type="text" name="customerQ" value="@_customerQ" /></label>
-                    <button type="submit">Search customers</button>
-                </form>
-            </div>
-            <div class="epc-pos-form">
-                <h2>Save settings</h2>
-                <form method="post" action="/cp/pos/save-settings">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="/cp/pos-overview-app" />
-                    <label>Enabled
-                        <select name="posEnabled">
-                            @if (_summary.PosEnabled)
-                            {
-                                <option value="true" selected>enabled</option>
-                                <option value="false">off</option>
-                            }
-                            else
-                            {
-                                <option value="true">enabled</option>
-                                <option value="false" selected>off</option>
-                            }
-                        </select>
-                    </label>
-                    <label>Register <input type="text" name="registerName" value="@_summary.RegisterName" /></label>
-                    <label>Header <input type="text" name="receiptHeader" /></label>
-                    <label>Footer <input type="text" name="receiptFooter" value="Thank you for your purchase" /></label>
-                    <button type="submit">Save settings</button>
-                </form>
-            </div>
         </div>
-    }
 
-    <p class="help-block">@(_summary.PosEnabled ? "enabled" : "off") register @(string.IsNullOrWhiteSpace(_summary.RegisterName) ? "—" : _summary.RegisterName) · @_summary.OpenSessions.ToString(CultureInfo.InvariantCulture) open sessions · @_summary.SalesToday.ToString(CultureInfo.InvariantCulture) sales today · @_summary.SalesTotalToday.ToString("N2", CultureInfo.InvariantCulture) total.</p>
-
-    <div class="col-lg-12">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">Sales</div>
+            <div class="panel-heading hbuilt">Recent sales</div>
             <div class="panel-body">
                 <div class="table-responsive">
                     <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
@@ -198,8 +368,8 @@
                             <td>@(string.IsNullOrWhiteSpace(s.PaymentMethod) ? "—" : s.PaymentMethod)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.TaxKitCode) ? "—" : s.TaxKitCode)</td>
                             <td>@(string.IsNullOrWhiteSpace(s.Status) ? "—" : s.Status)</td>
-                            <td>@(s.TimeCreated > 0 ? s.TimeCreated.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td><a href="@($"/cp/pos/receipt/{s.Id.ToString(CultureInfo.InvariantCulture)}")">Receipt</a></td>
+                            <td>@(s.TimeCreated > 0 ? DateTimeOffset.FromUnixTimeSeconds(s.TimeCreated).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "—")</td>
+                            <td><a href="@($"/cp/pos/receipt/{s.Id.ToString(CultureInfo.InvariantCulture)}")" target="_blank">Receipt</a></td>
                         </tr>
                     }
                 }
@@ -208,99 +378,20 @@
                 </div>
             </div>
         </div>
-    </div>
-
-    @if (_products.Count > 0)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Products</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped" data-epc-pos-product-hits>
-                <thead>
-                    <tr>
-                        <th>Source</th>
-                        <th>SKU</th>
-                        <th>Name</th>
-                        <th>Brand</th>
-                        <th>Price</th>
-                        <th>Stock</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var p in _products)
-                    {
-                        <tr>
-                            <td>@p.Source</td>
-                            <td>@(string.IsNullOrWhiteSpace(p.Sku) ? "—" : p.Sku)</td>
-                            <td>@(string.IsNullOrWhiteSpace(p.Name) ? "—" : p.Name)</td>
-                            <td>@(string.IsNullOrWhiteSpace(p.Brand) ? "—" : p.Brand)</td>
-                            <td>@p.Price.ToString("N4", CultureInfo.InvariantCulture)</td>
-                            <td>@(p.Stock.HasValue ? p.Stock.Value.ToString("N3", CultureInfo.InvariantCulture) : "—")</td>
-                        </tr>
-                    }
-                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
+        </details>
         </div>
     }
-
-    @if (_customers.Count > 0)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Customers</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped" data-epc-pos-customer-hits>
-                <thead>
-                    <tr>
-                        <th>Type</th>
-                        <th>User</th>
-                        <th>Contact</th>
-                        <th>Label</th>
-                        <th>Email</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var c in _customers)
-                    {
-                        <tr>
-                            <td>@c.Type</td>
-                            <td>@c.UserId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@c.ContactId.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Label) ? "—" : c.Label)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Email) ? "—" : c.Email)</td>
-                        </tr>
-                    }
-                </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <p class="help-block">open / close / save / complete-sale write here when confirmWrites is posted. Printable receipt is on this surface. Walk-in user, tax-toolkit totals, ERP SO / invoice / receipt voucher, inventory sale_out, product/customer search, and calc_cart write here.</p>
 
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/control/shop/pos";
     private bool _isAdmin;
-    private CpPosOverviewSummary _summary = new(false, "", 0, 0, 0m, "n/a", "");
+    private CpPosTerminalContext _ctx = CpPosTerminalContext.Unavailable;
     private IReadOnlyList<CpPosSaleDigest> _sales = [];
-    private string _source = "n/a";
-    private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
-    private string _productQ = "";
-    private string _customerQ = "";
-    private IReadOnlyList<CpPosProductHit> _products = [];
-    private IReadOnlyList<CpPosCustomerHit> _customers = [];
+    private long _sessionId;
+    private string _taxRate = "0.0";
 
     protected override async Task OnInitializedAsync()
     {
@@ -311,27 +402,16 @@
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpPosOverviewDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
+        _ctx = await Terminal.LoadAsync(ctx.RequestAborted);
+        _sessionId = _ctx.OpenSession?.Id ?? 0;
+        _taxRate = _ctx.TaxRate.ToString("0.0", CultureInfo.InvariantCulture);
+        var result = await Dashboards.BuildCpPosOverviewDigestAsync(50, ctx.RequestAborted);
         _sales = result.Sales;
-        _source = result.Source;
-        _message = result.Message;
-        _productQ = ctx.Request.Query["productQ"].ToString() ?? "";
-        _customerQ = ctx.Request.Query["customerQ"].ToString() ?? "";
-        if (_productQ.Length > 0)
-        {
-            _products = await PosWrites.SearchProductsAsync(_productQ, 30, ctx.RequestAborted);
-        }
-
-        if (_customerQ.Length > 0)
-        {
-            _customers = await PosWrites.SearchCustomersAsync(_customerQ, 15, ctx.RequestAborted);
-        }
     }
 }

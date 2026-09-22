@@ -2119,6 +2119,172 @@ public sealed class ControlPanelModule : ISurfaceModule
                 },
             });
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.CpPosTerminalReceiptOpen, (HttpContext context) =>
+        {
+            var saleId = ErpRecordOpen.ReadId(context.Request, "sale_id");
+            return saleId > 0
+                ? Results.Redirect("/cp/pos/receipt/" + saleId.ToString(CultureInfo.InvariantCulture))
+                : Results.Redirect("/cp/pos-overview-app");
+        });
+        endpoints.MapPost(EcomAeRoutes.CpPosTerminalAjax, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPosWriteService writes,
+            ICpPosTerminalService terminal,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(new { status = false, message = "Access denied" });
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(new { status = false, message = "Unknown action" });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var action = LiveWriteFormBinder.Text(form, "action");
+            try
+            {
+                switch (action)
+                {
+                    case "search_products":
+                    {
+                        var hits = await writes.SearchProductsAsync(LiveWriteFormBinder.Text(form, "q"), 30, cancellationToken);
+                        return Results.Json(new
+                        {
+                            status = true,
+                            products = hits.Select(p => new
+                            {
+                                source = p.Source, @ref = p.Ref, sku = p.Sku, barcode = p.Barcode, name = p.Name,
+                                brand = p.Brand, price = p.Price, stock = p.Stock, storage = p.Storage,
+                            }),
+                        });
+                    }
+
+                    case "search_customers":
+                    {
+                        var hits = await writes.SearchCustomersAsync(LiveWriteFormBinder.Text(form, "q"), 15, cancellationToken);
+                        return Results.Json(new
+                        {
+                            status = true,
+                            customers = hits.Select(c => new
+                            {
+                                type = c.Type, user_id = c.UserId, contact_id = c.ContactId, label = c.Label, email = c.Email, phone = c.Phone,
+                            }),
+                        });
+                    }
+
+                    case "calc_cart":
+                    {
+                        var totals = await writes.CalcCartAsync(
+                            CpPosWriteService.ParseLinesJson(LiveWriteFormBinder.Text(form, "lines")),
+                            LiveWriteFormBinder.Long(form, "customer_user_id"),
+                            LiveWriteFormBinder.Long(form, "contact_id"),
+                            cancellationToken);
+                        return Results.Json(new
+                        {
+                            status = totals.Ok,
+                            message = totals.Message,
+                            totals = new
+                            {
+                                subtotal_ex = totals.SubtotalEx,
+                                discount_total = totals.DiscountTotal,
+                                amount_ex_vat = totals.AmountExVat,
+                                vat_amount = totals.VatAmount,
+                                total_amount = totals.TotalAmount,
+                                tax_rate = totals.TaxRate,
+                                tax_label = totals.TaxLabel,
+                                kit_code = totals.KitCode,
+                            },
+                        });
+                    }
+
+                    case "open_session":
+                    {
+                        var r = await writes.OpenSessionAsync(LiveWriteFormBinder.Dec(form, "opening_float"), session.UserId, null, cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Message, session = new { id = r.Id } });
+                    }
+
+                    case "close_session":
+                    {
+                        var r = await writes.CloseSessionAsync(
+                            LiveWriteFormBinder.Long(form, "session_id"),
+                            LiveWriteFormBinder.Dec(form, "closing_cash"),
+                            LiveWriteFormBinder.Text(form, "notes"),
+                            cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Message, result = new { session_id = r.Id } });
+                    }
+
+                    case "complete_sale":
+                    {
+                        var r = await writes.CompleteSaleAsync(
+                            new CpPosCompleteSaleWriteRequest(
+                                LiveWriteFormBinder.Long(form, "session_id"),
+                                CpPosWriteService.ParseLinesJson(LiveWriteFormBinder.Text(form, "lines")),
+                                LiveWriteFormBinder.Text(form, "payment_method"),
+                                LiveWriteFormBinder.Dec(form, "cash_amount"),
+                                LiveWriteFormBinder.Dec(form, "card_amount"),
+                                LiveWriteFormBinder.Dec(form, "tax_rate"),
+                                LiveWriteFormBinder.Text(form, "tax_kit_code"),
+                                LiveWriteFormBinder.Long(form, "customer_user_id"),
+                                LiveWriteFormBinder.Long(form, "contact_id"),
+                                LiveWriteFormBinder.Text(form, "customer_label"),
+                                LiveWriteFormBinder.Text(form, "sale_notes"),
+                                LiveWriteFormBinder.Long(form, "warehouse_id")),
+                            session.UserId,
+                            cancellationToken);
+                        if (!r.Succeeded)
+                        {
+                            return Results.Json(new { status = false, message = r.Message });
+                        }
+
+                        var receipt = await writes.LoadReceiptAsync(r.Id, cancellationToken);
+                        return Results.Json(new
+                        {
+                            status = true,
+                            sale_id = r.Id,
+                            sale_no = receipt.Ok ? receipt.SaleNo : r.Message,
+                            message = r.Message,
+                        });
+                    }
+
+                    case "session_status":
+                    {
+                        var s = await terminal.SessionStatusAsync(cancellationToken);
+                        return Results.Json(new
+                        {
+                            status = true,
+                            session = s.OpenSession is null ? null : new { id = s.OpenSession.Id, session_no = s.OpenSession.SessionNo, opening_float = s.OpenSession.OpeningFloat },
+                            stats = new { today_sales = s.TodaySales, today_total = s.TodayTotal, week_sales = s.WeekSales, week_total = s.WeekTotal },
+                        });
+                    }
+
+                    case "save_settings":
+                    {
+                        var r = await writes.SaveSettingsAsync(
+                            LiveWriteFormBinder.Flag(form, "pos_enabled"),
+                            LiveWriteFormBinder.Text(form, "register_name"),
+                            LiveWriteFormBinder.Int(form, "default_warehouse_id"),
+                            LiveWriteFormBinder.Int(form, "default_cash_account_id"),
+                            LiveWriteFormBinder.Int(form, "default_card_account_id"),
+                            LiveWriteFormBinder.Text(form, "receipt_header"),
+                            LiveWriteFormBinder.Text(form, "receipt_footer"),
+                            cancellationToken);
+                        return Results.Json(new { status = r.Succeeded, message = r.Message });
+                    }
+
+                    default:
+                        return Results.Json(new { status = false, message = "Unknown action" });
+                }
+            }
+            catch (System.Data.Common.DbException ex)
+            {
+                return Results.Json(new { status = false, message = ex.Message });
+            }
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPortalSaveSettings, async (HttpContext context, CpPortalSaveSettingsBody? body, ILegacySessionValidator validator, ICpPortalSaveSettingsDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpPortalDeploySite, async (HttpContext context, CpPortalDeploySiteBody? body, ILegacySessionValidator validator, ICpPortalDeploySiteDryRun dryRun, CancellationToken cancellationToken) =>

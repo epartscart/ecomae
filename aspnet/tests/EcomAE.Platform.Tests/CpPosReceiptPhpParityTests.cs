@@ -38,7 +38,8 @@ public sealed class CpPosReceiptPhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPosOverviewApp.razor"));
         Assert.Contains("/cp/pos/receipt/", text, StringComparison.Ordinal);
-        Assert.Contains("name=\"productQ\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-pos-q\"", text, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.CpPosTerminalAjax", text, StringComparison.Ordinal);
         Assert.Contains("/cp/pos/search-products", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs")), StringComparison.Ordinal);
         Assert.DoesNotContain("receipt HTML stay", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Search / calc_cart stay", text, StringComparison.Ordinal);
