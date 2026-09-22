@@ -4555,20 +4555,33 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void CrossesApp_OpenLoadsPairAndSiblings()
+    public void CrossesApp_IsPhpTwinWithSearchTableAndCsv()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpCrossesApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"cross_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
+        // crosses.php: add panel + CSV import, search filters, delete-by-search, sortable table with inline edit, pagination, CSV download.
+        Assert.Contains("ICpCrossWriteService", text, StringComparison.Ordinal);
+        Assert.Contains("Crosses.SearchAsync(", text, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(_listHref + _queryTail, \"cross_id\"", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"cross_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpCrossPairDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
+        foreach (var id in new[] { "new_article", "new_manufacturer_article", "new_analog", "new_manufacturer_analog", "file_csv", "search_article", "search_manufacturer", "search_null", "search_id_from", "search_id_before" })
+        {
+            Assert.Contains("id=\"" + id + "\"", text, StringComparison.Ordinal);
+        }
+        foreach (var action in new[] { "add_crosses", "import_csv", "save_crosses", "del_crosses", "del_search_crosses" })
+        {
+            Assert.Contains("name=\"action\" value=\"" + action + "\"", text, StringComparison.Ordinal);
+        }
+        Assert.Contains("enctype=\"multipart/form-data\"", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/crosses/download.csv", text, StringComparison.Ordinal);
+        Assert.Contains("class=\"table table-striped table_crosses\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-cross-banner", text, StringComparison.Ordinal);
+        Assert.Contains("pagination_box", text, StringComparison.Ordinal);
+        Assert.Contains("No records", text, StringComparison.Ordinal);
         Assert.Contains("/cp/crosses/write", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("BuildCpCrossPairDetailAsync", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-x-hero", text, StringComparison.Ordinal);

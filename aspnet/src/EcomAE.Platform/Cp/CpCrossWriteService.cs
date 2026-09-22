@@ -1,11 +1,47 @@
+using System.Data.Common;
+using System.Globalization;
 using System.Text;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
-/// <summary>Live PHP <c>crosses/ajax_operations.php</c> save/delete/add/search-delete twins.</summary>
+public sealed record CpCrossRow(long Id, string Article, string ManufacturerArticle, string Analog, string ManufacturerAnalog);
+
+public sealed record CpCrossSearchRequest(
+    string? Article,
+    string? Manufacturer,
+    bool EmptyOnly,
+    long IdFrom,
+    long IdBefore,
+    int Page,
+    int PageSize,
+    string SortField,
+    bool SortAsc);
+
+public sealed record CpCrossSearchResult(
+    IReadOnlyList<CpCrossRow> Rows,
+    long Total,
+    bool TotalApprox,
+    bool Filtered,
+    int Page,
+    int PageSize,
+    IReadOnlyList<string> Manufacturers,
+    string Message)
+{
+    public int Pages => (int)Math.Max(1, (Total + PageSize - 1) / Math.Max(1, PageSize));
+}
+
+public sealed record CpCrossCsvImportResult(int Rows, int Added, int Skipped, IReadOnlyList<string> Errors);
+
+/// <summary>Live PHP <c>crosses/ajax_operations.php</c> get_table/search-manufacturer/save/delete/add/search-delete twins plus CSV import/export.</summary>
 public interface ICpCrossWriteService
 {
+    Task<CpCrossSearchResult> SearchAsync(CpCrossSearchRequest request, CancellationToken cancellationToken = default);
+
+    Task<CpCrossCsvImportResult> ImportCsvAsync(Stream csv, CancellationToken cancellationToken = default);
+
+    Task WriteCsvAsync(Stream output, CancellationToken cancellationToken = default);
+
     Task<ErpSimpleWriteResult> SaveAsync(
         long id,
         string? article,
@@ -39,6 +75,191 @@ public sealed class CpCrossWriteService : ICpCrossWriteService
     public CpCrossWriteService(IErpWriteConnectionFactory connections)
     {
         _connections = connections;
+    }
+
+    private static readonly string[] SortFields = ["id", "article", "manufacturer_article", "analog", "manufacturer_analog"];
+
+    public async Task<CpCrossSearchResult> SearchAsync(CpCrossSearchRequest request, CancellationToken cancellationToken = default)
+    {
+        var pageSize = request.PageSize < 1 ? 30 : request.PageSize;
+        var page = request.Page < 1 ? 1 : request.Page;
+        var art = CleanArticle(request.Article);
+        var mfr = CleanBrandUpper(request.Manufacturer);
+        var where = new StringBuilder();
+        var args = new List<object?>();
+        if (art.Length > 0)
+        {
+            if (mfr.Length > 0)
+            {
+                where.Append("((`article` = ? AND `manufacturer_article` = ?) OR (`analog` = ? AND `manufacturer_analog` = ?))");
+                args.AddRange([art, mfr, art, mfr]);
+            }
+            else
+            {
+                where.Append("(`article` = ? OR `analog` = ?)");
+                args.AddRange([art, art]);
+            }
+        }
+
+        if (request.EmptyOnly)
+        {
+            if (where.Length > 0) where.Append(" AND ");
+            where.Append("(`article` = '' OR `manufacturer_article` = '' OR `analog` = '' OR `manufacturer_analog` = '')");
+        }
+
+        if (request.IdFrom > 0)
+        {
+            if (where.Length > 0) where.Append(" AND ");
+            where.Append("(`id` >= ?)");
+            args.Add(request.IdFrom);
+        }
+
+        if (request.IdBefore > 0)
+        {
+            if (where.Length > 0) where.Append(" AND ");
+            where.Append("(`id` <= ?)");
+            args.Add(request.IdBefore);
+        }
+
+        var filtered = where.Length > 0;
+        var whereSql = filtered ? " WHERE " + where : string.Empty;
+        var sortField = filtered && SortFields.Contains(request.SortField, StringComparer.Ordinal) ? request.SortField : "id";
+        var sortDir = filtered && request.SortAsc ? "ASC" : "DESC";
+
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, false, filtered, page, pageSize, [], "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            long total;
+            var approx = false;
+            if (filtered)
+            {
+                total = await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT COUNT(*) FROM `shop_docpart_articles_analogs_list`" + whereSql), cancellationToken, args.ToArray())
+                    .ConfigureAwait(false);
+            }
+            else
+            {
+                total = await ErpDb.LongAsync(connection, null, "SELECT IFNULL(TABLE_ROWS,0) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'shop_docpart_articles_analogs_list' LIMIT 1", cancellationToken)
+                    .ConfigureAwait(false);
+                approx = true;
+                if (total < pageSize)
+                {
+                    total = await ErpDb.LongAsync(connection, null, "SELECT COUNT(*) FROM `shop_docpart_articles_analogs_list`", cancellationToken).ConfigureAwait(false);
+                    approx = false;
+                }
+            }
+
+            var rows = new List<CpCrossRow>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = ErpDb.Positional(
+                    "SELECT `id`, IFNULL(`article`,''), IFNULL(`manufacturer_article`,''), IFNULL(`analog`,''), IFNULL(`manufacturer_analog`,'') FROM `shop_docpart_articles_analogs_list`"
+                    + whereSql + " ORDER BY `" + sortField + "` " + sortDir + " LIMIT " + ((page - 1) * pageSize).ToString(CultureInfo.InvariantCulture) + ", " + pageSize.ToString(CultureInfo.InvariantCulture));
+                ErpDb.AddParameters(cmd, args.ToArray());
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add(new CpCrossRow(
+                        Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
+                        reader.GetString(1), reader.GetString(2), reader.GetString(3), reader.GetString(4)));
+                }
+            }
+
+            var manufacturers = new SortedSet<string>(StringComparer.Ordinal);
+            if (art.Length > 0)
+            {
+                await using var cmd = connection.CreateCommand();
+                cmd.CommandText = ErpDb.Positional(
+                    "SELECT DISTINCT `manufacturer_article` FROM `shop_docpart_articles_analogs_list` WHERE `article` = ? "
+                    + "UNION SELECT DISTINCT `manufacturer_analog` FROM `shop_docpart_articles_analogs_list` WHERE `analog` = ?");
+                ErpDb.AddParameters(cmd, art, art);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    if (!reader.IsDBNull(0))
+                    {
+                        manufacturers.Add(reader.GetString(0));
+                    }
+                }
+            }
+
+            return new(rows, total, approx, filtered, page, pageSize, manufacturers.ToList(), string.Empty);
+        }
+        catch (DbException ex)
+        {
+            return new([], 0, false, filtered, page, pageSize, [], ex.Message);
+        }
+    }
+
+    /// <summary>PHP <c>ajax_handle_file.php</c>: columns manufacturer;article;manufacturer_cross;article_cross (semicolon or comma).</summary>
+    public async Task<CpCrossCsvImportResult> ImportCsvAsync(Stream csv, CancellationToken cancellationToken = default)
+    {
+        using var reader = new StreamReader(csv, Encoding.UTF8, detectEncodingFromByteOrderMarks: true);
+        var rows = 0;
+        var added = 0;
+        var skipped = 0;
+        var errors = new List<string>();
+        string? line;
+        while ((line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false)) is not null)
+        {
+            if (line.Trim().Length == 0)
+            {
+                continue;
+            }
+
+            var cols = line.Split(line.Contains(';') ? ';' : ',');
+            if (cols.Length < 4)
+            {
+                skipped++;
+                continue;
+            }
+
+            if (rows == 0 && string.Equals(CleanArticle(cols[1]), "ARTICLE", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            rows++;
+            var result = await AddAsync(cols[1], cols[0], cols[3], cols[2], cancellationToken).ConfigureAwait(false);
+            if (result.Succeeded)
+            {
+                added++;
+            }
+            else
+            {
+                skipped++;
+                if (errors.Count < 20 && result.Code != "already")
+                {
+                    errors.Add("Line " + (rows + skipped).ToString(CultureInfo.InvariantCulture) + ": " + result.Message);
+                }
+            }
+        }
+
+        return new(rows, added, skipped, errors);
+    }
+
+    /// <summary>PHP <c>download_crosses.php</c>: manufacturer;article;manufacturer_cross;article_cross.</summary>
+    public async Task WriteCsvAsync(Stream output, CancellationToken cancellationToken = default)
+    {
+        await using var writer = new StreamWriter(output, new UTF8Encoding(false), leaveOpen: true);
+        await writer.WriteLineAsync("manufacturer;article;manufacturer_cross;article_cross").ConfigureAwait(false);
+        if (!_connections.IsConfigured)
+        {
+            return;
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var cmd = connection.CreateCommand();
+        cmd.CommandText = "SELECT IFNULL(`manufacturer_article`,''), IFNULL(`article`,''), IFNULL(`manufacturer_analog`,''), IFNULL(`analog`,'') FROM `shop_docpart_articles_analogs_list` ORDER BY `id`";
+        await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            await writer.WriteLineAsync(string.Join(';', reader.GetString(0), reader.GetString(1), reader.GetString(2), reader.GetString(3))).ConfigureAwait(false);
+        }
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(
