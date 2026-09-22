@@ -13084,6 +13084,124 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapPost(EcomAeRoutes.ControlPanelFileManagerWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpFileManagerService files,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/file-manager-app", "Admin CP capability required for file manager writes.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, message = "Form body required." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var action = LiveWriteFormBinder.Text(form, "action").ToLowerInvariant();
+            var path = LiveWriteFormBinder.Text(form, "path", "cwd");
+            var name = LiveWriteFormBinder.Text(form, "name");
+            var newName = LiveWriteFormBinder.Text(form, "new_name", "newName");
+            var names = form["names"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!.Trim()).ToArray();
+            if (names.Length == 0 && name.Length > 0)
+            {
+                names = [name];
+            }
+
+            var returnTo = "/cp/file-manager-app" + (path.Length > 0 ? "?path=" + Uri.EscapeDataString(path) : string.Empty);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                var valid = action switch
+                {
+                    "upload" => form.Files.Count > 0 && form.Files.All(f => CpFileManagerService.IsAllowedUpload(f.FileName) && CpFileManagerService.IsValidName(Path.GetFileName(f.FileName))),
+                    "mkdir" => CpFileManagerService.IsValidName(name),
+                    "rename" => CpFileManagerService.IsValidName(name) && CpFileManagerService.IsValidName(newName),
+                    "rm" or "delete" => names.Length > 0 && names.All(CpFileManagerService.IsValidName),
+                    _ => false,
+                };
+                return Results.Ok(new
+                {
+                    ok = valid,
+                    status = "dry-run-validated",
+                    action,
+                    path = CpFileManagerService.NormalizeRelative(path),
+                    writes = 0,
+                    writesBlocked = true,
+                    session = SessionPayload(session)
+                });
+            }
+
+            ErpSimpleWriteResult written;
+            switch (action)
+            {
+                case "upload":
+                    if (form.Files.Count == 0)
+                    {
+                        written = ErpSimpleWriteResult.Fail("invalid", "Choose at least one file.");
+                        break;
+                    }
+
+                    var okCount = 0;
+                    var lastMessage = string.Empty;
+                    written = ErpSimpleWriteResult.Fail("invalid", "No file uploaded.");
+                    foreach (var file in form.Files)
+                    {
+                        written = await files.UploadAsync(path, file, cancellationToken);
+                        lastMessage = written.Message;
+                        if (!written.Succeeded)
+                        {
+                            break;
+                        }
+
+                        okCount++;
+                    }
+
+                    if (written.Succeeded)
+                    {
+                        written = new ErpSimpleWriteResult(true, "ok", okCount.ToString(CultureInfo.InvariantCulture) + " file(s) uploaded.", 0, okCount);
+                    }
+                    else if (okCount > 0)
+                    {
+                        written = new ErpSimpleWriteResult(false, written.Code, lastMessage + " (" + okCount.ToString(CultureInfo.InvariantCulture) + " uploaded before the error)", 0, okCount);
+                    }
+
+                    break;
+                case "mkdir":
+                    written = files.CreateDirectory(path, name);
+                    break;
+                case "rename":
+                    written = files.Rename(path, name, newName);
+                    break;
+                case "rm":
+                case "delete":
+                    written = files.Delete(path, names);
+                    break;
+                default:
+                    written = ErpSimpleWriteResult.Fail("invalid", "Unknown action.");
+                    break;
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnTo,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    action,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelFileManager, async (
             HttpContext context,
             int? limit,

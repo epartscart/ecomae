@@ -605,6 +605,8 @@ public static class EcomAeRoutes
     public const string ControlPanelFileManager = "/cp/file-manager";
     /// <summary>CP File manager Blazor list (JSON digest remains <see cref="ControlPanelFileManager"/>).</summary>
     public const string ControlPanelFileManagerApp = "/cp/file-manager-app";
+    /// <summary>Native twin of the PHP elFinder connector actions (upload / mkdir / rename / rm) over content/files.</summary>
+    public const string ControlPanelFileManagerWrite = "/cp/file-manager/write";
     public const string ControlPanelServerIp = "/cp/server-ip";
     /// <summary>CP Server IP Blazor list (JSON digest remains <see cref="ControlPanelServerIp"/>).</summary>
     public const string ControlPanelServerIpApp = "/cp/server-ip-app";

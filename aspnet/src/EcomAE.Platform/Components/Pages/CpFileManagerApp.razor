@@ -2,69 +2,298 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpFileManagerService Files
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>File manager · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                File manager
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/file-manager-app")</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/file-manager-app" IsAdmin="_isAdmin" />
+<style>
+    .epc-filemanager { --epc-fm-ink:#0f172a; --epc-fm-muted:#64748b; --epc-fm-line:#e2e8f0; --epc-fm-soft:#f8fafc; --epc-fm-blue:#2563eb; margin:0 0 24px; }
+    .epc-filemanager__toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; padding:12px 14px; margin-bottom:14px; border:1px solid var(--epc-fm-line); border-radius:12px; background:radial-gradient(900px 160px at 0% 0%, rgba(37,99,235,.07), transparent 55%), linear-gradient(180deg,#fff 0%, var(--epc-fm-soft) 100%); box-shadow:0 1px 2px rgba(15,23,42,.04); }
+    .epc-filemanager .epc-fm-btn { display:inline-flex; align-items:center; gap:7px; padding:8px 12px; border:1px solid var(--epc-fm-line); border-radius:9px; background:#fff; color:var(--epc-fm-ink); font-size:13px; font-weight:650; line-height:1.2; text-decoration:none !important; cursor:pointer; }
+    .epc-filemanager .epc-fm-btn:hover { border-color:#93c5fd; box-shadow:0 4px 14px rgba(37,99,235,.12); color:var(--epc-fm-ink); }
+    .epc-filemanager .epc-fm-btn.danger { color:#b91c1c; }
+    .epc-filemanager__hint { margin:0 0 12px; padding:10px 12px; border:1px solid #bae6fd; border-radius:10px; background:#f0f9ff; color:#0c4a6e; font-size:13px; }
+    .epc-filemanager__pane { border:1px solid var(--epc-fm-line); border-radius:12px; background:#fff; box-shadow:0 1px 2px rgba(15,23,42,.04); overflow:hidden; min-height:480px; }
+    .epc-filemanager__pane-h { padding:12px 14px; border-bottom:1px solid var(--epc-fm-line); background:linear-gradient(180deg,#fff 0%, var(--epc-fm-soft) 100%); display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:8px; }
+    .epc-filemanager__pane-h h3 { margin:0; font-size:15px; font-weight:700; color:var(--epc-fm-ink); }
+    .epc-filemanager__pane-h span { display:block; margin-top:2px; font-size:12px; font-weight:500; color:var(--epc-fm-muted); }
+    .epc-fm-toolbar { display:flex; flex-wrap:wrap; gap:6px; padding:8px 14px; border-bottom:1px solid var(--epc-fm-line); background:#fff; align-items:center; }
+    .epc-fm-crumbs { padding:8px 14px; font-size:13px; border-bottom:1px solid var(--epc-fm-line); background:var(--epc-fm-soft); }
+    .epc-fm-crumbs a { color:var(--epc-fm-blue); text-decoration:none; }
+    .epc-fm-table { width:100%; border-collapse:collapse; font-size:13px; }
+    .epc-fm-table th, .epc-fm-table td { padding:7px 10px; border-bottom:1px solid var(--epc-fm-line); vertical-align:middle; text-align:left; }
+    .epc-fm-table th { background:var(--epc-fm-soft); font-weight:650; color:var(--epc-fm-muted); font-size:12px; }
+    .epc-fm-table tr:hover td { background:#f8fbff; }
+    .epc-fm-table .icon { width:28px; text-align:center; color:var(--epc-fm-muted); }
+    .epc-fm-table .icon .fa-folder { color:#f59e0b; }
+    .epc-fm-table .icon .fa-file-image-o { color:#2563eb; }
+    .epc-fm-table .icon .fa-file-pdf-o { color:#dc2626; }
+    .epc-fm-table a.name { color:var(--epc-fm-ink); text-decoration:none; font-weight:600; }
+    .epc-fm-table .muted { color:var(--epc-fm-muted); }
+    .epc-fm-table img.thumb { width:32px; height:32px; object-fit:cover; border-radius:4px; border:1px solid var(--epc-fm-line); background:#fff; }
+    .epc-fm-inline { display:inline-flex; gap:4px; align-items:center; }
+    .epc-fm-inline input[type=text] { padding:3px 6px; font-size:12px; border:1px solid var(--epc-fm-line); border-radius:6px; }
+    .epc-fm-empty { padding:40px; text-align:center; color:var(--epc-fm-muted); font-size:13px; }
+    .epc-fm-msg { margin:0 0 12px; padding:10px 12px; border-radius:10px; font-size:13px; }
+    .epc-fm-msg.ok { border:1px solid #bbf7d0; background:#f0fdf4; color:#166534; }
+    .epc-fm-msg.err { border:1px solid #fecaca; background:#fef2f2; color:#991b1b; }
+    .epc-fm-file { display:none; }
+    .epc-fm-status { padding:8px 14px; font-size:12px; color:var(--epc-fm-muted); border-top:1px solid var(--epc-fm-line); background:var(--epc-fm-soft); }
+</style>
 
-    <p class="help-block">@_summary.RootPresent.ToString(CultureInfo.InvariantCulture) Root OK · @_summary.FileCount.ToString(CultureInfo.InvariantCulture) Files · @_summary.DirCount.ToString(CultureInfo.InvariantCulture) Dirs · @_summary.TotalBytes.ToString(CultureInfo.InvariantCulture) Bytes.</p>
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-        <thead><tr><th>Name</th><th>Dir</th><th>Bytes</th><th>Ext</th><th></th></tr></thead>
-        <tbody>
-        @if (_rows.Count==0) { <tr><td colspan="5">No records yet.</td></tr> }
-        else { @foreach (var row in _rows) { <tr><td>@row.Name</td><td>@row.IsDirectory</td><td>@row.SizeBytes</td><td>@row.Extension</td><td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td></tr> } }
-        </tbody>
-                    </table>
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning">Admin CP session required. <a href="/cp/login?returnUrl=/cp/file-manager-app">Log in</a>.</div></div>
+    }
+    else
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    File manager
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                </div>
+                <div class="panel-body">
+                    <p style="margin:0">Browse and manage files under /content/files — images, PDFs, and media used across the storefront and CP.</p>
                 </div>
             </div>
         </div>
-    </div>
 
+        <div class="col-lg-12 epc-filemanager">
+            @if (_okMessage.Length > 0)
+            {
+                <div class="epc-fm-msg ok">@_okMessage</div>
+            }
+            @if (_errMessage.Length > 0)
+            {
+                <div class="epc-fm-msg err">@_errMessage</div>
+            }
+
+            <div class="epc-filemanager__toolbar" role="toolbar" aria-label="File manager actions">
+                <a class="epc-fm-btn" href="/cp"><i class="fa fa-home"></i> Control panel</a>
+                <a class="epc-fm-btn" href="/cp/product-catalogue-app"><i class="fa fa-sitemap"></i> Catalogue</a>
+                <a class="epc-fm-btn" href="@CpFileManagerService.RootUrl/" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Open /content/files</a>
+            </div>
+
+            <p class="epc-filemanager__hint">
+                Upload images (JPEG, PNG, GIF) and PDFs. Hidden/dot files are locked. Changes apply immediately under <code>/content/files/</code>.
+            </p>
+
+            <div class="epc-filemanager__pane">
+                <div class="epc-filemanager__pane-h">
+                    <div>
+                        <h3>Server files</h3>
+                        <span>Root: /content/files@(_listing.RelativePath.Length > 0 ? "/" + _listing.RelativePath : "")</span>
+                    </div>
+                    <span>@_listing.Entries.Count(e => e.IsDirectory).ToString(CultureInfo.InvariantCulture) folders · @_listing.Entries.Count(e => !e.IsDirectory).ToString(CultureInfo.InvariantCulture) files · @CpFileManagerService.HumanSize(_listing.Entries.Where(e => !e.IsDirectory).Sum(e => e.SizeBytes))</span>
+                </div>
+
+                @if (!_listing.RootExists)
+                {
+                    <div class="epc-fm-empty">Root folder <code>content/files</code> was not found on this server.</div>
+                }
+                else
+                {
+                    <div class="epc-fm-toolbar">
+                        <form id="epc-fm-upload" method="post" enctype="multipart/form-data" action="/cp/file-manager/write" class="epc-fm-inline">
+                            <input type="hidden" name="action" value="upload" />
+                            <input type="hidden" name="path" value="@_listing.RelativePath" />
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input class="epc-fm-file" id="epc-fm-file" type="file" name="files" multiple accept=".jpg,.jpeg,.png,.gif,.pdf" onchange="document.getElementById('epc-fm-upload').submit();" />
+                            <a class="epc-fm-btn" href="javascript:void(0)" onclick="document.getElementById('epc-fm-file').click();"><i class="fa fa-upload"></i> Upload</a>
+                        </form>
+                        <form method="post" action="/cp/file-manager/write" class="epc-fm-inline" onsubmit="return epcFmMkdir(this);">
+                            <input type="hidden" name="action" value="mkdir" />
+                            <input type="hidden" name="path" value="@_listing.RelativePath" />
+                            <input type="hidden" name="name" value="" />
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <button type="submit" class="epc-fm-btn"><i class="fa fa-folder-open-o"></i> New folder</button>
+                        </form>
+                        <form id="epc-fm-bulk" method="post" action="/cp/file-manager/write" class="epc-fm-inline" onsubmit="return epcFmBulkDelete();">
+                            <input type="hidden" name="action" value="rm" />
+                            <input type="hidden" name="path" value="@_listing.RelativePath" />
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <button type="submit" class="epc-fm-btn danger"><i class="fa fa-trash-o"></i> Delete selected</button>
+                        </form>
+                        <a class="epc-fm-btn" href="@Href(_listing.RelativePath)"><i class="fa fa-refresh"></i> Reload</a>
+                    </div>
+
+                    <div class="epc-fm-crumbs">
+                        <i class="fa fa-hdd-o"></i> <a href="@Href("")">content/files</a>
+                        @{
+                            var acc = "";
+                        }
+                        @foreach (var crumb in _listing.Crumbs)
+                        {
+                            acc = acc.Length == 0 ? crumb : acc + "/" + crumb;
+                            <span> / </span><a href="@Href(acc)">@crumb</a>
+                        }
+                    </div>
+
+                    @if (_listing.Entries.Count == 0)
+                    {
+                        <div class="epc-fm-empty">This folder is empty.</div>
+                    }
+                    else
+                    {
+                        <table class="epc-fm-table">
+                            <thead>
+                                <tr>
+                                    <th style="width:28px"><input type="checkbox" onclick="epcFmCheckAll(this)" /></th>
+                                    <th class="icon"></th>
+                                    <th>Name</th>
+                                    <th style="width:100px">Size</th>
+                                    <th style="width:80px">Type</th>
+                                    <th style="width:150px">Modified</th>
+                                    <th style="width:220px">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_listing.RelativePath.Length > 0)
+                                {
+                                    var parent = _listing.RelativePath.Contains('/') ? _listing.RelativePath[.._listing.RelativePath.LastIndexOf('/')] : "";
+                                    <tr>
+                                        <td></td>
+                                        <td class="icon"><i class="fa fa-level-up"></i></td>
+                                        <td colspan="5"><a class="name" href="@Href(parent)">..</a></td>
+                                    </tr>
+                                }
+                                @foreach (var e in _listing.Entries)
+                                {
+                                    var url = CpFileManagerService.RootUrl + "/" + string.Join('/', e.RelativePath.Split('/').Select(Uri.EscapeDataString));
+                                    <tr>
+                                        <td><input type="checkbox" class="epc-fm-check" value="@e.Name" /></td>
+                                        <td class="icon">
+                                            @if (e.IsDirectory)
+                                            {
+                                                <i class="fa fa-folder"></i>
+                                            }
+                                            else if (e.IsImage)
+                                            {
+                                                <img class="thumb" src="@url" alt="" loading="lazy" />
+                                            }
+                                            else if (e.Extension == "pdf")
+                                            {
+                                                <i class="fa fa-file-pdf-o"></i>
+                                            }
+                                            else
+                                            {
+                                                <i class="fa fa-file-o"></i>
+                                            }
+                                        </td>
+                                        <td>
+                                            @if (e.IsDirectory)
+                                            {
+                                                <a class="name" href="@Href(e.RelativePath)">@e.Name</a>
+                                            }
+                                            else
+                                            {
+                                                <a class="name" href="@url" target="_blank" rel="noopener">@e.Name</a>
+                                            }
+                                        </td>
+                                        <td class="muted">@(e.IsDirectory ? "—" : CpFileManagerService.HumanSize(e.SizeBytes))</td>
+                                        <td class="muted">@(e.IsDirectory ? "folder" : e.Extension)</td>
+                                        <td class="muted">@(e.Modified == DateTimeOffset.MinValue ? "" : e.Modified.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture))</td>
+                                        <td>
+                                            <form method="post" action="/cp/file-manager/write" class="epc-fm-inline" onsubmit="return epcFmRename(this);">
+                                                <input type="hidden" name="action" value="rename" />
+                                                <input type="hidden" name="path" value="@_listing.RelativePath" />
+                                                <input type="hidden" name="name" value="@e.Name" />
+                                                <input type="hidden" name="new_name" value="" />
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <button type="submit" class="btn btn-xs btn-default"><i class="fa fa-pencil"></i> Rename</button>
+                                            </form>
+                                            <form method="post" action="/cp/file-manager/write" class="epc-fm-inline" onsubmit="return confirm('Delete @e.Name.Replace("'", "\\'")?');">
+                                                <input type="hidden" name="action" value="rm" />
+                                                <input type="hidden" name="path" value="@_listing.RelativePath" />
+                                                <input type="hidden" name="names" value="@e.Name" />
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-trash-o"></i> Delete</button>
+                                            </form>
+                                            @if (!e.IsDirectory)
+                                            {
+                                                <a class="btn btn-xs btn-default" href="@url" download><i class="fa fa-download"></i></a>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+
+                    <div class="epc-fm-status">
+                        @_listing.Entries.Count.ToString(CultureInfo.InvariantCulture) item(s) · uploads up to @CpFileManagerService.HumanSize(CpFileManagerService.MaxUploadBytes) · allowed: @string.Join(", ", CpFileManagerService.UploadExtensions)
+                    </div>
+                }
+            </div>
+        </div>
+
+        <script>
+            function epcFmMkdir(form) {
+                var name = window.prompt('New folder name:', '');
+                if (!name) { return false; }
+                form.elements['name'].value = name.trim();
+                return form.elements['name'].value.length > 0;
+            }
+            function epcFmRename(form) {
+                var current = form.elements['name'].value;
+                var name = window.prompt('Rename "' + current + '" to:', current);
+                if (!name || name.trim() === current) { return false; }
+                form.elements['new_name'].value = name.trim();
+                return true;
+            }
+            function epcFmCheckAll(box) {
+                document.querySelectorAll('.epc-fm-check').forEach(function (c) { c.checked = box.checked; });
+            }
+            function epcFmBulkDelete() {
+                var form = document.getElementById('epc-fm-bulk');
+                Array.prototype.slice.call(form.querySelectorAll('input[name=names]')).forEach(function (n) { n.remove(); });
+                var picked = Array.prototype.slice.call(document.querySelectorAll('.epc-fm-check:checked'));
+                if (picked.length === 0) { window.alert('Select at least one item.'); return false; }
+                if (!window.confirm('Delete ' + picked.length + ' selected item(s)? Folders must be empty.')) { return false; }
+                picked.forEach(function (c) {
+                    var h = document.createElement('input');
+                    h.type = 'hidden'; h.name = 'names'; h.value = c.value;
+                    form.appendChild(h);
+                });
+                return true;
+            }
+        </script>
+    }
 </PhpCpDesktopChrome>
+
 @code {
     private const string _phpTab = "/CP/filemanager";
     private bool _isAdmin;
-    private CpFileManagerSummary _summary = new(0, 0, 0, 0L, "n/a", "");
-    private IReadOnlyList<CpFileManagerRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private CpFileListing _listing = new("", [], [], false, "");
+    private string _okMessage = "";
+    private string _errMessage = "";
+
+    private static string Href(string relativePath)
+        => "/cp/file-manager-app" + (relativePath.Length > 0 ? "?path=" + Uri.EscapeDataString(relativePath) : "");
+
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
-        if (!_isAdmin)
+        if (ctx is null)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpFileManagerDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Entries;
-        _source = result.Source;
-        _message = result.Message;
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _okMessage = ctx.Request.Query["ok"].ToString();
+        _errMessage = ctx.Request.Query["err"].ToString();
+        _listing = Files.List(ctx.Request.Query["path"].ToString());
     }
 }
