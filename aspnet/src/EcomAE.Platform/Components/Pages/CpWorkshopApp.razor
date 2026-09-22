@@ -1,28 +1,30 @@
 @page "/cp/workshop-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@using EcomAE.Platform.Routing
+@inject ICpWorkshopDeskService Desk
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Workshop · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_workshop.css?v=20260922ws" />
+    <style>
+        .epc-ws-admin { margin-top:1rem; }
+        .epc-ws-admin summary { cursor:pointer; font-weight:700; padding:.5rem .2rem; color:#0c4a6e; }
+        .epc-ws-admin form { display:flex; flex-wrap:wrap; gap:.4rem; align-items:end; margin:0 0 .65rem; background:#fff; border:1px solid #e2e8f0; border-radius:.5rem; padding:.6rem .8rem; }
+        .epc-ws-admin label { display:flex; flex-direction:column; gap:.15rem; font-size:.75rem; color:#475569; }
+        .epc-ws-admin input, .epc-ws-admin select, .epc-ws-admin textarea { min-width:6rem; padding:.3rem .4rem; border:1px solid #cbd5e1; border-radius:.35rem; font-size:.8rem; }
+    </style>
+</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/workshop-app" IsAdmin="_isAdmin" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <PhpCpModulePageHeader Title="Workshop &amp; service desk"
-                           Subtitle="Open a job for the 280-character notes and complaint excerpts. Assign, save bay, save tech, set status, create job, add line, and appointments write here. Seed stays on the Classic twin."
-                           PhpTabHref="@_phpTab">
-        <a class="ghost" href="/cp/sao-app">SAO</a>
-        <a class="ghost" href="/cp/orders">Orders</a>
-        <a class="ghost" href="/cp/storages-app">Storages</a>
-    </PhpCpModulePageHeader>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -32,379 +34,485 @@
     {
         <div class="alert alert-danger" role="status">@_flashErr</div>
     }
+
     @if (!_isAdmin)
     {
-        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to open the workshop desk.</div>
     }
     else
     {
-        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="assign" />
-            <label>Job id <input type="number" name="jobId" min="1" required style="width:6rem" /></label>
-            <label>Bay id <input type="number" name="bayId" min="0" value="0" style="width:6rem" /></label>
-            <label>Tech id <input type="number" name="techId" min="0" value="0" style="width:6rem" /></label>
-            <button type="submit" class="btn btn-xs btn-primary">Assign</button>
-        </form>
-        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="save_bay" />
-            <label>Bay id (0=new) <input type="number" name="id" min="0" value="0" style="width:6rem" /></label>
-            <label>Code <input type="text" name="code" required maxlength="32" /></label>
-            <label>Name <input type="text" name="name" required maxlength="190" /></label>
-            <label>Active
-                <select name="active">
-                    <option value="1">1</option>
-                    <option value="0">0</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-xs btn-default">Save bay</button>
-        </form>
-        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="save_tech" />
-            <label>Tech id (0=new) <input type="number" name="id" min="0" value="0" style="width:6rem" /></label>
-            <label>Name <input type="text" name="name" required maxlength="190" /></label>
-            <label>Phone <input type="text" name="phone" maxlength="64" /></label>
-            <label>Skill <input type="text" name="skill" maxlength="190" /></label>
-            <label>Active
-                <select name="active">
-                    <option value="1">1</option>
-                    <option value="0">0</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-xs btn-default">Save tech</button>
-        </form>
-        <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="set_status" />
-            <label>Job id <input type="number" name="jobId" min="1" required style="width:6rem" /></label>
-            <label>Status
-                <select name="status">
-                    <option value="checkin">checkin</option>
-                    <option value="estimate">estimate</option>
-                    <option value="approved">approved</option>
-                    <option value="in_progress">in_progress</option>
-                    <option value="qc">qc</option>
-                    <option value="ready">ready</option>
-                    <option value="delivered">delivered</option>
-                    <option value="cancelled">cancelled</option>
-                </select>
-            </label>
-            <button type="submit" class="btn btn-xs btn-primary">Set status</button>
-        </form>
-        <form method="post" action="/cp/workshop/write" data-epc-ws-create-job style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="create_job" />
-            <label>Job no <input type="text" name="job_no" maxlength="40" placeholder="auto" /></label>
-            <label>Status
-                <select name="status">
-                    <option value="checkin">checkin</option>
-                    <option value="estimate">estimate</option>
-                    <option value="approved">approved</option>
-                    <option value="in_progress">in_progress</option>
-                </select>
-            </label>
-            <label>Customer <input type="text" name="customer_name" maxlength="160" /></label>
-            <label>Phone <input type="text" name="customer_phone" maxlength="40" /></label>
-            <label>Email <input type="text" name="customer_email" maxlength="160" /></label>
-            <label>Plate <input type="text" name="plate" maxlength="40" /></label>
-            <label>VIN <input type="text" name="vin" maxlength="40" /></label>
-            <label>Make <input type="text" name="make" maxlength="80" /></label>
-            <label>Model <input type="text" name="model" maxlength="80" /></label>
-            <label>Year <input type="text" name="year" maxlength="10" /></label>
-            <label>Odometer <input type="number" name="odometer" min="0" value="0" style="width:7rem" /></label>
-            <label>Complaint <input type="text" name="complaint" /></label>
-            <label>Bay id <input type="number" name="bay_id" min="0" value="0" style="width:6rem" /></label>
-            <label>Tech id <input type="number" name="tech_id" min="0" value="0" style="width:6rem" /></label>
-            <label>Labour <input type="text" name="labour_desc" maxlength="190" /></label>
-            <label>Hours <input type="text" name="labour_hours" value="1" inputmode="decimal" style="width:4rem" /></label>
-            <label>Rate <input type="text" name="labour_rate" value="150" inputmode="decimal" style="width:5rem" /></label>
-            <label>Part <input type="text" name="part_desc" maxlength="190" /></label>
-            <label>Qty <input type="text" name="part_qty" value="1" inputmode="decimal" style="width:4rem" /></label>
-            <label>Price <input type="text" name="part_price" value="0" inputmode="decimal" style="width:5rem" /></label>
-            <label>Notes <input type="text" name="notes" /></label>
-            <button type="submit" class="btn btn-xs btn-primary">Create job</button>
-        </form>
-        <form method="post" action="/cp/workshop/write" data-epc-ws-add-line style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="add_line" />
-            <label>Job id <input type="number" name="job_id" min="1" required style="width:6rem" /></label>
-            <label>Type
-                <select name="line_type">
-                    <option value="part">part</option>
-                    <option value="labour">labour</option>
-                </select>
-            </label>
-            <label>Description <input type="text" name="description" maxlength="190" /></label>
-            <label>Qty <input type="text" name="qty" value="1" inputmode="decimal" style="width:4rem" /></label>
-            <label>Unit price <input type="text" name="unit_price" value="0" inputmode="decimal" style="width:5rem" /></label>
-            <label>Tax % <input type="text" name="tax_percent" value="5" inputmode="decimal" style="width:4rem" /></label>
-            <button type="submit" class="btn btn-xs btn-default">Add line</button>
-        </form>
-        <form method="post" action="/cp/workshop/write" data-epc-ws-create-appointment style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="create_appointment" />
-            <label>Customer <input type="text" name="customer_name" maxlength="160" /></label>
-            <label>Phone <input type="text" name="customer_phone" maxlength="40" /></label>
-            <label>Plate <input type="text" name="plate" maxlength="40" /></label>
-            <label>Make <input type="text" name="make" maxlength="80" /></label>
-            <label>Model <input type="text" name="model" maxlength="80" /></label>
-            <label>Year <input type="text" name="year" maxlength="10" /></label>
-            <label>Service <input type="text" name="service_type" value="General service" maxlength="80" /></label>
-            <label>Notes <input type="text" name="notes" /></label>
-            <button type="submit" class="btn btn-xs btn-default">Schedule appointment</button>
-        </form>
-        <form method="post" action="/cp/workshop/write" data-epc-ws-convert-appointment style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <input type="hidden" name="action" value="convert_appointment" />
-            <label>Appointment id <input type="number" name="appointment_id" min="1" required style="width:7rem" /></label>
-            <button type="submit" class="btn btn-xs btn-primary">Check in</button>
-        </form>
-    }
-
-    <div class="epc-scp-kpi" aria-label="Workshop KPIs">
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Open jobs</div>
-            <div class="epc-scp-kpi__val">@_summary.OpenCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">In progress / QC</div>
-            <div class="epc-scp-kpi__val">@_summary.InProgressCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Ready for collection</div>
-            <div class="epc-scp-kpi__val">@_summary.ReadyCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Delivered today</div>
-            <div class="epc-scp-kpi__val">@_summary.DeliveredToday.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Open job value</div>
-            <div class="epc-scp-kpi__val">AED @_summary.RevenueOpen.ToString("N0", CultureInfo.InvariantCulture)</div>
-        </div>
-    </div>
-
-    @if (_opened is not null)
-    {
-        <div class="epc-scp-table-card" style="margin-bottom:1rem">
-            <div class="epc-scp-table-card__head">
-                <div>
-                    <h3>@OpenedCaption</h3>
-                    <p class="epc-users-hint">Job field preview. Phone/email omitted. Writes stay on this page.</p>
-                </div>
-                <a class="btn btn-default btn-xs" href="@_listHref">Close</a>
-            </div>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Job no</dt><dd>@(string.IsNullOrWhiteSpace(_opened.JobNo) ? "—" : _opened.JobNo)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Customer</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CustomerName) ? "—" : _opened.CustomerName)</dd>
-                <dt>Plate</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Plate) ? "—" : _opened.Plate)</dd>
-                <dt>VIN</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Vin) ? "—" : _opened.Vin)</dd>
-                <dt>Vehicle</dt><dd>@(string.IsNullOrWhiteSpace(OpenedVehicle) ? "—" : OpenedVehicle)</dd>
-                <dt>Odometer</dt><dd>@_opened.Odometer.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Estimate approved</dt><dd>@(_opened.EstimateApproved ? "yes" : "no")</dd>
-                <dt>Under warranty</dt><dd>@(_opened.UnderWarranty ? "yes" : "no")</dd>
-                <dt>Parts</dt><dd>@_opened.PartsTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Labour</dt><dd>@_opened.LabourTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Tax</dt><dd>@_opened.TaxTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Total</dt><dd>@_opened.GrandTotal.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Time promised</dt><dd>@FormatUnix(_opened.TimePromised)</dd>
-                <dt>Bay</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BayName) ? "—" : _opened.BayName)</dd>
-                <dt>Tech</dt><dd>@(string.IsNullOrWhiteSpace(_opened.TechName) ? "—" : _opened.TechName)</dd>
-            </dl>
-            @if (!string.IsNullOrWhiteSpace(_opened.ComplaintExcerpt))
-            {
-                <p style="margin:.85rem 0 0"><strong>Complaint</strong></p>
-                <pre style="max-height:8rem;overflow:auto;white-space:pre-wrap;margin:.35rem 0 0">@_opened.ComplaintExcerpt</pre>
-                @if (_opened.ComplaintLen > _opened.ComplaintExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.ComplaintExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.ComplaintLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
-            }
-            @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
-            {
-                <p style="margin:.85rem 0 0"><strong>Notes</strong></p>
-                <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:.35rem 0 0">@_opened.NotesExcerpt</pre>
-                @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.NotesExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.NotesLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
-            }
-            else
-            {
-                <p class="text-muted" style="margin:.85rem 0 0">No notes excerpt yet.</p>
-            }
-            @if (_openedSiblings.Count > 0)
-            {
-                <p class="epc-users-hint" style="margin:1rem 0 .4rem">Same-status siblings</p>
-                <table class="table table-condensed table-striped table-epc">
-                    <thead>
-                        <tr>
-                            <th>Job no</th>
-                            <th>Plate</th>
-                            <th>Customer</th>
-                            <th>Status</th>
-                            <th></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach (var sib in _openedSiblings)
-                        {
-                            <tr>
-                                <td>@(string.IsNullOrWhiteSpace(sib.JobNo) ? sib.Id.ToString(CultureInfo.InvariantCulture) : sib.JobNo)</td>
-                                <td>@(string.IsNullOrWhiteSpace(sib.Plate) ? "—" : sib.Plate)</td>
-                                <td>@(string.IsNullOrWhiteSpace(sib.CustomerName) ? "—" : sib.CustomerName)</td>
-                                <td>@(string.IsNullOrWhiteSpace(sib.Status) ? "—" : sib.Status)</td>
-                                <td><a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "job_id", sib.Id)">Open</a></td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
-            else
-            {
-                <p class="text-muted">No same-status siblings yet.</p>
-            }
-        </div>
-    }
-
-    <div class="epc-scp-tool-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;">
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?tab=board")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">Board</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">job cards</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?tab=jobs")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">Jobs</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">list/filter</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?tab=checkin")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">Check-in</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">technician intake</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?tab=schedule")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">Schedule</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">calendar slots</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?tab=resources")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">Bays &amp; techs</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">resources</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "?tab=guide")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">Guide</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">operator help</p>
-        </a>
-    </div>
-
-    <div class="epc-scp-table-card">
-        <div class="epc-scp-table-card__head">
+        <div class="col-lg-12 epc-cp-page-frame epc-workshop-cp">
+        <div class="epc-scp-dashboard__hero epc-cp-page-header">
             <div>
-                <h3>Jobs</h3>
-                <p class="epc-users-hint">Open uses <code>?job_id=</code>. Phone/email omitted. Writes stay on this page.</p>
+                <span class="epc-scp-dashboard__badge">Garage</span>
+                <h2 class="epc-scp-dashboard__title">Workshop &amp; service desk</h2>
+                <p class="epc-scp-dashboard__sub">Check-in → estimate → repair → QC → ready. Job cards with parts, labour, bay &amp; technician.</p>
             </div>
-            <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP module</a>
+            <div class="epc-scp-dashboard__hero-actions">
+                <a class="btn btn-sm btn-primary" href="@TabHref("checkin")"><i class="fa fa-plus"></i> New check-in</a>
+                <a class="btn btn-sm btn-default" href="@GuideUrl"><i class="fa fa-book"></i> Operator guide</a>
+                <a class="btn btn-sm btn-default" href="@StorefrontUrl" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Storefront</a>
+                <a class="btn btn-sm btn-default" href="@ErpUrl"><i class="fa fa-university"></i> Client ERP</a>
+            </div>
         </div>
-        <table class="epc-scp-data-table table table-epc-pro">
-            <thead>
-                <tr>
-                    <th>Job no</th>
-                    <th>Plate</th>
-                    <th>Make / model / year</th>
-                    <th>Customer</th>
-                    <th>Status</th>
-                    <th>Bay</th>
-                    <th>Tech</th>
-                    <th>Total</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_jobs.Count == 0)
+
+        <div class="epc-ws" id="epc-ws-root"
+             data-ajax-url="@EcomAeRoutes.CpWorkshopTerminalAjax"
+             data-open-job="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")">
+            <div class="epc-ws-hero">
+                <h3>Repair workshop (garage)</h3>
+                <p>Operational board for UAE garage work — vehicle intake, job cards, bay/tech assignment, parts &amp; labour, QC and handover. Demo jobs load automatically when the desk is empty.</p>
+                <div class="epc-ws-hero__actions">
+                    <a class="btn btn-sm btn-primary" href="@TabHref("checkin")"><i class="fa fa-car"></i> Check-in vehicle</a>
+                    <button type="button" class="btn btn-sm" id="epc-ws-seed"><i class="fa fa-database"></i> Load demo data</button>
+                    <a class="btn btn-sm" href="@StorefrontUrl" target="_blank" rel="noopener"><i class="fa fa-globe"></i> Public booking</a>
+                    <a class="btn btn-sm" href="/cp/orders"><i class="fa fa-shopping-cart"></i> Parts orders</a>
+                </div>
+            </div>
+
+            <div id="epc-ws-msg" class="alert epc-ws-msg"></div>
+            @if (!string.IsNullOrWhiteSpace(_desk.LoadError))
+            {
+                <div class="alert alert-danger">@_desk.LoadError</div>
+            }
+
+            <div class="epc-ws-kpis">
+                <div class="epc-ws-kpi"><div class="lbl">Open jobs</div><div class="val">@_desk.Dashboard.Open</div></div>
+                <div class="epc-ws-kpi"><div class="lbl">In progress / QC</div><div class="val">@_desk.Dashboard.InProgress</div></div>
+                <div class="epc-ws-kpi"><div class="lbl">Ready for collection</div><div class="val">@_desk.Dashboard.Ready</div></div>
+                <div class="epc-ws-kpi"><div class="lbl">Delivered today</div><div class="val">@_desk.Dashboard.DeliveredToday</div></div>
+                <div class="epc-ws-kpi"><div class="lbl">Open job value</div><div class="val" style="font-size:16px">AED @_desk.Dashboard.RevenueOpen.ToString("N0", CultureInfo.InvariantCulture)</div></div>
+            </div>
+
+            <nav class="epc-ws-tabs">
+                @foreach (var (key, label) in Tabs)
                 {
-                    <tr><td colspan="9">No records yet.</td></tr>
+                    <a class="@(_tab == key ? "is-active" : "")" href="@TabHref(key)">@label</a>
                 }
-                else
-                {
-                    @foreach (var row in _jobs)
+            </nav>
+
+            @if (_tab == "board")
+            {
+                <div class="epc-ws-guide">
+                    <h4>Floor board</h4>
+                    <ol>
+                        <li>Click a job card to change status, bay, technician, or add parts/labour.</li>
+                        <li>Move jobs: Check-in → Estimate → Approved → In progress → QC → Ready.</li>
+                        <li>Customers can book / track on <code>/auto-workshop</code>.</li>
+                    </ol>
+                </div>
+                <div class="epc-ws-board">
+                    @foreach (var col in CpWorkshopDeskService.BoardColumns)
                     {
-                        var vehicle = string.Join(" / ", new[] { row.Make, row.Model, row.Year }.Where(s => !string.IsNullOrWhiteSpace(s)));
-                        <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td><strong>@(string.IsNullOrWhiteSpace(row.JobNo) ? row.Id.ToString(CultureInfo.InvariantCulture) : row.JobNo)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Plate) ? "—" : row.Plate)</td>
-                            <td>@(string.IsNullOrWhiteSpace(vehicle) ? "—" : vehicle)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.CustomerName) ? "—" : row.CustomerName)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Status) ? "—" : row.Status)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.BayName) ? "—" : row.BayName)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.TechName) ? "—" : row.TechName)</td>
-                            <td>@row.GrandTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            <td><a href="@ErpRecordOpen.Href(_listHref, "job_id", row.Id)">Open</a></td>
-                        </tr>
+                        var colJobs = _desk.Jobs.Where(j => j.Status == col).ToList();
+                        <div class="epc-ws-col">
+                            <div class="epc-ws-col__title">@CpWorkshopDeskService.StatusLabel(col) (@colJobs.Count)</div>
+                            @foreach (var j in colJobs)
+                            {
+                                <div class="epc-ws-card" data-open-job="1" data-job-id="@j.Id">
+                                    <div class="epc-ws-card__no">@j.JobNo</div>
+                                    <div class="epc-ws-card__meta">
+                                        @j.Plate · @Vehicle(j.Make, j.Model)<br>
+                                        @j.CustomerName
+                                        @if (!string.IsNullOrWhiteSpace(j.TechName))
+                                        {
+                                            <text> · @j.TechName</text>
+                                        }
+                                    </div>
+                                    <div class="epc-ws-card__amt">AED @Money(j.GrandTotal)</div>
+                                </div>
+                            }
+                            @if (colJobs.Count == 0)
+                            {
+                                <div class="text-muted" style="font-size:11px;padding:8px">Empty</div>
+                            }
+                        </div>
                     }
-                }
-            </tbody>
-        </table>
-    </div>
+                </div>
+            }
+
+            @if (_tab == "jobs")
+            {
+                <div class="epc-ws-panel">
+                    <h4>All job cards</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover epc-ws-table">
+                            <thead>
+                                <tr><th>Job</th><th>Vehicle</th><th>Customer</th><th>Status</th><th>Bay / Tech</th><th>Total</th><th></th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var j in _desk.Jobs)
+                                {
+                                    <tr>
+                                        <td><strong>@j.JobNo</strong></td>
+                                        <td>@j.Plate<br><span class="text-muted">@Vehicle(j.Make, j.Model, j.Year)</span></td>
+                                        <td>@j.CustomerName<br><span class="text-muted">@j.CustomerPhone</span></td>
+                                        <td><span class="@CpWorkshopDeskService.PillClass(j.Status)">@CpWorkshopDeskService.StatusLabel(j.Status)</span></td>
+                                        <td>@Dash(j.BayName)<br><span class="text-muted">@Dash(j.TechName)</span></td>
+                                        <td>AED @Money(j.GrandTotal)</td>
+                                        <td><button type="button" class="btn btn-xs btn-default" data-open-job="1" data-job-id="@j.Id">Open</button></td>
+                                    </tr>
+                                }
+                                @if (_desk.Jobs.Count == 0)
+                                {
+                                    <tr><td colspan="7" class="text-muted">No jobs yet — use Check-in or Load demo data.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            @if (_tab == "checkin")
+            {
+                <div class="epc-ws-guide">
+                    <h4>Vehicle check-in</h4>
+                    <ol>
+                        <li>Capture plate, customer contact, and complaint first.</li>
+                        <li>Optional: VIN, make/model, odometer, first labour/part line.</li>
+                        <li>Job opens on the board in <strong>Check-in</strong> — assign bay/tech next.</li>
+                    </ol>
+                </div>
+                <div class="epc-ws-panel">
+                    <h4>New job card</h4>
+                    <form id="epc-ws-checkin-form" class="epc-ws-form form-horizontal" method="post" action="/cp/workshop/write">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@TabHref("board")" />
+                        <input type="hidden" name="action" value="create_job" />
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Customer name *</label><input class="form-control" name="customer_name" required></div>
+                                <div class="form-group"><label>Phone *</label><input class="form-control" name="customer_phone" required placeholder="+971…"></div>
+                                <div class="form-group"><label>E-mail</label><input class="form-control" name="customer_email" type="email"></div>
+                                <div class="form-group"><label>Complaint / work requested *</label><textarea class="form-control" name="complaint" rows="3" required></textarea></div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Plate *</label><input class="form-control" name="plate" required placeholder="D-12345"></div>
+                                <div class="form-group"><label>VIN</label><input class="form-control" name="vin"></div>
+                                <div class="row">
+                                    <div class="col-xs-4"><div class="form-group"><label>Make</label><input class="form-control" name="make"></div></div>
+                                    <div class="col-xs-4"><div class="form-group"><label>Model</label><input class="form-control" name="model"></div></div>
+                                    <div class="col-xs-4"><div class="form-group"><label>Year</label><input class="form-control" name="year"></div></div>
+                                </div>
+                                <div class="form-group"><label>Odometer (km)</label><input class="form-control" name="odometer" type="number" min="0"></div>
+                                <div class="row">
+                                    <div class="col-xs-6">
+                                        <div class="form-group"><label>Bay</label>
+                                            <select class="form-control" name="bay_id"><option value="0">—</option>
+                                                @foreach (var b in _desk.Bays.Where(b => b.Active))
+                                                {
+                                                    <option value="@b.Id">@b.Code — @b.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                    <div class="col-xs-6">
+                                        <div class="form-group"><label>Technician</label>
+                                            <select class="form-control" name="tech_id"><option value="0">—</option>
+                                                @foreach (var t in _desk.Techs.Where(t => t.Active))
+                                                {
+                                                    <option value="@t.Id">@t.Name</option>
+                                                }
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <hr>
+                        <p class="text-muted" style="font-size:12px">Optional first lines (you can add more later from the job card).</p>
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Labour description</label><input class="form-control" name="labour_desc" placeholder="e.g. Brake service"></div>
+                                <div class="row">
+                                    <div class="col-xs-6"><div class="form-group"><label>Hours</label><input class="form-control" name="labour_hours" value="1"></div></div>
+                                    <div class="col-xs-6"><div class="form-group"><label>Rate (AED)</label><input class="form-control" name="labour_rate" value="150"></div></div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="form-group"><label>Part description</label><input class="form-control" name="part_desc" placeholder="e.g. Oil filter"></div>
+                                <div class="row">
+                                    <div class="col-xs-6"><div class="form-group"><label>Qty</label><input class="form-control" name="part_qty" value="1"></div></div>
+                                    <div class="col-xs-6"><div class="form-group"><label>Price (AED)</label><input class="form-control" name="part_price" value="0"></div></div>
+                                </div>
+                            </div>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Create job card</button>
+                    </form>
+                </div>
+            }
+
+            @if (_tab == "schedule")
+            {
+                <div class="epc-ws-guide">
+                    <h4>Appointments</h4>
+                    <ol>
+                        <li>Customers book on <code>/en/auto-workshop</code> or staff schedule here.</li>
+                        <li>On arrival, convert the appointment into a job card (Check-in).</li>
+                        <li>Storefront Garage Manager shares the same appointment queue.</li>
+                    </ol>
+                </div>
+                <div class="epc-ws-panel">
+                    <h4>Upcoming</h4>
+                    <div class="table-responsive">
+                        <table class="table table-hover epc-ws-table">
+                            <thead><tr><th>When</th><th>Ref</th><th>Customer</th><th>Vehicle</th><th>Service</th><th>Status</th><th></th></tr></thead>
+                            <tbody>
+                                @foreach (var a in _desk.Appointments)
+                                {
+                                    <tr>
+                                        <td>@FormatSlot(a.TimeSlot)</td>
+                                        <td><code>@a.RefNo</code></td>
+                                        <td>@a.CustomerName<br><span class="text-muted">@a.CustomerPhone</span></td>
+                                        <td>@a.Plate @Vehicle(a.Make, a.Model)</td>
+                                        <td>@a.ServiceType</td>
+                                        <td>@a.Status</td>
+                                        <td>
+                                            @if (a.JobId <= 0 && a.Status != "cancelled")
+                                            {
+                                                <form method="post" action="/cp/workshop/write" style="display:inline">
+                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="returnUrl" value="@TabHref("board")" />
+                                                    <input type="hidden" name="action" value="convert_appointment" />
+                                                    <input type="hidden" name="appointment_id" value="@a.Id" />
+                                                    <button type="submit" class="btn btn-xs btn-success" data-convert-appt="@a.Id">Check-in</button>
+                                                </form>
+                                            }
+                                            else if (a.JobId > 0)
+                                            {
+                                                <span class="text-muted">Job #@a.JobId</span>
+                                            }
+                                        </td>
+                                    </tr>
+                                }
+                                @if (_desk.Appointments.Count == 0)
+                                {
+                                    <tr><td colspan="7" class="text-muted">No appointments yet.</td></tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="epc-ws-panel">
+                    <h4>Schedule an appointment (staff)</h4>
+                    <form class="epc-ws-form" method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.5rem;align-items:end">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@TabHref("schedule")" />
+                        <input type="hidden" name="action" value="create_appointment" />
+                        <div class="form-group"><label>Customer *</label><input class="form-control" name="customer_name" required></div>
+                        <div class="form-group"><label>Phone *</label><input class="form-control" name="customer_phone" required></div>
+                        <div class="form-group"><label>Plate</label><input class="form-control" name="plate"></div>
+                        <div class="form-group"><label>Make</label><input class="form-control" name="make"></div>
+                        <div class="form-group"><label>Model</label><input class="form-control" name="model"></div>
+                        <div class="form-group"><label>Service</label><input class="form-control" name="service_type" placeholder="e.g. Oil service"></div>
+                        <div class="form-group"><label>Slot (unix)</label><input class="form-control" name="time_slot" type="number" min="0" value="@(_now + 86400)"></div>
+                        <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-calendar-plus-o"></i> Book</button>
+                    </form>
+                </div>
+            }
+
+            @if (_tab == "resources")
+            {
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="epc-ws-panel">
+                            <h4>Bays / ramps</h4>
+                            <table class="table epc-ws-table">
+                                <thead><tr><th>Code</th><th>Name</th><th>Active</th></tr></thead>
+                                <tbody>
+                                    @foreach (var b in _desk.Bays)
+                                    {
+                                        <tr><td>@b.Code</td><td>@b.Name</td><td>@(b.Active ? "Yes" : "No")</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                            <p class="text-muted" style="font-size:12px;margin:0">Seeded with Bay 1–3. Add more via demo seed or the form below.</p>
+                            <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin-top:.6rem">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@TabHref("resources")" />
+                                <input type="hidden" name="action" value="save_bay" />
+                                <input type="hidden" name="id" value="0" />
+                                <label>Code <input class="form-control input-sm" name="code" required maxlength="32"></label>
+                                <label>Name <input class="form-control input-sm" name="name" required maxlength="190"></label>
+                                <label>Sort <input class="form-control input-sm" name="sort_order" type="number" value="0" style="width:5rem"></label>
+                                <input type="hidden" name="active" value="1" />
+                                <button type="submit" class="btn btn-xs btn-primary">Add bay</button>
+                            </form>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="epc-ws-panel">
+                            <h4>Technicians</h4>
+                            <table class="table epc-ws-table">
+                                <thead><tr><th>Name</th><th>Skill</th><th>Phone</th></tr></thead>
+                                <tbody>
+                                    @foreach (var t in _desk.Techs)
+                                    {
+                                        <tr><td>@t.Name</td><td>@t.Skill</td><td>@t.Phone</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                            <form method="post" action="/cp/workshop/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin-top:.6rem">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@TabHref("resources")" />
+                                <input type="hidden" name="action" value="save_tech" />
+                                <input type="hidden" name="id" value="0" />
+                                <label>Name <input class="form-control input-sm" name="name" required maxlength="160"></label>
+                                <label>Skill <input class="form-control input-sm" name="skill" maxlength="160"></label>
+                                <label>Phone <input class="form-control input-sm" name="phone" maxlength="40"></label>
+                                <input type="hidden" name="active" value="1" />
+                                <button type="submit" class="btn btn-xs btn-primary">Add technician</button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            }
+
+            @if (_tab == "guide")
+            {
+                <div class="epc-ws-panel">
+                    <h4>How this garage desk works</h4>
+                    <ol style="line-height:1.6">
+                        <li><strong>Check-in</strong> — create a job with plate, customer, complaint.</li>
+                        <li><strong>Estimate</strong> — add labour hours × rate and parts; send/approve estimate.</li>
+                        <li><strong>Repair</strong> — assign bay + technician; set status In progress.</li>
+                        <li><strong>QC</strong> — quality check before marking Ready.</li>
+                        <li><strong>Handover</strong> — Ready → Delivered; invoice value is on the job card (link Client ERP for formal invoice).</li>
+                    </ol>
+                    <p><a class="btn btn-default" href="@GuideUrl">Open full operator guide</a>
+                    <a class="btn btn-default" href="@StorefrontUrl" target="_blank" rel="noopener">Public Auto Workshop page</a></p>
+                </div>
+            }
+        </div>
+
+        <div class="epc-ws-detail" id="epc-ws-detail"><div class="epc-ws-detail__box" id="epc-ws-detail-body"></div></div>
+        </div>
+
+        <details class="epc-ws-admin" id="epc-ws-admin">
+            <summary>Job card writes without the board (no-script fallback)</summary>
+            <form method="post" action="/cp/workshop/write">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@TabHref("jobs")" />
+                <input type="hidden" name="action" value="assign" />
+                <label>Job id <input type="number" name="job_id" min="1" required></label>
+                <label>Bay
+                    <select name="bay_id"><option value="0">—</option>
+                        @foreach (var b in _desk.Bays) { <option value="@b.Id">@b.Code — @b.Name</option> }
+                    </select>
+                </label>
+                <label>Technician
+                    <select name="tech_id"><option value="0">—</option>
+                        @foreach (var t in _desk.Techs) { <option value="@t.Id">@t.Name</option> }
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-xs btn-primary">Assign</button>
+            </form>
+            <form method="post" action="/cp/workshop/write">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@TabHref("board")" />
+                <input type="hidden" name="action" value="set_status" />
+                <label>Job id <input type="number" name="job_id" min="1" required></label>
+                <label>Status
+                    <select name="status">
+                        @foreach (var (key, label) in CpWorkshopDeskService.Statuses) { <option value="@key">@label</option> }
+                    </select>
+                </label>
+                <button type="submit" class="btn btn-xs btn-primary">Set status</button>
+            </form>
+            <form method="post" action="/cp/workshop/write">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@TabHref("jobs")" />
+                <input type="hidden" name="action" value="add_line" />
+                <label>Job id <input type="number" name="job_id" min="1" required></label>
+                <label>Type
+                    <select name="line_type"><option value="part">Part</option><option value="labour">Labour</option></select>
+                </label>
+                <label>Description <input type="text" name="description" required maxlength="190"></label>
+                <label>Qty <input type="number" step="0.01" name="qty" value="1"></label>
+                <label>Unit price <input type="number" step="0.01" name="unit_price" value="0"></label>
+                <label>Tax % <input type="number" step="0.01" name="tax_percent" value="5"></label>
+                <button type="submit" class="btn btn-xs btn-primary">Add line</button>
+            </form>
+        </details>
+
+        <script>
+window.EPC_WORKSHOP = @((MarkupString)JsonSerializer.Serialize(new
+{
+    ajaxUrl = EcomAeRoutes.CpWorkshopTerminalAjax,
+    csrf = "",
+    boardUrl = "/cp/workshop-app",
+    currency = "AED",
+    statuses = CpWorkshopDeskService.Statuses.ToDictionary(s => s.Key, s => s.Value),
+    bays = _desk.Bays.Select(b => new { id = b.Id, code = b.Code, name = b.Name }),
+    techs = _desk.Techs.Select(t => new { id = t.Id, name = t.Name }),
+}, JsonOptions));
+(function () {
+    if (window.jQuery) { return; }
+    function ajax(o) {
+        var fd = new FormData();
+        Object.keys(o.data || {}).forEach(function (k) { if (o.data[k] !== undefined && o.data[k] !== null) { fd.append(k, o.data[k]); } });
+        fetch(o.url, { method: 'POST', body: fd, credentials: 'same-origin' })
+            .then(function (r) { return r.json(); })
+            .then(function (j) { if (o.success) { o.success(j); } })
+            .catch(function () { if (o.error) { o.error(); } });
+    }
+    window.jQuery = { ajax: ajax };
+})();
+document.addEventListener('DOMContentLoaded', function () {
+    var root = document.getElementById('epc-ws-root');
+    var id = root && root.getAttribute('data-open-job');
+    if (id && window.EPC_WS && typeof window.EPC_WS.openJob === 'function') { window.EPC_WS.openJob(id); }
+    else if (id) { var c = document.querySelector('[data-open-job="1"][data-job-id="' + id + '"]'); if (c) { c.click(); } }
+});
+        </script>
+        <script src="/platform-assets/epc_workshop.js?v=20260922ws" defer></script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/workshop";
+    private const string GuideUrl = "/cp/guides-app?g=workshop";
+    private const string ErpUrl = "/erp/dashboard";
+    private const string StorefrontUrl = "/en/auto-workshop";
+
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
+    private static readonly IReadOnlyList<(string Key, string Label)> Tabs =
+    [
+        ("board", "Board"),
+        ("jobs", "Jobs"),
+        ("checkin", "Check-in"),
+        ("schedule", "Schedule"),
+        ("resources", "Bays & techs"),
+        ("guide", "Guide"),
+    ];
+
     private bool _isAdmin;
-    private CpWorkshopSummary _summary = new(0, 0, 0, 0, 0m, "n/a", "");
-    private IReadOnlyList<CpWorkshopJobDigest> _jobs = [];
+    private string _tab = "board";
+    private long _openedId;
+    private long _now;
     private string _flashOk = "";
     private string _flashErr = "";
-    private string _listHref = "/cp/workshop-app";
-    private long _openedId;
-    private CpWorkshopJobDetail? _opened;
-    private IReadOnlyList<CpWorkshopJobDigest> _openedSiblings = [];
+    private CpWorkshopDesk _desk = CpWorkshopDesk.Unavailable("");
 
-    private string OpenedCaption =>
-        !string.IsNullOrWhiteSpace(_opened?.JobNo)
-            ? _opened.JobNo
-            : (_openedId > 0 ? ("Job #" + _openedId.ToString(CultureInfo.InvariantCulture)) : "");
+    private static string TabHref(string tab) => "/cp/workshop-app?tab=" + tab;
 
-    private string OpenedVehicle =>
-        _opened is null
-            ? ""
-            : string.Join(" / ", new[] { _opened.Make, _opened.Model, _opened.Year }.Where(s => !string.IsNullOrWhiteSpace(s)));
+    private static string Money(decimal v) => v.ToString("N2", CultureInfo.InvariantCulture);
 
-    private string ReturnHref =>
-        _openedId > 0
-            ? _listHref + "?job_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
-            : _listHref;
+    private static string Dash(string s) => string.IsNullOrWhiteSpace(s) ? "—" : s;
 
-    private static string FormatUnix(long unix)
-    {
-        if (unix <= 0)
-        {
-            return "—";
-        }
+    private static string Vehicle(params string[] parts) => string.Join(" ", parts.Where(p => !string.IsNullOrWhiteSpace(p)));
 
-        try
-        {
-            return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
-        }
-        catch
-        {
-            return unix.ToString(CultureInfo.InvariantCulture);
-        }
-    }
+    private static string FormatSlot(long unix) =>
+        unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("ddd dd MMM HH:mm", CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var tab = ctx.Request.Query["tab"].ToString();
+        _tab = Tabs.Any(t => t.Key == tab) ? tab : "board";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "job_id");
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
@@ -415,14 +523,6 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpWorkshopDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _jobs = result.Jobs;
-        if (_openedId > 0)
-        {
-            var detail = await Dashboards.BuildCpWorkshopDetailAsync(_openedId, ctx.RequestAborted);
-            _opened = detail.Job;
-            _openedSiblings = detail.Siblings;
-        }
+        _desk = await Desk.LoadAsync(ctx.RequestAborted);
     }
 }

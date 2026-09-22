@@ -180,6 +180,10 @@ public static class PhpLegacyAssetBridge
                          "content/shop/pos/epc_pos.css"),
                      ("/platform-assets/epc_pos_terminal.js",
                          "content/shop/pos/epc_pos_terminal.js"),
+                     ("/platform-assets/epc_workshop.css",
+                         "cp/content/shop/workshop/epc_workshop.css"),
+                     ("/platform-assets/epc_workshop.js",
+                         "cp/content/shop/workshop/epc_workshop.js"),
                  })
         {
             var localRelative = relative;

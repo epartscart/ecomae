@@ -4199,25 +4199,12 @@ public sealed class ErpRecordOpenPhpParityTests
     {
         var root = FindRepoRoot();
         var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpWorkshopApp.razor"));
-        Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
-        Assert.Contains("BuildCpWorkshopDetailAsync", razor, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"job_id\")", razor, StringComparison.Ordinal);
-        Assert.Contains("job_id=", razor, StringComparison.Ordinal);
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"job_id\"", razor, StringComparison.Ordinal);
-        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
-        Assert.Contains("ComplaintExcerpt", razor, StringComparison.Ordinal);
-        Assert.Contains("_opened.Vin", razor, StringComparison.Ordinal);
-        Assert.Contains("_opened.Odometer", razor, StringComparison.Ordinal);
-        Assert.Contains("EstimateApproved", razor, StringComparison.Ordinal);
-        Assert.Contains("UnderWarranty", razor, StringComparison.Ordinal);
-        Assert.Contains("PartsTotal", razor, StringComparison.Ordinal);
-        Assert.Contains("LabourTotal", razor, StringComparison.Ordinal);
-        Assert.Contains("TaxTotal", razor, StringComparison.Ordinal);
-        Assert.Contains("TimePromised", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("_opened.CustomerPhone", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("_opened.CustomerEmail", razor, StringComparison.Ordinal);
-        Assert.Contains("Phone/email omitted", razor, StringComparison.Ordinal);
-        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("data-open-job", razor, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-ws-root\"", razor, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc-ws-detail-body\"", razor, StringComparison.Ordinal);
+        Assert.Contains("window.EPC_WORKSHOP", razor, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.CpWorkshopTerminalAjax", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"assign\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_bay\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_tech\"", razor, StringComparison.Ordinal);
@@ -4228,18 +4215,16 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("value=\"convert_appointment\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-kpi", razor, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-table-card", razor, StringComparison.Ordinal);
-        Assert.Contains("epc-scp-data-table", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpCpModulePageHeader", razor, StringComparison.Ordinal);
-        Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-ws-kpis", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-ws-board", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-ws-tabs", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-dashboard__hero", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 
         Assert.Equal("/cp/workshop-app?job_id=5#erp-row-5",
             ErpRecordOpen.Href("/cp/workshop-app", "job_id", 5));

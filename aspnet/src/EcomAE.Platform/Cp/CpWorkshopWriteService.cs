@@ -25,6 +25,9 @@ public interface ICpWorkshopWriteService
     Task<ErpSimpleWriteResult> CreateAppointmentAsync(CpWorkshopCreateAppointmentRequest request, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> ConvertAppointmentAsync(long appointmentId, CancellationToken cancellationToken = default);
+
+    /// <summary>PHP <c>epc_ws_seed_demo</c>: idempotent demo bays / technicians / WS-DEMO-00x jobs.</summary>
+    Task<CpWorkshopSeedResult> SeedDemoAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record CpWorkshopCreateJobRequest(
@@ -324,6 +327,93 @@ public sealed class CpWorkshopWriteService : ICpWorkshopWriteService
         }
 
         return ErpSimpleWriteResult.Ok("Job created", jobId);
+    }
+
+    public async Task<CpWorkshopSeedResult> SeedDemoAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new CpWorkshopSeedResult(0, 0, 0);
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var bayIds = new List<long>();
+        foreach (var (code, name, sort) in DemoBays)
+        {
+            var id = await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT id FROM `epc_ws_bays` WHERE `code` = ? LIMIT 1"), cancellationToken, code).ConfigureAwait(false);
+            if (id <= 0)
+            {
+                await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional("INSERT INTO `epc_ws_bays` (`code`,`name`,`active`,`sort_order`) VALUES (?,?,1,?)"), cancellationToken, code, name, sort).ConfigureAwait(false);
+                id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            }
+
+            bayIds.Add(id);
+        }
+
+        var techIds = new List<long>();
+        foreach (var (name, phone, skill) in DemoTechs)
+        {
+            var id = await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT id FROM `epc_ws_technicians` WHERE `name` = ? LIMIT 1"), cancellationToken, name).ConfigureAwait(false);
+            if (id <= 0)
+            {
+                await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional("INSERT INTO `epc_ws_technicians` (`name`,`phone`,`skill`,`active`) VALUES (?,?,?,1)"), cancellationToken, name, phone, skill).ConfigureAwait(false);
+                id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            }
+
+            techIds.Add(id);
+        }
+
+        long Bay(int i) => i < bayIds.Count ? bayIds[i] : 0;
+        long Tech(int i) => i < techIds.Count ? techIds[i] : 0;
+        var jobs = 0;
+        foreach (var (job, lines) in DemoJobs(Bay, Tech))
+        {
+            var existing = await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT id FROM `epc_ws_jobs` WHERE `job_no` = ? LIMIT 1"), cancellationToken, job.JobNo).ConfigureAwait(false);
+            if (existing > 0)
+            {
+                continue;
+            }
+
+            var jobId = await InsertJobAsync(connection, job, cancellationToken).ConfigureAwait(false);
+            foreach (var (type, desc, qty, price) in lines)
+            {
+                await InsertLineAsync(connection, new CpWorkshopAddLineRequest(jobId, type, desc, 0, qty, price, 5, 1), cancellationToken).ConfigureAwait(false);
+            }
+
+            jobs++;
+        }
+
+        return new CpWorkshopSeedResult(bayIds.Count, techIds.Count, jobs);
+    }
+
+    private static readonly (string Code, string Name, int Sort)[] DemoBays =
+    [
+        ("B1", "Bay 1 — Quick service", 1),
+        ("B2", "Bay 2 — Mechanical", 2),
+        ("B3", "Bay 3 — Diagnostic", 3),
+    ];
+
+    private static readonly (string Name, string Phone, string Skill)[] DemoTechs =
+    [
+        ("Ahmed Hassan", "+971501112233", "General / brakes"),
+        ("Rajesh Kumar", "+971502223344", "Electrical / AC"),
+        ("Omar Al Mansoori", "+971503334455", "Diagnostics"),
+    ];
+
+    private static IEnumerable<(CpWorkshopCreateJobRequest Job, (string Type, string Desc, decimal Qty, decimal Price)[] Lines)> DemoJobs(Func<int, long> bay, Func<int, long> tech)
+    {
+        yield return (
+            new CpWorkshopCreateJobRequest("WS-DEMO-001", "in_progress", "Fatima Al Zaabi", "+971567607011", "fatima.demo@example.com", 0, "D-12345", "WVWZZZ3CZWE123456", "Toyota", "Land Cruiser", "2021", 68420, "Front brake noise + oil service due", bay(1), tech(0), true),
+            [("labour", "Brake pads replace (front)", 1.5m, 180m), ("part", "Brake pad set — OEM", 1m, 420m), ("labour", "Engine oil & filter service", 0.8m, 150m), ("part", "0W-20 oil 6L + filter", 1m, 210m)]);
+        yield return (
+            new CpWorkshopCreateJobRequest("WS-DEMO-002", "estimate", "Gulf Fleet Services LLC", "+97144556677", "fleet@example.ae", 0, "DXB-88901", "JN1TANR35U0123456", "Nissan", "Patrol", "2019", 112300, "AC not cooling; intermittent compressor cut-out", bay(2), tech(1)),
+            [("labour", "AC diagnose + pressure test", 1m, 200m), ("part", "AC compressor (estimate)", 1m, 1850m)]);
+        yield return (
+            new CpWorkshopCreateJobRequest("WS-DEMO-003", "ready", "John Peters", "+971552223344", "john.demo@example.com", 0, "A-7788", "", "BMW", "X5", "2020", 45110, "Battery warning light; weak start", bay(0), tech(2), true),
+            [("labour", "Battery test & replace", 0.5m, 120m), ("part", "AGM battery 95Ah", 1m, 680m)]);
+        yield return (
+            new CpWorkshopCreateJobRequest("WS-DEMO-004", "checkin", "Sara Khan", "+971501234567", "", 0, "SHJ-4421", "", "Honda", "CR-V", "2018", 98000, "Annual service + tyre rotation", 0, 0),
+            []);
     }
 
     public async Task<ErpSimpleWriteResult> AddLineAsync(
