@@ -52,7 +52,7 @@
                     <form method="post" action="/cp/currencies/set-rate" class="form-inline" style="display:inline-block;margin-left:12px">
                         <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
-                        <input type="text" class="form-control input-sm" name="isoCode" maxlength="3" placeholder="ISO" style="width:5rem" required />
+                        <input type="text" class="form-control input-sm" name="isoCode" maxlength="3" placeholder="ISO / 840" style="width:5rem" required />
                         <input type="text" class="form-control input-sm" name="rate" placeholder="rate" style="width:7rem" required />
                         <button type="submit" class="btn btn-sm btn-default">Set single rate</button>
                     </form>
@@ -106,7 +106,7 @@
                     </div>
                     @if (_canWrite)
                     {
-                        <button type="button" class="btn btn-sm btn-primary" onclick="epcCurFillFromLive()">Fill form fields from live rates</button>
+                        <button type="button" class="btn btn-sm btn-primary" data-live-rates="@_liveRatesJson" onclick="epcCurFillFromLive(this)">Fill form fields from live rates</button>
                         <form method="post" action="/cp/currencies/live-rates/apply" style="display:inline;margin-left:6px">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="/cp/currencies-app" />
@@ -276,8 +276,8 @@
                 document.getElementById('epc_cur_bulk_available').value = String(available);
                 document.getElementById('bulk_available_form').submit();
             }
-            function epcCurFillFromLive() {
-                var live = @_liveRatesJson;
+            function epcCurFillFromLive(button) {
+                var live = JSON.parse(button.getAttribute('data-live-rates') || '{}');
                 document.querySelectorAll('.epc-cur-rate').forEach(function (input) {
                     var iso = input.getAttribute('name').substring(5);
                     if (Object.prototype.hasOwnProperty.call(live, iso)) { input.value = live[iso]; }
@@ -301,7 +301,7 @@
     private CpCurrencyLivePreview? _preview;
     private CpCurrencyFxSchedule _schedule = CpCurrencyLiveRatesService.BuildSchedule(true, "Asia/Dubai", 2, 0, "", "", "", DateTimeOffset.UtcNow);
     private string _lastRunText = "never";
-    private MarkupString _liveRatesJson = new("{}");
+    private string _liveRatesJson = "{}";
 
     protected override async Task OnInitializedAsync()
     {
@@ -340,7 +340,7 @@
                 var map = _preview.Rows
                     .Where(r => r.LiveRate is not null && r.IsoCode.Length > 0)
                     .ToDictionary(r => r.IsoCode, r => r.LiveRate!.Value.ToString("0.######", CultureInfo.InvariantCulture), StringComparer.Ordinal);
-                _liveRatesJson = new MarkupString(System.Text.Json.JsonSerializer.Serialize(map));
+                _liveRatesJson = System.Text.Json.JsonSerializer.Serialize(map);
             }
         }
 

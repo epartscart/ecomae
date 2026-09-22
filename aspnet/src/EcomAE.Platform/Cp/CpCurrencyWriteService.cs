@@ -41,10 +41,10 @@ public sealed class CpCurrencyWriteService : ICpCurrencyWriteService
 
     public async Task<ErpSimpleWriteResult> SetRateAsync(string? isoCode, decimal rate, CancellationToken cancellationToken = default)
     {
-        var iso = NormalizeIso(isoCode);
-        if (iso.Length != 3)
+        var iso = NormalizeCurrencyCode(isoCode);
+        if (iso.Length == 0)
         {
-            return ErpSimpleWriteResult.Fail("invalid", "A 3-letter ISO currency code is required.");
+            return ErpSimpleWriteResult.Fail("invalid", "A 3-letter or 3-digit ISO currency code is required.");
         }
 
         if (rate <= 0)
@@ -59,13 +59,15 @@ public sealed class CpCurrencyWriteService : ICpCurrencyWriteService
 
         var money = decimal.Round(rate, 6, MidpointRounding.AwayFromZero);
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(
+        var writes = await ErpDb.ExecuteAsync(
             connection,
             null,
-            ErpDb.Positional("UPDATE `shop_currencies` SET `rate` = ? WHERE `iso_code` = ?"),
+            ErpDb.Positional("UPDATE `shop_currencies` SET `rate` = ? WHERE `iso_code` = ? OR UPPER(`iso_name`) = ?"),
             cancellationToken,
-            money.ToString(CultureInfo.InvariantCulture), iso);
-        return ErpSimpleWriteResult.Ok("Currency rate saved.", 0);
+            money.ToString(CultureInfo.InvariantCulture), iso, iso).ConfigureAwait(false);
+        return writes == 0
+            ? ErpSimpleWriteResult.Fail("not_found", $"No currency matches '{iso}'.")
+            : new ErpSimpleWriteResult(true, "ok", $"Currency rate saved for {iso}.", writes, writes);
     }
 
     public async Task<ErpSimpleWriteResult> SaveRatesAsync(IReadOnlyDictionary<string, string> ratesByIso, CancellationToken cancellationToken = default)
@@ -105,9 +107,9 @@ public sealed class CpCurrencyWriteService : ICpCurrencyWriteService
             writes += await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
-                ErpDb.Positional("UPDATE `shop_currencies` SET `rate` = ? WHERE `iso_code` = ?"),
+                ErpDb.Positional("UPDATE `shop_currencies` SET `rate` = ? WHERE `iso_code` = ? OR UPPER(`iso_name`) = ?"),
                 cancellationToken,
-                rate.ToString(CultureInfo.InvariantCulture), iso).ConfigureAwait(false);
+                rate.ToString(CultureInfo.InvariantCulture), iso, iso).ConfigureAwait(false);
         }
 
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
