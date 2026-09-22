@@ -5989,13 +5989,17 @@ public sealed class ControlPanelModule : ISurfaceModule
             var contentId = body.ContentId;
             var published = body.PublishedFlag;
             var confirm = body.ConfirmWrites;
+            var idList = body.Ids;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 contentId = LiveWriteFormBinder.Long(form, "contentId", "content_id", "id");
-                published = LiveWriteFormBinder.Int(form, "publishedFlag", "published_flag", "published");
+                published = LiveWriteFormBinder.Int(form, "publishedFlag", "published_flag", "published", "published_value");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                idList = LiveWriteFormBinder.Text(form, "ids", "content_array", "content_list");
             }
+
+            var bulkIds = string.IsNullOrWhiteSpace(idList) ? [] : CpMenuWriteService.ParseIds(idList).Ids;
 
             if (!confirm)
             {
@@ -6011,7 +6015,77 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
             }
 
-            var written = await writes.SetPublishedAsync(contentId, published, cancellationToken);
+            ErpSimpleWriteResult written;
+            if (bulkIds.Count > 0)
+            {
+                var total = 0;
+                var failures = new List<string>();
+                foreach (var id in bulkIds)
+                {
+                    var one = await writes.SetPublishedAsync(id, published, cancellationToken);
+                    if (one.Succeeded)
+                    {
+                        total += one.Writes;
+                    }
+                    else
+                    {
+                        failures.Add(id.ToString(System.Globalization.CultureInfo.InvariantCulture) + ": " + one.Message);
+                    }
+                }
+
+                written = failures.Count == 0
+                    ? new ErpSimpleWriteResult(true, "ok", $"Publish flag updated for {total} content page(s).", bulkIds[0], total)
+                    : new ErpSimpleWriteResult(total > 0, total > 0 ? "partial" : "invalid", $"Updated {total}; skipped {string.Join("; ", failures)}", bulkIds[0], total);
+            }
+            else
+            {
+                written = await writes.SetPublishedAsync(contentId, published, cancellationToken);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/pages-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpContentDelete, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpContentManagerWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/pages-app", "Admin CP capability required for content delete.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpContentDeleteBody>(context, cancellationToken) ?? new();
+            var ids = body.Ids;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                ids = LiveWriteFormBinder.Text(form, "ids", "content_array", "content_list");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to delete content pages on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.DeleteAsync(ids, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/pages-app",
@@ -6239,6 +6313,13 @@ public sealed class ControlPanelModule : ISurfaceModule
                     domainPath,
                     checkHash),
                 cancellationToken);
+            if (contentId <= 0 && written.Succeeded && written.Id > 0 && context.Request.HasFormContentType && LiveWriteFormBinder.WantsHtml(context))
+            {
+                var dest = "/cp/pages-app?content_id=" + written.Id.ToString(System.Globalization.CultureInfo.InvariantCulture)
+                    + "&is_frontend=" + (isFrontend > 0 ? "1" : "0");
+                return Results.Redirect(dest + "&ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/pages-app",
@@ -6266,7 +6347,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
-                treeJson = LiveWriteFormBinder.Text(form, "treeJson", "tree_json");
+                treeJson = LiveWriteFormBinder.Text(form, "treeJson", "tree_json", "tree");
                 isFrontend = LiveWriteFormBinder.IntOrNull(form, "isFrontend", "is_frontend") ?? 1;
                 langCode = LiveWriteFormBinder.Text(form, "langCode", "lang_code");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
@@ -14438,7 +14519,8 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? MarginPercent = null,
         int Visible = 0,
         bool ConfirmWrites = false);
-    private sealed record CpContentPublishedBody(long ContentId = 0, int PublishedFlag = 0, bool ConfirmWrites = false);
+    private sealed record CpContentPublishedBody(long ContentId = 0, int PublishedFlag = 0, bool ConfirmWrites = false, string? Ids = null);
+    private sealed record CpContentDeleteBody(string? Ids = null, bool ConfirmWrites = false);
     private sealed record CpContentMainBody(long ContentId = 0, int IsFrontend = 1, bool ConfirmWrites = false);
     private sealed record CpContentBodyWriteBody(
         long ContentId = 0,

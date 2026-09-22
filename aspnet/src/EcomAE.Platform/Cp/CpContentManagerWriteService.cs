@@ -23,6 +23,9 @@ public interface ICpContentManagerWriteService
     Task<ErpSimpleWriteResult> SaveMetaAsync(CpContentMetaSaveRequest request, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SaveTreeAsync(CpContentTreeSaveRequest request, CancellationToken cancellationToken = default);
+
+    /// <summary>PHP content_manager.php <c>delete_content</c>: main and system pages are refused; <c>content_access</c> rows follow.</summary>
+    Task<ErpSimpleWriteResult> DeleteAsync(string? idsJson, CancellationToken cancellationToken = default);
 }
 
 public sealed record CpContentBodySaveRequest(
@@ -139,6 +142,63 @@ public sealed class CpContentManagerWriteService : ICpContentManagerWriteService
             cancellationToken,
             flag, contentId);
         return ErpSimpleWriteResult.Ok("Publish flag updated.", contentId);
+    }
+
+    public async Task<ErpSimpleWriteResult> DeleteAsync(string? idsJson, CancellationToken cancellationToken = default)
+    {
+        var parsed = CpMenuWriteService.ParseIds(idsJson);
+        if (parsed.Error is not null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", parsed.Error.Replace("menu", "content page", StringComparison.Ordinal));
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        var placeholders = string.Join(",", parsed.Ids.Select(_ => "?"));
+        var args = parsed.Ids.Cast<object>().ToArray();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var mains = await ErpDb.LongAsync(
+                connection, transaction,
+                ErpDb.Positional("SELECT COUNT(*) FROM `content` WHERE `main_flag` = 1 AND `id` IN (" + placeholders + ")"),
+                cancellationToken, args).ConfigureAwait(false);
+            if (mains > 0)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("invalid", "The main page cannot be deleted.");
+            }
+
+            var systems = await ErpDb.LongAsync(
+                connection, transaction,
+                ErpDb.Positional("SELECT COUNT(*) FROM `content` WHERE `system_flag` = 1 AND `id` IN (" + placeholders + ")"),
+                cancellationToken, args).ConfigureAwait(false);
+            if (systems > 0)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("invalid", "System pages cannot be deleted.");
+            }
+
+            var deleted = await ErpDb.ExecuteAsync(
+                connection, transaction,
+                ErpDb.Positional("DELETE FROM `content` WHERE `id` IN (" + placeholders + ")"),
+                cancellationToken, args).ConfigureAwait(false);
+            await ErpDb.ExecuteAsync(
+                connection, transaction,
+                ErpDb.Positional("DELETE FROM `content_access` WHERE `content_id` IN (" + placeholders + ")"),
+                cancellationToken, args).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", $"Deleted {deleted} content page(s).", parsed.Ids[0], deleted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not delete the content pages.");
+        }
     }
 
     public async Task<ErpSimpleWriteResult> SetMainAsync(
