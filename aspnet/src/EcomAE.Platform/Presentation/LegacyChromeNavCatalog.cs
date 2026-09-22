@@ -96,6 +96,7 @@ public static class LegacyChromeNavCatalog
         new("Landed cost", "/cp/landed-cost-app"),
         new("Warehouse WMS", "/cp/warehouse-wms-app"),
         new("AI service", "/cp/ai-service-app"),
+        new("Returns", "/cp/returns-app"),
         new("Returns RMA", "/cp/returns-rma-app"),
         new("Isolation audit", "/cp/isolation-audit-app"),
         new("AML compliance", "/cp/aml-compliance-app"),
