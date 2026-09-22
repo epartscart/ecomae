@@ -1,15 +1,20 @@
+using System.Globalization;
+using System.Security.Cryptography;
 using EcomAE.Platform.Erp;
+using Microsoft.AspNetCore.Http;
 
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>ajax_epc_accessories_photos.php</c> upload / delete / set_primary twin.
-/// Filename attach writes here. Multipart file bytes and disk unlink stay Classic.
-/// Schema-ensure stays PHP. Listing save/status/delete is a separate write.
+/// Photo bytes are stored under <c>content/files/images/accessories/</c> (PHP <c>epc_acc_photos_fs_dir</c>).
+/// Listing save/status/delete is a separate write.
 /// </summary>
 public interface ICpAccessoriesPhotoWriteService
 {
     Task<ErpSimpleWriteResult> WriteAsync(CpAccessoriesPhotoWriteRequest request, CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> StoreUploadAsync(long listingId, IFormFile file, bool asPrimary, string photoRoot, CancellationToken cancellationToken = default);
 }
 
 public sealed record CpAccessoriesPhotoWriteRequest(
@@ -26,6 +31,104 @@ public sealed class CpAccessoriesPhotoWriteService : ICpAccessoriesPhotoWriteSer
     public CpAccessoriesPhotoWriteService(IErpWriteConnectionFactory connections)
     {
         _connections = connections;
+    }
+
+    public async Task<ErpSimpleWriteResult> StoreUploadAsync(
+        long listingId,
+        IFormFile file,
+        bool asPrimary,
+        string photoRoot,
+        CancellationToken cancellationToken = default)
+    {
+        if (listingId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Save the listing first, then upload photos.");
+        }
+
+        if (file.Length <= 0 || file.Length > 8 * 1024 * 1024)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Image must be under 8 MB");
+        }
+
+        var ext = Path.GetExtension(file.FileName ?? "photo.jpg").TrimStart('.').ToLowerInvariant();
+        if (ext is not ("jpg" or "jpeg" or "png" or "gif" or "webp"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Use JPG, PNG, GIF or WEBP");
+        }
+
+        if (ext == "jpeg")
+        {
+            ext = "jpg";
+        }
+
+        try
+        {
+            Directory.CreateDirectory(photoRoot);
+        }
+        catch (IOException)
+        {
+            return ErpSimpleWriteResult.Fail("fs", "Photo folder is not writable");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return ErpSimpleWriteResult.Fail("fs", "Photo folder is not writable");
+        }
+
+        var saved = "acc_" + listingId.ToString(CultureInfo.InvariantCulture) + "_"
+                    + DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture) + "_"
+                    + Convert.ToHexString(RandomNumberGenerator.GetBytes(4)).ToLowerInvariant() + "." + ext;
+        var dest = Path.Combine(photoRoot, saved);
+        try
+        {
+            await using var stream = File.Create(dest);
+            await file.CopyToAsync(stream, cancellationToken).ConfigureAwait(false);
+        }
+        catch (IOException)
+        {
+            return ErpSimpleWriteResult.Fail("fs", "Could not save file");
+        }
+        catch (UnauthorizedAccessException)
+        {
+            return ErpSimpleWriteResult.Fail("fs", "Could not save file");
+        }
+
+        var result = await UploadAsync(new CpAccessoriesPhotoWriteRequest("upload", listingId, 0, saved, asPrimary), cancellationToken).ConfigureAwait(false);
+        if (!result.Succeeded)
+        {
+            try
+            {
+                File.Delete(dest);
+            }
+            catch (IOException)
+            {
+            }
+        }
+
+        return result;
+    }
+
+    public static void TryUnlink(string photoRoot, string fileName)
+    {
+        var name = Path.GetFileName(fileName.Trim());
+        if (name.Length == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var path = Path.Combine(photoRoot, name);
+            if (File.Exists(path))
+            {
+                File.Delete(path);
+            }
+        }
+        catch (IOException)
+        {
+        }
+        catch (UnauthorizedAccessException)
+        {
+        }
     }
 
     public async Task<ErpSimpleWriteResult> WriteAsync(
@@ -165,7 +268,6 @@ public sealed class CpAccessoriesPhotoWriteService : ICpAccessoriesPhotoWriteSer
             cancellationToken,
             request.PhotoId).ConfigureAwait(false);
 
-        // PHP unlinks the file. Disk unlink stays Classic.
         if (wasPrimary > 0)
         {
             var nextId = await ErpDb.LongAsync(

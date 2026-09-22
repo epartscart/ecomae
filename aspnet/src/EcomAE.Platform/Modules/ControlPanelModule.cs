@@ -4002,6 +4002,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpAccessoriesPhotoWriteService writes,
+            ICpAccessoriesListService reads,
+            IWebHostEnvironment env,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -4009,6 +4011,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/accessories-app", "Admin CP capability required for accessories photo writes.");
             }
+
+            var photoRoot = Path.Combine(PhpLegacyAssetBridge.FindRepoRoot(env), "content", "files", "images", "accessories");
+            IReadOnlyList<IFormFile> uploads = [];
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpAccessoriesPhotosBody>(context, cancellationToken) ?? new();
             var action = body.Action;
@@ -4026,6 +4031,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 fileName = LiveWriteFormBinder.Text(form, "fileName", "file_name", "imageName", "photo");
                 asPrimary = LiveWriteFormBinder.Flag(form, "asPrimary", "as_primary");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                uploads = form.Files.Where(f => f.Length > 0 && (f.Name is "photo" or "photos" or "photos[]")).ToList();
             }
 
             if (!confirm)
@@ -4042,9 +4048,47 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
             }
 
-            var written = await writes.WriteAsync(
-                new CpAccessoriesPhotoWriteRequest(action, listingId, photoId, fileName, asPrimary),
-                cancellationToken);
+            ErpSimpleWriteResult written;
+            if (string.Equals(action, "upload", StringComparison.OrdinalIgnoreCase) && uploads.Count > 0)
+            {
+                var okCount = 0;
+                var firstError = "";
+                long lastId = 0;
+                foreach (var file in uploads)
+                {
+                    var one = await writes.StoreUploadAsync(listingId, file, asPrimary && okCount == 0, photoRoot, cancellationToken);
+                    if (one.Succeeded)
+                    {
+                        okCount++;
+                        lastId = one.Id;
+                    }
+                    else if (firstError.Length == 0)
+                    {
+                        firstError = one.Message;
+                    }
+                }
+
+                written = okCount > 0
+                    ? new ErpSimpleWriteResult(true, "ok", okCount.ToString(CultureInfo.InvariantCulture) + " photo(s) uploaded.", lastId, okCount)
+                    : ErpSimpleWriteResult.Fail("invalid", firstError.Length > 0 ? firstError : "Upload failed");
+            }
+            else
+            {
+                var unlink = "";
+                if (string.Equals(action, "delete", StringComparison.OrdinalIgnoreCase) && photoId > 0)
+                {
+                    unlink = (await reads.PhotosAsync(listingId, cancellationToken)).FirstOrDefault(p => p.Id == photoId)?.FileName ?? "";
+                }
+
+                written = await writes.WriteAsync(
+                    new CpAccessoriesPhotoWriteRequest(action, listingId, photoId, fileName, asPrimary),
+                    cancellationToken);
+                if (written.Succeeded && unlink.Length > 0)
+                {
+                    CpAccessoriesPhotoWriteService.TryUnlink(photoRoot, unlink);
+                }
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/accessories-app",
@@ -4056,6 +4100,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpAccessoriesListingWriteService writes,
+            ICpAccessoriesListService reads,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -4110,6 +4155,19 @@ public sealed class ControlPanelModule : ISurfaceModule
                 stockQty = LiveWriteFormBinder.Int(form, "stockQty", "stock_qty");
                 status = LiveWriteFormBinder.Text(form, "status");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+
+                var categorySlug = LiveWriteFormBinder.Text(form, "category");
+                var subcategorySlug = LiveWriteFormBinder.Text(form, "subcategory");
+                if (categoryId <= 0 && categorySlug.Length > 0)
+                {
+                    var tree = await reads.CategoryTreeAsync(false, cancellationToken);
+                    var parent = tree.FirstOrDefault(p => p.Slug == categorySlug);
+                    if (parent is not null)
+                    {
+                        categoryId = parent.Id;
+                        subcategoryId = parent.Children.FirstOrDefault(ch => ch.Slug == subcategorySlug)?.Id ?? 0;
+                    }
+                }
             }
 
             if (!confirm)
@@ -4149,6 +4207,15 @@ public sealed class ControlPanelModule : ISurfaceModule
                     stockQty,
                     status),
                 cancellationToken);
+            if (written.Succeeded && written.Id > 0 && context.Request.HasFormContentType
+                && context.Request.Form["returnUrl"].ToString() is { } ret
+                && ret.StartsWith("/cp/accessories-app?", StringComparison.Ordinal)
+                && ret.Contains("edit=0", StringComparison.Ordinal))
+            {
+                var dest = ret.Replace("edit=0", "edit=" + written.Id.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal);
+                return Results.Redirect(dest + "&ok=" + Uri.EscapeDataString(written.Message ?? string.Empty));
+            }
+
             return LiveWriteFormBinder.Complete(
                 context,
                 "/cp/accessories-app",

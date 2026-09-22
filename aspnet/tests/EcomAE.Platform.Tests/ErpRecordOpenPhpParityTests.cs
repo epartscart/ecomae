@@ -4664,11 +4664,12 @@ public sealed class ErpRecordOpenPhpParityTests
             "aspnet/src/EcomAE.Platform/Components/Pages/CpAccessoriesApp.razor"));
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"listing_id\"", text, StringComparison.Ordinal);
         Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"listing_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpAccessoriesListingDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No description yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"listing_id\", \"edit\")", text, StringComparison.Ordinal);
+        Assert.Contains("Acc.GetListingAsync(_openedId", text, StringComparison.Ordinal);
+        Assert.Contains("Acc.PhotosAsync(_openedId", text, StringComparison.Ordinal);
         Assert.Contains("No photos yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-acc-photo-gallery", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("PhpParityModuleBody", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("/cp/accessories/listings/write", text, StringComparison.Ordinal);
 
