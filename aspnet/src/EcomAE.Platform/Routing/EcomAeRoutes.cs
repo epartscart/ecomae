@@ -2031,6 +2031,10 @@ public static class EcomAeRoutes
     public const string CpPosSearchCustomers = "/cp/pos/search-customers";
     /// <summary>Live PHP ajax_pos.php calc_cart.</summary>
     public const string CpPosCalcCart = "/cp/pos/calc-cart";
+    /// <summary>PHP ajax_pos_endpoint.php twin: single multipart <c>action</c> dispatcher used by epc_pos_terminal.js.</summary>
+    public const string CpPosTerminalAjax = "/cp/pos/terminal-ajax";
+    /// <summary>PHP <c>terminal?action=receipt&amp;sale_id=</c> twin; redirects to the printable receipt.</summary>
+    public const string CpPosTerminalReceiptOpen = "/cp/pos/receipt";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=save_settings (writes=0).</summary>
     public const string CpPortalSaveSettings = "/cp/portal/save-settings";
     /// <summary>Wave B dry-run for PHP cp/content/control/portal/ajax_portal.php?action=deploy_site (writes=0).</summary>

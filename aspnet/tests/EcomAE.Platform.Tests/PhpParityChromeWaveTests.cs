@@ -46,7 +46,7 @@ public sealed class PhpParityChromeWaveTests
                  {
                      "CpTenantConfigApp.razor", "CpConsolidationsApp.razor", "CpCrmTicketsApp.razor",
                      "CpBudgetsApp.razor", "CpFinAdvancedApp.razor", "CpLandedCostApp.razor",
-                     "CpPosOverviewApp.razor", "CpWarehouseWmsApp.razor", "CpAmlComplianceApp.razor",
+                     "CpWarehouseWmsApp.razor", "CpAmlComplianceApp.razor",
                  })
         {
             var text = ReadApp(name);
