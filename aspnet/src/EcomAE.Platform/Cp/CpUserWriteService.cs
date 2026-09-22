@@ -13,6 +13,9 @@ public interface ICpUserWriteService
 
     Task<ErpSimpleWriteResult> SetVinViewedAsync(IReadOnlyList<long> requestIds, int viewedFlag, CancellationToken cancellationToken = default);
 
+    /// <summary>PHP content/requests/ajax_send_message.php (manager=1): users_vin_messages INSERT is_customer=0, viewed_customer=0.</summary>
+    Task<ErpSimpleWriteResult> SendVinMessageAsync(long vinId, string? text, CancellationToken cancellationToken = default);
+
     Task<ErpSimpleWriteResult> SetUnlockedAsync(long userId, int unlockedFlag, long actorUserId, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> CreateAsync(
@@ -128,6 +131,60 @@ public sealed class CpUserWriteService : ICpUserWriteService
             cancellationToken,
             args);
         return new ErpSimpleWriteResult(true, "ok", "VIN viewed flag updated.", ids[0], Math.Max(writes, 1));
+    }
+
+    public async Task<ErpSimpleWriteResult> SendVinMessageAsync(
+        long vinId,
+        string? text,
+        CancellationToken cancellationToken = default)
+    {
+        var body = (text ?? string.Empty).Trim();
+        if (vinId <= 0 || body.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Enter a message text.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var exists = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM `users_vin` WHERE `id` = ?"),
+            cancellationToken,
+            vinId);
+        if (exists == 0)
+        {
+            return ErpSimpleWriteResult.Fail("not-found", "VIN request not found.");
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional("INSERT INTO `users_vin_messages` (`vin_id`,`is_customer`,`text`,`time`) VALUES (?,?,?,?)"),
+                cancellationToken,
+                vinId, 0, body, now);
+            await ErpDb.ExecuteAsync(
+                connection,
+                tx,
+                ErpDb.Positional("UPDATE `users_vin` SET `viewed_customer` = 0 WHERE `id` = ?"),
+                cancellationToken,
+                vinId);
+            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "Message sent.", vinId, 2);
+        }
+        catch
+        {
+            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
     }
 
     public async Task<ErpSimpleWriteResult> SetUnlockedAsync(

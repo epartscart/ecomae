@@ -2,269 +2,436 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpVinRequestsService Requests
+@inject ICpUserEditorService Users
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>System requests · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Requests · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<style>
+    .epc-vr-actions .panel_a { display:inline-block; text-align:center; text-decoration:none; color:#333; margin-right:14px; vertical-align:top; }
+    .epc-vr-actions .panel_a_img { width:48px; height:48px; margin:0 auto 4px; border-radius:8px; background:#f1f3f6; display:flex; align-items:center; justify-content:center; font-size:22px; color:#3498db; }
+    .epc-vr-actions .panel_a_img.epc-teal { color:#fff; background:#26c5df; }
+    .epc-vr-actions .panel_a_img.epc-grey { color:#fff; background:#b9babb; }
+    .epc-vr-actions .panel_a_img.epc-amber { color:#fff; background:#ffb606; }
+    .epc-vr-actions .panel_a_caption { font-size:12px; }
+    .epc-vr-list td a { color:inherit; display:block; text-decoration:none; }
+    .epc-vr-list tr.not_viewed td { font-weight:bold; background:#fff8e1; }
+    .epc-vr-list .pagination { margin:8px 0 0; }
+    .epc-vr-filter .control-label { text-align:right; padding-top:7px; }
+    .epc-vr-text { word-break:break-word; }
+    .epc-vr-text img { max-width:100%; }
+    .chat_block { max-height:320px; overflow:auto; border:1px solid #e4e5e7; padding:8px; background:#fafbfc; }
+    .chat_block .bubble { background:#e8f4fd; border-radius:8px; padding:6px 10px; margin:4px 40px 4px 0; }
+    .chat_block .bubble2 { background:#e9f7ec; border-radius:8px; padding:6px 10px; margin:4px 0 4px 40px; }
+    .chat_block .sender { color:#888; }
+    .epc-vr-user td a { display:inline; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                System requests
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>Open a VIN request for a text excerpt and thread. Mark viewed here. Live Laximo decode and file attachments stay on the Classic twin.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/cp/system-requests-app" IsAdmin="_isAdmin" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedRequest is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    @if (!_isAdmin)
     {
-        <div class="alert alert-success" role="status">@_flashOk</div>
+        <div class="col-lg-12"><div class="alert alert-warning">Admin CP session required. <a href="/cp/login?returnUrl=/cp/system-requests-app">Log in</a>.</div></div>
     }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    else if (_vinId > 0)
     {
-        <div class="alert alert-danger" role="status">@_flashErr</div>
-    }
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/requests/set-vin-viewed" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/system-requests-app" />
-            <label>VIN request id <input type="number" name="requestId" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "")" /></label>
-            <label>Viewed <input type="number" name="viewedFlag" min="0" max="1" value="1" style="width:3rem" /></label>
-            <button type="submit" class="btn btn-xs btn-primary">Mark viewed</button>
-        </form>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="VIN request KPIs">
-        <div class="kpi"><div class="lbl">Requests</div><div class="val">@_summary.RequestCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Unviewed</div><div class="val">@_summary.UnviewedCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Viewed</div><div class="val">@_summary.ViewedCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Opened messages</div><div class="val">@_openedMessages.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedRequest is not null)
-    {
+        @* ---- request.php twin ---- *@
         <div class="col-lg-12">
             <div class="hpanel">
                 <div class="panel-heading hbuilt">
-                    Request #@_openedRequest.Id.ToString(CultureInfo.InvariantCulture)
-                    <span class="label label-default pull-right">@(_openedRequest.Viewed != 0 ? "viewed" : "unviewed")</span>
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab + "/request?vin_id=" + _vinId.ToString(CultureInfo.InvariantCulture))">Classic twin</a>
                 </div>
-                <div class="panel-body">
-                    <p>User @_openedRequest.UserId.ToString(CultureInfo.InvariantCulture)
-                        · time @_openedRequest.TimeUnix.ToString(CultureInfo.InvariantCulture)</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedRequest.TextExcerpt))
+                <div class="panel-body epc-vr-actions">
+                    <a class="panel_a" href="@_listHref"><div class="panel_a_img epc-grey"><i class="fa fa-chevron-left"></i></div><div class="panel_a_caption">Requests</div></a>
+                    @if (_request is not null)
                     {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedRequest.TextExcerpt</pre>
-                        @if (_openedRequest.TextLen > _openedRequest.TextExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_openedRequest.TextExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedRequest.TextLen.ToString(CultureInfo.InvariantCulture) chars). Full HTML and files stay on the Classic twin.</p>
-                        }
+                        <a class="panel_a" href="javascript:void(0);" onclick="document.getElementById('vin_no_viewed_form').submit();"><div class="panel_a_img epc-amber"><i class="fa fa-eye-slash"></i></div><div class="panel_a_caption">Not viewed</div></a>
                     }
-                    else
-                    {
-                        <p class="text-muted">No request excerpt yet.</p>
-                    }
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
+                    <form id="vin_no_viewed_form" method="post" action="/cp/requests/set-vin-viewed" style="display:none">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
+                        <input type="hidden" name="vins" value="@_vinId.ToString(CultureInfo.InvariantCulture)" />
+                        <input type="hidden" name="viewed_flag" value="0" />
+                    </form>
                 </div>
             </div>
         </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
 
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Messages</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>From</th>
-                                    <th>Time</th>
-                                    <th>Excerpt</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedMessages.Count == 0)
-                                {
-                                    <tr><td colspan="4">No messages yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var msg in _openedMessages)
-                                    {
-                                        <tr>
-                                            <td>@msg.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(msg.IsCustomer != 0 ? "customer" : "staff")</td>
-                                            <td>@msg.TimeUnix.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>
-                                                @if (!string.IsNullOrWhiteSpace(msg.TextExcerpt))
-                                                {
-                                                    @msg.TextExcerpt
-                                                    @if (msg.TextLen > msg.TextExcerpt.Length)
+        @if (_request is null)
+        {
+            <div class="col-lg-12"><div class="alert alert-danger">Request #@_vinId.ToString(CultureInfo.InvariantCulture) was not found.</div></div>
+        }
+        else
+        {
+            var r = _request;
+            <div class="col-lg-5">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Request</div>
+                    <div class="panel-body control-label epc-vr-text">
+                        <p class="text-muted" style="margin:0 0 8px">#@r.Id.ToString(CultureInfo.InvariantCulture) · @Stamp(r.Time) · customer @r.UserId.ToString(CultureInfo.InvariantCulture)</p>
+                        @((MarkupString)r.TextHtml)
+                    </div>
+                </div>
+            </div>
+            @if (_canSeeUser)
+            {
+                <div class="col-lg-7">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">User</div>
+                        <div class="panel-body control-label">
+                            @if (r.UserId > 0 && _user is not null && _user.Rows.Count > 0)
+                            {
+                                var u = _user.Rows[0];
+                                var uid = u.UserId.ToString(CultureInfo.InvariantCulture);
+                                var uhref = "/cp/users-app?user_id=" + uid;
+                                <div class="table-responsive">
+                                    <table class="table table-condensed table-striped epc-vr-user">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th></th>
+                                                <th>Groups</th>
+                                                <th>Reg. variant</th>
+                                                <th>E-mail</th>
+                                                <th>Phone</th>
+                                                @foreach (var c in _user.TableColumns) { <th>@c.Caption</th> }
+                                                <th>Registered</th>
+                                                <th>Last visit</th>
+                                                <th>Balance</th>
+                                                <th>Unlocked</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td><a href="@uhref">@uid</a></td>
+                                                <td style="white-space:nowrap">
+                                                    <a href="@uhref" title="User"><i class="fa fa-user"></i></a>
+                                                    <a href="/cp/orders?customer_id=@uid" title="Orders"><i class="fa fa-shopping-cart"></i></a>
+                                                    <a href="/cp/credit-limits-app?user_id=@uid" title="Balance"><i class="fa fa-credit-card"></i></a>
+                                                    <a href="/cp/statistics-app?user_id=@uid" title="Statistics"><i class="fa fa-bar-chart"></i></a>
+                                                </td>
+                                                <td>@((MarkupString)string.Join(";<br>", u.Groups.Select(System.Net.WebUtility.HtmlEncode)))</td>
+                                                <td>@u.RegVariantCaption</td>
+                                                <td>
+                                                    @u.Email
+                                                    @if (u.Email.Length > 0)
                                                     {
-                                                        <span class="text-muted"> (excerpt)</span>
+                                                        @if (u.EmailConfirmed) { <i class="fa fa-check-circle" style="color:#0A0" title="Confirmed"></i> } else { <i class="fa fa-exclamation-triangle" style="color:#F00" title="Not confirmed"></i> }
                                                     }
-                                                }
-                                                else
-                                                {
-                                                    <text>—</text>
-                                                }
-                                            </td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
+                                                </td>
+                                                <td>
+                                                    @u.Phone
+                                                    @if (u.Phone.Length > 0)
+                                                    {
+                                                        @if (u.PhoneConfirmed) { <i class="fa fa-check-circle" style="color:#0A0" title="Confirmed"></i> } else { <i class="fa fa-exclamation-triangle" style="color:#F00" title="Not confirmed"></i> }
+                                                    }
+                                                </td>
+                                                @foreach (var pv in u.ProfileValues) { <td>@pv</td> }
+                                                <td>@Stamp(u.TimeRegistered)</td>
+                                                <td>@(u.TimeLastVisit > 0 ? Stamp(u.TimeLastVisit) : "never")</td>
+                                                <td style="white-space:nowrap">@u.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                                <td>@(u.Unlocked ? "Yes" : "No")</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            }
+                            else
+                            {
+                                <span>Guest request (user is not registered).</span>
+                            }
+                        </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Same-user siblings</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Time</th>
-                                    <th>Viewed</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="3">No same-user siblings yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.TimeUnix.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@sib.Viewed.ToString(CultureInfo.InvariantCulture)</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Requests</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                        <thead>
-                            <tr>
-                                <th>Id</th>
-                                <th>Time</th>
-                                <th>User</th>
-                                <th>Viewed</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (!_isAdmin)
+            }
+            <div class="col-lg-7">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Correspondence with the customer</div>
+                    <div class="panel-body control-label">
+                        @if (r.UserId > 0)
                         {
-                            <tr><td colspan="5">Sign in for live data.</td></tr>
-                        }
-                        else if (_rows.Count == 0)
-                        {
-                            <tr><td colspan="5">No records yet.</td></tr>
+                            <div class="chat_block" id="chat_block">
+                                @if (r.Messages.Count == 0)
+                                {
+                                    <div align="center">No messages yet.</div>
+                                }
+                                @foreach (var m in r.Messages)
+                                {
+                                    <div class="@(m.IsCustomer ? "bubble" : "bubble2")"><small class="sender">@(m.IsCustomer ? "Customer" : "Manager") @Stamp(m.Time)</small><br>@((MarkupString)m.Text)</div>
+                                }
+                            </div>
+                            <br>
+                            <form method="post" action="/cp/requests/send-message" id="vin_message_form" onsubmit="if(document.getElementById('new_message_area').value.trim()==''){alert('Enter a message text.');return false;}">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@OpenHref(r.Id)" />
+                                <input type="hidden" name="vin_id" value="@r.Id.ToString(CultureInfo.InvariantCulture)" />
+                                Message:
+                                <textarea class="form-control" id="new_message_area" name="text" rows="3"></textarea>
+                                <button style="margin-top:10px;" class="btn btn-as btn-primary" type="submit">Send</button>
+                            </form>
                         }
                         else
                         {
-                            @foreach (var row in _rows)
-                            {
-                                <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                                    <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.TimeUnix.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.Viewed.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "vin_id", row.Id)">Open</a></td>
-                                </tr>
-                            }
+                            <span>Correspondence is available only for registered customers.</span>
                         }
-                        </tbody>
-                    </table>
+                    </div>
+                </div>
+            </div>
+        }
+    }
+    else
+    {
+        @* ---- requests.php twin ---- *@
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Control
+                    <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                </div>
+                <div class="panel-body epc-vr-actions">
+                    <a class="panel_a" href="/cp/vin-fields-app"><div class="panel_a_img epc-teal"><i class="fa fa-address-card"></i></div><div class="panel_a_caption">Request fields</div></a>
+                    <a class="panel_a" href="/cp"><div class="panel_a_img"><i class="fa fa-power-off"></i></div><div class="panel_a_caption">Exit</div></a>
                 </div>
             </div>
         </div>
-    </div>
+        @if (!string.IsNullOrWhiteSpace(_flashOk)) { <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div> }
+        @if (!string.IsNullOrWhiteSpace(_flashErr)) { <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div> }
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    <div class="panel-tools"><a class="showhide"><i class="fa fa-chevron-up"></i></a></div>
+                    Filter
+                </div>
+                <form method="get" action="/cp/system-requests-app" id="vin_filter_form">
+                    <div class="panel-body epc-vr-filter">
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Viewed</label>
+                                <div class="col-lg-6">
+                                    <select id="viewed" name="viewed" class="form-control" style="@(_filter.Viewed != -1 ? "background:#b9fcab;" : "")">
+                                        <option value="-1" selected="@(_filter.Viewed == -1)">All</option>
+                                        <option value="1" selected="@(_filter.Viewed == 1)">Viewed</option>
+                                        <option value="0" selected="@(_filter.Viewed == 0)">Not viewed</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Customer ID</label>
+                                <div class="col-lg-6">
+                                    <input type="text" id="customer_id" name="customer_id" value="@_filter.CustomerId" class="form-control" style="@(_filter.CustomerId.Length > 0 ? "background:#b9fcab;" : "")" />
+                                </div>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </div>
+                    <div class="panel-footer">
+                        <input type="hidden" name="s_page" value="0" />
+                        <button class="btn btn-success" type="submit" onclick="epcVinSaveFilter();"><i class="fa fa-filter"></i> Apply filter</button>
+                        <button class="btn btn-primary" type="button" onclick="epcVinResetFilter();"><i class="fa fa-square"></i> Reset filter</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Requests</div>
+                <div class="panel-body epc-vr-list">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th><input type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
+                                    <th>ID</th>
+                                    <th>Date</th>
+                                    <th>Customer ID</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_list.Items.Count == 0)
+                                {
+                                    <tr><td colspan="4" class="text-muted">No requests match the filter.</td></tr>
+                                }
+                                @foreach (var row in _list.Items)
+                                {
+                                    var id = row.Id.ToString(CultureInfo.InvariantCulture);
+                                    var href = OpenHref(row.Id);
+                                    <tr id="erp-row-@id" class="@(row.Viewed ? "" : "not_viewed")">
+                                        <td><input type="checkbox" class="epc-vin-check" id="checked_@id" value="@id" onchange="on_one_check_changed();" /></td>
+                                        <td><a href="@href">@id</a></td>
+                                        <td><a href="@href">@Stamp(row.Time)</a></td>
+                                        <td><a href="@href">@row.UserId.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                    @if (_list.Pages > 1)
+                    {
+                        <div class="row">
+                            <div class="col-lg-12 text-center">
+                                <div class="dataTables_paginate paging_simple_numbers">
+                                    <ul class="pagination">
+                                        @for (var i = 0; i < _list.Pages; i++)
+                                        {
+                                            var n = (i + 1).ToString(CultureInfo.InvariantCulture);
+                                            if (i == _list.Page)
+                                            {
+                                                <li class="paginate_button active"><a href="javascript:void(0);">@n</a></li>
+                                            }
+                                            else
+                                            {
+                                                <li class="paginate_button"><a href="@PageHref(i)">@n</a></li>
+                                            }
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Viewed state</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/requests/set-vin-viewed" id="vin_viewed_form" onsubmit="return epcVinCollect();">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@PageHref(_list.Page)" />
+                        <input type="hidden" name="vins" id="vins" value="" />
+                        <div class="form-group">
+                            <label class="col-lg-2 control-label">Set for selected</label>
+                            <div class="col-lg-8">
+                                <select id="setUsersVinViewed" name="viewed_flag" class="form-control">
+                                    <option value="1">Viewed</option>
+                                    <option value="0">Not viewed</option>
+                                </select>
+                            </div>
+                            <div class="col-lg-2">
+                                <button class="btn w-xs btn-success" type="submit">Apply</button>
+                            </div>
+                        </div>
+                        <div class="clearfix"></div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function epcVinCookie(name, value) {
+                var date = new Date(new Date().getTime() + 15552000 * 1000);
+                document.cookie = name + "=" + encodeURIComponent(value) + "; path=/; expires=" + date.toUTCString();
+            }
+            function epcVinSaveFilter() {
+                epcVinCookie("vin_filter", JSON.stringify({ viewed: document.getElementById("viewed").value, customer_id: document.getElementById("customer_id").value }));
+                epcVinCookie("vin_need_page", "0");
+            }
+            function epcVinResetFilter() {
+                document.getElementById("viewed").value = "-1";
+                document.getElementById("customer_id").value = "";
+                epcVinSaveFilter();
+                document.getElementById("vin_filter_form").submit();
+            }
+            function on_check_uncheck_all() {
+                var state = document.getElementById("check_uncheck_all").checked;
+                var boxes = document.querySelectorAll(".epc-vin-check");
+                for (var i = 0; i < boxes.length; i++) { boxes[i].checked = state; }
+            }
+            function on_one_check_changed() {
+                var boxes = document.querySelectorAll(".epc-vin-check");
+                for (var i = 0; i < boxes.length; i++) {
+                    if (!boxes[i].checked) { document.getElementById("check_uncheck_all").checked = false; return; }
+                }
+            }
+            function epcVinCollect() {
+                var ids = [];
+                var boxes = document.querySelectorAll(".epc-vin-check");
+                for (var i = 0; i < boxes.length; i++) { if (boxes[i].checked) { ids.push(boxes[i].value); } }
+                if (ids.length === 0) { alert("Select at least one request."); return false; }
+                document.getElementById("vins").value = ids.join(",");
+                return true;
+            }
+            (function () {
+                var links = document.querySelectorAll(".epc-vr-list .paginate_button a[href]");
+                for (var i = 0; i < links.length; i++) {
+                    links[i].addEventListener("click", function () {
+                        var m = /s_page=(\d+)/.exec(this.getAttribute("href"));
+                        epcVinCookie("vin_need_page", m ? m[1] : "0");
+                    });
+                }
+            })();
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/requests";
     private const string _listHref = "/cp/system-requests-app";
+    private const string _phpTab = "/CP/requests";
+
     private bool _isAdmin;
-    private CpSystemRequestsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpSystemRequestsRowDigest> _rows = [];
+    private bool _canSeeUser;
     private string _flashOk = "";
     private string _flashErr = "";
-    private long _openedId;
-    private CpSystemRequestsDetail? _openedRequest;
-    private IReadOnlyList<CpSystemRequestMessageDigest> _openedMessages = [];
-    private IReadOnlyList<CpSystemRequestsRowDigest> _openedSiblings = [];
+    private long _vinId;
+    private CpVinFilter _filter = new();
+    private CpPagedList<CpVinRequestRow> _list = new([], 0, 0, 0);
+    private CpVinRequest? _request;
+    private CpUserList? _user;
 
-    private string OpenedCaption => _openedRequest is null
-        ? ""
-        : ("Request #" + _openedRequest.Id.ToString(CultureInfo.InvariantCulture)
-            + (_openedRequest.Viewed != 0 ? " · viewed" : " · unviewed"));
+    private static string OpenHref(long id) => _listHref + "?vin_id=" + id.ToString(CultureInfo.InvariantCulture);
+
+    private string PageHref(int page)
+    {
+        var q = new List<string>();
+        if (page > 0) q.Add("s_page=" + page.ToString(CultureInfo.InvariantCulture));
+        if (_filter.Viewed != -1) q.Add("viewed=" + _filter.Viewed.ToString(CultureInfo.InvariantCulture));
+        if (_filter.CustomerId.Length > 0) q.Add("customer_id=" + Uri.EscapeDataString(_filter.CustomerId));
+        return q.Count == 0 ? _listHref : _listHref + "?" + string.Join("&", q);
+    }
+
+    private static string Stamp(long unix)
+        => unix <= 0 ? "" : DateTimeOffset.FromUnixTimeSeconds(unix).ToString("dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "vin_id");
-        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
-        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpSystemRequestsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Requests;
-
-        if (_openedId > 0)
+        _vinId = long.TryParse(ctx.Request.Query["vin_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0 ? id : 0;
+        if (_vinId > 0)
         {
-            var detail = await Dashboards.BuildCpSystemRequestsDetailAsync(_openedId, ctx.RequestAborted);
-            _openedRequest = detail.Request;
-            _openedMessages = detail.Messages;
-            _openedSiblings = detail.Siblings;
-            if (_openedRequest is not null)
+            _request = await Requests.OpenAsync(_vinId, ctx.RequestAborted);
+            _canSeeUser = await Requests.HasUserManagerAccessAsync(session.Groups, ctx.RequestAborted);
+            if (_request is not null && _request.UserId > 0 && _canSeeUser)
             {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
+                _user = await Users.ListAsync(0, 1, "user_id", true, new CpUserFilter(UserId: _request.UserId.ToString(CultureInfo.InvariantCulture)), ctx.RequestAborted);
             }
+
+            return;
         }
+
+        _filter = CpVinRequestsService.ReadFilter(ctx.Request);
+        _list = await Requests.ListAsync(_filter, CpVinRequestsService.ReadPage(ctx.Request), ctx.RequestAborted);
     }
 }
