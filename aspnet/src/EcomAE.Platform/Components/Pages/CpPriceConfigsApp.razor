@@ -15,181 +15,131 @@
 @if (_allowed)
 {
     <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Price generation configs
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+    <div class="col-lg-12 epc-scp-panel epc-scp-price-configs">
+        <div class="epc-scp-panel__hero">
+            <div>
+                <span class="epc-scp-dashboard__badge">Super CP</span>
+                <h2 class="epc-scp-dashboard__title">Price generation configs</h2>
+                <p class="epc-scp-dashboard__sub">Define markup rules for built-in catalogue, price lists, and API integrations — platform-wide or per tenant.</p>
             </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/price-configs-app")</p>
-                <p>Save markup rules for catalogue, price lists, and API clients here. Schema-ensure stays on the Classic twin. This page does not invent a send.</p>
-                <p><a href="/cp/price-lists-app">Price lists</a></p>
+            <div class="epc-scp-dashboard__hero-actions">
+                <a class="btn btn-sm btn-default" href="/cp/price-lists-app"><i class="fa fa-tags"></i> Price lists</a>
+                <a class="btn btn-sm btn-primary" href="/cp/guides-app"><i class="fa fa-book"></i> Operator guide</a>
+                <a class="btn btn-sm btn-default ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" target="_blank" rel="noopener"><i class="fa fa-code"></i> Classic twin</a>
             </div>
         </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/price-configs-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
-    }
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="alert alert-success">@_flashOk</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="alert alert-danger">@_flashErr</div>
+        }
+        @if (!_isAdmin)
+        {
+            <div class="alert alert-warning">Sign in with a staff session to manage price configs.</div>
+        }
 
-    @if (_isAdmin)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">@(_opened is not null ? "Edit config" : "New config")</div>
-                <div class="panel-body">
-                    <form method="post" action="/cp/price-configs/write" class="well">
+        <div class="row">
+            <div class="col-md-5">
+                <div class="epc-scp-form-card">
+                    <h4><i class="fa fa-@(_opened is not null ? "edit" : "plus")"></i> @(_opened is not null ? "Edit config" : "New config")</h4>
+                    <form method="post" action="/cp/price-configs/write" class="form-horizontal">
                         <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                        <input type="hidden" name="returnUrl" value="@_listHref" />
                         <input type="hidden" name="action" value="save_price_config" />
                         <input type="hidden" name="id" value="@FormId.ToString(CultureInfo.InvariantCulture)" />
-                        <div class="form-group">
-                            <label>Name</label>
-                            <input type="text" class="form-control" name="name" value="@OpenedName" />
-                        </div>
-                        <div class="form-group">
-                            <label>Scope</label>
-                            <select class="form-control" name="scope">
-                                @foreach (var scope in _scopes)
+                        <div class="form-group"><label class="col-sm-4 control-label">Name</label><div class="col-sm-8"><input class="form-control input-sm" name="name" required value="@OpenedName" /></div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Scope</label><div class="col-sm-8">
+                            <select class="form-control input-sm" name="scope">
+                                <option value="platform" selected="@(OpenedScope == "platform")">Platform default</option>
+                                <option value="tenant" selected="@(OpenedScope == "tenant")">Tenant override</option>
+                            </select>
+                        </div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Tenant</label><div class="col-sm-8">
+                            <select class="form-control input-sm" name="site_key">
+                                <option value="">—</option>
+                                @foreach (var t in _tenants)
                                 {
-                                    @if (OpenedScope == scope)
-                                    {
-                                        <option value="@scope" selected>@(scope == "platform" ? "Platform default" : "Tenant override")</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@scope">@(scope == "platform" ? "Platform default" : "Tenant override")</option>
-                                    }
+                                    <option value="@t.SiteKey" selected="@(OpenedSiteKey == t.SiteKey)">@t.Label</option>
                                 }
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Tenant site key</label>
-                            <input type="text" class="form-control" name="site_key" value="@OpenedSiteKey" />
-                        </div>
-                        <div class="form-group">
-                            <label>Client type</label>
-                            <select class="form-control" name="client_type">
+                        </div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Client type</label><div class="col-sm-8">
+                            <select class="form-control input-sm" name="client_type">
                                 @foreach (var client in CpPriceConfigsWriteService.ClientTypes)
                                 {
-                                    @if (OpenedClientType == client.Key)
-                                    {
-                                        <option value="@client.Key" selected>@client.Value</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@client.Key">@client.Value</option>
-                                    }
+                                    <option value="@client.Key" selected="@(OpenedClientType == client.Key)">@client.Value</option>
                                 }
                             </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Client ref</label>
-                            <input type="text" class="form-control" name="client_ref" value="@OpenedClientRef" />
-                        </div>
-                        <div class="form-group">
-                            <label>Markup %</label>
-                            <input type="number" step="0.01" class="form-control" name="markup_percent" value="@OpenedMarkupPercent.ToString(CultureInfo.InvariantCulture)" />
-                        </div>
-                        <div class="form-group">
-                            <label>Fixed markup</label>
-                            <input type="number" step="0.0001" class="form-control" name="markup_fixed" value="@OpenedMarkupFixed.ToString(CultureInfo.InvariantCulture)" />
-                        </div>
-                        <div class="form-group">
-                            <label>Currency</label>
-                            <input type="text" class="form-control" name="currency" maxlength="8" value="@OpenedCurrency" />
-                        </div>
-                        <div class="form-group">
-                            <label>Priority</label>
-                            <input type="number" class="form-control" name="priority" value="@OpenedPriority.ToString(CultureInfo.InvariantCulture)" />
-                        </div>
-                        <div class="form-group">
-                            <label>Notes</label>
-                            <textarea class="form-control" name="notes" rows="2">@OpenedNotes</textarea>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                @if (OpenedActive)
-                                {
-                                    <input type="checkbox" name="active" value="1" checked />
-                                }
-                                else
-                                {
-                                    <input type="checkbox" name="active" value="1" />
-                                }
-                                Active
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-default">Save</button>
+                        </div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Client ref</label><div class="col-sm-8"><input class="form-control input-sm" name="client_ref" placeholder="price list id, channel id…" value="@OpenedClientRef" /></div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Markup %</label><div class="col-sm-8"><input class="form-control input-sm" type="number" step="0.01" name="markup_percent" value="@OpenedMarkupPercent.ToString(CultureInfo.InvariantCulture)" /></div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Fixed markup</label><div class="col-sm-8"><input class="form-control input-sm" type="number" step="0.0001" name="markup_fixed" value="@OpenedMarkupFixed.ToString(CultureInfo.InvariantCulture)" /></div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Currency</label><div class="col-sm-8"><input class="form-control input-sm" name="currency" maxlength="8" value="@OpenedCurrency" /></div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Priority</label><div class="col-sm-8"><input class="form-control input-sm" type="number" name="priority" value="@OpenedPriority.ToString(CultureInfo.InvariantCulture)" /></div></div>
+                        <div class="form-group"><label class="col-sm-4 control-label">Notes</label><div class="col-sm-8"><textarea class="form-control input-sm" name="notes" rows="2">@OpenedNotes</textarea></div></div>
+                        <div class="form-group"><div class="col-sm-8 col-sm-offset-4">
+                            <label class="checkbox-inline"><input type="checkbox" name="active" value="1" checked="@OpenedActive"> Active</label>
+                        </div></div>
+                        <div class="form-group"><div class="col-sm-8 col-sm-offset-4">
+                            <button type="submit" class="btn btn-primary btn-sm" disabled="@(!_isAdmin)"><i class="fa fa-save"></i> Save</button>
+                            @if (_opened is not null)
+                            {
+                                <a class="btn btn-default btn-sm" href="@_listHref">Cancel</a>
+                            }
+                        </div></div>
                     </form>
-                    @if (_opened is not null)
-                    {
-                        <form method="post" action="/cp/price-configs/write" class="well" style="margin-top:1rem">
-                            <input type="hidden" name="confirmWrites" value="true" />
-                            <input type="hidden" name="returnUrl" value="@_listHref" />
-                            <input type="hidden" name="action" value="delete_price_config" />
-                            <input type="hidden" name="id" value="@FormId.ToString(CultureInfo.InvariantCulture)" />
-                            <button type="submit" class="btn btn-default">Delete config</button>
-                        </form>
-                    }
-                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
                 </div>
             </div>
-        </div>
-    }
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Active rules (@_rows.Count.ToString(CultureInfo.InvariantCulture))</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Scope</th>
-                                <th>Client</th>
-                                <th>Markup</th>
-                                <th>Priority</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
+            <div class="col-md-7">
+                <div class="epc-scp-table-card">
+                    <h4><i class="fa fa-list"></i> Active rules (@_rows.Count.ToString(CultureInfo.InvariantCulture))</h4>
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-condensed epc-scp-data-table">
+                            <thead><tr><th>Name</th><th>Scope</th><th>Client</th><th>Markup</th><th>Priority</th><th></th></tr></thead>
+                            <tbody>
                             @if (_rows.Count == 0)
                             {
-                                <tr><td colspan="6">@(_isAdmin ? "No price configs yet." : "Sign in with a staff session for live rows.")</td></tr>
+                                <tr><td colspan="6" class="epc-scp-empty-cell">
+                                    <div class="epc-scp-empty">
+                                        <h4>No price configs yet</h4>
+                                        <p>Add a platform default markup rule, then tenant overrides where clients need different margins.</p>
+                                        <a class="btn btn-sm btn-default" href="/cp/price-lists-app"><i class="fa fa-tags"></i> Shop prices</a>
+                                        <a class="btn btn-sm btn-primary" href="/cp/guides-app"><i class="fa fa-book"></i> Operator guide</a>
+                                    </div>
+                                </td></tr>
                             }
-                            else
+                            @foreach (var row in _rows)
                             {
-                                @foreach (var row in _rows)
-                                {
-                                    <tr>
-                                        <td>@row.Name @(row.Active ? "" : "off")</td>
-                                        <td>@row.Scope @(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "")</td>
-                                        <td>@(CpPriceConfigsWriteService.ClientTypes.TryGetValue(row.ClientType, out var label) ? label : row.ClientType) @row.ClientRef</td>
-                                        <td>@row.MarkupPercent.ToString(CultureInfo.InvariantCulture)% + @row.MarkupFixed.ToString(CultureInfo.InvariantCulture) @row.Currency</td>
-                                        <td>@row.Priority.ToString(CultureInfo.InvariantCulture)</td>
-                                        <td><a href="@OpenHref(row.Id)">Open</a></td>
-                                    </tr>
-                                }
+                                <tr class="@(row.Active ? "" : "text-muted")">
+                                    <td><strong>@row.Name</strong>@if (!row.Active) { <text> </text><span class="label label-default">off</span> }</td>
+                                    <td>@row.Scope@if (!string.IsNullOrWhiteSpace(row.SiteKey)) { <br /><code>@row.SiteKey</code> }</td>
+                                    <td>@(CpPriceConfigsWriteService.ClientTypes.TryGetValue(row.ClientType, out var label) ? label : row.ClientType)@if (!string.IsNullOrWhiteSpace(row.ClientRef)) { <br /><code>@row.ClientRef</code> }</td>
+                                    <td>@row.MarkupPercent.ToString(CultureInfo.InvariantCulture)% + @row.MarkupFixed.ToString(CultureInfo.InvariantCulture) @row.Currency</td>
+                                    <td>@row.Priority.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td class="epc-scp-actions-cell">
+                                        <a class="btn btn-xs btn-default" href="@OpenHref(row.Id)" title="Edit"><i class="fa fa-edit"></i></a>
+                                        <form method="post" action="/cp/price-configs/write" style="display:inline" onsubmit="return confirm('Delete this config?');">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="returnUrl" value="@_listHref" />
+                                            <input type="hidden" name="action" value="delete_price_config" />
+                                            <input type="hidden" name="id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <button type="submit" class="btn btn-xs btn-danger" disabled="@(!_isAdmin)"><i class="fa fa-trash"></i></button>
+                                        </form>
+                                    </td>
+                                </tr>
                             }
-                        </tbody>
-                    </table>
+                            </tbody>
+                        </table>
+                    </div>
                 </div>
             </div>
         </div>
     </div>
-
-    <div class="epc-nw-note">Super CP host only. Schema-ensure stays Classic.</div>
-
-</PhpCpDesktopChrome>
+    </PhpCpDesktopChrome>
 }
 else
 {
@@ -210,11 +160,8 @@ else
     private string _flashErr = "";
     private long _openedId;
     private IReadOnlyList<CpPriceConfigRow> _rows = [];
+    private IReadOnlyList<CpPriceConfigTenantOption> _tenants = [];
     private CpPriceConfigRow? _opened;
-
-    private string ReturnHref => _openedId > 0
-        ? OpenHref(_openedId)
-        : _listHref;
 
     private long FormId => _opened?.Id ?? 0;
     private string OpenedName => _opened?.Name ?? "";
@@ -257,6 +204,7 @@ else
         }
 
         _rows = await Writes.ListAsync(ctx.RequestAborted);
+        _tenants = await Writes.ListTenantOptionsAsync(ctx.RequestAborted);
         if (_openedId > 0)
         {
             _opened = _rows.FirstOrDefault(r => r.Id == _openedId);
