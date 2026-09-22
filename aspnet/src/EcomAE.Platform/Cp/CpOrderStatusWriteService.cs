@@ -1,7 +1,6 @@
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
-using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
@@ -63,7 +62,7 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
 {
     private const int MaxRows = 80;
     private readonly IErpWriteConnectionFactory _connections;
-    private int _createdStrings;
+    private readonly CpCustomTranslationWriter _translations = new("STATUSES EDITING");
 
     public CpOrderStatusWriteService(IErpWriteConnectionFactory connections)
     {
@@ -502,7 +501,7 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
             keep.Cast<object?>().ToArray()).ConfigureAwait(false);
     }
 
-    private async Task<string> RequireTranslationAsync(
+    private Task<string> RequireTranslationAsync(
         System.Data.Common.DbConnection connection,
         System.Data.Common.DbTransaction transaction,
         string? langStrId,
@@ -510,130 +509,9 @@ public sealed class CpOrderStatusWriteService : ICpOrderStatusWriteService
         string langCode,
         string? domainPath,
         CancellationToken cancellationToken)
-    {
-        var existingKey = (langStrId ?? string.Empty).Trim();
-        if (existingKey is "0")
-        {
-            existingKey = string.Empty;
-        }
+        => _translations.SaveAsync(connection, transaction, langStrId, value, langCode, domainPath, cancellationToken);
 
-        var isCustom = 0L;
-        var hasTranslation = 0L;
-        if (existingKey.Length > 0)
-        {
-            isCustom = await ErpDb.LongAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("SELECT `is_custom` FROM `lang_text_strings` WHERE `str_key` = ? LIMIT 1"),
-                cancellationToken,
-                existingKey).ConfigureAwait(false);
-            if (isCustom == 0)
-            {
-                var found = await ErpDb.LongAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-                    cancellationToken,
-                    existingKey).ConfigureAwait(false);
-                if (found == 0)
-                {
-                    existingKey = string.Empty;
-                }
-            }
-
-            if (existingKey.Length > 0)
-            {
-                hasTranslation = await ErpDb.LongAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = ?"),
-                    cancellationToken,
-                    existingKey,
-                    langCode).ConfigureAwait(false);
-            }
-        }
-
-        string key;
-        if (existingKey.Length == 0 || isCustom == 0)
-        {
-            key = await AllocateStrKeyAsync(connection, transaction, domainPath, cancellationToken).ConfigureAwait(false);
-            await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("INSERT INTO `lang_text_strings` (`description`, `same`, `is_error`, `is_custom`, `str_key`) VALUES (?,?,?,?,?)"),
-                cancellationToken,
-                "STATUSES EDITING",
-                null,
-                0,
-                1,
-                key).ConfigureAwait(false);
-            hasTranslation = 0;
-        }
-        else
-        {
-            key = existingKey;
-        }
-
-        if (hasTranslation > 0)
-        {
-            await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("UPDATE `lang_text_strings_translation` SET `value` = ? WHERE `str_key` = ? AND `lang_code` = ?"),
-                cancellationToken,
-                value,
-                key,
-                langCode).ConfigureAwait(false);
-        }
-        else
-        {
-            await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("INSERT INTO `lang_text_strings_translation` (`value`, `str_key`, `lang_code`) VALUES (?,?,?)"),
-                cancellationToken,
-                value,
-                key,
-                langCode).ConfigureAwait(false);
-        }
-
-        return key;
-    }
-
-    private async Task<string> AllocateStrKeyAsync(
-        System.Data.Common.DbConnection connection,
-        System.Data.Common.DbTransaction transaction,
-        string? domainPath,
-        CancellationToken cancellationToken)
-    {
-        for (var attempt = 0; attempt < 80; attempt++)
-        {
-            _createdStrings++;
-            var key = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)
-                      + "_"
-                      + _createdStrings.ToString(CultureInfo.InvariantCulture)
-                      + "_"
-                      + LegacyPasswordVerifier.Md5Hex(domainPath ?? string.Empty);
-            var found = await ErpDb.LongAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-                cancellationToken,
-                key).ConfigureAwait(false);
-            if (found == 0)
-            {
-                return key;
-            }
-        }
-
-        throw new ErpWriteException("Could not allocate a status translation key.");
-    }
-
-    private static string NormalizeLang(string? langCode)
-    {
-        var lang = (langCode ?? string.Empty).Trim().ToLowerInvariant();
-        return lang.Length is < 2 or > 16 ? "en" : lang;
-    }
+    private static string NormalizeLang(string? langCode) => CpCustomTranslationWriter.NormalizeLang(langCode);
 
     private static JsonElement GetProperty(JsonElement item, params string[] names)
     {

@@ -5346,6 +5346,62 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpGroupsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpGroupTreeWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/groups-app", "Admin CP capability required for groups.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Post the groups grid as a form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var parsed = CpGroupTreeWriteService.ParseForm(form);
+            if (parsed.Error is not null)
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/groups-app",
+                    false,
+                    parsed.Error,
+                    new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid", message = parsed.Error, session = SessionPayload(session) });
+            }
+
+            if (!confirm)
+            {
+                var check = CpGroupTreeWriteService.Validate(parsed.Rows);
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = check.Error is null ? "dry_run" : "invalid",
+                    message = check.Error ?? "Set confirmWrites=true to save groups on ASP.NET.",
+                    rows = parsed.Rows.Count,
+                    session = SessionPayload(session)
+                });
+            }
+
+            var host = context.Request.Host.Host;
+            var domainPath = string.IsNullOrWhiteSpace(host) ? "http://localhost/" : "http://" + host + "/";
+            var written = await writes.SaveAsync(parsed.Rows, LiveWriteFormBinder.Text(form, "langCode", "lang_code"), domainPath, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/groups-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpQuoteSaveNote, async (
             HttpContext context,
             ILegacySessionValidator validator,
