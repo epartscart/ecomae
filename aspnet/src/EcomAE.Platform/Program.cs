@@ -1035,6 +1035,7 @@ builder.Services.Configure<EcomAE.Platform.Cp.CpCurrencyFxScheduleOptions>(build
 builder.Services.AddHostedService<EcomAE.Platform.Cp.CpCurrencyFxScheduleHostedService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnWriteService, EcomAE.Platform.Cp.CpReturnWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnsDeskService, EcomAE.Platform.Cp.CpReturnsDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceManagementService, EcomAE.Platform.Cp.CpPriceManagementService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTaxToolkitWriteService, EcomAE.Platform.Cp.CpTaxToolkitWriteService>();
 builder.Services.AddSingleton<ICpTaxToolkitInstallDryRun, CpTaxToolkitInstallDryRun>();

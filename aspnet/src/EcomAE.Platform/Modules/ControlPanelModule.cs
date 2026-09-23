@@ -6511,6 +6511,63 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPriceManagementAction, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPriceManagementService pricing,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=" + EcomAeRoutes.ControlPanelPriceManagementApp, "Admin CP capability required for price management.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpPriceManagementBody>(context, cancellationToken) ?? new();
+            var action = body.Action;
+            var confirm = body.ConfirmWrites;
+            var fields = new Dictionary<string, string>(body.Fields ?? new Dictionary<string, string>(), StringComparer.OrdinalIgnoreCase);
+            var brands = (IReadOnlyList<string>)(body.Brands ?? []);
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                foreach (var pair in form)
+                {
+                    if (pair.Key is "brands[]" or "brands")
+                    {
+                        brands = pair.Value.Where(v => v is not null).Select(v => v!).ToList();
+                    }
+                    else
+                    {
+                        fields[pair.Key] = pair.Value.ToString();
+                    }
+                }
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to apply a price-management action on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await pricing.ApplyAsync(action, fields, brands, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelPriceManagementApp,
+                written.Succeeded,
+                written.Message,
+                new { status = written.Succeeded, ok = written.Succeeded, id = written.Id, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpPriceStorageRules, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -15770,6 +15827,11 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpQuoteSendBody(long QuoteId = 0, bool ConfirmWrites = false);
     private sealed record CpVendorApprovalsBody(long Id = 0, string? Action = null, bool ConfirmWrites = false);
     private sealed record CpApiClientsToggleBody(long ClientId = 0, string? Action = null, bool ConfirmWrites = false);
+    private sealed record CpPriceManagementBody(
+        string? Action = null,
+        Dictionary<string, string>? Fields = null,
+        List<string>? Brands = null,
+        bool ConfirmWrites = false);
     private sealed record CpPriceStorageRulesBody(
         string? Action = null,
         string? Kind = null,
