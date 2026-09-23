@@ -531,6 +531,8 @@ public static class EcomAeRoutes
     public const string CpPricesEditWrite = "/cp/prices-edit/write";
     public const string ControlPanelPricesSendApp = "/cp/prices-send-app";
     public const string ControlPanelWorkshopApp = "/cp/workshop-app";
+    /// <summary>PHP <c>cp/content/shop/procurement/procurement_main.php</c> twin (supplier procurement desk: dashboard / suppliers / purchase bills / payments / advances / fulfillment / warehouses / guide).</summary>
+    public const string ControlPanelProcurementApp = "/cp/procurement-app";
     public const string ControlPanelSaoApp = "/cp/sao-app";
     public const string ControlPanelPrintDocsApp = "/cp/print-docs-app";
     public const string ControlPanelDataTransferApp = "/cp/data-transfer-app";
@@ -1514,6 +1516,8 @@ public static class EcomAeRoutes
     public const string CpWorkshopWrite = "/cp/workshop/write";
     /// <summary>PHP-shaped <c>ajax_workshop_endpoint.php</c> dispatcher (all actions incl. seed_demo / get_job / list_jobs / list_appointments) used by epc_workshop.js.</summary>
     public const string CpWorkshopTerminalAjax = "/cp/workshop/terminal-ajax";
+    /// <summary>PHP-shaped <c>ajax_procurement.php</c> dispatcher (create_supplier / update_supplier / sync_suppliers / create_purchase / supplier_payment / record_advance / purchase_from_order / supplier_settlement / purchase_adjustment); live ERP services, CP admin session.</summary>
+    public const string CpProcurementAjax = "/cp/procurement/ajax";
     /// <summary>Catalogue min-limit. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_products.php save_product_*_limit.</summary>
     public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
     /// <summary>Category-template create/delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php create/delete. File image upload and from-category disk copy stay PHP.</summary>

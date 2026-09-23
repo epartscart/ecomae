@@ -37,7 +37,7 @@ public static class CpShopModuleRouteMap
         ["prices_upload"] = "/cp/prices-upload-app",
         ["pricing"] = "/cp/price-lists-app",
         ["print_docs"] = "/cp/print-docs-app",
-        ["procurement"] = "/cp/purchase-requests-app",
+        ["procurement"] = "/cp/procurement-app",
         ["quote_requests"] = "/cp/quote-requests-app",
         ["returns"] = "/cp/returns-rma-app",
         ["sao"] = "/cp/sao-app",
