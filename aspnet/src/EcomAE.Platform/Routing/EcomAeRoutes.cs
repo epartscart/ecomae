@@ -343,6 +343,8 @@ public static class EcomAeRoutes
     public const string ControlPanelReturnsRma = "/cp/returns-rma";
     /// <summary>CP returns-rma Blazor list (JSON digest remains <see cref="ControlPanelReturnsRma"/>).</summary>
     public const string ControlPanelReturnsRmaApp = "/cp/returns-rma-app";
+    /// <summary>CP returns manager twin (PHP <c>shop/returns-manager</c>: list / detail / reasons_statuses).</summary>
+    public const string ControlPanelReturnsApp = "/cp/returns-app";
     /// <summary>CP commerce isolation audit (report_json omitted).</summary>
     public const string ControlPanelIsolationAudit = "/cp/isolation-audit";
     /// <summary>CP isolation-audit Blazor list (JSON digest remains <see cref="ControlPanelIsolationAudit"/>).</summary>

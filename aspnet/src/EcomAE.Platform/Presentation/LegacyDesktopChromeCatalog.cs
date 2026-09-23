@@ -975,7 +975,7 @@ public static class LegacyDesktopChromeCatalog
                 && (linkHref.Contains("/shop/orders", StringComparison.OrdinalIgnoreCase)
                     || linkHref.Contains("/cp/orders", StringComparison.OrdinalIgnoreCase)
                     || linkHref.Contains("/cp/abandoned-carts", StringComparison.OrdinalIgnoreCase)
-                    || linkHref.Contains("/cp/returns-rma", StringComparison.OrdinalIgnoreCase)
+                    || linkHref.Contains("/cp/returns-", StringComparison.OrdinalIgnoreCase)
                     || linkHref.Contains("/cp/quote-requests", StringComparison.OrdinalIgnoreCase)))
             {
                 return true;

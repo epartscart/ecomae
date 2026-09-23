@@ -1030,7 +1030,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
             {
-                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/returns-rma-app", "Admin CP capability required for return action.");
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=" + EcomAeRoutes.ControlPanelReturnsApp, "Admin CP capability required for return action.");
             }
 
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpReturnActionBody>(context, cancellationToken)
@@ -1041,6 +1041,8 @@ public sealed class ControlPanelModule : ISurfaceModule
             var lineId = body.LineId;
             var decide = body.Decide;
             var confirm = body.ConfirmWrites;
+            var caption = body.Caption ?? string.Empty;
+            var color = body.Color ?? string.Empty;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -1049,12 +1051,15 @@ public sealed class ControlPanelModule : ISurfaceModule
                 statusId = LiveWriteFormBinder.Int(form, "statusId", "status_id");
                 lineId = LiveWriteFormBinder.Long(form, "lineId", "line_id");
                 decide = LiveWriteFormBinder.Int(form, "decide");
+                caption = LiveWriteFormBinder.Text(form, "caption");
+                color = LiveWriteFormBinder.Text(form, "color");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
-            if (confirm)
+            var key = (action ?? string.Empty).Trim();
+            var isSetupAction = key is "add_reason" or "add_status";
+            if (confirm || isSetupAction)
             {
-                var key = (action ?? string.Empty).Trim();
                 ErpSimpleWriteResult written = key switch
                 {
                     "set_return_status" or "set-status" or "status" =>
@@ -1063,14 +1068,21 @@ public sealed class ControlPanelModule : ISurfaceModule
                         await writes.DecideLineAsync(returnId, lineId, decide, session.UserId, cancellationToken),
                     "finalize_return" or "finalize" =>
                         await writes.FinalizeAsync(returnId, session.UserId, cancellationToken),
-                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown action."),
+                    "add_reason" => await writes.AddReasonAsync(caption, cancellationToken),
+                    "add_status" => await writes.AddStatusAsync(caption, color, cancellationToken),
+                    _ => ErpSimpleWriteResult.Fail("invalid", "Unknown action"),
                 };
+                var fallback = isSetupAction
+                    ? EcomAeRoutes.ControlPanelReturnsApp + "?page=reasons_statuses&action=select"
+                    : returnId > 0
+                        ? EcomAeRoutes.ControlPanelReturnsApp + "?page=detail&return_id=" + returnId.ToString(CultureInfo.InvariantCulture)
+                        : EcomAeRoutes.ControlPanelReturnsApp;
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/returns-rma-app",
+                    fallback,
                     written.Succeeded,
                     written.Message,
-                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+                    new { status = written.Succeeded, ok = written.Succeeded, id = written.Id, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
             }
 
             return Results.Ok(dryRun.Evaluate(new CpReturnActionRequest(returnId, action, false)).ToPayload(SessionPayload(session)));
@@ -15462,7 +15474,9 @@ public sealed class ControlPanelModule : ISurfaceModule
         bool ConfirmWrites = false,
         int StatusId = 0,
         long LineId = 0,
-        int Decide = -1);
+        int Decide = -1,
+        string? Caption = null,
+        string? Color = null);
     private sealed record CpSetUsersVinViewedBody(long RequestId, bool ConfirmWrites = false, int ViewedFlag = 1);
     private sealed record CpSetUserCommentBody(long UserId, string? Comment, bool ConfirmWrites = false);
     private sealed record CpSetUserUnlockedBody(long UserId, int Unlocked, bool ConfirmWrites = false);

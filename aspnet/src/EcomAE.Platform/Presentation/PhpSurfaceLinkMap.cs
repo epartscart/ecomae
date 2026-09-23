@@ -82,7 +82,7 @@ public static class PhpSurfaceLinkMap
         ("shop/filter", "/cp/product-filters-app"),
         ("shop/demand_countries", "/cp/demand-intelligence-app"),
         ("shop/pricing", "/cp/price-lists-app"),
-        ("shop/returns", "/cp/returns-rma-app"),
+        ("shop/returns", "/cp/returns-app"),
         ("shop/channels", "/cp/marketplace-channels-app"),
         ("filemanager", "/cp/file-manager-app"),
         ("file_manager", "/cp/file-manager-app"),
@@ -260,7 +260,7 @@ public static class PhpSurfaceLinkMap
         ("epc_sso_saml", "/cp/sso-saml-app"),
         ("epc_event_bus", "/cp/event-bus-app"),
         ("shop/payments/payments", "/cp/payment-gateways-app"),
-        ("shop/returns-manager", "/cp/returns-rma-app"),
+        ("shop/returns-manager", "/cp/returns-app"),
         ("shop/crm/crm_main", "/cp/crm-board-app"),
         ("shop/crm", "/cp/crm-board-app"),
         ("shop/pos", "/cp/pos-overview-app"),
@@ -945,6 +945,29 @@ public static class PhpSurfaceLinkMap
     }
 
     /// <summary>
+    /// PHP <c>/CP/shop/returns-manager?page=detail&amp;return_id=</c> and
+    /// <c>?page=reasons_statuses</c> keep the router page on the ASP.NET twin.
+    /// </summary>
+    private static string MapCpReturnsAppHref(string original)
+    {
+        var page = ExtractQuery(original, "page") ?? string.Empty;
+        var raw = ExtractQuery(original, "return_id");
+        if (!string.IsNullOrWhiteSpace(raw)
+            && long.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var returnId)
+            && returnId > 0)
+        {
+            return "/cp/returns-app?page=detail&return_id=" + returnId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        if (page.Equals("reasons_statuses", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/returns-app?page=reasons_statuses&action=select";
+        }
+
+        return "/cp/returns-app";
+    }
+
+    /// <summary>
     /// PHP <c>/CP/shop/prices/price?price_id=</c> and wizard/review <c>?price_id=</c>
     /// keep the list id so the ASP.NET manager opens the same row.
     /// </summary>
@@ -1623,6 +1646,11 @@ public static class PhpSurfaceLinkMap
                     return MapCpOrdersHref(value);
                 }
 
+                if (aspNet.Equals("/cp/returns-app", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapCpReturnsAppHref(value);
+                }
+
                 // Preserve ?fulfillment_id= so PHP queue deep links open the dual-pane.
                 if (aspNet.Equals("/cp/fulfillment-queue-app", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1650,6 +1678,7 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/aml-compliance-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/quote-requests-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/returns-rma-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/returns-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/tenant-config-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/marketing-broadcast-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/data-migrations-app", StringComparison.OrdinalIgnoreCase)
