@@ -194,6 +194,8 @@ public static class PhpLegacyAssetBridge
                          "content/shop/finance/epc_crm_enterprise.css"),
                      ("/platform-assets/epc_crm_board.js",
                          "cp/content/shop/crm/epc_crm_board.js"),
+                     ("/platform-assets/epc_prices_send.js",
+                         "cp/content/shop/prices_send/epc_prices_send.js"),
                  })
         {
             var localRelative = relative;

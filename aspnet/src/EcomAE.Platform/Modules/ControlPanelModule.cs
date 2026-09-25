@@ -2530,6 +2530,78 @@ public sealed class ControlPanelModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalSaveSettingsBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalSaveSettingsRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.CpPortalDeploySite, async (HttpContext context, CpPortalDeploySiteBody? body, ILegacySessionValidator validator, ICpPortalDeploySiteDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin) return Unauthorized("Admin session required."); body ??= new CpPortalDeploySiteBody(null,false); return Results.Ok(dryRun.Evaluate(new CpPortalDeploySiteRequest(body.Action, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.CpPricesSendAction, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCsrfGuard csrf,
+            ICpPricesSendDeskService desk,
+            ICpPricesSendWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/prices-send-app", "Admin CP capability required for price list actions.");
+            }
+
+            var input = context.Request.HasFormContentType
+                ? CpCrmActionInput.FromForm(await context.Request.ReadFormAsync(cancellationToken))
+                : await CpCrmActionInput.FromJsonAsync(context, cancellationToken);
+            var request = CpPricesSendRequest.FromInput(input);
+            var sessionPayload = SessionPayload(session);
+
+            IResult Answer(CpPricesSendAnswer answer)
+            {
+                var payload = answer.ToPayload();
+                payload["phpAuthoritative"] = false;
+                payload["cutoverAllowed"] = false;
+                payload["session"] = sessionPayload;
+                var accept = context.Request.Headers.Accept.ToString();
+                var xhr = accept.Contains("application/json", StringComparison.OrdinalIgnoreCase)
+                          || context.Request.Headers.XRequestedWith.Count > 0
+                          || input.Has("request_object");
+                if (xhr)
+                {
+                    return Results.Json(payload, statusCode: answer.Status ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+                }
+
+                return LiveWriteFormBinder.Complete(context, "/cp/prices-send-app", answer.Status, answer.Message, payload);
+            }
+
+            if (!request.IsKnown)
+            {
+                return Answer(CpPricesSendAnswer.Fail("unknown_action", "Unknown action"));
+            }
+
+            var verdict = await csrf.VerifyAsync(context, session, input.TextOrNull(CpCsrfGuard.FieldName), cancellationToken);
+            if (!verdict.Ok)
+            {
+                return Answer(CpPricesSendAnswer.Fail(verdict.Code, verdict.Message));
+            }
+
+            switch (request.Action)
+            {
+                case "list_brands":
+                    return Answer(new CpPricesSendAnswer(true, string.Empty, "ok", Brands: await desk.ListBrandsAsync(request.Limit, cancellationToken)));
+                case "check_office_storages_map":
+                    return Answer(await writes.CheckOfficeStoragesMapAsync(request, cancellationToken));
+            }
+
+            var confirm = input.Flag("confirmWrites", "confirm_writes") || input.Has("request_object");
+            if (!confirm)
+            {
+                return Answer(new CpPricesSendAnswer(false, "Dry run: add confirmWrites=1 to " + request.Action + ".", "dry_run"));
+            }
+
+            return request.Action switch
+            {
+                "ensure_office_storage_links" => Answer(await writes.EnsureOfficeStorageLinksAsync(request, cancellationToken)),
+                "create_prices" => Answer(await writes.CreatePricesAsync(request, cancellationToken)),
+                "send_prices" => Answer(await writes.SendPricesAsync(request, cancellationToken)),
+                _ => Answer(CpPricesSendAnswer.Fail("unknown_action", "Unknown action")),
+            };
+        });
+
         endpoints.MapPost(EcomAeRoutes.CpCrmAction, async (
             HttpContext context,
             ILegacySessionValidator validator,

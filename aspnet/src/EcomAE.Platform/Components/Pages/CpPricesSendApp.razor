@@ -1,39 +1,437 @@
 @page "/cp/prices-send-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject ICpPricesSendDeskService Desk
+@inject ICpCsrfGuard Csrf
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Prices send · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Send price lists · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<HeadContent>
+    <style>
+.epc-ps-page{--ps-ink:#0f172a;--ps-muted:#64748b;--ps-line:#e2e8f0;--ps-bg:#f1f5f9;--ps-card:#ffffff;--ps-accent:#0f766e;--ps-accent-2:#b45309;--ps-ok:#047857;--ps-warn:#b45309;margin:0 -5px 28px}
+.epc-ps-page .epc-ps-hero{background:linear-gradient(135deg,#0f172a 0%,#134e4a 52%,#0f766e 100%);color:#f8fafc;border-radius:12px;padding:18px 20px;margin:0 5px 14px;display:flex;flex-wrap:wrap;gap:14px 20px;align-items:center;justify-content:space-between}
+.epc-ps-page .epc-ps-hero h2{margin:0 0 4px;font-size:22px;font-weight:700;letter-spacing:-.02em}
+.epc-ps-page .epc-ps-hero p{margin:0;opacity:.88;font-size:13px;max-width:640px;line-height:1.45}
+.epc-ps-page .epc-ps-hero-steps{display:flex;flex-wrap:wrap;gap:8px}
+.epc-ps-page .epc-ps-hero-steps span{display:inline-flex;align-items:center;gap:6px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.18);border-radius:999px;padding:6px 12px;font-size:12px;white-space:nowrap}
+.epc-ps-page .epc-ps-hero-steps b{font-weight:700;opacity:.95}
+.epc-ps-page .epc-ps-section{margin:0 5px 14px}
+.epc-ps-page .hpanel{border-radius:10px;overflow:hidden;border:1px solid var(--ps-line);box-shadow:0 1px 2px rgba(15,23,42,.04);background:var(--ps-card);margin-bottom:0}
+.epc-ps-page .hpanel .panel-heading.hbuilt{background:linear-gradient(180deg,#fff 0%,#f8fafc 100%);border-bottom:1px solid var(--ps-line);font-weight:600;color:var(--ps-ink);display:flex;align-items:center;flex-wrap:wrap;gap:8px}
+.epc-ps-page .epc-ps-section-label{display:inline-block;font-size:11px;text-transform:uppercase;letter-spacing:.05em;color:var(--ps-accent);background:rgba(15,118,110,.08);border:1px solid rgba(15,118,110,.18);border-radius:999px;padding:2px 8px;font-weight:700}
+.epc-ps-page .epc-ps-heading-note{margin-left:auto;font-size:12px;font-weight:400;color:var(--ps-muted)}
+.epc-ps-page .epc-ps-filter-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+@@media(max-width:1100px){.epc-ps-page .epc-ps-filter-grid{grid-template-columns:repeat(3,minmax(0,1fr))}}
+@@media(max-width:700px){.epc-ps-page .epc-ps-filter-grid{grid-template-columns:1fr 1fr}}
+.epc-ps-page .epc-ps-field label{display:block;font-size:12px;font-weight:600;color:var(--ps-muted);margin:0 0 5px}
+.epc-ps-page .epc-ps-field .form-control{height:34px}
+.epc-ps-page .epc-ps-actions{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:14px;padding-top:12px;border-top:1px solid var(--ps-line)}
+.epc-ps-page .epc-ps-split{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(280px,.9fr);gap:14px;align-items:stretch}
+@@media(max-width:1100px){.epc-ps-page .epc-ps-split{grid-template-columns:1fr}}
+.epc-ps-page .epc-ps-split > .hpanel{display:flex;flex-direction:column;height:100%}
+.epc-ps-page .epc-ps-split > .hpanel > .panel-body{flex:1 1 auto;display:flex;flex-direction:column}
+.epc-ps-page .epc-ps-scroll{max-height:420px;overflow:auto;border:1px solid var(--ps-line);border-radius:8px}
+.epc-ps-page .epc-ps-split .epc-ps-scroll{flex:1 1 auto;max-height:none;min-height:320px}
+.epc-ps-page .epc-ps-scroll table{margin:0;font-size:13px}
+.epc-ps-page .epc-ps-scroll th,.epc-ps-page .epc-ps-scroll td{vertical-align:middle !important}
+.epc-ps-page .epc-ps-group-chip{display:inline-block;background:#f1f5f9;border:1px solid var(--ps-line);border-radius:999px;padding:1px 8px;font-size:11px;margin:1px 2px 1px 0;color:var(--ps-ink);max-width:100%;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.epc-ps-page #my_list_emails{width:100%;flex:1 1 auto;min-height:240px;resize:vertical;border:1px solid var(--ps-line);border-radius:8px;padding:10px 12px;font-size:13px;line-height:1.4}
+.epc-ps-page .epc-ps-split .epc-ps-field{flex:0 0 auto}
+.epc-ps-page .epc-ps-inline-shop{display:flex;flex-wrap:wrap;gap:10px 14px;align-items:center;margin-bottom:12px}
+.epc-ps-page .epc-ps-inline-shop label{margin:0;font-weight:600;color:var(--ps-ink)}
+.epc-ps-page .epc-ps-inline-shop .form-control{width:auto;min-width:220px;display:inline-block}
+.epc-ps-page .epc-ps-filters-row{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin-bottom:4px}
+@@media(max-width:900px){.epc-ps-page .epc-ps-filters-row{grid-template-columns:1fr}}
+.epc-ps-page .epc-ps-help{font-size:12px;color:var(--ps-muted);margin:6px 0 0;line-height:1.4}
+.epc-ps-page .epc-ps-tree-tools{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.epc-ps-page #container_A{height:320px;border:1px solid var(--ps-line);border-radius:8px;overflow:auto;background:#fff;padding:6px 8px}
+.epc-ps-page #container_A ul{list-style:none;margin:0;padding-left:18px}
+.epc-ps-page #container_A > ul{padding-left:0}
+.epc-ps-page #container_A li{line-height:24px;font-size:13px;white-space:nowrap}
+.epc-ps-page #container_A .epc-ps-tree-toggle{display:inline-block;width:16px;color:var(--ps-muted);cursor:pointer;text-align:center}
+.epc-ps-page #container_A .epc-ps-tree-leaf{display:inline-block;width:16px}
+.epc-ps-page #container_A li.epc-ps-collapsed > ul{display:none}
+.epc-ps-page #container_A .fa-folder-open{color:var(--ps-accent-2)}
+.epc-ps-page #container_A input.epc-ps-cat{margin:0 6px 0 2px;vertical-align:middle}
+.epc-ps-page .epc-ps-generate{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.epc-ps-page .epc-ps-generate .btn{margin:0}
+.epc-ps-page #create_prices_status{margin-top:12px;font-size:13px}
+.epc-ps-page .epc-ps-file-list a{display:inline-block;margin:4px 8px 4px 0}
+.epc-ps-page .btn-success{background:var(--ps-ok);border-color:var(--ps-ok)}
+.epc-ps-page .btn-primary{background:var(--ps-accent);border-color:var(--ps-accent)}
+.epc-ps-page .label-success{background:var(--ps-ok)}
+.epc-ps-page .label-warning{background:var(--ps-warn)}
+.epc-ps-page .panel-body{padding:16px 18px}
+.epc-ps-page .panel-footer{background:#f8fafc;border-top:1px solid var(--ps-line);padding:12px 18px}
+.epc-ps-page .table-condensed>thead>tr>th{border-bottom:1px solid var(--ps-line);color:var(--ps-muted);font-size:11px;text-transform:uppercase;letter-spacing:.04em;background:#f8fafc;position:sticky;top:0;z-index:1}
+    </style>
+</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Prices send
-                <a class="btn btn-xs btn-default pull-right" href="/cp/marketplace-channels-app">Channels</a>
-                <a class="btn btn-xs btn-default pull-right" href="/cp/prices-edit-app" style="margin-right:.4rem">Prices edit</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning">Admin CP session required. <a href="/cp/login?returnUrl=/cp/prices-send-app">Log in</a>.</div></div>
+    }
+    else
+    {
+        var d = _desk;
+        <div class="epc-ps-page">
+            <div class="epc-ps-hero">
+                <div>
+                    <h2>Send price lists</h2>
+                    <p>Build CSV price profiles with group markup, optional brand/article filters, then download or email customers.</p>
+                </div>
+                <div class="epc-ps-hero-steps" aria-label="Workflow">
+                    <span><b>1</b> Recipients</span>
+                    <span><b>2</b> Sources</span>
+                    <span><b>3</b> Filters</span>
+                    <span><b>4</b> Generate</span>
+                </div>
             </div>
-            <div class="panel-body">
-                <p>Publish/send price lists to connected channels and partners. Send stays on the Classic twin. This screen does not invent a send.</p>
+
+            @if (!d.DatabaseAvailable)
+            {
+                <div class="epc-ps-section"><div class="alert alert-warning">@d.Notice</div></div>
+            }
+
+            <!-- Step 1: Recipients -->
+            <div class="epc-ps-section">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">
+                        <span class="epc-ps-section-label">Step 1</span>
+                        @d.Label("3662")
+                        <span class="epc-ps-heading-note">Select customers and/or paste emails</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="epc-ps-filter-grid">
+                            <div class="epc-ps-field">
+                                <label for="user_id">ID</label>
+                                <input type="text" id="user_id" value="@d.Filter.UserId" class="form-control" />
+                            </div>
+                            <div class="epc-ps-field">
+                                <label for="group_id">@d.Label("3664")</label>
+                                <select id="group_id" class="form-control">
+                                    <option value="-1" selected="@(d.Filter.GroupId == -1)">@d.Label("2094")</option>
+                                    @foreach (var g in d.Groups)
+                                    {
+                                        <option value="@g.Id" selected="@(d.Filter.GroupId == g.Id)">@g.Name (ID @g.Id)</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="epc-ps-field">
+                                <label for="email">E-mail</label>
+                                <input type="text" id="email" value="@d.Filter.Email" class="form-control" />
+                            </div>
+                            <div class="epc-ps-field">
+                                <label for="cellphone">@d.Label("1312")</label>
+                                <input type="text" id="cellphone" value="@d.Filter.Cellphone" class="form-control" />
+                            </div>
+                            <div class="epc-ps-field">
+                                <label for="surname">@d.Label("3665")</label>
+                                <input type="text" id="surname" value="@d.Filter.Surname" class="form-control" />
+                            </div>
+                        </div>
+                        <div class="epc-ps-actions">
+                            <button class="btn btn-success" type="button" onclick="filterUsers();"><i class="fa fa-filter"></i> @d.Label("2232")</button>
+                            <button class="btn btn-default" type="button" onclick="unsetFilterUsers();"><i class="fa fa-times"></i> @d.Label("2555")</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="epc-ps-section">
+                <div class="epc-ps-split">
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">@d.Label("3666")</div>
+                        <div class="panel-body">
+                            <div class="epc-ps-scroll">
+                                <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="check_uncheck_all_users" name="check_uncheck_all_users" onchange="on_check_uncheck_all_users();" /></th>
+                                            <th><a href="javascript:void(0);" onclick="sortUsers('user_id');" id="user_id_sorter">ID @SortMark("user_id")</a></th>
+                                            <th>@d.Label("3664")</th>
+                                            <th><a href="javascript:void(0);" onclick="sortUsers('email');" id="email_sorter">E-mail @SortMark("email")</a></th>
+                                            <th><a href="javascript:void(0);" onclick="sortUsers('fio');" id="fio_sorter">@d.Label("3667") @SortMark("fio")</a></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var u in d.Users)
+                                        {
+                                            <tr>
+                                                <td>
+                                                    @if (u.Email.Length > 0)
+                                                    {
+                                                        <input type="checkbox" onchange="on_one_check_changed_users('checked_users_@u.UserId');" id="checked_users_@u.UserId" name="checked_users_@u.UserId" />
+                                                    }
+                                                </td>
+                                                <td>@u.UserId</td>
+                                                <td>
+                                                    @foreach (var g in u.Groups)
+                                                    {
+                                                        <span class="epc-ps-group-chip" title="@g">@g</span>
+                                                    }
+                                                </td>
+                                                <td>
+                                                    @if (u.Email.Length > 0)
+                                                    {
+                                                        @u.Email
+                                                        @if (u.EmailConfirmed)
+                                                        {
+                                                            <i class="fa fa-check-circle" style="color:#0A0;cursor:pointer;" title="@d.Label("3546")"></i>
+                                                        }
+                                                        else
+                                                        {
+                                                            <i class="fa fa-exclamation-triangle" style="color:#F00;cursor:pointer;" title="@d.Label("3545")"></i>
+                                                        }
+                                                    }
+                                                    else
+                                                    {
+                                                        <text>E-mail @d.Label("3253")</text>
+                                                    }
+                                                </td>
+                                                <td>@u.Fio</td>
+                                            </tr>
+                                        }
+                                        @if (d.Users.Count == 0)
+                                        {
+                                            <tr><td colspan="5" class="text-muted">@(d.DatabaseAvailable ? "No customers match the filter." : "—")</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="hpanel">
+                        <div class="panel-heading hbuilt">@d.Label("3668")</div>
+                        <div class="panel-body">
+                            <textarea id="my_list_emails" placeholder="email1@example.com, email2@example.com"></textarea>
+                            <div class="epc-ps-field" style="margin-top:12px;">
+                                <label for="group_id_my_list_emails">@d.Label("3669")</label>
+                                <select id="group_id_my_list_emails" class="form-control">
+                                    @foreach (var g in d.Groups)
+                                    {
+                                        <option value="@g.Id">@g.Name (ID @g.Id)</option>
+                                    }
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 2: Sources -->
+            <div class="epc-ps-section">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">
+                        <span class="epc-ps-section-label">Step 2</span>
+                        @d.Label("3671")
+                        <span class="epc-ps-heading-note">Shop + Docpart / catalogue warehouses</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="epc-ps-inline-shop">
+                            <label for="offices">@d.Label("3670")</label>
+                            <select id="offices" name="offices" class="form-control">
+                                @foreach (var o in d.Offices)
+                                {
+                                    <option value="@o.Id">@o.Caption (ID @o.Id)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="epc-ps-scroll" style="max-height:360px;">
+                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                                <thead>
+                                    <tr>
+                                        <th><input checked type="checkbox" id="check_uncheck_all" name="check_uncheck_all" onchange="on_check_uncheck_all();" /></th>
+                                        <th>ID</th>
+                                        <th>@d.Label("2277")</th>
+                                        <th>@d.Label("3474")</th>
+                                        <th>Linked</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var s in d.Storages)
+                                    {
+                                        <tr>
+                                            <td><input checked type="checkbox" onchange="on_one_check_changed('checked_@s.Id');" id="checked_@s.Id" name="checked_@s.Id" /></td>
+                                            <td>@s.Id</td>
+                                            <td>@s.Name</td>
+                                            <td>@s.InterfaceTypeName</td>
+                                            <td>@if (s.Linked) { <span class="label label-success">Yes</span> } else { <span class="label label-warning">No</span> }</td>
+                                        </tr>
+                                    }
+                                    @if (d.Storages.Count == 0)
+                                    {
+                                        <tr><td colspan="5" class="text-muted">No Docpart / catalogue storages (interface type 1 or 2).</td></tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 3: Filters -->
+            <div class="epc-ps-section">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">
+                        <span class="epc-ps-section-label">Step 3</span>
+                        Filters
+                        <span class="epc-ps-heading-note">Markup profile, brand, article, catalogue groups</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="epc-ps-filters-row">
+                            <div class="epc-ps-field">
+                                <label for="epc_ps_profile_group">Markup profile (by group)</label>
+                                <select id="epc_ps_profile_group" class="form-control">
+                                    <option value="0">— Use selected customers / email group —</option>
+                                    @foreach (var g in d.Groups)
+                                    {
+                                        <option value="@g.Id">@g.Name (ID @g.Id)</option>
+                                    }
+                                </select>
+                                <p class="epc-ps-help">Generates CSV using this group's markup even without selecting customers.</p>
+                            </div>
+                            <div class="epc-ps-field">
+                                <label for="epc_ps_filter_brand">Brand filter (optional)</label>
+                                <input type="text" id="epc_ps_filter_brand" class="form-control" placeholder="e.g. TOYOTA" list="epc_ps_brand_list" />
+                                <datalist id="epc_ps_brand_list"></datalist>
+                                <p class="epc-ps-help">Limits Docpart / catalogue rows to matching manufacturer.</p>
+                            </div>
+                            <div class="epc-ps-field">
+                                <label for="epc_ps_filter_article">Article / item filter (optional)</label>
+                                <input type="text" id="epc_ps_filter_article" class="form-control" placeholder="e.g. 8114560Q51" />
+                                <p class="epc-ps-help">Partial match on part number.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="epc-ps-section">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">
+                        <span class="epc-ps-section-label">Step 3</span>
+                        @d.Label("3672")
+                        <span class="epc-ps-heading-note">Optional catalogue categories</span>
+                    </div>
+                    <div class="panel-body">
+                        <div class="epc-ps-tree-tools">
+                            <button type="button" onclick="catalogue_tree.checkAll();" class="btn btn-sm btn-success">@d.Label("2293")</button>
+                            <button type="button" onclick="catalogue_tree.uncheckAll();" class="btn btn-sm btn-default">@d.Label("2294")</button>
+                        </div>
+                        <div id="container_A">
+                            @if (d.CatalogueTree.Count == 0)
+                            {
+                                <div class="text-muted" style="padding:8px">No catalogue categories.</div>
+                            }
+                            else
+                            {
+                                @RenderTree(d.CatalogueTree)
+                            }
+                        </div>
+                        <div class="hidden" style="padding:15px 0;">
+                            <label for="storages">@d.Label("2750"): </label>
+                            <select id="storages" name="storages" class="form-control" style="display:inline-block; width: auto;">
+                                @foreach (var s in d.CatalogueStorages)
+                                {
+                                    <option value="@s.Id">@s.Name (ID @s.Id)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Step 4: Generate -->
+            <div class="epc-ps-section">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">
+                        <span class="epc-ps-section-label">Step 4</span>
+                        @d.Label("2755")
+                    </div>
+                    <div class="panel-body">
+                        <div class="epc-ps-generate">
+                            <button type="button" onclick="create_prices();" class="btn btn-success"><i class="fa fa-cogs"></i> @d.Label("3673")</button>
+                            <button type="button" onclick="epcPsLinkStorages();" class="btn btn-warning"><i class="fa fa-link"></i> Link selected storages</button>
+                            <button type="button" id="send_prices_btn" onclick="send_prices();" disabled class="btn btn-primary"><i class="fa fa-envelope"></i> @d.Label("3674")</button>
+                        </div>
+                        <div id="create_prices_status"></div>
+                    </div>
+                </div>
             </div>
         </div>
-    </div>
+
+        <script>
+window.EPC_PS = @((MarkupString)JsonSerializer.Serialize(new
+{
+    ajaxUrl = EcomAeRoutes.CpPricesSendAction,
+    pageUrl = "/cp/prices-send-app",
+    csrf = _csrf,
+    labels = d.Labels,
+    users = d.Users.Where(u => u.Email.Length > 0).Select(u => u.UserId).ToArray(),
+    storages = d.Storages.Select(s => s.Id).ToArray(),
+}, JsonOptions));
+        </script>
+        <script src="/platform-assets/epc_prices_send.js?v=20260925ps" defer></script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/prices_send";
+    private static readonly JsonSerializerOptions JsonOptions = new(JsonSerializerDefaults.Web);
+
     private bool _isAdmin;
+    private string _csrf = "";
+    private CpPricesSendDesk _desk = CpPricesSendDesk.Unavailable("");
+
+    private string SortMark(string field)
+        => _desk.Sort.Field == field ? (_desk.Sort.Ascending ? "▲" : "▼") : "";
+
+    private RenderFragment RenderTree(IReadOnlyList<CpPricesSendCategoryNode> nodes) => __builder =>
+    {
+        <ul>
+            @foreach (var n in nodes)
+            {
+                <li>
+                    @if (n.Children.Count > 0)
+                    {
+                        <span class="epc-ps-tree-toggle" title="Collapse / expand">−</span>
+                    }
+                    else
+                    {
+                        <span class="epc-ps-tree-leaf"></span>
+                    }
+                    <input type="checkbox" class="epc-ps-cat" value="@n.Id" id="epc_ps_cat_@n.Id" />
+                    <i class="fa @(n.Children.Count > 0 ? "fa-folder-open" : "fa-file-o")"></i>
+                    <label for="epc_ps_cat_@n.Id" style="font-weight:400;margin:0 0 0 4px">@n.Value</label>
+                    @if (n.Children.Count > 0)
+                    {
+                        @RenderTree(n.Children)
+                    }
+                </li>
+            }
+        </ul>
+    };
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin) return;
+
+        _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+        var filter = CpPricesSendUserFilter.FromCookieJson(ctx.Request.Cookies["users_filter_send_prices"]);
+        var sort = CpPricesSendUserSort.FromCookieJson(ctx.Request.Cookies["users_sort_send_prices"]);
+        _desk = await Desk.LoadAsync(filter, sort, ctx.RequestAborted);
     }
 }
