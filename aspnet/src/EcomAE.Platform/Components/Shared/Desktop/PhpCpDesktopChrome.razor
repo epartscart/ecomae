@@ -1,9 +1,11 @@
 @namespace EcomAE.Platform.Components.Shared
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject IHttpContextAccessor Http
 @inject ILegacySessionValidator Sessions
+@inject ICpNavMenuService NavMenu
 @*
   Mirrors cp/templates/bootstrap_admin/desktop.php + epc_cp_top_nav.php.
   Topnav typography/panels come from epc_cp_professional.css (px sizes).
@@ -223,74 +225,47 @@ else
                 <i class="fa fa-th-large" aria-hidden="true"></i><span>Control</span>
             </a>
             <ul class="epc-cp-topnav-list" role="menubar">
-                @foreach (var group in LegacyDesktopChromeCatalog.ControlPanelTopnav(includeSuperOnly: _showBos, industryCode: _industryCode).Where(g => _showBos || !IsBosNavGroup(g)))
+                @foreach (var group in _navGroups)
                 {
-                    var columns = group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>();
-                    var shortLabel = string.IsNullOrWhiteSpace(group.ShortLabel) ? group.Label : group.ShortLabel;
                     var itemClass = "epc-cp-topnav-item";
                     if (GroupIsActive(group)) { itemClass += " is-active"; }
                     if (group.IsAdvanced) { itemClass += " epc-cp-topnav-item--advanced"; }
-                    <li class="@itemClass" data-group="@group.Id" role="none">
+                    var firstHref = PhpSurfaceLinkMap.AspNetPrimaryHref(group.Items[0].Url);
+                    <li class="@itemClass" data-group="@group.Key" role="none">
                         <button type="button"
                                 class="epc-cp-topnav-btn"
                                 role="menuitem"
                                 aria-haspopup="true"
                                 aria-expanded="false"
-                                data-topnav-toggle="@group.Id">
-                            @if (!string.IsNullOrWhiteSpace(group.Icon))
-                            {
-                                <i class="fa @group.Icon" aria-hidden="true"></i>
-                            }
-                            <span class="epc-cp-topnav-label" data-full="@group.Label" data-short="@shortLabel">@shortLabel</span>
+                                data-topnav-toggle="@group.Key">
+                            <i class="fa @group.Icon" aria-hidden="true"></i>
+                            <span class="epc-cp-topnav-label" data-full="@group.Caption" data-short="@group.Short">@group.Short</span>
                             <i class="fa fa-angle-down epc-cp-topnav-caret" aria-hidden="true"></i>
                         </button>
-                        <div class="epc-cp-topnav-panel" role="menu" hidden data-topnav-panel="@group.Id">
+                        <div class="epc-cp-topnav-panel" role="menu" hidden data-topnav-panel="@group.Key">
                             <div class="epc-cp-topnav-panel-hd">
                                 <div class="epc-cp-topnav-panel-title">
-                                    @if (!string.IsNullOrWhiteSpace(group.Icon))
-                                    {
-                                        <i class="fa @group.Icon"></i>
-                                    }
-                                    @group.Label
+                                    <i class="fa @group.Icon"></i>
+                                    @group.Caption
                                     @if (!string.IsNullOrWhiteSpace(group.Subtitle))
                                     {
                                         <span class="epc-cp-topnav-panel-sub">@group.Subtitle</span>
                                     }
                                 </div>
-                                <a class="epc-cp-topnav-panel-hub" href="@PhpSurfaceLinkMap.AspNetPrimaryHref(group.HubHref ?? group.Links[0].Href)">
-                                    Open first <i class="fa fa-arrow-right"></i>
-                                </a>
+                                <a class="epc-cp-topnav-panel-hub" href="@firstHref">Open first <i class="fa fa-arrow-right"></i></a>
                             </div>
                             <div class="epc-cp-topnav-cols">
-                                @if (columns.Count > 0)
-                                {
-                                    @foreach (var col in columns)
-                                    {
-                                        <div class="epc-cp-topnav-col">
-                                            <ul class="epc-cp-topnav-links">
-                                                @foreach (var link in col.Tabs)
-                                                {
-                                                    var href = PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href);
-                                                    <li class="@(PathIsActive(href) ? "is-active" : null)">
-                                                        <a href="@href">
-                                                            <i class="fa @(string.IsNullOrWhiteSpace(link.Icon) ? "fa-circle-o" : link.Icon)"></i>
-                                                            @link.Label
-                                                        </a>
-                                                    </li>
-                                                }
-                                            </ul>
-                                        </div>
-                                    }
-                                }
-                                else
+                                @foreach (var col in CpNavTree.Chunk(group.Items))
                                 {
                                     <div class="epc-cp-topnav-col">
                                         <ul class="epc-cp-topnav-links">
-                                            @foreach (var link in group.Links)
+                                            @foreach (var link in col)
                                             {
-                                                var href = PhpSurfaceLinkMap.AspNetPrimaryHref(link.Href);
-                                                <li class="@(PathIsActive(href) ? "is-active" : null)">
-                                                    <a href="@href">@link.Label</a>
+                                                var href = PhpSurfaceLinkMap.AspNetPrimaryHref(link.Url);
+                                                <li class="@(PathIsActive(link.Url) ? "is-active" : null)">
+                                                    <a href="@href">
+                                                        <i class="@NavItemIcon(link.Icon)"></i> @link.Label
+                                                    </a>
                                                 </li>
                                             }
                                         </ul>
@@ -475,6 +450,7 @@ else
     private string? _storefrontHost;
     private string _currentPath = "/cp";
     private string _crumbTitle = "Control";
+    private IReadOnlyList<CpNavGroup> _navGroups = Array.Empty<CpNavGroup>();
 
     private string ShellClass
     {
@@ -539,16 +515,29 @@ else
         {
             _userLabel = string.IsNullOrWhiteSpace(session.Email) ? "Admin session" : session.Email!;
         }
+
+        _navGroups = await NavMenu.BuildAsync(host, session, ctx.RequestAborted);
     }
 
-    private bool GroupIsActive(LegacyDesktopChromeCatalog.MegaGroup group)
+    private bool GroupIsActive(CpNavGroup group) => group.Items.Any(i => PathIsActive(i.Url));
+
+    /// <summary>PHP top-nav icon normalisation: empty → <c>fa fa-circle-o</c>; bare <c>fa-x</c> → <c>fa fa-x</c>.</summary>
+    internal static string NavItemIcon(string? icon)
     {
-        if (PathIsActive(group.HubHref))
+        icon = (icon ?? string.Empty).Trim();
+        if (icon.Length == 0)
         {
-            return true;
+            return "fa fa-circle-o";
         }
 
-        return group.Links.Any(l => PathIsActive(l.Href));
+        if (icon.StartsWith("fa ", StringComparison.Ordinal)
+            || icon.StartsWith("fas ", StringComparison.Ordinal)
+            || icon.StartsWith("far ", StringComparison.Ordinal))
+        {
+            return icon;
+        }
+
+        return "fa " + icon.TrimStart('.');
     }
 
     private bool PathIsActive(string? href)
@@ -636,16 +625,4 @@ else
         return "Modules";
     }
 
-    private static bool IsBosNavGroup(LegacyDesktopChromeCatalog.MegaGroup group)
-    {
-        if (string.Equals(group.Id, "platform", StringComparison.OrdinalIgnoreCase)
-            || string.Equals(group.Label, "Platform", StringComparison.OrdinalIgnoreCase))
-        {
-            return true;
-        }
-
-        var hub = group.HubHref ?? string.Empty;
-        return hub.StartsWith("/bos", StringComparison.OrdinalIgnoreCase)
-            || group.Links.Any(l => l.Href.StartsWith("/bos", StringComparison.OrdinalIgnoreCase));
-    }
 }
