@@ -853,12 +853,12 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("draft", CpCrmQuoteWriteService.NormalizeStatus("nope"));
         Assert.Equal("Q-202609-0001", CpCrmQuoteWriteService.NextQuoteNumber(1, new DateTimeOffset(2026, 9, 9, 0, 0, 0, TimeSpan.Zero)));
 
-        var quoteSaveBad = await new CpCrmQuoteWriteService(new ConfiguredNeverOpened())
+        var quoteSaveBad = await new CpCrmQuoteWriteService(new ConfiguredNeverOpened(), new NoTax(), new NoCurrency(), "/nonexistent")
             .SaveAsync(new CpCrmQuoteSaveRequest(-1, 0, 0, 0, "", "draft", "", "", 1, 0));
         Assert.False(quoteSaveBad.Succeeded);
         Assert.Equal("invalid", quoteSaveBad.Code);
 
-        var quoteSaveDb = await new CpCrmQuoteWriteService(new UnconfiguredConnections())
+        var quoteSaveDb = await new CpCrmQuoteWriteService(new UnconfiguredConnections(), new NoTax(), new NoCurrency(), "/nonexistent")
             .SaveAsync(new CpCrmQuoteSaveRequest(0, 0, 0, 0, "", "draft", "", "", 1, 0));
         Assert.False(quoteSaveDb.Succeeded);
         Assert.Equal("db", quoteSaveDb.Code);
@@ -4597,4 +4597,21 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("db", missingDb.Code);
     }
 
+    private sealed class NoTax : IErpTaxAmountCalculator
+    {
+        public Task<ErpTaxAmounts> CalcAsync(DbConnection connection, DbTransaction? transaction, decimal amountExVat, int customerUserId, int contactId, bool export, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("tax must not be consulted before a quote exists");
+
+        public Task<ErpPurchaseTaxAmounts> CalcPurchaseAsync(DbConnection connection, DbTransaction? transaction, decimal amountExVat, int supplierId, bool import, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("tax must not be consulted before a quote exists");
+    }
+
+    private sealed class NoCurrency : ICpCurrencyLiveRatesService
+    {
+        public Task<(string IsoCode, string Alpha)> GetMainCurrencyAsync(CancellationToken cancellationToken = default) => Task.FromResult(("784", "AED"));
+        public Task<CpCurrencyLivePreview> PreviewAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CpCurrencyLiveApplyResult> ApplyAsync(IReadOnlyCollection<string>? onlyIsoCodes, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CpCurrencyFxSchedule> GetScheduleAsync(CancellationToken cancellationToken = default) => throw new NotSupportedException();
+        public Task<CpCurrencyFxTickResult> TickAsync(bool force, CancellationToken cancellationToken = default) => throw new NotSupportedException();
+    }
 }

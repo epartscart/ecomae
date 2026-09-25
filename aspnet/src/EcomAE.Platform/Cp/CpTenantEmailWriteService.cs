@@ -21,7 +21,12 @@ public interface ICpTenantEmailWriteService
     Task<ErpSimpleWriteResult> SaveAsync(CpTenantEmailSaveRequest request, CancellationToken cancellationToken = default);
 
     Task<ErpSimpleWriteResult> SendTestAsync(string? testTo, CancellationToken cancellationToken = default);
+
+    /// <summary>Send one HTML message through the tenant SMTP (optionally with a file attachment). Fails explicitly when tenant SMTP is off/unconfigured.</summary>
+    Task<ErpSimpleWriteResult> SendAsync(CpTenantEmailMessage message, CancellationToken cancellationToken = default);
 }
+
+public sealed record CpTenantEmailMessage(string To, string Subject, string HtmlBody, string? AttachmentPath = null, string? AttachmentName = null);
 
 /// <summary>Live PHP <c>ajax_integrations.php</c> <c>save_tenant_smtp</c> / <c>test_tenant_smtp</c>.</summary>
 public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
@@ -142,12 +147,24 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
         }
     }
 
-    public async Task<ErpSimpleWriteResult> SendTestAsync(string? testTo, CancellationToken cancellationToken = default)
+    public Task<ErpSimpleWriteResult> SendTestAsync(string? testTo, CancellationToken cancellationToken = default)
+        => SendAsync(
+            new CpTenantEmailMessage(
+                (testTo ?? string.Empty).Trim(),
+                "ECOM AE SMTP test — " + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm"),
+                "<p>This is a test message from tenant CP SMTP settings.</p>"),
+            cancellationToken,
+            "Test email sent to ");
+
+    public Task<ErpSimpleWriteResult> SendAsync(CpTenantEmailMessage message, CancellationToken cancellationToken = default)
+        => SendAsync(message, cancellationToken, "Email sent to ");
+
+    private async Task<ErpSimpleWriteResult> SendAsync(CpTenantEmailMessage message, CancellationToken cancellationToken, string okPrefix)
     {
-        var to = (testTo ?? string.Empty).Trim();
+        var to = (message.To ?? string.Empty).Trim();
         if (!IsEmail(to))
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Valid test email required");
+            return ErpSimpleWriteResult.Fail("invalid", "Valid recipient email required");
         }
 
         if (!_connections.IsConfigured)
@@ -203,14 +220,29 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
                 fromEmail = to;
             }
 
-            using var message = new MailMessage
+            using var mail = new MailMessage
             {
                 From = string.IsNullOrWhiteSpace(fromName) ? new MailAddress(fromEmail) : new MailAddress(fromEmail, fromName),
-                Subject = "ECOM AE SMTP test — " + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm"),
-                Body = "<p>This is a test message from tenant CP SMTP settings.</p>",
+                Subject = message.Subject,
+                Body = message.HtmlBody,
                 IsBodyHtml = true,
             };
-            message.To.Add(to);
+            mail.To.Add(to);
+            if (!string.IsNullOrWhiteSpace(message.AttachmentPath))
+            {
+                if (!File.Exists(message.AttachmentPath))
+                {
+                    return ErpSimpleWriteResult.Fail("attachment_missing", "Attachment file not found.");
+                }
+
+                var attachment = new Attachment(message.AttachmentPath);
+                if (!string.IsNullOrWhiteSpace(message.AttachmentName))
+                {
+                    attachment.Name = message.AttachmentName;
+                }
+
+                mail.Attachments.Add(attachment);
+            }
 
             using var client = new SmtpClient(host, port)
             {
@@ -223,8 +255,8 @@ public sealed class CpTenantEmailWriteService : ICpTenantEmailWriteService
                 client.Credentials = new NetworkCredential(user, pass);
             }
 
-            await client.SendMailAsync(message, cancellationToken).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Ok("Test email sent to " + to, 0);
+            await client.SendMailAsync(mail, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok(okPrefix + to, 0);
         }
         catch (JsonException)
         {

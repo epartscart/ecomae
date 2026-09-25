@@ -2053,6 +2053,9 @@ public static class EcomAeRoutes
     public const string CpPortalDeploySite = "/cp/portal/deploy-site";
     /// <summary>CRM save_lead / delete_lead. <c>confirmWrites=true</c> twins PHP ajax_crm.php. Quote email stays Classic.</summary>
     public const string CpCrmAction = "/cp/crm/action";
+
+    /// <summary>PHP <c>cp/content/shop/prices_send/ajax_operations.php</c> twin.</summary>
+    public const string CpPricesSendAction = "/cp/prices-send/action";
     /// <summary>Wave C catalog of CP module ajax write surfaces (procurement/document_control/customer_mgmt/auto_price/CRM).</summary>
     public const string CpModuleAjaxWriteCatalog = "/cp/module-ajax/writes/catalog";
     /// <summary>Wave C registry dry-run for any catalogued CP module ajax action (writes=0).</summary>

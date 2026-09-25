@@ -4121,22 +4121,18 @@ public sealed class ErpRecordOpenPhpParityTests
         var root = FindRepoRoot();
         var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/CpCrmBoardApp.razor"));
         Assert.Contains("ErpOpenedRecordBanner", razor, StringComparison.Ordinal);
-        Assert.Contains("BuildCpCrmLeadDetailAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("Desk.GetLeadAsync(_openedId", razor, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"lead_id\")", razor, StringComparison.Ordinal);
-        Assert.Contains("lead_id=", razor, StringComparison.Ordinal);
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"lead_id\"", razor, StringComparison.Ordinal);
-        Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.Href(TabUrl(\"leads\"), \"lead_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpRecordOpen.RowClass(l.Id, _openedId)", razor, StringComparison.Ordinal);
         Assert.Contains("ContactName", razor, StringComparison.Ordinal);
-        Assert.Contains("Email/phone omitted", razor, StringComparison.Ordinal);
-        Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
+        Assert.Contains("_openedLead?.Email", razor, StringComparison.Ordinal);
+        Assert.Contains("_openedLead?.Phone", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref(_phpTab)", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("_opened.Email", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("_opened.Phone", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-crm-hero", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w16-hero", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
 

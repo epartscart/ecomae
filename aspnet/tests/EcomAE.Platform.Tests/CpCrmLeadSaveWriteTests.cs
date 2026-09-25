@@ -50,11 +50,12 @@ public sealed class CpCrmLeadSaveWriteTests
         Assert.Contains("value=\"delete_lead\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"company\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"contact_name\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"csrf_guard_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-crm-quote-email", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("crm_quote_email", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("SmtpClient", razor, StringComparison.Ordinal);
     }
 
     [Fact]
