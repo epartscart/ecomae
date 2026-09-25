@@ -32,7 +32,7 @@ public sealed class CpPhpParityTests
     [InlineData("/CP/control/portal/epc_ai_copilot", "/cp/ai-service-app")]
     [InlineData("/CP/control/portal/epc_boc_warehouse_control", "/cp/warehouse-wms-app")]
     [InlineData("/CP/control/portal/epc_boc_command_center", "/cp/control")]
-    [InlineData("/CP/shop/procurement/procurement", "/cp/purchase-requests-app")]
+    [InlineData("/CP/shop/procurement/procurement", "/cp/procurement-app")]
     [InlineData("/CP/shop/logistics/stock", "/erp/inventory-stock-app")]
     [InlineData("/CP/shop/price-management", "/cp/price-lists-app")]
     [InlineData("/CP/shop/statistics/statistics", "/cp/statistics-app")]

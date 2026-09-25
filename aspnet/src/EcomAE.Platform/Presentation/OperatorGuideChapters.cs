@@ -781,7 +781,7 @@ internal static class OperatorGuideChapters
                     "Without the shop database the counts stay zero."
                 ])
             ],
-            ["/cp/purchase-requests-app", "/erp/payables-app"]),
+            ["/cp/procurement-app", "/cp/purchase-requests-app", "/erp/payables-app"]),
         new(
             "customer-mgmt",
             "cp",

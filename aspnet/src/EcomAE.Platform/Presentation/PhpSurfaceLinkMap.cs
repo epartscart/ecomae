@@ -63,7 +63,7 @@ public static class PhpSurfaceLinkMap
         ("shop/crosses", "/cp/crosses-app"),
         ("shop/crm", "/cp/crm-board-app"),
         ("shop/pos", "/cp/pos-overview-app"),
-        ("shop/procurement", "/cp/purchase-requests-app"),
+        ("shop/procurement", "/cp/procurement-app"),
         ("shop/eparts-cata", "/cp/product-catalogue-app"),
         ("shop/eparts-mod", "/cp/product-catalogue-app"),
 
@@ -82,7 +82,7 @@ public static class PhpSurfaceLinkMap
         ("shop/filter", "/cp/product-filters-app"),
         ("shop/demand_countries", "/cp/demand-intelligence-app"),
         ("shop/pricing", "/cp/price-lists-app"),
-        ("shop/returns", "/cp/returns-rma-app"),
+        ("shop/returns", "/cp/returns-app"),
         ("shop/channels", "/cp/marketplace-channels-app"),
         ("filemanager", "/cp/file-manager-app"),
         ("file_manager", "/cp/file-manager-app"),
@@ -137,7 +137,7 @@ public static class PhpSurfaceLinkMap
         ("shop/taby-poiska", "/cp/search-tabs-app"),
         ("taby-poiska", "/cp/search-tabs-app"),
         ("control/shop/docpart/crosses", "/cp/crosses-app"),
-        ("control/shop/procurement", "/cp/purchase-requests-app"),
+        ("control/shop/procurement", "/cp/procurement-app"),
         ("control/shop/multivendor", "/cp/prices-upload-app"),
         ("multivendor", "/cp/prices-upload-app"),
         // BocNav / brochure holdouts that previously collapsed to bare /cp.
@@ -209,8 +209,8 @@ public static class PhpSurfaceLinkMap
         ("control/portal/tenant_control", "/cp/tenants-app"),
         ("control/portal/portal", "/cp/portal-settings-app"),
         ("shop/document_control/document_control", "/cp/document-control-app"),
-        ("shop/procurement/procurement", "/cp/purchase-requests-app"),
-        ("shop/procurement", "/cp/purchase-requests-app"),
+        ("shop/procurement/procurement", "/cp/procurement-app"),
+        ("shop/procurement", "/cp/procurement-app"),
         ("shop/price-management", "/cp/price-lists-app"),
         ("shop/finance/nastrojka-kursov-valyut", "/cp/currencies-app"),
         ("shop/finance/epc_collections_dunning", "/cp/collections-dunning-app"),
@@ -260,7 +260,7 @@ public static class PhpSurfaceLinkMap
         ("epc_sso_saml", "/cp/sso-saml-app"),
         ("epc_event_bus", "/cp/event-bus-app"),
         ("shop/payments/payments", "/cp/payment-gateways-app"),
-        ("shop/returns-manager", "/cp/returns-rma-app"),
+        ("shop/returns-manager", "/cp/returns-app"),
         ("shop/crm/crm_main", "/cp/crm-board-app"),
         ("shop/crm", "/cp/crm-board-app"),
         ("shop/pos", "/cp/pos-overview-app"),
@@ -945,6 +945,29 @@ public static class PhpSurfaceLinkMap
     }
 
     /// <summary>
+    /// PHP <c>/CP/shop/returns-manager?page=detail&amp;return_id=</c> and
+    /// <c>?page=reasons_statuses</c> keep the router page on the ASP.NET twin.
+    /// </summary>
+    private static string MapCpReturnsAppHref(string original)
+    {
+        var page = ExtractQuery(original, "page") ?? string.Empty;
+        var raw = ExtractQuery(original, "return_id");
+        if (!string.IsNullOrWhiteSpace(raw)
+            && long.TryParse(raw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var returnId)
+            && returnId > 0)
+        {
+            return "/cp/returns-app?page=detail&return_id=" + returnId.ToString(System.Globalization.CultureInfo.InvariantCulture);
+        }
+
+        if (page.Equals("reasons_statuses", StringComparison.OrdinalIgnoreCase))
+        {
+            return "/cp/returns-app?page=reasons_statuses&action=select";
+        }
+
+        return "/cp/returns-app";
+    }
+
+    /// <summary>
     /// PHP <c>/CP/shop/prices/price?price_id=</c> and wizard/review <c>?price_id=</c>
     /// keep the list id so the ASP.NET manager opens the same row.
     /// </summary>
@@ -1623,6 +1646,11 @@ public static class PhpSurfaceLinkMap
                     return MapCpOrdersHref(value);
                 }
 
+                if (aspNet.Equals("/cp/returns-app", StringComparison.OrdinalIgnoreCase))
+                {
+                    return MapCpReturnsAppHref(value);
+                }
+
                 // Preserve ?fulfillment_id= so PHP queue deep links open the dual-pane.
                 if (aspNet.Equals("/cp/fulfillment-queue-app", StringComparison.OrdinalIgnoreCase))
                 {
@@ -1650,6 +1678,7 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/aml-compliance-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/quote-requests-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/returns-rma-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/returns-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/tenant-config-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/marketing-broadcast-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/data-migrations-app", StringComparison.OrdinalIgnoreCase)
@@ -1714,6 +1743,7 @@ public static class PhpSurfaceLinkMap
                     || aspNet.Equals("/cp/plugins-manager-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/sitemap-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/price-lists-app", StringComparison.OrdinalIgnoreCase)
+                    || aspNet.Equals("/cp/price-management-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/price-configs-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/cp/bulk-upload-app", StringComparison.OrdinalIgnoreCase)
                     || aspNet.Equals("/erp/fixed-assets-app", StringComparison.OrdinalIgnoreCase)

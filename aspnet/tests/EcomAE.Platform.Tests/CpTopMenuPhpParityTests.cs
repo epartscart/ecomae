@@ -97,7 +97,7 @@ public sealed class CpTopMenuPhpParityTests
         AssertContainsAspNet(commerce, "/cp/geo-regions-app");
         AssertContainsAspNet(commerce, "/cp/price-lists-app");
         AssertContainsAspNet(commerce, "/cp/crosses-app");
-        AssertContainsAspNet(commerce, "/cp/returns-rma-app");
+        AssertContainsAspNet(commerce, "/cp/returns-app");
         AssertContainsAspNet(commerce, "/cp/quote-requests-app");
 
         var logistics = Assert.Single(groups, g => g.Label.Equals("Logistics", StringComparison.OrdinalIgnoreCase));

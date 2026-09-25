@@ -343,6 +343,10 @@ public static class EcomAeRoutes
     public const string ControlPanelReturnsRma = "/cp/returns-rma";
     /// <summary>CP returns-rma Blazor list (JSON digest remains <see cref="ControlPanelReturnsRma"/>).</summary>
     public const string ControlPanelReturnsRmaApp = "/cp/returns-rma-app";
+    /// <summary>CP returns manager twin (PHP <c>shop/returns-manager</c>: list / detail / reasons_statuses).</summary>
+    public const string ControlPanelReturnsApp = "/cp/returns-app";
+    /// <summary>CP price management (PHP <c>shop/pricing/price_management.php</c> twin).</summary>
+    public const string ControlPanelPriceManagementApp = "/cp/price-management-app";
     /// <summary>CP commerce isolation audit (report_json omitted).</summary>
     public const string ControlPanelIsolationAudit = "/cp/isolation-audit";
     /// <summary>CP isolation-audit Blazor list (JSON digest remains <see cref="ControlPanelIsolationAudit"/>).</summary>
@@ -531,6 +535,8 @@ public static class EcomAeRoutes
     public const string CpPricesEditWrite = "/cp/prices-edit/write";
     public const string ControlPanelPricesSendApp = "/cp/prices-send-app";
     public const string ControlPanelWorkshopApp = "/cp/workshop-app";
+    /// <summary>PHP <c>cp/content/shop/procurement/procurement_main.php</c> twin (supplier procurement desk: dashboard / suppliers / purchase bills / payments / advances / fulfillment / warehouses / guide).</summary>
+    public const string ControlPanelProcurementApp = "/cp/procurement-app";
     public const string ControlPanelSaoApp = "/cp/sao-app";
     public const string ControlPanelPrintDocsApp = "/cp/print-docs-app";
     public const string ControlPanelDataTransferApp = "/cp/data-transfer-app";
@@ -1327,6 +1333,8 @@ public static class EcomAeRoutes
     public const string CpApiClientsToggle = "/cp/api-clients/toggle";
     /// <summary>PHP epc_pm_storage_panel.php rule save (ON DUPLICATE KEY) and DELETE.</summary>
     public const string CpPriceStorageRules = "/cp/prices/storage-rules";
+    /// <summary>CP price management POST dispatcher (price_management.php + epc_pm_storage_panel.php actions).</summary>
+    public const string CpPriceManagementAction = "/cp/price-management/action";
     /// <summary>PHP content_manager.php set_published_flag (single id). System pages stay locked.</summary>
     public const string CpContentPublished = "/cp/content/published";
     /// <summary>PHP content_manager.php set_main_flag.</summary>
@@ -1514,6 +1522,8 @@ public static class EcomAeRoutes
     public const string CpWorkshopWrite = "/cp/workshop/write";
     /// <summary>PHP-shaped <c>ajax_workshop_endpoint.php</c> dispatcher (all actions incl. seed_demo / get_job / list_jobs / list_appointments) used by epc_workshop.js.</summary>
     public const string CpWorkshopTerminalAjax = "/cp/workshop/terminal-ajax";
+    /// <summary>PHP-shaped <c>ajax_procurement.php</c> dispatcher (create_supplier / update_supplier / sync_suppliers / create_purchase / supplier_payment / record_advance / purchase_from_order / supplier_settlement / purchase_adjustment); live ERP services, CP admin session.</summary>
+    public const string CpProcurementAjax = "/cp/procurement/ajax";
     /// <summary>Catalogue min-limit. <c>confirmWrites=true</c> is the live twin of PHP ajax_operations_products.php save_product_*_limit.</summary>
     public const string CpCatalogueSetMinLimit = "/cp/catalogue/set-min-limit";
     /// <summary>Category-template create/delete. <c>confirmWrites=true</c> is the live twin of PHP ajax_templates_actions.php create/delete. File image upload and from-category disk copy stay PHP.</summary>

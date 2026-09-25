@@ -1009,6 +1009,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopWriteService, EcomAE.Pl
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkshopDeskService, EcomAE.Platform.Cp.CpWorkshopDeskService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmDeskService, EcomAE.Platform.Cp.CpCrmDeskService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCsrfGuard, EcomAE.Platform.Cp.CpCsrfGuard>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpProcurementDeskService, EcomAE.Platform.Cp.CpProcurementDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpProcurementWriteService, EcomAE.Platform.Cp.CpProcurementWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWorkshopWriteService, EcomAE.Platform.Storefront.StorefrontWorkshopWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpFulfillmentQueueWriteService, EcomAE.Platform.Cp.CpFulfillmentQueueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCollectionsDunningWriteService, EcomAE.Platform.Cp.CpCollectionsDunningWriteService>();
@@ -1034,6 +1036,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyLiveRatesService, EcomA
 builder.Services.Configure<EcomAE.Platform.Cp.CpCurrencyFxScheduleOptions>(builder.Configuration.GetSection(EcomAE.Platform.Cp.CpCurrencyFxScheduleOptions.SectionName));
 builder.Services.AddHostedService<EcomAE.Platform.Cp.CpCurrencyFxScheduleHostedService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnWriteService, EcomAE.Platform.Cp.CpReturnWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpReturnsDeskService, EcomAE.Platform.Cp.CpReturnsDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceManagementService, EcomAE.Platform.Cp.CpPriceManagementService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCreditLimitWriteService, EcomAE.Platform.Cp.CpCreditLimitWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTaxToolkitWriteService, EcomAE.Platform.Cp.CpTaxToolkitWriteService>();
 builder.Services.AddSingleton<ICpTaxToolkitInstallDryRun, CpTaxToolkitInstallDryRun>();
