@@ -230,7 +230,7 @@ else
                     var itemClass = "epc-cp-topnav-item";
                     if (GroupIsActive(group)) { itemClass += " is-active"; }
                     if (group.IsAdvanced) { itemClass += " epc-cp-topnav-item--advanced"; }
-                    var firstHref = PhpSurfaceLinkMap.AspNetPrimaryHref(group.Items[0].Url);
+                    var firstHref = CpNavTree.AspNetHref(group.Items[0].Url);
                     <li class="@itemClass" data-group="@group.Key" role="none">
                         <button type="button"
                                 class="epc-cp-topnav-btn"
@@ -261,7 +261,7 @@ else
                                         <ul class="epc-cp-topnav-links">
                                             @foreach (var link in col)
                                             {
-                                                var href = PhpSurfaceLinkMap.AspNetPrimaryHref(link.Url);
+                                                var href = CpNavTree.AspNetHref(link.Url);
                                                 <li class="@(PathIsActive(link.Url) ? "is-active" : null)">
                                                     <a href="@href">
                                                         <i class="@NavItemIcon(link.Icon)"></i> @link.Label
@@ -547,7 +547,7 @@ else
             return false;
         }
 
-        var mapped = PhpSurfaceLinkMap.AspNetPrimaryHref(href).Split('?', 2)[0];
+        var mapped = CpNavTree.AspNetHref(href).Split('?', 2)[0];
         if (string.IsNullOrWhiteSpace(mapped) || mapped == "/")
         {
             return false;
