@@ -1178,6 +1178,26 @@ app.UseAntiforgery();
 
 app.MapHealthChecks(EcomAeRoutes.Health);
 
+app.MapGet(EcomAeRoutes.ReleaseIdentity, (IHostEnvironment environment) =>
+{
+    var releaseFile = Path.Combine(environment.ContentRootPath, "RELEASE_SHA");
+    var commitSha = File.Exists(releaseFile)
+        ? File.ReadAllText(releaseFile).Trim()
+        : "unknown";
+    var assembly = typeof(Program).Assembly;
+
+    return Results.Ok(new
+    {
+        commitSha,
+        assemblyVersion = assembly.GetName().Version?.ToString() ?? "unknown",
+        releaseBuiltAtUtc = File.Exists(releaseFile)
+            ? File.GetLastWriteTimeUtc(releaseFile)
+            : (DateTime?)null,
+        phpReferenceOnly = true,
+        broadCutoverAllowed = false
+    });
+});
+
 // robots.txt advertises /sitemap.xml; PHP child maps remain authoritative under sitemap-index.php.
 app.MapGet(EcomAeRoutes.SitemapXml, () =>
 {

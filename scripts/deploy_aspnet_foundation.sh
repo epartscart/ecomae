@@ -43,6 +43,8 @@ install -d "$PLATFORM_DIR" "$WORKERS_DIR" "$RELEASE_ROOT/releases"
 
 dotnet publish "$ROOT/aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj" -c "$DOTNET_CONFIGURATION" -o "$PLATFORM_DIR"
 dotnet publish "$ROOT/aspnet/src/EcomAE.Workers/EcomAE.Workers.csproj" -c "$DOTNET_CONFIGURATION" -o "$WORKERS_DIR"
+git -C "$ROOT" rev-parse HEAD > "$PLATFORM_DIR/RELEASE_SHA"
+chmod 0644 "$PLATFORM_DIR/RELEASE_SHA"
 
 # Pack Zero-PHP final-gate evidence/ops files into the platform ContentRoot so
 # /migration/php-decommission-readiness can see attached git artifacts on the server.
