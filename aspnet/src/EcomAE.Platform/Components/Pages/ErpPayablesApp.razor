@@ -66,6 +66,7 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Email, phone, and bank details stay omitted from this operational view.</p>
+            <p class="text-muted">Supplier settlement writes stay Classic-compatible until payables parity is closed.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.TrnExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">TRN excerpt</p>
