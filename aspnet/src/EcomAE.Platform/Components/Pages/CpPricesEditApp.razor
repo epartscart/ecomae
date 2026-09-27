@@ -1,8 +1,11 @@
 @page "/cp/prices-edit-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
 @inject ILegacySessionValidator Sessions
+@inject ICpPricesEditDeskService Desk
 @inject IHttpContextAccessor Http
 
 <PageTitle>Prices edit · Control Panel · eParts Cart</PageTitle>
@@ -10,101 +13,395 @@
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Prices edit
-                <a class="btn btn-xs btn-default pull-right" href="/cp/price-lists-app">Price lists</a>
-                <a class="btn btn-xs btn-default pull-right" href="/cp/prices-send-app" style="margin-right:.4rem">Prices send</a>
-                <a class="btn btn-xs btn-default pull-right" href="/cp/prices-upload-app" style="margin-right:.4rem">Prices upload</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
-            </div>
-            <div class="panel-body">
-                <p>Add, save, delete, and search-delete price rows here when confirmWrites is set. The Classic table list stays on the Classic twin.</p>
+    <div class="row row-add" style="margin:0">
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">
+                    Edit price list records
+                    <span class="pull-right">
+                        <a class="btn btn-default btn-xs" href="/cp/price-lists-app"><i class="fa fa-arrow-left"></i> Back to price lists</a>
+                        <a class="btn btn-default btn-xs" href="/cp/prices-send-app">Prices send</a>
+                        <a class="btn btn-default btn-xs" href="/cp/prices-upload-app">Prices upload</a>
+                        <a class="btn btn-default btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(PhpTab)">Classic twin</a>
+                    </span>
+                </div>
+                <div class="panel-body">
+                    <p class="text-muted" style="margin:0">Search and edit rows in <code>shop_docpart_prices_data</code>. Choose a profile below to preview site price and margin.</p>
+                </div>
             </div>
         </div>
     </div>
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
+        <div class="alert alert-success" role="status">@_flashOk</div>
     }
     @if (!string.IsNullOrWhiteSpace(_flashErr))
     {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
+        <div class="alert alert-danger" role="status">@_flashErr</div>
     }
+    @if (!_desk.Available)
+    {
+        <div class="alert alert-danger" role="status"><strong>Price list editor could not load:</strong> @_desk.Message</div>
+    }
+
+    <form method="get" action="/cp/prices-edit-app">
+        <div class="row row-add" style="margin:0">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Fuzzy search</div>
+                    <div class="panel-body">
+                        <div class="col-lg-6">
+                            <label>Search:</label>
+                            <input class="form-control" type="text" name="search_text" value="@_filter.SearchText" />
+                        </div>
+                    </div>
+                    <div class="panel-heading hbuilt" style="border-top:0">Exact match filter</div>
+                    <div class="panel-body">
+                        <div class="col-lg-3">
+                            <label>Price list:</label>
+                            <select name="price_id" class="form-control">
+                                <option value="0">All</option>
+                                @foreach (var pl in _desk.PriceLists)
+                                {
+                                    <option value="@pl.Id" selected="@(pl.Id == _filter.PriceId)">id @pl.Id - @pl.Name</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-3">
+                            <label>Article:</label>
+                            <input class="form-control" type="text" name="article" value="@_filter.Article" />
+                            <label class="checkbox-inline" style="font-weight:normal">
+                                <input type="checkbox" name="no_article" value="1" checked="@_filter.NoArticle" /> Empty article
+                            </label>
+                        </div>
+                        <div class="col-lg-3">
+                            <label>Manufacturer:</label>
+                            <input class="form-control" type="text" name="manufacturer" value="@_filter.Manufacturer" />
+                            <label class="checkbox-inline" style="font-weight:normal">
+                                <input type="checkbox" name="no_manufacturer" value="1" checked="@_filter.NoManufacturer" /> Empty manufacturer
+                            </label>
+                        </div>
+                    </div>
+                    <div class="panel-heading hbuilt" style="border-top:0">Site preview (profile margin)</div>
+                    <div class="panel-body">
+                        <div class="col-lg-4">
+                            <label>Customer profile (as on storefront):</label>
+                            <select name="preview_group_id" class="form-control">
+                                <option value="0" selected="@(_filter.PreviewGroupId == 0)">— Base list price only —</option>
+                                @foreach (var prof in _desk.Profiles)
+                                {
+                                    <option value="@prof.GroupId" selected="@(prof.GroupId == _filter.PreviewGroupId)">@(prof.Value + " — " + prof.Code)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="col-lg-2">
+                            <label>Min. margin %:</label>
+                            <input class="form-control" type="number" name="min_margin" min="0" step="0.1" placeholder="Any"
+                                   value="@(_filter.MinMargin > 0 ? _filter.MinMargin.ToString(CultureInfo.InvariantCulture) : "")" />
+                        </div>
+                        <div class="col-lg-3" style="padding-top:24px">
+                            <label class="checkbox-inline" style="font-weight:normal">
+                                <input type="checkbox" name="hide_hidden" value="1" checked="@_filter.HideHidden" /> Hide brands hidden for this profile
+                            </label>
+                        </div>
+                        <div class="col-lg-3" style="padding-top:24px">
+                            <small class="text-muted">Site price uses warehouse markup + brand rules (same as shop search).</small>
+                        </div>
+                    </div>
+                    <div class="panel-footer text-right">
+                        <a class="btn btn-ar btn-default" href="/cp/prices-edit-app"><i class="fa fa-eraser"></i> Reset</a>
+                        <button type="submit" class="btn btn-ar btn-primary"><i class="fa fa-search"></i> Search</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+
     @if (_isAdmin)
     {
-        <div style="display:grid;gap:.65rem;margin:0 0 1rem">
-            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
-                <input type="hidden" name="action" value="add" />
-                <label>Price list id <input type="number" name="priceId" min="0" required /></label>
-                <label>Article <input type="text" name="article" required maxlength="64" /></label>
-                <label>Manufacturer <input type="text" name="manufacturer" required maxlength="255" /></label>
-                <label>Name <input type="text" name="name" maxlength="255" /></label>
-                <label>Exist <input type="number" name="exist" min="0" value="0" /></label>
-                <label>Price <input type="text" name="price" required /></label>
-                <label>Days <input type="number" name="timeToExe" min="0" value="0" /></label>
-                <label>Storage <input type="text" name="storage" maxlength="255" /></label>
-                <label>Min order <input type="number" name="minOrder" min="0" value="1" /></label>
-                <button type="submit">Add row</button>
-            </form>
-            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
-                <input type="hidden" name="action" value="save" />
-                <label>Row id <input type="number" name="id" min="1" required /></label>
-                <label>Price list id <input type="number" name="priceId" min="1" required /></label>
-                <label>Article <input type="text" name="article" required maxlength="64" /></label>
-                <label>Manufacturer <input type="text" name="manufacturer" required maxlength="255" /></label>
-                <label>Name <input type="text" name="name" maxlength="255" /></label>
-                <label>Exist <input type="number" name="exist" min="0" value="0" /></label>
-                <label>Price <input type="text" name="price" required /></label>
-                <label>Days <input type="number" name="timeToExe" min="0" value="0" /></label>
-                <label>Storage <input type="text" name="storage" maxlength="255" /></label>
-                <label>Min order <input type="number" name="minOrder" min="0" value="1" /></label>
-                <button type="submit">Save row</button>
-            </form>
-            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
-                <input type="hidden" name="action" value="del" />
-                <label>Row id <input type="number" name="id" min="1" required /></label>
-                <button type="submit">Delete row</button>
-            </form>
-            <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
-                <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="returnUrl" value="/cp/prices-edit-app" />
-                <input type="hidden" name="action" value="del_search" />
-                <label>Price list id <input type="number" name="priceId" min="0" /></label>
-                <label>Article <input type="text" name="article" maxlength="64" /></label>
-                <label>Manufacturer <input type="text" name="manufacturer" maxlength="255" /></label>
-                <label>Search <input type="text" name="search_text" maxlength="255" /></label>
-                <label><input type="checkbox" name="no_article" value="1" /> Empty article</label>
-                <label><input type="checkbox" name="no_manufacturer" value="1" /> Empty manufacturer</label>
-                <button type="submit">Search-delete</button>
-            </form>
+        <div class="row row-add" style="margin:0">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Add row manually</div>
+                    <form method="post" action="/cp/prices-edit/write">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                        <input type="hidden" name="action" value="add" />
+                        <div class="panel-body">
+                            <div class="col-lg-3">
+                                <label>Price list:</label>
+                                <select name="priceId" class="form-control">
+                                    @foreach (var pl in _desk.PriceLists)
+                                    {
+                                        <option value="@pl.Id">id @pl.Id - @pl.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="col-lg-9"><label>Name:</label><input class="form-control" type="text" name="name" /></div>
+                            <div class="col-lg-3"><label>Article:</label><input class="form-control" type="text" name="article" required /></div>
+                            <div class="col-lg-3"><label>Manufacturer:</label><input class="form-control" type="text" name="manufacturer" required /></div>
+                            <div class="col-lg-3"><label>Qty:</label><input class="form-control" type="number" name="exist" value="1" /></div>
+                            <div class="col-lg-3"><label>Price:</label><input class="form-control" type="number" step="0.01" name="price" required /></div>
+                            <div class="col-lg-3"><label>Lead time:</label><input class="form-control" type="number" name="timeToExe" value="0" /></div>
+                            <div class="col-lg-3"><label>Min. order:</label><input class="form-control" type="number" name="minOrder" value="1" /></div>
+                        </div>
+                        <div class="panel-footer text-right">
+                            <button type="submit" class="btn btn-ar btn-primary"><i class="fa fa-plus"></i> Add</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
         </div>
     }
 
-    <p class="help-block">Add, save, delete, and search-delete write when confirmWrites is set. The Classic table list stays on the Classic twin.</p>
+    <div class="row" style="margin:0">
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt" style="position:relative">Items</div>
+                <div id="div_table">
+                    @if (_desk.Rows.Count == 0)
+                    {
+                        <div class="panel-body">Nothing found</div>
+                    }
+                    else
+                    {
+                        <div class="panel-body">
+                            <table class="table epc-prices-table">
+                                <thead>
+                                    <tr>
+                                        <th class="col-site">Site</th>
+                                        <th>Price list</th>
+                                        <th>Warehouse</th>
+                                        <th>Article</th>
+                                        <th>Manufacturer</th>
+                                        <th>Name</th>
+                                        <th class="center">Qty</th>
+                                        <th class="right">Base price</th>
+                                        <th class="right">@_desk.ProfileTitle</th>
+                                        <th class="center">Margin %</th>
+                                        <th class="center">Lead</th>
+                                        <th class="center">Min.</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var row in _desk.Rows)
+                                    {
+                                        <tr id="show_line_@row.Id">
+                                            <td class="col-site"><a href="@row.SiteUrl" target="_blank" rel="noopener" class="btn btn-xs btn-default" title="Open on site"><i class="fa fa-external-link"></i></a></td>
+                                            <td title="id @row.PriceId">@row.PriceListName</td>
+                                            <td class="col-warehouse">@row.WarehouseLabel</td>
+                                            <td class="bgtd">@row.Article</td>
+                                            <td>@row.Manufacturer</td>
+                                            <td>@row.Name</td>
+                                            <td class="center">@row.Exist</td>
+                                            <td class="bgtd right">@row.Price.ToString("0.00", CultureInfo.InvariantCulture)</td>
+                                            <td class="right">
+                                                @if (row.Hidden)
+                                                {
+                                                    <span class="text-danger" title="Hidden for this profile">hidden</span>
+                                                }
+                                                else if (row.SitePrice is { } sp)
+                                                {
+                                                    <strong>@sp.ToString("0.00", CultureInfo.InvariantCulture)</strong>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td class="center">
+                                                @if (row.MarginPct is { } mp)
+                                                {
+                                                    @(mp.ToString("0.#", CultureInfo.InvariantCulture) + "%")
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">—</span>
+                                                }
+                                            </td>
+                                            <td class="center">@row.TimeToExe</td>
+                                            <td class="center">@row.MinOrder</td>
+                                            <td style="white-space:nowrap">
+                                                <a onclick="epcPricesEditToggle(@row.Id, true)" class="btn btn-sm btn-primary" title="Edit"><i class="fa fa-pencil"></i></a>
+                                                @if (_isAdmin)
+                                                {
+                                                    <form method="post" action="/cp/prices-edit/write" style="display:inline"
+                                                          onsubmit="return confirm('Delete this row?')">
+                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                                        <input type="hidden" name="action" value="del" />
+                                                        <input type="hidden" name="id" value="@row.Id" />
+                                                        <button type="submit" class="btn btn-sm btn-primary" title="Delete"><i class="fa fa-times"></i></button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+                                        <tr class="hidden epc-edit-row" id="edit_line_@row.Id">
+                                            <td colspan="13">
+                                                <form method="post" action="/cp/prices-edit/write" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                                                    <input type="hidden" name="action" value="save" />
+                                                    <input type="hidden" name="id" value="@row.Id" />
+                                                    <label>Price list <input class="form-control" type="number" name="priceId" value="@row.PriceId" /></label>
+                                                    <label>Article <input class="form-control" type="text" name="article" value="@row.Article" /></label>
+                                                    <label>Manufacturer <input class="form-control" type="text" name="manufacturer" value="@row.Manufacturer" /></label>
+                                                    <label>Name <input class="form-control" type="text" name="name" value="@row.Name" /></label>
+                                                    <label>Qty <input class="form-control" type="number" name="exist" value="@row.Exist" /></label>
+                                                    <label>Price <input class="form-control" type="number" step="0.01" name="price" value="@row.Price.ToString("0.00", CultureInfo.InvariantCulture)" /></label>
+                                                    <label>Lead <input class="form-control" type="number" name="timeToExe" value="@row.TimeToExe" /></label>
+                                                    <label>Min. <input class="form-control" type="number" name="minOrder" value="@row.MinOrder" /></label>
+                                                    <input type="hidden" name="storage" value="@row.Storage" />
+                                                    <button type="submit" class="btn btn-sm btn-primary"><i class="fa fa-floppy-o"></i> Save</button>
+                                                    <a onclick="epcPricesEditToggle(@row.Id, false)" class="btn btn-sm btn-primary"><i class="fa fa-chevron-left"></i> Cancel</a>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                        @if (_desk.PageCount > 1)
+                        {
+                            <div class="panel-footer">
+                                <div class="pagination_box">
+                                    @foreach (var p in PageLinks())
+                                    {
+                                        @if (p == _desk.Page)
+                                        {
+                                            <a class="pagination_active">@p</a>
+                                        }
+                                        else
+                                        {
+                                            <a href="@PageHref(p)">@p</a>
+                                        }
+                                    }
+                                </div>
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <div class="row row-add" style="margin:0">
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">Delete rows matching current filter and search</div>
+                    <form method="post" action="/cp/prices-edit/write"
+                          onsubmit="return confirm('Delete all rows matching the current filter?')">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="returnUrl" value="@_returnUrl" />
+                        <input type="hidden" name="action" value="del_search" />
+                        <input type="hidden" name="priceId" value="@_filter.PriceId" />
+                        <input type="hidden" name="article" value="@_filter.Article" />
+                        <input type="hidden" name="manufacturer" value="@_filter.Manufacturer" />
+                        <input type="hidden" name="search_text" value="@_filter.SearchText" />
+                        @if (_filter.NoArticle)
+                        {
+                            <input type="hidden" name="no_article" value="1" />
+                        }
+                        @if (_filter.NoManufacturer)
+                        {
+                            <input type="hidden" name="no_manufacturer" value="1" />
+                        }
+                        <div class="panel-body">
+                            <div class="col-lg-12">
+                                <button type="submit" class="btn btn-ar btn-danger">Delete matching rows</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+
+    <p class="help-block">@_desk.Total.ToString("N0", CultureInfo.InvariantCulture) rows match the current filter · page @_desk.Page of @_desk.PageCount.</p>
+
+    <script suppress-error="BL9992">
+        function epcPricesEditToggle(id, edit) {
+            var show = document.getElementById('show_line_' + id);
+            var row = document.getElementById('edit_line_' + id);
+            if (!show || !row) { return; }
+            show.classList.toggle('hidden', edit);
+            row.classList.toggle('hidden', !edit);
+        }
+    </script>
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/shop/prices_edit";
+    private const string PhpTab = "/CP/shop/prices_edit";
     private bool _isAdmin;
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _returnUrl = "/cp/prices-edit-app";
+    private CpPricesEditFilter _filter = new();
+    private CpPricesEditDesk _desk = CpPricesEditDesk.Unavailable("");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
-        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+
+        var q = ctx.Request.Query;
+        _filter = new CpPricesEditFilter(
+            q["search_text"].ToString(),
+            Num(q["price_id"].ToString()),
+            q["article"].ToString(),
+            q["manufacturer"].ToString(),
+            q["no_article"].ToString() == "1",
+            q["no_manufacturer"].ToString() == "1",
+            (int)Num(q["preview_group_id"].ToString()),
+            Dec(q["min_margin"].ToString()),
+            q["hide_hidden"].ToString() == "1",
+            (int)Math.Max(1, Num(q["page"].ToString())));
+        _returnUrl = "/cp/prices-edit-app" + ctx.Request.QueryString.Value;
+
+        _desk = await Desk.LoadAsync(_filter, ctx.RequestAborted);
+    }
+
+    private static long Num(string value)
+        => long.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : 0;
+
+    private static decimal Dec(string value)
+        => decimal.TryParse(value, NumberStyles.Float, CultureInfo.InvariantCulture, out var d) ? d : 0m;
+
+    /// <summary>PHP <c>pagination($all, 20, 3, $page, ...)</c> window.</summary>
+    private IEnumerable<int> PageLinks()
+    {
+        var first = Math.Max(1, _desk.Page - 3);
+        var last = Math.Min(_desk.PageCount, _desk.Page + 3);
+        for (var i = first; i <= last; i++)
+        {
+            yield return i;
+        }
+    }
+
+    private string PageHref(int page)
+    {
+        var parts = new List<string> { "page=" + page.ToString(CultureInfo.InvariantCulture) };
+        if (_filter.SearchText.Length > 0) parts.Add("search_text=" + Uri.EscapeDataString(_filter.SearchText));
+        if (_filter.PriceId > 0) parts.Add("price_id=" + _filter.PriceId.ToString(CultureInfo.InvariantCulture));
+        if (_filter.Article.Length > 0) parts.Add("article=" + Uri.EscapeDataString(_filter.Article));
+        if (_filter.Manufacturer.Length > 0) parts.Add("manufacturer=" + Uri.EscapeDataString(_filter.Manufacturer));
+        if (_filter.NoArticle) parts.Add("no_article=1");
+        if (_filter.NoManufacturer) parts.Add("no_manufacturer=1");
+        if (_filter.PreviewGroupId > 0) parts.Add("preview_group_id=" + _filter.PreviewGroupId.ToString(CultureInfo.InvariantCulture));
+        if (_filter.MinMargin > 0) parts.Add("min_margin=" + _filter.MinMargin.ToString(CultureInfo.InvariantCulture));
+        if (_filter.HideHidden) parts.Add("hide_hidden=1");
+        return "/cp/prices-edit-app?" + string.Join("&", parts);
     }
 }
