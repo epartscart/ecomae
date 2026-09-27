@@ -114,5 +114,8 @@ public sealed class ErpNavMatrixTests
         Assert.Equal(
             "tenant.example",
             ErpNavTenantRules.NormalizeSiteKey(" Tenant.Example "));
+        Assert.Contains("finance", ErpNavTenantRules.ExplicitModuleIds("""["finance","inventory","catalog"]"""));
+        Assert.Contains("inventory_mgmt/inventory", ErpNavTenantRules.ExplicitModuleIds("""["inventory_mgmt/inventory","catalog"]"""));
+        Assert.DoesNotContain("catalog", ErpNavTenantRules.ExplicitModuleIds("""["catalog"]"""));
     }
 }
