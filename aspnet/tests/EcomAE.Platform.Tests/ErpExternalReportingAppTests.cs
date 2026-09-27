@@ -109,6 +109,20 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("Operating profit or loss", afs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("Profit or loss before financing and income taxes", afs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("Statement of Cash Flows", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Table of contents", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("IFRS / IAS applicability index", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("INV-", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("BILL-", afs.BodyHtml, StringComparison.Ordinal);
+        Assert.True(afs.BodyHtml.Split("class=\"epc-aud-sec", StringSplitOptions.None).Length - 1 >= 40);
+        Assert.Equal("43 sections / pages", afs.Summary.First(s => s.Label == "Report length").Value);
+
+        var sampleAfs = ErpExternalReportingBuild.Build(Input("fin__annual_financial_statements", from, to, 0m, 0m) with
+        {
+            HasLiveFigures = false,
+            Sales = 0m,
+            Purchases = 0m,
+        });
+        Assert.Contains("Illustrative sample data", sampleAfs.BodyHtml, StringComparison.Ordinal);
 
         var audit = ErpExternalReportingBuild.Build(Input("audit__external_audit_report", from, to, 8_400_000m, 5_800_000m));
         Assert.Equal("red", audit.Theme);
