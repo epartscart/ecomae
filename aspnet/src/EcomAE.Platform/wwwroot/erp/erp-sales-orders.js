@@ -197,6 +197,28 @@
         });
     });
 
+    Array.prototype.forEach.call(document.querySelectorAll('.epc-so-cancel'), function (button) {
+        button.addEventListener('click', function () {
+            var id = ownerId(button);
+            var reason = window.prompt('Cancellation reason for sales order #' + id + ':', 'Cancelled by operator');
+            if (reason === null) {
+                return;
+            }
+
+            reason = reason.trim();
+            if (!reason) {
+                say('A cancellation reason is required.', false);
+                return;
+            }
+
+            post('/erp/sales-orders/cancel', {
+                confirmWrites: true,
+                salesOrderId: id,
+                reason: reason
+            }, reload);
+        });
+    });
+
     Array.prototype.forEach.call(document.querySelectorAll('.epc-so-delete'), function (button) {
         button.addEventListener('click', function () {
             var id = ownerId(button);
