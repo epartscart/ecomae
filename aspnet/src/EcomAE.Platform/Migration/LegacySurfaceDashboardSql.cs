@@ -1037,6 +1037,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,
                IF(j.`active` = 1, 'posted', 'void') AS status,
                (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit,
+               (SELECT IFNULL(SUM(`credit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_credit,
                IFNULL(j.`reference`, '') AS reference,
                LEFT(IFNULL(j.`description`, ''), 280) AS description_excerpt,
                CHAR_LENGTH(IFNULL(j.`description`, '')) AS description_len,

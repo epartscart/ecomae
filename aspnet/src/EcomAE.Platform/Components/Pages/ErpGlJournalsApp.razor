@@ -90,6 +90,8 @@
                 <dt>Reference</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Reference) ? "—" : _openedDetail.Reference)</dd>
                 <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Status) ? "—" : _openedDetail.Status)</dd>
                 <dt>Debit</dt><dd>@_openedDetail.TotalDebit.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Credit</dt><dd>@_openedDetail.TotalCredit.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Balance</dt><dd>@((_openedDetail.TotalDebit - _openedDetail.TotalCredit).ToString("N2", CultureInfo.InvariantCulture))</dd>
                 <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
