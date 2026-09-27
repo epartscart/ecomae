@@ -4349,6 +4349,165 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpDataTransferExport, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueExportService exports,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/data-transfer-app", "Admin CP capability required for catalogue export.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Catalogue export options are posted as a form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to generate a catalogue dump on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var fields = form.ToDictionary(f => f.Key, f => f.Value.ToString(), StringComparer.Ordinal);
+            var options = CpCatalogueExportService.ParseOptions(fields);
+            var exported = await exports.ExportAsync(options, cancellationToken);
+            var message = exported.Succeeded
+                ? exported.Message + " File: " + exported.FileName
+                : exported.Message;
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/data-transfer-app?tab=export" + (exported.Succeeded ? "&file=" + Uri.EscapeDataString(exported.FileName) : string.Empty),
+                exported.Succeeded,
+                message,
+                new
+                {
+                    ok = exported.Succeeded,
+                    writes = exported.Offers,
+                    file_name = exported.FileName,
+                    categories = exported.Categories,
+                    offers = exported.Offers,
+                    phpAuthoritative = false,
+                    validation_code = exported.Succeeded ? "ok" : "invalid",
+                    message,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.CpDataTransferDownload, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueExportService exports,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/data-transfer-app", "Admin CP capability required for catalogue downloads.");
+            }
+
+            var path = exports.ResolveExportPath(context.Request.Query["file"].ToString());
+            if (path is null)
+            {
+                return Results.NotFound(new { ok = false, validation_code = "not_found", message = "That catalogue dump is no longer available." });
+            }
+
+            var bytes = await File.ReadAllBytesAsync(path, cancellationToken);
+            var name = Path.GetFileName(path);
+            var contentType = name.EndsWith(".json", StringComparison.OrdinalIgnoreCase) ? "application/json" : "application/xml";
+            return Results.File(bytes, contentType, name);
+        });
+        endpoints.MapPost(EcomAeRoutes.CpDataTransferImport, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueImportService imports,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/data-transfer-app", "Admin CP capability required for catalogue import.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Catalogue import is posted as a multipart form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to import a catalogue dump on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var upload = form.Files.GetFile("file") ?? form.Files.GetFile("xml_json_file");
+            if (upload is null || upload.Length == 0)
+            {
+                return LiveWriteFormBinder.Complete(context, "/cp/data-transfer-app?tab=import", false, "Choose an XML or JSON file first.",
+                    new { ok = false, validation_code = "invalid", message = "Choose an XML or JSON file first." });
+            }
+
+            var clearMode = CpCatalogueImportService.ParseClearMode(LiveWriteFormBinder.Long(form, "clear_table").ToString(System.Globalization.CultureInfo.InvariantCulture));
+            if (clearMode == CpCatalogueClearMode.Catalogue && !LiveWriteFormBinder.Flag(form, "confirmClearCatalogue", "confirm_clear_catalogue"))
+            {
+                return LiveWriteFormBinder.Complete(context, "/cp/data-transfer-app?tab=import", false,
+                    "Clearing the whole catalogue needs the extra confirmation checkbox.",
+                    new { ok = false, validation_code = "invalid", message = "Clearing the whole catalogue needs the extra confirmation checkbox." });
+            }
+
+            string payload;
+            await using (var stream = upload.OpenReadStream())
+            using (var reader = new StreamReader(stream))
+            {
+                payload = await reader.ReadToEndAsync(cancellationToken);
+            }
+
+            var imported = await imports.ImportAsync(
+                session.UserId,
+                LiveWriteFormBinder.Long(form, "storages", "storage_id"),
+                clearMode,
+                payload,
+                cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/data-transfer-app?tab=import",
+                imported.Succeeded,
+                imported.Message,
+                new
+                {
+                    ok = imported.Succeeded,
+                    writes = imported.Updated,
+                    created = imported.Created,
+                    updated = imported.Updated,
+                    skipped = imported.Skipped,
+                    warnings = imported.Warnings,
+                    phpAuthoritative = false,
+                    validation_code = imported.Succeeded ? "ok" : "invalid",
+                    message = imported.Message,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpTemplatesActions, async (
             HttpContext context,
             ILegacySessionValidator validator,

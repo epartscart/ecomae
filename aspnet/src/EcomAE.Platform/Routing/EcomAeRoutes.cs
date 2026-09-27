@@ -544,6 +544,12 @@ public static class EcomAeRoutes
     /// <summary>Print document parameter save. <c>confirmWrites=true</c> is the live twin of PHP print_docs/print_doc_tuning.php.</summary>
     public const string CpPrintDocsWrite = "/cp/print-docs/write";
     public const string ControlPanelDataTransferApp = "/cp/data-transfer-app";
+    /// <summary>Catalogue XML/JSON export. <c>confirmWrites=true</c> is the live twin of PHP data_transfer/ajax_catalogue_to_xml.php.</summary>
+    public const string CpDataTransferExport = "/cp/data-transfer/export";
+    /// <summary>Download of a generated catalogue dump (PHP handler_files.php).</summary>
+    public const string CpDataTransferDownload = "/cp/data-transfer/download";
+    /// <summary>Catalogue XML/JSON import. <c>confirmWrites=true</c> is the live twin of PHP data_transfer/ajax_xml_reader.php.</summary>
+    public const string CpDataTransferImport = "/cp/data-transfer/import";
     public const string ControlPanelBulkUploadApp = "/cp/bulk-upload-app";
     /// <summary>CP bulk-upload mark_reviewed. <c>confirmWrites=true</c> twins PHP ajax_bulk_cp.php. process / quote / cart stay Classic.</summary>
     public const string CpBulkUploadWrite = "/cp/bulk-upload/write";
