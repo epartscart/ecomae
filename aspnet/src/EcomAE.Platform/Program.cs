@@ -737,6 +737,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantFeaturesWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSuperCustomerBoardService, EcomAE.Platform.Cp.CpSuperCustomerBoardService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIntegrationsHubService, EcomAE.Platform.Cp.CpIntegrationsHubService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantsWriteService, EcomAE.Platform.Cp.CpTenantsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantControlCenterService, EcomAE.Platform.Cp.CpTenantControlCenterService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSocialHubWriteService, EcomAE.Platform.Cp.CpSocialHubWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastService, EcomAE.Platform.Cp.CpMarketingBroadcastService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastWriteService, EcomAE.Platform.Cp.CpMarketingBroadcastWriteService>();
