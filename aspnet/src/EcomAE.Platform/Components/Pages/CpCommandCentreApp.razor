@@ -3,10 +3,13 @@
 @page "/cp/control"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Text.Json
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Cp
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpTenantDashboardService CpDashboard
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -36,8 +39,8 @@ else
                 </p>
                 <div class="cp-dash-meta">
                     <span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> @_industryLabel</span>
-                    <span class="cp-dash-chip"><i class="fa fa-calendar"></i> @DateTime.UtcNow.ToString("yyyy-MM-dd")</span>
-                    <span class="cp-dash-chip"><i class="fa fa-money"></i> AED</span>
+                    <span class="cp-dash-chip"><i class="fa fa-calendar"></i> @DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</span>
+                    <span class="cp-dash-chip"><i class="fa fa-money"></i> @_currency</span>
                     <a class="cp-dash-chip" href="/erp"><i class="fa fa-university"></i> Open ERP</a>
                     <a class="cp-dash-chip" href="/"><i class="fa fa-external-link"></i> View site</a>
                 </div>
@@ -136,8 +139,8 @@ else
                 <div class="cp-dash-port">
                     <h4><i class="fa fa-pencil"></i> Customize shortcuts</h4>
                     <div class="bd" style="font-size:13px;color:#475569;line-height:1.5">
-                        Use <strong>Edit shortcuts</strong> on the Classic twin — same graphical builder as ERP.
-                        Default auto-parts tiles: orders, prices, multivendor, crosses, procurement, POS, ERP, stock.
+                        Use <strong>Edit shortcuts</strong> in Quick actions above — same graphical builder as ERP.
+                        Toggle catalogue modules, add a custom URL, or reset to defaults. Changes save immediately.
                     </div>
                 </div>
             </div>
@@ -164,17 +167,20 @@ else
                         </table>
                     </div>
                 </div>
-                <div class="cp-dash-port">
-                    <h4><i class="fa fa-money"></i> Finance pulse (MTD)</h4>
-                    <div class="bd">
-                        <div class="cp-dash-fin">
-                            <div class="cell"><div class="l">Sales ex VAT</div><div class="v">@_salesExVat.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
-                            <div class="cell"><div class="l">Cash &amp; bank</div><div class="v">@_cashBank.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
-                            <div class="cell"><div class="l">Receivables</div><div class="v">@_receivables.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
-                            <div class="cell"><div class="l">Payables</div><div class="v">@_payables.ToString("N2", CultureInfo.InvariantCulture) AED</div></div>
+                @if (_hasFinance)
+                {
+                    <div class="cp-dash-port">
+                        <h4><i class="fa fa-money"></i> Finance pulse (MTD)</h4>
+                        <div class="bd">
+                            <div class="cp-dash-fin">
+                                <div class="cell"><div class="l">Sales ex VAT</div><div class="v">@_salesExVat.ToString("N2", CultureInfo.InvariantCulture) @_currency</div></div>
+                                <div class="cell"><div class="l">Cash &amp; bank</div><div class="v">@_cashBank.ToString("N2", CultureInfo.InvariantCulture) @_currency</div></div>
+                                <div class="cell"><div class="l">Receivables</div><div class="v">@_receivables.ToString("N2", CultureInfo.InvariantCulture) @_currency</div></div>
+                                <div class="cell"><div class="l">Payables</div><div class="v">@_payables.ToString("N2", CultureInfo.InvariantCulture) @_currency</div></div>
+                            </div>
                         </div>
                     </div>
-                </div>
+                }
             </div>
             <div class="cp-dash-col-right">
                 <div class="cp-dash-port">
@@ -230,8 +236,8 @@ else
         function boot() {
             var canvas = document.getElementById('cpDashOrdersChart');
             if (!canvas || typeof Chart === 'undefined') { return; }
-            var labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
-            var data = [@_chartDays[0], @_chartDays[1], @_chartDays[2], @_chartDays[3], @_chartDays[4], @_chartDays[5], @_chartDays[6]];
+            var labels = @((MarkupString)_chartLabelsJson);
+            var data = @((MarkupString)_chartDataJson);
             new Chart(canvas, {
                 type: 'bar',
                 data: {
@@ -283,7 +289,14 @@ else
     private decimal _cashBank;
     private decimal _receivables;
     private decimal _payables;
-    private readonly int[] _chartDays = new int[7];
+    private int[] _chartDays = new int[7];
+    private string[] _chartLabels = [];
+    private string _currency = "AED";
+    private bool _hasFinance;
+
+    private string _chartLabelsJson => JsonSerializer.Serialize(_chartLabels);
+
+    private string _chartDataJson => JsonSerializer.Serialize(_chartDays);
     private bool _isAdmin;
     private bool _isSuperHost;
     private string _pageTitle = "Control Command Centre";
@@ -378,50 +391,38 @@ else
             return;
         }
 
-        var orders = await Dashboards.ListCpOrdersAsync(1, ctx.RequestAborted);
-        _ordersToday = orders.Summary.Today;
-        _openOrders = orders.Summary.Open;
+        // PHP epc_tcp_dash_stats(): tenant-scoped SQL, guarded per KPI, zero-safe under containment.
+        var stats = await CpDashboard.LoadStatsAsync(ctx.RequestAborted);
+        _ordersToday = stats.OrdersToday;
+        _ordersWeek = stats.OrdersWeek;
+        _ordersPrevWeek = stats.OrdersPrevWeek;
+        _openOrders = stats.PendingTasks;
+        _products = stats.Products;
+        _warehouseQty = stats.WarehouseQty;
+        _vendors = stats.Vendors;
+        _clients = stats.Clients;
+        _vinOpen = stats.VinOpen;
+        _returnsOpen = stats.ReturnsOpen;
+        _chartLabels = [.. stats.DayLabels];
+        _chartDays = [.. stats.DayCounts];
 
-        var catalogue = await Dashboards.BuildCpProductCatalogueDigestAsync(1, ctx.RequestAborted);
-        _products = catalogue.Summary.ProductCount;
-
-        var prices = await Dashboards.BuildCpPriceListsDigestAsync(50, ctx.RequestAborted);
-        _warehouseQty = prices.Summary.PriceRows;
-        _vendors = prices.Summary.ActiveLists > 0 ? prices.Summary.ActiveLists : prices.Count;
-
-        var storages = await Dashboards.ListCpStoragesAsync(200, ctx.RequestAborted);
-        if (storages.Count > 0)
+        var company = await CpDashboard.LoadCompanyAsync(ctx.RequestAborted);
+        _currency = company.Currency;
+        if (!string.IsNullOrWhiteSpace(company.CompanyName))
         {
-            _vendors = storages.Count;
+            _brandLabel = company.CompanyName;
+            _pageTitle = $"Control Command Centre · {_brandLabel}";
         }
 
-        // PHP clients ≈ storefront users table count (same source as CP dashboard summary Users).
-        var cpSummary = await Dashboards.BuildControlPanelAsync(ctx.RequestAborted);
-        _clients = cpSummary.Users;
-
-        // PHP epc_insights_suite_commerce_stats + epc_erp_dashboard finance pulse.
+        // PHP finance pulse: epc_erp_dashboard() MTD, rendered only when finance data exists.
         try
         {
             var home = await Dashboards.BuildErpWorkspaceHomeAsync(ctx.RequestAborted);
-            var commerce = home.Commerce;
-            if (commerce is not null)
-            {
-                if (commerce.OrdersToday > 0) _ordersToday = commerce.OrdersToday;
-                if (commerce.OpenOrders > 0) _openOrders = commerce.OpenOrders;
-                _ordersWeek = commerce.OrdersWeek;
-                _ordersPrevWeek = commerce.OrdersPrevWeek;
-                _vinOpen = commerce.VinOpen;
-                _returnsOpen = commerce.ReturnsOpen;
-                if (commerce.Products > 0) _products = commerce.Products;
-                if (commerce.Clients > 0) _clients = commerce.Clients;
-                if (commerce.Warehouses > 0) _vendors = commerce.Warehouses;
-            }
-
             _salesExVat = home.Current.RevenueExVat;
             _cashBank = home.Current.CashPosition;
             _receivables = home.Current.Receivables != 0 ? home.Current.Receivables : home.Current.ArBalance;
             _payables = home.Current.Payables != 0 ? home.Current.Payables : home.Current.ApBalance;
-            _chartDays[6] = _ordersWeek;
+            _hasFinance = true;
         }
         catch
         {
@@ -429,18 +430,18 @@ else
         }
     }
 
-    private static string ChangeHtml(int current, int previous, bool goodWhenUp)
+    /// <summary>PHP <c>epc_tcp_dash_change()</c> — flat below 0.005, one decimal, arrow glyph.</summary>
+    private static string ChangeHtml(double current, double previous, bool goodWhenUp)
     {
-        if (previous <= 0)
+        if (Math.Abs(previous) < 0.005)
         {
             return "<span class=\"cp-dash-chg flat\">—</span>";
         }
 
-        var delta = current - previous;
-        var pct = (delta / (double)previous) * 100.0;
-        var up = delta >= 0;
+        var pct = ((current - previous) / Math.Abs(previous)) * 100.0;
+        var up = pct >= 0;
         var css = up == goodWhenUp ? "up" : "down";
-        var sign = up ? "+" : "";
-        return $"<span class=\"cp-dash-chg {css}\">{sign}{pct.ToString("0", CultureInfo.InvariantCulture)}%</span>";
+        var arrow = up ? "&#9650;" : "&#9660;";
+        return $"<span class=\"cp-dash-chg {css}\">{arrow} {Math.Abs(pct).ToString("N1", CultureInfo.InvariantCulture)}%</span>";
     }
 }
