@@ -21,6 +21,8 @@ Legacy route-contract audit: CP shop/top-level maps resolve all 34/34 and 11/11 
 ERP PHP-tab mappings resolve 95/95 destinations and referenced `/erp/*-app` links resolve 224/224
 non-AJAX pages. The `/cp/carts-app` legacy path now aliases the implemented carts twin; unresolved
 scan entries are existing user/group routes or dedicated AJAX endpoints, not missing Razor pages.
+The Parts Agent desk also no longer links back to legacy `/cp/shop/*` paths: price-list and catalogue
+actions now target their implemented ASP.NET CP apps.
 
 Conversation requirements audit (reconciled 2026-09-27):
 - [x] CP and ERP menu sources remain PHP-authoritative; generated counts are not treated as proof of parity.
