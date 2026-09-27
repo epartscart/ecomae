@@ -101,6 +101,10 @@ public sealed class CpPartsAgentDeskParityTests
         Assert.Contains("name=\"date_from\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"date_to\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"q\"", razor, StringComparison.Ordinal);
+        Assert.Contains("href=\"/cp/prices-upload-app\"", razor, StringComparison.Ordinal);
+        Assert.Contains("href=\"/cp/product-catalogue-app\"", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"/cp/shop/prices\"", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("href=\"/cp/shop/catalogue/catalogue_editor\"", razor, StringComparison.Ordinal);
         Assert.Contains("ICpPartsAgentDeskService", razor, StringComparison.Ordinal);
         Assert.Contains("LoadTranscriptAsync", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildCpPartsAgentDigestAsync", razor, StringComparison.Ordinal);
