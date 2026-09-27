@@ -176,9 +176,12 @@ Standing rules that apply to every item below:
 
 ## Phase B — ERP (PHP `cp/content/shop/finance/erp/**` + `content/shop/finance/**`)
 
-- [ ] **B0 ERP top menu** — `erp_nav_areas.php` twin (`ErpNavTree` + `IErpNavMenuService`): 36 areas in PHP order, RBAC
+- [~] **B0 ERP top menu** — `erp_nav_areas.php` twin (`ErpNavTree` + `IErpNavMenuService`): 36 areas in PHP order, RBAC
       `allowedTabs`, industry filter (jewellery `jw_*`), commerce filter, enabled modules, report injection, favourites, company
-      picker, AP/AR/GL chain nav; replace `LegacyDesktopChromeCatalog.ErpTopnav()`; 0 invented tabs
+      picker, AP/AR/GL chain nav; replace `LegacyDesktopChromeCatalog.ErpTopnav()`; 0 invented tabs.
+      Added a versioned `ErpNavAudience` policy and duplicate-placement audit so tenant version, industry,
+      country and Super ERP deny rules can be evaluated without silently hiding PHP modules. Full PHP
+      category/area/tab matrix comparison and runtime wiring remain pending.
 - [ ] B1 Home & workflow (dashboard, workflow, processflow, approvals, workflow_automation, agenda, contacts, documents, knowledge base, AI assistant)
 - [~] B2 Order-to-Cash / Syncron-style OMS — sales orders, delivery notes, invoices, revenue, fulfilment, subscriptions, proposals,
       ASP.NET sales-order save/status/invoice/delete/cancel lifecycle is live; cancellation now uses the

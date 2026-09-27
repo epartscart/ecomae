@@ -437,7 +437,13 @@
         {
             _signedIn = IsAdmin;
             _showControlPanel = true;
-            _nav = ErpIndustryNav.FilterTopnav(LegacyDesktopChromeCatalog.ErpTopnav(), false);
+            _nav = ErpIndustryNav.FilterTopnav(
+                LegacyDesktopChromeCatalog.ErpTopnav(),
+                new ErpIndustryNav.ErpNavAudience(
+                    "current",
+                    _ctx.IndustryCode,
+                    null,
+                    _showBos));
             return;
         }
 
@@ -468,7 +474,13 @@
             _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null);
         }
 
-        _nav = ErpIndustryNav.FilterTopnav(LegacyDesktopChromeCatalog.ErpTopnav(), _jewellery);
+        _nav = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience(
+                "current",
+                _industryCode,
+                null,
+                _showBos));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;

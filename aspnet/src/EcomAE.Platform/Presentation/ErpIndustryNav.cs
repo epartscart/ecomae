@@ -10,6 +10,13 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static class ErpIndustryNav
 {
+    public sealed record ErpNavAudience(
+        string TenantVersion,
+        string? IndustryCode,
+        string? CountryCode,
+        bool IsSuperErp,
+        IReadOnlySet<string>? DisabledTabIds = null);
+
     private static readonly HashSet<string> JewelleryTabIds = new(StringComparer.OrdinalIgnoreCase)
     {
         "gold_rate", "jewellery_tag", "gold_scheme", "aml_compliance",
@@ -96,20 +103,35 @@ public static class ErpIndustryNav
     public static IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> FilterTopnav(
         IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> groups,
         bool jewelleryCompany)
-    {
-        if (jewelleryCompany)
-        {
-            return groups;
-        }
+        => FilterTopnav(
+            groups,
+            new ErpNavAudience(
+                TenantVersion: string.Empty,
+                IndustryCode: jewelleryCompany ? "jewellery" : null,
+                CountryCode: null,
+                IsSuperErp: false));
 
+    /// <summary>
+    /// Applies the PHP navigation audience rules without inventing a tenant's
+    /// module entitlement. An empty disabled set preserves the complete PHP
+    /// tree; super-ERP can pass a versioned, tenant-specific deny set.
+    /// </summary>
+    public static IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> FilterTopnav(
+        IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> groups,
+        ErpNavAudience audience)
+    {
         var filtered = new List<LegacyDesktopChromeCatalog.MegaGroup>();
+        var seenTabIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
         foreach (var group in groups)
         {
             var columns = new List<LegacyDesktopChromeCatalog.MegaAreaColumn>();
             var allTabs = new List<PhpModuleCatalog.ModuleLink>();
             foreach (var col in group.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>())
             {
-                var tabs = col.Tabs.Where(t => !IsJewelleryTab(t)).ToList();
+                var tabs = col.Tabs
+                    .Where(t => !IsDisabled(t, audience))
+                    .Where(t => seenTabIds.Add(t.Id))
+                    .ToList();
                 if (tabs.Count == 0)
                 {
                     continue;
@@ -133,6 +155,41 @@ public static class ErpIndustryNav
         }
 
         return filtered;
+    }
+
+    public static IReadOnlyList<string> DuplicateTabIds(
+        IReadOnlyList<LegacyDesktopChromeCatalog.MegaGroup> groups)
+        => groups
+            .SelectMany(g => g.Columns ?? Array.Empty<LegacyDesktopChromeCatalog.MegaAreaColumn>())
+            .SelectMany(c => c.Tabs)
+            .GroupBy(t => t.Id, StringComparer.OrdinalIgnoreCase)
+            .Where(g => g.Count() > 1)
+            .Select(g => g.Key)
+            .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    private static bool IsDisabled(
+        PhpModuleCatalog.ModuleLink tab,
+        ErpNavAudience audience)
+    {
+        if (!audience.IsSuperErp
+            && IsJewelleryTab(tab)
+            && !IsJewelleryFromHostOrPack(
+                audience.IndustryCode,
+                audience.IndustryCode,
+                null))
+        {
+            return true;
+        }
+
+        if (audience.DisabledTabIds is null || audience.DisabledTabIds.Count == 0)
+        {
+            return false;
+        }
+
+        var key = tab.Id[(tab.Id.LastIndexOf('/') + 1)..];
+        return audience.DisabledTabIds.Contains(tab.Id)
+            || audience.DisabledTabIds.Contains(key);
     }
 
     /// <summary>
