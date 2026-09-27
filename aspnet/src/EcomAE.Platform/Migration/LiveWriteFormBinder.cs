@@ -84,6 +84,25 @@ public static class LiveWriteFormBinder
         return 0;
     }
 
+    public static long UnixDate(IFormCollection form, params string[] names)
+    {
+        foreach (var name in names)
+        {
+            var raw = form[name].ToString().Trim();
+            if (DateTime.TryParseExact(
+                    raw,
+                    "yyyy-MM-dd",
+                    CultureInfo.InvariantCulture,
+                    DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal,
+                    out var value))
+            {
+                return new DateTimeOffset(value).ToUnixTimeSeconds();
+            }
+        }
+
+        return 0;
+    }
+
     public static int Int(IFormCollection form, params string[] names)
         => (int)Math.Clamp(Long(form, names), int.MinValue, int.MaxValue);
 
