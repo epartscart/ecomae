@@ -336,7 +336,7 @@
                                 {
                                     <span class="epc-so-actions" data-so-id="@o.Id.ToString(CultureInfo.InvariantCulture)">
                                         <button type="button" class="btn btn-link btn-xs epc-so-status" data-status="confirmed">Confirm</button>
-                                        <button type="button" class="btn btn-link btn-xs epc-so-status" data-status="cancelled">Cancel</button>
+                                        <button type="button" class="btn btn-link btn-xs epc-so-cancel">Cancel</button>
                                         @if (o.Status is "draft" or "confirmed")
                                         {
                                             <button type="button" class="btn btn-link btn-xs epc-so-invoice">Invoice</button>

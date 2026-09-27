@@ -180,7 +180,10 @@ Standing rules that apply to every item below:
       `allowedTabs`, industry filter (jewellery `jw_*`), commerce filter, enabled modules, report injection, favourites, company
       picker, AP/AR/GL chain nav; replace `LegacyDesktopChromeCatalog.ErpTopnav()`; 0 invented tabs
 - [ ] B1 Home & workflow (dashboard, workflow, processflow, approvals, workflow_automation, agenda, contacts, documents, knowledge base, AI assistant)
-- [ ] B2 Order-to-Cash / Syncron-style OMS — sales orders, delivery notes, invoices, revenue, fulfilment, subscriptions, proposals,
+- [~] B2 Order-to-Cash / Syncron-style OMS — sales orders, delivery notes, invoices, revenue, fulfilment, subscriptions, proposals,
+      ASP.NET sales-order save/status/invoice/delete/cancel lifecycle is live; cancellation now uses the
+      dedicated reversal-safe lifecycle endpoint with a required operator reason. Remaining fulfilment
+      dashboard parity (payment/stock/delivery/returns funnel) is still pending.
       leads/opportunities/CRM; libs `epc_erp_order_fulfillment`, `epc_fulfillment_queue`, `epc_order_erp_pipeline`,
       `epc_order_supplier_fulfillment`, `epc_erp_scm`, `epc_erp_order_planning` (no `epc_erp_syncron_policy.php` exists in repo — confirm with user)
 - [ ] B3 Procure-to-Pay — supplier portal, requisitions, RFQ, purchase orders, 3-way match, payables, payment batches, landed cost (+v2), barcode purchase
