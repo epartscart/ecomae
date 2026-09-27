@@ -175,7 +175,15 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>Batch id <input type="number" name="batch_id" style="width:6rem" /></label>
-            <label>Account id <input type="number" name="entity_id" style="width:6rem" /></label>
+            <label>COA account
+                <select name="entity_id" required>
+                    <option value="">Select account</option>
+                    @foreach (var account in _coaAccounts)
+                    {
+                        <option value="@account.Id">@account.Code · @account.Name</option>
+                    }
+                </select>
+            </label>
             <label>Debit <input type="number" name="debit" step="0.01" style="width:7rem" /></label>
             <label>Credit <input type="number" name="credit" step="0.01" style="width:7rem" /></label>
             <button type="submit">Add COA line</button>
@@ -204,6 +212,7 @@
     private const string _listHref = "/erp/opening-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpOpeningBatchDigest> _batches = [];
+    private IReadOnlyList<ErpCoaAccountDigest> _coaAccounts = [];
     private int _count;
     private int _posted;
     private decimal _debit;
@@ -246,6 +255,8 @@
         _credit = result.CreditTotal;
         _source = result.Source;
         _message = result.Message;
+        var coaResult = await Dashboards.ListErpCoaAccountsAsync(500, ctx.RequestAborted);
+        _coaAccounts = coaResult.Accounts.Where(account => account.Active).ToArray();
 
         if (_openedId > 0)
         {
