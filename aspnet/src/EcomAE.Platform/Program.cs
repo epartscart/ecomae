@@ -737,6 +737,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantFeaturesWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSuperCustomerBoardService, EcomAE.Platform.Cp.CpSuperCustomerBoardService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIntegrationsHubService, EcomAE.Platform.Cp.CpIntegrationsHubService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantsWriteService, EcomAE.Platform.Cp.CpTenantsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantControlCenterService, EcomAE.Platform.Cp.CpTenantControlCenterService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSocialHubWriteService, EcomAE.Platform.Cp.CpSocialHubWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastService, EcomAE.Platform.Cp.CpMarketingBroadcastService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingBroadcastWriteService, EcomAE.Platform.Cp.CpMarketingBroadcastWriteService>();
@@ -824,6 +825,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpVendorApprovalWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVendorRegisterWriteService, EcomAE.Platform.Storefront.StorefrontVendorRegisterWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontConfirmContactWriteService, EcomAE.Platform.Storefront.StorefrontConfirmContactWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientWriteService, EcomAE.Platform.Cp.CpApiClientWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientsDeskService, EcomAE.Platform.Cp.CpApiClientsDeskService>();
+builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpApiClientKeyVault, EcomAE.Platform.Cp.CpApiClientKeyVault>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceStorageRuleWriteService, EcomAE.Platform.Cp.CpPriceStorageRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, EcomAE.Platform.Cp.CpContentManagerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMenuWriteService, EcomAE.Platform.Cp.CpMenuWriteService>();
