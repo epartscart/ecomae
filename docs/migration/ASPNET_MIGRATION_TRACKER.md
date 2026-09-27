@@ -12,7 +12,7 @@ Order of work (user sequence): **CP build → ERP build → storefront/others bu
 
 Progress measurement (reported to the user on every completed step): `done / total` checklist items per phase and overall,
 plus pending %. Weighting: Phase A 20 %, B 45 % (B-J 8 %, B-F 7 % inside), C 15 %, D 8 %, E 7 %, F 5 %.
-Current: A 14.5/17 items (≈85 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 17.1 % done / 82.9 % pending**.
+Current: A 15/17 items (≈88 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 17.6 % done / 82.4 % pending**.
 (CP dashboard twin split into 3 parts: parts 1–3 done — KPIs/chart, persisted `.eds-*` shortcuts, conditional insights + portal industry catalogue.
 CP re-audit in progress: prices-edit rebuilt as the `prices_edit` twin — filter/search, profile site-price preview, paged table, inline edit, delete, search-delete;
 print-docs rebuilt as the `print_doc_tuning` twin — document list, JSON `parameters_description` widgets (text/textarea/checkbox/image/profile), wholesaler office scope, live save;
@@ -21,7 +21,10 @@ data-transfer rebuilt as the `data_transfer` twin — catalogue XML/JSON export 
 and XML/JSON import (own-warehouse `interface_type=1` + per-user `users` JSON authorisation, clear modes 0/1/2 with explicit catalogue-clear confirmation);
 CSV import completed as the `catalogue_csv_import` twin — end-category gate, 1-based column mapping for name/description/image/price/quantity plus every
 category property with URL flags, skip-rows, Windows-1251/UTF-8 decoding, own-warehouse authorisation, delete-warehouse-rows / delete-category-products
-(second confirmation) and per-row warnings.)
+(second confirmation) and per-row warnings;
+KKT rebuilt as the online-cashier twin — `kkt_root_page` default settings for manual (type 2) and post-online-payment (type 1) checks with live save,
+`devices.php` register list with wired-interface description, and the `checks.php` register: all 17 PHP filters, whitelisted sorting, paging,
+expanded ordinary check lines/payments with order linkage and correction-check blocks (cause document, payment and six tax sums).)
 
 Standing rules that apply to every item below:
 - Tenant isolation, per-tenant DB confidentiality, CSRF on every write, RBAC/ACL, audit log, degraded-shared-DB guard.

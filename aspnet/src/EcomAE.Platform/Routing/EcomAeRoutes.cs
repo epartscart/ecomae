@@ -552,6 +552,8 @@ public static class EcomAeRoutes
     public const string CpDataTransferImport = "/cp/data-transfer/import";
     /// <summary>Catalogue CSV import. <c>confirmWrites=true</c> is the live twin of PHP catalogue_csv_import ajax_handle_file.php.</summary>
     public const string CpDataTransferCsvImport = "/cp/data-transfer/csv-import";
+    /// <summary>KKT check defaults save. <c>confirmWrites=true</c> is the live twin of PHP kkt/kkt_root_page.php save_setting.</summary>
+    public const string CpKktDefaultsWrite = "/cp/kkt/defaults";
     public const string ControlPanelBulkUploadApp = "/cp/bulk-upload-app";
     /// <summary>CP bulk-upload mark_reviewed. <c>confirmWrites=true</c> twins PHP ajax_bulk_cp.php. process / quote / cart stay Classic.</summary>
     public const string CpBulkUploadWrite = "/cp/bulk-upload/write";

@@ -2,127 +2,723 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpKktDeskService Desk
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>KKT · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Online cashiers (KKT) · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <PhpParityModuleBody AppPath="/cp/kkt-app" IsAdmin="_isAdmin" />
 
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Actions</div>
+            <div class="panel-body">
+                <a class="btn btn-sm" style="background:#63ce1c;color:#fff;margin-right:.4rem" href="/cp/kkt-app?view=checks"><i class="fas fa-receipt"></i> Checks</a>
+                <a class="btn btn-sm" style="background:#8e44ad;color:#fff;margin-right:.4rem" href="/cp/kkt-app?view=devices"><i class="fas fa-server"></i> Devices</a>
+                <a class="btn btn-sm" style="background:#3498db;color:#fff;margin-right:.4rem" href="/cp/kkt-app"><i class="fas fa-receipt"></i> Check root section</a>
+                <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+            </div>
+        </div>
+    </div>
 
-    <PhpCpModulePageHeader Title="Online cashiers (KKT)"
-                           Subtitle="PHP onlajn-kassy / devices.php parity — registered cashiers, wired interfaces, and fiscal check counts. Writes stay PHP."
-                           PhpTabHref="@_phpTab">
-        <a class="ghost" href="/cp/pos-overview-app">POS overview</a>
-        <a class="ghost" href="/cp/orders">Orders</a>
-        <a class="ghost" href="/cp/payment-gateways-app">Payments</a>
-    </PhpCpModulePageHeader>
-
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
     @if (!_isAdmin)
     {
-        <div class="alert alert-info" role="status">Sign in with a Control Panel admin session to load live tenant data. Guest browse shows the PHP-parity shell.</div>
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Sign in with an admin CP session to manage online cashiers. <a href="/cp/login?returnUrl=/cp/kkt-app">Sign in</a></div></div>
     }
-
-    <div class="epc-scp-kpi" aria-label="KKT stats">
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Devices</div>
-            <div class="epc-scp-kpi__val">@_summary.DeviceCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Wired interfaces</div>
-            <div class="epc-scp-kpi__val">@_summary.WiredDeviceCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Checks</div>
-            <div class="epc-scp-kpi__val">@_summary.CheckCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-        <div class="epc-scp-kpi__card">
-            <div class="epc-scp-kpi__label">Sent to device</div>
-            <div class="epc-scp-kpi__val">@_summary.SentCount.ToString(CultureInfo.InvariantCulture)</div>
-        </div>
-    </div>
-
-    <div class="epc-scp-tool-grid" style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem;">
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">devices.php</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">register cashiers</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/onlajn-kassy")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">default settings</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">fiscal defaults</p>
-        </a>
-        <a class="epc-scp-table-card" style="padding:1rem;text-decoration:none;color:inherit;" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/shop/onlajn-kassy/checks")">
-            <h3 style="margin:0 0 .35rem;font-size:1rem;">checks.php</h3>
-            <p style="margin:0;color:#475569;font-size:.86rem;">fiscal receipts</p>
-        </a>
-    </div>
-
-    <div class="epc-scp-table-card">
-        <div class="epc-scp-table-card__head">
-            <div>
-                <h3>Connected devices</h3>
-                <p class="epc-users-hint">PHP devices.php — id, name, interface description</p>
+    else if (!_desk.Available)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">@_desk.Message</div></div>
+    }
+    else if (_view == "devices")
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Connected devices</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;">ID</th>
+                                    <th>Name</th>
+                                    <th>Handler</th>
+                                    <th>Real KKT interface</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_desk.Devices.Count == 0)
+                                {
+                                    <tr><td colspan="4" class="text-muted">No cash registers are registered for this tenant.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var device in _desk.Devices)
+                                    {
+                                        <tr>
+                                            <td>@device.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@device.Name</td>
+                                            <td>@(device.Handler.Length > 0 ? device.Handler : "—")</td>
+                                            <td>@(device.InterfaceDescription.Length > 0 ? device.InterfaceDescription : "Real cash register is not connected. Checks are not sent from the site")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
-            <a class="btn btn-primary btn-xs" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open PHP module</a>
         </div>
-        <table class="epc-scp-data-table table table-epc-pro">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Name</th>
-                    <th>Handler</th>
-                    <th>Interface</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_devices.Count == 0)
-                {
-                    <tr><td colspan="5">No records yet.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _devices)
-                    {
-                        <tr>
-                            <td><strong>@row.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.Handler) ? "—" : row.Handler)</td>
-                            <td>@(string.IsNullOrWhiteSpace(row.InterfaceDescription) ? "Real cashier not wired" : row.InterfaceDescription)</td>
-                            <td><a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Open</a></td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-    </div>
+    }
+    else if (_view == "checks")
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Check filter</div>
+                <div class="panel-body">
+                    <form method="get" action="/cp/kkt-app" class="form-horizontal">
+                        <input type="hidden" name="view" value="checks" />
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Internal check ID</label>
+                                <div class="col-lg-6"><input class="form-control" type="number" min="0" name="check_id" value="@Num(_filter.CheckId)" /></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Cash register</label>
+                                <div class="col-lg-6">
+                                    <select class="form-control" name="kkt_device_id">
+                                        <option value="-1" selected="@(_filter.DeviceId == -1)">All</option>
+                                        @foreach (var device in _desk.Devices)
+                                        {
+                                            <option value="@device.Id" selected="@(device.Id == _filter.DeviceId)">@device.Name</option>
+                                        }
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Operation</label>
+                                <div class="col-lg-6">@RefSelect("type", _desk.CheckTypes, _filter.Type)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Taxation system</label>
+                                <div class="col-lg-6">@RefSelect("taxationSystem", _desk.TaxationSystems, _filter.TaxationSystem)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Customer contact</label>
+                                <div class="col-lg-6"><input class="form-control" type="text" name="customerContact" value="@_filter.CustomerContact" /></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Sent to device</label>
+                                <div class="col-lg-6">@FlagSelect("sent_to_real_device_flag", _filter.SentFlag)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Device confirmed</label>
+                                <div class="col-lg-6">@FlagSelect("real_device_approved_flag", _filter.ApprovedFlag)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Correction check</label>
+                                <div class="col-lg-6">@FlagSelect("is_correction_flag", _filter.CorrectionFlag)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Date from (unix time)</label>
+                                <div class="col-lg-6"><input class="form-control" type="number" min="0" name="time_from" value="@Num(_filter.TimeFrom)" /></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Date to (unix time)</label>
+                                <div class="col-lg-6"><input class="form-control" type="number" min="0" name="time_to" value="@Num(_filter.TimeTo)" /></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-12"><h3>Check lines and payments:</h3></div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Line text</label>
+                                <div class="col-lg-6"><input class="form-control" type="text" name="check_product_text" value="@_filter.ProductText" /></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Line VAT rate</label>
+                                <div class="col-lg-6">@RefSelect("check_product_tax", _desk.ProductTaxes, _filter.ProductTax)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Payment method sign</label>
+                                <div class="col-lg-6">@RefSelect("check_product_paymentMethodType", _desk.PaymentMethodTypes, _filter.ProductPaymentMethodType)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Payment subject sign</label>
+                                <div class="col-lg-6">@RefSelect("check_product_paymentSubjectType", _desk.PaymentSubjectTypes, _filter.ProductPaymentSubjectType)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Payment type</label>
+                                <div class="col-lg-6">@RefSelect("check_payment_type", _desk.PaymentTypes, _filter.PaymentType)</div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Order ID</label>
+                                <div class="col-lg-6"><input class="form-control" type="number" min="0" name="order_id" value="@Num(_filter.OrderId)" /></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-4">
+                            <div class="form-group">
+                                <label class="col-lg-6 control-label">Order line ID</label>
+                                <div class="col-lg-6"><input class="form-control" type="number" min="0" name="order_item_id" value="@Num(_filter.OrderItemId)" /></div>
+                            </div>
+                        </div>
+                        <div class="col-lg-12">
+                            <button class="btn btn-primary" type="submit"><i class="fa fa-filter"></i> Apply filter</button>
+                            <a class="btn btn-default" href="/cp/kkt-app?view=checks">Reset filter</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Checks</div>
+                <div class="panel-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover">
+                            <thead>
+                                <tr>
+                                    <th style="width:50px;text-align:center;"><a href="@SortHref("check_id")">ID</a></th>
+                                    <th><a href="@SortHref("kkt_device_id")">Cash register</a></th>
+                                    <th><a href="@SortHref("type")">Operation</a></th>
+                                    <th><a href="@SortHref("taxationSystem")">Taxation</a></th>
+                                    <th style="text-align:center;"><a href="@SortHref("sent_to_real_device_flag")">Sent to device</a></th>
+                                    <th style="text-align:center;"><a href="@SortHref("real_device_approved_flag")">Device confirmed</a></th>
+                                    <th style="text-align:center;"><a href="@SortHref("is_correction_flag")">Check type</a></th>
+                                    <th><a href="@SortHref("check_sum")">Check total</a></th>
+                                    <th style="text-align:center;width:110px;"><a href="@SortHref("time_created")">Time</a></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_checks.Checks.Count == 0)
+                                {
+                                    <tr><td colspan="9" class="text-muted">No checks match the filter.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var check in _checks.Checks)
+                                    {
+                                        <tr>
+                                            <td style="text-align:center;">@check.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>@(check.DeviceName.Length > 0 ? check.DeviceName : check.DeviceId.ToString(CultureInfo.InvariantCulture))</td>
+                                            <td>@check.TypeForPrint</td>
+                                            <td>@check.TaxationSystemForPrint</td>
+                                            <td style="text-align:center;">@Flag(check.SentToDevice)</td>
+                                            <td style="text-align:center;">@Flag(check.DeviceApproved)</td>
+                                            <td style="text-align:center;">
+                                                @if (check.IsCorrection)
+                                                {
+                                                    <span style="background-color:#ffae00;color:#000;">Correction check</span>
+                                                }
+                                                else
+                                                {
+                                                    <text>Regular</text>
+                                                }
+                                            </td>
+                                            <td>@Money(check.Sum)</td>
+                                            <td style="text-align:center;">@Time(check.TimeCreated)</td>
+                                        </tr>
+                                        <tr>
+                                            <td colspan="9" style="background:#fbfbfb;">
+                                                @if (!check.IsCorrection)
+                                                {
+                                                    <div><b>Customer contact:</b> @(check.CustomerContact.Length > 0 ? check.CustomerContact : "—")</div>
+                                                    <b>Check lines:</b>
+                                                    <table class="table">
+                                                        <tr>
+                                                            <th>#</th><th>Name</th><th>Price</th><th>Quantity</th><th>Sum</th>
+                                                            <th>Payment method sign</th><th>Payment subject sign</th><th>VAT</th><th>Order link</th>
+                                                        </tr>
+                                                        @{
+                                                            var lineNumber = 1;
+                                                            var linesTotal = 0m;
+                                                        }
+                                                        @foreach (var product in check.Products)
+                                                        {
+                                                            linesTotal += product.Sum;
+                                                            <tr>
+                                                                <td>@lineNumber.ToString(CultureInfo.InvariantCulture)</td>
+                                                                <td>@product.Text</td>
+                                                                <td>@Money(product.Price)</td>
+                                                                <td>@Money(product.Count)</td>
+                                                                <td>@Money(product.Sum)</td>
+                                                                <td>@product.PaymentMethodType</td>
+                                                                <td>@product.PaymentSubjectType</td>
+                                                                <td>@product.Tax</td>
+                                                                <td>
+                                                                    @if (product.OrderId == 0)
+                                                                    {
+                                                                        <text>-</text>
+                                                                    }
+                                                                    else
+                                                                    {
+                                                                        <a href="@("/cp/orders/" + product.OrderId.ToString(CultureInfo.InvariantCulture))">Order @product.OrderId.ToString(CultureInfo.InvariantCulture)</a>
+                                                                        <text> (line @product.OrderItemId.ToString(CultureInfo.InvariantCulture))</text>
+                                                                    }
+                                                                </td>
+                                                            </tr>
+                                                            lineNumber++;
+                                                        }
+                                                        <tr>
+                                                            <td colspan="4" style="text-align:right;font-weight:bold;">TOTAL</td>
+                                                            <td style="font-weight:bold;">@Money(linesTotal)</td>
+                                                            <td colspan="4"></td>
+                                                        </tr>
+                                                    </table>
+
+                                                    <b>Check payments:</b>
+                                                    <table class="table">
+                                                        <tr><th>#</th><th>Amount</th><th>Payment method</th></tr>
+                                                        @{
+                                                            var paymentNumber = 1;
+                                                            var paymentsTotal = 0m;
+                                                        }
+                                                        @foreach (var payment in check.Payments)
+                                                        {
+                                                            paymentsTotal += payment.Amount;
+                                                            <tr>
+                                                                <td>@paymentNumber.ToString(CultureInfo.InvariantCulture)</td>
+                                                                <td>@Money(payment.Amount)</td>
+                                                                <td>@payment.TypeForPrint</td>
+                                                            </tr>
+                                                            paymentNumber++;
+                                                        }
+                                                        <tr>
+                                                            <td style="text-align:right;font-weight:bold;">TOTAL</td>
+                                                            <td style="font-weight:bold;">@Money(paymentsTotal)</td>
+                                                            <td></td>
+                                                        </tr>
+                                                    </table>
+                                                }
+                                                else
+                                                {
+                                                    <div><b>Correction type:</b> @(check.Correction.CorrectionType == 0 ? "Self-initiated" : "By order of the authority")</div>
+                                                    <div><b>Correction description:</b> @check.Correction.Description</div>
+                                                    @if (check.Correction.CorrectionType == 1)
+                                                    {
+                                                        <div><b>Cause document date:</b> @Time(check.Correction.CauseDocumentDate)</div>
+                                                        <div><b>Cause document number:</b> @check.Correction.CauseDocumentNumber</div>
+                                                    }
+                                                    <div class="hr-line-dashed"></div>
+                                                    <div><b>Check total:</b> @Money(check.Correction.TotalSum)</div>
+                                                    <div><b>Cash:</b> @Money(check.Correction.CashSum)</div>
+                                                    <div><b>Cashless:</b> @Money(check.Correction.ECashSum)</div>
+                                                    <div><b>Prepayment:</b> @Money(check.Correction.PrepaymentSum)</div>
+                                                    <div><b>Postpayment:</b> @Money(check.Correction.PostpaymentSum)</div>
+                                                    <div><b>Other consideration:</b> @Money(check.Correction.OtherPaymentTypeSum)</div>
+                                                    <div class="hr-line-dashed"></div>
+                                                    <div><b>VAT 20 %:</b> @Money(check.Correction.Tax1Sum)</div>
+                                                    <div><b>VAT 10 %:</b> @Money(check.Correction.Tax2Sum)</div>
+                                                    <div><b>VAT 0 %:</b> @Money(check.Correction.Tax3Sum)</div>
+                                                    <div><b>Without VAT:</b> @Money(check.Correction.Tax4Sum)</div>
+                                                    <div><b>VAT 20/120:</b> @Money(check.Correction.Tax5Sum)</div>
+                                                    <div><b>VAT 10/110:</b> @Money(check.Correction.Tax6Sum)</div>
+                                                }
+                                                @if (check.DeviceAnswer.Length > 0)
+                                                {
+                                                    <div class="text-muted" style="margin-top:6px;font-size:12px"><b>Device answer:</b> @check.DeviceAnswer</div>
+                                                }
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                            <tfoot>
+                                <tr>
+                                    <td colspan="9" style="text-align:center;">
+                                        <div class="btn-group">
+                                            <a class="@PageClass(_checks.Page == 0)" href="@PageHref(0)">First</a>
+                                            <a class="@PageClass(_checks.Page == 0)" href="@PageHref(_checks.Page - 1)"><i class="fa fa-chevron-left"></i></a>
+                                            @for (var i = 0; i < _checks.PageCount; i++)
+                                            {
+                                                if (_checks.Page - i > 2)
+                                                {
+                                                    continue;
+                                                }
+
+                                                if (i - _checks.Page > 2)
+                                                {
+                                                    break;
+                                                }
+
+                                                <a class="@("btn btn-default " + (i == _checks.Page ? "active" : ""))" href="@PageHref(i)">@((i + 1).ToString(CultureInfo.InvariantCulture))</a>
+                                            }
+                                            <a class="@PageClass(_checks.Page + 1 >= _checks.PageCount)" href="@PageHref(_checks.Page + 1)"><i class="fa fa-chevron-right"></i></a>
+                                            <a class="@PageClass(_checks.Page + 1 >= _checks.PageCount)" href="@PageHref(_checks.PageCount - 1)">Last</a>
+                                        </div>
+                                        <div style="text-align:left;">
+                                            Total elements by filter: @_checks.TotalRows.ToString(CultureInfo.InvariantCulture),
+                                            elements per page: @_checks.PageSize.ToString(CultureInfo.InvariantCulture),
+                                            pages by filter: @_checks.PageCount.ToString(CultureInfo.InvariantCulture)
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tfoot>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        @DefaultsPanel(
+            "Default settings for manually created checks",
+            "These parameters are preselected when a new check is opened. Set the most frequently used values here.",
+            _desk.ManualDefaults)
+
+        @DefaultsPanel(
+            "Default settings for automatic checks after online payment",
+            "These parameters are used for the check issued after an order is paid online or a balance is topped up.",
+            _desk.OnlineDefaults)
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Information</div>
+                <div class="panel-body">
+                    <p>
+                        After the cash register is connected to the shop, set the print defaults (taxation system and line VAT rate;
+                        the rest can stay unchanged).
+                    </p>
+                    <p>
+                        Note the "payment method sign": it starts as "full settlement". If it is changed to "prepayment", a second check
+                        with "full settlement" has to be issued manually when the goods are handed over.
+                    </p>
+                </div>
+            </div>
+        </div>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/kkt";
     private bool _isAdmin;
-    private CpKktSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpKktDeviceDigest> _devices = [];
+    private string _view = "root";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpKktDesk _desk = CpKktDesk.Unavailable("");
+    private CpKktCheckFilter _filter = CpKktCheckFilter.Default;
+    private CpKktChecksPage _checks = new([], 0, CpKktDeskService.PageLimit, 0, "check_id", false);
+
+    private static string Num(long value) => value == 0 ? "" : value.ToString(CultureInfo.InvariantCulture);
+
+    private static string Money(decimal value) => value.ToString("0.00", CultureInfo.InvariantCulture);
+
+    private static string Time(long unixSeconds)
+        => unixSeconds <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(unixSeconds).UtcDateTime.ToString("yyyy.MM.dd HH:mm:ss", CultureInfo.InvariantCulture);
+
+    private static string PageClass(bool disabled) => "btn btn-default " + (disabled ? "disabled" : "");
+
+    private RenderFragment Flag(bool value) => builder =>
+    {
+        builder.OpenElement(0, "i");
+        builder.AddAttribute(1, "class", value ? "fas fa-check-circle" : "fas fa-exclamation-triangle");
+        builder.AddAttribute(2, "style", value ? "font-size:20px;color:#3C3;" : "font-size:20px;color:#C33;");
+        builder.CloseElement();
+    };
+
+    private RenderFragment RefSelect(string name, IReadOnlyList<CpKktRefValue> values, long current) => builder =>
+    {
+        builder.OpenElement(0, "select");
+        builder.AddAttribute(1, "class", "form-control");
+        builder.AddAttribute(2, "name", name);
+        builder.OpenElement(3, "option");
+        builder.AddAttribute(4, "value", "-1");
+        if (current == -1) builder.AddAttribute(5, "selected", true);
+        builder.AddContent(6, "All");
+        builder.CloseElement();
+        foreach (var value in values)
+        {
+            builder.OpenElement(7, "option");
+            builder.AddAttribute(8, "value", value.Value.ToString(CultureInfo.InvariantCulture));
+            if (value.Value == current) builder.AddAttribute(9, "selected", true);
+            builder.AddContent(10, value.ForPrint);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    private RenderFragment FlagSelect(string name, long current) => builder =>
+    {
+        builder.OpenElement(0, "select");
+        builder.AddAttribute(1, "class", "form-control");
+        builder.AddAttribute(2, "name", name);
+        var options = new (string Value, string Caption)[] { ("-1", "All"), ("1", "Yes"), ("0", "No") };
+        var sequence = 3;
+        foreach (var (value, caption) in options)
+        {
+            builder.OpenElement(sequence++, "option");
+            builder.AddAttribute(sequence++, "value", value);
+            if (value == current.ToString(CultureInfo.InvariantCulture)) builder.AddAttribute(sequence++, "selected", true);
+            builder.AddContent(sequence++, caption);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    private RenderFragment DefaultsPanel(string title, string hint, CpKktDefaults defaults) => builder =>
+    {
+        var type = defaults.Type.ToString(CultureInfo.InvariantCulture);
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "col-lg-12");
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "class", "hpanel");
+
+        builder.OpenElement(4, "div");
+        builder.AddAttribute(5, "class", "panel-heading hbuilt");
+        builder.AddContent(6, title);
+        builder.CloseElement();
+
+        builder.OpenElement(7, "form");
+        builder.AddAttribute(8, "method", "post");
+        builder.AddAttribute(9, "action", "/cp/kkt/defaults");
+
+        builder.OpenElement(10, "div");
+        builder.AddAttribute(11, "class", "panel-body");
+        builder.AddMarkupContent(12, "<input type=\"hidden\" name=\"confirmWrites\" value=\"true\" />");
+        builder.AddMarkupContent(13, "<input type=\"hidden\" name=\"action\" value=\"save_setting\" />");
+        builder.AddMarkupContent(14, "<input type=\"hidden\" name=\"type\" value=\"" + type + "\" />");
+
+        builder.OpenElement(15, "p");
+        builder.AddAttribute(16, "class", "text-muted");
+        builder.AddContent(17, hint);
+        builder.CloseElement();
+
+        builder.AddContent(18, DefaultsField("Taxation system on the check", RefValueSelect("taxationSystem", _desk.TaxationSystems, defaults.TaxationSystem)));
+        builder.AddContent(19, DefaultsField("Cash register", DeviceSelect(defaults.DeviceId)));
+        builder.AddContent(20, DefaultsField("Line VAT rate", RefValueSelect("check_product_tax", _desk.ProductTaxes, defaults.ProductTax)));
+        builder.AddContent(21, DefaultsField("Payment method sign of the line", RefValueSelect("check_product_paymentMethodType", _desk.PaymentMethodTypes, defaults.PaymentMethodType)));
+        builder.AddContent(22, DefaultsField("Payment subject sign of the line", RefValueSelect("check_product_paymentSubjectType", _desk.PaymentSubjectTypes, defaults.PaymentSubjectType)));
+        builder.AddContent(23, DefaultsField("Payment method on the check", RefValueSelect("check_payment_type", _desk.PaymentTypes, defaults.PaymentType)));
+        builder.AddContent(24, DefaultsField("Print a paper check", PrintCheckbox(defaults.Print)));
+
+        builder.CloseElement();
+
+        builder.OpenElement(25, "div");
+        builder.AddAttribute(26, "class", "panel-footer");
+        builder.AddMarkupContent(27, "<button class=\"btn btn-primary\" type=\"submit\"><i class=\"fa fa-check\"></i> Apply</button>");
+        builder.CloseElement();
+
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    private static RenderFragment DefaultsField(string label, RenderFragment control) => builder =>
+    {
+        builder.OpenElement(0, "div");
+        builder.AddAttribute(1, "class", "col-lg-4");
+        builder.OpenElement(2, "div");
+        builder.AddAttribute(3, "class", "form-group");
+        builder.OpenElement(4, "label");
+        builder.AddAttribute(5, "class", "col-lg-6 control-label");
+        builder.AddContent(6, label);
+        builder.CloseElement();
+        builder.OpenElement(7, "div");
+        builder.AddAttribute(8, "class", "col-lg-6");
+        builder.AddContent(9, control);
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    private static RenderFragment RefValueSelect(string name, IReadOnlyList<CpKktRefValue> values, long current) => builder =>
+    {
+        builder.OpenElement(0, "select");
+        builder.AddAttribute(1, "class", "form-control");
+        builder.AddAttribute(2, "name", name);
+        foreach (var value in values)
+        {
+            builder.OpenElement(3, "option");
+            builder.AddAttribute(4, "value", value.Value.ToString(CultureInfo.InvariantCulture));
+            if (value.Value == current) builder.AddAttribute(5, "selected", true);
+            builder.AddContent(6, value.ForPrint);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    private RenderFragment DeviceSelect(long current) => builder =>
+    {
+        builder.OpenElement(0, "select");
+        builder.AddAttribute(1, "class", "form-control");
+        builder.AddAttribute(2, "name", "kkt_device_id");
+        foreach (var device in _desk.Devices)
+        {
+            builder.OpenElement(3, "option");
+            builder.AddAttribute(4, "value", device.Id.ToString(CultureInfo.InvariantCulture));
+            if (device.Id == current) builder.AddAttribute(5, "selected", true);
+            builder.AddContent(6, device.Name);
+            builder.CloseElement();
+        }
+
+        builder.CloseElement();
+    };
+
+    private static RenderFragment PrintCheckbox(bool current) => builder =>
+    {
+        builder.OpenElement(0, "input");
+        builder.AddAttribute(1, "type", "checkbox");
+        builder.AddAttribute(2, "class", "form-control");
+        builder.AddAttribute(3, "name", "print");
+        builder.AddAttribute(4, "value", "1");
+        if (current) builder.AddAttribute(5, "checked", true);
+        builder.CloseElement();
+    };
+
+    private string SortHref(string field)
+    {
+        var ascending = _checks.SortField == field && !_checks.SortAscending;
+        return ChecksHref(_checks.Page, field, ascending);
+    }
+
+    private string PageHref(int page) => ChecksHref(page < 0 ? 0 : page, _checks.SortField, _checks.SortAscending);
+
+    private string ChecksHref(int page, string sortField, bool ascending)
+    {
+        var query = new List<string>
+        {
+            "view=checks",
+            "page=" + page.ToString(CultureInfo.InvariantCulture),
+            "sort=" + Uri.EscapeDataString(sortField),
+            "dir=" + (ascending ? "asc" : "desc")
+        };
+
+        void Add(string name, long value, long ignore)
+        {
+            if (value != ignore)
+            {
+                query.Add(name + "=" + value.ToString(CultureInfo.InvariantCulture));
+            }
+        }
+
+        void AddText(string name, string value)
+        {
+            if (value.Length > 0)
+            {
+                query.Add(name + "=" + Uri.EscapeDataString(value));
+            }
+        }
+
+        Add("check_id", _filter.CheckId, 0);
+        Add("kkt_device_id", _filter.DeviceId, -1);
+        Add("type", _filter.Type, -1);
+        AddText("customerContact", _filter.CustomerContact);
+        Add("taxationSystem", _filter.TaxationSystem, -1);
+        Add("time_from", _filter.TimeFrom, 0);
+        Add("time_to", _filter.TimeTo, 0);
+        Add("sent_to_real_device_flag", _filter.SentFlag, -1);
+        Add("real_device_approved_flag", _filter.ApprovedFlag, -1);
+        Add("is_correction_flag", _filter.CorrectionFlag, -1);
+        AddText("check_product_text", _filter.ProductText);
+        Add("check_product_tax", _filter.ProductTax, -1);
+        Add("check_product_paymentMethodType", _filter.ProductPaymentMethodType, -1);
+        Add("check_product_paymentSubjectType", _filter.ProductPaymentSubjectType, -1);
+        Add("check_payment_type", _filter.PaymentType, -1);
+        Add("order_id", _filter.OrderId, 0);
+        Add("order_item_id", _filter.OrderItemId, 0);
+
+        return "/cp/kkt-app?" + string.Join("&", query);
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _view = ctx.Request.Query["view"].ToString() switch
+        {
+            "devices" => "devices",
+            "checks" => "checks",
+            _ => "root"
+        };
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpKktDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _devices = result.Devices;
+        _desk = await Desk.LoadDeskAsync(ctx.RequestAborted);
+        if (!_desk.Available || _view != "checks")
+        {
+            return;
+        }
+
+        long Number(string name, long fallback)
+            => long.TryParse(ctx.Request.Query[name].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
+                ? value
+                : fallback;
+
+        _filter = new CpKktCheckFilter(
+            Number("check_id", 0),
+            Number("kkt_device_id", -1),
+            Number("type", -1),
+            ctx.Request.Query["customerContact"].ToString() ?? "",
+            Number("taxationSystem", -1),
+            Number("time_from", 0),
+            Number("time_to", 0),
+            Number("sent_to_real_device_flag", -1),
+            Number("real_device_approved_flag", -1),
+            Number("is_correction_flag", -1),
+            ctx.Request.Query["check_product_text"].ToString() ?? "",
+            Number("check_product_tax", -1),
+            Number("check_product_paymentMethodType", -1),
+            Number("check_product_paymentSubjectType", -1),
+            Number("check_payment_type", -1),
+            Number("order_id", 0),
+            Number("order_item_id", 0));
+
+        var page = (int)Number("page", 0);
+        var sort = CpKktDeskService.NormaliseSortField(ctx.Request.Query["sort"].ToString());
+        var ascending = string.Equals(ctx.Request.Query["dir"].ToString(), "asc", StringComparison.OrdinalIgnoreCase);
+        _checks = await Desk.LoadChecksAsync(_filter, page, sort, ascending, ctx.RequestAborted);
     }
 }

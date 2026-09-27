@@ -4349,6 +4349,48 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpKktDefaultsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpKktWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/kkt-app", "Admin CP capability required for KKT check defaults.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "KKT check defaults are saved as a form post." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save KKT check defaults on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var defaults = CpKktWriteService.ParseDefaults(
+                form.ToDictionary(f => f.Key, f => f.Value.ToString(), StringComparer.Ordinal));
+            var written = await writes.SaveDefaultsAsync(defaults, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/kkt-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpDataTransferExport, async (
             HttpContext context,
             ILegacySessionValidator validator,
