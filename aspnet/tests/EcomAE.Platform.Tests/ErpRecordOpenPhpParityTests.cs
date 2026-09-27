@@ -631,7 +631,6 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("CpInsuranceComplianceApp.razor", "pol")]
     [InlineData("CpReturnsRmaApp.razor", "rma_id")]
     [InlineData("CpQuoteRequestsApp.razor", "quote_id")]
-    [InlineData("CpMarketingBroadcastApp.razor", "campaign_id")]
     [InlineData("CpDataMigrationsApp.razor", "migration_id")]
     public void DumpListApps_RowOpenIsRecordUrl(string fileName, string param)
     {
@@ -4329,17 +4328,16 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void MarketingBroadcastApp_OpenLoadsBodyAndSendLog()
+    public void MarketingBroadcastApp_IsComposerTwinNotRecordDigest()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpMarketingBroadcastApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"campaign_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"campaign_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpMarketingBroadcastDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No body yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No log yet.", text, StringComparison.Ordinal);
+        Assert.Contains("/cp/marketing-broadcast/write", text, StringComparison.Ordinal);
+        Assert.Contains("send_email", text, StringComparison.Ordinal);
+        Assert.Contains("send_whatsapp", text, StringComparison.Ordinal);
+        Assert.Contains("Campaign history", text, StringComparison.Ordinal);
+        Assert.Contains("No campaigns yet.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);

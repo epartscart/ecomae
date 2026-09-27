@@ -2,227 +2,399 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpMarketingBroadcastService Broadcast
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Marketing Broadcast · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<link rel="stylesheet" href="/cp/epc-marketing-broadcast.css" />
+
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
+    <div class="col-lg-12 epc-mb-hub">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Marketing broadcast
-                <a class="btn btn-xs btn-default pull-right" href="/cp/demo-tenants-app" style="margin-right:.4rem">Demo tenants</a>
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/marketing-broadcast-app")</p>
-                <p>Open a campaign for the send body and recipient log. Send stays on Classic twin.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/marketing-broadcast-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedCampaign is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Marketing broadcast KPIs">
-        <div class="kpi"><div class="lbl">Campaigns</div><div class="val">@_summary.Campaigns.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Emails sent</div><div class="val">@_summary.EmailsSent.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">WhatsApp sent</div><div class="val">@_summary.WhatsappSent.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedCampaign is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedCampaign.Subject) ? _openedCampaign.Subject : ("Campaign #" + _openedCampaign.Id.ToString(CultureInfo.InvariantCulture)))
-                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedCampaign.Status) ? _openedCampaign.Status : "—")</span>
+                <div class="epc-mb-brandbar">
+                    <div class="epc-mb-brandbar__mark">@Initials(_view.Shop.ShopName)</div>
+                    <div>
+                        <div class="epc-mb-brandbar__name">Marketing broadcast</div>
+                        <div class="epc-mb-brandbar__sub">@_view.Shop.ShopName — Email &amp; WhatsApp · audience → template → preview → send</div>
+                    </div>
+                    <div class="epc-mb-brandbar__actions">
+                        <a class="epc-mb-chip-link" href="/cp/tenant-email-app">SMTP settings</a>
+                        <a class="epc-mb-chip-link" href="/cp/integrations-hub-app">Integrations</a>
+                        <a class="epc-mb-chip-link" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                    </div>
                 </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedCampaign.Channel) ? _openedCampaign.Channel : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedCampaign.TemplateKey) ? _openedCampaign.TemplateKey : "—")
-                        · @_openedCampaign.SentOk.ToString(CultureInfo.InvariantCulture) / @_openedCampaign.SentFail.ToString(CultureInfo.InvariantCulture)
-                        of @_openedCampaign.TotalTargets.ToString(CultureInfo.InvariantCulture)</p>
-                    <p>@(!string.IsNullOrWhiteSpace(_openedCampaign.AudienceMode) ? _openedCampaign.AudienceMode : "—")
-                        @if (!string.IsNullOrWhiteSpace(_openedCampaign.AudienceMeta))
-                        {
-                            <span> · @_openedCampaign.AudienceMeta</span>
-                        }
-                    </p>
-                    @if (!string.IsNullOrWhiteSpace(_openedCampaign.Preview))
+
+                <div class="epc-mb-kpi">
+                    <div class="epc-mb-kpi__item">
+                        <div class="epc-mb-kpi__val">@_view.Stats.EmailRecipients.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-mb-kpi__label">Customers with email</div>
+                    </div>
+                    <div class="epc-mb-kpi__item">
+                        <div class="epc-mb-kpi__val">@_view.Stats.WhatsappRecipients.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-mb-kpi__label">Customers with phone</div>
+                    </div>
+                    <div class="epc-mb-kpi__item">
+                        <div class="epc-mb-kpi__val">@_view.Stats.EmailsSent.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-mb-kpi__label">Emails sent</div>
+                    </div>
+                    <div class="epc-mb-kpi__item">
+                        <div class="epc-mb-kpi__val">@_view.Stats.WhatsappSent.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-mb-kpi__label">WhatsApp sent</div>
+                    </div>
+                    <div class="epc-mb-kpi__item">
+                        <div class="epc-mb-kpi__val">@_view.Stats.Campaigns.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-mb-kpi__label">Campaigns</div>
+                    </div>
+                </div>
+
+                <div class="epc-mb-tabs">
+                    @foreach (var tab in MarketingBroadcastCatalog.Tabs)
                     {
-                        <p>@_openedCampaign.Preview</p>
-                    }
-                    @if (string.IsNullOrWhiteSpace(_openedCampaign.BodyHtml) && string.IsNullOrWhiteSpace(_openedCampaign.BodyText))
-                    {
-                        <p>No body yet.</p>
-                    }
-                    else
-                    {
-                        @if (!string.IsNullOrWhiteSpace(_openedCampaign.BodyText))
-                        {
-                            <p class="text-muted">@_openedCampaign.BodyText</p>
-                        }
-                        @if (!string.IsNullOrWhiteSpace(_openedCampaign.BodyHtml))
-                        {
-                            <p class="text-muted">@_openedCampaign.BodyHtml</p>
-                        }
-                    }
-                    @if (_openedLog.Count == 0)
-                    {
-                        <p>No log yet.</p>
-                    }
-                    else
-                    {
-                        <div class="table-responsive">
-                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-epc">
-                                <thead>
-                                    <tr>
-                                        <th>Recipient</th>
-                                        <th>User</th>
-                                        <th>Status</th>
-                                        <th>Detail</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    @foreach (var row in _openedLog)
-                                    {
-                                        <tr>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.Recipient) ? row.Recipient : "—")</td>
-                                            <td>@row.UserId.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@row.Status.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.Detail) ? row.Detail : "—")</td>
-                                        </tr>
-                                    }
-                                </tbody>
-                            </table>
-                        </div>
+                        <a class="epc-mb-tab @(tab.Key == _tab ? "is-active" : "")" href="@TabHref(tab.Key)">@tab.Label</a>
                     }
                 </div>
-            </div>
-        </div>
-    }
 
-    <p class="help-block">@_summary.Campaigns.ToString(CultureInfo.InvariantCulture) Campaigns · @_summary.EmailsSent.ToString(CultureInfo.InvariantCulture) Emails sent (ok) · @_summary.WhatsappSent.ToString(CultureInfo.InvariantCulture) WhatsApp sent (ok).</p>
+                @if (!string.IsNullOrWhiteSpace(_flashOk))
+                {
+                    <div class="alert alert-success" role="status">@_flashOk</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_flashErr))
+                {
+                    <div class="alert alert-danger" role="status">@_flashErr</div>
+                }
+                @if (!_isAdmin)
+                {
+                    <div class="alert alert-warning" role="status">Sign in with a staff CP session for live recipients, campaigns and sending.</div>
+                }
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Created</th>
-                                <th>Channel</th>
-                                <th>Template</th>
-                                <th>Subject</th>
-                                <th>Preview</th>
-                                <th>Audience</th>
-                                <th>Audience meta</th>
-                                <th>Targets</th>
-                                <th>OK / Fail</th>
-                                <th>Status</th>
-                                <th>Operator</th>
-                                <th></th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (_campaigns.Count == 0)
-                            {
-                                <tr><td colspan="13">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-                            }
-                            else
-                            {
-                                @foreach (var c in _campaigns)
+                <div class="epc-mb-panel">
+                    @switch (_tab)
+                    {
+                        case "email":
+                            <div class="epc-mb-status-row">
+                                @if (_view.SmtpReady)
                                 {
-                                    <tr id="erp-row-@c.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(c.Id, _openedId)">
-                                        <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                                        <td>@c.CreatedAt.ToString(CultureInfo.InvariantCulture)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(c.Channel) ? "—" : c.Channel)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(c.TemplateKey) ? "—" : c.TemplateKey)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(c.Subject) ? "—" : c.Subject)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(c.Preview) ? "—" : c.Preview)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(c.AudienceMode) ? "—" : c.AudienceMode)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(c.AudienceMeta) ? "—" : c.AudienceMeta)</td>
-                                        <td>@c.TotalTargets.ToString(CultureInfo.InvariantCulture)</td>
-                                        <td>@c.SentOk.ToString(CultureInfo.InvariantCulture) / @c.SentFail.ToString(CultureInfo.InvariantCulture)</td>
-                                        <td>@(string.IsNullOrWhiteSpace(c.Status) ? "—" : c.Status)</td>
-                                        <td>@c.OperatorId.ToString(CultureInfo.InvariantCulture)</td>
-                                        <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "campaign_id", c.Id)">Open</a></td>
-                                    </tr>
+                                    <span class="epc-mb-badge epc-mb-badge--ok">SMTP ready</span>
                                 }
+                                else
+                                {
+                                    <span class="epc-mb-badge epc-mb-badge--warn">SMTP not ready</span>
+                                    @foreach (var issue in _view.SmtpIssues)
+                                    {
+                                        <span class="epc-mb-badge">@issue</span>
+                                    }
+                                    <a class="epc-mb-chip-link" href="/cp/tenant-email-app">Fix SMTP</a>
+                                }
+                            </div>
+
+                            <h4>1 · Audience</h4>
+                            <div class="epc-mb-mode">
+                                @foreach (var mode in MarketingBroadcastCatalog.EmailAudienceModes)
+                                {
+                                    <a class="epc-mb-mode__card @(mode.Key == _emailMode ? "is-active" : "")" href="@ModeHref("email", mode.Key)">
+                                        <span class="epc-mb-mode__label">@mode.Label</span>
+                                        <span class="epc-mb-mode__hint">@mode.Hint</span>
+                                    </a>
+                                }
+                            </div>
+
+                            <h4>2 · Template</h4>
+                            <div class="epc-mb-templates">
+                                @foreach (var template in MarketingBroadcastCatalog.EmailTemplates)
+                                {
+                                    <a class="epc-mb-template @(template.Key == _emailTemplate.Key ? "is-active" : "")"
+                                       href="@TemplateHref("email", template.Key)">
+                                        <span class="epc-mb-template__label">@template.Label</span>
+                                        <span class="epc-mb-template__sub">@template.Subject</span>
+                                    </a>
+                                }
+                                <a class="epc-mb-chip-link" href="@TemplateHref("email", _emailTemplate.Key)">Reload template</a>
+                            </div>
+
+                            <form method="post" action="/cp/marketing-broadcast/write" class="epc-mb-compose"
+                                  onsubmit="return confirm('Send this email campaign now?');">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="action" value="send_email" />
+                                <input type="hidden" name="template_key" value="@_emailTemplate.Key" />
+                                <input type="hidden" name="audience_mode" value="@_emailMode" />
+                                <input type="hidden" name="returnUrl" value="@TabHref("email")" />
+
+                                @if (_emailMode == "group")
+                                {
+                                    <label>Group / segment</label>
+                                    <select class="form-control" name="audience_meta_group">
+                                        @foreach (var group in _view.Groups)
+                                        {
+                                            <option value="@group.Id.ToString(CultureInfo.InvariantCulture)">@group.Name</option>
+                                        }
+                                    </select>
+                                }
+                                else if (_emailMode == "manual")
+                                {
+                                    <label>Manual email list (one per line)</label>
+                                    <textarea class="form-control" rows="4" name="audience_meta_manual" placeholder="customer@example.com"></textarea>
+                                }
+
+                                <div class="epc-mb-status-row">
+                                    <span class="epc-mb-badge">Recipients: @_recipientCount.ToString(CultureInfo.InvariantCulture)</span>
+                                    <span class="epc-mb-badge">Merge tags: {{customer_name}} · {{shop_name}} · {{shop_url}}</span>
+                                </div>
+
+                                <label>Subject</label>
+                                <input class="form-control" type="text" name="subject" value="@_emailTemplate.Subject" maxlength="255" required />
+
+                                <label>Preview text</label>
+                                <input class="form-control" type="text" name="preview" value="@_emailTemplate.Preview" maxlength="500" />
+
+                                <label>HTML body</label>
+                                <textarea class="form-control epc-mb-code" rows="12" name="body_html" required>@_emailTemplate.Html</textarea>
+
+                                <label>Batch limit (1–100)</label>
+                                <input class="form-control" type="number" name="batch_limit" min="1" max="100" value="50" />
+
+                                <button type="submit" class="btn btn-primary" disabled="@(!_isAdmin)">Send email campaign</button>
+                            </form>
+
+                            <h4>3 · Live email preview</h4>
+                            <div class="epc-mb-preview">
+                                <div class="epc-mb-preview__subject">@_emailTemplate.Subject</div>
+                                <div class="epc-mb-preview__preheader">@_emailTemplate.Preview</div>
+                                <iframe class="epc-mb-preview__frame" title="Email preview" sandbox srcdoc="@_emailTemplate.Html"></iframe>
+                            </div>
+                            break;
+
+                        case "whatsapp":
+                            <div class="epc-mb-status-row">
+                                @if (_view.WhatsappApiEnabled)
+                                {
+                                    <span class="epc-mb-badge epc-mb-badge--ok">WhatsApp Cloud API configured</span>
+                                    <span class="epc-mb-badge">Automatic Cloud API sending stays on the Classic twin; here links are prepared.</span>
+                                }
+                                else
+                                {
+                                    <span class="epc-mb-badge epc-mb-badge--warn">wa.me mode (Phase 1)</span>
+                                }
+                            </div>
+
+                            <h4>1 · Audience</h4>
+                            <div class="epc-mb-mode">
+                                @foreach (var mode in MarketingBroadcastCatalog.WhatsappAudienceModes)
+                                {
+                                    <a class="epc-mb-mode__card @(mode.Key == _waMode ? "is-active" : "")" href="@ModeHref("whatsapp", mode.Key)">
+                                        <span class="epc-mb-mode__label">@mode.Label</span>
+                                        <span class="epc-mb-mode__hint">@mode.Hint</span>
+                                    </a>
+                                }
+                            </div>
+
+                            <h4>2 · Template</h4>
+                            <div class="epc-mb-templates">
+                                @foreach (var template in MarketingBroadcastCatalog.WhatsappTemplates)
+                                {
+                                    <a class="epc-mb-template @(template.Key == _waTemplate.Key ? "is-active" : "")"
+                                       href="@TemplateHref("whatsapp", template.Key)">
+                                        <span class="epc-mb-template__label">@template.Label</span>
+                                    </a>
+                                }
+                                <a class="epc-mb-chip-link" href="@TemplateHref("whatsapp", _waTemplate.Key)">Reload template</a>
+                            </div>
+
+                            <form method="post" action="/cp/marketing-broadcast/write" class="epc-mb-compose"
+                                  onsubmit="return confirm('Prepare this WhatsApp campaign now?');">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="action" value="send_whatsapp" />
+                                <input type="hidden" name="template_key" value="@_waTemplate.Key" />
+                                <input type="hidden" name="audience_mode" value="@_waMode" />
+                                <input type="hidden" name="returnUrl" value="@TabHref("whatsapp")" />
+
+                                @if (_waMode == "group")
+                                {
+                                    <label>Group / segment</label>
+                                    <select class="form-control" name="audience_meta_group">
+                                        @foreach (var group in _view.Groups)
+                                        {
+                                            <option value="@group.Id.ToString(CultureInfo.InvariantCulture)">@group.Name</option>
+                                        }
+                                    </select>
+                                }
+                                else if (_waMode == "manual")
+                                {
+                                    <label>Manual phone list (one per line)</label>
+                                    <textarea class="form-control" rows="4" name="audience_meta_manual" placeholder="+971 50 000 0000"></textarea>
+                                }
+
+                                <div class="epc-mb-status-row">
+                                    <span class="epc-mb-badge">Recipients: @_recipientCount.ToString(CultureInfo.InvariantCulture)</span>
+                                    <span class="epc-mb-badge">Merge tags: {{customer_name}} · {{shop_name}} · {{shop_url}}</span>
+                                </div>
+
+                                <label>Message (EN + AR)</label>
+                                <textarea class="form-control" rows="8" name="body_text" required>@_waTemplate.Body</textarea>
+
+                                <label>Batch limit (1–100)</label>
+                                <input class="form-control" type="number" name="batch_limit" min="1" max="100" value="50" />
+
+                                <button type="submit" class="btn btn-primary" disabled="@(!_isAdmin)">Prepare WhatsApp campaign</button>
+                            </form>
+
+                            <h4>3 · Chat preview</h4>
+                            <div class="epc-mb-preview epc-mb-preview--wa">
+                                <div class="epc-mb-wa-bubble">@_waTemplate.Body</div>
+                            </div>
+                            break;
+
+                        case "history":
+                            <h4>Campaign history</h4>
+                            <div class="table-responsive">
+                                <table class="table table-striped epc-mb-table">
+                                    <thead>
+                                        <tr>
+                                            <th>ID</th>
+                                            <th>Created</th>
+                                            <th>Channel</th>
+                                            <th>Template</th>
+                                            <th>Subject</th>
+                                            <th>Audience</th>
+                                            <th>Targets</th>
+                                            <th>OK / Fail</th>
+                                            <th>Status</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @if (_view.Campaigns.Count == 0)
+                                        {
+                                            <tr><td colspan="9">No campaigns yet.</td></tr>
+                                        }
+                                        else
+                                        {
+                                            @foreach (var c in _view.Campaigns)
+                                            {
+                                                <tr>
+                                                    <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
+                                                    <td>@Stamp(c.CreatedAt)</td>
+                                                    <td>@c.Channel</td>
+                                                    <td>@(string.IsNullOrWhiteSpace(c.TemplateKey) ? "—" : c.TemplateKey)</td>
+                                                    <td>@(string.IsNullOrWhiteSpace(c.Subject) ? "—" : c.Subject)</td>
+                                                    <td>@(string.IsNullOrWhiteSpace(c.AudienceMode) ? "—" : c.AudienceMode)</td>
+                                                    <td>@c.TotalTargets.ToString(CultureInfo.InvariantCulture)</td>
+                                                    <td>@c.SentOk.ToString(CultureInfo.InvariantCulture) / @c.SentFail.ToString(CultureInfo.InvariantCulture)</td>
+                                                    <td>@(string.IsNullOrWhiteSpace(c.Status) ? "—" : c.Status)</td>
+                                                </tr>
+                                            }
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                            break;
+
+                        default:
+                            @foreach (var step in MarketingBroadcastCatalog.GuideSteps(_view.WhatsappApiEnabled, "/cp/tenant-email-app", "/cp/integrations-hub-app"))
+                            {
+                                <div class="epc-mb-guide-step">
+                                    <h4>@step.Title</h4>
+                                    @((MarkupString)step.BodyHtml)
+                                </div>
                             }
-                        </tbody>
-                    </table>
+                            break;
+                    }
                 </div>
             </div>
         </div>
     </div>
-
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_marketing_broadcast";
-    private bool _isAdmin;
-    private CpMarketingBroadcastSummary _summary = new(0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpMarketingBroadcastCampaignDigest> _campaigns = [];
-    private string _source = "n/a";
-    private string _message = "";
-    private long _openedId;
-    private CpMarketingBroadcastCampaignDetail? _openedCampaign;
-    private IReadOnlyList<CpMarketingBroadcastLogDigest> _openedLog = [];
-    private string _listHref = "/cp/marketing-broadcast-app";
+    private readonly string _listHref = "/cp/marketing-broadcast-app";
 
-    private string OpenedCaption => _openedCampaign is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedCampaign.Subject)
-            ? ("Campaign #" + _openedCampaign.Id.ToString(CultureInfo.InvariantCulture))
-            : _openedCampaign.Subject);
+    private bool _isAdmin;
+    private string _tab = "email";
+    private string _emailMode = "all";
+    private string _waMode = "all";
+    private int _recipientCount;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private MarketingEmailTemplate _emailTemplate = MarketingBroadcastCatalog.EmailTemplate("promo_sale");
+    private MarketingWhatsappTemplate _waTemplate = MarketingBroadcastCatalog.WhatsappTemplate("promo_bilingual");
+    private CpMarketingBroadcastView _view = CpMarketingBroadcastView.Empty("anonymous", "Store", "https://localhost");
+
+    private string TabHref(string tab) => _listHref + "?tab=" + Uri.EscapeDataString(tab);
+
+    private string ModeHref(string channel, string mode)
+        => TabHref(channel) + "&mode=" + Uri.EscapeDataString(mode)
+           + "&template=" + Uri.EscapeDataString(channel == "email" ? _emailTemplate.Key : _waTemplate.Key);
+
+    private string TemplateHref(string channel, string templateKey)
+        => TabHref(channel) + "&mode=" + Uri.EscapeDataString(channel == "email" ? _emailMode : _waMode)
+           + "&template=" + Uri.EscapeDataString(templateKey);
+
+    private static string Initials(string name)
+    {
+        var parts = (name ?? "").Split(' ', StringSplitOptions.RemoveEmptyEntries);
+        if (parts.Length == 0)
+        {
+            return "MB";
+        }
+
+        return parts.Length == 1
+            ? parts[0][..Math.Min(2, parts[0].Length)].ToUpperInvariant()
+            : (parts[0][..1] + parts[1][..1]).ToUpperInvariant();
+    }
+
+    private static string Stamp(long unix)
+        => unix <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-        _listHref = "/cp/marketing-broadcast-app";
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "campaign_id");
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var query = ctx.Request.Query;
+        _tab = MarketingBroadcastCatalog.NormalizeTab(query["tab"].ToString());
+        _flashOk = query["ok"].ToString() ?? "";
+        _flashErr = query["err"].ToString() ?? "";
+
+        var mode = CpMarketingBroadcastRecipients.NormalizeMode(query["mode"].ToString());
+        var templateKey = query["template"].ToString();
+        if (_tab == "whatsapp")
+        {
+            _waMode = mode;
+            if (!string.IsNullOrWhiteSpace(templateKey))
+            {
+                _waTemplate = MarketingBroadcastCatalog.WhatsappTemplate(templateKey);
+            }
+        }
+        else
+        {
+            _emailMode = mode;
+            if (!string.IsNullOrWhiteSpace(templateKey))
+            {
+                _emailTemplate = MarketingBroadcastCatalog.EmailTemplate(templateKey);
+            }
+        }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpMarketingBroadcastDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _campaigns = result.Campaigns;
-        _source = result.Source;
-        _message = result.Message;
-
-        if (_openedId > 0)
-        {
-            var detail = await Dashboards.BuildCpMarketingBroadcastDetailAsync(_openedId, ctx.RequestAborted);
-            _openedCampaign = detail.Campaign;
-            _openedLog = detail.Log;
-            if (_openedCampaign is not null)
-            {
-                var openedList = _campaigns.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _campaigns = new[] { openedList }.Concat(_campaigns.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
-            }
-        }
+        _view = await Broadcast.LoadAsync(ctx.Request.Host.Host, ctx.RequestAborted);
+        _recipientCount = _tab == "whatsapp"
+            ? await Broadcast.CountRecipientsAsync(_waMode, "", "whatsapp", ctx.RequestAborted)
+            : await Broadcast.CountRecipientsAsync(_emailMode, "", "email", ctx.RequestAborted);
     }
 }
