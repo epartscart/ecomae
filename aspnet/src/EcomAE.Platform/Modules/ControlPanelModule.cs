@@ -4508,6 +4508,83 @@ public sealed class ControlPanelModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpDataTransferCsvImport, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCatalogueCsvImportService imports,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/data-transfer-app", "Admin CP capability required for CSV import.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "CSV import is posted as a multipart form." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to import a CSV on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var upload = form.Files.GetFile("csv_file") ?? form.Files.GetFile("file");
+            if (upload is null || upload.Length == 0)
+            {
+                return LiveWriteFormBinder.Complete(context, "/cp/data-transfer-app?tab=csv", false, "Choose a CSV file first.",
+                    new { ok = false, validation_code = "invalid", message = "Choose a CSV file first." });
+            }
+
+            var options = CpCatalogueCsvImportService.ParseOptions(
+                form.Keys.ToDictionary(key => key, key => form[key].ToString(), StringComparer.Ordinal));
+            if (options.DeleteProductsData && !LiveWriteFormBinder.Flag(form, "confirmDeleteProducts", "confirm_delete_products"))
+            {
+                return LiveWriteFormBinder.Complete(context, "/cp/data-transfer-app?tab=csv", false,
+                    "Deleting the category's products needs the extra confirmation checkbox.",
+                    new { ok = false, validation_code = "invalid", message = "Deleting the category's products needs the extra confirmation checkbox." });
+            }
+
+            byte[] content;
+            await using (var stream = upload.OpenReadStream())
+            using (var buffer = new MemoryStream())
+            {
+                await stream.CopyToAsync(buffer, cancellationToken);
+                content = buffer.ToArray();
+            }
+
+            var imported = await imports.ImportAsync(session.UserId, options, content, cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/data-transfer-app?tab=csv&category_id=" + options.CategoryId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+                imported.Succeeded,
+                imported.Message,
+                new
+                {
+                    ok = imported.Succeeded,
+                    writes = imported.Updated,
+                    created = imported.Created,
+                    updated = imported.Updated,
+                    skipped = imported.Skipped,
+                    warnings = imported.Warnings,
+                    phpAuthoritative = false,
+                    validation_code = imported.Succeeded ? "ok" : "invalid",
+                    message = imported.Message,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpTemplatesActions, async (
             HttpContext context,
             ILegacySessionValidator validator,

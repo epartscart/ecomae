@@ -150,28 +150,106 @@
             <div class="hpanel">
                 <div class="panel-heading hbuilt">Import products into a category from CSV</div>
                 <div class="panel-body">
-                    <p>Pick the leaf category first; its properties become the mappable CSV columns. Column mapping and upload land in the next slice of this module — the catalogue tree and property list below are already read live from this tenant.</p>
-                    <table class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th>Category</th>
-                                <th>Level</th>
-                                <th>Published</th>
-                                <th>Mappable properties</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var category in _desk.Categories.Where(c => c.Leaf).Take(200))
+                    <p>Pick the end category, map every CSV column number (1-based, <code>0</code> = column not used), then upload the file. Products are written into the chosen own warehouse.</p>
+                    <form method="get" action="/cp/data-transfer-app" class="form-inline" style="margin-bottom:12px">
+                        <input type="hidden" name="tab" value="csv" />
+                        <label for="category_id">Category&nbsp;</label>
+                        <select class="form-control" id="category_id" name="category_id">
+                            <option value="0">— select an end category —</option>
+                            @foreach (var category in _desk.Categories.Where(c => c.Leaf))
                             {
-                                <tr>
-                                    <td>@category.Caption</td>
-                                    <td>@category.Level.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(category.Published ? "yes" : "no")</td>
-                                    <td>@category.Properties.Count.ToString(CultureInfo.InvariantCulture)</td>
-                                </tr>
+                                <option value="@category.Id" selected="@(category.Id == _categoryId)">@(new string('·', Math.Max(0, category.Level)) + " " + category.Caption)</option>
                             }
-                        </tbody>
-                    </table>
+                        </select>
+                        <button type="submit" class="btn btn-default">Load properties</button>
+                    </form>
+
+                    @if (_category is null)
+                    {
+                        <p class="text-muted" style="margin:0">Categories that still have sub-categories cannot hold products, so only end categories are listed.</p>
+                    }
+                    else if (_desk.Storages.Count == 0)
+                    {
+                        <p class="text-muted" style="margin:0">No own warehouse is assigned to your account, so CSV import is disabled.</p>
+                    }
+                    else
+                    {
+                        <form method="post" action="/cp/data-transfer/csv-import" enctype="multipart/form-data">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="category_id" value="@_category.Id" />
+                            <table class="table table-condensed table-striped">
+                                <thead>
+                                    <tr><th style="width:45%">Field</th><th style="width:25%">CSV column</th><th>URL</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Name</td>
+                                        <td><input class="form-control" type="number" min="1" name="col_name" value="1" required /></td>
+                                        <td><input type="checkbox" name="col_name_url_check" value="1" checked /></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Description</td>
+                                        <td><input class="form-control" type="number" min="0" name="col_text" value="0" /></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Image</td>
+                                        <td><input class="form-control" type="number" min="0" name="col_img" value="0" /></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Price</td>
+                                        <td><input class="form-control" type="number" min="1" name="col_price" value="2" required /></td>
+                                        <td></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Quantity</td>
+                                        <td><input class="form-control" type="number" min="1" name="col_exist" value="3" required /></td>
+                                        <td></td>
+                                    </tr>
+                                    @foreach (var property in _category.Properties)
+                                    {
+                                        <tr>
+                                            <td>@property.Caption</td>
+                                            <td><input class="form-control" type="number" min="0" name="@("col_" + property.Id.ToString(CultureInfo.InvariantCulture))" value="0" /></td>
+                                            <td><input type="checkbox" name="@("col_" + property.Id.ToString(CultureInfo.InvariantCulture) + "_url_check")" value="1" /></td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            <div class="form-group">
+                                <label for="strings_to_left">Skip rows at the top of the file</label>
+                                <input class="form-control" type="number" min="0" id="strings_to_left" name="strings_to_left" value="0" />
+                            </div>
+                            <div class="form-group">
+                                <label for="csv_storages">Warehouse</label>
+                                <select class="form-control" id="csv_storages" name="storages" required>
+                                    @foreach (var storage in _desk.Storages)
+                                    {
+                                        <option value="@storage.Id">@storage.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label for="encoding">File encoding</label>
+                                <select class="form-control" id="encoding" name="encoding">
+                                    <option value="windows-1251">Windows-1251 (ANSI)</option>
+                                    <option value="UTF-8" selected>UTF-8</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><input type="checkbox" name="delete_storage_data" value="1" /> Delete this warehouse's rows for the category first</label><br />
+                                <label><input type="checkbox" name="delete_products_data" value="1" /> Delete the category's products first</label><br />
+                                <label><input type="checkbox" name="confirmDeleteProducts" value="1" /> I confirm deleting the category's products (needed for the option above)</label>
+                            </div>
+                            <div class="form-group">
+                                <label for="csv_file">CSV file</label>
+                                <input type="file" id="csv_file" name="csv_file" accept=".csv,.txt" required />
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-upload"></i> Import CSV</button>
+                            <a class="btn btn-default" href="/cp"><i class="fa fa-home"></i> Control panel</a>
+                        </form>
+                    }
                 </div>
             </div>
         </div>
@@ -185,6 +263,8 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private string _downloadFile = "";
+    private long _categoryId;
+    private CpDataTransferCategory? _category;
     private CpDataTransferDesk _desk = CpDataTransferDesk.Unavailable("");
 
     protected override async Task OnInitializedAsync()
@@ -209,5 +289,11 @@
         }
 
         _desk = await Desk.LoadAsync(session.UserId, ctx.RequestAborted);
+
+        if (long.TryParse(ctx.Request.Query["category_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var categoryId) && categoryId > 0)
+        {
+            _categoryId = categoryId;
+            _category = _desk.Categories.FirstOrDefault(c => c.Id == categoryId && c.Leaf);
+        }
     }
 }
