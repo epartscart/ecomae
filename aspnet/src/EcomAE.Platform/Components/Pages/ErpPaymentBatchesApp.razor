@@ -24,7 +24,15 @@
         <form method="post" action="/erp/ajax/payment-batch-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/payment-batches-app" />
-            <label>Pay from account <input type="number" name="account_id" min="0" style="width:7rem" /></label>
+            <label>Pay from account
+                <select name="account_id">
+                    <option value="0">—</option>
+                    @foreach (var account in _accounts)
+                    {
+                        <option value="@account.Id">@account.Name (@account.CurrencyCode)</option>
+                    }
+                </select>
+            </label>
             <label>Type
                 <select name="batch_type">
                     <option value="sepa">SEPA</option>
@@ -161,6 +169,7 @@
     private const string _listHref = "/erp/payment-batches-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpPaymentBatchDigest> _batches = [];
+    private IReadOnlyList<ErpCashAccountDigest> _accounts = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -196,6 +205,7 @@
         _batches = result.Batches;
         _source = result.Source;
         _message = result.Message;
+        _accounts = (await Dashboards.ListErpCashAccountsAsync(500, ctx.RequestAborted)).Accounts;
 
         if (_openedId > 0)
         {
