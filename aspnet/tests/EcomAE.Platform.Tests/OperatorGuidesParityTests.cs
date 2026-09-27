@@ -22,7 +22,10 @@ public sealed class OperatorGuidesParityTests
             Assert.NotNull(guide);
             Assert.False(string.IsNullOrWhiteSpace(guide!.Title));
             Assert.False(string.IsNullOrWhiteSpace(guide.PhpPath));
-            Assert.StartsWith("/cp/guides-app?g=", guide.Href, StringComparison.Ordinal);
+            Assert.True(
+                guide.Href.StartsWith("/cp/guides-app?g=", StringComparison.Ordinal)
+                || guide.Href.EndsWith("-guide-app", StringComparison.Ordinal),
+                $"{key} must open in the guides hub or its own guide twin page, got {guide.Href}");
             Assert.True(guide.Chapters.Count >= 3, $"{key} must have complete PHP chapters, got {guide.Chapters.Count}");
             Assert.All(guide.Chapters, ch =>
             {
@@ -99,7 +102,7 @@ public sealed class OperatorGuidesParityTests
     [InlineData("/CP/control/portal/epc_autoworkshop_guide", "/cp/guides-app?g=workshop")]
     [InlineData("/CP/control/portal/epc_custom_shipping_guide", "/cp/guides-app?g=custom-shipping")]
     [InlineData("/CP/control/portal/epc_erp_only_onboard_guide", "/cp/guides-app?g=erp-only-onboard")]
-    [InlineData("/CP/control/portal/epc_integrations_guide", "/cp/guides-app?g=integrations")]
+    [InlineData("/CP/control/portal/epc_integrations_guide", "/cp/integrations-guide-app")]
     [InlineData("/CP/control/portal/epc_platform_failover_guide", "/cp/guides-app?g=failover")]
     [InlineData("/CP/control/portal/epc_power_bi_guide", "/cp/guides-app?g=power-bi")]
     [InlineData("/CP/control/portal/epc_super_cp_operator_guide", "/cp/guides-app?g=super-cp-operator")]
