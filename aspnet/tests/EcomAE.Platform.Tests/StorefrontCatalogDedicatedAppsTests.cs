@@ -361,7 +361,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.DoesNotContain("/php-reference", auto, StringComparison.Ordinal);
 
         var blocks = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpInfoBlocksApp.razor"));
-        Assert.Contains("class=\"hpanel\"", blocks, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-panel", blocks, StringComparison.Ordinal);
         Assert.Contains("Classic twin", blocks, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", blocks, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w19-hero", blocks, StringComparison.Ordinal);

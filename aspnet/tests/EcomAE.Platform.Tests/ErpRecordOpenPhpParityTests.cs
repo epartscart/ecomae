@@ -1261,21 +1261,16 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void InfoBlocksApp_OpenLoadsContentExcerptAndPlacementSiblings()
+    public void InfoBlocksApp_OpenLoadsPhpEditorWithFullContent()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpInfoBlocksApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"block_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"block_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpInfoBlocksBlockDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No content excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No placement siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("ctx.Request.Query[\"edit\"]", text, StringComparison.Ordinal);
+        Assert.Contains("_edit?.ContentHtml", text, StringComparison.Ordinal);
+        Assert.Contains("No info blocks yet", text, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-data-table", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
 

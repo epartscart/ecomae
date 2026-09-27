@@ -41,8 +41,10 @@ public sealed class CpInfoBlocksWriteTests
         Assert.Contains("value=\"delete_info_block\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"block_key\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"content_html\"", razor, StringComparison.Ordinal);
-        Assert.Contains("Leave blank to keep current HTML", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"content_replace\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"placement\"", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-panel__hero", razor, StringComparison.Ordinal);
+        Assert.Contains("ICpInfoBlocksWriteService", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("_isAdmin && _isSuper", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
@@ -73,11 +75,10 @@ public sealed class CpInfoBlocksWriteTests
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpInfoBlocksWriteService.cs"));
         Assert.Contains("epc_scp_info_block_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_scp_info_block_delete", service, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
+        Assert.Contains("epc_scp_info_blocks_list", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_platform_info_blocks`", service, StringComparison.Ordinal);
         Assert.Contains("DELETE FROM `epc_platform_info_blocks`", service, StringComparison.Ordinal);
-        Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_platform_info_blocks`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
     }
@@ -96,5 +97,13 @@ public sealed class CpInfoBlocksWriteTests
         }
 
         throw new DirectoryNotFoundException("Repository root with aspnet/src/EcomAE.Platform/EcomAE.Platform.csproj was not found.");
+    }
+
+    [Fact]
+    public void List_sql_matches_php_order_and_schema_ensure()
+    {
+        Assert.Contains("WHERE `placement` = @p0 ORDER BY `sort_order` ASC, `title` ASC", CpInfoBlocksWriteService.ListSql(true), StringComparison.Ordinal);
+        Assert.Contains("ORDER BY `placement` ASC, `sort_order` ASC, `title` ASC", CpInfoBlocksWriteService.ListSql(false), StringComparison.Ordinal);
+        Assert.Contains("UNIQUE KEY `block_unique` (`block_key`, `scope`, `site_key`, `locale`)", CpInfoBlocksWriteService.SchemaSql, StringComparison.Ordinal);
     }
 }
