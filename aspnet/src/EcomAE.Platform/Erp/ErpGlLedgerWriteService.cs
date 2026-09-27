@@ -172,6 +172,7 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureCoaSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         await AssertCoaLinesAsync(connection, lines, cancellationToken).ConfigureAwait(false);
+        await AssertPostingPeriodOpenAsync(connection, input.JournalDate, cancellationToken).ConfigureAwait(false);
 
         var journalId = await _gl.PostJournalAsync(
             connection,
@@ -649,6 +650,47 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
         catch (DbException)
         {
             // Chart of accounts not installed yet — PHP's link pass is equally best-effort.
+        }
+    }
+
+    private static async Task AssertPostingPeriodOpenAsync(
+        DbConnection connection,
+        long journalDate,
+        CancellationToken cancellationToken)
+    {
+        if (journalDate <= 0)
+        {
+            throw new ErpWriteException("Journal date is required");
+        }
+
+        await using var tableCommand = connection.CreateCommand();
+        tableCommand.CommandText =
+            "SELECT COUNT(*) FROM information_schema.tables " +
+            "WHERE table_schema = DATABASE() AND table_name = 'epc_erp_periods'";
+        var tableExists = Convert.ToInt32(
+            await tableCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false),
+            CultureInfo.InvariantCulture) > 0;
+        if (!tableExists)
+        {
+            return;
+        }
+
+        var yearMonth = DateTimeOffset.FromUnixTimeSeconds(journalDate).ToUniversalTime().ToString(
+            "yyyy-MM",
+            CultureInfo.InvariantCulture);
+        await using var statusCommand = connection.CreateCommand();
+        statusCommand.CommandText =
+            "SELECT COALESCE(`status`, 'open') FROM `epc_erp_periods` " +
+            "WHERE `year_month` = ? LIMIT 1";
+        ErpDb.AddParameters(statusCommand, yearMonth);
+        var status = Convert.ToString(
+            await statusCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false),
+            CultureInfo.InvariantCulture) ?? "open";
+        if (status.Equals("locked", StringComparison.OrdinalIgnoreCase)
+            || status.Equals("soft_close", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new ErpWriteException(
+                "Journal posting is blocked because the accounting period is " + status.Replace('_', ' '));
         }
     }
 
