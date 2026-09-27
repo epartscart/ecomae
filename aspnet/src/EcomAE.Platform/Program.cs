@@ -477,6 +477,7 @@ builder.Services.AddSingleton<IErpTransferVoucherDryRun, ErpTransferVoucherDryRu
 builder.Services.AddSingleton<IErpPaymentBatchSaveDryRun, ErpPaymentBatchSaveDryRun>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPaymentBatchSaveWriteService, EcomAE.Platform.Erp.ErpPaymentBatchSaveWriteService>();
 builder.Services.AddSingleton<IErpPettyCashSaveDryRun, ErpPettyCashSaveDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPettyCashWriteService, EcomAE.Platform.Erp.ErpPettyCashWriteService>();
 builder.Services.AddSingleton<IErpAgendaSaveDryRun, ErpAgendaSaveDryRun>();
 builder.Services.AddSingleton<IErpKbSaveDryRun, ErpKbSaveDryRun>();
 builder.Services.AddSingleton<IErpMultiEntitySaveDryRun, ErpMultiEntitySaveDryRun>();

@@ -78,6 +78,15 @@
     {
         @if (_isAdmin)
         {
+            <form method="post" action="@EcomAeRoutes.ErpAjaxPettyCashSave" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .6rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=petty_cash" />
+                <label>Name <input type="text" name="name" required maxlength="128" /></label>
+                <label>Account ID <input type="number" name="account_id" min="0" style="width:6rem" /></label>
+                <label>Float <input type="number" name="float_amount" step="0.01" value="0" style="width:6rem" /></label>
+                <label>Custodian <input type="number" name="custodian_user_id" min="0" style="width:6rem" /></label>
+                <button type="submit">Create float</button>
+            </form>
             <form method="post" action="@EcomAeRoutes.ErpJewelleryPettyCashSaveForm" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="/erp/cash-accounts-app?tab=jw_petty_cash" />
