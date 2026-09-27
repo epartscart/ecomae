@@ -14483,7 +14483,7 @@ public sealed class ErpModule : ISurfaceModule
 
         if (!confirm)
         {
-            return Results.Ok(dryRun.Evaluate(new ErpPrjaRecognizeRequest(projectId, method, false)).ToPayload(SessionPayload(session)));
+            return Results.Ok(dryRun.Evaluate(new ErpPrjaRecognizeRequest(projectId, method, false, projectId, method, fraction)).ToPayload(SessionPayload(session)));
         }
 
         var written = await writes.RunAsync(
