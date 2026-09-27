@@ -21,36 +21,52 @@
       "id": "overview",
       "label": "Home",
       "icon": "fa-th-large",
+      "description": "Dashboards, workflow and approvals",
       "href": "/ERP/?epc_erp_shell=1&area=overview",
       "tabs": [
         {
           "id": "dashboard",
           "label": "Dashboard",
           "icon": "fa-dashboard",
+          "group": "Workspaces",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=overview&tab=dashboard"
         },
         {
           "id": "workflow",
           "label": "Workflow",
           "icon": "fa-tasks",
+          "group": "Workspaces",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=overview&tab=workflow"
         },
         {
           "id": "processflow",
           "label": "Process flow",
           "icon": "fa-sitemap",
+          "group": "Workspaces",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=overview&tab=processflow"
         },
         {
           "id": "approvals",
           "label": "Approvals",
           "icon": "fa-check-square-o",
+          "group": "Governance",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=overview&tab=approvals"
         },
         {
           "id": "workflow_automation",
           "label": "Automation Centre",
           "icon": "fa-magic",
+          "group": "Automation",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=overview&tab=workflow_automation"
         }
       ]
@@ -59,18 +75,25 @@
       "id": "ap",
       "label": "Accounts payable",
       "icon": "fa-credit-card",
+      "description": "Vendor invoices, payments and AP setup",
       "href": "/ERP/?epc_erp_shell=1&area=ap",
       "tabs": [
         {
           "id": "payables",
           "label": "Payables",
           "icon": "fa-truck",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=ap&tab=payables"
         },
         {
           "id": "ap_setup",
           "label": "Vendor setup",
           "icon": "fa-credit-card",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=ap&tab=ap_setup"
         }
       ]
@@ -79,18 +102,25 @@
       "id": "ar",
       "label": "Accounts receivable",
       "icon": "fa-users",
+      "description": "Customer invoices, settlements and AR setup",
       "href": "/ERP/?epc_erp_shell=1&area=ar",
       "tabs": [
         {
           "id": "receivables",
           "label": "Receivables",
           "icon": "fa-users",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=ar&tab=receivables"
         },
         {
           "id": "ar_setup",
           "label": "Customer setup",
           "icon": "fa-handshake-o",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=ar&tab=ar_setup"
         }
       ]
@@ -99,12 +129,16 @@
       "id": "asset_mgmt",
       "label": "Asset management",
       "icon": "fa-wrench",
+      "description": "Asset register, maintenance and lifecycle",
       "href": "/ERP/?epc_erp_shell=1&area=asset_mgmt",
       "tabs": [
         {
           "id": "fixed_assets",
           "label": "Fixed assets",
           "icon": "fa-building",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=asset_mgmt&tab=fixed_assets"
         }
       ]
@@ -113,18 +147,25 @@
       "id": "audit_wb",
       "label": "Audit workbench",
       "icon": "fa-history",
+      "description": "Audit policies, cases and audit trail",
       "href": "/ERP/?epc_erp_shell=1&area=audit_wb",
       "tabs": [
         {
           "id": "audit",
           "label": "Audit trail",
           "icon": "fa-history",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=audit"
         },
         {
           "id": "blockchain_proofs",
           "label": "Blockchain proofs",
           "icon": "fa-link",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=audit_wb&tab=blockchain_proofs"
         }
       ]
@@ -133,18 +174,25 @@
       "id": "budgeting",
       "label": "Budgeting",
       "icon": "fa-pie-chart",
+      "description": "Budget registers, control and budget vs actual",
       "href": "/ERP/?epc_erp_shell=1&area=budgeting",
       "tabs": [
         {
           "id": "budgeting",
           "label": "Budgeting",
           "icon": "fa-pie-chart",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=budgeting&tab=budgeting"
         },
         {
           "id": "budget_planning",
           "label": "Budget planning",
           "icon": "fa-line-chart",
+          "group": "Periodic",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=budgeting&tab=budget_planning"
         }
       ]
@@ -153,48 +201,70 @@
       "id": "banking",
       "label": "Cash and bank management",
       "icon": "fa-money",
+      "description": "Bank accounts, cash, payments and reconciliation",
       "href": "/ERP/?epc_erp_shell=1&area=banking",
       "tabs": [
         {
           "id": "cash_bank",
           "label": "Cash & bank",
           "icon": "fa-university",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank"
         },
         {
           "id": "petty_cash",
           "label": "Petty cash",
           "icon": "fa-money",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=banking&tab=petty_cash"
         },
         {
           "id": "payment_batches",
           "label": "Payment batches",
           "icon": "fa-send",
+          "group": "Journals",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=banking&tab=payment_batches"
         },
         {
           "id": "bank_recon",
           "label": "Bank recon",
           "icon": "fa-check-square",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=banking&tab=bank_recon"
         },
         {
           "id": "cash_forecast",
           "label": "Cash flow forecast",
           "icon": "fa-area-chart",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=banking&tab=cash_forecast"
         },
         {
           "id": "bank_instruments",
           "label": "Bank instruments",
           "icon": "fa-certificate",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=banking&tab=bank_instruments"
         },
         {
           "id": "bank_setup",
           "label": "Bank accounts",
           "icon": "fa-university",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=banking&tab=bank_setup"
         }
       ]
@@ -203,36 +273,52 @@
       "id": "common",
       "label": "Common",
       "icon": "fa-th",
+      "description": "Shared agenda, contacts, documents and knowledge",
       "href": "/ERP/?epc_erp_shell=1&area=common",
       "tabs": [
         {
           "id": "agenda",
           "label": "Agenda",
           "icon": "fa-calendar",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=common&tab=agenda"
         },
         {
           "id": "contacts",
           "label": "Contacts",
           "icon": "fa-address-book-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=common&tab=contacts"
         },
         {
           "id": "documents",
           "label": "Documents",
           "icon": "fa-folder-open-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=common&tab=documents"
         },
         {
           "id": "knowledge_base",
           "label": "Knowledge base",
           "icon": "fa-book",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=common&tab=knowledge_base"
         },
         {
           "id": "ai_advisor",
           "label": "AI advisor",
           "icon": "fa-magic",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=common&tab=ai_advisor"
         }
       ]
@@ -241,18 +327,25 @@
       "id": "risk",
       "label": "Compliance",
       "icon": "fa-shield",
+      "description": "Insurance policies, claims and document expiry tracking",
       "href": "/ERP/?epc_erp_shell=1&area=risk",
       "tabs": [
         {
           "id": "insurance",
           "label": "Insurance",
           "icon": "fa-shield",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=risk&tab=insurance"
         },
         {
           "id": "doc_expiry",
           "label": "Document expiry",
           "icon": "fa-calendar-times-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=risk&tab=doc_expiry"
         }
       ]
@@ -261,18 +354,25 @@
       "id": "consolidations",
       "label": "Consolidations",
       "icon": "fa-sitemap",
+      "description": "Multi-entity consolidation and eliminations",
       "href": "/ERP/?epc_erp_shell=1&area=consolidations",
       "tabs": [
         {
           "id": "consolidation_bu",
           "label": "Consolidation",
           "icon": "fa-sitemap",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=consolidations&tab=consolidation_bu"
         },
         {
           "id": "multi_entity",
           "label": "Multi-entity",
           "icon": "fa-sitemap",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=consolidations&tab=multi_entity"
         }
       ]
@@ -281,12 +381,16 @@
       "id": "cost_acct",
       "label": "Cost accounting",
       "icon": "fa-calculator",
+      "description": "Cost allocations, accruals and cost analysis",
       "href": "/ERP/?epc_erp_shell=1&area=cost_acct",
       "tabs": [
         {
           "id": "fin_advanced",
           "label": "Financial depth",
           "icon": "fa-sliders",
+          "group": "Periodic",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=cost_acct&tab=fin_advanced"
         }
       ]
@@ -295,12 +399,16 @@
       "id": "cost_mgmt",
       "label": "Cost management",
       "icon": "fa-balance-scale",
+      "description": "Inventory costing value models and analysis",
       "href": "/ERP/?epc_erp_shell=1&area=cost_mgmt",
       "tabs": [
         {
           "id": "cost_models",
           "label": "Costing value-models",
           "icon": "fa-balance-scale",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=cost_mgmt&tab=cost_models"
         }
       ]
@@ -309,12 +417,16 @@
       "id": "credit_coll",
       "label": "Credit and collections",
       "icon": "fa-gavel",
+      "description": "Collection cases, dunning and credit holds",
       "href": "/ERP/?epc_erp_shell=1&area=credit_coll",
       "tabs": [
         {
           "id": "collections",
           "label": "Collections",
           "icon": "fa-gavel",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=credit_coll&tab=collections"
         }
       ]
@@ -323,12 +435,16 @@
       "id": "expense",
       "label": "Expense management",
       "icon": "fa-credit-card",
+      "description": "Employee expense reports and reimbursements",
       "href": "/ERP/?epc_erp_shell=1&area=expense",
       "tabs": [
         {
           "id": "expense_reports",
           "label": "Expense reports",
           "icon": "fa-credit-card",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=expense&tab=expense_reports"
         }
       ]
@@ -337,12 +453,16 @@
       "id": "fixed_assets",
       "label": "Fixed assets",
       "icon": "fa-building",
+      "description": "Asset register, depreciation and disposals",
       "href": "/ERP/?epc_erp_shell=1&area=fixed_assets",
       "tabs": [
         {
           "id": "fixed_assets",
           "label": "Fixed assets",
           "icon": "fa-building",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=fixed_assets&tab=fixed_assets"
         }
       ]
@@ -351,90 +471,133 @@
       "id": "finance",
       "label": "General ledger",
       "icon": "fa-university",
+      "description": "Chart of accounts, journals, period close and financial statements",
       "href": "/ERP/?epc_erp_shell=1&area=finance",
       "tabs": [
         {
           "id": "gl",
           "label": "General ledger",
           "icon": "fa-book",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=gl"
         },
         {
           "id": "opening_balances",
           "label": "Opening balances",
           "icon": "fa-flag-o",
+          "group": "Journals",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=opening_balances"
         },
         {
           "id": "aging",
           "label": "Aging (AR/AP/Inv)",
           "icon": "fa-hourglass-half",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=aging"
         },
         {
           "id": "pl",
           "label": "Profit & loss",
           "icon": "fa-bar-chart",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=pl"
         },
         {
           "id": "balance_sheet",
           "label": "Balance sheet",
           "icon": "fa-balance-scale",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=balance_sheet"
         },
         {
           "id": "reports",
           "label": "Reports",
           "icon": "fa-table",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=reports"
         },
         {
           "id": "enterprise_reports",
           "label": "Trial balance / reports",
           "icon": "fa-table",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=enterprise_reports"
         },
         {
           "id": "fin_advanced",
           "label": "Financial depth",
           "icon": "fa-sliders",
+          "group": "Periodic",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=fin_advanced"
         },
         {
           "id": "year_end",
           "label": "Year-end closing",
           "icon": "fa-calendar-check-o",
+          "group": "Periodic",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=year_end"
         },
         {
           "id": "accounting_automation",
           "label": "Accounting automation",
           "icon": "fa-magic",
+          "group": "Automation",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=accounting_automation"
         },
         {
           "id": "coa",
           "label": "Chart of accounts",
           "icon": "fa-list",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=coa"
         },
         {
           "id": "jw_trial_balance",
           "label": "Dual trial balance (wt+val)",
           "icon": "fa-balance-scale",
+          "group": "Inquiries and reports",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=jw_trial_balance"
         },
         {
           "id": "jw_journal_voucher",
           "label": "Journal voucher (jewellery)",
           "icon": "fa-book",
+          "group": "Journals",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=jw_journal_voucher"
         },
         {
           "id": "jw_petty_cash",
           "label": "Petty cash (jewellery)",
           "icon": "fa-money",
+          "group": "Journals",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=finance&tab=jw_petty_cash"
         }
       ]
@@ -443,42 +606,61 @@
       "id": "people",
       "label": "Human resources",
       "icon": "fa-users",
+      "description": "Workers, organization and labour-law compliance",
       "href": "/ERP/?epc_erp_shell=1&area=people",
       "tabs": [
         {
           "id": "staff",
           "label": "Workers",
           "icon": "fa-id-badge",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=people&tab=staff"
         },
         {
           "id": "hr",
           "label": "HR",
           "icon": "fa-user-circle",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=people&tab=hr"
         },
         {
           "id": "hr_ops",
           "label": "HR operations",
           "icon": "fa-users",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=people&tab=hr_ops"
         },
         {
           "id": "recruitment",
           "label": "Recruitment",
           "icon": "fa-user-plus",
+          "group": "Talent",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=people&tab=recruitment"
         },
         {
           "id": "performance",
           "label": "Performance management",
           "icon": "fa-star-half-o",
+          "group": "Talent",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=people&tab=performance"
         },
         {
           "id": "hr_law",
           "label": "Labour law & compliance",
           "icon": "fa-gavel",
+          "group": "Compliance",
+          "isJewellery": false,
+          "isRaw": true,
           "href": "/ERP/?epc_erp_shell=1&area=people&tab=hr_law"
         }
       ]
@@ -487,102 +669,151 @@
       "id": "inventory_mgmt",
       "label": "Inventory management",
       "icon": "fa-cubes",
+      "description": "Stock, item groups, order planning and barcodes",
       "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt",
       "tabs": [
         {
           "id": "inventory",
           "label": "Inventory",
           "icon": "fa-cubes",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory"
         },
         {
           "id": "inv_groups",
           "label": "Inventory (stock/groups)",
           "icon": "fa-object-group",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inv_groups"
         },
         {
           "id": "order_planning",
           "label": "Order planning",
           "icon": "fa-cubes",
+          "group": "Periodic",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=order_planning"
         },
         {
           "id": "retail_barcode",
           "label": "Retail barcode",
           "icon": "fa-barcode",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=retail_barcode"
         },
         {
           "id": "jw_karat",
           "label": "Karat master",
           "icon": "fa-tachometer",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_karat"
         },
         {
           "id": "jw_rate_type",
           "label": "Rate type master",
           "icon": "fa-line-chart",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_rate_type"
         },
         {
           "id": "jw_metal_stock",
           "label": "Metal stock master",
           "icon": "fa-cubes",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_metal_stock"
         },
         {
           "id": "jw_design",
           "label": "Design master",
           "icon": "fa-paint-brush",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_design"
         },
         {
           "id": "jw_diamond",
           "label": "Diamond master",
           "icon": "fa-diamond",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_diamond"
         },
         {
           "id": "jw_pearl",
           "label": "Pearl master",
           "icon": "fa-circle-o",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_pearl"
         },
         {
           "id": "jw_color_stone",
           "label": "Colour stone master",
           "icon": "fa-star",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_color_stone"
         },
         {
           "id": "jw_stock_verification",
           "label": "Stock verification",
           "icon": "fa-check-square-o",
+          "group": "Jewellery stock",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_verification"
         },
         {
           "id": "jw_stock_balance",
           "label": "Stock balance (weight)",
           "icon": "fa-bar-chart",
+          "group": "Jewellery stock",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_stock_balance"
         },
         {
           "id": "jw_barcode",
           "label": "Barcode (jewellery)",
           "icon": "fa-barcode",
+          "group": "Jewellery stock",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jw_barcode"
         },
         {
           "id": "gold_rate",
           "label": "Gold rate board",
           "icon": "fa-line-chart",
+          "group": "Jewellery master data",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=gold_rate"
         },
         {
           "id": "jewellery_tag",
           "label": "Jewellery tags / labels",
           "icon": "fa-tags",
+          "group": "Jewellery stock",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=jewellery_tag"
         }
       ]
@@ -591,12 +822,16 @@
       "id": "landed_cost_area",
       "label": "Landed cost",
       "icon": "fa-ship",
+      "description": "Voyages, landed cost allocation and apportionment",
       "href": "/ERP/?epc_erp_shell=1&area=landed_cost_area",
       "tabs": [
         {
           "id": "landed_cost",
           "label": "Landed cost",
           "icon": "fa-ship",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=landed_cost_area&tab=landed_cost"
         }
       ]
@@ -605,12 +840,16 @@
       "id": "leave_abs",
       "label": "Leave and absence",
       "icon": "fa-calendar-minus-o",
+      "description": "Leave plans, requests and absence tracking",
       "href": "/ERP/?epc_erp_shell=1&area=leave_abs",
       "tabs": [
         {
           "id": "hr_ops",
           "label": "HR operations",
           "icon": "fa-users",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=leave_abs&tab=hr_ops"
         }
       ]
@@ -619,18 +858,25 @@
       "id": "logistics",
       "label": "Logistics",
       "icon": "fa-truck",
+      "description": "Customs, shipping and inbound/outbound logistics",
       "href": "/ERP/?epc_erp_shell=1&area=logistics",
       "tabs": [
         {
           "id": "custom_shipping",
           "label": "Customs & shipping",
           "icon": "fa-ship",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=logistics&tab=custom_shipping"
         },
         {
           "id": "procurement_link",
           "label": "Procurement CP",
           "icon": "fa-external-link",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=logistics&tab=procurement_link"
         }
       ]
@@ -639,12 +885,16 @@
       "id": "master_planning_area",
       "label": "Master planning",
       "icon": "fa-random",
+      "description": "Master scheduling and material requirements planning",
       "href": "/ERP/?epc_erp_shell=1&area=master_planning_area",
       "tabs": [
         {
           "id": "master_planning",
           "label": "Master planning",
           "icon": "fa-random",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=master_planning_area&tab=master_planning"
         }
       ]
@@ -653,12 +903,16 @@
       "id": "mhei",
       "label": "Material handling equipment interface",
       "icon": "fa-cubes",
+      "description": "Material handling and warehouse equipment integration",
       "href": "/ERP/?epc_erp_shell=1&area=mhei",
       "tabs": [
         {
           "id": "wms",
           "label": "Warehouse management",
           "icon": "fa-cubes",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=mhei&tab=wms"
         }
       ]
@@ -667,36 +921,52 @@
       "id": "enterprise",
       "label": "Organization administration",
       "icon": "fa-building-o",
+      "description": "Legal entities, business units, contracts and documents",
       "href": "/ERP/?epc_erp_shell=1&area=enterprise",
       "tabs": [
         {
           "id": "business_units",
           "label": "Business unit",
           "icon": "fa-sitemap",
+          "group": "Organization",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=business_units"
         },
         {
           "id": "org_admin",
           "label": "Organization administration",
           "icon": "fa-sitemap",
+          "group": "Organization",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=org_admin"
         },
         {
           "id": "contracts",
           "label": "Contracts & e-sign",
           "icon": "fa-file-text-o",
+          "group": "Documents",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=contracts"
         },
         {
           "id": "doc_formats",
           "label": "Document formats",
           "icon": "fa-files-o",
+          "group": "Documents",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=doc_formats"
         },
         {
           "id": "listing",
           "label": "Listing",
           "icon": "fa-list-alt",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=enterprise&tab=listing"
         }
       ]
@@ -705,12 +975,16 @@
       "id": "payroll_area",
       "label": "Payroll",
       "icon": "fa-money",
+      "description": "Payroll runs, earnings and statutory deductions",
       "href": "/ERP/?epc_erp_shell=1&area=payroll_area",
       "tabs": [
         {
           "id": "payroll",
           "label": "Payroll",
           "icon": "fa-money",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=payroll_area&tab=payroll"
         }
       ]
@@ -719,72 +993,106 @@
       "id": "purchasing",
       "label": "Procurement and sourcing",
       "icon": "fa-shopping-basket",
+      "description": "Suppliers, RFQ, purchase orders and matching",
       "href": "/ERP/?epc_erp_shell=1&area=purchasing",
       "tabs": [
         {
           "id": "supplier_portal",
           "label": "Supplier portal",
           "icon": "fa-handshake-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=supplier_portal"
         },
         {
           "id": "purchase_requisitions",
           "label": "Purchase requisitions",
           "icon": "fa-list-alt",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_requisitions"
         },
         {
           "id": "rfq",
           "label": "RFQ",
           "icon": "fa-envelope-o",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=rfq"
         },
         {
           "id": "purchase_orders",
           "label": "Purchase orders",
           "icon": "fa-clipboard",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders"
         },
         {
           "id": "purchases",
           "label": "Purchases",
           "icon": "fa-file-text-o",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchases"
         },
         {
           "id": "three_way_match",
           "label": "3-way match",
           "icon": "fa-check-square-o",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=three_way_match"
         },
         {
           "id": "procurement_categories",
           "label": "Categories & policies",
           "icon": "fa-sitemap",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=procurement_categories"
         },
         {
           "id": "jw_metal_purchase",
           "label": "Metal purchase",
           "icon": "fa-arrow-down",
+          "group": "Jewellery purchase",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_metal_purchase"
         },
         {
           "id": "jw_diamond_purchase",
           "label": "Diamond purchase",
           "icon": "fa-diamond",
+          "group": "Jewellery purchase",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_diamond_purchase"
         },
         {
           "id": "jw_purchase_fixing",
           "label": "Purchase fixing",
           "icon": "fa-lock",
+          "group": "Jewellery purchase",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_fixing"
         },
         {
           "id": "jw_purchase_window",
           "label": "Purchase window",
           "icon": "fa-binoculars",
+          "group": "Jewellery purchase",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=purchasing&tab=jw_purchase_window"
         }
       ]
@@ -793,12 +1101,16 @@
       "id": "pim",
       "label": "Product information management",
       "icon": "fa-cube",
+      "description": "Products, dimensions and variant structures",
       "href": "/ERP/?epc_erp_shell=1&area=pim",
       "tabs": [
         {
           "id": "product_info",
           "label": "Product information",
           "icon": "fa-cube",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=pim&tab=product_info"
         }
       ]
@@ -807,24 +1119,34 @@
       "id": "production",
       "label": "Production control",
       "icon": "fa-cogs",
+      "description": "Production orders, routes, operations and quality",
       "href": "/ERP/?epc_erp_shell=1&area=production",
       "tabs": [
         {
           "id": "manufacturing",
           "label": "Production",
           "icon": "fa-cogs",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=production&tab=manufacturing"
         },
         {
           "id": "mfg_planning",
           "label": "Production planning",
           "icon": "fa-cogs",
+          "group": "Periodic",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=production&tab=mfg_planning"
         },
         {
           "id": "quality",
           "label": "Quality management",
           "icon": "fa-check-circle",
+          "group": "Quality",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=production&tab=quality"
         }
       ]
@@ -833,18 +1155,25 @@
       "id": "projects",
       "label": "Project management and accounting",
       "icon": "fa-tasks",
+      "description": "Projects, budgets, WIP and revenue recognition",
       "href": "/ERP/?epc_erp_shell=1&area=projects",
       "tabs": [
         {
           "id": "projects",
           "label": "Projects",
           "icon": "fa-tasks",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=projects&tab=projects"
         },
         {
           "id": "project_accounting",
           "label": "Project accounting",
           "icon": "fa-pie-chart",
+          "group": "Periodic",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=projects&tab=project_accounting"
         }
       ]
@@ -853,12 +1182,16 @@
       "id": "retail",
       "label": "Retail and commerce",
       "icon": "fa-shopping-cart",
+      "description": "Channels, assortments, retail pricing, POS and statements",
       "href": "/ERP/?epc_erp_shell=1&area=retail",
       "tabs": [
         {
           "id": "retail_commerce",
           "label": "Retail & commerce",
           "icon": "fa-shopping-cart",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": true,
           "href": "/ERP/?epc_erp_shell=1&area=retail&tab=retail_commerce"
         }
       ]
@@ -867,114 +1200,169 @@
       "id": "sales",
       "label": "Sales and marketing",
       "icon": "fa-line-chart",
+      "description": "CRM, prospects, quotations, sales orders, delivery and invoicing",
       "href": "/ERP/?epc_erp_shell=1&area=sales",
       "tabs": [
         {
           "id": "crm",
           "label": "CRM",
           "icon": "fa-handshake-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": true,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=crm"
         },
         {
           "id": "marketing",
           "label": "Marketing",
           "icon": "fa-bullhorn",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=marketing"
         },
         {
           "id": "leads",
           "label": "Prospects & leads",
           "icon": "fa-user-plus",
+          "group": "Pipeline",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=leads"
         },
         {
           "id": "opportunities",
           "label": "Opportunities",
           "icon": "fa-filter",
+          "group": "Pipeline",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=opportunities"
         },
         {
           "id": "proposals",
           "label": "Sales quotations",
           "icon": "fa-file-text",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=proposals"
         },
         {
           "id": "sales_orders",
           "label": "Sales orders",
           "icon": "fa-shopping-cart",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders"
         },
         {
           "id": "subscriptions",
           "label": "Subscriptions",
           "icon": "fa-refresh",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=subscriptions"
         },
         {
           "id": "delivery_notes",
           "label": "Delivery notes",
           "icon": "fa-truck",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=delivery_notes"
         },
         {
           "id": "invoices",
           "label": "Invoices (e-invoice)",
           "icon": "fa-file-text-o",
+          "group": "Orders",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=invoices"
         },
         {
           "id": "revenue",
           "label": "Revenue",
           "icon": "fa-money",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=revenue"
         },
         {
           "id": "fulfilment",
           "label": "Fulfilment",
           "icon": "fa-random",
+          "group": "Inquiries and reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=fulfilment"
         },
         {
           "id": "jw_retail_sales",
           "label": "Retail sales (POS)",
           "icon": "fa-shopping-cart",
+          "group": "Jewellery sales",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_retail_sales"
         },
         {
           "id": "jw_metal_sales",
           "label": "Metal sales",
           "icon": "fa-arrow-up",
+          "group": "Jewellery sales",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_metal_sales"
         },
         {
           "id": "jw_sales_fixing",
           "label": "Sales fixing",
           "icon": "fa-lock",
+          "group": "Jewellery sales",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_sales_fixing"
         },
         {
           "id": "jw_sales_return",
           "label": "Sales return",
           "icon": "fa-reply",
+          "group": "Jewellery sales",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_sales_return"
         },
         {
           "id": "jw_pos_advance",
           "label": "POS advance",
           "icon": "fa-money",
+          "group": "Jewellery sales",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_pos_advance"
         },
         {
           "id": "jw_sales_analysis",
           "label": "Sales analysis (weight)",
           "icon": "fa-area-chart",
+          "group": "Inquiries and reports",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=jw_sales_analysis"
         },
         {
           "id": "gold_scheme",
           "label": "Gold savings scheme",
           "icon": "fa-gift",
+          "group": "Jewellery sales",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=sales&tab=gold_scheme"
         }
       ]
@@ -983,66 +1371,97 @@
       "id": "service_mgmt",
       "label": "Service management",
       "icon": "fa-life-ring",
+      "description": "Service agreements, contracts and service delivery",
       "href": "/ERP/?epc_erp_shell=1&area=service_mgmt",
       "tabs": [
         {
           "id": "contracts",
           "label": "Contracts & e-sign",
           "icon": "fa-file-text-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=contracts"
         },
         {
           "id": "aftersales",
           "label": "After-sales RMA",
           "icon": "fa-undo",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=aftersales"
         },
         {
           "id": "jw_repairs",
           "label": "Repair jobs",
           "icon": "fa-wrench",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repairs"
         },
         {
           "id": "jw_repair_receipt",
           "label": "Repair receipt",
           "icon": "fa-wrench",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_receipt"
         },
         {
           "id": "jw_repair_transfer",
           "label": "Repair transfer",
           "icon": "fa-truck",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_transfer"
         },
         {
           "id": "jw_workshop_receive",
           "label": "Workshop receive",
           "icon": "fa-inbox",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_workshop_receive"
         },
         {
           "id": "jw_repair_delivery",
           "label": "Repair delivery",
           "icon": "fa-gift",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_delivery"
         },
         {
           "id": "jw_repair_sale",
           "label": "Repair sale",
           "icon": "fa-file-text-o",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_sale"
         },
         {
           "id": "jw_repair_register",
           "label": "Repair register",
           "icon": "fa-list-alt",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_register"
         },
         {
           "id": "jw_repair_search",
           "label": "Repair search",
           "icon": "fa-search",
+          "group": "Jewellery repair & workshop",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=service_mgmt&tab=jw_repair_search"
         }
       ]
@@ -1051,78 +1470,115 @@
       "id": "setup",
       "label": "System administration",
       "icon": "fa-sliders",
+      "description": "Company setup, security, batch/platform services, data and integration",
       "href": "/ERP/?epc_erp_shell=1&area=setup",
       "tabs": [
         {
           "id": "erp_setup",
           "label": "Accounting setup",
           "icon": "fa-cogs",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=erp_setup"
         },
         {
           "id": "security_roles",
           "label": "Security roles",
           "icon": "fa-shield",
+          "group": "Security",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=security_roles"
         },
         {
           "id": "platform",
           "label": "Platform services",
           "icon": "fa-cogs",
+          "group": "Platform",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=platform"
         },
         {
           "id": "data_import",
           "label": "Data import",
           "icon": "fa-upload",
+          "group": "Data management",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=data_import"
         },
         {
           "id": "integration",
           "label": "Data & integration",
           "icon": "fa-plug",
+          "group": "Data management",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=integration"
         },
         {
           "id": "jw_seed_data",
           "label": "Sample data (jewellery)",
           "icon": "fa-database",
+          "group": "Data management",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=jw_seed_data"
         },
         {
           "id": "jw_currency",
           "label": "Currency master (jewellery)",
           "icon": "fa-money",
+          "group": "Jewellery setup",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=jw_currency"
         },
         {
           "id": "ai_assistant",
           "label": "Devin AI assistant",
           "icon": "fa-robot",
+          "group": "Platform",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=ai_assistant"
         },
         {
           "id": "tenant_config",
           "label": "Tenant configuration",
           "icon": "fa-sliders",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=tenant_config"
         },
         {
           "id": "print_designer",
           "label": "Print designer",
           "icon": "fa-paint-brush",
+          "group": "Automation",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=print_designer"
         },
         {
           "id": "workflow_automation",
           "label": "Automation Centre",
           "icon": "fa-magic",
+          "group": "Automation",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=workflow_automation"
         },
         {
           "id": "accounting_automation",
           "label": "Accounting automation",
           "icon": "fa-university",
+          "group": "Automation",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=setup&tab=accounting_automation"
         }
       ]
@@ -1131,78 +1587,115 @@
       "id": "tax",
       "label": "Tax",
       "icon": "fa-percent",
+      "description": "VAT/tax returns, e-invoicing, compliance and statutory reporting",
       "href": "/ERP/?epc_erp_shell=1&area=tax",
       "tabs": [
         {
           "id": "vat_return",
           "label": "VAT return",
           "icon": "fa-percent",
+          "group": "Declarations",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=vat_return"
         },
         {
           "id": "tax_compliance",
           "label": "Tax compliance",
           "icon": "fa-gavel",
+          "group": "Declarations",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=tax_compliance"
         },
         {
           "id": "vat_refund",
           "label": "Tourist VAT refunds",
           "icon": "fa-plane",
+          "group": "Declarations",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=vat_refund"
         },
         {
           "id": "einvoice",
           "label": "E-invoicing",
           "icon": "fa-file-code-o",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=einvoice"
         },
         {
           "id": "blockchain_proofs",
           "label": "Blockchain proofs",
           "icon": "fa-link",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=blockchain_proofs"
         },
         {
           "id": "withholding",
           "label": "Withholding tax",
           "icon": "fa-scissors",
+          "group": "Declarations",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=withholding"
         },
         {
           "id": "compliance",
           "label": "Compliance center",
           "icon": "fa-shield",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=compliance"
         },
         {
           "id": "ext_reports",
           "label": "External reporting",
           "icon": "fa-file-text-o",
+          "group": "Reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=ext_reports"
         },
         {
           "id": "elec_reporting",
           "label": "Electronic reporting",
           "icon": "fa-file-code-o",
+          "group": "Reports",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=elec_reporting"
         },
         {
           "id": "document_control",
           "label": "Document control",
           "icon": "fa-print",
+          "group": "Setup",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=document_control"
         },
         {
           "id": "jw_tourist_vat",
           "label": "Tourist VAT refund (jewellery)",
           "icon": "fa-plane",
+          "group": "Jewellery",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=jw_tourist_vat"
         },
         {
           "id": "aml_compliance",
           "label": "AML Compliance",
           "icon": "fa-shield",
+          "group": "Jewellery",
+          "isJewellery": true,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=tax&tab=aml_compliance"
         }
       ]
@@ -1211,12 +1704,16 @@
       "id": "warehouse",
       "label": "Warehouse management",
       "icon": "fa-cubes",
+      "description": "Locations, license plates, waves, work and mobile RF",
       "href": "/ERP/?epc_erp_shell=1&area=warehouse",
       "tabs": [
         {
           "id": "wms",
           "label": "Warehouse management",
           "icon": "fa-cubes",
+          "group": "Common",
+          "isJewellery": false,
+          "isRaw": false,
           "href": "/ERP/?epc_erp_shell=1&area=warehouse&tab=wms"
         }
       ]

@@ -69,24 +69,38 @@ def parse_erp_areas(text: str) -> list[dict]:
         r"'icon'\s*=>\s*'((?:\\'|[^'])*)'\s*,\s*"
         r"'desc'\s*=>\s*'((?:\\'|[^'])*)'\s*,\s*"
         r"'tabs'\s*=>\s*array\s*\((.*?)\)\s*,\s*"
-        r"'groups'",
+        r"'groups'\s*=>\s*array\s*\((.*?)(?=\n\s*'[a-z0-9_]+'\s*=>\s*array|\n\s*\);)",
         re.S,
     )
     tab_re = re.compile(
-        r"'([a-z0-9_]+)'\s*=>\s*array\s*\(\s*'label'\s*=>\s*'((?:\\'|[^'])*)'\s*,\s*'icon'\s*=>\s*'((?:\\'|[^'])*)'",
+        r"'([a-z0-9_]+)'\s*=>\s*array\s*\(\s*"
+        r"'label'\s*=>\s*'((?:\\'|[^'])*)'\s*,\s*"
+        r"'icon'\s*=>\s*'((?:\\'|[^'])*)'(.*?)\)",
         re.S,
     )
     areas: list[dict] = []
     for m in area_re.finditer(text):
-        area_key, label, icon, _desc, tabs_blob = m.groups()
+        area_key, label, icon, desc, tabs_blob, groups_blob = m.groups()
+        group_by_tab: dict[str, str] = {}
+        for group_match in re.finditer(
+            r"'([^']+)'\s*=>\s*array\s*\(([^)]*)",
+            groups_blob,
+            re.S,
+        ):
+            group_name, members = group_match.groups()
+            for member in re.findall(r"'([a-z0-9_]+)'", members):
+                group_by_tab.setdefault(member, group_name)
         tabs = []
         for tm in tab_re.finditer(tabs_blob):
-            tab_key, tab_label, tab_icon = tm.groups()
+            tab_key, tab_label, tab_icon, metadata = tm.groups()
             tabs.append(
                 {
                     "id": tab_key,
                     "label": tab_label,
                     "icon": tab_icon,
+                    "group": group_by_tab.get(tab_key),
+                    "isJewellery": bool(re.search(r"'jw'\s*=>\s*true", metadata)),
+                    "isRaw": bool(re.search(r"'raw'\s*=>\s*true", metadata)),
                     "href": f"/ERP/?epc_erp_shell=1&area={area_key}&tab={tab_key}",
                 }
             )
@@ -95,6 +109,7 @@ def parse_erp_areas(text: str) -> list[dict]:
                 "id": area_key,
                 "label": label,
                 "icon": icon,
+                "description": desc,
                 "href": f"/ERP/?epc_erp_shell=1&area={area_key}",
                 "tabs": tabs,
             }
@@ -221,7 +236,10 @@ def write_csharp(catalog: dict, path: Path) -> None:
         "/// Every CP/ERP/BOS/storefront surface is listed so nothing is omitted from navigation.</summary>",
         "public static partial class PhpModuleCatalog",
         "{",
-        "    public sealed record ModuleLink(string Id, string Label, string Href, string? Icon = null, string? Group = null);",
+        "    public sealed record ModuleLink(",
+        "        string Id, string Label, string Href, string? Icon = null, string? Group = null,",
+        "        string? Description = null, bool IsJewellery = false, bool IsRaw = false,",
+        "        string? PhpGroup = null);",
         "",
         f"    public const int ErpAreaCount = {len(areas)};",
         f"    public const int ErpTabCount = {sum(len(a['tabs']) for a in areas)};",
@@ -241,13 +259,13 @@ def write_csharp(catalog: dict, path: Path) -> None:
     lines += ["    ];", "", "    public static readonly IReadOnlyList<ModuleLink> ErpAreas =", "    ["]
     for a in areas:
         lines.append(
-            f'        new("{cs_escape(a["id"])}", "{cs_escape(a["label"])}", "{cs_escape(a["href"])}", "{cs_escape(a["icon"])}", "erp"),'
+            f'        new("{cs_escape(a["id"])}", "{cs_escape(a["label"])}", "{cs_escape(a["href"])}", "{cs_escape(a["icon"])}", "erp", "{cs_escape(a.get("description") or "")}"),'
         )
     lines += ["    ];", "", "    public static readonly IReadOnlyList<ModuleLink> ErpTabs =", "    ["]
     for a in areas:
         for t in a["tabs"]:
             lines.append(
-                f'        new("{cs_escape(a["id"])}/{cs_escape(t["id"])}", "{cs_escape(t["label"])}", "{cs_escape(t["href"])}", "{cs_escape(t["icon"])}", "{cs_escape(a["id"])}"),'
+                f'        new("{cs_escape(a["id"])}/{cs_escape(t["id"])}", "{cs_escape(t["label"])}", "{cs_escape(t["href"])}", "{cs_escape(t["icon"])}", "{cs_escape(a["id"])}", null, {str(bool(t.get("isJewellery"))).lower()}, {str(bool(t.get("isRaw"))).lower()}, "{cs_escape(t.get("group") or "")}"),'
             )
     lines += ["    ];", "", "    public static readonly IReadOnlyList<ModuleLink> BosSections =", "    ["]
     for s in bos_sections:
