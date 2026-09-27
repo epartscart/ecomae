@@ -1,0 +1,412 @@
+@page "/cp/industry-settings-app"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ICpIndustrySettingsService Settings
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Industry settings · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+    <link rel="stylesheet" href="/cp/epc-industry-settings.css" />
+</HeadContent>
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+<div class="col-lg-12 epc-inds epc-portal-settings">
+
+    <div class="epc-inds-brand">
+        <div>
+            <div class="epc-inds-brand__mark">@(_isSuper ? "Ecomae · Super CP" : "EPartsCart · Tenant CP")</div>
+            <h2>@(_isClientSite ? "Site & module settings" : "Industry & module settings")</h2>
+            @if (_isClientSite)
+            {
+                <p>Configure branding, contact details, and which control panel modules appear on <strong>@_host</strong>.
+                    Platform-wide tenant tools live on ecomae Super CP.</p>
+            }
+            else
+            {
+                <p>Controls branding, theme, contact details, and which CP modules appear on <strong>@_host</strong>.
+                    Use Tenant hub to onboard client sites.</p>
+            }
+        </div>
+        <div class="epc-inds-brand__actions">
+            <a class="btn btn-sm btn-primary" href="/cp/tenant-hub-app?tab=industry_sub_areas"><i class="fa fa-toggle-on"></i> Sub-area toggles</a>
+            @if (_isSuper)
+            {
+                <a class="btn btn-sm btn-default" href="/cp/tenant-hub-app?tab=industry_consolidation"><i class="fa fa-compress"></i> Consolidation</a>
+            }
+        </div>
+    </div>
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-warning" role="status">Admin login required.</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="alert alert-success" role="status">@_flashOk</div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="alert alert-danger" role="status">@_flashErr</div>
+    }
+
+    <div class="epc-inds-stats">
+        <div class="epc-inds-stat">
+            <div class="epc-inds-stat__val"><i class="fa @ActiveIndustryIcon"></i> @ActiveIndustryName</div>
+            <div class="epc-inds-stat__lbl">Active industry</div>
+        </div>
+        <div class="epc-inds-stat">
+            <div class="epc-inds-stat__val">@PacksOn.ToString(CultureInfo.InvariantCulture) / @AvailablePacks.Count.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-inds-stat__lbl">CP packs on</div>
+        </div>
+        <div class="epc-inds-stat">
+            <div class="epc-inds-stat__val">@_view.ErpModules.Count.ToString(CultureInfo.InvariantCulture) / @PortalSettingsCatalog.ErpModules.Count.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-inds-stat__lbl">ERP modules</div>
+        </div>
+        <div class="epc-inds-stat">
+            <div class="epc-inds-stat__val">@_view.VisibleGroupCount.ToString(CultureInfo.InvariantCulture) / @_view.MenuGroups.Count.ToString(CultureInfo.InvariantCulture)</div>
+            <div class="epc-inds-stat__lbl">Sidebar groups</div>
+        </div>
+    </div>
+
+    <nav class="epc-inds-nav" aria-label="Settings sections">
+        <a href="#inds-branding"><i class="fa fa-paint-brush"></i> Branding</a>
+        <a href="#inds-contact"><i class="fa fa-address-card"></i> Contact</a>
+        <a href="#inds-modules"><i class="fa fa-cubes"></i> Modules</a>
+        <a href="#inds-sidebar"><i class="fa fa-bars"></i> Sidebar</a>
+    </nav>
+
+    <form id="epc-portal-settings-form" class="epc-portal-settings__form" method="post" action="/cp/industry-settings/save">
+        <input type="hidden" name="confirmWrites" value="true" />
+        <input type="hidden" name="returnUrl" value="/cp/industry-settings-app" />
+        <input type="hidden" name="action" value="save_settings" />
+
+        <section class="epc-inds-section" id="inds-branding">
+            <div class="epc-inds-section__head">
+                <div>
+                    <h3><i class="fa fa-paint-brush"></i> Branding &amp; access</h3>
+                    <p>Industry template, visual style, storefront layout, and how this tenant opens (commerce / ERP-only / mixed).</p>
+                </div>
+            </div>
+            <div class="epc-inds-section__body">
+                <div class="row">
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="epc_ps_industry">Industry</label>
+                            <select class="form-control" id="epc_ps_industry" name="industry_code">
+                                @foreach (var group in PortalSettingsCatalog.Grouped(PortalSettingsCatalog.IndustriesForSettings(_isClientSite)))
+                                {
+                                    <optgroup label="@group.Ecosystem.Name">
+                                        @foreach (var industry in group.Industries)
+                                        {
+                                            <option value="@industry.Code" selected="@(industry.Code == _view.IndustryCode)">@industry.Name</option>
+                                        }
+                                    </optgroup>
+                                }
+                            </select>
+                            <p class="help-block">Industry sets modules and business type. Saving re-applies the matching theme palette.</p>
+                        </div>
+                        <div class="form-group">
+                            <label>Visual style template</label>
+                            <div id="epc-style-templates" class="epc-portal-settings__styles">
+                                @foreach (var style in ActiveIndustryStyles)
+                                {
+                                    <label class="epc-portal-settings__style @(style.Id == _view.ThemeTemplate ? "is-selected" : "")" data-template-id="@style.Id">
+                                        <input type="radio" name="theme_template" value="@style.Id" checked="@(style.Id == _view.ThemeTemplate)" />
+                                        <span class="epc-portal-settings__style-swatches" aria-hidden="true">
+                                            <i title="Primary" style="background:@style.Theme.Primary"></i>
+                                            <i title="Accent" style="background:@style.Theme.Accent"></i>
+                                            <i title="Sidebar" style="background:linear-gradient(135deg,@style.Theme.SidebarFrom,@style.Theme.SidebarTo)"></i>
+                                            <i title="Hero" class="epc-portal-settings__style-hero" style="background:linear-gradient(145deg,@style.Theme.HeroFrom,@style.Theme.HeroTo)"></i>
+                                        </span>
+                                        <span class="epc-portal-settings__style-text">
+                                            <strong>@style.Label</strong>
+                                            <small>@style.Desc</small>
+                                        </span>
+                                    </label>
+                                }
+                            </div>
+                        </div>
+                        <div class="form-group">
+                            <label>Storefront layout</label>
+                            <div id="epc-storefront-layouts" class="epc-portal-settings__styles">
+                                @if (ActiveIndustryLayouts.Count == 0)
+                                {
+                                    <p class="text-muted" style="margin:0">No layout templates for this industry yet — package default applies.</p>
+                                }
+                                else
+                                {
+                                    @foreach (var choice in ActiveIndustryLayouts)
+                                    {
+                                        <label class="epc-portal-settings__style @(choice.Id == ActiveLayoutId ? "is-selected" : "")" data-layout-id="@choice.Id">
+                                            <input type="radio" name="storefront_layout" value="@choice.Id" checked="@(choice.Id == ActiveLayoutId)" />
+                                            <span class="epc-portal-settings__style-text">
+                                                <strong>@choice.Label @(choice.Default ? "(default)" : "")</strong>
+                                                <small>@choice.Desc</small>
+                                            </span>
+                                        </label>
+                                    }
+                                }
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="form-group">
+                            <label for="epc_ps_system">System name</label>
+                            <input type="text" class="form-control" id="epc_ps_system" name="system_name" value="@_view.SystemName" />
+                        </div>
+                        <div class="form-group">
+                            <label for="epc_ps_hub">Hub / company name</label>
+                            <input type="text" class="form-control" id="epc_ps_hub" name="hub_name" value="@_view.HubName" />
+                        </div>
+                        <div class="form-group">
+                            <label for="epc_ps_tagline">Tagline</label>
+                            <input type="text" class="form-control" id="epc_ps_tagline" name="tagline" value="@_view.Tagline" />
+                        </div>
+                        <div class="form-group">
+                            <label for="epc_ps_domain">Public site URL</label>
+                            <input type="url" class="form-control" id="epc_ps_domain" name="domain_path" placeholder="https://www.example.com/" value="@_view.DomainPath" />
+                            <p class="help-block">Used for payment webhooks, sitemaps, emails, and document headers.</p>
+                        </div>
+                        <div class="form-group">
+                            <label for="epc_ps_access_mode">Tenant access mode</label>
+                            <select class="form-control" id="epc_ps_access_mode" name="access_mode">
+                                <option value="full" selected="@(_view.AccessMode == "full")">Full commerce — storefront + commerce CP</option>
+                                <option value="erp_only" selected="@(_view.AccessMode == "erp_only")">ERP only — no storefront; CP login → ERP shell</option>
+                                <option value="mixed" selected="@(_view.AccessMode == "mixed")">Mixed — partial ERP modules + optional commerce</option>
+                                <option value="consultancy" selected="@(_view.AccessMode == "consultancy")">Consultancy — advisory landing + ERP (no shop cart)</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="epc_ps_cp_default_lang">CP default language</label>
+                            <select class="form-control" id="epc_ps_cp_default_lang" name="cp_default_lang">
+                                @foreach (var lang in PortalSettingsCatalog.CpLanguages)
+                                {
+                                    <option value="@lang.Code" selected="@(lang.Code == _view.CpDefaultLang)">@lang.Label (@lang.Code)</option>
+                                }
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="epc-inds-section" id="inds-contact">
+            <div class="epc-inds-section__head">
+                <div>
+                    <h3><i class="fa fa-address-card"></i> Site contact</h3>
+                    <p>Portable trade identity for emails, ERP documents, and payment receipts on this domain.</p>
+                </div>
+            </div>
+            <div class="epc-inds-section__body">
+                <div class="row">
+                    <div class="col-md-6 form-group">
+                        <label>Trade / store name</label>
+                        <input type="text" class="form-control" name="contact_trade_name" value="@_view.Contact.TradeName" />
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>Phone / WhatsApp</label>
+                        <input type="text" class="form-control" name="contact_phone" value="@_view.Contact.Phone" />
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>From email</label>
+                        <input type="email" class="form-control" name="contact_from_email" value="@_view.Contact.FromEmail" />
+                    </div>
+                    <div class="col-md-6 form-group">
+                        <label>Admin notifications email</label>
+                        <input type="email" class="form-control" name="contact_admin_email" value="@_view.Contact.AdminEmail" />
+                    </div>
+                    <div class="col-md-12 form-group">
+                        <label>Head office address</label>
+                        <input type="text" class="form-control" name="contact_head_office_address" value="@_view.Contact.HeadOfficeAddress" />
+                    </div>
+                    <div class="col-sm-4 form-group">
+                        <label>City</label>
+                        <input type="text" class="form-control" name="contact_city" value="@_view.Contact.City" />
+                    </div>
+                    <div class="col-sm-4 form-group">
+                        <label>Country</label>
+                        <input type="text" class="form-control" name="contact_country" value="@CountryValue" />
+                    </div>
+                    <div class="col-sm-4 form-group">
+                        <label>Country code (ISO-2)</label>
+                        <input type="text" class="form-control" name="country_code" maxlength="2" value="@_view.Contact.CountryCode" />
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="epc-inds-section" id="inds-modules">
+            <div class="epc-inds-section__head">
+                <div>
+                    <h3><i class="fa fa-cubes"></i> Modules</h3>
+                    <p>Toggle ERP shell areas and broad CP packs. Unchecked ERP areas are hidden for staff (admins still see all).</p>
+                </div>
+            </div>
+            <div class="epc-inds-section__body">
+                <label style="margin-bottom:8px">ERP modules</label>
+                <div class="epc-inds-presets">
+                    @foreach (var preset in PortalSettingsCatalog.ErpPresets)
+                    {
+                        <span class="label label-default" title="@preset.Desc">@preset.Label: @string.Join(", ", preset.Modules)</span>
+                    }
+                </div>
+                <div class="epc-inds-modules epc-portal-settings__erp-modules">
+                    @foreach (var module in PortalSettingsCatalog.ErpModules)
+                    {
+                        <label class="epc-portal-settings__pack">
+                            <input type="checkbox" name="erp_modules" value="@module.Id" class="epc-erp-mod-cb" checked="@_view.ErpModules.Contains(module.Id)" />
+                            <span class="epc-portal-settings__pack-icon"><i class="fa @module.Icon"></i></span>
+                            <span class="epc-portal-settings__pack-text">
+                                <strong>@module.Label</strong>
+                                <small>@module.Desc</small>
+                            </span>
+                        </label>
+                    }
+                </div>
+
+                <hr style="margin:18px 0;border-color:#e2e8f0" />
+
+                <label style="margin-bottom:8px">Enabled CP packs</label>
+                <div class="epc-inds-modules epc-portal-settings__packs">
+                    @foreach (var pack in AvailablePacks)
+                    {
+                        <label class="epc-portal-settings__pack">
+                            @if (pack.Code == "core")
+                            {
+                                <input type="checkbox" checked disabled />
+                                <input type="hidden" name="enabled_packs" value="core" />
+                            }
+                            else
+                            {
+                                <input type="checkbox" name="enabled_packs" value="@pack.Code" checked="@_view.EnabledPacks.Contains(pack.Code)" />
+                            }
+                            <span class="epc-portal-settings__pack-icon"><i class="fa @pack.Icon"></i></span>
+                            <span class="epc-portal-settings__pack-text">
+                                <strong>@pack.Label</strong>
+                                <small>@pack.Desc</small>
+                            </span>
+                        </label>
+                    }
+                </div>
+            </div>
+        </section>
+
+        <section class="epc-inds-section" id="inds-sidebar">
+            <div class="epc-inds-section__head">
+                <div>
+                    <h3><i class="fa fa-bars"></i> Sidebar sections</h3>
+                    <p>Hide entire sidebar groups or individual menu links on this control panel. Checked = visible.</p>
+                </div>
+            </div>
+            <div class="epc-inds-section__body">
+                @if (_view.MenuGroups.Count == 0)
+                {
+                    <p class="text-muted" style="margin:0">No <code>control_groups</code> rows for this tenant yet.</p>
+                }
+                else
+                {
+                    <div id="epc-inds-sidebar-list">
+                        @foreach (var group in _view.MenuGroups)
+                        {
+                            <div class="epc-inds-acc">
+                                <div class="epc-inds-acc__toggle">
+                                    <input type="checkbox" class="epc-cp-group-toggle epc-inds-acc__check" name="visible_groups" value="@group.Id.ToString(CultureInfo.InvariantCulture)" checked="@(!_view.HiddenGroups.Contains(group.Id))" />
+                                    <span class="epc-inds-acc__meta">
+                                        <strong>@group.Label</strong>
+                                        <small>Sidebar group</small>
+                                    </span>
+                                    <span class="epc-inds-acc__count">@group.ItemCount.ToString(CultureInfo.InvariantCulture) links</span>
+                                </div>
+                                <div class="epc-cp-group-items epc-inds-acc__body" data-group-id="@group.Id.ToString(CultureInfo.InvariantCulture)">
+                                    @foreach (var item in _view.MenuItems.Where(i => i.GroupId == group.Id))
+                                    {
+                                        <label class="epc-inds-acc__item">
+                                            <input type="checkbox" name="visible_items" value="@item.Id.ToString(CultureInfo.InvariantCulture)" checked="@(!_view.HiddenItems.Contains(item.Id))" />
+                                            <span>@item.Caption</span>
+                                            <small class="text-muted">@item.Url</small>
+                                        </label>
+                                    }
+                                </div>
+                            </div>
+                        }
+                    </div>
+                }
+            </div>
+        </section>
+
+        <div class="epc-inds-sticky">
+            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save settings</button>
+            <span class="epc-inds-sticky__msg">Saved to <code>epc_portal_site_settings</code> for <strong>@_host</strong>.</span>
+        </div>
+    </form>
+
+</div>
+
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _isSuper;
+    private bool _isClientSite = true;
+    private string _host = "";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpIndustrySettingsView _view = CpIndustrySettingsView.Empty("", "n/a");
+
+    private PortalSettingsIndustry? ActiveIndustry => PortalSettingsCatalog.Industry(_view.IndustryCode);
+
+    private string ActiveIndustryName => ActiveIndustry?.Name ?? _view.IndustryCode;
+
+    private string ActiveIndustryIcon => ActiveIndustry?.Icon ?? "fa-cube";
+
+    private IReadOnlyList<PortalStyleTemplate> ActiveIndustryStyles =>
+        ActiveIndustry?.StyleTemplates ?? [];
+
+    private IReadOnlyList<PortalStorefrontLayout> ActiveIndustryLayouts =>
+        ActiveIndustry?.Layouts ?? [];
+
+    /// <summary>PHP <c>epc_storefront_active_layout()</c>: saved layout, else the industry default.</summary>
+    private string ActiveLayoutId =>
+        _view.StorefrontLayout.Length > 0 && ActiveIndustryLayouts.Any(l => l.Id == _view.StorefrontLayout)
+            ? _view.StorefrontLayout
+            : ActiveIndustryLayouts.FirstOrDefault(l => l.Default)?.Id ?? "";
+
+    private IReadOnlyList<PortalCpPack> AvailablePacks => PortalSettingsCatalog.PacksForSettings(_isClientSite);
+
+    private int PacksOn => AvailablePacks.Count(p => p.Code == "core" || _view.EnabledPacks.Contains(p.Code));
+
+    /// <summary>PHP defaults the contact country to United Arab Emirates when unset.</summary>
+    private string CountryValue =>
+        string.IsNullOrWhiteSpace(_view.Contact.Country) ? "United Arab Emirates" : _view.Contact.Country;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _host = PlatformHostPolicy.NormalizeHost(ctx.Request.Host.Host);
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _isClientSite = !PlatformHostPolicy.IsSuperCpHost(ctx.Request.Host.Host);
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _view = await Settings.LoadAsync(ctx.Request.Host.Host, ctx.RequestAborted);
+    }
+}

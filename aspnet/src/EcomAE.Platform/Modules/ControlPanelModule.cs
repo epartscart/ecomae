@@ -8920,6 +8920,90 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        // PHP ajax_portal.php?action=save_settings — Industry settings save for the requesting tenant host.
+        endpoints.MapPost(EcomAeRoutes.CpIndustrySettingsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpIndustrySettingsService settings,
+            ICpIndustrySettingsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/cp/login?returnUrl=" + EcomAeRoutes.ControlPanelIndustrySettingsApp,
+                    "Admin CP capability required for industry-settings save.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.Json(
+                    new { ok = false, error = new { code = "form_required", message = "Industry settings save expects a form post." } },
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    EcomAeRoutes.ControlPanelIndustrySettingsApp,
+                    false,
+                    "Dry-run. Set confirmWrites=true to save industry settings.",
+                    new { ok = false, writes = 0, validation_code = "dry_run", phpAuthoritative = false, session = SessionPayload(session) });
+            }
+
+            // Checkboxes post the visible ids; PHP stores the complement, so invert against the tenant's own menu rows.
+            var current = await settings.LoadAsync(context.Request.Host.Host, cancellationToken);
+            var visibleGroups = LiveWriteFormBinder.Longs(form, "visible_groups").Select(id => (int)id).ToHashSet();
+            var visibleItems = LiveWriteFormBinder.Longs(form, "visible_items").Select(id => (int)id).ToHashSet();
+            var hiddenGroups = current.MenuGroups.Select(g => g.Id).Where(id => !visibleGroups.Contains(id)).ToList();
+            var hiddenItems = current.MenuItems.Select(i => i.Id).Where(id => !visibleItems.Contains(id)).ToList();
+
+            var written = await writes.SaveAsync(
+                new CpIndustrySettingsSaveRequest(
+                    LiveWriteFormBinder.Text(form, "industry_code"),
+                    LiveWriteFormBinder.Text(form, "theme_template"),
+                    LiveWriteFormBinder.Text(form, "storefront_layout"),
+                    LiveWriteFormBinder.Text(form, "access_mode"),
+                    LiveWriteFormBinder.Text(form, "cp_default_lang"),
+                    LiveWriteFormBinder.Text(form, "country_code"),
+                    LiveWriteFormBinder.Text(form, "system_name"),
+                    LiveWriteFormBinder.Text(form, "hub_name"),
+                    LiveWriteFormBinder.Text(form, "tagline"),
+                    LiveWriteFormBinder.Text(form, "domain_path"),
+                    LiveWriteFormBinder.Text(form, "contact_trade_name"),
+                    LiveWriteFormBinder.Text(form, "contact_from_email"),
+                    LiveWriteFormBinder.Text(form, "contact_admin_email"),
+                    LiveWriteFormBinder.Text(form, "contact_phone"),
+                    LiveWriteFormBinder.Text(form, "contact_head_office_address"),
+                    LiveWriteFormBinder.Text(form, "contact_city"),
+                    LiveWriteFormBinder.Text(form, "contact_country"),
+                    [.. form["enabled_packs"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!)],
+                    [.. form["erp_modules"].Where(v => !string.IsNullOrWhiteSpace(v)).Select(v => v!)],
+                    hiddenGroups,
+                    hiddenItems),
+                context.Request.Host.Host,
+                cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                EcomAeRoutes.ControlPanelIndustrySettingsApp,
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    phpAuthoritative = false,
+                    session = SessionPayload(session),
+                });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelMetabase, async (
             HttpContext context,
             int? limit,

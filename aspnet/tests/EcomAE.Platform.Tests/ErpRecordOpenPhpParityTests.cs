@@ -54,7 +54,7 @@ public sealed class ErpRecordOpenPhpParityTests
     [InlineData("/CP/control/portal/epc_bi_metrics?mb_id=6", "/cp/metabase-app?mb_id=6")]
     [InlineData("/CP/shop/marketing/marketing?review_id=9", "/cp/marketing-growth-app?review_id=9")]
     [InlineData("/CP/control/portal/epc_commerce_isolation_audit?run_id=3", "/cp/isolation-audit-app?run_id=3")]
-    [InlineData("/CP/control/portal/industry_settings?pack_id=2", "/cp/industry-packs-app?pack_id=2")]
+    [InlineData("/CP/control/portal/industry_settings", "/cp/industry-settings-app")]
     [InlineData("/CP/control/portal/epc_industry_packs?pack_id=2", "/cp/industry-packs-app?pack_id=2")]
     [InlineData("/CP/control/portal/epc_config_sandbox?snapshot_id=4", "/cp/config-sandbox-app?snapshot_id=4")]
     [InlineData("/CP/control/portal/epc_platform_governance?rule_id=5", "/cp/platform-governance-app?rule_id=5")]
@@ -1081,7 +1081,7 @@ public sealed class ErpRecordOpenPhpParityTests
             "/cp/industry-packs-app?pack_id=2",
             ErpRecordOpen.PreserveRecordQuery(
                 "/cp/industry-packs-app",
-                "/CP/control/portal/industry_settings?pack_id=2"));
+                "/CP/control/portal/epc_industry_packs?pack_id=2"));
     }
 
     [Fact]
