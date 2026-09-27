@@ -487,7 +487,8 @@
                 _industryCode,
                 countryCode,
                 _showBos,
-                DisabledTabIds: tenantRules.DisabledTabIds));
+                DisabledTabIds: tenantRules.DisabledTabIds,
+                EnabledModuleIds: tenantRules.EnabledModuleIds));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
