@@ -1,4 +1,9 @@
+using EcomAE.Platform.Cp;
+
 namespace EcomAE.Platform.Migration;
+
+/// <summary>PHP <c>epc_integrations_categories()</c> entry.</summary>
+public sealed record CpIntegrationsHubCategory(string Key, string Label, string Icon, string Blurb);
 
 /// <summary>
 /// Same-to-same CP Integrations Hub catalog (mirrors PHP <c>epc_integrations_catalog</c> / hub rows).
@@ -85,7 +90,105 @@ public static class CpIntegrationsHubCatalog
             $"/{Be}/control/portal/epc_integrations_guide#tenant_registry", superOnly: true),
     ];
 
+    /// <summary>PHP <c>epc_integrations_categories()</c> — order drives the page sections.</summary>
+    public static IReadOnlyList<CpIntegrationsHubCategory> Categories { get; } =
+    [
+        new("identity", "Identity & messaging", "fa-id-badge", "Login, email delivery, and customer messaging channels."),
+        new("commerce", "Commerce & payments", "fa-shopping-bag", "Checkout, POS, tax, and settlement rails."),
+        new("growth", "Marketing & growth", "fa-bullhorn", "Broadcast, social, tracking, and storefront content."),
+        new("catalog", "Catalog & AI", "fa-cubes", "Pricing intelligence and parts expert assistants."),
+        new("data", "Data & APIs", "fa-database", "REST keys, Power BI datasets, and analytics embeds."),
+        new("platform", "Platform", "fa-server", "Mobile shells and multi-tenant control."),
+    ];
+
     public static IReadOnlyList<CpIntegrationsHubCatalogEntry> All => Catalog;
+
+    public static string CategoryLabel(string category)
+        => Categories.FirstOrDefault(c => string.Equals(c.Key, category, StringComparison.OrdinalIgnoreCase))?.Label
+           ?? category;
+
+    /// <summary>
+    /// PHP <c>epc_integrations_resolve_guide()</c>: catalog guide values are already CP paths;
+    /// anything else collapses onto the master guide with the feature key as anchor.
+    /// </summary>
+    public static string ResolveGuide(string guide, string key)
+    {
+        var master = $"/{Be}/control/portal/epc_integrations_guide";
+        var value = (guide ?? string.Empty).Trim();
+        if (value.Length == 0)
+        {
+            return key.Length > 0 ? master + "#" + Uri.EscapeDataString(key) : master;
+        }
+
+        if (value.StartsWith("http://", StringComparison.Ordinal)
+            || value.StartsWith("https://", StringComparison.Ordinal)
+            || value.StartsWith('/'))
+        {
+            return value;
+        }
+
+        var anchor = key.Length > 0 ? key : value.TrimStart('#');
+        return master + "#" + Uri.EscapeDataString(anchor);
+    }
+
+    /// <summary>
+    /// PHP <c>epc_integrations_hub_rows()</c>: Super CP shows every entry with a super URL and treats
+    /// all of them as active; tenant CP hides super-only entries without a tenant URL, points super-only
+    /// configuration back at the hub and falls back from the Super-only API docs guide.
+    /// </summary>
+    public static IReadOnlyList<CpIntegrationsHubCard> BuildHubCards(
+        bool isSuper,
+        IReadOnlyDictionary<string, bool>? featureFlags = null)
+    {
+        var hub = $"/{Be}/control/portal/epc_integrations_hub";
+        var rows = new List<CpIntegrationsHubCard>(Catalog.Length);
+        foreach (var meta in Catalog)
+        {
+            if (isSuper && string.IsNullOrWhiteSpace(meta.SuperUrl))
+            {
+                continue;
+            }
+
+            if (!isSuper && string.IsNullOrWhiteSpace(meta.TenantUrl) && meta.SuperOnly)
+            {
+                continue;
+            }
+
+            var enabled = isSuper
+                || (featureFlags is not null && featureFlags.TryGetValue(meta.Key, out var flag)
+                    ? flag
+                    : meta.DefaultEnabled);
+
+            var configureUrl = isSuper
+                ? meta.SuperUrl
+                : (string.IsNullOrWhiteSpace(meta.TenantUrl) ? meta.SuperUrl : meta.TenantUrl);
+            if (!isSuper && meta.SuperOnly)
+            {
+                configureUrl = hub;
+            }
+
+            var guide = meta.Guide;
+            if (!isSuper && guide.Contains("epc_api_documentation_guide", StringComparison.Ordinal))
+            {
+                guide = hub.Replace("epc_integrations_hub", "epc_integrations_guide", StringComparison.Ordinal)
+                    + "#api_integrations";
+            }
+
+            rows.Add(new CpIntegrationsHubCard(
+                meta.Key,
+                meta.Label,
+                meta.Icon,
+                meta.Color,
+                meta.Category,
+                meta.Blurb,
+                enabled,
+                configureUrl,
+                ResolveGuide(guide, meta.Key),
+                meta.SuperOnly));
+        }
+
+        return rows;
+    }
 
     /// <summary>Tenant hub rows (excludes super-only-config-only entries without tenant URL).</summary>
     public static IReadOnlyList<CpIntegrationDigest> BuildTenantDigests(
