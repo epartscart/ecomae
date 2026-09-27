@@ -5,7 +5,9 @@
 @using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpPowerBiService PowerBi
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -16,16 +18,113 @@
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
-                Power BI
+                <i class="fa fa-bar-chart"></i> Power BI
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/power-bi-app")</p>
-                <p>Open a report for its site notes excerpt and category siblings. Save workspace config or register a report here. Embed token mint stays on the Classic twin. This page does not invent a send.</p>
+                <p>Connect Microsoft Power BI to live tenant ERP/commerce data via API key — no Azure AD required for Desktop refresh. Secure embed tokens wait until you supply Azure credentials.</p>
+                <p style="margin:12px 0 0">
+                    <a class="btn btn-default btn-sm" href="/cp/guides-app?g=power-bi"><i class="fa fa-book"></i> Step-by-step guide</a>
+                </p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/power-bi-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">What is possible now</div>
+            <div class="panel-body">
+                <div class="row">
+                    <div class="col-md-6">
+                        <h5>Available without Microsoft login</h5>
+                        <ul>
+                            @foreach (var cap in PowerBiCatalog.AvailableNow)
+                            {
+                                <li><code>@cap</code></li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-md-6">
+                        <h5>Needs your Azure / Power BI Pro</h5>
+                        <ul>
+                            @foreach (var need in PowerBiCatalog.NeedsCustomerCredentials)
+                            {
+                                <li><strong>@need.Key</strong> — @need.Why</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+                <ol>
+                    @foreach (var step in PowerBiCatalog.ConnectGuide)
+                    {
+                        <li>@step</li>
+                    }
+                </ol>
+                <p>
+                    <a class="btn btn-primary btn-sm" href="/cp/guides-app?g=power-bi"><i class="fa fa-book"></i> Open step-by-step guide</a>
+                    <a class="btn btn-default btn-sm" href="/cp/api-documentation-app"><i class="fa fa-key"></i> API keys &amp; scopes</a>
+                    <a class="btn btn-default btn-sm" href="@(PowerBiCatalog.ApiRoot + "/catalog")" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Dataset catalog (needs key)</a>
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Power BI datasets (Web connector)</div>
+            <div class="panel-body">
+                <div class="table-responsive">
+                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                        <thead>
+                            <tr><th>Dataset</th><th>URL</th><th>Formats</th><th>Scope</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var ds in PowerBiCatalog.Datasets)
+                            {
+                                <tr>
+                                    <td>
+                                        <strong>@ds.Name</strong><br /><span class="text-muted">@ds.Description</span>
+                                        @if (!string.IsNullOrWhiteSpace(ds.Parameters))
+                                        {
+                                            <br />
+                                            <span class="text-muted">Params: @ds.Parameters</span>
+                                        }
+                                    </td>
+                                    <td><code style="word-break:break-all;font-size:11px;">@ds.Path</code></td>
+                                    <td>@string.Join(", ", ds.Formats)</td>
+                                    <td><code>@ds.Scope</code></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <pre style="background:#f8fafc;border:1px solid #e2e8f0;padding:12px;border-radius:6px;font-size:12px;">@PowerBiCatalog.CurlExample</pre>
+            </div>
+        </div>
+    </div>
+
+    @if (_isSuper && _tenants.Count > 0)
+    {
+        <div class="col-lg-12">
+            <form method="get" class="form-inline" style="margin-bottom:12px;">
+                <label>Tenant</label>
+                <select name="site_key" class="form-control input-sm" onchange="this.form.submit()">
+                    @foreach (var tenant in _tenants)
+                    {
+                        @if (tenant.SiteKey == _siteKey)
+                        {
+                            <option value="@tenant.SiteKey" selected>@TenantLabel(tenant)</option>
+                        }
+                        else
+                        {
+                            <option value="@tenant.SiteKey">@TenantLabel(tenant)</option>
+                        }
+                    }
+                </select>
+            </form>
+        </div>
+    }
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -40,7 +139,7 @@
     {
         <div class="col-lg-12">
             <div class="hpanel">
-                <div class="panel-heading hbuilt">Save workspace config</div>
+                <div class="panel-heading hbuilt">Workspace config — @_siteKey</div>
                 <div class="panel-body">
                     <form method="post" action="/cp/power-bi/write" class="well">
                         <input type="hidden" name="confirmWrites" value="true" />
@@ -48,73 +147,95 @@
                         <input type="hidden" name="action" value="save_config" />
                         <div class="form-group">
                             <label>Site key</label>
-                            <input type="text" class="form-control" name="site_key" value="@_summary.SiteKey" />
+                            <input type="text" class="form-control" name="site_key" value="@_siteKey" />
                         </div>
                         <div class="form-group">
-                            <label>Workspace id</label>
-                            <input type="text" class="form-control" name="workspace_id" maxlength="64" value="@_summary.WorkspaceId" />
+                            <label>Workspace ID</label>
+                            <input type="text" class="form-control" name="workspace_id" maxlength="64" value="@_config.WorkspaceId" placeholder="Power BI workspace GUID" />
                         </div>
                         <div class="form-group">
-                            <label>Azure tenant id</label>
-                            <input type="text" class="form-control" name="azure_tenant_id" maxlength="64" value="@_summary.AzureTenantId" />
+                            <label>Azure tenant ID</label>
+                            <input type="text" class="form-control" name="azure_tenant_id" maxlength="64" value="@_config.AzureTenantId" placeholder="Optional — for future embed tokens" />
                         </div>
                         <div class="form-group">
-                            <label>Default report id</label>
-                            <input type="text" class="form-control" name="default_report_id" maxlength="64" value="@_summary.DefaultReportId" />
+                            <label>Default report ID</label>
+                            <input type="text" class="form-control" name="default_report_id" maxlength="64" value="@_config.DefaultReportId" />
                         </div>
                         <div class="form-group">
-                            <label>Default dataset id</label>
-                            <input type="text" class="form-control" name="default_dataset_id" maxlength="64" value="@_summary.DefaultDatasetId" />
-                        </div>
-                        <div class="form-group">
-                            <label>Embed URL</label>
-                            <input type="text" class="form-control" name="embed_url" maxlength="512" value="@_summary.EmbedUrl" />
+                            <label>Default dataset ID</label>
+                            <input type="text" class="form-control" name="default_dataset_id" maxlength="64" value="@_config.DefaultDatasetId" />
                         </div>
                         <div class="form-group">
                             <label>Embed mode</label>
                             <select class="form-control" name="embed_mode">
-                                @foreach (var mode in CpPowerBiWriteService.EmbedModes)
+                                @foreach (var mode in EmbedModeLabels)
                                 {
-                                    @if (OpenedEmbedMode == mode)
+                                    @if (CurrentEmbedMode == mode.Key)
                                     {
-                                        <option value="@mode" selected>@mode</option>
+                                        <option value="@mode.Key" selected>@mode.Label</option>
                                     }
                                     else
                                     {
-                                        <option value="@mode">@mode</option>
+                                        <option value="@mode.Key">@mode.Label</option>
                                     }
                                 }
                             </select>
                         </div>
                         <div class="form-group">
-                            <label>Notes</label>
-                            <textarea class="form-control" name="notes" rows="2">@_summary.Notes</textarea>
+                            <label>Embed URL</label>
+                            <input type="text" class="form-control" name="embed_url" maxlength="512" value="@_config.EmbedUrl" placeholder="https://app.powerbi.com/view?r=..." />
                         </div>
-                        <button type="submit" class="btn btn-default">Save config</button>
+                        <div class="form-group">
+                            <label>Notes</label>
+                            <textarea class="form-control" name="notes" rows="2" maxlength="512">@_config.Notes</textarea>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save config</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
                 </div>
             </div>
         </div>
         <div class="col-lg-12">
             <div class="hpanel">
-                <div class="panel-heading hbuilt">Register report</div>
+                <div class="panel-heading hbuilt">Registered reports</div>
                 <div class="panel-body">
+                    <div class="table-responsive">
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                            <thead><tr><th>Name</th><th>Report ID</th><th>Category</th><th>Embed</th></tr></thead>
+                            <tbody>
+                                @if (_liveReports.Count == 0)
+                                {
+                                    <tr><td colspan="4">No reports registered yet.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var report in _liveReports)
+                                    {
+                                        <tr>
+                                            <td>@report.ReportName</td>
+                                            <td><code>@report.ReportId</code></td>
+                                            <td>@report.Category</td>
+                                            <td>@(string.IsNullOrWhiteSpace(report.EmbedUrl) ? "—" : "yes")</td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
+                        </table>
+                    </div>
                     <form method="post" action="/cp/power-bi/write" class="well">
                         <input type="hidden" name="confirmWrites" value="true" />
                         <input type="hidden" name="returnUrl" value="@_listHref" />
                         <input type="hidden" name="action" value="add_report" />
-                        <input type="hidden" name="site_key" value="@_summary.SiteKey" />
-                        <div class="form-group">
-                            <label>Report id</label>
-                            <input type="text" class="form-control" name="report_id" maxlength="64" />
-                        </div>
+                        <input type="hidden" name="site_key" value="@_siteKey" />
                         <div class="form-group">
                             <label>Report name</label>
-                            <input type="text" class="form-control" name="report_name" maxlength="128" />
+                            <input type="text" class="form-control" name="report_name" maxlength="128" required placeholder="Executive finance" />
                         </div>
                         <div class="form-group">
-                            <label>Dataset id</label>
+                            <label>Report ID</label>
+                            <input type="text" class="form-control" name="report_id" maxlength="64" placeholder="GUID from Power BI" />
+                        </div>
+                        <div class="form-group">
+                            <label>Dataset ID</label>
                             <input type="text" class="form-control" name="dataset_id" maxlength="64" />
                         </div>
                         <div class="form-group">
@@ -122,12 +243,30 @@
                             <input type="text" class="form-control" name="category" maxlength="32" value="finance" />
                         </div>
                         <div class="form-group">
-                            <label>Embed URL</label>
-                            <input type="text" class="form-control" name="report_embed_url" maxlength="512" />
+                            <label>Report embed URL</label>
+                            <input type="text" class="form-control" name="report_embed_url" maxlength="512" placeholder="Optional https://app.powerbi.com/..." />
                         </div>
-                        <button type="submit" class="btn btn-default">Register report</button>
+                        <button type="submit" class="btn btn-default"><i class="fa fa-plus"></i> Add report</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Embed token mint stays Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Azure embed-token minting needs the tenant's own AAD app and Power BI capacity.</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Embed preview</div>
+                <div class="panel-body">
+                    @if (_embed.Ok)
+                    {
+                        <iframe src="@_embed.Url" title="Power BI" style="width:100%;min-height:520px;border:1px solid #e2e8f0;border-radius:8px;" allowfullscreen></iframe>
+                    }
+                    else
+                    {
+                        <div class="alert alert-info" style="margin:0;">
+                            <strong>@_embed.Phase</strong> — @_embed.Error
+                        </div>
+                    }
                 </div>
             </div>
         </div>
@@ -138,7 +277,7 @@
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Power BI KPIs">
         <div class="kpi"><div class="lbl">Reports</div><div class="val">@_reports.Count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Active</div><div class="val">@_reports.Count(r => r.Active).ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Config</div><div class="val">@(_summary.Active ? "on" : "off")</div></div>
+        <div class="kpi"><div class="lbl">Config</div><div class="val">@(_config.Active ? "on" : "off")</div></div>
         <div class="kpi"><div class="lbl">Opened siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
@@ -282,6 +421,12 @@
     private const string _phpTab = "/CP/control/portal/epc_power_bi";
     private const string _listHref = "/cp/power-bi-app";
     private bool _isAdmin;
+    private bool _isSuper;
+    private string _siteKey = "";
+    private CpPowerBiConfig _config = CpPowerBiConfig.Empty("");
+    private IReadOnlyList<CpPowerBiReport> _liveReports = [];
+    private IReadOnlyList<CpPowerBiTenantOption> _tenants = [];
+    private PowerBiEmbedResolution _embed = PowerBiCatalog.ResolveEmbed(false, "none", "");
     private CpPowerBiConfigSummary _summary = new("", "", "", "", "", "", "none", "", false, 0, "n/a", "");
     private IReadOnlyList<CpPowerBiReportDigest> _reports = [];
     private string _source = "n/a";
@@ -293,7 +438,18 @@
     private string _flashOk = "";
     private string _flashErr = "";
 
-    private string OpenedEmbedMode => CpPowerBiWriteService.NormalizeEmbedMode(_summary.EmbedMode);
+    private static readonly (string Key, string Label)[] EmbedModeLabels =
+    [
+        ("none", "None (API datasets only)"),
+        ("url", "URL iframe (publish-to-web / share link)"),
+        ("azure", "Azure embed (needs credentials)"),
+    ];
+
+    private string CurrentEmbedMode => CpPowerBiWriteService.NormalizeEmbedMode(_config.EmbedMode);
+
+    private static string TenantLabel(CpPowerBiTenantOption tenant)
+        => (string.IsNullOrWhiteSpace(tenant.TradeName) ? tenant.SiteKey : tenant.TradeName)
+            + " (" + tenant.SiteKey + ")";
 
     private string OpenedCaption => _openedReport is null
         ? ""
@@ -317,6 +473,18 @@
         {
             return; // guest browse — Sign in for live data
         }
+
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+
+        var view = await PowerBi.LoadAsync(
+            ctx.Request.Query["site_key"].ToString(),
+            ctx.Request.Host.Host,
+            ctx.RequestAborted);
+        _siteKey = view.SiteKey;
+        _config = view.Config;
+        _liveReports = view.Reports;
+        _tenants = view.Tenants;
+        _embed = view.Embed;
 
         var result = await Dashboards.BuildCpPowerBiDigestAsync(200, ctx.RequestAborted);
         _summary = result.Summary;

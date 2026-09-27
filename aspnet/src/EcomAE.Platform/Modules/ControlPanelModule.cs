@@ -8788,7 +8788,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_power_bi_config + epc_power_bi_reports metadata. Open ?pbi_id= loads a 280-char notes excerpt plus category siblings. save_config / add_report POST /cp/power-bi/write when confirmWrites=true. Embed token mint stay Classic."
+                note = "Live epc_power_bi_config + epc_power_bi_reports twin with native schema ensure. Open ?pbi_id= loads a 280-char notes excerpt plus category siblings. save_config / add_report POST /cp/power-bi/write when confirmWrites=true. Azure embed token mint stay Classic."
             });
         });
 
@@ -8796,6 +8796,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpPowerBiWriteService writes,
+            ICpPowerBiService powerBi,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8845,6 +8846,24 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (string.IsNullOrWhiteSpace(key))
             {
                 key = "save_config";
+            }
+
+            // PHP epc_power_bi.php: only a platform operator may target another tenant.
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                var scope = await powerBi.LoadAsync(null, context.Request.Host.Host, cancellationToken);
+                var posted = CpPowerBiWriteService.NormalizeSiteKey(siteKey);
+                if (posted.Length > 0 && !string.Equals(posted, scope.SiteKey, StringComparison.Ordinal))
+                {
+                    return LiveWriteFormBinder.Complete(
+                        context,
+                        "/cp/power-bi-app",
+                        false,
+                        "Not allowed to edit another tenant.",
+                        new { ok = false, writes = 0, cutoverAllowed = false, validation_code = "tenant_scope", message = "Not allowed to edit another tenant.", session = SessionPayload(session) });
+                }
+
+                siteKey = scope.SiteKey;
             }
 
             if (confirm && key is "save_config" or "save")
