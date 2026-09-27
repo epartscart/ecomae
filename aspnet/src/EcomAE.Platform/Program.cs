@@ -746,6 +746,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpInfoBlocksWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformCommunicationWriteService, EcomAE.Platform.Cp.CpPlatformCommunicationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceConfigsWriteService, EcomAE.Platform.Cp.CpPriceConfigsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpWorkflowsWriteService, EcomAE.Platform.Cp.CpWorkflowsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPowerBiService, EcomAE.Platform.Cp.CpPowerBiService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPowerBiWriteService, EcomAE.Platform.Cp.CpPowerBiWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMetabaseWriteService, EcomAE.Platform.Cp.CpMetabaseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpAbandonedCartsWriteService, EcomAE.Platform.Cp.CpAbandonedCartsWriteService>();
@@ -794,6 +795,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserEditorService, EcomAE.Platf
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPartsAgentWriteService, EcomAE.Platform.Cp.CpPartsAgentWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsOperatorsDeskService, EcomAE.Platform.Cp.CpSmsOperatorsDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPartsAgentDeskService, EcomAE.Platform.Cp.CpPartsAgentDeskService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosNotificationWriteService, EcomAE.Platform.Bos.BosNotificationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosCreditWriteService, EcomAE.Platform.Bos.BosCreditWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Bos.IBosApiKeyWriteService, EcomAE.Platform.Bos.BosApiKeyWriteService>();

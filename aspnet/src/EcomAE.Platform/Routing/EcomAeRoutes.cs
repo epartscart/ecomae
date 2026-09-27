@@ -153,6 +153,8 @@ public static class EcomAeRoutes
     public const string ControlPanelPartsAgentChatsApp = "/cp/parts-agent-chats-app";
     /// <summary>PHP <c>save_config</c> / <c>epc_agent_save_config</c>. <c>confirmWrites=true</c> UPSERTs the singleton config row. Chat stay Classic.</summary>
     public const string CpPartsAgentSaveConfig = "/cp/parts-agent/save-config";
+    /// <summary>PHP <c>export_csv</c> action of <c>ajax_epc_parts_agent_cp.php</c> (same filters, BOM + CSV download).</summary>
+    public const string CpPartsAgentExportCsv = "/cp/parts-agent/export.csv";
     /// <summary>CP POS settings + recent sales metadata (terminal writes remain PHP).</summary>
     public const string ControlPanelPosOverview = "/cp/pos-overview";
     /// <summary>CP POS Blazor overview (JSON digest remains <see cref="ControlPanelPosOverview"/>).</summary>
