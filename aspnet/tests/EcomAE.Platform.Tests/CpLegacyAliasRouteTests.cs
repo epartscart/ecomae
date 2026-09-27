@@ -6,6 +6,7 @@ public sealed class CpLegacyAliasRouteTests
 {
     [Theory]
     [InlineData("CpApiClientsApp.razor", "/cp/api-documentation-app")]
+    [InlineData("CpAbandonedCartsApp.razor", "/cp/carts-app")]
     [InlineData("CpGuidesHubApp.razor", "/cp/guideline-app")]
     [InlineData("CpIntegrationsApp.razor", "/cp/integrations-hub-app")]
     [InlineData("CpMarketplaceAppsApp.razor", "/cp/marketplace-app")]
