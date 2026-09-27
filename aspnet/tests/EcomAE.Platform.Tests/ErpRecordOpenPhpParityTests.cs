@@ -1319,24 +1319,18 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void SocialHubApp_OpenLoadsLastTestAndDraftCaptions()
+    public void SocialHubApp_OpensDraftsFromTheRecordTable()
     {
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpSocialHubApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"social_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
-        Assert.Contains("ReadId(ctx.Request, \"social_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpSocialHubAccountDetailAsync", text, StringComparison.Ordinal);
         Assert.Contains("No drafts yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
+        Assert.Contains("EditHref(draft)", text, StringComparison.Ordinal);
+        Assert.Contains("draft_id", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("encrypted_credentials", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("last_error", text, StringComparison.Ordinal);
 
         Assert.Equal("/cp/social-hub-app?social_id=5#erp-row-5",
             ErpRecordOpen.Href("/cp/social-hub-app", "social_id", 5));

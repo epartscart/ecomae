@@ -2,317 +2,571 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpSocialHubService SocialHub
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Social media hub · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<link rel="stylesheet" href="/cp/epc-social-media-hub.css" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-    <div class="col-lg-12">
+    <div class="col-lg-12 epc-social-hub">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Social media hub
+            <div class="panel-heading hbuilt epc-scp-dashboard__hero">
+                <span class="epc-scp-dashboard__title">Social media hub</span>
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+                <a class="btn btn-xs btn-default pull-right" style="margin-right:6px" href="@(_listHref + "?tab=guide")">Guide</a>
+                <a class="btn btn-xs btn-default pull-right" style="margin-right:6px" href="/cp/integrations-hub-app">Integrations</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/social-hub-app")</p>
-                <p>Open an account for last-test status and draft titles. Save a draft here. Publish, generate caption, credentials, and test stay on the Classic twin. This page does not invent a send.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/social-hub-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
+                <div class="epc-social-intro">
+                    <strong>@_view.Brand.BrandName</strong> · @_view.Brand.Industry.Replace('_', ' ') · @_view.Brand.Country
+                    · <a href="@_view.Brand.Website" rel="noopener">@_view.Brand.Domain</a>
+                    <span class="text-muted"> · site key @_view.SiteKey</span>
+                </div>
+                <div class="epc-social-explore-hint">
+                    <span class="epc-social-explore-hint__icon">▾</span>
+                    <span class="epc-social-explore-hint__text">Marketing pack, TikTok and Instagram plans, connected accounts, AI advisor, drafts and the publishing guide.</span>
+                </div>
 
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedAccount is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+                @if (_isSuper)
+                {
+                    <form method="get" action="@_listHref" class="form-inline" style="margin-bottom:12px">
+                        <input type="hidden" name="tab" value="@_tab" />
+                        <label style="margin-right:6px">Tenant scope</label>
+                        <select class="form-control" name="site_key" onchange="this.form.submit()">
+                            <option value="platform" selected="@(_view.SiteKey == "platform")">Platform (ECOM AE)</option>
+                            @foreach (var tenant in _tenants)
+                            {
+                                <option value="@tenant.SiteKey" selected="@(_view.SiteKey == tenant.SiteKey)">
+                                    @(string.IsNullOrWhiteSpace(tenant.TradeName) ? tenant.SiteKey : tenant.TradeName) (@tenant.SiteKey)
+                                </option>
+                            }
+                        </select>
+                        <noscript><button type="submit" class="btn btn-default" style="margin-left:6px">Switch</button></noscript>
+                    </form>
+                }
 
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
-    }
+                <div class="epc-social-kpi">
+                    <div class="epc-social-kpi__item">
+                        <div class="epc-social-kpi__val">@_readyPosts.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-social-kpi__label">Ready posts</div>
+                    </div>
+                    <div class="epc-social-kpi__item">
+                        <div class="epc-social-kpi__val">@_view.Accounts.Count.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-social-kpi__label">Connected accounts</div>
+                    </div>
+                    <div class="epc-social-kpi__item">
+                        <div class="epc-social-kpi__val">@_view.Drafts.Count.ToString(CultureInfo.InvariantCulture)</div>
+                        <div class="epc-social-kpi__label">Drafts</div>
+                    </div>
+                    <div class="epc-social-kpi__item">
+                        <div class="epc-social-kpi__val">@_view.Brand.Industry.Replace('_', ' ')</div>
+                        <div class="epc-social-kpi__label">Industry</div>
+                    </div>
+                </div>
 
-    @if (_isAdmin)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Save draft</div>
-                <div class="panel-body">
-                    <form method="post" action="/cp/social-hub/write" class="well">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "social_id", _openedId) : _listHref)" />
-                        <input type="hidden" name="action" value="save_draft" />
-                        <input type="hidden" name="id" value="0" />
-                        @if (_isSuper)
+                <div class="epc-social-tabs">
+                    @foreach (var tab in SocialMediaPackCatalog.Tabs)
+                    {
+                        <a class="btn btn-sm @(tab.Key == _tab ? "btn-primary" : "btn-default")" href="@TabHref(tab.Key)">@tab.Label</a>
+                    }
+                </div>
+
+                @if (!string.IsNullOrWhiteSpace(_flashOk))
+                {
+                    <div class="alert alert-success" role="status">@_flashOk</div>
+                }
+                @if (!string.IsNullOrWhiteSpace(_flashErr))
+                {
+                    <div class="alert alert-danger" role="status">@_flashErr</div>
+                }
+                @if (!_isAdmin)
+                {
+                    <div class="alert alert-warning" role="status">Sign in with a staff CP session for live accounts and drafts.</div>
+                }
+
+                @switch (_tab)
+                {
+                    case "pack":
+                        @foreach (var platform in SocialMediaPackCatalog.PackTabPlatforms)
                         {
-                            <div class="form-group">
-                                <label>Site key</label>
-                                <input type="text" class="form-control" name="site_key" value="@OpenedSiteKey" />
+                            var meta = SocialMediaPackCatalog.PackPlatform(platform);
+                            <h4>@meta.Label</h4>
+                            <p class="text-muted">@meta.Intro</p>
+                            <div class="epc-social-grid">
+                                @foreach (var post in SocialMediaPackCatalog.PackPostsForBrand(platform, _view.Brand))
+                                {
+                                    <div class="epc-social-post">
+                                        <div class="epc-social-post__head">@post.Title</div>
+                                        <div class="epc-social-post__body">@post.Caption</div>
+                                        <div class="epc-social-post__bar">
+                                            <span class="text-muted">@meta.Label</span>
+                                            <a class="btn btn-xs btn-default" href="@DraftHref(platform, post.Title, post.Caption, string.Join(' ', meta.Hashtags))">Use as draft</a>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                            <div style="margin:8px 0 20px">
+                                @foreach (var tag in meta.Hashtags)
+                                {
+                                    <span class="epc-social-tag">@tag</span>
+                                }
                             </div>
                         }
-                        else
+                        <h4>X / Twitter thread starter</h4>
+                        <div class="epc-social-post">
+                            <div class="epc-social-post__head">Thread</div>
+                            <div class="epc-social-post__body">@SocialMediaPackCatalog.AdaptText(SocialMediaPackCatalog.XThreadStarter, _view.Brand)</div>
+                        </div>
+                        break;
+
+                    case "tiktok":
+                        <h4>TikTok specifications</h4>
+                        <dl class="epc-social-specs">
+                            @foreach (var spec in SocialMediaPackCatalog.TikTokSpecs)
+                            {
+                                <dt>@spec.Label</dt>
+                                <dd>@spec.Value</dd>
+                            }
+                        </dl>
+                        <h4>Reel scripts</h4>
+                        <div class="epc-social-grid">
+                            @foreach (var post in SocialMediaPackCatalog.PackPostsForBrand("tiktok", _view.Brand))
+                            {
+                                <div class="epc-social-post">
+                                    <div class="epc-social-post__head">@post.Title</div>
+                                    <div class="epc-social-post__body">@post.Caption</div>
+                                    <div class="epc-social-post__bar">
+                                        <span class="text-muted">TikTok</span>
+                                        <a class="btn btn-xs btn-default" href="@DraftHref("tiktok", post.Title, post.Caption, string.Join(' ', SocialMediaPackCatalog.PackPlatform("tiktok").Hashtags))">Use as draft</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <h4>Sample reels</h4>
+                        <div class="epc-social-grid">
+                            @foreach (var video in SocialMediaPackCatalog.VideoLibrary.Where(v => v.Kind == "reel"))
+                            {
+                                <div class="epc-social-post">
+                                    <div class="epc-social-post__head">@video.Title <span class="text-muted">· @video.Aspect</span></div>
+                                    <div class="epc-social-post__body">
+                                        <video controls preload="none" width="100%" src="@video.Url"></video>
+                                        <p>@video.Blurb</p>
+                                    </div>
+                                    <div class="epc-social-post__bar">
+                                        <a class="btn btn-xs btn-default" href="@video.Url" target="_blank" rel="noopener">Open</a>
+                                        <a class="btn btn-xs btn-default" href="@DraftHref("tiktok", video.Title, video.Blurb, string.Empty, video.Url)">Use as media URL</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        break;
+
+                    case "instagram":
+                        <h4>Instagram posts</h4>
+                        <div class="epc-social-grid">
+                            @foreach (var post in SocialMediaPackCatalog.PackPostsForBrand("instagram", _view.Brand))
+                            {
+                                <div class="epc-social-post">
+                                    <div class="epc-social-post__head">@post.Title</div>
+                                    <div class="epc-social-post__body">@post.Caption</div>
+                                    <div class="epc-social-post__bar">
+                                        <span class="text-muted">Instagram</span>
+                                        <a class="btn btn-xs btn-default" href="@DraftHref("instagram", post.Title, post.Caption, string.Join(' ', SocialMediaPackCatalog.PackPlatform("instagram").Hashtags))">Use as draft</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        <h4>Reels &amp; carousel ideas</h4>
+                        <div class="epc-social-grid">
+                            @foreach (var idea in SocialMediaPackCatalog.InstagramReelIdeas)
+                            {
+                                <div class="epc-social-post">
+                                    <div class="epc-social-post__head">@idea.Title</div>
+                                    <div class="epc-social-post__body">@idea.Caption</div>
+                                </div>
+                            }
+                        </div>
+                        break;
+
+                    case "accounts":
+                        <p class="text-muted">Tokens are stored AES-256 encrypted per tenant and never rendered back. Leave a token field blank to keep the stored value.</p>
+                        @foreach (var platform in SocialMediaPackCatalog.Platforms)
                         {
-                            <input type="hidden" name="site_key" value="@OpenedSiteKey" />
-                        }
-                        <div class="form-group">
-                            <label>Platform</label>
-                            <select class="form-control" name="platform">
-                                @foreach (var p in _platforms)
-                                {
-                                    @if (OpenedPlatform == p)
+                            var account = _view.Account(platform.Key);
+                            <div class="epc-social-account-card">
+                                <div class="epc-social-account-card__head">
+                                    <span class="epc-social-platform-icon" style="background:@platform.Color">@platform.Label.Substring(0, 1)</span>
+                                    <strong>@platform.Label</strong>
+                                    <span class="label @(account?.Status == "verified" ? "label-success" : "label-default")">@(account?.Status ?? "not connected")</span>
+                                    @if (account is not null && account.LastTestAt > 0)
                                     {
-                                        <option value="@p" selected>@p</option>
+                                        <span class="text-muted">Last test @DateTimeOffset.FromUnixTimeSeconds(account.LastTestAt).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) UTC · @(account.LastTestOk ? "ok" : "failed")</span>
+                                    }
+                                </div>
+                                <form method="post" action="/cp/social-hub/write">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="action" value="save_account" />
+                                    <input type="hidden" name="site_key" value="@_view.SiteKey" />
+                                    <input type="hidden" name="platform" value="@platform.Key" />
+                                    <input type="hidden" name="returnUrl" value="@TabHref("accounts")" />
+                                    <div class="row">
+                                        <div class="col-sm-4 form-group">
+                                            <label>Account label</label>
+                                            <input type="text" class="form-control" name="account_label" value="@(account?.AccountLabel ?? string.Empty)" />
+                                        </div>
+                                        <div class="col-sm-4 form-group">
+                                            <label>Username / handle</label>
+                                            <input type="text" class="form-control" name="username" value="@(account?.Username ?? string.Empty)" />
+                                        </div>
+                                        <div class="col-sm-4 form-group">
+                                            <label>Access token @(account?.HasToken == true ? "(stored)" : "")</label>
+                                            <input type="password" class="form-control" name="access_token" value="" autocomplete="new-password" />
+                                        </div>
+                                    </div>
+                                    <div class="row">
+                                        <div class="col-sm-4 form-group">
+                                            <label>App / API key</label>
+                                            <input type="password" class="form-control" name="api_key" value="" autocomplete="new-password" />
+                                        </div>
+                                        <div class="col-sm-4 form-group">
+                                            <label>App secret</label>
+                                            <input type="password" class="form-control" name="api_secret" value="" autocomplete="new-password" />
+                                        </div>
+                                        <div class="col-sm-4 form-group">
+                                            <label>Page ID</label>
+                                            <input type="text" class="form-control" name="page_id" value="@(account?.PageId ?? string.Empty)" />
+                                        </div>
+                                    </div>
+                                    @if (platform.Key == "instagram")
+                                    {
+                                        <div class="form-group">
+                                            <label>Instagram business user ID</label>
+                                            <input type="text" class="form-control" name="ig_user_id" value="@(account?.IgUserId ?? string.Empty)" />
+                                        </div>
+                                    }
+                                    @if (platform.Key == "tiktok")
+                                    {
+                                        <div class="row">
+                                            <div class="col-sm-6 form-group">
+                                                <label>TikTok open ID</label>
+                                                <input type="text" class="form-control" name="open_id" value="@(account?.OpenId ?? string.Empty)" />
+                                            </div>
+                                            <div class="col-sm-6 form-group">
+                                                <label>Privacy level</label>
+                                                <select class="form-control" name="privacy_level">
+                                                    @foreach (var privacy in SocialMediaPackCatalog.TikTokPrivacyLevels)
+                                                    {
+                                                        <option value="@privacy.Value" selected="@((account?.PrivacyLevel ?? "SELF_ONLY") == privacy.Value)">@privacy.Label</option>
+                                                    }
+                                                </select>
+                                            </div>
+                                        </div>
+                                    }
+                                    <button type="submit" class="btn btn-primary btn-sm">Save account</button>
+                                </form>
+                                @if (account is not null)
+                                {
+                                    <form method="post" action="/cp/social-hub/write" style="display:inline-block;margin-top:8px">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="action" value="test_account" />
+                                        <input type="hidden" name="site_key" value="@_view.SiteKey" />
+                                        <input type="hidden" name="platform" value="@platform.Key" />
+                                        <input type="hidden" name="returnUrl" value="@TabHref("accounts")" />
+                                        <button type="submit" class="btn btn-default btn-sm">Test connection</button>
+                                    </form>
+                                    <form method="post" action="/cp/social-hub/write" style="display:inline-block;margin-top:8px">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="action" value="delete_account" />
+                                        <input type="hidden" name="site_key" value="@_view.SiteKey" />
+                                        <input type="hidden" name="platform" value="@platform.Key" />
+                                        <input type="hidden" name="returnUrl" value="@TabHref("accounts")" />
+                                        <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                                    </form>
+                                }
+                            </div>
+                        }
+                        break;
+
+                    case "ai":
+                        <h4>Trending formats this week</h4>
+                        @foreach (var trend in _trends)
+                        {
+                            <div class="epc-social-ai-card">
+                                <strong>@trend.Name</strong> <span class="text-muted">· @trend.Platforms</span>
+                                <div>@trend.Tip</div>
+                            </div>
+                        }
+                        <h4>Industry hooks — @_view.Brand.Industry.Replace('_', ' ')</h4>
+                        @foreach (var hook in SocialMediaPackCatalog.IndustryHooks(_view.Brand.Industry, _view.Brand))
+                        {
+                            <div class="epc-social-ai-card">@hook</div>
+                        }
+                        <h4>Caption generator</h4>
+                        <form method="get" action="@_listHref">
+                            <input type="hidden" name="tab" value="ai" />
+                            <input type="hidden" name="site_key" value="@_view.SiteKey" />
+                            <div class="row">
+                                <div class="col-sm-4 form-group">
+                                    <label>Platform</label>
+                                    <select class="form-control" name="gen_platform">
+                                        @foreach (var platform in SocialMediaPackCatalog.Platforms)
+                                        {
+                                            <option value="@platform.Key" selected="@(_genPlatform == platform.Key)">@platform.Label</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-sm-6 form-group">
+                                    <label>Product line (optional)</label>
+                                    <input type="text" class="form-control" name="product_line" value="@_productLine" />
+                                </div>
+                                <div class="col-sm-2 form-group">
+                                    <label>&nbsp;</label>
+                                    <button type="submit" class="btn btn-primary form-control">Generate</button>
+                                </div>
+                            </div>
+                        </form>
+                        @if (_generated is not null)
+                        {
+                            <div class="epc-social-post">
+                                <div class="epc-social-post__head">Generated caption · @_generated.Platform</div>
+                                <div class="epc-social-post__body">@_generated.Caption
+
+@_generated.Hashtags</div>
+                                <div class="epc-social-post__bar">
+                                    <span class="text-muted">Adapted for @_view.Brand.BrandName</span>
+                                    <a class="btn btn-xs btn-default" href="@DraftHref(_generated.Platform, "AI caption", _generated.Caption, _generated.Hashtags)">Use as draft</a>
+                                </div>
+                            </div>
+                        }
+                        break;
+
+                    case "drafts":
+                        <h4>Compose</h4>
+                        <form method="post" action="/cp/social-hub/write" class="well">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="action" value="save_draft" />
+                            <input type="hidden" name="id" value="@_draftId.ToString(CultureInfo.InvariantCulture)" />
+                            <input type="hidden" name="site_key" value="@_view.SiteKey" />
+                            <input type="hidden" name="returnUrl" value="@TabHref("drafts")" />
+                            <div class="row">
+                                <div class="col-sm-4 form-group">
+                                    <label>Platform</label>
+                                    <select class="form-control" name="platform">
+                                        @foreach (var platform in SocialMediaPackCatalog.Platforms)
+                                        {
+                                            <option value="@platform.Key" selected="@(_composePlatform == platform.Key)">@platform.Label</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-sm-8 form-group">
+                                    <label>Title</label>
+                                    <input type="text" class="form-control" name="title" value="@_composeTitle" />
+                                </div>
+                            </div>
+                            <div class="form-group">
+                                <label>Caption</label>
+                                <textarea class="form-control" name="caption" rows="6">@_composeCaption</textarea>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6 form-group">
+                                    <label>Hashtags</label>
+                                    <input type="text" class="form-control" name="hashtags" value="@_composeHashtags" />
+                                </div>
+                                <div class="col-sm-6 form-group">
+                                    <label>Public HTTPS media URL</label>
+                                    <input type="url" class="form-control" name="media_url" value="@_composeMedia" />
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-primary">Save draft</button>
+                            <span class="help-block">Facebook, Instagram and TikTok publishing requires a public HTTPS image or .mp4 URL. Live sending stays on the Classic twin.</span>
+                        </form>
+
+                        <h4>Drafts</h4>
+                        <div class="table-responsive">
+                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                                <thead>
+                                    <tr>
+                                        <th>Id</th>
+                                        <th>Platform</th>
+                                        <th>Title</th>
+                                        <th>Status</th>
+                                        <th>Media</th>
+                                        <th>Updated</th>
+                                        <th></th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @if (_view.Drafts.Count == 0)
+                                    {
+                                        <tr><td colspan="7">No drafts yet.</td></tr>
                                     }
                                     else
                                     {
-                                        <option value="@p">@p</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Title</label>
-                            <input type="text" class="form-control" name="title" value="" />
-                        </div>
-                        <div class="form-group">
-                            <label>Caption</label>
-                            <textarea class="form-control" name="caption" rows="3"></textarea>
-                        </div>
-                        <div class="form-group">
-                            <label>Hashtags</label>
-                            <input type="text" class="form-control" name="hashtags" value="" />
-                        </div>
-                        <div class="form-group">
-                            <label>Public media URL</label>
-                            <input type="url" class="form-control" name="media_url" value="" />
-                        </div>
-                        <button type="submit" class="btn btn-default">Save draft</button>
-                    </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Publish stay Classic.</p>
-                </div>
-            </div>
-        </div>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Social hub KPIs">
-        <div class="kpi"><div class="lbl">Accounts</div><div class="val">@_accountCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Drafts</div><div class="val">@_draftCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Published</div><div class="val">@_publishedCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Opened drafts</div><div class="val">@_openedDrafts.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedAccount is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedAccount.AccountLabel) ? _openedAccount.AccountLabel : (!string.IsNullOrWhiteSpace(_openedAccount.Username) ? _openedAccount.Username : ("Account #" + _openedAccount.Id.ToString(CultureInfo.InvariantCulture))))
-                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedAccount.Status) ? _openedAccount.Status : "—")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedAccount.SiteKey) ? _openedAccount.SiteKey : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedAccount.Platform) ? _openedAccount.Platform : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedAccount.Username) ? _openedAccount.Username : "—")</p>
-                    <p>Last test @_openedAccount.LastTestAt.ToString(CultureInfo.InvariantCulture)
-                        · @(_openedAccount.LastTestOk != 0 ? "ok" : "not ok")
-                        · created @_openedAccount.CreatedAt.ToString(CultureInfo.InvariantCulture)
-                        · updated @_openedAccount.UpdatedAt.ToString(CultureInfo.InvariantCulture)</p>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Drafts</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Title</th>
-                                    <th>Status</th>
-                                    <th>Scheduled</th>
-                                    <th>Caption</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedDrafts.Count == 0)
-                                {
-                                    <tr><td colspan="5">No drafts yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var draft in _openedDrafts)
-                                    {
-                                        <tr>
-                                            <td>@draft.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(draft.Title) ? draft.Title : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(draft.Status) ? draft.Status : "—")</td>
-                                            <td>@draft.ScheduledAt.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>
-                                                @if (!string.IsNullOrWhiteSpace(draft.CaptionExcerpt))
-                                                {
-                                                    @draft.CaptionExcerpt
-                                                    @if (draft.CaptionLen > draft.CaptionExcerpt.Length)
+                                        @foreach (var draft in _view.Drafts)
+                                        {
+                                            <tr>
+                                                <td>@draft.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                                <td>@draft.Platform</td>
+                                                <td>@(string.IsNullOrWhiteSpace(draft.Title) ? "—" : draft.Title)</td>
+                                                <td>
+                                                    @draft.Status
+                                                    @if (!string.IsNullOrWhiteSpace(draft.LastError))
                                                     {
-                                                        <span class="text-muted"> (excerpt)</span>
+                                                        <span class="text-danger"> · @draft.LastError</span>
                                                     }
-                                                }
-                                                else
-                                                {
-                                                    <text>—</text>
-                                                }
-                                            </td>
-                                        </tr>
+                                                </td>
+                                                <td>
+                                                    @if (string.IsNullOrWhiteSpace(draft.MediaUrl))
+                                                    {
+                                                        <text>—</text>
+                                                    }
+                                                    else
+                                                    {
+                                                        <a href="@draft.MediaUrl" target="_blank" rel="noopener">media</a>
+                                                    }
+                                                </td>
+                                                <td>@(draft.UpdatedAt > 0 ? DateTimeOffset.FromUnixTimeSeconds(draft.UpdatedAt).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture) : "—")</td>
+                                                <td><a class="btn btn-xs btn-primary" href="@EditHref(draft)">Edit</a></td>
+                                            </tr>
+                                        }
                                     }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
-    }
+                                </tbody>
+                            </table>
+                        </div>
+                        break;
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Platform</th>
-                    <th>Username</th>
-                    <th>Status</th>
-                    <th>Draft</th>
-                    <th>Draft status</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="7">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Platform) ? row.Platform : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Username) ? row.Username : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.DraftStatus) ? row.DraftStatus : "—")</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "social_id", row.Id)">Open</a></td>
-                    </tr>
+                    default:
+                        <h4>Publishing guide</h4>
+                        @foreach (var step in SocialMediaPackCatalog.GuideSteps(_view.Brand, "/cp/integrations-hub-app"))
+                        {
+                            <div class="epc-social-guide-step">
+                                <strong>@step.Title</strong>
+                                <div>@((MarkupString)step.BodyHtml)</div>
+                            </div>
+                        }
+                        <h4>Guide videos</h4>
+                        <div class="epc-social-grid">
+                            @foreach (var video in SocialMediaPackCatalog.VideoLibrary.Where(v => v.Kind == "guide"))
+                            {
+                                <div class="epc-social-post">
+                                    <div class="epc-social-post__head">@video.Title</div>
+                                    <div class="epc-social-post__body">
+                                        <video controls preload="none" width="100%" src="@video.Url"></video>
+                                        <p>@video.Blurb</p>
+                                    </div>
+                                    <div class="epc-social-post__bar">
+                                        <a class="btn btn-xs btn-default" href="@video.Url" target="_blank" rel="noopener">Open</a>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                        break;
                 }
-            }
-        </tbody>
-                    </table>
-                </div>
             </div>
         </div>
     </div>
-
-    <div class="epc-nw-note">Credentials omitted. Publish, generate caption, and test stay Classic.</div>
-
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_social_media_hub";
     private const string _listHref = "/cp/social-hub-app";
     private bool _isAdmin;
-    private int _accountCount = 0;
-    private int _draftCount = 0;
-    private int _publishedCount = 0;
-    private int _errorCount = 0;
-    private IReadOnlyList<CpSocialHubRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
-    private long _openedId;
-    private CpSocialHubAccountDetail? _openedAccount;
-    private IReadOnlyList<CpSocialHubDraftDigest> _openedDrafts = [];
     private bool _isSuper;
+    private string _tab = "pack";
     private string _flashOk = "";
     private string _flashErr = "";
-    private static readonly string[] _platforms = ["instagram", "tiktok", "facebook", "linkedin", "x"];
+    private string _genPlatform = "instagram";
+    private string _productLine = "";
+    private string _composePlatform = "instagram";
+    private string _composeTitle = "";
+    private string _composeCaption = "";
+    private string _composeHashtags = "";
+    private string _composeMedia = "";
+    private long _draftId;
+    private int _readyPosts = SocialMediaPackCatalog.ReadyPostCount();
+    private SocialGeneratedCaption? _generated;
+    private IReadOnlyList<SocialTrendFormat> _trends = [];
+    private IReadOnlyList<CpSocialTenantOption> _tenants = [];
+    private CpSocialHubView _view = CpSocialHubView.Empty("platform", CpSocialHubService.DefaultBrand("platform"), "n/a");
 
-    private string OpenedSiteKey => _openedAccount is not null && !string.IsNullOrWhiteSpace(_openedAccount.SiteKey)
-        ? _openedAccount.SiteKey
-        : (_isSuper ? "platform" : "");
+    private string TabHref(string tab)
+        => _listHref + "?tab=" + Uri.EscapeDataString(tab) + "&site_key=" + Uri.EscapeDataString(_view.SiteKey);
 
-    private string OpenedPlatform
-    {
-        get
-        {
-            var raw = (_openedAccount?.Platform ?? string.Empty).Trim().ToLowerInvariant();
-            return _platforms.Contains(raw) ? raw : "instagram";
-        }
-    }
+    private string DraftHref(string platform, string title, string caption, string hashtags, string mediaUrl = "")
+        => TabHref("drafts")
+           + "&compose_platform=" + Uri.EscapeDataString(platform)
+           + "&compose_title=" + Uri.EscapeDataString(title)
+           + "&compose_caption=" + Uri.EscapeDataString(caption)
+           + "&compose_hashtags=" + Uri.EscapeDataString(hashtags)
+           + (mediaUrl.Length == 0 ? "" : "&compose_media=" + Uri.EscapeDataString(mediaUrl));
 
-    private string OpenedCaption => _openedAccount is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedAccount.AccountLabel)
-            ? (string.IsNullOrWhiteSpace(_openedAccount.Username)
-                ? ("Account #" + _openedAccount.Id.ToString(CultureInfo.InvariantCulture))
-                : _openedAccount.Username)
-            : _openedAccount.AccountLabel)
-            + (string.IsNullOrWhiteSpace(_openedAccount.Platform) ? "" : (" · " + _openedAccount.Platform));
+    private string EditHref(CpSocialDraft draft)
+        => DraftHref(draft.Platform, draft.Title, draft.Caption, draft.Hashtags, draft.MediaUrl)
+           + "&draft_id=" + draft.Id.ToString(CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "social_id");
-        _isSuper = SuperCpHostGate.IsAllowed(ctx);
-        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
-        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
-
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
-        if (!_isAdmin)
+        if (ctx is null)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpSocialHubDigestAsync(200, ctx.RequestAborted);
-        _accountCount = result.Summary.AccountCount;
-        _draftCount = result.Summary.DraftCount;
-        _publishedCount = result.Summary.PublishedCount;
-        _errorCount = result.Summary.ErrorCount;
-        _rows = result.Rows;
-        _source = result.Source;
-        _message = result.Message;
+        var query = ctx.Request.Query;
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _tab = SocialMediaPackCatalog.NormalizeTab(query["tab"].ToString());
+        _flashOk = query["ok"].ToString() ?? "";
+        _flashErr = query["err"].ToString() ?? "";
+        _productLine = query["product_line"].ToString() ?? "";
+        _composeTitle = query["compose_title"].ToString() ?? "";
+        _composeCaption = query["compose_caption"].ToString() ?? "";
+        _composeHashtags = query["compose_hashtags"].ToString() ?? "";
+        _composeMedia = query["compose_media"].ToString() ?? "";
+        _trends = SocialMediaPackCatalog.TrendingFormats(DateTimeOffset.UtcNow);
 
-        if (_openedId > 0)
+        var composePlatform = CpSocialHubWriteService.NormalizePlatform(query["compose_platform"].ToString());
+        if (CpSocialHubWriteService.Platforms.Contains(composePlatform))
         {
-            var detail = await Dashboards.BuildCpSocialHubAccountDetailAsync(_openedId, ctx.RequestAborted);
-            _openedAccount = detail.Account;
-            _openedDrafts = detail.Drafts;
-            if (_openedAccount is not null)
-            {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
-            }
+            _composePlatform = composePlatform;
+        }
+
+        var genPlatform = CpSocialHubWriteService.NormalizePlatform(query["gen_platform"].ToString());
+        if (CpSocialHubWriteService.Platforms.Contains(genPlatform))
+        {
+            _genPlatform = genPlatform;
+        }
+
+        if (long.TryParse(query["draft_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var draftId) && draftId > 0)
+        {
+            _draftId = draftId;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+
+        var requestedSiteKey = _isSuper ? query["site_key"].ToString() : string.Empty;
+        _view = _isAdmin
+            ? await SocialHub.LoadAsync(requestedSiteKey, _isSuper, ctx.Request.Host.Host, ctx.RequestAborted)
+            : CpSocialHubView.Empty(
+                CpSocialHubWriteService.ResolveSiteKey(requestedSiteKey, _isSuper, ctx.Request.Host.Host),
+                CpSocialHubService.DefaultBrand(CpSocialHubWriteService.ResolveSiteKey(requestedSiteKey, _isSuper, ctx.Request.Host.Host)),
+                "anonymous");
+
+        if (_isAdmin && _isSuper)
+        {
+            _tenants = await SocialHub.ListTenantsAsync(ctx.RequestAborted);
+        }
+
+        if (!string.IsNullOrWhiteSpace(query["gen_platform"].ToString()))
+        {
+            _generated = SocialMediaPackCatalog.GenerateCaption(_view.Brand, _genPlatform, _productLine);
         }
     }
 }
