@@ -3,9 +3,11 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@using EcomAE.Platform.Services
+@inject ICpIntegrationsHubService Hub
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -18,188 +20,302 @@
     .epc-inthub-brand p { margin:0; max-width:46rem; font-size:13px; line-height:1.45; opacity:.92; }
     .epc-inthub-brand__mark { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; opacity:.85; margin-bottom:4px; }
     .epc-inthub-brand__actions { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; }
-    .epc-inthub-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:12px; margin:0 0 16px; }
+    .epc-inthub-stats { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:0 0 16px; }
     @@media (max-width:900px){ .epc-inthub-stats{grid-template-columns:1fr 1fr;} }
     .epc-inthub-stat { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; }
     .epc-inthub-stat__val { font-size:1.25rem; font-weight:700; }
     .epc-inthub-stat__lbl { font-size:12px; color:#64748b; }
+    .epc-inthub-market { display:flex; gap:10px; align-items:flex-start; padding:10px 14px; margin:0 0 16px; border:1px solid #bae6fd; background:#f0f9ff; border-radius:10px; font-size:13px; }
+    .epc-inthub-toolbar { display:flex; flex-wrap:wrap; gap:10px; justify-content:space-between; align-items:center; margin:0 0 14px; }
+    .epc-inthub-search { position:relative; }
+    .epc-inthub-search input { border:1px solid #cbd5e1; border-radius:999px; padding:6px 14px 6px 30px; min-width:16rem; }
+    .epc-inthub-search i { position:absolute; left:11px; top:9px; color:#94a3b8; }
+    .epc-inthub-chips { display:flex; flex-wrap:wrap; gap:6px; }
+    .epc-inthub-chip { border:1px solid #cbd5e1; background:#fff; border-radius:999px; padding:4px 12px; font-size:12px; }
+    .epc-inthub-chip.is-active { background:#0f766e; border-color:#0f766e; color:#fff; }
+    .epc-inthub-empty { display:none; padding:14px; border:1px dashed #cbd5e1; border-radius:10px; color:#64748b; margin:0 0 14px; }
+    .epc-inthub-empty.is-visible { display:block; }
+    .epc-inthub-shell .is-hidden { display:none !important; }
+    .epc-inthub-section { margin:0 0 20px; }
+    .epc-inthub-section__head h3 { margin:0 0 2px; font-size:1.05rem; }
+    .epc-inthub-section__head h3 i { margin-right:7px; color:#0f766e; }
+    .epc-inthub-section__head span { font-size:12px; color:#64748b; }
+    .epc-inthub-grid { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin-top:10px; }
+    @@media (max-width:1200px){ .epc-inthub-grid{grid-template-columns:1fr 1fr;} }
+    @@media (max-width:820px){ .epc-inthub-grid{grid-template-columns:1fr;} }
+    .epc-inthub-card { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; display:flex; flex-direction:column; gap:8px; }
+    .epc-inthub-card.is-inactive { opacity:.62; }
+    .epc-inthub-card__top { display:flex; justify-content:space-between; align-items:flex-start; gap:8px; }
+    .epc-inthub-card__icon { width:38px; height:38px; border-radius:10px; color:#fff; display:flex; align-items:center; justify-content:center; font-size:16px; }
+    .epc-inthub-card__title { margin:0; font-size:1rem; }
+    .epc-inthub-card__blurb { margin:0; font-size:12.5px; color:#475569; line-height:1.45; }
+    .epc-inthub-card__actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:auto; }
+    .epc-inthub-card__muted { font-size:12px; color:#94a3b8; align-self:center; }
+    .epc-inthub-pill { display:inline-block; border-radius:999px; padding:2px 9px; font-size:11px; font-weight:600; margin-left:4px; }
+    .epc-inthub-pill--on { background:#dcfce7; color:#166534; }
+    .epc-inthub-pill--off { background:#f1f5f9; color:#64748b; }
+    .epc-inthub-pill--super { background:#ede9fe; color:#5b21b6; }
+    .epc-inthub-playbook { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:12px; margin:18px 0 0; }
+    @@media (max-width:820px){ .epc-inthub-playbook{grid-template-columns:1fr;} }
+    .epc-inthub-step { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:14px; }
+    .epc-inthub-step h4 { margin:8px 0 4px; font-size:.98rem; }
+    .epc-inthub-step p { margin:0; font-size:12.5px; color:#475569; }
+    .epc-inthub-step__n { width:26px; height:26px; border-radius:50%; background:#0f766e; color:#fff; display:flex; align-items:center; justify-content:center; font-weight:700; font-size:13px; }
 </style>
 </HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <div class="col-lg-12" id="epc-inthub-root">
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Admin login required.</div></div>
+    }
+
+    <div class="col-lg-12 epc-inthub-shell" id="epc-inthub-root">
         <div class="epc-inthub-brand">
             <div>
-                <div class="epc-inthub-brand__mark">EPartsCart · Tenant CP</div>
+                <div class="epc-inthub-brand__mark">@(_view.IsSuper ? "Ecomae · Super CP" : "EPartsCart · Tenant CP")</div>
                 <h2>Integrations Hub</h2>
-                <p>Enable, configure, and test every connected module from one place. Each row links to settings. Raise / subscribe / data-entity writes stay here.</p>
+                <p>Enable, configure, and test every connected module from one place. Each card links to settings and an operator guide.</p>
             </div>
             <div class="epc-inthub-brand__actions">
-                <a class="btn btn-sm btn-primary" href="@_guideHref">Full guide</a>
-                <a class="btn btn-sm btn-default" href="/cp/tenant-email-app">Email / SMTP</a>
-                <a class="btn btn-sm btn-default" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpHub)">Classic twin</a>
+                <a class="btn btn-sm btn-primary" href="@GuideHref"><i class="fa fa-book"></i> Full guide</a>
+                @if (_view.IsSuper)
+                {
+                    <a class="btn btn-sm btn-default" href="@Href("/cp/control/portal/epc_tenant_features")"><i class="fa fa-sliders"></i> Tenant features</a>
+                }
+                else
+                {
+                    <a class="btn btn-sm btn-default" href="@Href("/cp/control/portal/epc_tenant_email_settings")"><i class="fa fa-envelope"></i> Email / SMTP</a>
+                }
+                <a class="btn btn-sm btn-default" href="@Href("/cp/control/portal/epc_mobile_apps")"><i class="fa fa-mobile-alt"></i> Mobile apps</a>
             </div>
         </div>
 
         <div class="epc-inthub-stats">
             <div class="epc-inthub-stat">
-                <div class="epc-inthub-stat__val">@_summary.ActiveCount.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="epc-inthub-stat__val">@_view.ActiveCount.ToString(CultureInfo.InvariantCulture)</div>
                 <div class="epc-inthub-stat__lbl">Active</div>
             </div>
             <div class="epc-inthub-stat">
-                <div class="epc-inthub-stat__val">@_summary.CatalogCount.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="epc-inthub-stat__val">@_view.TotalCount.ToString(CultureInfo.InvariantCulture)</div>
                 <div class="epc-inthub-stat__lbl">In catalog</div>
             </div>
             <div class="epc-inthub-stat">
-                <div class="epc-inthub-stat__val">@_summary.GuideCount.ToString(CultureInfo.InvariantCulture)</div>
-                <div class="epc-inthub-stat__lbl">Guides</div>
+                <div class="epc-inthub-stat__val">@_view.GuideCount.ToString(CultureInfo.InvariantCulture)</div>
+                <div class="epc-inthub-stat__lbl">Guides ready</div>
             </div>
-            <div class="epc-inthub-stat">
-                <div class="epc-inthub-stat__val">@_summary.CategoryCount.ToString(CultureInfo.InvariantCulture)</div>
-                <div class="epc-inthub-stat__lbl">Categories</div>
+        </div>
+
+        @if (!_view.IsSuper)
+        {
+            <div class="epc-inthub-market">
+                <i class="fa fa-globe"></i>
+                <div>
+                    <strong>Your market:</strong> @_view.MarketLabel
+                    <span> — Tax, Auto Price discovery sources, and ERP defaults follow your registered country.</span>
+                </div>
+            </div>
+        }
+
+        <div class="epc-inthub-toolbar">
+            <div class="epc-inthub-search">
+                <i class="fa fa-search"></i>
+                <input type="search" data-inthub-search placeholder="Search integrations…" aria-label="Search integrations" />
+            </div>
+            <div class="epc-inthub-chips">
+                <button type="button" class="epc-inthub-chip is-active" data-inthub-chip="all">All</button>
+                @foreach (var category in CpIntegrationsHubCatalog.Categories)
+                {
+                    @if (_view.Rows.Any(row => row.Category == category.Key))
+                    {
+                        <button type="button" class="epc-inthub-chip" data-inthub-chip="@category.Key">@category.Label</button>
+                    }
+                }
+            </div>
+        </div>
+
+        <div class="epc-inthub-empty" data-inthub-empty>
+            No integrations match your filter. Clear search or choose another category.
+        </div>
+
+        @foreach (var category in CpIntegrationsHubCatalog.Categories)
+        {
+            var items = _view.Rows.Where(row => row.Category == category.Key).ToList();
+            @if (items.Count > 0)
+            {
+                <section class="epc-inthub-section" data-inthub-section data-category="@category.Key">
+                    <div class="epc-inthub-section__head">
+                        <h3><i class="fa @category.Icon"></i>@category.Label</h3>
+                        <span>@category.Blurb</span>
+                    </div>
+                    <div class="epc-inthub-grid">
+                        @foreach (var row in items)
+                        {
+                            <article class="epc-inthub-card@(row.Active ? "" : " is-inactive")"
+                                     data-inthub-card
+                                     data-category="@row.Category"
+                                     data-search="@row.SearchHay(category.Label)">
+                                <div class="epc-inthub-card__top">
+                                    <div class="epc-inthub-card__icon" style="background:@row.Color">
+                                        <i class="fa @row.Icon"></i>
+                                    </div>
+                                    <div>
+                                        <span class="epc-inthub-pill @(row.Active ? "epc-inthub-pill--on" : "epc-inthub-pill--off")">@(row.Active ? "Active" : "Inactive")</span>
+                                        @if (row.SuperOnly)
+                                        {
+                                            <span class="epc-inthub-pill epc-inthub-pill--super">Super CP</span>
+                                        }
+                                    </div>
+                                </div>
+                                <h4 class="epc-inthub-card__title">@row.Label</h4>
+                                <p class="epc-inthub-card__blurb">@row.Blurb</p>
+                                <div class="epc-inthub-card__actions">
+                                    @if (CanConfigure(row))
+                                    {
+                                        <a class="btn btn-sm btn-primary" href="@Href(row.ConfigureUrl)"><i class="fa fa-cog"></i> Configure</a>
+                                    }
+                                    else if (row.SuperOnly && !_view.IsSuper)
+                                    {
+                                        <span class="epc-inthub-card__muted">Configured on ecomae.com</span>
+                                    }
+                                    @if (!string.IsNullOrWhiteSpace(row.Guide))
+                                    {
+                                        <a class="btn btn-sm btn-default" href="@Href(row.Guide)"><i class="fa fa-book"></i> Guide</a>
+                                    }
+                                </div>
+                            </article>
+                        }
+                    </div>
+                </section>
+            }
+        }
+
+        <div class="epc-inthub-playbook">
+            <div class="epc-inthub-step">
+                <div class="epc-inthub-step__n">1</div>
+                <h4>Enable</h4>
+                <p>Super CP toggles features per tenant under <a href="@Href("/cp/control/portal/epc_tenant_features")">Tenant features</a>.</p>
+            </div>
+            <div class="epc-inthub-step">
+                <div class="epc-inthub-step__n">2</div>
+                <h4>Configure</h4>
+                <p>Open <em>Configure</em> on each card — SMTP, payment keys, pixels, store URLs, and API clients.</p>
+            </div>
+            <div class="epc-inthub-step">
+                <div class="epc-inthub-step__n">3</div>
+                <h4>Test &amp; go live</h4>
+                <p>Use built-in test actions, then follow the <a href="@GuideHref">Integrations guide</a> checklist for each module.</p>
             </div>
         </div>
     </div>
 
     <div class="col-lg-12">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">Integration catalog</div>
+            <div class="panel-heading hbuilt">Event bus &amp; data entities</div>
             <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-            <thead>
-                <tr>
-                    <th>Integration</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>About</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_integrations.Count == 0)
-                {
-                    <tr><td colspan="5">No integrations in the hub catalog.</td></tr>
-                }
-                else
-                {
-                    @foreach (var row in _integrations)
-                    {
-                        <tr>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Label) ? row.Label : row.Key)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Category) ? row.Category : "—")</td>
-                            <td>@(row.Active ? "active" : "off")</td>
-                            <td style="white-space:normal;max-width:28rem">@(!string.IsNullOrWhiteSpace(row.Blurb) ? row.Blurb : "—")</td>
-                            <td>
-                                @if (!string.IsNullOrWhiteSpace(row.ConfigureUrl))
-                                {
-                                    <a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(row.ConfigureUrl)">Configure</a>
-                                }
-                                else
-                                {
-                                    <a href="@_hubHref">Open hub</a>
-                                }
-                            </td>
-                        </tr>
-                    }
-                }
-            </tbody>
-        </table>
-                </div>
+                <form method="post" action="/erp/integrations/events/raise" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@HubHref" />
+                    <strong style="width:100%;font-size:.85rem">Raise test event</strong>
+                    <label>Event
+                        <select name="event">
+                            @foreach (var name in EventNames)
+                            {
+                                <option value="@name">@name</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Payload <input type="text" name="payload" placeholder='{"order_id":1}' style="width:14rem" /></label>
+                    <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-warning">Raise</button>
+                </form>
+
+                <form method="post" action="/erp/integrations/subscriptions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@HubHref" />
+                    <strong style="width:100%;font-size:.85rem">Subscribe</strong>
+                    <label>Event
+                        <select name="event">
+                            @foreach (var name in EventNames)
+                            {
+                                <option value="@name">@name</option>
+                            }
+                        </select>
+                    </label>
+                    <label>Target type
+                        <select name="target_type">
+                            <option value="webhook">webhook</option>
+                            <option value="internal">internal</option>
+                            <option value="email">email</option>
+                        </select>
+                    </label>
+                    <label>Target <input type="text" name="target" maxlength="255" placeholder="URL / email" style="width:14rem" /></label>
+                    <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-primary">Subscribe</button>
+                </form>
+
+                <form method="post" action="/erp/integrations/entities/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="returnUrl" value="@HubHref" />
+                    <strong style="width:100%;font-size:.85rem">Data entity</strong>
+                    <label>Name <input type="text" name="name" required maxlength="80" style="width:10rem" /></label>
+                    <label>Source table <input type="text" name="source_table" maxlength="120" style="width:12rem" /></label>
+                    <label>Key field <input type="text" name="key_field" maxlength="80" placeholder="id" style="width:7rem" /></label>
+                    <label>Fields <input type="text" name="fields" placeholder="id,name" style="width:14rem" /></label>
+                    <label>Enabled
+                        <select name="enabled">
+                            <option value="1" selected>enabled</option>
+                            <option value="0">disabled</option>
+                        </select>
+                    </label>
+                    <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
+                    <button type="submit" class="btn btn-sm btn-primary">Save data entity</button>
+                </form>
             </div>
         </div>
     </div>
 </PhpCpDesktopChrome>
 
-<form method="post" action="/erp/integrations/events/raise" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/integrations-app" />
-            <strong style="width:100%;font-size:.85rem">Raise test event</strong>
-            <label>Event
-                <select name="event">
-                    <option value="SalesOrderConfirmed">SalesOrderConfirmed</option>
-                    <option value="SalesOrderInvoiced">SalesOrderInvoiced</option>
-                    <option value="PurchaseOrderConfirmed">PurchaseOrderConfirmed</option>
-                    <option value="PaymentPosted">PaymentPosted</option>
-                    <option value="InventoryLowStock">InventoryLowStock</option>
-                    <option value="CustomerCreditHold">CustomerCreditHold</option>
-                    <option value="DocumentExpiring">DocumentExpiring</option>
-                    <option value="InsuranceRenewalDue">InsuranceRenewalDue</option>
-                </select>
-            </label>
-            <label>Payload <input type="text" name="payload" placeholder='{"order_id":1}' style="width:14rem" /></label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-warning">Raise</button>
-        </form>
-
-<form method="post" action="/erp/integrations/subscriptions/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="/cp/integrations-app" />
-            <label>Event
-                <select name="event">
-                    <option value="SalesOrderConfirmed">SalesOrderConfirmed</option>
-                    <option value="SalesOrderInvoiced">SalesOrderInvoiced</option>
-                    <option value="PurchaseOrderConfirmed">PurchaseOrderConfirmed</option>
-                    <option value="PaymentPosted">PaymentPosted</option>
-                    <option value="InventoryLowStock">InventoryLowStock</option>
-                    <option value="CustomerCreditHold">CustomerCreditHold</option>
-                    <option value="DocumentExpiring">DocumentExpiring</option>
-                    <option value="InsuranceRenewalDue">InsuranceRenewalDue</option>
-                </select>
-            </label>
-            <label>Target type
-                <select name="target_type">
-                    <option value="webhook">webhook</option>
-                    <option value="internal">internal</option>
-                    <option value="email">email</option>
-                </select>
-            </label>
-            <label>Target <input type="text" name="target" maxlength="255" placeholder="URL / email" style="width:14rem" /></label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Subscribe</button>
-        </form>
-
-<form method="post" action="/erp/integrations/entities/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnUrl" />
-            <label>Name <input type="text" name="name" required maxlength="80" style="width:10rem" /></label>
-            <label>Source table <input type="text" name="source_table" maxlength="120" style="width:12rem" /></label>
-            <label>Key field <input type="text" name="key_field" maxlength="80" placeholder="id" style="width:7rem" /></label>
-            <label>Fields <input type="text" name="fields" placeholder="id,name" style="width:14rem" /></label>
-            <label>Enabled
-                <select name="enabled">
-                    <option value="1" selected>enabled</option>
-                    <option value="0">disabled</option>
-                </select>
-            </label>
-            <label>Company id <input type="number" name="company_id" min="0" value="0" style="width:5rem" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Save data entity</button>
-        </form>
+<script src="/platform-assets/epc_integrations_hub_ui.js?v=20260927inthub" defer></script>
 
 @code {
-    private const string _hubHref = "/cp/integrations-app";
-    private const string _guideHref = "/cp/ops-guides-app";
-    private const string _phpHub = "/CP/control/portal/epc_integrations_hub";
+    private const string HubHref = "/cp/integrations-app";
+
+    private static readonly string[] EventNames =
+    [
+        "SalesOrderConfirmed",
+        "SalesOrderInvoiced",
+        "PurchaseOrderConfirmed",
+        "PaymentPosted",
+        "InventoryLowStock",
+        "CustomerCreditHold",
+        "DocumentExpiring",
+        "InsuranceRenewalDue",
+    ];
+
     private bool _isAdmin;
-    private CpIntegrationsSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpIntegrationDigest> _integrations = [];
+    private CpIntegrationsHubView _view = new(false, "United Arab Emirates", [], 0, 0, 0);
+
+    private static string GuideHref => PhpSurfaceLinkMap.AspNetPrimaryHref("/cp/control/portal/epc_integrations_guide");
+
+    private static string Href(string value) => PhpSurfaceLinkMap.AspNetPrimaryHref(value);
+
+    /// <summary>PHP <c>$canConfigure</c>.</summary>
+    private bool CanConfigure(CpIntegrationsHubCard row)
+        => !string.IsNullOrWhiteSpace(row.ConfigureUrl) && (!row.SuperOnly || _view.IsSuper);
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        if (ctx is null) return;
-
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
-        if (!_isAdmin)
+        if (ctx is null)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpIntegrationsDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _integrations = result.Integrations;
+        var isSuper = SuperCpHostGate.IsAllowed(ctx);
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _view = await Hub.LoadAsync(isSuper, ctx.RequestAborted);
     }
-    private string _returnUrl => "/cp/integrations-app";
 }

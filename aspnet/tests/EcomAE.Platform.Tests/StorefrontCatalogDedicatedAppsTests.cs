@@ -222,7 +222,11 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("/erp/integrations/entities/save", integrations, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-int-hero", integrations, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-int-kpis", integrations, StringComparison.Ordinal);
-        Assert.DoesNotContain("SuperCpHostGate", integrations, StringComparison.Ordinal);
+
+        // PHP epc_integrations_hub.php serves tenant CP too: the host only switches the
+        // Super/Tenant branch (epc_portal_is_super_cp_host), it never hides the page.
+        Assert.DoesNotContain("Not found", integrations, StringComparison.Ordinal);
+        Assert.Contains("EPartsCart · Tenant CP", integrations, StringComparison.Ordinal);
     }
 
     [Fact]
