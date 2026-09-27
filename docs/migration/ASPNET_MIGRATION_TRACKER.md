@@ -220,8 +220,7 @@ Standing rules that apply to every item below:
 - [ ] B6 IFRS report pack + drill-down (summary → account → journal → voucher → source doc), external reports, scheduler, exec dashboard,
       print designer, doc formats — PHP sample report layouts preserved exactly
 - [~] B7 Cash & treasury — cash-entry posting, bank-statement line matching, bank-instrument create/status lifecycle, and generic petty-cash float creation now have ASP.NET form writes; cash forecast, collections/dunning, credit, settlement, advances, withholding, and broader bank import/report parity remain pending
-- [ ] B8 Tax & compliance (tenant-country profiles) — VAT return boxes, CT return/filing, VAT refund, e-invoice (Peppol/XML),
-      FTA legislation fetch (`epc_uae_tax_legislation_*`), elec reporting, AML, tourist refund, blockchain proofs, customs/shipping
+- [~] B8 Tax & compliance (tenant-country profiles) — VAT return/refund and tourist VAT writes, UAE FTA legislation fetch/checklist/regen, and CT adjustment writes now have ASP.NET handlers; full return filing, e-invoice (Peppol/XML), electronic reporting, AML, blockchain proofs, customs/shipping, and non-UAE country profiles remain pending
 - [ ] B9 HR & payroll — staff, HR ops, recruitment, performance, labour-law profiles, payroll, WPS (UAE profile)
 - [ ] B10 Service & after-sales — contracts, tickets, SLA, warranty/RMA, insurance, doc expiry, plant maintenance
 - [ ] B11 Production — manufacturing, MFG planning, quality, product structure, PLM, costing
