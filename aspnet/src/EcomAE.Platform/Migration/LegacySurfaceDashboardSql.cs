@@ -1061,6 +1061,19 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    public const string SelectErpGlJournalLines = """
+        SELECT l.`coa_id`,
+               IFNULL(a.`code`, '') AS account_code,
+               IFNULL(a.`name`, '') AS account_name,
+               IFNULL(l.`debit`, 0) AS debit,
+               IFNULL(l.`credit`, 0) AS credit,
+               IFNULL(l.`line_note`, '') AS line_note
+        FROM `epc_erp_gl_lines` l
+        LEFT JOIN `epc_erp_coa_accounts` a ON a.`id` = l.`coa_id`
+        WHERE l.`journal_id` = @journal_id
+        ORDER BY l.`id` ASC
+        """;
+
     public const string SelectCpModules = """
         SELECT `id`, IFNULL(`caption`, '') AS caption, `activated`, `is_frontend`,
                `is_prototype`, `control_available`

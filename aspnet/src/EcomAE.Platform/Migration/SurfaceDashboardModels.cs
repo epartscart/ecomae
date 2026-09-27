@@ -694,7 +694,16 @@ public sealed record ErpGlJournalDetail(
     string DescriptionExcerpt,
     int DescriptionLen,
     int AdminId,
-    long TimeCreated);
+    long TimeCreated,
+    IReadOnlyList<ErpGlJournalLineDigest> Lines);
+
+public sealed record ErpGlJournalLineDigest(
+    long CoaId,
+    string AccountCode,
+    string AccountName,
+    decimal Debit,
+    decimal Credit,
+    string LineNote);
 
 public sealed record ErpGlJournalDetailResult(
     ErpGlJournalDetail? Journal,
