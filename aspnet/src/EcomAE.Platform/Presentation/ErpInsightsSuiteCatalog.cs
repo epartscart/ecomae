@@ -8,6 +8,9 @@ public static class ErpInsightsSuiteCatalog
 {
     public static ErpInsightsCommerceStats EmptyCommerce { get; } = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
+    /// <summary>Nothing to render — PHP returns an empty <c>$insightsHtml</c> when the suite cannot be built.</summary>
+    public static ErpInsightsSuite Empty { get; } = new("AED", "MTD", "", "", [], []);
+
     public static ErpInsightsSuite Build(
         ErpWorkspacePeriodKpis cur,
         ErpWorkspacePeriodKpis prev,

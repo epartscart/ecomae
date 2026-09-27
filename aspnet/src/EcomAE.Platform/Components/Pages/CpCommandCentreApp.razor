@@ -37,14 +37,16 @@ else
                 <div class="cp-dash-kicker"><i class="fa @_industryIcon"></i> Control Command Centre</div>
                 <h2 class="cp-dash-title">@_brandLabel</h2>
                 <p class="cp-dash-sub">
-                    Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view.
+                    @(_isAutoParts
+                        ? "Live commerce pulse — orders, catalogue, prices, warehouses, and finance in one red-black command view."
+                        : "Your daily control dashboard — orders, catalogue, clients, and finance shortcuts in one place.")
                 </p>
                 <div class="cp-dash-meta">
                     <span class="cp-dash-chip cp-dash-chip--dark"><i class="fa fa-industry"></i> @_industryLabel</span>
                     <span class="cp-dash-chip"><i class="fa fa-calendar"></i> @DateTime.Now.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)</span>
                     <span class="cp-dash-chip"><i class="fa fa-money"></i> @_currency</span>
-                    <a class="cp-dash-chip" href="/erp"><i class="fa fa-university"></i> Open ERP</a>
-                    <a class="cp-dash-chip" href="/"><i class="fa fa-external-link"></i> View site</a>
+                    <a class="cp-dash-chip" href="@ErpHomeUrl"><i class="fa fa-university"></i> Open ERP</a>
+                    <a class="cp-dash-chip" href="/" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> View site</a>
                 </div>
             </div>
             <div class="cp-dash-metrics">
@@ -202,34 +204,86 @@ else
             </div>
         </div>
 
-        <div class="cp-dash-port cp-dash-port--insights">
-            <div class="bd" style="padding:12px">
-                <div class="epc-insights epc-insights--cp">
-                    <div class="epc-insights__head">
-                        <strong>Control insights</strong>
-                        <span class="epc-insights__period">Last 7 days</span>
-                    </div>
-                    <div class="epc-insights__tiles">
-                        <article class="epc-insights__tile">
-                            <span class="epc-insights__label">Orders (7 days)</span>
-                            <div class="epc-insights__value">@_ordersWeek.ToString("N0")</div>
-                        </article>
-                        <article class="epc-insights__tile">
-                            <span class="epc-insights__label">VIN / parts requests</span>
-                            <div class="epc-insights__value">@_vinOpen.ToString("N0")</div>
-                        </article>
-                        <article class="epc-insights__tile">
-                            <span class="epc-insights__label">Open returns</span>
-                            <div class="epc-insights__value">@_returnsOpen.ToString("N0")</div>
-                        </article>
-                        <article class="epc-insights__tile">
-                            <span class="epc-insights__label">Published products</span>
-                            <div class="epc-insights__value">@_products.ToString("N0")</div>
-                        </article>
+        @if (_hasInsights)
+        {
+            @* PHP epc_insights_suite_render($suite, 'cp') — same bands/cards/alerts as the ERP variant. *@
+            <div class="cp-dash-port cp-dash-port--insights">
+                <div class="bd" style="padding:12px">
+                    <div class="epc-insights epc-insights--cp" id="epc-insights">
+                        <div class="epc-insights__head">
+                            <div class="epc-insights__head-main">
+                                <span class="epc-insights__badge"><i class="fa fa-lightbulb-o"></i></span>
+                                <div>
+                                    <strong>Insights</strong>
+                                    <span class="epc-insights__period">@_insights.PeriodLabel@if (!string.IsNullOrWhiteSpace(_insights.FromLabel) && !string.IsNullOrWhiteSpace(_insights.ToLabel)) { <text> · @_insights.FromLabel → @_insights.ToLabel</text> }</span>
+                                </div>
+                            </div>
+                            <a class="epc-insights__erp" href="@ErpHomeUrl">Open ERP Command Centre <i class="fa fa-arrow-right"></i></a>
+                        </div>
+                        @if (_insights.Alerts.Count > 0)
+                        {
+                            <div class="epc-insights__alerts">
+                                @foreach (var a in _insights.Alerts)
+                                {
+                                    <a class="epc-insights__alert epc-insights__alert--@a.Tone" href="@a.Href">
+                                        <span class="epc-insights__alert-ico"><i class="fa fa-exclamation-circle"></i></span>
+                                        <span class="epc-insights__alert-txt">
+                                            <strong>@a.Title</strong>
+                                            <span>@a.Body</span>
+                                        </span>
+                                    </a>
+                                }
+                            </div>
+                        }
+                        <div class="epc-insights__bands">
+                            @foreach (var band in _insights.Bands)
+                            {
+                                @if (band.Items.Count == 0)
+                                {
+                                    continue;
+                                }
+                                <section class="epc-insights__band epc-insights__band--@band.Key">
+                                    <header class="epc-insights__band-head">
+                                        <h4><i class="fa @band.Icon"></i> @band.Title</h4>
+                                        <span class="epc-insights__band-count">@band.Items.Count</span>
+                                    </header>
+                                    <div class="epc-insights__tiles">
+                                        @foreach (var card in band.Items)
+                                        {
+                                            var meter = ErpInsightsSuiteCatalog.MeterWidth(card);
+                                            var ghost = ErpInsightsSuiteCatalog.MeterGhost(card);
+                                            var deltaCss = ErpInsightsSuiteCatalog.DeltaCss(card);
+                                            <article class="epc-insights__tile is-@card.Health">
+                                                <div class="epc-insights__tile-top">
+                                                    <span class="epc-insights__tile-ico" aria-hidden="true"><i class="fa @card.Icon"></i></span>
+                                                    <span class="epc-insights__health">@card.Health</span>
+                                                </div>
+                                                <span class="epc-insights__label">@card.Label</span>
+                                                <div class="epc-insights__value">
+                                                    @ErpInsightsSuiteCatalog.FormatValue(card, _insights.Currency)
+                                                    @if (!string.IsNullOrWhiteSpace(card.DeltaLabel))
+                                                    {
+                                                        <span class="epc-insights__delta @deltaCss">
+                                                            <i class="fa fa-caret-@(ErpInsightsSuiteCatalog.DeltaUp(card) ? "up" : "down")"></i>
+                                                            @card.DeltaLabel
+                                                        </span>
+                                                    }
+                                                </div>
+                                                <div class="epc-insights__meter@(ghost ? " epc-insights__meter--ghost" : "")" aria-hidden="true">
+                                                    <span class="epc-insights__meter-fill" style="width:@meter.ToString("0.##", CultureInfo.InvariantCulture)%"></span>
+                                                </div>
+                                                <p class="epc-insights__narrative">@card.Narrative</p>
+                                                <a class="epc-insights__action" href="@card.Href">@card.Action <i class="fa fa-angle-right"></i></a>
+                                            </article>
+                                        }
+                                    </div>
+                                </section>
+                            }
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
+        }
 
         <div class="cp-dash-grid">
             <div class="cp-dash-col-left">
@@ -268,7 +322,7 @@ else
                         </table>
                     </div>
                 </div>
-                @if (_hasFinance)
+                @if (!_hasInsights && _hasFinance)
                 {
                     <div class="cp-dash-port">
                         <h4><i class="fa fa-money"></i> Finance pulse (MTD)</h4>
@@ -512,6 +566,13 @@ else
     private string[] _chartLabels = [];
     private string _currency = "AED";
     private bool _hasFinance;
+    private bool _hasInsights;
+    private bool _isAutoParts => string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase);
+
+    /// <summary>PHP <c>$erpUrl . '&amp;area=overview&amp;tab=dashboard'</c>.</summary>
+    private const string ErpHomeUrl = "/erp?area=overview&tab=dashboard";
+
+    private ErpInsightsSuite _insights = ErpInsightsSuiteCatalog.Empty;
 
     private string _chartLabelsJson => JsonSerializer.Serialize(_chartLabels);
 
@@ -563,11 +624,12 @@ else
         {
             var erpHost = ErpHostContext.Resolve(host);
             _brandLabel = erpHost.BrandLabel;
-            _industryLabel = erpHost.IndustryLabel;
             _industryCode = string.IsNullOrWhiteSpace(erpHost.IndustryCode) ? "auto_parts" : erpHost.IndustryCode;
-            _industryIcon = string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase)
-                ? "fa-car"
-                : "fa-cogs";
+            // PHP epc_portal_industry(): name + icon come from the portal industry table, not a per-host guess.
+            _industryLabel = PhpPortalIndustryCatalog.Knows(_industryCode)
+                ? PhpPortalIndustryCatalog.LabelFor(_industryCode)
+                : erpHost.IndustryLabel;
+            _industryIcon = PhpPortalIndustryCatalog.IconFor(_industryCode);
             _pageTitle = $"Control Command Centre · {_brandLabel}";
         }
 
@@ -622,6 +684,20 @@ else
             _receivables = home.Current.Receivables != 0 ? home.Current.Receivables : home.Current.ArBalance;
             _payables = home.Current.Payables != 0 ? home.Current.Payables : home.Current.ApBalance;
             _hasFinance = true;
+
+            // PHP epc_insights_suite_build(..., 'cp'): rendered only when the suite builds; the
+            // finance pulse below is the fallback for when it does not.
+            _insights = ErpInsightsSuiteCatalog.Build(
+                home.Current,
+                home.Previous,
+                home.Commerce ?? ErpInsightsSuiteCatalog.EmptyCommerce,
+                home.ArGrand,
+                home.ArAgingTotals,
+                _currency,
+                home.PeriodFrom,
+                home.PeriodTo,
+                _isAutoParts);
+            _hasInsights = _insights.Bands.Any(b => b.Items.Count > 0);
         }
         catch
         {
