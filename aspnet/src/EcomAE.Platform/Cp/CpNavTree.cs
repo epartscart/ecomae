@@ -258,6 +258,23 @@ public static class CpNavTree
     public static string ResolveUrl(string url) =>
         (url ?? string.Empty).Replace("<backend>", BackendDir, StringComparison.Ordinal);
 
+    /// <summary>
+    /// ASP.NET href for a resolved PHP menu URL. Menu rows are PHP <c>/&lt;backend&gt;/…</c> module paths,
+    /// so they always go through the CP PHP-path map (lower-case <c>/cp/…</c> would otherwise be
+    /// treated as an already-ASP.NET route and left untouched).
+    /// </summary>
+    public static string AspNetHref(string resolvedUrl)
+    {
+        var url = (resolvedUrl ?? string.Empty).Trim();
+        if (url.StartsWith("/" + BackendDir + "/", StringComparison.OrdinalIgnoreCase)
+            || url.Equals("/" + BackendDir, StringComparison.OrdinalIgnoreCase))
+        {
+            return Presentation.PhpSurfaceLinkMap.MapCpPhpPath(url);
+        }
+
+        return Presentation.PhpSurfaceLinkMap.AspNetPrimaryHref(url);
+    }
+
     /// <summary>PHP <c>epc_cp_acl_content_url</c>: strip query, backend prefix and leading slash → <c>content.url</c>.</summary>
     public static string ContentUrl(string resolvedUrl)
     {

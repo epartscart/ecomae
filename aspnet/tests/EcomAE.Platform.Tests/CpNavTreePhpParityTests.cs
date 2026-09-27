@@ -280,6 +280,27 @@ public sealed class CpNavTreePhpParityTests
     }
 
     [Fact]
+    public void AspNetHref_RoutesEveryPhpMenuRowThroughCpPathMap_NeverLeavesPhpModulePath()
+    {
+        Assert.Equal("/cp/users-app", CpNavTree.AspNetHref("/cp/users/usermanager"));
+        Assert.Equal("/cp/orders", CpNavTree.AspNetHref("/cp/shop/orders/orders"));
+        Assert.Equal("/cp/tenant-email-app", CpNavTree.AspNetHref("/cp/control/config?need_config_group=3"));
+        Assert.Equal("/erp/guide-app?book=howto", CpNavTree.AspNetHref("/cp/shop/finance/erp/guide?epc_erp_shell=1"));
+        Assert.Equal("/cp/server-ip-app", CpNavTree.AspNetHref("/content/usefull/ip.php"));
+
+        var rows = Snapshot();
+        foreach (var item in rows.Items)
+        {
+            var href = CpNavTree.AspNetHref(CpNavTree.ResolveUrl(item.Url));
+            Assert.False(string.IsNullOrWhiteSpace(href));
+            Assert.DoesNotContain("/cp/shop/", href, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("/cp/control/", href, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("/cp/users/", href, StringComparison.OrdinalIgnoreCase);
+            Assert.DoesNotContain("<backend>", href, StringComparison.Ordinal);
+        }
+    }
+
+    [Fact]
     public void Build_NeverInventsLinks_EveryUrlComesFromControlItems()
     {
         var rows = Snapshot();
@@ -313,7 +334,8 @@ public sealed class CpNavTreePhpParityTests
 
         Assert.Contains("ICpNavMenuService", src);
         Assert.Contains("CpNavTree.Chunk(group.Items)", src);
-        Assert.Contains("PhpSurfaceLinkMap.AspNetPrimaryHref(link.Url)", src);
+        Assert.Contains("CpNavTree.AspNetHref(link.Url)", src);
+        Assert.DoesNotContain("PhpSurfaceLinkMap.AspNetPrimaryHref(link.Url)", src);
         Assert.Contains("epc-cp-topnav-panel-hub", src);
         Assert.DoesNotContain("LegacyDesktopChromeCatalog.ControlPanelTopnav", src);
         Assert.DoesNotContain("QuickAction", src);
