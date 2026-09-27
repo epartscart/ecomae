@@ -2602,6 +2602,118 @@ public sealed class ControlPanelModule : ISurfaceModule
             };
         });
 
+        // PHP ajax_erp.php shortcut_* actions for the CP dashboard .eds-* editor (surface 'cp').
+        endpoints.MapPost(EcomAeRoutes.CpDashboardShortcutAction, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCsrfGuard csrf,
+            IErpWorkspaceFavoritesWriteService shortcuts,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Results.Json(
+                    new { status = false, ok = false, message = "Admin CP capability required." },
+                    statusCode: StatusCodes.Status403Forbidden);
+            }
+
+            var input = context.Request.HasFormContentType
+                ? CpCrmActionInput.FromForm(await context.Request.ReadFormAsync(cancellationToken))
+                : await CpCrmActionInput.FromJsonAsync(context, cancellationToken);
+
+            var verdict = await csrf.VerifyAsync(context, session, input.TextOrNull(CpCsrfGuard.FieldName), cancellationToken);
+            if (!verdict.Ok)
+            {
+                return Results.Json(
+                    new { status = false, ok = false, message = verdict.Message, validation_code = verdict.Code },
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            var userId = session.UserId;
+            if (userId <= 0)
+            {
+                return Results.Json(
+                    new { status = false, ok = false, message = "No user session" },
+                    statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            ErpSimpleWriteResult result;
+            switch (input.Text("action"))
+            {
+                case "shortcut_add":
+                {
+                    var key = input.Text("shortcut_key", "shortcutKey", "key");
+                    // Catalogue keys always use the catalogue's own label/icon/URL — a posted key can never invent a target.
+                    var catalogued = CpShortcutCatalog.Find(key);
+                    result = catalogued is not null
+                        ? await shortcuts.AddShortcutAsync(
+                            userId,
+                            catalogued.Label,
+                            catalogued.Url,
+                            catalogued.Key,
+                            "cp",
+                            catalogued.IconClass,
+                            catalogued.Color,
+                            null,
+                            0,
+                            cancellationToken)
+                        : await shortcuts.AddShortcutAsync(
+                            userId,
+                            input.Text("label"),
+                            input.Text("target_url", "targetUrl", "url"),
+                            null,
+                            "cp",
+                            input.Text("icon_class", "iconClass"),
+                            input.Text("icon_color", "iconColor"),
+                            null,
+                            0,
+                            cancellationToken);
+                    break;
+                }
+
+                case "shortcut_delete":
+                    result = await shortcuts.DeleteShortcutAsync(userId, input.Long("id", "shortcut_id", "shortcutId"), cancellationToken);
+                    break;
+
+                case "shortcut_delete_key":
+                    result = await shortcuts.DeleteShortcutByKeyAsync(
+                        userId,
+                        input.Text("shortcut_key", "shortcutKey", "key"),
+                        "cp",
+                        cancellationToken);
+                    break;
+
+                case "shortcut_reset":
+                    result = await shortcuts.ResetShortcutsAsync(userId, "cp", cancellationToken);
+                    break;
+
+                case "shortcut_reorder":
+                {
+                    var ids = new List<long>();
+                    foreach (var raw in input.Text("ids", "order").Split(',', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries))
+                    {
+                        if (long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0)
+                        {
+                            ids.Add(parsed);
+                        }
+                    }
+
+                    result = await shortcuts.ReorderShortcutsAsync(userId, ids, cancellationToken);
+                    break;
+                }
+
+                default:
+                    return Results.Json(
+                        new { status = false, ok = false, message = "Unknown action" },
+                        statusCode: StatusCodes.Status400BadRequest);
+            }
+
+            return Results.Json(
+                new { status = result.Succeeded, ok = result.Succeeded, code = result.Code, message = result.Message, id = result.Id },
+                statusCode: result.Succeeded ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+        });
+
         endpoints.MapPost(EcomAeRoutes.CpCrmAction, async (
             HttpContext context,
             ILegacySessionValidator validator,
