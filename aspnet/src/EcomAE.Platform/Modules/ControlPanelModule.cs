@@ -9317,6 +9317,29 @@ public sealed class ControlPanelModule : ISurfaceModule
                 note = "Read-only epc_parts_agent_* metadata (system_prompt/client_ip omitted). save_config POST /cp/parts-agent/save-config when confirmWrites=true. Chat UX remains PHP parts_agent."
             });
         });
+        endpoints.MapGet(EcomAeRoutes.CpPartsAgentExportCsv, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPartsAgentDeskService desk,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for parts-agent chat export.");
+            }
+
+            var query = CpPartsAgentDeskQuery.Create(
+                context.Request.Query["q"],
+                context.Request.Query["date_from"],
+                context.Request.Query["date_to"],
+                200,
+                0);
+            var csv = await desk.ExportCsvAsync(query, cancellationToken);
+            var filename = "parts_agent_chats_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture) + ".csv";
+            return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv; charset=utf-8", filename);
+        });
+
         endpoints.MapPost(EcomAeRoutes.CpPartsAgentSaveConfig, async (
             HttpContext context,
             ILegacySessionValidator validator,
