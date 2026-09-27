@@ -45,9 +45,15 @@ public sealed class CpMobileAppsWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_mobile\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"app_name\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("Mobile apps (Android / iOS / PWA)", razor, StringComparison.Ordinal);
+        Assert.Contains("Integrations hub", razor, StringComparison.Ordinal);
+        Assert.Contains("Publish guide", razor, StringComparison.Ordinal);
+        Assert.Contains("npx cap sync", razor, StringComparison.Ordinal);
+        Assert.Contains("Admin login required.", razor, StringComparison.Ordinal);
+        Assert.Contains("epartscart://", razor, StringComparison.Ordinal);
+        Assert.Contains("StorefrontUrl", razor, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("stays Classic", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
@@ -60,8 +66,8 @@ public sealed class CpMobileAppsWriteTests
             item.AspNetRouteOrCapability == "/cp/mobile-apps/write");
         Assert.Equal("write-live-gated", write.Status);
         Assert.Contains("ajax_integrations.php", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("host-scoped", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("integrations_json column", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -74,9 +80,9 @@ public sealed class CpMobileAppsWriteTests
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpMobileAppsWriteService.cs"));
         Assert.Contains("epc_integrations_save_tenant_config", service, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_portal_site_settings`", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("ADD COLUMN `integrations_json`", service, StringComparison.Ordinal);
+        Assert.Contains("NormalizeHostAliases", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
     }
