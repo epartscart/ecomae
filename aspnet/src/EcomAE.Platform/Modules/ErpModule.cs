@@ -14428,6 +14428,10 @@ public sealed class ErpModule : ISurfaceModule
             unitCost = LiveWriteFormBinder.Dec(form, "unitCost", "unit_cost");
             companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
             txnDate = LiveWriteFormBinder.Long(form, "txnDate", "txn_date");
+            if (txnDate <= 0)
+            {
+                txnDate = LiveWriteFormBinder.UnixDate(form, "txn_date", "txnDate");
+            }
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
