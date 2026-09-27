@@ -464,8 +464,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningCreateBatch, HandleOpeningCreateBatchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddCoaLine, HandleOpeningAddCoaLineAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddInvLine, HandleOpeningAddInvLineAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningPostBatch, async (HttpContext context, ErpOpeningPostBatchBody? body, ILegacySessionValidator validator, IErpOpeningPostBatchDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOpeningPostBatchRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningPostBatch, HandleOpeningPostBatchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveRfq, async (HttpContext context, ErpSaveRfqBody? body, ILegacySessionValidator validator, IErpSaveRfqDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSaveRfqRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDeliveryNoteCreate, async (HttpContext context, ErpDeliveryNoteCreateBody? body, ILegacySessionValidator validator, IErpDeliveryNoteCreateDryRun dryRun, CancellationToken cancellationToken) =>
@@ -17144,6 +17143,50 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleOpeningPostBatchAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpOpeningPostBatchDryRun dryRun,
+        IErpOpeningPostBatchWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var batchId = 0L;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            batchId = LiveWriteFormBinder.Long(form, "id", "batch_id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<System.Text.Json.JsonElement>(context, cancellationToken);
+            batchId = ErpOpeningAddCoaLineWriteService.JsonLong(root, "id", "batch_id", "batchId");
+            confirm = ErpOpeningAddCoaLineWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpOpeningPostBatchRequest(batchId, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.PostAsync(
+            new ErpOpeningPostBatchWriteRequest(batchId, session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/opening-app?batch_id=" + batchId.ToString(System.Globalization.CultureInfo.InvariantCulture),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, batch_id = batchId, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleOpeningCreateBatchAsync(

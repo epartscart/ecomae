@@ -980,6 +980,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCcySetRateWriteService, EcomA
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOpeningCreateBatchWriteService, EcomAE.Platform.Erp.ErpOpeningCreateBatchWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOpeningAddCoaLineWriteService, EcomAE.Platform.Erp.ErpOpeningAddCoaLineWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOpeningAddInvLineWriteService, EcomAE.Platform.Erp.ErpOpeningAddInvLineWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOpeningPostBatchWriteService, EcomAE.Platform.Erp.ErpOpeningPostBatchWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrtApplicantStageWriteService, EcomAE.Platform.Erp.ErpHrtApplicantStageWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinPeriodsGenerateWriteService, EcomAE.Platform.Erp.ErpFinPeriodsGenerateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBankReconcileWriteService, EcomAE.Platform.Erp.ErpBankReconcileWriteService>();

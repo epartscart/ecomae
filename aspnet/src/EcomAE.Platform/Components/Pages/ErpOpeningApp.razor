@@ -73,6 +73,7 @@
                 <div class="erp-opening-post-check" style="margin:1rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#f8fafc">
                     <strong>Posting validation</strong>
                     <button type="button" class="btn btn-xs btn-default" data-opening-post-check="@_opened.Id">Validate before posting</button>
+                    <button type="button" class="btn btn-xs btn-primary" data-opening-post-submit="@_opened.Id">Post batch</button>
                     <span data-opening-post-result class="text-muted">No validation run.</span>
                 </div>
             }
@@ -181,6 +182,25 @@ document.querySelectorAll('[data-opening-post-check]').forEach(function (button)
             result.textContent = payload.detail || payload.message || 'Validation response received.';
         } catch (error) {
             result.textContent = 'Validation request failed.';
+        }
+    });
+});
+document.querySelectorAll('[data-opening-post-submit]').forEach(function (button) {
+    button.addEventListener('click', async function () {
+        var result = button.parentElement.querySelector('[data-opening-post-result]');
+        if (!window.confirm('Post this opening batch?')) return;
+        result.textContent = 'Posting…';
+        try {
+            var response = await fetch('/erp/ajax/opening-post-batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: Number(button.dataset.openingPostSubmit), confirmWrites: true })
+            });
+            var payload = await response.json();
+            result.textContent = payload.message || payload.detail || 'Post response received.';
+            if (payload.ok) window.location.reload();
+        } catch (error) {
+            result.textContent = 'Posting request failed.';
         }
     });
 });
