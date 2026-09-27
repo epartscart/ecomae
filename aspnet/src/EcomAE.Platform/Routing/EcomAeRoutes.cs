@@ -654,6 +654,8 @@ public static class EcomAeRoutes
     public const string ControlPanelSocialHubApp = "/cp/social-hub-app";
     /// <summary>CP social save_draft. <c>confirmWrites=true</c> twins PHP ajax_epc_social_media.php. Publish stays Classic.</summary>
     public const string CpSocialHubWrite = "/cp/social-hub/write";
+    /// <summary>CP marketing broadcast send_email / send_whatsapp. Twins PHP epc_marketing_broadcast_panel POST actions.</summary>
+    public const string CpMarketingBroadcastWrite = "/cp/marketing-broadcast/write";
     public const string ControlPanelTenantFeatures = "/cp/tenant-features";
     public const string ControlPanelTenantFeaturesApp = "/cp/tenant-features-app";
     /// <summary>Super-CP save_feature_flags. <c>confirmWrites=true</c> twins PHP ajax_integrations.php incl. <c>epc_integrations_ensure_schema</c>.</summary>

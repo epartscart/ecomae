@@ -15444,6 +15444,115 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.CpMarketingBroadcastWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpMarketingBroadcastWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/cp/login?returnUrl=/cp/marketing-broadcast-app",
+                    "Admin CP capability required for marketing broadcast write.");
+            }
+
+            var action = string.Empty;
+            var templateKey = string.Empty;
+            var subject = string.Empty;
+            var preview = string.Empty;
+            var bodyHtml = string.Empty;
+            var bodyText = string.Empty;
+            var audienceMode = string.Empty;
+            var audienceMeta = string.Empty;
+            var audienceMetaGroup = string.Empty;
+            var audienceMetaManual = string.Empty;
+            var batchLimit = string.Empty;
+            var returnUrl = string.Empty;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "action");
+                templateKey = LiveWriteFormBinder.Text(form, "template_key", "templateKey");
+                subject = LiveWriteFormBinder.Text(form, "subject");
+                preview = LiveWriteFormBinder.Text(form, "preview");
+                bodyHtml = LiveWriteFormBinder.Text(form, "body_html", "bodyHtml");
+                bodyText = LiveWriteFormBinder.Text(form, "body_text", "bodyText");
+                audienceMode = LiveWriteFormBinder.Text(form, "audience_mode", "audienceMode");
+                audienceMeta = LiveWriteFormBinder.Text(form, "audience_meta", "audienceMeta");
+                audienceMetaGroup = LiveWriteFormBinder.Text(form, "audience_meta_group", "audienceMetaGroup");
+                audienceMetaManual = LiveWriteFormBinder.Text(form, "audience_meta_manual", "audienceMetaManual");
+                batchLimit = LiveWriteFormBinder.Text(form, "batch_limit", "batchLimit");
+                returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = string.IsNullOrWhiteSpace(action) ? "send_email" : action.Trim();
+            var landing = string.IsNullOrWhiteSpace(returnUrl) || !returnUrl.StartsWith("/cp/", StringComparison.Ordinal)
+                ? "/cp/marketing-broadcast-app"
+                : returnUrl;
+
+            if (confirm && key is "send_email" or "send_whatsapp")
+            {
+                var request = new CpMarketingSendRequest(
+                    key == "send_whatsapp" ? "whatsapp" : "email",
+                    templateKey,
+                    subject,
+                    preview,
+                    bodyHtml,
+                    bodyText,
+                    audienceMode,
+                    audienceMeta,
+                    audienceMetaGroup,
+                    audienceMetaManual,
+                    batchLimit,
+                    session.UserId,
+                    context.Request.Host.Host);
+
+                var sent = key == "send_whatsapp"
+                    ? await writes.SendWhatsappCampaignAsync(request, cancellationToken)
+                    : await writes.SendEmailCampaignAsync(request, cancellationToken);
+
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    landing,
+                    sent.Succeeded,
+                    sent.Message,
+                    new
+                    {
+                        ok = sent.Succeeded,
+                        writes = sent.SentOk + sent.SentFail,
+                        id = sent.CampaignId,
+                        sent_ok = sent.SentOk,
+                        sent_fail = sent.SentFail,
+                        wa_links = sent.WaLinks,
+                        phpAuthoritative = false,
+                        cutoverAllowed = false,
+                        validation_code = sent.Code,
+                        message = sent.Message,
+                        session = SessionPayload(session),
+                    });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = key is "send_email" or "send_whatsapp",
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "unknown_action" : "dry_run",
+                message = confirm
+                    ? "Unknown marketing broadcast action."
+                    : "Dry-run. Set confirmWrites=true to send the email or prepare the WhatsApp campaign.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelTenantFeatures, async (
             HttpContext context,
             int? limit,
