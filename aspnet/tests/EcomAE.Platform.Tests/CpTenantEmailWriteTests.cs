@@ -31,6 +31,10 @@ public class CpTenantEmailWriteTests
         Assert.DoesNotContain("ASP.NET", razor);
         Assert.DoesNotContain("/php-reference/", razor);
         Assert.DoesNotContain("smtp_password\" value=", razor);
+        Assert.Contains("Tenant CP", razor);
+        Assert.Contains("Activate in 3 steps", razor);
+        Assert.Contains("Modern auth settings", razor);
+        Assert.Contains("SuperCpHostGate.IsAllowed", razor);
     }
 
     [Fact]
