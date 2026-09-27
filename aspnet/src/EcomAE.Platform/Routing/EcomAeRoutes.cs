@@ -122,6 +122,11 @@ public static class EcomAeRoutes
     /// <summary>Tenant CP save_mobile. <c>confirmWrites=true</c> twins PHP ajax_integrations.php. Schema-ensure stays Classic.</summary>
     public const string CpMobileAppsWrite = "/cp/mobile-apps/write";
 
+    /// <summary>CP industry settings Blazor twin of PHP cp/content/control/portal/industry_settings.php.</summary>
+    public const string ControlPanelIndustrySettingsApp = "/cp/industry-settings-app";
+    /// <summary>Tenant CP save_settings. Twins PHP ajax_portal.php?action=save_settings.</summary>
+    public const string CpIndustrySettingsWrite = "/cp/industry-settings/save";
+
     /// <summary>CP Metabase config + dashboards (secret_key never returned).</summary>
     public const string ControlPanelMetabase = "/cp/metabase";
     /// <summary>CP Metabase Blazor list (JSON digest remains <see cref="ControlPanelMetabase"/>).</summary>
