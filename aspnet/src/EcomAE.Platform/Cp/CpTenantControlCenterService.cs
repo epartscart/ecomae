@@ -202,9 +202,9 @@ public sealed class CpTenantControlCenterService : ICpTenantControlCenterService
                 "database",
                 string.Empty);
         }
-        catch (DbException ex)
+        catch (DbException)
         {
-            return CpTenantControlCenterView.Empty("database-error", ex.Message);
+            return CpTenantControlCenterView.Empty("database-error", "Platform database unavailable.");
         }
     }
 

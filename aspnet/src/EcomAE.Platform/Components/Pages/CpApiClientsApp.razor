@@ -2,9 +2,11 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpApiClientsDeskService Desk
+@inject ICpApiClientKeyVault Keys
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -12,159 +14,283 @@
 <PhpChromeStyles Surface="cp" />
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
-    <div class="col-lg-12">
+<style>
+    .epc-acm-hero { background:linear-gradient(135deg,#0f172a,#1d4ed8); color:#fff; border-radius:10px; padding:18px 20px; margin-bottom:16px }
+    .epc-acm-hero h3 { margin:0 0 6px; font-weight:600 }
+    .epc-acm-key { font-family:Menlo,Consolas,monospace; font-size:15px; background:#0f172a; color:#e2e8f0; padding:10px 12px; border-radius:6px; margin:8px 0; word-break:break-all }
+    .epc-acm-actions-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:4px 12px; font-weight:normal; font-size:12px }
+    .epc-acm-actions-grid label { font-weight:normal; margin:0 }
+    .epc-acm-curl { background:#0f172a; color:#e2e8f0; padding:12px; border-radius:8px; font-size:12px; overflow-x:auto }
+</style>
+
+<div class="col-lg-12">
+    <div class="epc-portal-settings">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                API Clients
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/api-clients-app")</p>
-                <p>Open a client to see allowed actions. Toggle an API client here.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/api-clients-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="alert alert-success" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#ecfdf5;color:#065f46">@_flashOk</div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="alert alert-danger" role="status" style="margin:0 0 1rem;padding:.7rem .9rem;border-radius:.4rem;background:#fef2f2;color:#991b1b">@_flashErr</div>
-    }
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedClient is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="API client KPIs">
-        <div class="kpi"><div class="lbl">Shown</div><div class="val">@_clients.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Active</div><div class="val">@_active.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Calls today</div><div class="val">@_callsToday.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_isAdmin)
-    {
-        <form method="post" action="/cp/api-clients/toggle" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
-            <input type="hidden" name="returnUrl" value="@_returnHref" />
-            <label>Client id <input type="number" name="clientId" min="1" required style="width:6rem" value="@OpenedIdValue" /></label>
-            <label>Action
-                <select name="action">
-                    <option value="revoke" selected="@(_openedClient is null || _openedClient.Active)">Revoke</option>
-                    <option value="activate" selected="@(_openedClient is not null && !_openedClient.Active)">Activate</option>
-                </select>
-            </label>
-            <button type="submit">Apply</button>
-        </form>
-    }
-
-    @if (_openedClient is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedClient.Label) ? _openedClient.Label : ("Client #" + _openedClient.Id.ToString(CultureInfo.InvariantCulture)))
-                    <span class="label label-default pull-right">@(_openedClient.Active ? "active" : "revoked")</span>
+                <div class="epc-acm-hero">
+                    <h3><i class="fa fa-key"></i> Catalog &amp; Price PRO API clients</h3>
+                    <p style="margin:0;opacity:.92">
+                        Issue <code>X-API-Key</code> credentials for external integrations. Catalog keys authenticate via
+                        <code>/api/v1/catalog.php</code>; Price PRO via <code>/api/v1/price/lookup.php</code>.
+                        Keys are SHA-256 hashed — plain text shown once at create/rotate.
+                    </p>
                 </div>
-                <div class="panel-body">
-                    <p>Prefix @(!string.IsNullOrWhiteSpace(_openedClient.ClientKeyPrefix) ? _openedClient.ClientKeyPrefix : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedClient.Product) ? _openedClient.Product : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedClient.ContactEmail) ? _openedClient.ContactEmail : "—")</p>
-                    <p>Daily limit @_openedClient.DailyLimit.ToString(CultureInfo.InvariantCulture)
-                        · Calls today @_openedClient.CallsToday.ToString(CultureInfo.InvariantCulture)
-                        · Reset @(!string.IsNullOrWhiteSpace(_openedClient.CallsResetDate) ? _openedClient.CallsResetDate : "—")</p>
-                    @if (string.IsNullOrWhiteSpace(_openedClient.AllowedActionsJson))
-                    {
-                        <p>No allowed actions yet.</p>
-                    }
-                    else
-                    {
-                        <p>Allowed actions @_openedClient.AllowedActionsJson</p>
-                    }
-                </div>
-            </div>
-        </div>
-    }
 
-    <p class="help-block">@_clients.Count Shown (limit @_limit) · @_active Active · @_callsToday Calls today (sum).</p>
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Key prefix</th>
-                    <th>Product</th>
-                    <th>Label</th>
-                    <th>Contact</th>
-                    <th>Active</th>
-                    <th>Daily limit</th>
-                    <th>Calls today</th>
-                    <th>Created</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_clients.Count == 0)
+                @if (!_isAdmin)
                 {
-                    <tr><td colspan="10">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                    <div class="alert alert-warning">Please <a href="/cp/login?returnUrl=/cp/api-clients-app">log in to Super CP</a>.</div>
                 }
                 else
                 {
-                    @foreach (var c in _clients)
+                    <div class="row" style="margin-bottom:16px">
+                        <div class="col-sm-3"><div class="well well-sm text-center"><div class="text-muted small">Active clients</div><strong>@_active.ToString(CultureInfo.InvariantCulture)</strong></div></div>
+                        <div class="col-sm-3"><div class="well well-sm text-center"><div class="text-muted small">Total rows</div><strong>@_clients.Count.ToString(CultureInfo.InvariantCulture)</strong></div></div>
+                        <div class="col-sm-6"><div class="well well-sm"><div class="text-muted small">Marketing docs</div><a href="https://www.ecomae.com/platform/api-services" target="_blank" rel="noopener">/platform/api-services</a></div></div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_flashOk))
                     {
-                        <tr id="erp-row-@c.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(c.Id, _openedId)">
-                            <td><strong>@c.Id.ToString(CultureInfo.InvariantCulture)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(c.ClientKeyPrefix) ? "—" : c.ClientKeyPrefix)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Product) ? "—" : c.Product)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.Label) ? "—" : c.Label)</td>
-                            <td>@(string.IsNullOrWhiteSpace(c.ContactEmail) ? "—" : c.ContactEmail)</td>
-                            <td><span class="epc-ac-badge @(c.Active ? "epc-ac-badge--ok" : "epc-ac-badge--off")">@(c.Active ? "yes" : "no")</span></td>
-                            <td>@c.DailyLimit.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@c.CallsToday.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@FormatTs(c.TimeCreated)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "api_client_id", c.Id)">Open</a></td>
-                        </tr>
+                        <div class="alert alert-success">
+                            @_flashOk
+                            @if (!string.IsNullOrWhiteSpace(_newKeyPlain))
+                            {
+                                <div class="epc-acm-key">@_newKeyPlain</div>
+                                <p class="text-muted" style="margin:0;font-size:12px">Store in a password manager. Never paste into tickets or marketing HTML.</p>
+                            }
+                        </div>
                     }
-                }
-            </tbody>
+                    @if (!string.IsNullOrWhiteSpace(_flashErr))
+                    {
+                        <div class="alert alert-danger">@_flashErr</div>
+                    }
+                    @if (!string.IsNullOrWhiteSpace(_message))
+                    {
+                        <div class="alert alert-danger">@_message</div>
+                    }
+
+                    <p>
+                        <a class="btn btn-default btn-sm" href="/cp/guides-app?g=api-docs"><i class="fa fa-code"></i> Tenant ERP API guide</a>
+                        <a class="btn btn-default btn-sm" href="https://www.ecomae.com/platform/api-services" target="_blank" rel="noopener"><i class="fa fa-flask"></i> API services overview</a>
+                    </p>
+
+                    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedClient is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
+
+                    <div class="hpanel">
+                        <div class="panel-heading"><h4>Create client</h4></div>
+                        <div class="panel-body">
+                            <form method="post" action="/cp/api-clients/write" class="form-horizontal">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="action" value="create" />
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Product</label>
+                                    <div class="col-sm-4">
+                                        <select name="product" class="form-control">
+                                            <option value="catalog">Catalog API</option>
+                                            <option value="price_pro">Price PRO</option>
+                                            <option value="both">Both (catalog + price)</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Label</label>
+                                    <div class="col-sm-6"><input type="text" name="label" class="form-control" required placeholder="Acme Garage Portal" /></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Contact email</label>
+                                    <div class="col-sm-6"><input type="email" name="contact_email" class="form-control" placeholder="dev@partner.com" /></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Daily limit</label>
+                                    <div class="col-sm-3"><input type="number" name="daily_limit" class="form-control" value="1000" min="1" max="1000000" /></div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="col-sm-2 control-label">Catalog scopes</label>
+                                    <div class="col-sm-10">
+                                        <p class="text-muted" style="font-size:12px;margin-bottom:8px">Leave all unchecked for full catalog access. Price PRO ignores action scopes.</p>
+                                        <div class="epc-acm-actions-grid">
+                                            @foreach (var act in CpApiClientsDeskService.CatalogActions)
+                                            {
+                                                <label><input type="checkbox" name="allowed_actions" value="@act" /> @act</label>
+                                            }
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group">
+                                    <div class="col-sm-offset-2 col-sm-10">
+                                        <button type="submit" class="btn btn-primary"><i class="fa fa-plus"></i> Create &amp; show key</button>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered table-epc">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Label</th>
+                                    <th>Product</th>
+                                    <th>Key prefix</th>
+                                    <th>Quota</th>
+                                    <th>Scopes</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_clients.Count == 0)
+                                {
+                                    <tr><td colspan="8" class="text-muted">No API clients yet. Create one above or run the sandbox setup script.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var c in _clients)
+                                    {
+                                        <tr id="erp-row-@c.Id.ToString(CultureInfo.InvariantCulture)" class="@(c.Active ? "" : "text-muted") @ErpRecordOpen.RowClass(c.Id, _openedId)">
+                                            <td>@c.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                            <td>
+                                                <strong>@c.Label</strong>
+                                                @if (!string.IsNullOrWhiteSpace(c.ContactEmail))
+                                                {
+                                                    <br />
+                                                    <small><a href="mailto:@c.ContactEmail">@c.ContactEmail</a></small>
+                                                }
+                                            </td>
+                                            <td><code>@c.Product</code></td>
+                                            <td><code>@c.KeyPrefix…</code></td>
+                                            <td>@c.Quota</td>
+                                            <td style="font-size:11px;max-width:180px">@c.ScopeLabel</td>
+                                            <td>
+                                                @if (c.Active)
+                                                {
+                                                    <span class="label label-success">active</span>
+                                                }
+                                                else
+                                                {
+                                                    <span class="label label-default">revoked</span>
+                                                }
+                                            </td>
+                                            <td style="white-space:nowrap">
+                                                <a class="btn btn-xs btn-default" href="@ErpRecordOpen.Href(_listHref, "api_client_id", c.Id)">Edit</a>
+                                                <form method="post" action="/cp/api-clients/write" style="display:inline" onsubmit="return confirm('Rotate key? Old key stops working immediately.')">
+                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="action" value="rotate" />
+                                                    <input type="hidden" name="client_id" value="@c.Id" />
+                                                    <button type="submit" class="btn btn-xs btn-warning">Rotate</button>
+                                                </form>
+                                                <form method="post" action="/cp/api-clients/write" style="display:inline">
+                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="returnUrl" value="@_returnHref" />
+                                                    <input type="hidden" name="action" value="reset_quota" />
+                                                    <input type="hidden" name="client_id" value="@c.Id" />
+                                                    <button type="submit" class="btn btn-xs btn-default">Reset quota</button>
+                                                </form>
+                                                @if (c.Active)
+                                                {
+                                                    <form method="post" action="/cp/api-clients/toggle" style="display:inline" onsubmit="return confirm('Revoke this client?')">
+                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                        <input type="hidden" name="returnUrl" value="@_returnHref" />
+                                                        <input type="hidden" name="action" value="revoke" />
+                                                        <input type="hidden" name="clientId" value="@c.Id" />
+                                                        <button type="submit" class="btn btn-xs btn-danger">Revoke</button>
+                                                    </form>
+                                                }
+                                                else
+                                                {
+                                                    <form method="post" action="/cp/api-clients/toggle" style="display:inline">
+                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                        <input type="hidden" name="returnUrl" value="@_returnHref" />
+                                                        <input type="hidden" name="action" value="activate" />
+                                                        <input type="hidden" name="clientId" value="@c.Id" />
+                                                        <button type="submit" class="btn btn-xs btn-success">Activate</button>
+                                                    </form>
+                                                }
+                                            </td>
+                                        </tr>
+                                        @if (_openedId == c.Id)
+                                        {
+                                            <tr>
+                                                <td colspan="8" style="background:#f8fafc">
+                                                    <form method="post" action="/cp/api-clients/write" class="form-inline" style="padding:10px">
+                                                        <input type="hidden" name="confirmWrites" value="true" />
+                                                        <input type="hidden" name="returnUrl" value="@_returnHref" />
+                                                        <input type="hidden" name="action" value="update" />
+                                                        <input type="hidden" name="client_id" value="@c.Id" />
+                                                        <input type="text" name="label" class="form-control input-sm" value="@c.Label" placeholder="Label" style="width:160px" />
+                                                        <input type="email" name="contact_email" class="form-control input-sm" value="@c.ContactEmail" placeholder="Email" style="width:180px" />
+                                                        <select name="product" class="form-control input-sm">
+                                                            @foreach (var product in CpApiClientsDeskService.Products)
+                                                            {
+                                                                <option value="@product" selected="@(c.Product == product)">@product</option>
+                                                            }
+                                                        </select>
+                                                        <input type="number" name="daily_limit" class="form-control input-sm" value="@c.DailyLimit" min="1" style="width:90px" title="Daily limit" />
+                                                        @foreach (var act in CpApiClientsDeskService.CatalogActions)
+                                                        {
+                                                            <label style="font-weight:normal;margin:0 8px 0 0;font-size:11px">
+                                                                <input type="checkbox" name="allowed_actions" value="@act" checked="@c.AllowedActions.Contains(act)" /> @act
+                                                            </label>
+                                                        }
+                                                        <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                                                    </form>
+                                                    @if (c.AllowedActions.Count == 0)
+                                                    {
+                                                        <p class="text-muted" style="padding:0 10px 10px;margin:0">No allowed actions yet. — full catalog access.</p>
+                                                    }
+                                                </td>
+                                            </tr>
+                                        }
+                                    }
+                                }
+                            </tbody>
                         </table>
-                </div>
+                    </div>
+
+                    <div class="hpanel">
+                        <div class="panel-heading"><h4>Test with curl</h4></div>
+                        <div class="panel-body">
+<pre class="epc-acm-curl"># Catalog — manufacturers
+curl -s -H "X-API-Key: epc_catalog_YOUR_KEY" \
+  "https://www.ecomae.com/api/v1/catalog.php?action=manufacturers&amp;section=passenger"
+
+# Price PRO — article lookup
+curl -s -H "X-API-Key: epc_pricepro_YOUR_KEY" \
+  "https://www.ecomae.com/api/v1/price/lookup.php?brand=BOSCH&amp;article=0986424590"
+
+# Without key (expect 401)
+curl -s "https://www.ecomae.com/api/v1/catalog.php?action=status"</pre>
+                        </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
+</div>
+
+<PhpParityModuleBody AppPath="/cp/api-clients-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
 
 </PhpCpDesktopChrome>
 
 @code {
-    private const string _phpTab = "/CP/control/portal/epc_api_clients_manage";
     private const string _listHref = "/cp/api-clients-app";
     private bool _isAdmin;
-    private IReadOnlyList<CpApiClientMetaDigest> _clients = [];
+    private IReadOnlyList<CpApiClientRow> _clients = [];
     private int _active;
-    private int _callsToday;
-    private int _limit = 200;
-    private string _source = "n/a";
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _newKeyPlain = "";
     private long _openedId;
     private string _returnHref = "/cp/api-clients-app";
-    private CpApiClientDetail? _openedClient;
+    private CpApiClientRow? _openedClient;
 
     private string OpenedCaption => _openedClient is null
         ? ""
         : (string.IsNullOrWhiteSpace(_openedClient.Label)
             ? ("Client #" + _openedClient.Id.ToString(CultureInfo.InvariantCulture))
             : _openedClient.Label)
-            + (string.IsNullOrWhiteSpace(_openedClient.ClientKeyPrefix) ? "" : (" · " + _openedClient.ClientKeyPrefix));
-
-    private string OpenedIdValue => _openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : "";
+            + (string.IsNullOrWhiteSpace(_openedClient.KeyPrefix) ? "" : (" · " + _openedClient.KeyPrefix));
 
     protected override async Task OnInitializedAsync()
     {
@@ -182,47 +308,15 @@
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.ListCpApiClientsMetaAsync(_limit, ctx.RequestAborted);
-        _clients = result.Clients;
-        _active = _clients.Count(c => c.Active);
-        _callsToday = _clients.Sum(c => c.CallsToday);
-        _source = result.Source;
-        _message = result.Message;
+        _newKeyPlain = Keys.Take(ctx.Request.Query["key_token"].ToString() ?? "");
 
-        if (_openedId > 0)
-        {
-            var detail = await Dashboards.BuildCpApiClientDetailAsync(_openedId, ctx.RequestAborted);
-            _openedClient = detail.Client;
-            if (_openedClient is not null)
-            {
-                var openedList = _clients.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _clients = new[] { openedList }.Concat(_clients.Where(r => r.Id != _openedId)).ToList();
-                    _active = _clients.Count(c => c.Active);
-                    _callsToday = _clients.Sum(c => c.CallsToday);
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
-            }
-        }
-    }
-
-    private static string FormatTs(long ts)
-    {
-        if (ts <= 0) return "—";
-        try
-        {
-            return DateTimeOffset.FromUnixTimeSeconds(ts).UtcDateTime.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-        }
-        catch (ArgumentOutOfRangeException)
-        {
-            return ts.ToString(CultureInfo.InvariantCulture);
-        }
+        var view = await Desk.LoadAsync(ctx.RequestAborted);
+        _clients = view.Clients;
+        _active = view.ActiveCount;
+        _message = view.Error;
+        _openedClient = _openedId > 0 ? _clients.FirstOrDefault(c => c.Id == _openedId) : null;
     }
 }
