@@ -1356,6 +1356,9 @@ public static class EcomAeRoutes
     public const string CpApiClientsToggle = "/cp/api-clients/toggle";
     /// <summary>PHP epc_api_clients_manage.php create / rotate / update / reset_quota / revoke / activate. Super CP only.</summary>
     public const string CpApiClientsWrite = "/cp/api-clients/write";
+
+    /// <summary>Communications test send (PHP <c>ajax_test_notification.php</c>).</summary>
+    public const string CpCommunicationsTest = "/cp/communications/test";
     /// <summary>PHP epc_pm_storage_panel.php rule save (ON DUPLICATE KEY) and DELETE.</summary>
     public const string CpPriceStorageRules = "/cp/prices/storage-rules";
     /// <summary>CP price management POST dispatcher (price_management.php + epc_pm_storage_panel.php actions).</summary>

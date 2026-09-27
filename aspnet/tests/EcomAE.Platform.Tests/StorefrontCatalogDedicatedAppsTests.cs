@@ -154,7 +154,10 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("epc-cn-hero", text, StringComparison.Ordinal);
         Assert.Contains("epc-cn-quick", text, StringComparison.Ordinal);
         Assert.Contains("epc-cn-card", text, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", text, StringComparison.Ordinal);
+        Assert.Contains("ICpCommunicationsDeskService", text, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.CpCommunicationsTest", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"email_for_test\"", text, StringComparison.Ordinal);
+        Assert.Contains("id=\"phone_for_test\"", text, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
         Assert.Contains("/CP/control/communications", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", text, StringComparison.Ordinal);

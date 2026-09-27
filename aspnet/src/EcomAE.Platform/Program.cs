@@ -829,6 +829,10 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontConfirmContactW
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientWriteService, EcomAE.Platform.Cp.CpApiClientWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpApiClientsDeskService, EcomAE.Platform.Cp.CpApiClientsDeskService>();
 builder.Services.AddSingleton<EcomAE.Platform.Cp.ICpApiClientKeyVault, EcomAE.Platform.Cp.CpApiClientKeyVault>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsDeskService, EcomAE.Platform.Cp.CpCommunicationsDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsTestService, EcomAE.Platform.Cp.CpCommunicationsTestService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsGateway, EcomAE.Platform.Cp.CpSmsGateway>();
+builder.Services.AddHttpClient("epc-sms", client => client.Timeout = TimeSpan.FromSeconds(25));
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceStorageRuleWriteService, EcomAE.Platform.Cp.CpPriceStorageRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, EcomAE.Platform.Cp.CpContentManagerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMenuWriteService, EcomAE.Platform.Cp.CpMenuWriteService>();
