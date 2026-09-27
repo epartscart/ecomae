@@ -55,6 +55,7 @@ public sealed class CpDemoTenantsServiceTests
         Assert.Contains("value=\"delete\"", razor, StringComparison.Ordinal);
         Assert.Contains("Delete demo and drop DB?", razor, StringComparison.Ordinal);
         Assert.Contains("_isAdmin && _isSuper", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"csrf_guard_key\" value=\"@_csrfKey\"", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ISurfaceDashboardSummaryReporter", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("operator_temp_password\"]", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);

@@ -13469,6 +13469,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpDemoTenantsService demos,
+            ICpCsrfGuard csrf,
             CancellationToken cancellationToken) =>
         {
             if (!SuperCpHostGate.IsAllowed(context))
@@ -13493,12 +13494,28 @@ public sealed class ControlPanelModule : ISurfaceModule
             var action = body.Action;
             var siteKey = body.SiteKey;
             var confirm = body.ConfirmWrites;
+            var csrfKey = body.CsrfGuardKey;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 action = LiveWriteFormBinder.Text(form, "epc_demo_action", "action");
                 siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                csrfKey = LiveWriteFormBinder.Text(form, CpCsrfGuard.FieldName);
+            }
+
+            if (confirm)
+            {
+                var verdict = await csrf.VerifyAsync(context, session, csrfKey, cancellationToken);
+                if (!verdict.Ok)
+                {
+                    return LiveWriteFormBinder.Complete(
+                        context,
+                        "/cp/demo-tenants-app",
+                        false,
+                        verdict.Message,
+                        new { ok = false, writes = 0, validation_code = verdict.Code, message = verdict.Message });
+                }
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -17167,7 +17184,8 @@ public sealed class ControlPanelModule : ISurfaceModule
     private sealed record CpDemoTenantsWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
-        string? SiteKey = null);
+        string? SiteKey = null,
+        string? CsrfGuardKey = null);
     private sealed record CpInfoBlocksWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

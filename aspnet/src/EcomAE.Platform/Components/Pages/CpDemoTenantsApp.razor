@@ -7,6 +7,7 @@
 @using EcomAE.Platform.Services
 @inject ICpDemoTenantsService Demos
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 
 <PageTitle>Demo Tenants · Control Panel · eParts Cart</PageTitle>
@@ -139,18 +140,21 @@
                                                 <a class="btn btn-xs btn-primary" target="_blank" rel="noopener" href="@d.CpScopedUrl" title="Open demo CP for @d.SiteKey"><i class="fa fa-external-link"></i> Open CP</a>
                                                 <form method="post" action="@WriteHref" style="display:inline" onsubmit="return confirm('Extend +3 days?')">
                                                     <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="csrf_guard_key" value="@_csrfKey" />
                                                     <input type="hidden" name="epc_demo_action" value="extend" />
                                                     <input type="hidden" name="site_key" value="@d.SiteKey" />
                                                     <button type="submit" class="btn btn-xs btn-success">+3d</button>
                                                 </form>
                                                 <form method="post" action="@WriteHref" style="display:inline" onsubmit="return confirm('Convert to live tenant?')">
                                                     <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="csrf_guard_key" value="@_csrfKey" />
                                                     <input type="hidden" name="epc_demo_action" value="convert" />
                                                     <input type="hidden" name="site_key" value="@d.SiteKey" />
                                                     <button type="submit" class="btn btn-xs btn-primary">Live</button>
                                                 </form>
                                                 <form method="post" action="@WriteHref" style="display:inline" onsubmit="return confirm('Delete demo and drop DB?')">
                                                     <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="csrf_guard_key" value="@_csrfKey" />
                                                     <input type="hidden" name="epc_demo_action" value="delete" />
                                                     <input type="hidden" name="site_key" value="@d.SiteKey" />
                                                     <button type="submit" class="btn btn-xs btn-danger">Delete</button>
@@ -177,6 +181,7 @@
     private bool _isSuper;
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _csrfKey = "";
     private CpDemoTenantsView _view = new([], 0, CpDemoTenantsService.MaxActive, CpDemoTenantsService.DemoDays, "");
 
     private static string TccSiteHref(string siteKey)
@@ -203,6 +208,7 @@
             return;
         }
 
+        _csrfKey = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
         _view = await Demos.LoadAsync(ctx.RequestAborted);
     }
 }
