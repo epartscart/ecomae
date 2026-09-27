@@ -189,7 +189,9 @@ Standing rules that apply to every item below:
       storage now reads explicit `erp.nav.disabled.*` tenant feature flags and recognizes only
       exact PHP catalog IDs/keys/areas from assigned industry-pack `modules` JSON. Generic pack
       labels remain non-authoritative, so they cannot accidentally hide PHP placements. Version
-      persistence and Super ERP administration remain pending.
+      persistence and Super ERP administration remain pending. The policy now also exposes a
+      complete 154-placement inspection projection with visible/hidden reason codes for future
+      Super ERP review screens.
 - [ ] B1 Home & workflow (dashboard, workflow, processflow, approvals, workflow_automation, agenda, contacts, documents, knowledge base, AI assistant)
 - [~] B2 Order-to-Cash / Syncron-style OMS — sales orders, delivery notes, invoices, revenue, fulfilment, subscriptions, proposals,
       ASP.NET sales-order save/status/invoice/delete/cancel lifecycle is live; cancellation now uses the

@@ -118,4 +118,26 @@ public sealed class ErpNavMatrixTests
         Assert.Contains("inventory_mgmt/inventory", ErpNavTenantRules.ExplicitModuleIds("""["inventory_mgmt/inventory","catalog"]"""));
         Assert.DoesNotContain("catalog", ErpNavTenantRules.ExplicitModuleIds("""["catalog"]"""));
     }
+
+    [Fact]
+    public void InspectionIncludesVisibleAndHiddenPhpPlacements()
+    {
+        var rows = ErpIndustryNav.Inspect(new ErpIndustryNav.ErpNavAudience(
+            "v1",
+            "core",
+            "AE",
+            false,
+            DisabledTabIds: new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+            {
+                "finance/gl"
+            }));
+
+        Assert.Equal(PhpModuleCatalog.ErpTabs.Count, rows.Count);
+        Assert.Contains(rows, row => row.PlacementId == "finance/gl"
+            && !row.Visible
+            && row.Code == "disabled");
+        Assert.Contains(rows, row => row.PlacementId == "overview/dashboard"
+            && row.Visible
+            && row.Detail.Contains("AE", StringComparison.Ordinal));
+    }
 }
