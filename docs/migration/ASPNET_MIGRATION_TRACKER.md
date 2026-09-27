@@ -14,9 +14,18 @@ Progress measurement (reported to the user on every completed step): `done / tot
 plus pending %. Weighting: Phase A 20 %, B 45 % (B-J 8 %, B-F 7 % inside), C 15 %, D 8 %, E 7 %, F 5 %.
 Current: A 24/24 items (≈99 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 20.4 % done / 79.6 % pending**.
 Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliation, tenant deny flags,
-explicit pack IDs, inspection projection); B5 manual GL journal posting and posted-journal reversal forms
-are now live. The phase-level
+explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
+closed-period guards are now live. The phase-level
 percentage remains unchanged until a complete ERP capability gate is closed.
+
+Conversation requirements audit (reconciled 2026-09-27):
+- [x] CP and ERP menu sources remain PHP-authoritative; generated counts are not treated as proof of parity.
+- [x] Tenant isolation, CSRF/RBAC, auditability, country-driven compliance, fit-out, jewellery, Python-sidecar,
+      D365-style forms, document/report design, zero-downtime operations, on-premises/version support, and
+      post-migration enterprise comparison are recorded below as standing requirements or phase work.
+- [x] User sequencing is preserved: build CP → build ERP → build storefront/other areas → run combined testing.
+- [~] Broad browser/E2E, functional, security, and PHP side-by-side testing remains intentionally deferred until
+      the requested build phases are complete.
 (CP dashboard twin split into 3 parts: parts 1–3 done — KPIs/chart, persisted `.eds-*` shortcuts, conditional insights + portal industry catalogue.
 CP re-audit in progress: prices-edit rebuilt as the `prices_edit` twin — filter/search, profile site-price preview, paged table, inline edit, delete, search-delete;
 print-docs rebuilt as the `print_doc_tuning` twin — document list, JSON `parameters_description` widgets (text/textarea/checkbox/image/profile), wholesaler office scope, live save;
@@ -160,7 +169,7 @@ Standing rules that apply to every item below:
         (`shortcut_add` / `shortcut_delete` / `shortcut_delete_key` / `shortcut_reset` / `shortcut_reorder`, admin session + `cp`
         capability + CSRF, catalogue keys resolved server-side so posted URLs can't be trusted, `javascript:`/`data:` rejected),
         `.eds-*` grid/editor markup at PHP geometry (172 px min tile, 12 px gap, 118 px min height, 40×40 icon, hover lift)
-  - [ ] Part 3: conditional insights suite projection (CP variant, CSS only when insight HTML exists), DB industry label/icon for all
+  - [x] Part 3: conditional insights suite projection (CP variant, CSS only when insight HTML exists), DB industry label/icon for all
         industries incl. jewellery and fit-out, tenant ERP/storefront links through `MapCpPhpPath`
 - [ ] Remaining CP PHP twins to verify/finish: `epc_super_cp_customer_board`,
       `epc_super_cp_operator_guide`, `epc_integrations_hub` + each integration settings page (WhatsApp, payment
@@ -180,7 +189,7 @@ Standing rules that apply to every item below:
 
 ## Phase B — ERP (PHP `cp/content/shop/finance/erp/**` + `content/shop/finance/**`)
 
-- [~] **B0 ERP top menu** — `erp_nav_areas.php` twin (`ErpNavTree` + `IErpNavMenuService`): 36 areas in PHP order, RBAC
+- [~] **B0 ERP top menu** — `erp_nav_areas.php` twin (`ErpNavTree` + `IErpNavMenuService`): 35 areas and 154 placements in PHP order, RBAC
       `allowedTabs`, industry filter (jewellery `jw_*`), commerce filter, enabled modules, report injection, favourites, company
       picker, AP/AR/GL chain nav; replace `LegacyDesktopChromeCatalog.ErpTopnav()`; 0 invented tabs.
       Added a versioned `ErpNavAudience` policy and duplicate-placement audit so tenant version, industry,
