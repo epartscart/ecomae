@@ -11815,7 +11815,7 @@ public sealed class ErpModule : ISurfaceModule
 
         if (!body.ConfirmWrites)
         {
-            return Results.Ok(dryRun.Evaluate(new ErpPaymentBatchSaveRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+            return Results.Ok(dryRun.Evaluate(new ErpPaymentBatchSaveRequest(body.Id, body.Code, false, body.AccountId, body.BatchType, body.TotalAmount, body.LineCount)).ToPayload(SessionPayload(session)));
         }
 
         var written = await writes.CreateAsync(
@@ -14478,6 +14478,10 @@ public sealed class ErpModule : ISurfaceModule
             method = LiveWriteFormBinder.Text(form, "method");
             fraction = LiveWriteFormBinder.Dec(form, "fraction");
             asOf = LiveWriteFormBinder.Long(form, "asOf", "as_of");
+            if (asOf <= 0)
+            {
+                asOf = LiveWriteFormBinder.UnixDate(form, "as_of", "asOf");
+            }
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
