@@ -50,20 +50,23 @@ public sealed class CpPaymentsActivateWriteTests
     {
         var razor = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Components/Pages/CpPaymentGatewaysApp.razor"));
         Assert.Contains("method=\"post\"", razor, StringComparison.Ordinal);
-        Assert.Contains("action=\"/cp/payments/write\"", razor, StringComparison.Ordinal);
-        Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
-        Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
-        Assert.Contains("name=\"action\"", razor, StringComparison.Ordinal);
-        Assert.Contains("value=\"activate\"", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteRoute = \"/cp/payments/write\"", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"@WriteRoute\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\" value=\"true\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"action\" value=\"@action\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"handler\"", razor, StringComparison.Ordinal);
-        Assert.Contains("value=\"mark_settlement\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"id\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"status\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"paid_out\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteFields(\"activate\"", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteFields(\"mark_settlement\"", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteFields(\"seed_dummy\"", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteFields(\"save_config\"", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteFields(\"save_account\"", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteFields(\"disable_account\"", razor, StringComparison.Ordinal);
+        Assert.Contains("WriteFields(\"seed_platform_account\"", razor, StringComparison.Ordinal);
+        Assert.Contains("credentials_json", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("parameters_values", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("credentials_json", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);
     }
@@ -77,9 +80,10 @@ public sealed class CpPaymentsActivateWriteTests
         Assert.Contains("ajax_payments.php", write.Notes, StringComparison.Ordinal);
         Assert.Contains("mark_settlement", write.Notes, StringComparison.Ordinal);
         Assert.Contains("epc_payment_settlements", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
         Assert.Contains("save_config", write.Notes, StringComparison.Ordinal);
-        Assert.DoesNotContain("settlement, and send stay Classic", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("save_account", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("seed_dummy", write.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("stay Classic", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -92,19 +96,22 @@ public sealed class CpPaymentsActivateWriteTests
         Assert.Contains("ActivateAsync", module, StringComparison.Ordinal);
         Assert.Contains("MarkSettlementAsync", module, StringComparison.Ordinal);
         Assert.Contains("mark_settlement", module, StringComparison.Ordinal);
+        Assert.Contains("SeedGatewaysAsync", module, StringComparison.Ordinal);
+        Assert.Contains("SaveConfigAsync", module, StringComparison.Ordinal);
+        Assert.Contains("SaveAccountAsync", module, StringComparison.Ordinal);
+        Assert.Contains("DisableAccountAsync", module, StringComparison.Ordinal);
+        Assert.Contains("SeedPlatformAccountAsync", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPaymentsWriteService.cs"));
         Assert.Contains("epc_payment_set_active", service, StringComparison.Ordinal);
         Assert.Contains("epc_pay_accounts_mark_settlement", service, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("SET `active` = 0", service, StringComparison.Ordinal);
         Assert.Contains("SET `active` = 1", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_payment_settlements`", service, StringComparison.Ordinal);
-        Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("parameters_values", service, StringComparison.Ordinal);
+        Assert.Contains("parameters_values", service, StringComparison.Ordinal);
+        Assert.Contains("epc_payment_accounts", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

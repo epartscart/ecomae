@@ -989,6 +989,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLangWriteService, EcomAE.Platfo
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpChannelWriteService, EcomAE.Platform.Cp.CpChannelWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpLogisticsWriteService, EcomAE.Platform.Cp.CpLogisticsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPaymentsWriteService, EcomAE.Platform.Cp.CpPaymentsWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPaymentsDeskService, EcomAE.Platform.Cp.CpPaymentsDeskService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmWriteService, EcomAE.Platform.Cp.CpCrmWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMarketingGrowthWriteService, EcomAE.Platform.Cp.CpMarketingGrowthWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrmOpportunityWriteService, EcomAE.Platform.Cp.CpCrmOpportunityWriteService>();
