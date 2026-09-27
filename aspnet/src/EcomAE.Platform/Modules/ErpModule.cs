@@ -14478,6 +14478,10 @@ public sealed class ErpModule : ISurfaceModule
             method = LiveWriteFormBinder.Text(form, "method");
             fraction = LiveWriteFormBinder.Dec(form, "fraction");
             asOf = LiveWriteFormBinder.Long(form, "asOf", "as_of");
+            if (asOf <= 0)
+            {
+                asOf = LiveWriteFormBinder.UnixDate(form, "as_of", "asOf");
+            }
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
