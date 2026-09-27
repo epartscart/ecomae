@@ -11784,6 +11784,7 @@ public sealed class ErpModule : ISurfaceModule
         ILegacySessionValidator validator,
         IErpPaymentBatchSaveDryRun dryRun,
         IErpPaymentBatchSaveWriteService writes,
+        IErpDimensionWriteService dimensions,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
@@ -11793,9 +11794,11 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         ErpPaymentBatchSaveBody body;
+        IReadOnlyDictionary<string, long>? dim = null;
         if (context.Request.HasFormContentType)
         {
             var form = await context.Request.ReadFormAsync(cancellationToken);
+            dim = ErpDimensionWriteService.ParseDimMap(form);
             body = new(
                 0,
                 null,
@@ -11811,6 +11814,7 @@ public sealed class ErpModule : ISurfaceModule
         {
             body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentBatchSaveBody>(context, cancellationToken)
                 ?? new ErpPaymentBatchSaveBody();
+            dim = body.Dim;
         }
 
         if (!body.ConfirmWrites)
@@ -11828,12 +11832,25 @@ public sealed class ErpModule : ISurfaceModule
                 body.Notes,
                 session.UserId),
             cancellationToken);
+        ErpSimpleWriteResult? dimensionResult = null;
+        if (written.Succeeded && written.Id > 0 && dim is { Count: > 0 })
+        {
+            dimensionResult = await dimensions.SaveAsync("payment_batch", written.Id, dim, cancellationToken);
+        }
         return LiveWriteFormBinder.Complete(
             context,
             LiveWriteFormBinder.ReturnUrl(context, "/erp/payment-batches-app"),
             written.Succeeded,
             written.Message,
-            new { ok = written.Succeeded, writes = written.Writes, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                message = written.Message,
+                id = written.Id,
+                dimensions = dimensionResult?.Writes ?? 0,
+                session = SessionPayload(session)
+            });
     }
 
     private static async Task<IResult> HandleSupplierSettlementAsync(
@@ -19310,7 +19327,8 @@ public sealed class ErpModule : ISurfaceModule
         decimal TotalAmount = 0,
         int LineCount = 1,
         string? ExecutionDate = null,
-        string? Notes = null);
+        string? Notes = null,
+        Dictionary<string, long>? Dim = null);
     private sealed record ErpPettyCashSaveBody(
         long Id = 0,
         string? Code = null,
