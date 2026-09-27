@@ -416,6 +416,18 @@ public static class ErpExternalReportingBuild
         var condensed = input.Report.Builder == "interim";
         var consol = input.Report.Builder == "consolidated";
         var cur = ds.Cur;
+        if (!condensed && !consol && input.Report.Key == "fin__annual_financial_statements")
+        {
+            var longForm = BuildLongFormIfrs(input, ds, ccy, country, entity, use18);
+            return new(input.Report.Name + (use18 ? " (IFRS 18)" : " (IFRS)"), longForm,
+            [
+                ("Total assets", ErpExternalReportingHtml.Money(cur.TotalAssets, ccy), "#2b6cb0"),
+                ("Total equity", ErpExternalReportingHtml.Money(cur.TotalEquity, ccy), "#2f855a"),
+                ("Profit / (loss)", ErpExternalReportingHtml.Money(cur.Profit, ccy), "#805ad5"),
+                ("Report length", "43 sections / pages", "#b3122a"),
+                ("Presentation", use18 ? "IFRS 18 (early)" : "IAS 1 / IFRS", "#0b6e99"),
+            ], true, "red", "");
+        }
         var suffix = condensed
             ? (use18 ? " (condensed — IAS 34 / IFRS 18)" : " (condensed — IAS 34)")
             : consol
@@ -545,6 +557,221 @@ public static class ErpExternalReportingBuild
             ("Profit / (loss)", ErpExternalReportingHtml.Money(cur.Profit, ccy), "#805ad5"),
             ("Presentation", use18 ? "IFRS 18 (early)" : "IAS 1 / IFRS", "#0b6e99"),
         ], true, "", "");
+    }
+
+    private static string BuildLongFormIfrs(
+        ErpExternalReportingBuildInput input,
+        Dataset ds,
+        string ccy,
+        string country,
+        string entity,
+        bool use18)
+    {
+        var cur = ds.Cur;
+        var title = use18
+            ? "Annual Financial Statements — IFRS 18 presentation"
+            : "Annual Financial Statements — IFRS presentation";
+        var sectionTitles = new[]
+        {
+            "Executive summary and key metrics",
+            "Statement of financial position",
+            "Statement of profit or loss and other comprehensive income",
+            "Statement of Cash Flows",
+            "Statement of changes in equity",
+            "Basis of preparation and reporting framework",
+            "Material accounting policy information",
+            "Critical judgements and estimation uncertainty",
+            "Revenue from contracts with customers — IFRS 15",
+            "Contract assets, receivables and deferred revenue",
+            "Inventories — IAS 2",
+            "Property, plant and equipment — IAS 16",
+            "Intangible assets — IAS 38",
+            "Leases — IFRS 16",
+            "Financial instruments — IFRS 9 / IAS 32",
+            "Expected credit losses and receivables ageing",
+            "Liquidity risk and maturity analysis",
+            "Credit risk concentration",
+            "Market risk and foreign exchange",
+            "Income taxes and deferred tax — IAS 12",
+            "UAE Corporate Tax reconciliation",
+            "Employee benefits — IAS 19",
+            "Provisions and contingencies — IAS 37",
+            "Commitments and legal exposures",
+            "Related parties and key management — IAS 24",
+            "Earnings per share — IAS 33",
+            "Operating segments — IFRS 8",
+            "Fair value measurement — IFRS 13",
+            "Impairment review — IAS 36",
+            "Going concern assessment",
+            "Events after the reporting period — IAS 10",
+            "Consolidation and group considerations",
+            "Sustainability and climate disclosures — IFRS S1 / S2",
+            "Management-defined performance measures — IFRS 18",
+            "Audit evidence and source-system controls",
+            "Illustrative trial balance bridge",
+            "Sales invoice source-document drill-down",
+            "Purchase bill source-document drill-down",
+            "VAT, Corporate Tax and e-invoice bridge",
+            "Management representation and sign-off",
+            "Auditor-use summary and filing checklist",
+            "IFRS / IAS applicability index",
+        };
+        var toc = sectionTitles
+            .Select((name, index) => ((index + 1).ToString("00", CultureInfo.InvariantCulture), name))
+            .ToArray();
+        var body = new StringBuilder();
+        body.Append(ErpExternalReportingHtml.CoverPage(
+            entity,
+            title,
+            "STATUTORY FINANCIAL STATEMENTS · SAMPLE-READY ERP PACK",
+            [
+                ("Reporting period", input.PeriodLabel),
+                ("Comparative period", "FY" + (input.To.Year - 1).ToString(CultureInfo.InvariantCulture)),
+                ("Currency", ccy),
+                ("Registration country", input.CountryName),
+                ("Framework", use18 ? "IFRS with IFRS 18 early application" : "IFRS as issued by the IASB"),
+                ("Source status", input.HasLiveFigures ? "Live ERP figures with sample gaps labelled" : "Illustrative sample data — replace before filing"),
+            ],
+            toc));
+
+        var sampleNote = input.HasLiveFigures
+            ? "Live ERP totals are used where available; any unavailable supporting detail is clearly labelled illustrative sample data."
+            : "This pack is populated with deterministic illustrative sample data so the complete presentation can be reviewed before live ledger drill-down is connected.";
+        body.Append(ErpExternalReportingHtml.Commentary("How to read this pack", [sampleNote, "The on-screen sections are page-break aware for PDF/Word export. Source-document schedules are expandable and reconcile to the face statements."]));
+
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[0],
+            ErpExternalReportingHtml.KvTable([
+                ("Revenue", ErpExternalReportingHtml.Money(cur.Rev, ccy), false),
+                ("Profit / (loss)", ErpExternalReportingHtml.Money(cur.Profit, ccy), true),
+                ("Total assets", ErpExternalReportingHtml.Money(cur.TotalAssets, ccy), false),
+                ("Total liabilities", ErpExternalReportingHtml.Money(cur.TotalLiab, ccy), false),
+                ("Total equity", ErpExternalReportingHtml.Money(cur.TotalEquity, ccy), true),
+            ]) + ErpExternalReportingHtml.BarChart("Key financial metrics", [
+                ("Revenue", cur.Rev, "#2b6cb0"),
+                ("Profit", cur.Profit, "#805ad5"),
+                ("Assets", cur.TotalAssets, "#2f855a"),
+            ]), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[1], ErpExternalReportingHtml.AmtTable([
+            ("Assets", 0, "head"), ("Property, plant and equipment", cur.Ppe, ""), ("Intangible assets", cur.Intang, ""),
+            ("Inventories", cur.Inventory, ""), ("Trade and other receivables", cur.Receivables, ""), ("Cash and cash equivalents", cur.Cash, ""),
+            ("Total assets", cur.TotalAssets, "total"), ("Liabilities", 0, "head"), ("Trade and other payables", cur.Payables, ""),
+            ("Borrowings", cur.BorrowCur + cur.BorrowNon, ""), ("Lease liabilities", cur.Lease, ""), ("Provisions", cur.Provisions, ""),
+            ("Current tax payable", cur.Tax, ""), ("Total liabilities", cur.TotalLiab, "sub"), ("Total equity", cur.TotalEquity, "sub"),
+            ("Total liabilities & equity", cur.TotalLiab + cur.TotalEquity, "total"),
+        ], ccy), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[2], ErpExternalReportingHtml.AmtTable([
+            ("Operating category", 0, "head"), ("Revenue (IFRS 15)", cur.Rev, ""), ("Cost of sales", -cur.Cogs, ""),
+            ("Operating expenses", -cur.Opex, ""), ("Depreciation and amortisation", -cur.Depr, ""),
+            ("Operating profit or loss", cur.Gross - cur.Opex - cur.Depr, "sub"),
+            ("Profit or loss before financing and income taxes", cur.Gross - cur.Opex - cur.Depr, "sub"),
+            ("Financing category", 0, "head"),
+            ("Finance costs", -cur.Interest, ""), ("Profit before tax", cur.Pbt, "sub"), ("Income tax", -cur.Tax, ""),
+            ("Profit / (loss) for the period", cur.Profit, "total"),
+        ], ccy) + ErpExternalReportingHtml.Commentary("IFRS 18 presentation", [
+            use18 ? "The face presents operating, investing, financing, income-tax and discontinued-operation categories with mandatory subtotals." : "The face follows the IFRS statement presentation applicable to the reporting period.",
+        ]), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[3], ErpExternalReportingHtml.AmtTable([
+            ("Net cash from operating activities", ds.CfOperating, ""), ("Net cash from investing activities", ds.CfInvesting, ""),
+            ("Net cash from financing activities", ds.CfFinancing, ""), ("Net increase / (decrease) in cash", ds.CfNet, "total"),
+        ], ccy), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[4], ErpExternalReportingHtml.AmtTable([
+            ("Opening equity", cur.TotalEquity - cur.Profit, ""), ("Profit / (loss)", cur.Profit, ""),
+            ("Owner contributions / share capital", cur.ShareCap, ""), ("Other reserves movement", cur.Reserves, ""),
+            ("Closing equity", cur.TotalEquity, "total"),
+        ], ccy), true));
+
+        var policySections = new[]
+        {
+            ("Basis of preparation and reporting framework", "Accrual-basis financial statements prepared for a UAE-registered entity under IFRS as issued by the IASB. Comparative amounts are included and the registered-country compliance basis is not overridden by preview jurisdiction."),
+            ("Material accounting policy information", "Revenue is recognised when control transfers; inventories are at the lower of cost and net realisable value; property is carried at cost less depreciation; financial instruments follow IFRS 9 classification and expected-credit-loss requirements."),
+            ("Critical judgements and estimation uncertainty", "Key estimates include useful lives, expected credit losses, inventory provisions, lease terms, provisions, tax positions and going-concern forecasts. The sample pack flags these for management confirmation."),
+            ("Revenue from contracts with customers — IFRS 15", "Revenue is disaggregated by customer stream and recognised as performance obligations are satisfied. Sample source schedules reconcile invoice totals to the reported revenue."),
+            ("Contract assets, receivables and deferred revenue", "Trade receivables are presented net of expected credit losses; contract liabilities represent consideration received before performance."),
+            ("Inventories — IAS 2", "Inventory cost includes purchase and directly attributable costs. Slow-moving and obsolete stock is reviewed against net realisable value."),
+            ("Property, plant and equipment — IAS 16", "PPE is depreciated systematically over estimated useful lives. Additions, disposals and accumulated depreciation are reviewed against the fixed-asset register."),
+            ("Intangible assets — IAS 38", "Capitalised software and licences are amortised over useful lives and tested for impairment indicators."),
+            ("Leases — IFRS 16", "Right-of-use assets and lease liabilities are recognised for identified leases, with maturity and discount-rate information retained in the lease schedule."),
+            ("Financial instruments — IFRS 9 / IAS 32", "Cash, receivables, payables and borrowings are classified by contractual cash-flow characteristics and business model."),
+            ("Expected credit losses and receivables ageing", "The illustrative ageing schedule applies provision rates to current, 31–60, 61–90 and over-90-day balances."),
+            ("Liquidity risk and maturity analysis", "Contractual cash outflows are monitored by maturity bucket and compared with available cash and committed facilities."),
+            ("Credit risk concentration", "Customer and bank exposures are reviewed by counterparty, geography and overdue status; no sample counterparty exceeds the internal concentration threshold."),
+            ("Market risk and foreign exchange", "Currency exposures, interest-rate sensitivity and commodity exposure are monitored through the treasury dimensions."),
+            ("Income taxes and deferred tax — IAS 12", "Current and deferred tax are reconciled to accounting profit, temporary differences and enacted tax rates."),
+            ("UAE Corporate Tax reconciliation", "The sample reconciliation starts from IFRS profit and identifies non-deductible fines, entertainment, depreciation, exempt income, interest limits and loss relief."),
+            ("Employee benefits — IAS 19", "Short-term benefits and end-of-service obligations are accrued as employees render service."),
+            ("Provisions and contingencies — IAS 37", "Provisions are recognised only where a present obligation and probable outflow can be measured reliably; remote matters are not provided."),
+            ("Commitments and legal exposures", "Purchase commitments, leases, guarantees and material claims are listed for management and auditor confirmation."),
+            ("Related parties and key management — IAS 24", "Related-party balances, transactions and key-management compensation require confirmation before filing."),
+            ("Earnings per share — IAS 33", "Basic EPS is calculated from profit attributable to ordinary shareholders and the weighted-average ordinary share count."),
+            ("Operating segments — IFRS 8", "The sample entity is presented as one reportable operating segment unless management reporting identifies additional segments."),
+            ("Fair value measurement — IFRS 13", "Financial assets and liabilities are classified within the fair-value hierarchy and valuation inputs are documented."),
+            ("Impairment review — IAS 36", "Cash-generating units and non-financial assets are assessed for impairment indicators and recoverable amount."),
+            ("Going concern assessment", "Management considers forecast cash flows, liquidity headroom, covenant compliance and financing access for at least twelve months."),
+            ("Events after the reporting period — IAS 10", "Adjusting and non-adjusting events are captured through the post-close checklist."),
+            ("Consolidation and group considerations", "The annual standalone report includes a group-assessment page; subsidiaries and associates must be supplied before a consolidated filing."),
+            ("Sustainability and climate disclosures — IFRS S1 / S2", "Climate, transition, physical-risk and governance questions are included as a management data request rather than fabricated facts."),
+            ("Management-defined performance measures — IFRS 18", "Any MPM is reconciled to the nearest IFRS subtotal and labelled clearly; the sample does not invent an unapproved KPI."),
+        };
+        foreach (var section in policySections)
+        {
+            body.Append(ErpExternalReportingHtml.Section(section.Item1,
+                ErpExternalReportingHtml.Commentary(section.Item1, [section.Item2, "Status: sample disclosure — confirm against the tenant ledger, contracts, registers and signed management schedules before filing."])
+                + ErpExternalReportingHtml.KvTable([
+                    ("Evidence owner", "Finance / controller", false),
+                    ("Source status", input.HasLiveFigures ? "Live totals; supporting detail to confirm" : "Illustrative sample data", false),
+                    ("Review status", "Management confirmation required", true),
+                ]), true));
+        }
+
+        var salesDocs = Invoices(cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), input.From, input.To, "IFRSREV");
+        var purchaseDocs = Invoices(cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * TaxRate(country) / 100m, 2), input.From, input.To, "IFRSEXP", true);
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[34], ErpExternalReportingHtml.Commentary("Audit evidence and source-system controls", [
+            "The report is designed to reconcile face statements, trial-balance bridges and source-document schedules. In live mode, the dashboard read services provide the ERP totals; sample mode supplies deterministic rows for review."
+        ]) + ErpExternalReportingHtml.CheckTable([
+            ("ok", "Tenant registration country drives the statutory framework."),
+            ("ok", "Period and comparative dates are explicit."),
+            ("ok", "Sample/source status is visible on the report."),
+            ("warn", "Replace illustrative supporting rows with signed live schedules before filing."),
+        ]), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[35], ErpExternalReportingHtml.AmtTable([
+            ("Revenue", cur.Rev, ""), ("Cost of sales", -cur.Cogs, ""), ("Operating expenses", -cur.Opex, ""),
+            ("Finance costs", -cur.Interest, ""), ("Tax", -cur.Tax, ""), ("Profit / (loss)", cur.Profit, "total"),
+            ("Total assets", cur.TotalAssets, ""), ("Total liabilities", cur.TotalLiab, ""), ("Total equity", cur.TotalEquity, "total"),
+        ], ccy), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[36],
+            ErpExternalReportingHtml.VatBox("Revenue", "Sales invoices supporting reported revenue", cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), ccy, !input.HasLiveFigures, salesDocs), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[37],
+            ErpExternalReportingHtml.VatBox("Expenses", "Supplier bills supporting cost of sales and operating expenses", cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * TaxRate(country) / 100m, 2), ccy, !input.HasLiveFigures, purchaseDocs), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[38], ErpExternalReportingHtml.Commentary("Tax and e-invoice bridge", [
+            "VAT 201, Corporate Tax and PINT-AE e-invoice schedules use the same reporting period, tenant country and source-document population. The VAT and e-invoice appendices remain available from the corresponding statutory report routes."
+        ]) + ErpExternalReportingHtml.KvTable([
+            ("VAT rate", RatePct(TaxRate(country)) + "%", false),
+            ("Output VAT sample", ErpExternalReportingHtml.Money(decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), ccy), false),
+            ("Corporate Tax basis", "IFRS profit with statutory adjustments", false),
+            ("E-invoice status", country == "AE" ? "PINT-AE / UAE e-invoice readiness review" : "Country-specific e-invoice review", true),
+        ]), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[39], ErpExternalReportingHtml.KvTable([
+            ("Prepared by", "Tenant finance team", false), ("Reviewed by", "Financial controller", false),
+            ("Approved by", "Authorised signatory", false), ("Approval status", "Pending human confirmation", true),
+        ]) + ErpExternalReportingHtml.Commentary("Sign-off requirement", ["This sample pack is not a filed return or audit opinion. Confirm live source documents, tax registrations, estimates and disclosures before approval."]), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[40], ErpExternalReportingHtml.CheckTable([
+            ("ok", "Annual financial statements include primary statements and notes."),
+            ("ok", "Source-document drill-down schedules are present."),
+            ("ok", "VAT / Corporate Tax / e-invoice bridge is visible."),
+            ("warn", "Auditor must replace sample rows with live evidence where flagged."),
+        ]), true));
+        body.Append(ErpExternalReportingHtml.Section(sectionTitles[41],
+            ErpExternalReportingHtml.FieldGuide("IFRS / IAS applicability index",
+                "The PHP reference carries an explicit standard-by-standard applicability matrix. The ASP.NET pack exposes the same review point for every annual report.",
+                IfrsGuide(), open: true)
+            + ErpExternalReportingHtml.KvTable([
+                ("IFRS 18", use18 ? "Applied / early applied" : "Not yet effective", false),
+                ("IAS 1", use18 ? "Superseded for presentation" : "Applied", false),
+                ("IAS 2 / IAS 16 / IAS 36", "Applied where relevant", false),
+                ("IFRS 9 / IFRS 15 / IFRS 16", "Applied where relevant", false),
+                ("IFRS S1 / S2", "Management data request", true),
+            ]), true));
+        return body.ToString();
     }
 
     private static ErpExternalReportingBuilt Audit(
