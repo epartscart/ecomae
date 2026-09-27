@@ -17,6 +17,10 @@ Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliati
 explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
 closed-period guards, opened-journal line drill-down, PHP COA-backed account selectors, debit/credit balance summaries, and selectable posting dates are now live. The phase-level
 percentage remains unchanged until a complete ERP capability gate is closed.
+Legacy route-contract audit: CP shop/top-level maps resolve all 34/34 and 11/11 mapped destinations;
+ERP PHP-tab mappings resolve 95/95 destinations and referenced `/erp/*-app` links resolve 224/224
+non-AJAX pages. The `/cp/carts-app` legacy path now aliases the implemented carts twin; unresolved
+scan entries are existing user/group routes or dedicated AJAX endpoints, not missing Razor pages.
 
 Conversation requirements audit (reconciled 2026-09-27):
 - [x] CP and ERP menu sources remain PHP-authoritative; generated counts are not treated as proof of parity.
