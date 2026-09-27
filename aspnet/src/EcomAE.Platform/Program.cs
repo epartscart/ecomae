@@ -1038,6 +1038,9 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditDeskService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPrintDocsDeskService, EcomAE.Platform.Cp.CpPrintDocsDeskService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPrintDocsWriteService, EcomAE.Platform.Cp.CpPrintDocsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSaoDeskService, EcomAE.Platform.Cp.CpSaoDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpDataTransferDeskService, EcomAE.Platform.Cp.CpDataTransferDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueExportService, EcomAE.Platform.Cp.CpCatalogueExportService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCatalogueImportService, EcomAE.Platform.Cp.CpCatalogueImportService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSaoWriteService, EcomAE.Platform.Cp.CpSaoWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyWriteService, EcomAE.Platform.Cp.CpCurrencyWriteService>();
 builder.Services.AddHttpClient(EcomAE.Platform.Cp.CpCurrencyLiveRatesService.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(12));

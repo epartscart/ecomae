@@ -1,12 +1,16 @@
 @page "/cp/data-transfer-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
+@inject ICpDataTransferDeskService Desk
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Data transfer · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
@@ -16,39 +20,194 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/data-transfer-app")</p>
-                <p>Catalogue CSV import and data-transfer pages. Import orchestrations remain PHP.</p>
+                <p>Catalogue export to XML/JSON and catalogue import from XML/JSON, over the own warehouses (<code>interface_type = 1</code>) assigned to your account.</p>
+                <ul class="nav nav-tabs" style="margin-bottom:10px">
+                    <li class="@(_tab == "export" ? "active" : null)"><a href="/cp/data-transfer-app?tab=export">Catalogue export (XML/JSON)</a></li>
+                    <li class="@(_tab == "import" ? "active" : null)"><a href="/cp/data-transfer-app?tab=import">Catalogue import (XML/JSON)</a></li>
+                    <li class="@(_tab == "csv" ? "active" : null)"><a href="/cp/data-transfer-app?tab=csv">Catalogue import (CSV)</a></li>
+                </ul>
             </div>
         </div>
     </div>
 
-    <div class="epc-cpmod-grid">
-        <div class="epc-cpmod-card">
-            <h3>Primary surface</h3>
-            <p>Route: <code>/cp/data-transfer-app</code></p>
-            <p style="margin-top:.4rem;">PHP path: <code>/CP/shop/data_transfer</code></p>
-            <p style="margin-top:.4rem;">Product locks: cutoverAllowed=false · readyForPhpRemoval=false · PHP authoritative for writes.</p>
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+    @if (_downloadFile.Length > 0)
+    {
+        <div class="col-lg-12">
+            <div class="alert alert-info" role="status">
+                Generated file:
+                <a href="@("/cp/data-transfer/download?file=" + Uri.EscapeDataString(_downloadFile))" target="_blank" rel="noopener">@_downloadFile</a>
+            </div>
         </div>
-        <div class="epc-cpmod-card">
-            <h3>Module status</h3>
-            <p>Read/presentation shell for tenant CP parity. Interactive forms stay on the Classic module until dual-sample cutover.</p>
-        </div>
-    </div>
+    }
 
-    <div class="epc-cpmod-note">
-        ePartsCart tenant CP maps this PHP module here so mega-menu / deep links no longer collapse to Command Centre.
-    </div>
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Sign in with an admin CP session to transfer catalogue data. <a href="/cp/login?returnUrl=/cp/data-transfer-app">Sign in</a></div></div>
+    }
+    else if (!_desk.Available)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">@_desk.Message</div></div>
+    }
+    else if (_tab == "export")
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Export the product catalogue to XML / JSON</div>
+                <div class="panel-body">
+                    <form method="post" action="/cp/data-transfer/export">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <div class="form-group">
+                            <label><input type="checkbox" name="output_products_text" value="1" checked /> Output product text</label><br />
+                            <label><input type="checkbox" name="output_products_images" value="1" checked /> Output product images</label><br />
+                            <label><input type="checkbox" name="output_products_suggestions" value="1" checked /> Output product suggestions</label>
+                        </div>
+                        <div class="form-group">
+                            <label for="offices">Pickup points</label>
+                            <select class="form-control" id="offices" name="offices" multiple size="5">
+                                @foreach (var office in _desk.Offices)
+                                {
+                                    <option value="@office.Id">@office.Caption</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="groups">Customer group (prices)</label>
+                            <select class="form-control" id="groups" name="group_id">
+                                @foreach (var group in _desk.Groups)
+                                {
+                                    <option value="@group.Id">@group.Caption</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="output_format">Output format</label>
+                            <select class="form-control" id="output_format" name="output_format">
+                                <option value="xml">XML</option>
+                                <option value="json">JSON</option>
+                            </select>
+                        </div>
+                        <button type="submit" class="btn btn-primary"><i class="fa fa-download"></i> Export</button>
+                        <a class="btn btn-default" href="/cp"><i class="fa fa-home"></i> Control panel</a>
+                    </form>
+                </div>
+            </div>
+        </div>
+    }
+    else if (_tab == "import")
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Import a product catalogue from XML / JSON</div>
+                <div class="panel-body">
+                    @if (_desk.Storages.Count == 0)
+                    {
+                        <p class="text-muted" style="margin:0">No own warehouse is assigned to your account, so imports are disabled.</p>
+                    }
+                    else
+                    {
+                        <form method="post" action="/cp/data-transfer/import" enctype="multipart/form-data">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <div class="form-group">
+                                <label for="file">XML / JSON file</label>
+                                <input type="file" id="file" name="file" accept=".xml,.json" required />
+                            </div>
+                            <div class="form-group">
+                                <label for="storages">Warehouse</label>
+                                <select class="form-control" id="storages" name="storages" required>
+                                    @foreach (var storage in _desk.Storages)
+                                    {
+                                        <option value="@storage.Id">@storage.Name</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label><input type="radio" name="clear_table" value="0" checked /> Do not clear anything</label><br />
+                                <label><input type="radio" name="clear_table" value="1" /> Clear this warehouse's stock rows first</label><br />
+                                <label><input type="radio" name="clear_table" value="2" /> Clear the whole product catalogue first</label>
+                            </div>
+                            <div class="form-group">
+                                <label><input type="checkbox" name="confirmClearCatalogue" value="1" /> I confirm clearing the whole catalogue (needed for the last option)</label>
+                            </div>
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-upload"></i> Import</button>
+                            <a class="btn btn-default" href="/cp"><i class="fa fa-home"></i> Control panel</a>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Import products into a category from CSV</div>
+                <div class="panel-body">
+                    <p>Pick the leaf category first; its properties become the mappable CSV columns. Column mapping and upload land in the next slice of this module — the catalogue tree and property list below are already read live from this tenant.</p>
+                    <table class="table table-condensed table-striped">
+                        <thead>
+                            <tr>
+                                <th>Category</th>
+                                <th>Level</th>
+                                <th>Published</th>
+                                <th>Mappable properties</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var category in _desk.Categories.Where(c => c.Leaf).Take(200))
+                            {
+                                <tr>
+                                    <td>@category.Caption</td>
+                                    <td>@category.Level.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@(category.Published ? "yes" : "no")</td>
+                                    <td>@category.Properties.Count.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/data_transfer";
     private bool _isAdmin;
+    private string _tab = "export";
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private string _downloadFile = "";
+    private CpDataTransferDesk _desk = CpDataTransferDesk.Unavailable("");
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _downloadFile = ctx.Request.Query["file"].ToString() ?? "";
+        var tab = ctx.Request.Query["tab"].ToString();
+        if (tab is "import" or "csv" or "export")
+        {
+            _tab = tab;
+        }
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _desk = await Desk.LoadAsync(session.UserId, ctx.RequestAborted);
     }
 }
