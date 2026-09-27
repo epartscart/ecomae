@@ -6,9 +6,8 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>epc_super_cp_communication.php</c> twin of <c>epc_scp_task_save</c>,
-/// <c>epc_scp_task_delete</c>, and <c>epc_scp_comm_settings_save</c>.
-/// SMTP transport and schema-ensure stay Classic.
-/// This service does not invent a send.
+/// <c>epc_scp_task_delete</c>, <c>epc_scp_comm_settings_save</c>, <c>epc_scp_tasks_list</c>,
+/// <c>epc_scp_platform_users</c> and the comm/task part of <c>epc_scp_platform_ensure_schema</c>.
 /// </summary>
 public interface ICpPlatformCommunicationWriteService
 {
@@ -26,7 +25,30 @@ public interface ICpPlatformCommunicationWriteService
     Task<ErpSimpleWriteResult> SaveSettingsAsync(
         CpPlatformCommunicationSaveSettingsRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<CpPlatformTaskList> ListTasksAsync(
+        string statusFilter,
+        CancellationToken cancellationToken = default);
+
+    Task<IReadOnlyList<CpPlatformUserOption>> ListPlatformUsersAsync(
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record CpPlatformTaskRow(
+    long Id,
+    string Title,
+    string Description,
+    long AssignedTo,
+    string AssignedEmail,
+    string SiteKey,
+    string Category,
+    string Status,
+    string Priority,
+    long DueAt);
+
+public sealed record CpPlatformTaskList(IReadOnlyList<CpPlatformTaskRow> Tasks, string Error);
+
+public sealed record CpPlatformUserOption(long UserId, string Label);
 
 public sealed record CpPlatformCommunicationSaveTaskRequest(
     long Id,
@@ -39,7 +61,8 @@ public sealed record CpPlatformCommunicationSaveTaskRequest(
     string? Status,
     string? Priority,
     long DueAt,
-    long CreatedBy);
+    long CreatedBy,
+    bool KeepDescriptionWhenBlank = true);
 
 public sealed record CpPlatformCommunicationSaveSettingsRequest(
     string? FromName,
@@ -192,6 +215,7 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             if (request.Id > 0)
             {
                 var existing = await ErpDb.LongAsync(
@@ -203,7 +227,7 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
                     return ErpSimpleWriteResult.Fail("not_found", "Task not found");
                 }
 
-                if (description.Length == 0)
+                if (description.Length == 0 && request.KeepDescriptionWhenBlank)
                 {
                     description = await ErpDb.StringAsync(
                         connection, null,
@@ -227,7 +251,7 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
         }
         catch (DbException)
         {
-            return ErpSimpleWriteResult.Fail("db", "Platform-communication table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Platform database unavailable.");
         }
     }
 
@@ -256,7 +280,7 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
         }
         catch (DbException)
         {
-            return ErpSimpleWriteResult.Fail("db", "Platform-communication table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Platform database unavailable.");
         }
     }
 
@@ -272,6 +296,7 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
             command.CommandText = "SELECT `setting_key`, `setting_value` FROM `epc_platform_comm_settings`";
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -288,7 +313,7 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
         }
         catch (DbException)
         {
-            // Schema-ensure stays Classic; form keeps PHP defaults.
+            // Database unavailable; form keeps PHP defaults.
         }
 
         return settings;
@@ -320,6 +345,7 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             foreach (var row in rows)
             {
                 await ErpDb.ExecuteAsync(
@@ -332,7 +358,151 @@ public sealed class CpPlatformCommunicationWriteService : ICpPlatformCommunicati
         }
         catch (DbException)
         {
-            return ErpSimpleWriteResult.Fail("db", "Platform-communication table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Platform database unavailable.");
         }
+    }
+
+    public const string SchemaCommSql = """
+        CREATE TABLE IF NOT EXISTS `epc_platform_comm_settings` (
+          `setting_key` VARCHAR(64) NOT NULL PRIMARY KEY,
+          `setting_value` TEXT NULL,
+          `updated_at` INT NOT NULL DEFAULT 0
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """;
+
+    public const string SchemaTasksSql = """
+        CREATE TABLE IF NOT EXISTS `epc_platform_internal_tasks` (
+          `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          `title` VARCHAR(200) NOT NULL,
+          `description` TEXT NULL,
+          `assigned_to` INT NOT NULL DEFAULT 0,
+          `assigned_email` VARCHAR(120) NOT NULL DEFAULT '',
+          `site_key` VARCHAR(64) NOT NULL DEFAULT '',
+          `category` VARCHAR(32) NOT NULL DEFAULT 'support',
+          `status` VARCHAR(24) NOT NULL DEFAULT 'open',
+          `priority` VARCHAR(16) NOT NULL DEFAULT 'normal',
+          `due_at` INT NOT NULL DEFAULT 0,
+          `created_by` INT NOT NULL DEFAULT 0,
+          `created_at` INT NOT NULL DEFAULT 0,
+          `updated_at` INT NOT NULL DEFAULT 0,
+          KEY `status_priority` (`status`, `priority`),
+          KEY `assigned_email` (`assigned_email`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """;
+
+    private const string TaskColumns = "`id`, `title`, IFNULL(`description`,''), `assigned_to`, `assigned_email`, `site_key`, `category`, `status`, `priority`, `due_at`";
+
+    /// <summary>PHP <c>epc_scp_tasks_list</c> ordering (filtered: priority, due, id desc; all: status, priority, due, id desc, limit 200).</summary>
+    public static string TasksSql(bool filtered)
+        => filtered
+            ? "SELECT " + TaskColumns + " FROM `epc_platform_internal_tasks` WHERE `status` = @p0 ORDER BY FIELD(`priority`, 'urgent', 'high', 'normal', 'low'), `due_at` ASC, `id` DESC"
+            : "SELECT " + TaskColumns + " FROM `epc_platform_internal_tasks` ORDER BY FIELD(`status`, 'open', 'in_progress', 'done', 'cancelled'), FIELD(`priority`, 'urgent', 'high', 'normal', 'low'), `due_at` ASC, `id` DESC LIMIT 200";
+
+    public const string PlatformUsersSql =
+        "SELECT u.`user_id`, u.`email`, MAX(CASE WHEN up.`data_key` = 'name' THEN up.`data_value` END) AS fname FROM `users` u LEFT JOIN `users_profiles` up ON up.`user_id` = u.`user_id` WHERE u.`user_id` > 0 GROUP BY u.`user_id`, u.`email` ORDER BY u.`email` ASC LIMIT 100";
+
+    /// <summary>PHP <c>strtotime</c> subset for the <c>type=date</c> due field: digits pass through, <c>yyyy-MM-dd</c> → UTC midnight.</summary>
+    public static long ParseDueAt(string? raw)
+    {
+        var value = (raw ?? string.Empty).Trim();
+        if (value.Length == 0)
+        {
+            return 0;
+        }
+
+        if (value.All(char.IsDigit))
+        {
+            return long.TryParse(value, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var unix) ? unix : 0;
+        }
+
+        return DateTime.TryParseExact(value, "yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture, System.Globalization.DateTimeStyles.AssumeUniversal | System.Globalization.DateTimeStyles.AdjustToUniversal, out var date)
+            ? new DateTimeOffset(date, TimeSpan.Zero).ToUnixTimeSeconds()
+            : 0;
+    }
+
+    public static string DueDate(long dueAt)
+        => dueAt <= 0 ? string.Empty : DateTimeOffset.FromUnixTimeSeconds(dueAt).UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+    public async Task<CpPlatformTaskList> ListTasksAsync(
+        string statusFilter,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], "TenantRegistry DB is not configured.");
+        }
+
+        var filter = (statusFilter ?? string.Empty).Trim();
+        var filtered = Statuses.ContainsKey(filter);
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = TasksSql(filtered);
+            if (filtered)
+            {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@p0";
+                parameter.Value = filter;
+                command.Parameters.Add(parameter);
+            }
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpPlatformTaskRow>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpPlatformTaskRow(
+                    Number(reader, 0), Text(reader, 1), Text(reader, 2), Number(reader, 3), Text(reader, 4),
+                    Text(reader, 5), Text(reader, 6), Text(reader, 7), Text(reader, 8), Number(reader, 9)));
+            }
+
+            return new(rows, string.Empty);
+        }
+        catch (DbException)
+        {
+            return new([], "Platform database unavailable.");
+        }
+    }
+
+    public async Task<IReadOnlyList<CpPlatformUserOption>> ListPlatformUsersAsync(
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = PlatformUsersSql;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpPlatformUserOption>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var name = Text(reader, 2).Trim();
+                rows.Add(new CpPlatformUserOption(Number(reader, 0), name.Length > 0 ? name : Text(reader, 1)));
+            }
+
+            return rows;
+        }
+        catch (DbException)
+        {
+            return [];
+        }
+    }
+
+    private static string Text(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? string.Empty : Convert.ToString(reader.GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+
+    private static long Number(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? 0 : Convert.ToInt64(reader.GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture);
+
+    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        await ErpDb.ExecuteAsync(connection, null, SchemaCommSql, cancellationToken).ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(connection, null, SchemaTasksSql, cancellationToken).ConfigureAwait(false);
     }
 }

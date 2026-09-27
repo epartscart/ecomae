@@ -13238,6 +13238,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var status = body.Status;
             var priority = body.Priority;
             var dueAt = body.DueAt;
+            var descriptionReplace = false;
             var fromName = body.FromName;
             var fromEmail = body.FromEmail;
             var replyTo = body.ReplyTo;
@@ -13261,7 +13262,8 @@ public sealed class ControlPanelModule : ISurfaceModule
                 category = LiveWriteFormBinder.Text(form, "category");
                 status = LiveWriteFormBinder.Text(form, "status");
                 priority = LiveWriteFormBinder.Text(form, "priority");
-                dueAt = LiveWriteFormBinder.Long(form, "due_at", "dueAt");
+                dueAt = CpPlatformCommunicationWriteService.ParseDueAt(LiveWriteFormBinder.Text(form, "due_at", "dueAt"));
+                descriptionReplace = LiveWriteFormBinder.Flag(form, "description_replace");
                 fromName = LiveWriteFormBinder.Text(form, "notify_from_name", "fromName");
                 fromEmail = LiveWriteFormBinder.Text(form, "notify_from_email", "fromEmail");
                 replyTo = LiveWriteFormBinder.Text(form, "notify_reply_to", "replyTo");
@@ -13294,7 +13296,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (confirm && key is "save_task" or "save")
             {
                 var written = await writes.SaveTaskAsync(
-                    new CpPlatformCommunicationSaveTaskRequest(id, title, description, assignedTo, assignedEmail, siteKey, category, status, priority, dueAt, session.UserId),
+                    new CpPlatformCommunicationSaveTaskRequest(id, title, description, assignedTo, assignedEmail, siteKey, category, status, priority, dueAt, session.UserId, !descriptionReplace),
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,

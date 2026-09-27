@@ -16,7 +16,12 @@ namespace EcomAE.Platform.Cp;
 public interface ICpCommunicationsDeskService
 {
     Task<CpCommunicationsView> LoadAsync(int adminUserId, string sessionEmail, CancellationToken cancellationToken = default);
+
+    CpSmtpDiagnostics Diagnose();
 }
+
+/// <summary>Safe subset of PHP <c>epc_auth_smtp_diagnose()</c> — never carries the SMTP password.</summary>
+public sealed record CpSmtpDiagnostics(string Source, string Host, string Port, string Encryption, string FromName, string FromEmail);
 
 /// <summary>PHP <c>$formatDebug()</c> output for one <c>debug_results</c> channel.</summary>
 public sealed record CpCommunicationsDebug(string Pill, string Label, string Meta, string AgeClass)
@@ -218,6 +223,26 @@ public sealed class CpCommunicationsDeskService : ICpCommunicationsDeskService
         {
             return CpCommunicationsView.Empty("database-error", "Tenant database unavailable.");
         }
+    }
+
+    public CpSmtpDiagnostics Diagnose()
+    {
+        var config = ReadConfig();
+        var path = ConfigPath;
+        var root = path.Length == 0 ? string.Empty : Path.GetDirectoryName(path) ?? string.Empty;
+        var source = config.Count == 0 ? "n/a" : "config.php";
+        if (root.Length > 0 && File.Exists(Path.Combine(root, "config.local.php")))
+        {
+            source = "config.php + config.local.php";
+        }
+
+        if (root.Length > 0 && File.Exists(Path.Combine(root, "config.epc-smtp.php")))
+        {
+            source = "config.epc-smtp.php";
+        }
+
+        string Value(string key) => config.TryGetValue(key, out var value) ? value : string.Empty;
+        return new CpSmtpDiagnostics(source, Value("smtp_host"), Value("smtp_port"), Value("smtp_encryption"), Value("from_name"), Value("from_email"));
     }
 
     private IReadOnlyDictionary<string, string> ReadConfig()

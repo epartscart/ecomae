@@ -1148,16 +1148,11 @@ public sealed class ErpRecordOpenPhpParityTests
         var root = FindRepoRoot();
         var text = File.ReadAllText(Path.Combine(root,
             "aspnet/src/EcomAE.Platform/Components/Pages/CpPlatformCommunicationApp.razor"));
-        Assert.Contains("ErpRecordOpen.Href(_listHref, \"task_id\"", text, StringComparison.Ordinal);
-        Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"task_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpPlatformCommunicationTaskDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No description excerpt yet.", text, StringComparison.Ordinal);
-        Assert.Contains("No category siblings yet.", text, StringComparison.Ordinal);
-        Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
-        Assert.Contains("table-epc", text, StringComparison.Ordinal);
-        Assert.Contains("PhpParityModuleBody", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
+        Assert.Contains("?edit_task=", text, StringComparison.Ordinal);
+        Assert.Contains("_edit?.Description", text, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-empty-state", text, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-data-table", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
 
