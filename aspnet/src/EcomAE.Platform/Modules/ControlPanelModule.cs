@@ -3613,6 +3613,9 @@ public sealed class ControlPanelModule : ISurfaceModule
             var settlementId = body.SettlementId > 0 ? body.SettlementId : body.Id;
             var status = body.Status;
             var confirm = body.ConfirmWrites;
+            var systemId = body.SystemId;
+            var parametersValues = body.ParametersValues;
+            CpPaymentAccountInput? account = null;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -3621,6 +3624,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 settlementId = LiveWriteFormBinder.Long(form, "id", "settlementId", "settlement_id");
                 status = LiveWriteFormBinder.Text(form, "status");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                systemId = LiveWriteFormBinder.Long(form, "system_id", "systemId");
+                parametersValues = CpPaymentsFormBinder.ParametersValues(form);
+                account = CpPaymentsFormBinder.Account(form);
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -3641,6 +3647,61 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return LiveWriteFormBinder.Complete(
                     context,
                     "/cp/payment-gateways-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "seed_dummy" or "seed")
+            {
+                var written = await writes.SeedGatewaysAsync(cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/payment-gateways-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "save_config")
+            {
+                var written = await writes.SaveConfigAsync(systemId, parametersValues, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/payment-gateways-app?tab=configure",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "save_account")
+            {
+                var written = await writes.SaveAccountAsync(account ?? body.ToAccountInput(), cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/payment-gateways-app?tab=accounts",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "disable_account")
+            {
+                var written = await writes.DisableAccountAsync(settlementId, cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/payment-gateways-app?tab=accounts",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            if (confirm && key is "seed_platform_account")
+            {
+                var written = await writes.SeedPlatformAccountAsync(cancellationToken);
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/payment-gateways-app?tab=accounts",
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -16107,7 +16168,39 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? Handler = null,
         long Id = 0,
         long SettlementId = 0,
-        string? Status = null);
+        string? Status = null,
+        long SystemId = 0,
+        string? ParametersValues = null,
+        string? OwnerType = null,
+        long OwnerId = 0,
+        string? Title = null,
+        string? Mode = null,
+        string? CredentialsJson = null,
+        string? ConnectedAccountId = null,
+        string? PayoutIban = null,
+        string? PayoutBank = null,
+        string? PayoutName = null,
+        decimal PlatformFeePct = 0,
+        bool DemoMode = false,
+        bool IsDefault = false)
+    {
+        public CpPaymentAccountInput ToAccountInput() => new(
+            Id,
+            OwnerType ?? "platform",
+            OwnerId,
+            Title ?? "",
+            Handler ?? "",
+            Mode ?? "direct",
+            CredentialsJson ?? "{}",
+            ConnectedAccountId ?? "",
+            PayoutIban ?? "",
+            PayoutBank ?? "",
+            PayoutName ?? "",
+            PlatformFeePct,
+            Status ?? "active",
+            DemoMode,
+            IsDefault);
+    }
     private sealed record CpWorkshopWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,
