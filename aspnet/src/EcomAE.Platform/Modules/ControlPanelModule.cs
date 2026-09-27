@@ -15343,6 +15343,16 @@ public sealed class ControlPanelModule : ISurfaceModule
             var hashtags = body.Hashtags;
             var mediaUrl = body.MediaUrl;
             var confirm = body.ConfirmWrites;
+            var accountLabel = string.Empty;
+            var username = string.Empty;
+            var accessToken = string.Empty;
+            var apiKey = string.Empty;
+            var apiSecret = string.Empty;
+            var pageId = string.Empty;
+            var igUserId = string.Empty;
+            var openId = string.Empty;
+            var privacyLevel = string.Empty;
+            var returnUrl = string.Empty;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -15355,12 +15365,51 @@ public sealed class ControlPanelModule : ISurfaceModule
                 hashtags = LiveWriteFormBinder.Text(form, "hashtags");
                 mediaUrl = LiveWriteFormBinder.Text(form, "media_url", "mediaUrl");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                accountLabel = LiveWriteFormBinder.Text(form, "account_label", "accountLabel");
+                username = LiveWriteFormBinder.Text(form, "username");
+                accessToken = LiveWriteFormBinder.Text(form, "access_token", "accessToken");
+                apiKey = LiveWriteFormBinder.Text(form, "api_key", "apiKey");
+                apiSecret = LiveWriteFormBinder.Text(form, "api_secret", "apiSecret");
+                pageId = LiveWriteFormBinder.Text(form, "page_id", "pageId");
+                igUserId = LiveWriteFormBinder.Text(form, "ig_user_id", "igUserId");
+                openId = LiveWriteFormBinder.Text(form, "open_id", "openId");
+                privacyLevel = LiveWriteFormBinder.Text(form, "privacy_level", "privacyLevel");
+                returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
             }
 
             var key = (action ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(key))
             {
                 key = "save_draft";
+            }
+
+            var landing = string.IsNullOrWhiteSpace(returnUrl) || !returnUrl.StartsWith("/cp/", StringComparison.Ordinal)
+                ? "/cp/social-hub-app"
+                : returnUrl;
+
+            if (confirm && key is "save_account" or "test_account" or "delete_account")
+            {
+                var accountResult = key switch
+                {
+                    "save_account" => await writes.SaveAccountAsync(
+                        new CpSocialHubSaveAccountRequest(
+                            siteKey, platform, accountLabel, username, accessToken, apiKey, apiSecret,
+                            pageId, igUserId, openId, privacyLevel,
+                            SuperCpHostGate.IsAllowed(context),
+                            context.Request.Host.Host),
+                        cancellationToken),
+                    "test_account" => await writes.TestAccountAsync(
+                        siteKey, platform, SuperCpHostGate.IsAllowed(context), context.Request.Host.Host, cancellationToken),
+                    _ => await writes.DeleteAccountAsync(
+                        siteKey, platform, SuperCpHostGate.IsAllowed(context), context.Request.Host.Host, cancellationToken),
+                };
+
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    landing,
+                    accountResult.Succeeded,
+                    accountResult.Message,
+                    new { ok = accountResult.Succeeded, writes = accountResult.Writes, id = accountResult.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = accountResult.Code, message = accountResult.Message, session = SessionPayload(session) });
             }
 
             if (confirm && key is "save_draft" or "social_save_draft")
@@ -15373,7 +15422,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
-                    "/cp/social-hub-app",
+                    landing,
                     written.Succeeded,
                     written.Message,
                     new { ok = written.Succeeded, writes = written.Writes, id = written.Id, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
@@ -15383,13 +15432,13 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 ok = true,
                 writes = 0,
-                wouldWrite = key is "save_draft" or "social_save_draft",
+                wouldWrite = key is "save_draft" or "social_save_draft" or "save_account" or "test_account" or "delete_account",
                 writesBlocked = confirm,
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Publish stay Classic."
-                    : "Dry-run. Set confirmWrites=true to save the draft.",
+                    ? "Publishing to Meta/TikTok stays Classic."
+                    : "Dry-run. Set confirmWrites=true to save the draft or account.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),
             });

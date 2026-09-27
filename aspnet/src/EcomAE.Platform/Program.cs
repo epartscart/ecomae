@@ -738,6 +738,7 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSuperCustomerBoardService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpIntegrationsHubService, EcomAE.Platform.Cp.CpIntegrationsHubService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpTenantsWriteService, EcomAE.Platform.Cp.CpTenantsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSocialHubWriteService, EcomAE.Platform.Cp.CpSocialHubWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSocialHubService, EcomAE.Platform.Cp.CpSocialHubService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpInfoBlocksWriteService, EcomAE.Platform.Cp.CpInfoBlocksWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformCommunicationWriteService, EcomAE.Platform.Cp.CpPlatformCommunicationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceConfigsWriteService, EcomAE.Platform.Cp.CpPriceConfigsWriteService>();
