@@ -539,6 +539,8 @@ public static class EcomAeRoutes
     public const string ControlPanelProcurementApp = "/cp/procurement-app";
     public const string ControlPanelSaoApp = "/cp/sao-app";
     public const string ControlPanelPrintDocsApp = "/cp/print-docs-app";
+    /// <summary>Print document parameter save. <c>confirmWrites=true</c> is the live twin of PHP print_docs/print_doc_tuning.php.</summary>
+    public const string CpPrintDocsWrite = "/cp/print-docs/write";
     public const string ControlPanelDataTransferApp = "/cp/data-transfer-app";
     public const string ControlPanelBulkUploadApp = "/cp/bulk-upload-app";
     /// <summary>CP bulk-upload mark_reviewed. <c>confirmWrites=true</c> twins PHP ajax_bulk_cp.php. process / quote / cart stay Classic.</summary>

@@ -4240,6 +4240,73 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpPrintDocsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPrintDocsWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/print-docs-app", "Admin CP capability required for print document tuning.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "Print document settings are saved as a form post." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var printDocId = LiveWriteFormBinder.Long(form, "printDocId", "print_doc_id");
+            var officeId = LiveWriteFormBinder.Long(form, "officeId", "office_id");
+            var confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var submitted = new Dictionary<string, string>(StringComparer.Ordinal);
+            var cleared = new List<string>();
+            foreach (var field in form)
+            {
+                if (field.Key.StartsWith("image_file_deleted_", StringComparison.Ordinal))
+                {
+                    if (string.Equals(field.Value.ToString(), "deleted", StringComparison.Ordinal))
+                    {
+                        cleared.Add(field.Key["image_file_deleted_".Length..]);
+                    }
+
+                    continue;
+                }
+
+                if (field.Key is "printDocId" or "print_doc_id" or "officeId" or "office_id" or "confirmWrites" or "confirm_writes" or "action")
+                {
+                    continue;
+                }
+
+                submitted[field.Key] = field.Value.ToString();
+            }
+
+            var returnUrl = "/cp/print-docs-app?print_doc_id=" + printDocId.ToString(CultureInfo.InvariantCulture)
+                            + (officeId > 0 ? "&office_id=" + officeId.ToString(CultureInfo.InvariantCulture) : "");
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save print document settings on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.SaveAsync(printDocId, officeId, submitted, cleared, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                returnUrl,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpTemplatesActions, async (
             HttpContext context,
             ILegacySessionValidator validator,
