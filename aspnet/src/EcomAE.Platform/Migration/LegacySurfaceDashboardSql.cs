@@ -8047,6 +8047,19 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT 50
         """;
 
+    public const string SelectErpOpeningLines = """
+        SELECT IFNULL(`line_type`, '') AS line_type,
+               IFNULL(`entity_id`, 0) AS entity_id,
+               IFNULL(`entity_ref`, '') AS entity_ref,
+               IFNULL(`debit`, 0) AS debit,
+               IFNULL(`credit`, 0) AS credit,
+               IFNULL(`qty`, 0) AS quantity,
+               IFNULL(`unit_cost`, 0) AS unit_cost
+        FROM `epc_erp_opening_lines`
+        WHERE `batch_id` = @batch_id
+        ORDER BY `id` ASC
+        """;
+
     /// <summary>PHP <c>epc_erp_marketing_list</c> — notes omitted.</summary>
     public const string SelectErpMarketingCampaigns = """
         SELECT `id`, IFNULL(`name`,'') AS name,

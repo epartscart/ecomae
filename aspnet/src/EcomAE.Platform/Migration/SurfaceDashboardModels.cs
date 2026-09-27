@@ -7451,7 +7451,17 @@ public sealed record ErpOpeningBatchDetail(
     long TimeCreated,
     long TimePosted,
     int NoteLen,
-    string NoteExcerpt);
+    string NoteExcerpt,
+    IReadOnlyList<ErpOpeningLineDigest> Lines);
+
+public sealed record ErpOpeningLineDigest(
+    string LineType,
+    long EntityId,
+    string EntityRef,
+    decimal Debit,
+    decimal Credit,
+    decimal Quantity,
+    decimal UnitCost);
 
 public sealed record ErpOpeningBatchDetailResult(
     ErpOpeningBatchDetail? Batch,
