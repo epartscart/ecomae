@@ -4426,7 +4426,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"api_client_id\"", text, StringComparison.Ordinal);
         Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"api_client_id\")", text, StringComparison.Ordinal);
-        Assert.Contains("BuildCpApiClientDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("ICpApiClientsDeskService", text, StringComparison.Ordinal);
         Assert.Contains("No allowed actions yet.", text, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
