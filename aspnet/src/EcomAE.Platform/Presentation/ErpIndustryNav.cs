@@ -12,6 +12,15 @@ public static class ErpIndustryNav
 {
     public sealed record NavVisibility(bool Visible, string Code, string Detail);
 
+    public sealed record NavInspectionRow(
+        string PlacementId,
+        string AreaId,
+        string TabKey,
+        string Label,
+        bool Visible,
+        string Code,
+        string Detail);
+
     public sealed record ErpNavAudience(
         string TenantVersion,
         string? IndustryCode,
@@ -175,6 +184,28 @@ public static class ErpIndustryNav
             .Where(g => g.Count() > 1)
             .Select(g => g.Key)
             .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
+            .ToArray();
+
+    public static IReadOnlyList<NavInspectionRow> Inspect(
+        ErpNavAudience audience)
+        => PhpModuleCatalog.ErpTabs
+            .Select(tab =>
+            {
+                var slash = tab.Id.LastIndexOf('/');
+                var area = slash > 0 ? tab.Id[..slash] : tab.Group ?? string.Empty;
+                var key = slash >= 0 && slash < tab.Id.Length - 1
+                    ? tab.Id[(slash + 1)..]
+                    : tab.Id;
+                var decision = ExplainTab(tab, audience);
+                return new NavInspectionRow(
+                    tab.Id,
+                    area,
+                    key,
+                    tab.Label,
+                    decision.Visible,
+                    decision.Code,
+                    decision.Detail);
+            })
             .ToArray();
 
     /// <summary>
