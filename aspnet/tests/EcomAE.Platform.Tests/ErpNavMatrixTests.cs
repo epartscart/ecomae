@@ -101,4 +101,18 @@ public sealed class ErpNavMatrixTests
         Assert.Equal("disabled", decision.Code);
         Assert.Contains("deny", decision.Detail, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Fact]
+    public void TenantRuleFeatureKeysUseAnExplicitNamespace()
+    {
+        Assert.Equal(
+            "finance/coa",
+            ErpNavTenantRules.DisabledTabId("erp.nav.disabled.finance/coa"));
+        Assert.Equal(
+            string.Empty,
+            ErpNavTenantRules.DisabledTabId("feature.finance"));
+        Assert.Equal(
+            "tenant.example",
+            ErpNavTenantRules.NormalizeSiteKey(" Tenant.Example "));
+    }
 }

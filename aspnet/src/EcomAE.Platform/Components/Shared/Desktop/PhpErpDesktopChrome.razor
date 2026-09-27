@@ -7,6 +7,7 @@
 @inject IHttpContextAccessor Http
 @inject ILegacySessionValidator Sessions
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpNavTenantRules NavTenantRules
 @*
   Mirrors erp_desktop.php + epc_erp_render_top_nav mega chrome.
   Topnav typography/panels come from epc_erp_professional.css (px sizes).
@@ -462,6 +463,10 @@
         var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)
             ?? companies.FirstOrDefault();
         var countryCode = active?.CountryCode;
+        var tenantSiteKey = ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenantContext
+            ? tenantContext.SiteKey
+            : ctx.Request.Host.Host;
+        var tenantRules = await NavTenantRules.ResolveAsync(tenantSiteKey, ctx.RequestAborted);
         if (active is not null)
         {
             _activeCompanyId = active.Id;
@@ -481,7 +486,8 @@
                 "current",
                 _industryCode,
                 countryCode,
-                _showBos));
+                _showBos,
+                DisabledTabIds: tenantRules.DisabledTabIds));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _signedIn = session.Kind == LegacySessionKind.Admin || IsAdmin;
