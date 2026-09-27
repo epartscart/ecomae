@@ -45,7 +45,6 @@ public sealed class OperatorGuidesParityTests
         Assert.Contains("@page \"/cp/shop/orders/guide\"", src);
         Assert.Contains("@page \"/cp/shop/orders/whatsapp-guide\"", src);
         Assert.Contains("@page \"/cp/control/cp-guideline\"", src);
-        Assert.Contains("@page \"/cp/control/portal/epc_super_cp_operator_guide\"", src);
         Assert.Contains("OperatorGuidesCatalog", src);
         Assert.Contains("PhpCpDesktopChrome", src);
         Assert.DoesNotContain("@onclick", src);
@@ -105,7 +104,7 @@ public sealed class OperatorGuidesParityTests
     [InlineData("/CP/control/portal/epc_integrations_guide", "/cp/integrations-guide-app")]
     [InlineData("/CP/control/portal/epc_platform_failover_guide", "/cp/guides-app?g=failover")]
     [InlineData("/CP/control/portal/epc_power_bi_guide", "/cp/guides-app?g=power-bi")]
-    [InlineData("/CP/control/portal/epc_super_cp_operator_guide", "/cp/guides-app?g=super-cp-operator")]
+    [InlineData("/CP/control/portal/epc_super_cp_operator_guide", "/cp/super-cp-operator-guide-app")]
     [InlineData("/CP/shop/customer_mgmt/customer_mgmt_guide", "/cp/guides-app?g=customer-mgmt")]
     [InlineData("/CP/shop/document_control/document_control_guide", "/cp/guides-app?g=document-control")]
     [InlineData("/CP/shop/finance/erp/guide", "/erp/guide-app?book=howto")]

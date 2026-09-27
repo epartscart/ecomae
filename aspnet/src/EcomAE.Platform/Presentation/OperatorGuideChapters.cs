@@ -1220,7 +1220,7 @@ internal static class OperatorGuideChapters
             "Super CP — Operator workspace guide",
             "fa-sitemap",
             "/CP/control/portal/epc_super_cp_operator_guide",
-            "/cp/guides-app?g=super-cp-operator",
+            "/cp/super-cp-operator-guide-app",
             "Platform operators only. Tenant CP has no Operator sidebar group. Fleet, customer board, price configs, info blocks, communication.",
             [
             OperatorGuidesCatalog.Ch("Who is an “Operator”?",
