@@ -2747,6 +2747,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         ReadI64(reader, "source_id"),
                         ReadStr(reader, "status"),
                         ReadDec(reader, "total_debit"),
+                        ReadDec(reader, "total_credit"),
                         ReadStr(reader, "reference"),
                         ReadStr(reader, "description_excerpt"),
                         ReadI32(reader, "description_len"),

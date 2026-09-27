@@ -690,6 +690,7 @@ public sealed record ErpGlJournalDetail(
     long SourceId,
     string Status,
     decimal TotalDebit,
+    decimal TotalCredit,
     string Reference,
     string DescriptionExcerpt,
     int DescriptionLen,
