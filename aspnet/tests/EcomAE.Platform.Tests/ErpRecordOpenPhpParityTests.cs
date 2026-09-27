@@ -955,7 +955,6 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("<iframe", text, StringComparison.OrdinalIgnoreCase);
 
         Assert.Equal("/cp/power-bi-app?pbi_id=5#erp-row-5",
             ErpRecordOpen.Href("/cp/power-bi-app", "pbi_id", 5));

@@ -5,9 +5,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>epc_power_bi.php</c> twin of <c>epc_power_bi_configure</c> and
-/// <c>epc_power_bi_register_report</c>. Embed token mint and schema-ensure stay Classic.
-/// This service does not invent a send.
+/// Live PHP <c>epc_power_bi.php</c> twin of <c>epc_power_bi_ensure_schema</c>,
+/// <c>epc_power_bi_configure</c> and <c>epc_power_bi_register_report</c>.
+/// Azure embed token mint stays out of scope until the tenant supplies AAD credentials.
 /// </summary>
 public interface ICpPowerBiWriteService
 {
@@ -66,6 +66,47 @@ public sealed class CpPowerBiWriteService : ICpPowerBiWriteService
         return text.Length <= max ? text : text[..max];
     }
 
+    /// <summary>PHP <c>epc_power_bi_ensure_schema()</c> MySQL branch.</summary>
+    public static async Task EnsureSchemaAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken = default)
+    {
+        await ErpDb.ExecuteAsync(
+            connection, null,
+            "CREATE TABLE IF NOT EXISTS `epc_power_bi_config` ("
+            + "`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,"
+            + "`site_key` VARCHAR(64) NOT NULL DEFAULT '__platform__',"
+            + "`workspace_id` VARCHAR(64) NOT NULL DEFAULT '',"
+            + "`azure_tenant_id` VARCHAR(64) NOT NULL DEFAULT '',"
+            + "`default_report_id` VARCHAR(64) NOT NULL DEFAULT '',"
+            + "`default_dataset_id` VARCHAR(64) NOT NULL DEFAULT '',"
+            + "`embed_url` VARCHAR(512) NOT NULL DEFAULT '',"
+            + "`embed_mode` VARCHAR(16) NOT NULL DEFAULT 'none',"
+            + "`notes` VARCHAR(512) NOT NULL DEFAULT '',"
+            + "`active` TINYINT(1) NOT NULL DEFAULT 0,"
+            + "`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+            + "`updated_at` DATETIME NULL ON UPDATE CURRENT_TIMESTAMP,"
+            + "UNIQUE KEY `site` (`site_key`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            cancellationToken).ConfigureAwait(false);
+
+        await ErpDb.ExecuteAsync(
+            connection, null,
+            "CREATE TABLE IF NOT EXISTS `epc_power_bi_reports` ("
+            + "`id` INT UNSIGNED AUTO_INCREMENT PRIMARY KEY,"
+            + "`site_key` VARCHAR(64) NOT NULL,"
+            + "`report_id` VARCHAR(64) NOT NULL DEFAULT '',"
+            + "`report_name` VARCHAR(128) NOT NULL DEFAULT '',"
+            + "`dataset_id` VARCHAR(64) NOT NULL DEFAULT '',"
+            + "`category` VARCHAR(32) NOT NULL DEFAULT 'finance',"
+            + "`embed_url` VARCHAR(512) NOT NULL DEFAULT '',"
+            + "`active` TINYINT(1) NOT NULL DEFAULT 1,"
+            + "`created_at` DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,"
+            + "INDEX `idx_site` (`site_key`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<ErpSimpleWriteResult> SaveConfigAsync(
         CpPowerBiSaveConfigRequest request,
         CancellationToken cancellationToken = default)
@@ -85,6 +126,7 @@ public sealed class CpPowerBiWriteService : ICpPowerBiWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection, null,
                 ErpDb.Positional("INSERT INTO `epc_power_bi_config` (`site_key`,`workspace_id`,`azure_tenant_id`,`default_report_id`,`default_dataset_id`,`embed_url`,`embed_mode`,`notes`,`active`) VALUES (?,?,?,?,?,?,?,?,1) ON DUPLICATE KEY UPDATE `workspace_id`=VALUES(`workspace_id`), `azure_tenant_id`=VALUES(`azure_tenant_id`), `default_report_id`=VALUES(`default_report_id`), `default_dataset_id`=VALUES(`default_dataset_id`), `embed_url`=VALUES(`embed_url`), `embed_mode`=VALUES(`embed_mode`), `notes`=VALUES(`notes`), `active`=1"),
@@ -101,7 +143,7 @@ public sealed class CpPowerBiWriteService : ICpPowerBiWriteService
         }
         catch (DbException)
         {
-            return ErpSimpleWriteResult.Fail("db", "Power BI table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Power BI config write failed.");
         }
     }
 
@@ -135,6 +177,7 @@ public sealed class CpPowerBiWriteService : ICpPowerBiWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection, null,
                 ErpDb.Positional("INSERT INTO `epc_power_bi_reports` (`site_key`,`report_id`,`report_name`,`dataset_id`,`category`,`embed_url`,`active`) VALUES (?,?,?,?,?,?,1)"),
@@ -150,7 +193,7 @@ public sealed class CpPowerBiWriteService : ICpPowerBiWriteService
         }
         catch (DbException)
         {
-            return ErpSimpleWriteResult.Fail("db", "Power BI table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Power BI report write failed.");
         }
     }
 }
