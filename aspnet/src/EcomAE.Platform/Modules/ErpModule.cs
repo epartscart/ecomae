@@ -708,8 +708,7 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPaymentBatchSave, HandlePaymentBatchSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPettyCashSave, async (HttpContext context, ErpPettyCashSaveBody? body, ILegacySessionValidator validator, IErpPettyCashSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPettyCashSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPettyCashSave, HandlePettyCashSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAgendaSave, HandleAgendaSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxKbSave, HandleKbSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMultiEntitySave, HandleMultiEntitySaveAsync).DisableAntiforgery();
@@ -11734,6 +11733,53 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePettyCashSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPettyCashSaveDryRun dryRun,
+        IErpPettyCashWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for petty cash.");
+        }
+
+        var confirm = false;
+        var request = new ErpPettyCashWriteRequest();
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            request = new(
+                LiveWriteFormBinder.Text(form, "name"),
+                LiveWriteFormBinder.Long(form, "account_id", "accountId"),
+                LiveWriteFormBinder.Dec(form, "float_amount", "floatAmount"),
+                LiveWriteFormBinder.Long(form, "custodian_user_id", "custodianUserId"));
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPettyCashSaveBody>(context, cancellationToken)
+                ?? new ErpPettyCashSaveBody();
+            confirm = body.ConfirmWrites;
+            request = new(body.Name, body.AccountId, body.FloatAmount, body.CustodianUserId);
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPettyCashSaveRequest(0, request.Name, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(request, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            LiveWriteFormBinder.ReturnUrl(context, "/erp/cash-accounts-app?tab=petty_cash"),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandlePaymentBatchSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19207,7 +19253,14 @@ public sealed class ErpModule : ISurfaceModule
         int LineCount = 1,
         string? ExecutionDate = null,
         string? Notes = null);
-    private sealed record ErpPettyCashSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPettyCashSaveBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        string? Name = null,
+        long AccountId = 0,
+        decimal FloatAmount = 0,
+        long CustodianUserId = 0);
     private sealed record ErpAgendaSaveBody(
         string? Title = null,
         string? EventType = null,
