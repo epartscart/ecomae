@@ -15344,7 +15344,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_tenant_feature_flags matrix. save_feature_flags POST /cp/tenant-features/write when confirmWrites=true. Schema-ensure stays Classic."
+                note = "Read-only epc_tenant_feature_flags matrix. save_feature_flags POST /cp/tenant-features/write when confirmWrites=true."
             });
         });
 
@@ -15425,7 +15425,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Schema-ensure stays Classic."
+                    ? "Unsupported tenant-features action."
                     : "Dry-run. Set confirmWrites=true to save feature flags.",
                 phpAuthoritative = true,
                 session = SessionPayload(session),

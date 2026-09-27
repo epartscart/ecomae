@@ -40,8 +40,11 @@ public sealed class CpTenantFeaturesWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_feature_flags\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"site_key\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("Integrations hub", razor, StringComparison.Ordinal);
+        Assert.Contains("How it works", razor, StringComparison.Ordinal);
+        Assert.Contains("ListTenantsAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("onchange=\"this.form.submit()\"", razor, StringComparison.Ordinal);
         Assert.Contains("SuperCpHostGate", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
@@ -55,8 +58,8 @@ public sealed class CpTenantFeaturesWriteTests
             item.AspNetRouteOrCapability == "/cp/tenant-features/write");
         Assert.Equal("write-live-gated", write.Status);
         Assert.Contains("ajax_integrations.php", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("Classic", write.Notes, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("epc_tenant_feature_flags", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("tenant_registry", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -69,9 +72,10 @@ public sealed class CpTenantFeaturesWriteTests
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpTenantFeaturesWriteService.cs"));
         Assert.Contains("epc_integrations_save_feature_flags", service, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
+        Assert.Contains("epc_portal_list_tenants", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_tenant_feature_flags`", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_tenant_feature_flags`", service, StringComparison.Ordinal);
+        Assert.Contains("ORDER BY `hostname` ASC", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
     }

@@ -38,7 +38,8 @@ public sealed class CpPortalSettingsSuperOnlyTests
         Assert.Contains("well well-sm", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Deploy targets", text, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_portal_deploy_targets", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("SuperCpHostGate", text, StringComparison.Ordinal);
+        // PHP shows a Super-CP informational notice but never gates the page: tenant hosts keep the form.
+        Assert.DoesNotContain("available on the platform Super CP host only", text, StringComparison.Ordinal);
     }
 
     [Fact]

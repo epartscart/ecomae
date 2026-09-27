@@ -7,6 +7,7 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpTenantFeaturesWriteService Features
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -19,16 +20,21 @@
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
-                Tenant features
+                <span class="label label-primary">Super CP</span> Tenant feature registry
+                <a class="btn btn-xs btn-primary pull-right" style="margin-left:6px" href="/cp/integrations-app">Integrations hub</a>
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/tenant-features-app")</p>
-                <p>Save per-tenant feature flags here. Schema-ensure stays on the Classic twin. This page does not invent a send.</p>
+                <p>Enable or disable platform features per <code>site_key</code>. Disabled features hide from the tenant CP menu.</p>
             </div>
         </div>
     </div>
     <PhpParityModuleBody AppPath="/cp/tenant-features-app" IsAdmin="_isAdmin" />
+
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Admin login required to edit tenant feature flags.</div></div>
+    }
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -48,9 +54,27 @@
                 <div class="panel-heading hbuilt">Save feature flags</div>
                 <div class="panel-body">
                     <form method="get" action="/cp/tenant-features-app" class="form-inline" style="margin-bottom:1rem">
-                        <label>Tenant
+                        <label>Tenant</label>
+                        @if (_tenants.Count > 0)
+                        {
+                            <select name="site_key" class="form-control input-sm" onchange="this.form.submit()">
+                                @foreach (var tenant in _tenants)
+                                {
+                                    if (string.Equals(tenant.SiteKey, _selectedSite, StringComparison.Ordinal))
+                                    {
+                                        <option value="@tenant.SiteKey" selected>@tenant.Label</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@tenant.SiteKey">@tenant.Label</option>
+                                    }
+                                }
+                            </select>
+                        }
+                        else
+                        {
                             <input type="text" class="form-control input-sm" name="site_key" value="@_selectedSite" />
-                        </label>
+                        }
                         <button type="submit" class="btn btn-default btn-sm">Load</button>
                     </form>
                     <form method="post" action="/cp/tenant-features/write" class="well">
@@ -72,6 +96,7 @@
                                         {
                                             <input type="checkbox" name="features_@feat.Key" value="1" />
                                         }
+                                        <i class="fa @feat.Icon"></i>
                                         @feat.Label
                                     </label>
                                 </div>
@@ -79,7 +104,7 @@
                         </div>
                         <button type="submit" class="btn btn-success">Save feature flags</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">Schema-ensure stays Classic.</p>
+
                 </div>
             </div>
         </div>
@@ -125,6 +150,19 @@
         </div>
     </div>
 
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">How it works</div>
+            <div class="panel-body">
+                <ol>
+                    <li>Select tenant &rarr; check features they should use.</li>
+                    <li>Save &mdash; tenant CP sidebar hides menu items for disabled features.</li>
+                    <li>Tenant admin opens <strong>Integrations hub</strong> to configure credentials for enabled features.</li>
+                </ol>
+            </div>
+        </div>
+    </div>
+
     <div class="epc-nw-note">Super CP host only. tenant_registry is not saved here.</div>
 
 </PhpCpDesktopChrome>
@@ -153,6 +191,7 @@ else
     private string _flashErr = "";
     private string _selectedSite = "";
     private readonly IReadOnlyList<CpIntegrationsHubCatalogEntry> _saveable = CpTenantFeaturesWriteService.SaveableCatalog;
+    private IReadOnlyList<CpTenantFeatureTenantOption> _tenants = [];
 
     private string ReturnHref => string.IsNullOrWhiteSpace(_selectedSite)
         ? "/cp/tenant-features-app"
@@ -189,6 +228,12 @@ else
         if (!_isAdmin)
         {
             return;
+        }
+
+        _tenants = await Features.ListTenantsAsync(ctx.RequestAborted);
+        if (_selectedSite.Length == 0 && _tenants.Count > 0)
+        {
+            _selectedSite = _tenants[0].SiteKey;
         }
 
         var result = await Dashboards.BuildCpTenantFeaturesDigestAsync(200, ctx.RequestAborted);

@@ -142,7 +142,7 @@ public sealed class StorefrontCatalogDedicatedAppsTests : IDisposable
         Assert.Contains("/cp/tenant-email/test", email, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", email, StringComparison.Ordinal);
         Assert.Contains("/CP/control/portal/epc_tenant_email_settings", email, StringComparison.Ordinal);
-        Assert.DoesNotContain("SuperCpHostGate", email, StringComparison.Ordinal);
+        Assert.DoesNotContain("available on the platform Super CP host only", email, StringComparison.Ordinal);
         Assert.DoesNotContain("Deploy targets", email, StringComparison.Ordinal);
         Assert.DoesNotContain("epc-w22-hero", email, StringComparison.Ordinal);
     }
