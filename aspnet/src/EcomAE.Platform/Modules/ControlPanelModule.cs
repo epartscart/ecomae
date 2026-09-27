@@ -8687,6 +8687,83 @@ public sealed class ControlPanelModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.CpApiClientsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpApiClientWriteService writes,
+            ICpApiClientKeyVault keys,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/api-clients-app", "Admin CP capability required for API client writes.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, error = new { code = "form_required", message = "API client writes accept form posts only." } });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to write API clients on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var action = LiveWriteFormBinder.Text(form, "action").ToLowerInvariant();
+            var clientId = LiveWriteFormBinder.Long(form, "clientId", "client_id", "id");
+            var scopes = form["allowed_actions"].Where(value => !string.IsNullOrWhiteSpace(value)).Select(value => value!).ToList();
+            var label = LiveWriteFormBinder.Text(form, "label");
+            var contactEmail = LiveWriteFormBinder.Text(form, "contact_email", "contactEmail");
+            var product = LiveWriteFormBinder.Text(form, "product");
+            var dailyLimit = LiveWriteFormBinder.Long(form, "daily_limit", "dailyLimit");
+
+            if (action is "create" or "rotate")
+            {
+                var minted = action == "create"
+                    ? await writes.CreateAsync(label, contactEmail, product, dailyLimit, scopes, cancellationToken)
+                    : await writes.RotateAsync(clientId, cancellationToken);
+
+                var token = minted.Write.Succeeded ? keys.Stash(minted.PlainKey) : string.Empty;
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    token.Length > 0 ? "/cp/api-clients-app?key_token=" + token : "/cp/api-clients-app",
+                    minted.Write.Succeeded,
+                    minted.Write.Message,
+                    new { ok = minted.Write.Succeeded, writes = minted.Write.Writes, validation_code = minted.Write.Code, message = minted.Write.Message, plainKey = minted.PlainKey, session = SessionPayload(session) });
+            }
+
+            var result = action switch
+            {
+                "update" => await writes.UpdateAsync(clientId, label, contactEmail, product, dailyLimit, scopes, cancellationToken),
+                "reset_quota" => await writes.ResetQuotaAsync(clientId, cancellationToken),
+                "revoke" => await writes.SetActiveAsync(clientId, 0, cancellationToken),
+                "activate" => await writes.SetActiveAsync(clientId, 1, cancellationToken),
+                _ => ErpSimpleWriteResult.Fail("unknown_action", "Unknown API client action."),
+            };
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/api-clients-app",
+                result.Succeeded,
+                result.Message,
+                new { ok = result.Succeeded, writes = result.Writes, validation_code = result.Code, message = result.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelPowerBi, async (
             HttpContext context,
             int? limit,
