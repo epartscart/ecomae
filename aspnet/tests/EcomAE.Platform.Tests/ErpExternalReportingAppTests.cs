@@ -134,6 +134,9 @@ public sealed class ErpExternalReportingAppTests
         });
         Assert.Contains("LIVE-INV-001", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("LIVE-BILL-001", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Open source", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("/erp/invoices-app?open=1", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("/erp/purchases-app?open=2", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
         Assert.DoesNotContain("INV-IFRSREV-", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
 
         var audit = ErpExternalReportingBuild.Build(Input("audit__external_audit_report", from, to, 8_400_000m, 5_800_000m));
