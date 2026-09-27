@@ -134,6 +134,11 @@ public sealed class ErpExternalReportingAppTests
         });
         Assert.Contains("LIVE-INV-001", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("LIVE-BILL-001", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Sales invoice", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Supplier bill", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("Gross", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("AED 1,050.00", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("AED 630.00", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("Open source", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("/erp/invoices-app?open=1", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
         Assert.Contains("/erp/purchases-app?open=2", liveDocsAfs.BodyHtml, StringComparison.Ordinal);

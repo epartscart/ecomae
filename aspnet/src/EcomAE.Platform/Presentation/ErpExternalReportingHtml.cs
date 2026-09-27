@@ -8,12 +8,14 @@ namespace EcomAE.Platform.Presentation;
 public static class ErpExternalReportingHtml
 {
     public sealed record DrillRow(
+        string Kind,
         string Doc,
         string Date,
         string Party,
         string Trn,
         decimal Net,
         decimal Vat,
+        decimal Gross,
         string Source);
 
     public static string H(string? value) => WebUtility.HtmlEncode(value ?? "");
@@ -132,7 +134,7 @@ public static class ErpExternalReportingHtml
             vat,
             ccy,
             sample,
-            invoices?.Select(i => new DrillRow(i.Doc, i.Date, i.Party, i.Trn, i.Net, i.Vat, "")).ToArray());
+            invoices?.Select(i => new DrillRow("Invoice / bill", i.Doc, i.Date, i.Party, i.Trn, i.Net, i.Vat, i.Net + i.Vat, "")).ToArray());
 
     public static string SourceVatBox(
         string box,
@@ -149,7 +151,16 @@ public static class ErpExternalReportingHtml
             vat,
             ccy,
             sample,
-            documents?.Select(d => new DrillRow(d.DocumentNumber, d.Date, d.Party, d.Trn, d.Net, d.Vat, d.Source)).ToArray());
+            documents?.Select(d => new DrillRow(
+                d.Kind.Equals("purchase", StringComparison.OrdinalIgnoreCase) ? "Supplier bill" : "Sales invoice",
+                d.DocumentNumber,
+                d.Date,
+                d.Party,
+                d.Trn,
+                d.Net,
+                d.Vat,
+                d.Gross,
+                d.Source)).ToArray());
 
     private static string VatBoxRows(
         string box,
@@ -180,17 +191,17 @@ public static class ErpExternalReportingHtml
         sb.Append("<summary style=\"cursor:pointer;padding:8px 6px;list-style:none;\">").Append(summary).Append("</summary>");
         sb.Append("<div class=\"epc-print-hide\" style=\"background:#fafbfd;padding:6px 10px 12px 52px;overflow-x:auto;\">");
         sb.Append("<table class=\"table table-condensed\" style=\"margin:0;background:#fff;border:1px solid #e6eaf1;font-size:11.5px;\">");
-        sb.Append("<thead><tr style=\"background:#f0f3f8;\"><th>Invoice / bill</th><th>Date</th><th>Party</th><th>TRN</th><th style=\"text-align:right;\">Net</th><th style=\"text-align:right;\">VAT</th><th>Source</th></tr></thead><tbody>");
+        sb.Append("<thead><tr style=\"background:#f0f3f8;\"><th>Type</th><th>Invoice / bill</th><th>Date</th><th>Party</th><th>TRN</th><th style=\"text-align:right;\">Net</th><th style=\"text-align:right;\">VAT</th><th style=\"text-align:right;\">Gross</th><th>Source</th></tr></thead><tbody>");
         decimal tn = 0, tv = 0;
         foreach (var iv in invoices)
         {
             tn += iv.Net;
             tv += iv.Vat;
-            sb.Append("<tr><td style=\"font-weight:600;\">").Append(H(iv.Doc)).Append("</td><td>").Append(H(iv.Date))
+            sb.Append("<tr><td>").Append(H(iv.Kind)).Append("</td><td style=\"font-weight:600;\">").Append(H(iv.Doc)).Append("</td><td>").Append(H(iv.Date))
                 .Append("</td><td>").Append(H(iv.Party)).Append("</td><td class=\"text-muted\">").Append(H(iv.Trn))
                 .Append("</td><td style=\"text-align:right;\">").Append(H(Money(iv.Net, ccy)))
                 .Append("</td><td style=\"text-align:right;\">").Append(H(Money(iv.Vat, ccy)))
-                .Append("</td><td>");
+                .Append("</td><td style=\"text-align:right;\">").Append(H(Money(iv.Gross, ccy))).Append("</td><td>");
             if (!string.IsNullOrWhiteSpace(iv.Source))
             {
                 sb.Append("<a href=\"").Append(H(iv.Source)).Append("\" target=\"_blank\" rel=\"noopener noreferrer\">Open source</a>");
@@ -199,9 +210,10 @@ public static class ErpExternalReportingHtml
             sb.Append("</td></tr>");
         }
 
-        sb.Append("<tr style=\"background:#eef3fb;font-weight:700;\"><td colspan=\"5\">Total — ")
+        sb.Append("<tr style=\"background:#eef3fb;font-weight:700;\"><td colspan=\"6\">Total — ")
             .Append(invoices.Count.ToString(CultureInfo.InvariantCulture)).Append(" invoices</td><td style=\"text-align:right;\">")
-            .Append(H(Money(tn, ccy))).Append("</td><td style=\"text-align:right;\">").Append(H(Money(tv, ccy))).Append("</td><td></td></tr>");
+            .Append(H(Money(tn, ccy))).Append("</td><td style=\"text-align:right;\">").Append(H(Money(tv, ccy)))
+            .Append("</td><td style=\"text-align:right;\">").Append(H(Money(tn + tv, ccy))).Append("</td><td></td></tr>");
         return sb.Append("</tbody></table></div></details>").ToString();
     }
 
