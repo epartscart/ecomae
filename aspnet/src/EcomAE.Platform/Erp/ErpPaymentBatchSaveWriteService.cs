@@ -39,10 +39,7 @@ public sealed class ErpPaymentBatchSaveWriteService : IErpPaymentBatchSaveWriteS
 
         var type = request.BatchType is "sepa" or "local" or "cheque" ? request.BatchType : "sepa";
         var amount = Math.Round(request.TotalAmount, 2, MidpointRounding.AwayFromZero);
-        if (amount < 0 || request.LineCount < 0)
-        {
-            return ErpSimpleWriteResult.Fail("invalid", "Total and line count must not be negative.");
-        }
+        var lineCount = Math.Max(0, request.LineCount);
 
         var execution = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         if (DateTime.TryParseExact(request.ExecutionDate?.Trim(), "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out var day))
@@ -67,7 +64,7 @@ public sealed class ErpPaymentBatchSaveWriteService : IErpPaymentBatchSaveWriteS
             type,
             request.AccountId,
             amount,
-            request.LineCount,
+            lineCount,
             execution,
             (request.Notes ?? string.Empty).Trim(),
             request.AdminId,
