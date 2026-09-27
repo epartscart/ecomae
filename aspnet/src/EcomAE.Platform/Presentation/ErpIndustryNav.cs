@@ -10,6 +10,8 @@ namespace EcomAE.Platform.Presentation;
 /// </summary>
 public static class ErpIndustryNav
 {
+    public sealed record NavVisibility(bool Visible, string Code, string Detail);
+
     public sealed record ErpNavAudience(
         string TenantVersion,
         string? IndustryCode,
@@ -175,7 +177,12 @@ public static class ErpIndustryNav
             .OrderBy(id => id, StringComparer.OrdinalIgnoreCase)
             .ToArray();
 
-    private static bool IsDisabled(
+    /// <summary>
+    /// Explains a tab decision for Super ERP diagnostics and tenant support.
+    /// The PHP tree remains the default source of visibility; policy only adds
+    /// explicit tenant, industry, or module-pack restrictions.
+    /// </summary>
+    public static NavVisibility ExplainTab(
         PhpModuleCatalog.ModuleLink tab,
         ErpNavAudience audience)
     {
@@ -186,17 +193,33 @@ public static class ErpIndustryNav
                 audience.IndustryCode,
                 null))
         {
-            return true;
+            return new(false, "industry", "Jewellery module requires the jewellery industry pack.");
         }
 
-        if (audience.DisabledTabIds is null || audience.DisabledTabIds.Count == 0)
+        if (audience.DisabledTabIds is { Count: > 0 }
+            && (audience.DisabledTabIds.Contains(tab.Id)
+                || audience.DisabledTabIds.Contains(TabKey(tab))))
         {
-            return false;
+            return new(false, "disabled", "Explicit tenant/version deny rule.");
         }
 
-        var key = tab.Id[(tab.Id.LastIndexOf('/') + 1)..];
-        return audience.DisabledTabIds.Contains(tab.Id)
-            || audience.DisabledTabIds.Contains(key);
+        if (!IsEnabled(tab, audience))
+        {
+            return new(false, "module-pack", "Tab is outside the enabled tenant module pack.");
+        }
+
+        var scope = audience.IsSuperErp ? "Super ERP" : "tenant";
+        var country = string.IsNullOrWhiteSpace(audience.CountryCode)
+            ? "registered country unresolved"
+            : audience.CountryCode.Trim().ToUpperInvariant();
+        return new(true, "php-default", $"PHP placement enabled for {scope}; country context {country}.");
+    }
+
+    private static bool IsDisabled(
+        PhpModuleCatalog.ModuleLink tab,
+        ErpNavAudience audience)
+    {
+        return !ExplainTab(tab, audience).Visible;
     }
 
     private static bool IsEnabled(
@@ -208,11 +231,17 @@ public static class ErpIndustryNav
             return true;
         }
 
-        var key = tab.Id[(tab.Id.LastIndexOf('/') + 1)..];
+        var key = TabKey(tab);
         var area = tab.Group ?? string.Empty;
         return audience.EnabledModuleIds.Contains(tab.Id)
             || audience.EnabledModuleIds.Contains(key)
             || audience.EnabledModuleIds.Contains(area);
+    }
+
+    private static string TabKey(PhpModuleCatalog.ModuleLink tab)
+    {
+        var slash = tab.Id.LastIndexOf('/');
+        return slash >= 0 ? tab.Id[(slash + 1)..] : tab.Id;
     }
 
     /// <summary>
