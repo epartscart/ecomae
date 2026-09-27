@@ -538,6 +538,8 @@ public static class EcomAeRoutes
     /// <summary>PHP <c>cp/content/shop/procurement/procurement_main.php</c> twin (supplier procurement desk: dashboard / suppliers / purchase bills / payments / advances / fulfillment / warehouses / guide).</summary>
     public const string ControlPanelProcurementApp = "/cp/procurement-app";
     public const string ControlPanelSaoApp = "/cp/sao-app";
+    /// <summary>SAO state ↔ order-item status mapping save. <c>confirmWrites=true</c> is the live twin of PHP sao/states_statuses_link.php.</summary>
+    public const string CpSaoWrite = "/cp/sao/write";
     public const string ControlPanelPrintDocsApp = "/cp/print-docs-app";
     /// <summary>Print document parameter save. <c>confirmWrites=true</c> is the live twin of PHP print_docs/print_doc_tuning.php.</summary>
     public const string CpPrintDocsWrite = "/cp/print-docs/write";
