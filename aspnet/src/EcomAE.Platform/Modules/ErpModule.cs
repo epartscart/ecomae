@@ -707,8 +707,7 @@ public sealed class ErpModule : ISurfaceModule
                 });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPaymentBatchSave, async (HttpContext context, ErpPaymentBatchSaveBody? body, ILegacySessionValidator validator, IErpPaymentBatchSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPaymentBatchSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPaymentBatchSave, HandlePaymentBatchSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPettyCashSave, async (HttpContext context, ErpPettyCashSaveBody? body, ILegacySessionValidator validator, IErpPettyCashSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPettyCashSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAgendaSave, HandleAgendaSaveAsync).DisableAntiforgery();
@@ -11716,6 +11715,63 @@ public sealed class ErpModule : ISurfaceModule
         }
     }
 
+    private static async Task<IResult> HandlePaymentBatchSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPaymentBatchSaveDryRun dryRun,
+        IErpPaymentBatchSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for payment batch.");
+        }
+
+        ErpPaymentBatchSaveBody body;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            body = new(
+                0,
+                null,
+                LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                LiveWriteFormBinder.Long(form, "account_id", "accountId"),
+                form["batch_type"].ToString(),
+                LiveWriteFormBinder.Dec(form, "total_amount", "totalAmount"),
+                (int)Math.Clamp(LiveWriteFormBinder.Long(form, "line_count", "lineCount"), 0, int.MaxValue),
+                form["execution_date"].ToString(),
+                form["notes"].ToString());
+        }
+        else
+        {
+            body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentBatchSaveBody>(context, cancellationToken)
+                ?? new ErpPaymentBatchSaveBody();
+        }
+
+        if (!body.ConfirmWrites)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPaymentBatchSaveRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.CreateAsync(
+            new ErpPaymentBatchSaveWriteRequest(
+                body.AccountId,
+                body.BatchType,
+                body.TotalAmount,
+                body.LineCount,
+                body.ExecutionDate,
+                body.Notes,
+                session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            LiveWriteFormBinder.ReturnUrl(context, "/erp/payment-batches-app"),
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleSupplierSettlementAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19122,7 +19178,16 @@ public sealed class ErpModule : ISurfaceModule
         long ToAccountId = 0,
         decimal Amount = 0m,
         string? Note = null);
-    private sealed record ErpPaymentBatchSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPaymentBatchSaveBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        long AccountId = 0,
+        string? BatchType = null,
+        decimal TotalAmount = 0,
+        int LineCount = 1,
+        string? ExecutionDate = null,
+        string? Notes = null);
     private sealed record ErpPettyCashSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAgendaSaveBody(
         string? Title = null,
