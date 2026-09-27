@@ -9500,6 +9500,7 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             long systemId = 0;
             string? parametersValues = null;
+            Dictionary<string, string>? fieldValues = null;
             var confirm = false;
             if (context.Request.HasFormContentType)
             {
@@ -9507,6 +9508,19 @@ public sealed class ControlPanelModule : ISurfaceModule
                 systemId = LiveWriteFormBinder.Long(form, "system_id", "systemId");
                 parametersValues = LiveWriteFormBinder.Text(form, "parameters_values", "parametersValues");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+
+                // PHP builds parameters_values in JS from the operator's parameter inputs; the server-rendered
+                // twin posts them as p_<name> so the same JSON blob is assembled here.
+                foreach (var field in form)
+                {
+                    if (!field.Key.StartsWith("p_", StringComparison.Ordinal) || field.Key.Length <= 2)
+                    {
+                        continue;
+                    }
+
+                    fieldValues ??= new Dictionary<string, string>(StringComparer.Ordinal);
+                    fieldValues[field.Key[2..]] = field.Value.ToString().Trim();
+                }
             }
             else
             {
@@ -9530,7 +9544,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
             }
 
-            var written = await writes.ActivateAsync(new CpSmsActivateRequest(systemId, parametersValues), cancellationToken);
+            var written = await writes.ActivateAsync(new CpSmsActivateRequest(systemId, parametersValues, fieldValues), cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 EcomAeRoutes.ControlPanelSmsWhatsappApp,
