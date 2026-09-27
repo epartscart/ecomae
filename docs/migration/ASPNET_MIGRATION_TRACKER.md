@@ -184,7 +184,9 @@ Standing rules that apply to every item below:
       now carries the active legal entity country and supports explicit tenant module-pack allow sets.
       A source-to-artifact reconciliation command now compares all PHP category/area/tab order,
       labels, icons, descriptions, groups, jewellery/raw flags, links, duplicates, and empty hrefs.
-      Persisted entitlement storage and Super ERP administration remain pending.
+      Runtime visibility decisions now expose stable reason codes for industry filtering, explicit
+      deny rules, module-pack restrictions, and PHP-default visibility. Persisted entitlement
+      storage and Super ERP administration remain pending.
 - [ ] B1 Home & workflow (dashboard, workflow, processflow, approvals, workflow_automation, agenda, contacts, documents, knowledge base, AI assistant)
 - [~] B2 Order-to-Cash / Syncron-style OMS — sales orders, delivery notes, invoices, revenue, fulfilment, subscriptions, proposals,
       ASP.NET sales-order save/status/invoice/delete/cancel lifecycle is live; cancellation now uses the

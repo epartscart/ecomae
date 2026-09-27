@@ -80,4 +80,25 @@ public sealed class ErpNavMatrixTests
             filtered.SelectMany(g => g.Links),
             tab => Assert.Equal("finance", tab.Group));
     }
+
+    [Fact]
+    public void VisibilityExplanationIdentifiesTenantRestrictions()
+    {
+        var tab = PhpModuleCatalog.ErpTabs.Single(t => t.Id == "finance/coa");
+        var decision = ErpIndustryNav.ExplainTab(
+            tab,
+            new ErpIndustryNav.ErpNavAudience(
+                "v4",
+                "auto_parts",
+                "AE",
+                IsSuperErp: false,
+                DisabledTabIds: new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "coa",
+                }));
+
+        Assert.False(decision.Visible);
+        Assert.Equal("disabled", decision.Code);
+        Assert.Contains("deny", decision.Detail, StringComparison.OrdinalIgnoreCase);
+    }
 }
