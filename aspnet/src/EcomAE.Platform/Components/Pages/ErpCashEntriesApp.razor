@@ -16,8 +16,25 @@
 
 
     
-    <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="Open a cash entry for the entry type, counterparties, and linked ids. Note and reference stay on the list. Writes stay Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Cash Ledger Entries" Subtitle="Post receipts, payments, transfers, and adjustments with PHP-compatible voucher and audit handling." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/cash-entries/create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <label>Account <input type="number" name="account_id" min="1" required style="width:6rem" /></label>
+            <label>Amount <input type="text" name="amount" required placeholder="0.00" /></label>
+            <label>Direction
+                <select name="direction"><option value="in">Receipt / in</option><option value="out">Payment / out</option></select>
+            </label>
+            <label>Type
+                <select name="entry_type"><option value="receipt">Receipt</option><option value="payment">Payment</option><option value="transfer_in">Transfer in</option><option value="transfer_out">Transfer out</option><option value="adjustment">Adjustment</option></select>
+            </label>
+            <label>Reference <input type="text" name="reference" maxlength="120" /></label>
+            <label>Note <input type="text" name="note" maxlength="255" /></label>
+            <button type="submit" class="btn btn-sm btn-primary">Post cash entry</button>
+        </form>
+    }
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/cash-entries-app" />
 
 
@@ -50,7 +67,7 @@
                 <dt>Transfer pair</dt><dd>@(_openedDetail.TransferPairId > 0 ? _openedDetail.TransferPairId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Note and reference stay on the list. Writes stay Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Note and reference remain visible in the ledger list for audit follow-up.</p>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
