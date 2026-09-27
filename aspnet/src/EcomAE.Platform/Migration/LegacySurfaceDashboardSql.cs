@@ -2037,6 +2037,15 @@ public static class LegacySurfaceDashboardSql
         LIMIT 1
         """;
 
+    /// <summary>PHP <c>epc_portal_load_site_settings_for_host</c> scope: www and bare hostname both match.</summary>
+    public const string SelectCpMobileAppsIntegrationsJsonForHost = """
+        SELECT IFNULL(`integrations_json`, '') AS integrations_json
+        FROM `epc_portal_site_settings`
+        WHERE `host` = @p0 OR `host` = @p1
+        ORDER BY `id` ASC
+        LIMIT 1
+        """;
+
     /// <summary>Parts agent config — omits system_prompt / greeting.</summary>
     public const string SelectCpPartsAgentConfig = """
         SELECT IFNULL(`enabled`, 0) AS enabled,

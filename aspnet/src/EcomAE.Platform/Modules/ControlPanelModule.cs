@@ -8833,7 +8833,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only integrations_json.mobile metadata. save_mobile POST /cp/mobile-apps/write when confirmWrites=true. Schema-ensure stays Classic."
+                note = "integrations_json.mobile metadata for the current host. save_mobile POST /cp/mobile-apps/write when confirmWrites=true (native integrations_json column ensure)."
             });
         });
 
@@ -8894,6 +8894,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                     new CpMobileAppsSaveRequest(
                         enabled, appName, bundleId, deepLinkScheme, deepLinkDomain,
                         apiBaseUrl, playStoreUrl, appStoreUrl, pwaEnabled, firebaseProjectId, pushEnabled),
+                    context.Request.Host.Host,
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,
@@ -8912,9 +8913,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 cutoverAllowed = false,
                 validation_code = confirm ? "confirm_writes_refused" : "dry_run",
                 message = confirm
-                    ? "Schema-ensure stays Classic."
+                    ? "Unknown mobile action."
                     : "Dry-run. Set confirmWrites=true to save mobile settings.",
-                phpAuthoritative = true,
+                phpAuthoritative = false,
                 session = SessionPayload(session),
             });
         }).DisableAntiforgery();

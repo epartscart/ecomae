@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Api.Catalog;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Observability;
 using EcomAE.Platform.Presentation;
@@ -7148,9 +7149,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
-            await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectCpMobileAppsIntegrationsJson;
-            var raw = Convert.ToString(await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
+            var raw = await ReadMobileAppsIntegrationsJsonAsync(connection, cancellationToken).ConfigureAwait(false);
             var summary = ParseMobileAppsSummary(raw, "database", string.Empty);
             return new(summary, summary.Source, summary.Message);
         }
@@ -7159,6 +7158,33 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, "database-error", ex.Message);
         }
+    }
+
+    /// <summary>PHP loads the settings row for the current host and only falls back to the single tenant row.</summary>
+    private async Task<string> ReadMobileAppsIntegrationsJsonAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var aliases = PlatformHostPolicy.NormalizeHostAliases(_httpContextAccessor?.HttpContext?.Request.Host.Host);
+        if (aliases.Count > 0)
+        {
+            await using var scoped = connection.CreateCommand();
+            scoped.CommandText = LegacySurfaceDashboardSql.SelectCpMobileAppsIntegrationsJsonForHost;
+            ErpDb.AddParameters(scoped, aliases[0], aliases.Count > 1 ? aliases[1] : aliases[0]);
+            var hostRaw = Convert.ToString(
+                await scoped.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false),
+                CultureInfo.InvariantCulture) ?? string.Empty;
+            if (hostRaw.Length > 0)
+            {
+                return hostRaw;
+            }
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = LegacySurfaceDashboardSql.SelectCpMobileAppsIntegrationsJson;
+        return Convert.ToString(
+            await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false),
+            CultureInfo.InvariantCulture) ?? string.Empty;
     }
 
     public async Task<CpMetabaseDigestResult> BuildCpMetabaseDigestAsync(int limit, CancellationToken cancellationToken = default)

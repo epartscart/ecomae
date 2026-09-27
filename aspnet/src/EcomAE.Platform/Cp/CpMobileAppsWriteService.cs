@@ -1,19 +1,21 @@
 using System.Data.Common;
+using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Services;
 
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_integrations.php</c> twin of <c>save_mobile</c> / <c>epc_integrations_save_tenant_config</c>.
-/// Schema-ensure and SMTP stay Classic.
-/// This service does not invent a send.
+/// Live PHP <c>ajax_integrations.php</c> twin of <c>save_mobile</c> / <c>epc_integrations_save_tenant_config</c>,
+/// including the PHP <c>integrations_json</c> column ensure and host-scoped settings row resolution.
 /// </summary>
 public interface ICpMobileAppsWriteService
 {
     Task<ErpSimpleWriteResult> SaveMobileAsync(
         CpMobileAppsSaveRequest request,
+        string? host = null,
         CancellationToken cancellationToken = default);
 }
 
@@ -71,8 +73,59 @@ public sealed class CpMobileAppsWriteService : ICpMobileAppsWriteService
         return obj;
     }
 
+    /// <summary>PHP <c>epc_portal_save_site_settings</c> adds the column when the table predates integrations.</summary>
+    private static async Task EnsureIntegrationsColumnAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ErpDb.StringAsync(
+                connection,
+                null,
+                "SELECT `integrations_json` FROM `epc_portal_site_settings` LIMIT 1",
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                "ALTER TABLE `epc_portal_site_settings` ADD COLUMN `integrations_json` TEXT NULL AFTER `cp_menu_json`",
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    /// <summary>PHP settings rows are keyed by <c>host</c>; www and bare hostnames both resolve.</summary>
+    private static async Task<long> ResolveSettingsIdAsync(
+        DbConnection connection,
+        string? host,
+        CancellationToken cancellationToken)
+    {
+        var aliases = PlatformHostPolicy.NormalizeHostAliases(host);
+        if (aliases.Count > 0)
+        {
+            var placeholders = string.Join(", ", aliases.Select((_, i) => "@p" + i.ToString(CultureInfo.InvariantCulture)));
+            var id = await ErpDb.LongAsync(
+                connection,
+                null,
+                "SELECT `id` FROM `epc_portal_site_settings` WHERE `host` IN (" + placeholders + ") ORDER BY `id` ASC LIMIT 1",
+                cancellationToken,
+                aliases.Cast<object?>().ToArray()).ConfigureAwait(false);
+            if (id > 0)
+            {
+                return id;
+            }
+        }
+
+        return await ErpDb.LongAsync(
+            connection,
+            null,
+            "SELECT `id` FROM `epc_portal_site_settings` ORDER BY `id` ASC LIMIT 1",
+            cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<ErpSimpleWriteResult> SaveMobileAsync(
         CpMobileAppsSaveRequest request,
+        string? host = null,
         CancellationToken cancellationToken = default)
     {
         if (!_connections.IsConfigured)
@@ -83,14 +136,11 @@ public sealed class CpMobileAppsWriteService : ICpMobileAppsWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-            var id = await ErpDb.LongAsync(
-                connection,
-                null,
-                "SELECT `id` FROM `epc_portal_site_settings` ORDER BY `id` ASC LIMIT 1",
-                cancellationToken).ConfigureAwait(false);
+            await EnsureIntegrationsColumnAsync(connection, cancellationToken).ConfigureAwait(false);
+            var id = await ResolveSettingsIdAsync(connection, host, cancellationToken).ConfigureAwait(false);
             if (id <= 0)
             {
-                return ErpSimpleWriteResult.Fail("db", "Site settings row is missing — schema-ensure stays Classic.");
+                return ErpSimpleWriteResult.Fail("db", "No epc_portal_site_settings row exists for this host yet.");
             }
 
             var raw = await ErpDb.StringAsync(
@@ -128,9 +178,9 @@ public sealed class CpMobileAppsWriteService : ICpMobileAppsWriteService
                 ? ErpSimpleWriteResult.Ok("Mobile settings saved.", id)
                 : ErpSimpleWriteResult.Fail("unchanged", "Mobile settings were not updated.");
         }
-        catch (DbException)
+        catch (DbException ex)
         {
-            return ErpSimpleWriteResult.Fail("db", "Site settings table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Mobile settings save failed: " + ex.Message);
         }
     }
 }
