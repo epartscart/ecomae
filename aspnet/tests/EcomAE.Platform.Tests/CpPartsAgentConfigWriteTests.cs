@@ -42,8 +42,7 @@ public sealed class CpPartsAgentConfigWriteTests
         Assert.Contains("name=\"placeholder\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"logo_url\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"domain\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("stays on the Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", razor, StringComparison.Ordinal);
@@ -72,9 +71,10 @@ public sealed class CpPartsAgentConfigWriteTests
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPartsAgentWriteService.cs"));
         Assert.Contains("epc_agent_save_config", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_parts_agent_config`", service, StringComparison.Ordinal);
-        Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
         Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_parts_agent_config`", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_parts_agent_session`", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_parts_agent_message`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("HttpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);

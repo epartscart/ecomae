@@ -5,8 +5,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Cp;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_parts_agent_cp.php</c> <c>save_config</c> / <c>epc_agent_save_config</c> UPSERT.
-/// Chat, sync, export, and generate stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_parts_agent_cp.php</c> <c>save_config</c> / <c>epc_agent_save_config</c> UPSERT plus
+/// the PHP <c>epc_agent_ensure_db_schema</c> / <c>epc_agent_config_ensure_schema</c> tables.
+/// Storefront chat generation stays with the agent runtime; this service does not invent a send.
 /// </summary>
 public interface ICpPartsAgentWriteService
 {
@@ -45,6 +46,72 @@ public sealed class CpPartsAgentWriteService : ICpPartsAgentWriteService
         _connections = connections;
     }
 
+    /// <summary>PHP <c>epc_agent_ensure_db_schema</c> + <c>epc_agent_config_ensure_schema</c> (idempotent DDL).</summary>
+    public static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default)
+    {
+        await ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_parts_agent_session` (
+                `session_id` VARCHAR(64) NOT NULL,
+                `created_at` INT UNSIGNED NOT NULL DEFAULT 0,
+                `updated_at` INT UNSIGNED NOT NULL DEFAULT 0,
+                `message_count` INT UNSIGNED NOT NULL DEFAULT 0,
+                `country_code` VARCHAR(8) NOT NULL DEFAULT '',
+                `country_name` VARCHAR(64) NOT NULL DEFAULT '',
+                `last_user_text` TEXT,
+                `last_agent_text` TEXT,
+                `user_id` INT UNSIGNED NOT NULL DEFAULT 0,
+                `ip_hash` VARCHAR(64) NOT NULL DEFAULT '',
+                `user_agent` VARCHAR(255) NOT NULL DEFAULT '',
+                `client_ip` VARCHAR(45) NOT NULL DEFAULT '',
+                `ip_country_code` VARCHAR(8) NOT NULL DEFAULT '',
+                `ip_country_name` VARCHAR(64) NOT NULL DEFAULT '',
+                PRIMARY KEY (`session_id`),
+                KEY `updated_at` (`updated_at`),
+                KEY `country_code` (`country_code`)
+            )
+            """,
+            cancellationToken).ConfigureAwait(false);
+
+        await ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_parts_agent_message` (
+                `id` INT UNSIGNED NOT NULL AUTO_INCREMENT,
+                `session_id` VARCHAR(64) NOT NULL,
+                `role` ENUM('user','agent') NOT NULL,
+                `message_text` MEDIUMTEXT NOT NULL,
+                `reply_links_json` TEXT,
+                `created_at` INT UNSIGNED NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id`),
+                KEY `session_id` (`session_id`),
+                KEY `created_at` (`created_at`)
+            )
+            """,
+            cancellationToken).ConfigureAwait(false);
+
+        await ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_parts_agent_config` (
+                `id` TINYINT UNSIGNED NOT NULL DEFAULT 1,
+                `enabled` TINYINT NOT NULL DEFAULT 1,
+                `agent_name` VARCHAR(128) NOT NULL DEFAULT '',
+                `subtitle` VARCHAR(255) NOT NULL DEFAULT '',
+                `greeting` TEXT,
+                `system_prompt` TEXT,
+                `teaser_text` VARCHAR(255) NOT NULL DEFAULT '',
+                `placeholder` VARCHAR(255) NOT NULL DEFAULT '',
+                `logo_url` VARCHAR(512) NOT NULL DEFAULT '',
+                `domain` VARCHAR(255) NOT NULL DEFAULT '',
+                `updated_at` INT UNSIGNED NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id`)
+            )
+            """,
+            cancellationToken).ConfigureAwait(false);
+    }
+
     public async Task<CpPartsAgentConfigRow> LoadConfigAsync(CancellationToken cancellationToken = default)
     {
         var empty = new CpPartsAgentConfigRow(true, "", "", "", "", "", "", "", "");
@@ -56,6 +123,7 @@ public sealed class CpPartsAgentWriteService : ICpPartsAgentWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await using var select = connection.CreateCommand();
             select.CommandText = ErpDb.Positional(
                 """
@@ -119,6 +187,7 @@ public sealed class CpPartsAgentWriteService : ICpPartsAgentWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection,
                 null,
@@ -147,7 +216,7 @@ public sealed class CpPartsAgentWriteService : ICpPartsAgentWriteService
         }
         catch (DbException)
         {
-            return ErpSimpleWriteResult.Fail("db", "Parts Agent config table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Parts Agent config write failed.");
         }
     }
 
