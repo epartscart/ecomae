@@ -80,7 +80,7 @@ public static class OperatorGuidesCatalog
         new("epc_integrations_guide", "/cp/integrations-guide-app"),
         new("epc_platform_failover_guide", "/cp/guides-app?g=failover"),
         new("epc_power_bi_guide", "/cp/guides-app?g=power-bi"),
-        new("epc_super_cp_operator_guide", "/cp/guides-app?g=super-cp-operator"),
+        new("epc_super_cp_operator_guide", "/cp/super-cp-operator-guide-app"),
         new("shop/finance/erp/erp_full_guide", "/erp/guide-app?book=full"),
         new("shop/finance/erp/erp_advanced_guide", "/erp/guide-app?book=advanced"),
         new("shop/finance/erp/erp_only_operator", "/erp/guide-app?book=erp-only"),
@@ -114,7 +114,6 @@ public static class OperatorGuidesCatalog
             ["/cp/control/portal/epc_erp_only_onboard_guide"] = "erp-only-onboard",
             ["/cp/control/portal/epc_platform_failover_guide"] = "failover",
             ["/cp/control/portal/epc_power_bi_guide"] = "power-bi",
-            ["/cp/control/portal/epc_super_cp_operator_guide"] = "super-cp-operator",
         };
 
     public static Guide? Get(string? key)
