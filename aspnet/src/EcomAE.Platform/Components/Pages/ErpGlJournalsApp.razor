@@ -17,7 +17,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="Open a journal for the note excerpt and reference. Jewellery voucher save writes here. Reverse stays Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="General Ledger Journals" Subtitle="Create, inspect, and reverse posted journals with an auditable correction entry." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/gl-journals-app" />
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
@@ -93,7 +93,17 @@
                 <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Jewellery voucher save writes here. Reverse stays Classic.</p>
+            @if (_openedDetail.Status.Equals("posted", StringComparison.OrdinalIgnoreCase))
+            {
+                <form method="post" action="@EcomAeRoutes.ErpGlJournalsReverse" style="display:grid;gap:.45rem;margin:1rem 0 0;padding: .75rem;border:1px solid #e5e7eb;background:#fafafa">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="journalId" value="@_openedDetail.Id" />
+                    <input type="hidden" name="reverseDate" value="@JournalDate" />
+                    <strong>Reverse posted journal</strong>
+                    <label>Reason <input type="text" name="note" required maxlength="255" placeholder="Reason for reversal" /></label>
+                    <div><button type="submit" class="btn btn-xs btn-warning">Post reversal journal</button></div>
+                </form>
+            }
             @if (!string.IsNullOrWhiteSpace(_openedDetail.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
