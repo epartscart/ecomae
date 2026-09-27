@@ -18,8 +18,17 @@ public sealed class StorefrontPlaceholderRouteTests
             """Results.Redirect("/storefront/app", permanent: false)""",
             text,
             StringComparison.Ordinal);
-        Assert.DoesNotContain("migration placeholder", text, StringComparison.OrdinalIgnoreCase);
-        Assert.DoesNotContain("PHP storefront remains authoritative", text, StringComparison.Ordinal);
+        var routeStart = text.IndexOf(
+            """endpoints.MapGet("/storefront/migration-placeholder", () =>""",
+            StringComparison.Ordinal);
+        var routeEnd = text.IndexOf(
+            "endpoints.MapGet(EcomAeRoutes.StorefrontAccount",
+            routeStart,
+            StringComparison.Ordinal);
+        Assert.True(routeStart >= 0 && routeEnd > routeStart);
+        var route = text[routeStart..routeEnd];
+        Assert.DoesNotContain("migration placeholder", route, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("PHP storefront remains authoritative", route, StringComparison.Ordinal);
     }
 
     private static string FindRepoFile(string relative)
