@@ -9687,8 +9687,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxErFieldAdd, HandleErFieldAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjaBudgetSave, HandlePrjaBudgetSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjaTxnAdd, HandlePrjaTxnAddAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjaRecognize, async (HttpContext context, ErpPrjaRecognizeBody? body, ILegacySessionValidator validator, IErpPrjaRecognizeDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPrjaRecognizeRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPrjaRecognize, HandlePrjaRecognizeAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCostmItemSet, HandleCostmItemSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCostmTxnAdd, HandleCostmTxnAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCostmCloseRun, async (HttpContext context, ErpCostmCloseRunBody? body, ILegacySessionValidator validator, IErpCostmCloseRunDryRun dryRun, CancellationToken cancellationToken) =>
@@ -14451,6 +14450,53 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandlePrjaRecognizeAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPrjaRecognizeDryRun dryRun,
+        IErpPrjaRecognitionWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/project-accounting-app", "Admin ERP capability required for project recognition.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPrjaRecognizeBody>(context, cancellationToken) ?? new();
+        var companyId = body.CompanyId;
+        var projectId = body.ProjectId;
+        var method = body.Method;
+        var fraction = body.Fraction;
+        var asOf = body.AsOf;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            companyId = LiveWriteFormBinder.Long(form, "companyId", "company_id", "company");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            method = LiveWriteFormBinder.Text(form, "method");
+            fraction = LiveWriteFormBinder.Dec(form, "fraction");
+            asOf = LiveWriteFormBinder.Long(form, "asOf", "as_of");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPrjaRecognizeRequest(projectId, method, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.RunAsync(
+            new ErpPrjaRecognitionWriteRequest(companyId, projectId, method, fraction, asOf),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandlePrjaTxnAddAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -18774,7 +18820,15 @@ public sealed class ErpModule : ISurfaceModule
         long CompanyId = 0,
         long TxnDate = 0,
         bool ConfirmWrites = false);
-    private sealed record ErpPrjaRecognizeBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPrjaRecognizeBody(
+        long Id = 0,
+        string? Code = null,
+        long CompanyId = 0,
+        long ProjectId = 0,
+        string? Method = null,
+        decimal Fraction = 0,
+        long AsOf = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpCostmItemSetBody(
         long ItemId = 0,
         string? Model = null,

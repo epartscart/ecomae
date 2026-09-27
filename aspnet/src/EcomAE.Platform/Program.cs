@@ -923,6 +923,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCostmItemSetWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpIntgEventRaiseWriteService, EcomAE.Platform.Erp.ErpIntgEventRaiseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCostmTxnAddWriteService, EcomAE.Platform.Erp.ErpCostmTxnAddWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrjaTxnAddWriteService, EcomAE.Platform.Erp.ErpPrjaTxnAddWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrjaRecognitionWriteService, EcomAE.Platform.Erp.ErpPrjaRecognitionWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRtlAssortmentSetWriteService, EcomAE.Platform.Erp.ErpRtlAssortmentSetWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPltJobRunWriteService, EcomAE.Platform.Erp.ErpPltJobRunWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRtlDiscountSaveWriteService, EcomAE.Platform.Erp.ErpRtlDiscountSaveWriteService>();
