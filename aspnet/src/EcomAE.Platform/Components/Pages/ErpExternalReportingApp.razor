@@ -575,6 +575,11 @@
 
         if (_report is not null)
         {
+            IReadOnlyList<ErpExternalReportingSourceDocument> sourceDocuments = [];
+            if (_isAdmin && _report.Key == "fin__annual_financial_statements")
+            {
+                sourceDocuments = await LoadAnnualSourceDocumentsAsync(_period.From, _period.To, ctx.RequestAborted);
+            }
             _fetched = !string.IsNullOrWhiteSpace(ctx.Request.Query["fetch"].ToString());
             _figSales = sales;
             _figPurch = purch;
@@ -593,7 +598,8 @@
                 outVat,
                 inVat,
                 rate,
-                liveFigs));
+                liveFigs,
+                sourceDocuments));
             _docName = _built.DocName;
             var ifrsKeys = new HashSet<string>(StringComparer.Ordinal)
             {
@@ -691,6 +697,79 @@
         "custom" => "Custom range…",
         _ => b,
     };
+
+    private async Task<IReadOnlyList<ErpExternalReportingSourceDocument>> LoadAnnualSourceDocumentsAsync(
+        DateTime from,
+        DateTime to,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<ErpExternalReportingSourceDocument>();
+        try
+        {
+            var invoices = await Dashboards.ListErpInvoicesAsync(80, cancellationToken);
+            foreach (var invoice in invoices.Invoices.Take(12))
+            {
+                if (!IsUnixDateInRange(invoice.IssueDate, from, to)) continue;
+                var detail = await Dashboards.BuildErpInvoiceDetailAsync(invoice.Id, cancellationToken);
+                var item = detail.Invoice;
+                if (item is null) continue;
+                rows.Add(new(
+                    "sales",
+                    item.InvoiceNumber,
+                    FormatUnixDate(item.IssueDate),
+                    string.IsNullOrWhiteSpace(item.CustomerEmail) ? "Customer #" + item.UserId.ToString(CultureInfo.InvariantCulture) : item.CustomerEmail,
+                    "",
+                    item.SubtotalExVat,
+                    item.TotalVat,
+                    item.TotalInclVat,
+                    "/erp/invoices-app?open=" + item.Id.ToString(CultureInfo.InvariantCulture)));
+            }
+        }
+        catch
+        {
+            // The report falls back to clearly labelled deterministic sample rows.
+        }
+
+        try
+        {
+            var purchases = await Dashboards.ListErpPurchasesAsync(80, cancellationToken);
+            foreach (var purchase in purchases.Purchases.Take(12))
+            {
+                if (!IsUnixDateInRange(purchase.PurchaseDate, from, to)) continue;
+                var detail = await Dashboards.BuildErpPurchaseDetailAsync(purchase.Id, cancellationToken);
+                var item = detail.Purchase;
+                if (item is null) continue;
+                rows.Add(new(
+                    "purchase",
+                    item.InvoiceNumber,
+                    FormatUnixDate(item.PurchaseDate),
+                    item.SupplierName,
+                    "",
+                    item.AmountExVat,
+                    item.VatAmount,
+                    item.TotalAmount,
+                    "/erp/purchases-app?open=" + item.Id.ToString(CultureInfo.InvariantCulture)));
+            }
+        }
+        catch
+        {
+            // The report falls back to clearly labelled deterministic sample rows.
+        }
+
+        return rows;
+    }
+
+    private static bool IsUnixDateInRange(long value, DateTime from, DateTime to)
+    {
+        if (value <= 0) return false;
+        var date = DateTimeOffset.FromUnixTimeSeconds(value).UtcDateTime.Date;
+        return date >= from.Date && date <= to.Date;
+    }
+
+    private static string FormatUnixDate(long value) =>
+        value > 0
+            ? DateTimeOffset.FromUnixTimeSeconds(value).ToString("dd MMM yyyy", CultureInfo.InvariantCulture)
+            : "";
 
     private void OnPickKind(string kind)
     {

@@ -124,6 +124,18 @@ public sealed class ErpExternalReportingAppTests
         });
         Assert.Contains("Illustrative sample data", sampleAfs.BodyHtml, StringComparison.Ordinal);
 
+        var liveDocsAfs = ErpExternalReportingBuild.Build(Input("fin__annual_financial_statements", from, to, 8_400_000m, 5_800_000m) with
+        {
+            SourceDocuments =
+            [
+                new("sales", "LIVE-INV-001", "15 Jun 2026", "live.customer@example.test", "100000000000001", 1000m, 50m, 1050m, "/erp/invoices-app?open=1"),
+                new("purchase", "LIVE-BILL-001", "16 Jun 2026", "Live Supplier LLC", "100000000000002", 600m, 30m, 630m, "/erp/purchases-app?open=2"),
+            ],
+        });
+        Assert.Contains("LIVE-INV-001", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.Contains("LIVE-BILL-001", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+        Assert.DoesNotContain("INV-IFRSREV-", liveDocsAfs.BodyHtml, StringComparison.Ordinal);
+
         var audit = ErpExternalReportingBuild.Build(Input("audit__external_audit_report", from, to, 8_400_000m, 5_800_000m));
         Assert.Equal("red", audit.Theme);
         Assert.Contains("Independent Auditor", audit.BodyHtml, StringComparison.Ordinal);
