@@ -1,5 +1,7 @@
 using System.Globalization;
+using System.Net;
 using System.Net.Http.Json;
+using System.Net.Sockets;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 
@@ -134,6 +136,23 @@ public static class CpSmsMsisdn
         }
 
         return httpOk;
+    }
+
+    public static bool UnifonicSucceeded(bool httpOk, JsonElement? json)
+    {
+        if (!httpOk || json is not { ValueKind: JsonValueKind.Object } root
+            || !root.TryGetProperty("success", out var success))
+        {
+            return false;
+        }
+
+        return success.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.Number => success.GetDouble() != 0,
+            JsonValueKind.String => Truthy(success.GetString()),
+            _ => false,
+        };
     }
 
     private static bool Truthy(string? value)
@@ -292,6 +311,11 @@ public sealed class CpSmsGateway : ICpSmsGateway
             }
         }
 
+        if (!await IsSafeApiUrlAsync(apiUrl, cancellationToken).ConfigureAwait(false))
+        {
+            return CpSmsSendOutcome.Fail("SMS gateway URL must be a public HTTPS endpoint.");
+        }
+
         using var request = new HttpRequestMessage(HttpMethod.Post, apiUrl)
         {
             Content = JsonContent.Create(payload),
@@ -332,7 +356,10 @@ public sealed class CpSmsGateway : ICpSmsGateway
                 json = null;
             }
 
-            if (CpSmsMsisdn.Succeeded(response.IsSuccessStatusCode, json, allowCode))
+            var succeeded = slug == "epc_unifonic"
+                ? CpSmsMsisdn.UnifonicSucceeded(response.IsSuccessStatusCode, json)
+                : CpSmsMsisdn.Succeeded(response.IsSuccessStatusCode, json, allowCode);
+            if (succeeded)
             {
                 return new CpSmsSendOutcome(true, string.Empty);
             }
@@ -344,8 +371,60 @@ public sealed class CpSmsGateway : ICpSmsGateway
                     : text.Length > 240 ? text[..240] : text;
             var http = ((int)response.StatusCode).ToString(CultureInfo.InvariantCulture);
             return CpSmsSendOutcome.Fail(
-                detail.Length > 0 ? detail : "SMS send failed (HTTP " + http + ")");
+                SanitizeProviderDetail(detail.Length > 0 ? detail : "SMS send failed (HTTP " + http + ")"));
         }
+    }
+
+    private static string SanitizeProviderDetail(string value)
+    {
+        var sanitized = new string(value.Where(c => !char.IsControl(c)).ToArray()).Trim();
+        return sanitized.Length > 240 ? sanitized[..240] : sanitized;
+    }
+
+    private static async Task<bool> IsSafeApiUrlAsync(string value, CancellationToken cancellationToken)
+    {
+        if (!Uri.TryCreate(value, UriKind.Absolute, out var uri)
+            || uri.Scheme != Uri.UriSchemeHttps
+            || !string.IsNullOrEmpty(uri.UserInfo)
+            || uri.Port is not (-1 or 443))
+        {
+            return false;
+        }
+
+        if (IPAddress.TryParse(uri.Host, out var literal))
+        {
+            return IsPublicAddress(literal);
+        }
+
+        try
+        {
+            var addresses = await Dns.GetHostAddressesAsync(uri.Host, cancellationToken).ConfigureAwait(false);
+            return addresses.Length > 0 && addresses.All(IsPublicAddress);
+        }
+        catch (SocketException)
+        {
+            return false;
+        }
+    }
+
+    private static bool IsPublicAddress(IPAddress address)
+        => !IPAddress.IsLoopback(address)
+           && !address.Equals(IPAddress.Any)
+           && !address.Equals(IPAddress.IPv6Any)
+           && !address.Equals(IPAddress.Broadcast)
+           && !address.Equals(IPAddress.IPv6None)
+           && !address.IsIPv6LinkLocal
+           && !address.IsIPv6SiteLocal
+           && !IsPrivateAddress(address);
+
+    private static bool IsPrivateAddress(IPAddress address)
+    {
+        var bytes = address.MapToIPv4().GetAddressBytes();
+        return bytes[0] == 10
+            || (bytes[0] == 172 && bytes[1] is >= 16 and <= 31)
+            || (bytes[0] == 192 && bytes[1] == 168)
+            || (bytes[0] == 169 && bytes[1] == 254)
+            || (bytes[0] == 127);
     }
 
     private static string Value(IReadOnlyDictionary<string, string> parameters, string key)
