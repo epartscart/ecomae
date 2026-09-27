@@ -8832,7 +8832,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_power_bi_config + epc_power_bi_reports metadata. Open ?pbi_id= loads a 280-char notes excerpt plus category siblings. save_config / add_report POST /cp/power-bi/write when confirmWrites=true. Embed token mint stay Classic."
+                note = "Live epc_power_bi_config + epc_power_bi_reports twin with native schema ensure. Open ?pbi_id= loads a 280-char notes excerpt plus category siblings. save_config / add_report POST /cp/power-bi/write when confirmWrites=true. Azure embed token mint stay Classic."
             });
         });
 
@@ -8840,6 +8840,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpPowerBiWriteService writes,
+            ICpPowerBiService powerBi,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8889,6 +8890,24 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (string.IsNullOrWhiteSpace(key))
             {
                 key = "save_config";
+            }
+
+            // PHP epc_power_bi.php: only a platform operator may target another tenant.
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                var scope = await powerBi.LoadAsync(null, context.Request.Host.Host, cancellationToken);
+                var posted = CpPowerBiWriteService.NormalizeSiteKey(siteKey);
+                if (posted.Length > 0 && !string.Equals(posted, scope.SiteKey, StringComparison.Ordinal))
+                {
+                    return LiveWriteFormBinder.Complete(
+                        context,
+                        "/cp/power-bi-app",
+                        false,
+                        "Not allowed to edit another tenant.",
+                        new { ok = false, writes = 0, cutoverAllowed = false, validation_code = "tenant_scope", message = "Not allowed to edit another tenant.", session = SessionPayload(session) });
+                }
+
+                siteKey = scope.SiteKey;
             }
 
             if (confirm && key is "save_config" or "save")
@@ -9438,6 +9457,29 @@ public sealed class ControlPanelModule : ISurfaceModule
                 note = "Read-only epc_parts_agent_* metadata (system_prompt/client_ip omitted). save_config POST /cp/parts-agent/save-config when confirmWrites=true. Chat UX remains PHP parts_agent."
             });
         });
+        endpoints.MapGet(EcomAeRoutes.CpPartsAgentExportCsv, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpPartsAgentDeskService desk,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for parts-agent chat export.");
+            }
+
+            var query = CpPartsAgentDeskQuery.Create(
+                context.Request.Query["q"],
+                context.Request.Query["date_from"],
+                context.Request.Query["date_to"],
+                200,
+                0);
+            var csv = await desk.ExportCsvAsync(query, cancellationToken);
+            var filename = "parts_agent_chats_" + DateTime.UtcNow.ToString("yyyyMMdd_HHmmss", CultureInfo.InvariantCulture) + ".csv";
+            return Results.File(System.Text.Encoding.UTF8.GetBytes(csv), "text/csv; charset=utf-8", filename);
+        });
+
         endpoints.MapPost(EcomAeRoutes.CpPartsAgentSaveConfig, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9621,6 +9663,7 @@ public sealed class ControlPanelModule : ISurfaceModule
 
             long systemId = 0;
             string? parametersValues = null;
+            Dictionary<string, string>? fieldValues = null;
             var confirm = false;
             if (context.Request.HasFormContentType)
             {
@@ -9628,6 +9671,19 @@ public sealed class ControlPanelModule : ISurfaceModule
                 systemId = LiveWriteFormBinder.Long(form, "system_id", "systemId");
                 parametersValues = LiveWriteFormBinder.Text(form, "parameters_values", "parametersValues");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+
+                // PHP builds parameters_values in JS from the operator's parameter inputs; the server-rendered
+                // twin posts them as p_<name> so the same JSON blob is assembled here.
+                foreach (var field in form)
+                {
+                    if (!field.Key.StartsWith("p_", StringComparison.Ordinal) || field.Key.Length <= 2)
+                    {
+                        continue;
+                    }
+
+                    fieldValues ??= new Dictionary<string, string>(StringComparer.Ordinal);
+                    fieldValues[field.Key[2..]] = field.Value.ToString().Trim();
+                }
             }
             else
             {
@@ -9651,7 +9707,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 });
             }
 
-            var written = await writes.ActivateAsync(new CpSmsActivateRequest(systemId, parametersValues), cancellationToken);
+            var written = await writes.ActivateAsync(new CpSmsActivateRequest(systemId, parametersValues, fieldValues), cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 EcomAeRoutes.ControlPanelSmsWhatsappApp,

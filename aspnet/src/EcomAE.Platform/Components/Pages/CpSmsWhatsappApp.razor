@@ -2,14 +2,34 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpSmsOperatorsDeskService Operators
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>SMS &amp; WhatsApp · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+
+<style>
+.epc-sms-guide {
+    background: linear-gradient(135deg, #f0f7f4 0%, #e8f0fa 100%);
+    border: 1px solid #c5d6ce;
+    border-radius: 4px;
+    padding: 14px 16px;
+    margin-bottom: 0;
+    line-height: 1.45;
+}
+.epc-sms-guide h4 { margin: 0 0 8px; font-size: 15px; font-weight: 700; color: #1a3a2f; }
+.epc-sms-guide ul { margin: 0 0 0 18px; padding: 0; }
+.epc-sms-guide li { margin-bottom: 4px; }
+.epc-sms-guide code { background: rgba(255,255,255,.7); padding: 1px 5px; border-radius: 3px; font-size: 12px; }
+.epc-sms-sender-hint { display: inline-block; margin-top: 6px; font-size: 12px; color: #2c5f4a; }
+.epc-sms-desc { color: #555; font-size: 13px; margin-top: 10px; padding-top: 10px; border-top: 1px dashed #ddd; }
+#mysql_options_div_fields label.epc-sms-sender-label { color: #1a5c40; font-weight: 600; }
+</style>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
@@ -21,7 +41,7 @@
                 <a class="btn btn-xs btn-default pull-right" href="/cp/communications-test-app" style="margin-right:.4rem">Communications test</a>
             </div>
             <div class="panel-body">
-                <p>Operator list and WhatsApp delivery log from <code>sms_api</code> / <code>epc_whatsapp_notify_log</code>. Activate writes here (one operator at a time, or none). Saved credentials are kept unless you post new values. This page does not invent a send — test under Communications.</p>
+                <p>Operator catalogue, credentials and WhatsApp delivery log from <code>sms_api</code> / <code>epc_whatsapp_notify_log</code>. One operator can be active at a time (or none). Credential fields are saved with the operator; blank secret fields keep the stored value. This page does not invent a send — test under Communications.</p>
             </div>
         </div>
     </div>
@@ -39,6 +59,136 @@
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">UAE / GCC / Pakistan SMS</div>
+            <div class="panel-body">
+                <div class="epc-sms-guide">
+                    <h4>How messaging is structured</h4>
+                    <ul>
+                        <li><strong>From number</strong> defaults to <code>@_desk.DefaultSender</code>. Change it anytime in the <em>Sender number</em> field — no code deploy needed.</li>
+                        <li><strong>Etisalat (e&amp;)</strong> and <strong>du</strong> need the partner API URL + key from your UAE Business Messaging contract (A2P / Sender ID may need TDRA registration).</li>
+                        <li><strong>Unifonic</strong> is the general GCC / MENA REST path — paste AppSid, keep or change the sender.</li>
+                        <li><strong>Pakistan / Jazz</strong> is for +92 recipients; sender can stay UAE or switch to a local mask later.</li>
+                        <li>Only <strong>one</strong> operator can be active. Save after selecting and filling credentials. Test under <a href="/cp/communications-test-app">Communications</a>.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Current SMS operator</div>
+            <div class="panel-body">
+                @if (!_isAdmin)
+                {
+                    <p class="help-block">Sign in for live data.</p>
+                }
+                else if (_desk.ActiveOperator is { } active)
+                {
+                    <p>SMS messages are currently sent via: <strong>@active.Name</strong> &nbsp;·&nbsp; From <code>@_desk.ActiveSender</code></p>
+                }
+                else
+                {
+                    <p class="help-block">No SMS operator is active — messages are not being sent.</p>
+                }
+            </div>
+        </div>
+    </div>
+
+    @if (_isAdmin)
+    {
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Select SMS operator</div>
+                <div class="panel-body">
+                    <form method="get" action="/cp/sms-whatsapp-app">
+                        <select id="system_selector" name="system_id" class="form-control" onchange="this.form.submit();">
+                            <option value="0" selected="@(_desk.SelectedId == 0)">— not selected —</option>
+                            @foreach (var group in _desk.Operators.GroupBy(o => o.Group))
+                            {
+                                <optgroup label="@group.Key">
+                                    @foreach (var op in group)
+                                    {
+                                        <option value="@op.Id.ToString(CultureInfo.InvariantCulture)" selected="@(op.Id == _desk.SelectedId)">@op.Name</option>
+                                    }
+                                </optgroup>
+                            }
+                        </select>
+                        <noscript><button type="submit" class="btn btn-sm btn-default" style="margin-top:.5rem">Load</button></noscript>
+                    </form>
+                    @if (_desk.Selected is { Description.Length: > 0 } described)
+                    {
+                        <div id="system_description" class="epc-sms-desc">@described.Description</div>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-6">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Operator settings</div>
+                <div class="panel-body" id="mysql_options_div_fields">
+                    @if (_desk.Selected is not { } selected)
+                    {
+                        <p class="help-block">Select an operator to edit its connection settings.</p>
+                    }
+                    else
+                    {
+                        <form method="post" action="/cp/sms-whatsapp/activate" class="form-horizontal" name="form_to_save">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="/cp/sms-whatsapp-app?system_id=@selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <input type="hidden" name="system_id" value="@selected.Id.ToString(CultureInfo.InvariantCulture)" />
+                            @foreach (var field in selected.Fields)
+                            {
+                                <div class="form-group">
+                                    <label for="@("p_" + field.Name)" class="col-lg-6 control-label @(field.IsSender ? "epc-sms-sender-label" : "")">@field.Caption</label>
+                                    <div class="col-lg-6">
+                                        @if (field.Type == "select")
+                                        {
+                                            <select id="@("p_" + field.Name)" name="@("p_" + field.Name)" class="form-control">
+                                                @foreach (var option in field.Options)
+                                                {
+                                                    <option value="@option.Value" selected="@(option.Value == field.Value)">@option.Caption</option>
+                                                }
+                                            </select>
+                                        }
+                                        else if (field.Type == "checkbox")
+                                        {
+                                            <select id="@("p_" + field.Name)" name="@("p_" + field.Name)" class="form-control">
+                                                <option value="0" selected="@(field.Value != "1")">No</option>
+                                                <option value="1" selected="@(field.Value == "1")">Yes</option>
+                                            </select>
+                                        }
+                                        else if (field.IsSecret)
+                                        {
+                                            <input type="password" id="@("p_" + field.Name)" name="@("p_" + field.Name)" value="" autocomplete="new-password" class="form-control" />
+                                            <span class="epc-sms-sender-hint">@(field.HasStoredValue ? "Stored — leave blank to keep it." : "Not set yet.")</span>
+                                        }
+                                        else
+                                        {
+                                            <input type="@(field.Type == "number" ? "number" : "text")" id="@("p_" + field.Name)" name="@("p_" + field.Name)" value="@field.Value" class="form-control" />
+                                            @if (field.IsSender)
+                                            {
+                                                <span class="epc-sms-sender-hint">Default: @_desk.DefaultSender — edit anytime for future sends.</span>
+                                            }
+                                        }
+                                    </div>
+                                </div>
+                            }
+                            @if (selected.Fields.Count == 0)
+                            {
+                                <p class="help-block">This operator has no configurable parameters.</p>
+                            }
+                            <button type="submit" class="btn btn-sm btn-primary">Save and activate</button>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+    }
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">SMS operators</div>
             <div class="panel-body">
                 <p class="help-block">@(_isAdmin ? $"{_operators.Count} operators · active: {(string.IsNullOrWhiteSpace(_summary.ActiveOperator) ? "—" : _summary.ActiveOperator)}." : "Sign in to load operators.")</p>
                 @if (_isAdmin)
@@ -162,6 +312,7 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private CpSmsWhatsappSummary _summary = new(0, "", 0, 0, "n/a", "");
+    private CpSmsOperatorsDeskView _desk = CpSmsOperatorsDeskView.Empty("unauthenticated", "");
     private IReadOnlyList<CpSmsOperatorDigest> _operators = [];
     private IReadOnlyList<CpWhatsappLogDigest> _whatsappLogs = [];
 
@@ -178,6 +329,11 @@
         {
             return;
         }
+
+        var selectedId = long.TryParse(ctx.Request.Query["system_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) && parsed > 0
+            ? parsed
+            : (long?)null;
+        _desk = await Operators.LoadAsync(selectedId, ctx.RequestAborted);
 
         var result = await Dashboards.BuildCpSmsWhatsappDigestAsync(50, ctx.RequestAborted);
         _summary = result.Summary;

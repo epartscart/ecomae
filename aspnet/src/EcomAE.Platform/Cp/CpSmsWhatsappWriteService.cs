@@ -5,7 +5,10 @@ using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Cp;
 
-public sealed record CpSmsActivateRequest(long SystemId, string? ParametersValues);
+public sealed record CpSmsActivateRequest(
+    long SystemId,
+    string? ParametersValues,
+    IReadOnlyDictionary<string, string>? FieldValues = null);
 
 public interface ICpSmsWhatsappWriteService
 {
@@ -122,6 +125,17 @@ public sealed class CpSmsWhatsappWriteService : ICpSmsWhatsappWriteService
                 return ErpSimpleWriteResult.Fail("not_found", "Operator was not found or is not available for control.");
             }
 
+            if (parametersJson is null && request.FieldValues is { Count: > 0 })
+            {
+                var stored = await ErpDb.StringAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT `parameters_values` FROM `sms_api` WHERE `id` = ? LIMIT 1"),
+                    cancellationToken,
+                    request.SystemId).ConfigureAwait(false);
+                parametersJson = MergeFieldValues(stored, request.FieldValues);
+            }
+
             await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection,
@@ -167,6 +181,53 @@ public sealed class CpSmsWhatsappWriteService : ICpSmsWhatsappWriteService
         {
             return ErpSimpleWriteResult.Fail("db", ex.Message);
         }
+    }
+
+    /// <summary>
+    /// Field-by-field save from the CP form. A posted blank keeps the stored value, so secret inputs
+    /// (API keys, tokens) render empty and still survive a save — PHP's "credentials are kept unless you
+    /// post new values", applied per key instead of per blob.
+    /// </summary>
+    public static string MergeFieldValues(string? storedJson, IReadOnlyDictionary<string, string> posted)
+    {
+        var merged = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (!string.IsNullOrWhiteSpace(storedJson))
+        {
+            try
+            {
+                using var document = JsonDocument.Parse(storedJson);
+                if (document.RootElement.ValueKind == JsonValueKind.Object)
+                {
+                    foreach (var property in document.RootElement.EnumerateObject())
+                    {
+                        merged[property.Name] = property.Value.ValueKind switch
+                        {
+                            JsonValueKind.String => property.Value.GetString() ?? string.Empty,
+                            JsonValueKind.Number => property.Value.GetRawText(),
+                            JsonValueKind.True => "1",
+                            JsonValueKind.False => "0",
+                            _ => string.Empty,
+                        };
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+                merged.Clear();
+            }
+        }
+
+        foreach (var (key, value) in posted)
+        {
+            if (key.Length == 0 || value.Length == 0)
+            {
+                continue;
+            }
+
+            merged[key] = value;
+        }
+
+        return JsonSerializer.Serialize(merged, CompactJson);
     }
 
     private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)

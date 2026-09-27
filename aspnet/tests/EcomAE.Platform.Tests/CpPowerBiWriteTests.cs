@@ -34,7 +34,6 @@ public sealed class CpPowerBiWriteTests
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save_config\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"add_report\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
@@ -64,11 +63,10 @@ public sealed class CpPowerBiWriteTests
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpPowerBiWriteService.cs"));
         Assert.Contains("epc_power_bi_configure", service, StringComparison.Ordinal);
         Assert.Contains("epc_power_bi_register_report", service, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_power_bi_config`", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_power_bi_reports`", service, StringComparison.Ordinal);
-        Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_power_bi_config`", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_power_bi_reports`", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
     }
