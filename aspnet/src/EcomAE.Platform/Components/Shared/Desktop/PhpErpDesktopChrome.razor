@@ -461,6 +461,7 @@
         var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request);
         var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ)
             ?? companies.FirstOrDefault();
+        var countryCode = active?.CountryCode;
         if (active is not null)
         {
             _activeCompanyId = active.Id;
@@ -479,7 +480,7 @@
             new ErpIndustryNav.ErpNavAudience(
                 "current",
                 _industryCode,
-                null,
+                countryCode,
                 _showBos));
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);

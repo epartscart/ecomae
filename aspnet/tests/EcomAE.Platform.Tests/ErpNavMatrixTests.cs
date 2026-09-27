@@ -59,4 +59,25 @@ public sealed class ErpNavMatrixTests
             PhpModuleCatalog.ErpTabs,
             tab => Assert.False(string.IsNullOrWhiteSpace(tab.Href)));
     }
+
+    [Fact]
+    public void TenantModulePackCanRestrictTabsWithoutChangingPhpCatalog()
+    {
+        var filtered = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience(
+                "v3",
+                "auto_parts",
+                "AE",
+                IsSuperErp: false,
+                EnabledModuleIds: new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+                {
+                    "finance",
+                }));
+
+        Assert.NotEmpty(filtered.SelectMany(g => g.Links));
+        Assert.All(
+            filtered.SelectMany(g => g.Links),
+            tab => Assert.Equal("finance", tab.Group));
+    }
 }
