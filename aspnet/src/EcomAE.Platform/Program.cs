@@ -1035,6 +1035,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpManufacturerSynonymWriteService
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCrossWriteService, EcomAE.Platform.Cp.CpCrossWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditWriteService, EcomAE.Platform.Cp.CpPricesEditWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesEditDeskService, EcomAE.Platform.Cp.CpPricesEditDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPrintDocsDeskService, EcomAE.Platform.Cp.CpPrintDocsDeskService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPrintDocsWriteService, EcomAE.Platform.Cp.CpPrintDocsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyWriteService, EcomAE.Platform.Cp.CpCurrencyWriteService>();
 builder.Services.AddHttpClient(EcomAE.Platform.Cp.CpCurrencyLiveRatesService.HttpClientName, client => client.Timeout = TimeSpan.FromSeconds(12));
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCurrencyLiveRatesService, EcomAE.Platform.Cp.CpCurrencyLiveRatesService>();

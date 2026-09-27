@@ -1,12 +1,30 @@
 @page "/cp/print-docs-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
+@using System.Net
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
+@inject ICpPrintDocsDeskService Desk
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Print documents · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-pd-field { display:flex; gap:12px; align-items:flex-start; padding:8px 0; border-bottom:1px dashed #eef2f7; margin:0; }
+    .epc-pd-field:last-child { border-bottom:0; }
+    .epc-pd-field__label { flex:0 0 40%; font-weight:500; color:#334155; padding-top:6px; }
+    .epc-pd-field__label code { display:block; font-size:11px; color:#94a3b8; font-weight:400; }
+    .epc-pd-field__ctrl { flex:1 1 auto; min-width:0; }
+    .epc-pd-field__ctrl textarea { min-height:90px; }
+    .epc-pd-hint { color:#64748b; font-size:12px; margin-top:3px; }
+    .epc-pd-docs a { display:block; padding:5px 6px; color:#334155; font-size:13px; }
+    .epc-pd-docs a.active { background:#f1f5f9; font-weight:600; }
+    @@media (max-width: 900px) { .epc-pd-field { flex-direction:column; } }
+</style>
+</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
@@ -19,21 +37,164 @@
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>Print document templates and tuning for invoices, packing slips, and labels. Template writes stay on the Classic twin.</p>
+                <p>Print document templates and tuning for invoices, packing slips, delivery notes and labels. Settings are stored in <code>shop_print_docs.parameters_values</code>, so the classic print module renders the same output.</p>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Sign in with an admin CP session to tune print documents. <a href="/cp/login?returnUrl=/cp/print-docs-app">Sign in</a></div></div>
+    }
+    else if (!_desk.Available || !string.IsNullOrWhiteSpace(_desk.Message))
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">@_desk.Message</div></div>
+    }
+
+    @if (_isAdmin && _desk.Available && _desk.Documents.Count > 0)
+    {
+        <div class="col-lg-4">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Documents</div>
+                <div class="panel-body epc-pd-docs">
+                    @foreach (var doc in _desk.Documents)
+                    {
+                        <a class="@(doc.Id == _desk.Selected?.Id ? "active" : "")" href="@DocHref(doc.Id)">
+                            @doc.Caption
+                            <small style="display:block;color:#94a3b8">@doc.Name · @doc.ParameterCount.ToString(CultureInfo.InvariantCulture) parameters</small>
+                        </a>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-8">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Print document settings "@(_desk.Selected?.Caption)"</div>
+                <div class="panel-body">
+                    @if (_desk.Offices.Count > 0)
+                    {
+                        <div class="form-group">
+                            <label for="office_id" class="control-label">Shop the settings apply to</label>
+                            <select id="office_id" class="form-control" onchange="epcPrintDocsOffice(this.value)">
+                                @foreach (var office in _desk.Offices)
+                                {
+                                    <option value="@office.Id" selected="@(office.Id == _desk.OfficeId)">@office.Label</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="hr-line-dashed"></div>
+                    }
+
+                    @if (_desk.Parameters.Count == 0)
+                    {
+                        <p class="text-muted" style="margin:0">This document has no tunable parameters.</p>
+                    }
+                    else
+                    {
+                        <form method="post" action="/cp/print-docs/write" name="save_form">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="action" value="save" />
+                            <input type="hidden" name="print_doc_id" value="@(_desk.Selected?.Id ?? 0)" />
+                            <input type="hidden" name="office_id" value="@_desk.OfficeId" />
+
+                            @foreach (var parameter in _desk.Parameters)
+                            {
+                                <div class="form-group epc-pd-field">
+                                    <label for="@parameter.Name" class="epc-pd-field__label control-label">
+                                        @WebUtility.HtmlDecode(parameter.Caption)
+                                        <code>@parameter.Name</code>
+                                    </label>
+                                    <div class="epc-pd-field__ctrl">
+                                        @switch (parameter.Type)
+                                        {
+                                            case "checkbox":
+                                                <input type="checkbox" name="@parameter.Name" id="@parameter.Name" value="1" checked="@IsChecked(parameter.Value)" />
+                                                break;
+                                            case "textarea":
+                                            case "user_profile_json_builder":
+                                                <textarea class="form-control" name="@parameter.Name" id="@parameter.Name">@WebUtility.HtmlDecode(parameter.Value)</textarea>
+                                                break;
+                                            case "image_file":
+                                                <input class="form-control" type="text" name="@parameter.Name" id="@parameter.Name" value="@parameter.Value" placeholder="file name under /content/files/images/" />
+                                                @if (parameter.Value.Trim().Length > 0)
+                                                {
+                                                    <img src="@("/content/files/images/" + parameter.Value)" alt="" style="max-width:120px;max-height:120px;margin-top:6px;display:block" />
+                                                    <label style="font-weight:400;margin-top:4px">
+                                                        <input type="checkbox" name="@("image_file_deleted_" + parameter.Name)" value="deleted" /> Remove the current image
+                                                    </label>
+                                                }
+                                                break;
+                                            default:
+                                                <input class="form-control" type="text" name="@parameter.Name" id="@parameter.Name" value="@WebUtility.HtmlDecode(parameter.Value)" />
+                                                break;
+                                        }
+                                        @if (parameter.Hint.Trim().Length > 0)
+                                        {
+                                            <div class="epc-pd-hint">@WebUtility.HtmlDecode(parameter.Hint)</div>
+                                        }
+                                    </div>
+                                </div>
+                            }
+
+                            <div style="margin-top:12px">
+                                <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+                                <a class="btn btn-default" href="/cp"><i class="fa fa-home"></i> Control panel</a>
+                            </div>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <script>
+            function epcPrintDocsOffice(officeId) {
+                var url = new URL(window.location.href);
+                url.searchParams.set('office_id', officeId);
+                window.location.assign(url.toString());
+            }
+        </script>
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/print_docs";
     private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpPrintDocsDesk _desk = CpPrintDocsDesk.Unavailable("");
+
+    private string DocHref(long id)
+        => "/cp/print-docs-app?print_doc_id=" + id.ToString(CultureInfo.InvariantCulture);
+
+    private static bool IsChecked(string value)
+        => value.Trim() is "1" or "true" or "on";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        long.TryParse(ctx.Request.Query["print_doc_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var docId);
+        long.TryParse(ctx.Request.Query["office_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var officeId);
+        _desk = await Desk.LoadAsync(docId, officeId, ctx.RequestAborted);
     }
 }
