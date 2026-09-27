@@ -15,7 +15,8 @@ public static class ErpIndustryNav
         string? IndustryCode,
         string? CountryCode,
         bool IsSuperErp,
-        IReadOnlySet<string>? DisabledTabIds = null);
+        IReadOnlySet<string>? DisabledTabIds = null,
+        IReadOnlySet<string>? EnabledModuleIds = null);
 
     private static readonly HashSet<string> JewelleryTabIds = new(StringComparer.OrdinalIgnoreCase)
     {
@@ -70,6 +71,11 @@ public static class ErpIndustryNav
 
     public static bool IsJewelleryTab(PhpModuleCatalog.ModuleLink tab)
     {
+        if (tab.IsJewellery)
+        {
+            return true;
+        }
+
         // Generated catalog ids look like "inventory_mgmt/jw_karat".
         var id = tab.Id ?? string.Empty;
         var slash = id.LastIndexOf('/');
@@ -130,6 +136,7 @@ public static class ErpIndustryNav
             {
                 var tabs = col.Tabs
                     .Where(t => !IsDisabled(t, audience))
+                    .Where(t => IsEnabled(t, audience))
                     .Where(t => seenTabIds.Add(t.Id))
                     .ToList();
                 if (tabs.Count == 0)
@@ -190,6 +197,22 @@ public static class ErpIndustryNav
         var key = tab.Id[(tab.Id.LastIndexOf('/') + 1)..];
         return audience.DisabledTabIds.Contains(tab.Id)
             || audience.DisabledTabIds.Contains(key);
+    }
+
+    private static bool IsEnabled(
+        PhpModuleCatalog.ModuleLink tab,
+        ErpNavAudience audience)
+    {
+        if (audience.EnabledModuleIds is null || audience.EnabledModuleIds.Count == 0)
+        {
+            return true;
+        }
+
+        var key = tab.Id[(tab.Id.LastIndexOf('/') + 1)..];
+        var area = tab.Group ?? string.Empty;
+        return audience.EnabledModuleIds.Contains(tab.Id)
+            || audience.EnabledModuleIds.Contains(key)
+            || audience.EnabledModuleIds.Contains(area);
     }
 
     /// <summary>
