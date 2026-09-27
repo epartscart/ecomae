@@ -1,0 +1,135 @@
+@page "/cp/integrations-guide-app"
+@page "/cp/control/portal/epc_integrations_guide"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>Integrations Guide · Control Panel · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-inthub-brand { display:flex; flex-wrap:wrap; justify-content:space-between; gap:16px; padding:20px 22px; margin:0 0 16px; border-radius:14px; color:#f8fafc; background:linear-gradient(135deg,#0f172a 0%,#134e4a 55%,#0f766e 100%); }
+    .epc-inthub-brand h2 { margin:0 0 6px; font-size:1.35rem; }
+    .epc-inthub-brand p { margin:0; max-width:46rem; font-size:13px; line-height:1.45; opacity:.92; }
+    .epc-inthub-brand__mark { font-size:12px; font-weight:700; letter-spacing:.04em; text-transform:uppercase; opacity:.85; margin-bottom:4px; }
+    .epc-inthub-brand__actions { display:flex; flex-wrap:wrap; gap:8px; align-items:flex-start; }
+    .epc-intguide-layout { display:grid; grid-template-columns:240px minmax(0,1fr); gap:18px; align-items:start; }
+    @@media (max-width:900px){ .epc-intguide-layout{grid-template-columns:1fr;} }
+    .epc-intguide-toc { position:sticky; top:12px; background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:12px 14px; }
+    .epc-intguide-toc h4 { margin:0 0 8px; font-size:12px; letter-spacing:.04em; text-transform:uppercase; color:#64748b; }
+    .epc-intguide-toc a { display:block; padding:3px 0; font-size:12.5px; color:#0f766e; }
+    .epc-intguide-section { background:#fff; border:1px solid #e2e8f0; border-radius:12px; padding:16px 18px; margin:0 0 14px; }
+    .epc-intguide-section h3 { margin:0 0 6px; font-size:1.05rem; }
+    .epc-intguide-section h3 i { margin-right:8px; color:#0f766e; }
+    .epc-intguide-section p.lead { margin:0 0 10px; font-size:13px; color:#475569; line-height:1.5; }
+    .epc-intguide-section strong { display:block; font-size:12px; letter-spacing:.03em; text-transform:uppercase; color:#334155; margin:10px 0 4px; }
+    .epc-intguide-section ol, .epc-intguide-section ul { margin:0; padding-left:20px; font-size:13px; color:#334155; line-height:1.55; }
+    .epc-intguide-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:12px; }
+</style>
+</HeadContent>
+
+<PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Admin login required.</div></div>
+    }
+
+    <div class="col-lg-12">
+        <div class="epc-inthub-brand">
+            <div>
+                <div class="epc-inthub-brand__mark">Operator handbook</div>
+                <h2>Integrations Guide</h2>
+                <p>Step-by-step enable → configure → test for every module listed in the Integrations Hub. Dedicated guides are linked where they already exist.</p>
+            </div>
+            <div class="epc-inthub-brand__actions">
+                <a class="btn btn-sm btn-primary" href="@HubHref"><i class="fa fa-plug"></i> Back to hub</a>
+                @if (_isSuper)
+                {
+                    <a class="btn btn-sm btn-default" href="@Href("/cp/control/portal/epc_tenant_features")"><i class="fa fa-sliders"></i> Tenant features</a>
+                }
+            </div>
+        </div>
+
+        <div class="epc-intguide-layout">
+            <nav class="epc-intguide-toc" aria-label="Guide contents">
+                <h4>Contents</h4>
+                @foreach (var item in _contents)
+                {
+                    <a href="#@item.Key">@item.Label</a>
+                }
+            </nav>
+
+            <div>
+                @foreach (var entry in _sections)
+                {
+                    <section class="epc-intguide-section" id="@entry.Key">
+                        <h3><i class="fa @entry.Icon"></i>@entry.Label</h3>
+                        <p class="lead">@entry.Summary</p>
+                        <strong>Activate</strong>
+                        <ol>
+                            @foreach (var step in entry.Steps)
+                            {
+                                <li>@step</li>
+                            }
+                        </ol>
+                        @if (entry.Tips.Count > 0)
+                        {
+                            <strong>Tips</strong>
+                            <ul>
+                                @foreach (var tip in entry.Tips)
+                                {
+                                    <li>@tip</li>
+                                }
+                            </ul>
+                        }
+                        <div class="epc-intguide-actions">
+                            @if (entry.ConfigureUrl.Length > 0)
+                            {
+                                <a class="btn btn-sm btn-primary" href="@Href(entry.ConfigureUrl)"><i class="fa fa-cog"></i> Configure</a>
+                            }
+                            @if (entry.DedicatedGuide.Length > 0)
+                            {
+                                <a class="btn btn-sm btn-default" href="@Href(entry.DedicatedGuide)"><i class="fa fa-book"></i> Dedicated guide</a>
+                            }
+                            @foreach (var link in entry.Links)
+                            {
+                                <a class="btn btn-sm btn-default" href="@Href(link.Url)">@link.Label</a>
+                            }
+                        </div>
+                    </section>
+                }
+            </div>
+        </div>
+    </div>
+</PhpCpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private bool _isSuper;
+    private IReadOnlyList<CpIntegrationsGuideSection> _sections = CpIntegrationsGuideCatalog.Build(false);
+    private IReadOnlyList<(string Key, string Label)> _contents = CpIntegrationsGuideCatalog.Contents(false);
+
+    private static string HubHref => PhpSurfaceLinkMap.AspNetPrimaryHref("/cp/control/portal/epc_integrations_hub");
+
+    private static string Href(string value) => PhpSurfaceLinkMap.AspNetPrimaryHref(value);
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _sections = CpIntegrationsGuideCatalog.Build(_isSuper);
+        _contents = CpIntegrationsGuideCatalog.Contents(_isSuper);
+    }
+}

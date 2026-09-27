@@ -1093,7 +1093,7 @@ internal static class OperatorGuideChapters
             "Integrations Guide",
             "fa-plug",
             "/CP/control/portal/epc_integrations_guide",
-            "/cp/guides-app?g=integrations",
+            "/cp/integrations-guide-app",
             "Every catalog module in one CP page — SMTP, OAuth, WhatsApp, payments, marketplaces, BI, and more.",
             [
             OperatorGuidesCatalog.Ch("Email / SMTP",
