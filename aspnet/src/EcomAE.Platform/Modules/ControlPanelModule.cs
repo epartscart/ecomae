@@ -8768,6 +8768,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             HttpContext context,
             ILegacySessionValidator validator,
             ICpCommunicationsTestService tests,
+            ICpCsrfGuard csrf,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -8782,6 +8783,20 @@ public sealed class ControlPanelModule : ISurfaceModule
             }
 
             var form = await context.Request.ReadFormAsync(cancellationToken);
+            var csrfVerdict = await csrf.VerifyAsync(
+                context,
+                session,
+                LiveWriteFormBinder.Text(form, CpCsrfGuard.FieldName),
+                cancellationToken);
+            if (!csrfVerdict.Ok)
+            {
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/communications-test-app",
+                    false,
+                    csrfVerdict.Message,
+                    new { ok = false, writes = 0, validation_code = csrfVerdict.Code, message = csrfVerdict.Message });
+            }
             if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
             {
                 return Results.Ok(new

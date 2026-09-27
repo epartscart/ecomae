@@ -8,6 +8,7 @@
 @using EcomAE.Platform.Routing
 @inject ICpCommunicationsDeskService Desk
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject IHttpContextAccessor Http
 
 <PageTitle>Communications test · Control Panel · eParts Cart</PageTitle>
@@ -150,6 +151,7 @@
                         {
                             <form class="epc-cn-test" method="post" action="@EcomAeRoutes.CpCommunicationsTest">
                                 <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="csrf_guard_key" value="@_csrfKey" />
                                 <input type="hidden" name="type" value="email" />
                                 <input type="hidden" name="returnUrl" value="/cp/communications-test-app" />
                                 <label for="email_for_test">E-mail for test letter</label>
@@ -201,6 +203,7 @@
                         {
                             <form class="epc-cn-test" method="post" action="@EcomAeRoutes.CpCommunicationsTest">
                                 <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="csrf_guard_key" value="@_csrfKey" />
                                 <input type="hidden" name="type" value="phone" />
                                 <input type="hidden" name="returnUrl" value="/cp/communications-test-app" />
                                 <label for="phone_for_test">Phone for test SMS</label>
@@ -227,6 +230,7 @@
     private CpCommunicationsView _view = CpCommunicationsView.Empty("", "");
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _csrfKey = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -235,6 +239,7 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        _csrfKey = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
         if (!_isAdmin)
         {
             return;
