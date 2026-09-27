@@ -162,7 +162,15 @@
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
             <label>Batch id <input type="number" name="batch_id" style="width:6rem" /></label>
-            <label>Item id <input type="number" name="item_id" style="width:6rem" /></label>
+            <label>Inventory item
+                <select name="item_id" required>
+                    <option value="">Select item</option>
+                    @foreach (var item in _inventoryItems)
+                    {
+                        <option value="@item.Id">@item.Sku · @item.Name</option>
+                    }
+                </select>
+            </label>
             <label>Qty <input type="number" name="qty" step="0.001" style="width:6rem" /></label>
             <label>Unit cost <input type="number" name="unit_cost" step="0.0001" style="width:7rem" /></label>
             <label>Warehouse id <input type="number" name="warehouse_id" style="width:6rem" /></label>
@@ -213,6 +221,7 @@
     private bool _isAdmin;
     private IReadOnlyList<ErpOpeningBatchDigest> _batches = [];
     private IReadOnlyList<ErpCoaAccountDigest> _coaAccounts = [];
+    private IReadOnlyList<ErpInventoryItemPickerDigest> _inventoryItems = [];
     private int _count;
     private int _posted;
     private decimal _debit;
@@ -257,6 +266,7 @@
         _message = result.Message;
         var coaResult = await Dashboards.ListErpCoaAccountsAsync(500, ctx.RequestAborted);
         _coaAccounts = coaResult.Accounts.Where(account => account.Active).ToArray();
+        _inventoryItems = (await Dashboards.ListErpInventoryItemsForPickerAsync(ErpFirstPaint.PickerLimit, ctx.RequestAborted)).Items;
 
         if (_openedId > 0)
         {
