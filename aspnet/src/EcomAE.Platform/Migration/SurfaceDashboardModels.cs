@@ -674,7 +674,8 @@ public sealed record ErpGlJournalDigest(
     string SourceType,
     long SourceId,
     string Status,
-    decimal TotalDebit);
+    decimal TotalDebit,
+    decimal TotalCredit = 0);
 
 public sealed record ErpGlJournalListResult(
     IReadOnlyList<ErpGlJournalDigest> Journals,
