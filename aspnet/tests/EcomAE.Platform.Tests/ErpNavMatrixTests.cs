@@ -43,4 +43,20 @@ public sealed class ErpNavMatrixTests
             filtered.SelectMany(g => g.Links),
             tab => tab.Id.EndsWith("/workflow_automation", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void GeneratedMatrixRetainsPhpDescriptionsGroupsAndVisibilityFlags()
+    {
+        var finance = PhpModuleCatalog.ErpAreas.Single(a => a.Id == "finance");
+        var trialBalance = PhpModuleCatalog.ErpTabs.Single(t => t.Id == "finance/jw_trial_balance");
+        var labourLaw = PhpModuleCatalog.ErpTabs.Single(t => t.Id == "people/hr_law");
+
+        Assert.Equal("Chart of accounts, journals, period close and financial statements", finance.Description);
+        Assert.True(trialBalance.IsJewellery);
+        Assert.Equal("Inquiries and reports", trialBalance.PhpGroup);
+        Assert.True(labourLaw.IsRaw);
+        Assert.All(
+            PhpModuleCatalog.ErpTabs,
+            tab => Assert.False(string.IsNullOrWhiteSpace(tab.Href)));
+    }
 }
