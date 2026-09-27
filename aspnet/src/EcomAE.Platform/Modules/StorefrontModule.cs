@@ -35,21 +35,8 @@ public sealed class StorefrontModule : ISurfaceModule
 
         endpoints.MapGet(EcomAeRoutes.StorefrontParity, (IStorefrontParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
-        endpoints.MapGet("/storefront/migration-placeholder", (
-            HttpContext context,
-            ISurfaceShellCatalog shells,
-            ILegacyHtmlShellRenderer html) =>
-        {
-            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            return SurfaceShellResponder.Respond(
-                context,
-                "storefront",
-                shells,
-                html,
-                tenant,
-                new { kind = "anonymous", note = "migration placeholder" },
-                "Presentation-preserving storefront placeholder. PHP storefront remains authoritative.");
-        });
+        endpoints.MapGet("/storefront/migration-placeholder", () =>
+            Results.Redirect("/storefront/app", permanent: false));
 
         endpoints.MapGet(EcomAeRoutes.StorefrontAccount, () =>
             Results.Redirect("/storefront/account-app", permanent: false));
