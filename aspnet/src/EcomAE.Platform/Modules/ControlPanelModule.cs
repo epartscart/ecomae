@@ -13398,6 +13398,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             var active = body.Active;
             var sortOrder = body.SortOrder;
             var confirm = body.ConfirmWrites;
+            var contentReplace = false;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -13413,6 +13414,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 active = LiveWriteFormBinder.Flag(form, "active");
                 sortOrder = LiveWriteFormBinder.Int(form, "sort_order", "sortOrder");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                contentReplace = LiveWriteFormBinder.Flag(form, "content_replace");
             }
 
             var key = (action ?? string.Empty).Trim();
@@ -13435,7 +13437,7 @@ public sealed class ControlPanelModule : ISurfaceModule
             if (confirm && key is "save_info_block" or "save")
             {
                 var written = await writes.SaveAsync(
-                    new CpInfoBlockSaveRequest(id, blockKey, title, scope, siteKey, placement, contentHtml, locale, active, sortOrder),
+                    new CpInfoBlockSaveRequest(id, blockKey, title, scope, siteKey, placement, contentHtml, locale, active, sortOrder, !contentReplace),
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(
                     context,

@@ -6,8 +6,8 @@ namespace EcomAE.Platform.Cp;
 
 /// <summary>
 /// Live PHP <c>epc_super_cp_info_blocks.php</c> twin of <c>epc_scp_info_block_save</c>
-/// and <c>epc_scp_info_block_delete</c>. Schema-ensure stays Classic.
-/// This service does not invent a send.
+/// , <c>epc_scp_info_block_delete</c>, <c>epc_scp_info_blocks_list</c> and the info-blocks part of
+/// <c>epc_scp_platform_ensure_schema</c>.
 /// </summary>
 public interface ICpInfoBlocksWriteService
 {
@@ -18,7 +18,25 @@ public interface ICpInfoBlocksWriteService
     Task<ErpSimpleWriteResult> DeleteAsync(
         long id,
         CancellationToken cancellationToken = default);
+
+    Task<CpInfoBlocksList> ListAsync(
+        string placement,
+        CancellationToken cancellationToken = default);
 }
+
+public sealed record CpInfoBlockRow(
+    long Id,
+    string BlockKey,
+    string Title,
+    string Scope,
+    string SiteKey,
+    string Placement,
+    string ContentHtml,
+    string Locale,
+    bool Active,
+    int SortOrder);
+
+public sealed record CpInfoBlocksList(IReadOnlyList<CpInfoBlockRow> Blocks, string Error);
 
 public sealed record CpInfoBlockSaveRequest(
     long Id,
@@ -30,7 +48,8 @@ public sealed record CpInfoBlockSaveRequest(
     string? ContentHtml,
     string? Locale,
     bool Active,
-    int SortOrder);
+    int SortOrder,
+    bool KeepContentWhenBlank = true);
 
 public sealed class CpInfoBlocksWriteService : ICpInfoBlocksWriteService
 {
@@ -111,6 +130,7 @@ public sealed class CpInfoBlocksWriteService : ICpInfoBlocksWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             if (request.Id > 0)
             {
                 var existing = await ErpDb.LongAsync(
@@ -122,7 +142,7 @@ public sealed class CpInfoBlocksWriteService : ICpInfoBlocksWriteService
                     return ErpSimpleWriteResult.Fail("not_found", "Info block not found");
                 }
 
-                if (content.Length == 0)
+                if (content.Length == 0 && request.KeepContentWhenBlank)
                 {
                     content = await ErpDb.StringAsync(
                         connection, null,
@@ -152,7 +172,7 @@ public sealed class CpInfoBlocksWriteService : ICpInfoBlocksWriteService
                 return ErpSimpleWriteResult.Fail("invalid", "Duplicate block key for this scope/locale");
             }
 
-            return ErpSimpleWriteResult.Fail("db", "Info-blocks table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Platform database unavailable.");
         }
     }
 
@@ -181,7 +201,87 @@ public sealed class CpInfoBlocksWriteService : ICpInfoBlocksWriteService
         }
         catch (DbException)
         {
-            return ErpSimpleWriteResult.Fail("db", "Info-blocks table is missing — schema-ensure stays Classic.");
+            return ErpSimpleWriteResult.Fail("db", "Platform database unavailable.");
         }
     }
+
+    public const string SchemaSql = """
+        CREATE TABLE IF NOT EXISTS `epc_platform_info_blocks` (
+          `id` INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          `block_key` VARCHAR(64) NOT NULL,
+          `title` VARCHAR(200) NOT NULL,
+          `scope` VARCHAR(16) NOT NULL DEFAULT 'platform',
+          `site_key` VARCHAR(64) NOT NULL DEFAULT '',
+          `placement` VARCHAR(64) NOT NULL DEFAULT 'homepage',
+          `content_html` MEDIUMTEXT NULL,
+          `locale` VARCHAR(8) NOT NULL DEFAULT 'en',
+          `active` TINYINT(1) NOT NULL DEFAULT 1,
+          `sort_order` INT NOT NULL DEFAULT 0,
+          `created_at` INT NOT NULL DEFAULT 0,
+          `updated_at` INT NOT NULL DEFAULT 0,
+          UNIQUE KEY `block_unique` (`block_key`, `scope`, `site_key`, `locale`),
+          KEY `placement_active` (`placement`, `active`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """;
+
+    /// <summary>PHP list order: filtered by placement → sort, title; otherwise placement, sort, title.</summary>
+    public static string ListSql(bool filtered)
+        => filtered
+            ? "SELECT `id`, `block_key`, `title`, `scope`, `site_key`, `placement`, IFNULL(`content_html`,''), `locale`, `active`, `sort_order` FROM `epc_platform_info_blocks` WHERE `placement` = @p0 ORDER BY `sort_order` ASC, `title` ASC"
+            : "SELECT `id`, `block_key`, `title`, `scope`, `site_key`, `placement`, IFNULL(`content_html`,''), `locale`, `active`, `sort_order` FROM `epc_platform_info_blocks` ORDER BY `placement` ASC, `sort_order` ASC, `title` ASC";
+
+    public async Task<CpInfoBlocksList> ListAsync(
+        string placement,
+        CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return new([], "TenantRegistry DB is not configured.");
+        }
+
+        var filter = (placement ?? string.Empty).Trim();
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = ListSql(filter.Length > 0);
+            if (filter.Length > 0)
+            {
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@p0";
+                parameter.Value = filter;
+                command.Parameters.Add(parameter);
+            }
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpInfoBlockRow>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpInfoBlockRow(
+                    Convert.ToInt64(reader.GetValue(0), System.Globalization.CultureInfo.InvariantCulture),
+                    Text(reader, 1),
+                    Text(reader, 2),
+                    Text(reader, 3),
+                    Text(reader, 4),
+                    Text(reader, 5),
+                    Text(reader, 6),
+                    Text(reader, 7),
+                    !reader.IsDBNull(8) && Convert.ToInt64(reader.GetValue(8), System.Globalization.CultureInfo.InvariantCulture) != 0,
+                    reader.IsDBNull(9) ? 0 : Convert.ToInt32(reader.GetValue(9), System.Globalization.CultureInfo.InvariantCulture)));
+            }
+
+            return new(rows, string.Empty);
+        }
+        catch (DbException)
+        {
+            return new([], "Platform database unavailable.");
+        }
+    }
+
+    private static string Text(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? string.Empty : Convert.ToString(reader.GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture) ?? string.Empty;
+
+    private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+        => await ErpDb.ExecuteAsync(connection, null, SchemaSql, cancellationToken).ConfigureAwait(false);
 }
