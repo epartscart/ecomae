@@ -488,6 +488,7 @@ public static class EcomAeRoutes
     public const string ControlPanelInfoBlocksApp = "/cp/info-blocks-app";
     /// <summary>Super-CP info block save. <c>confirmWrites=true</c> twins PHP epc_scp_info_block_save. Delete stays Classic.</summary>
     public const string CpInfoBlocksWrite = "/cp/info-blocks/write";
+    public const string CpDemoTenantsWrite = "/cp/demo-tenants/write";
 
     public const string ControlPanelFreeTools = "/cp/free-tools";
     /// <summary>CP Free tools Blazor list (JSON digest remains <see cref="ControlPanelFreeTools"/>).</summary>

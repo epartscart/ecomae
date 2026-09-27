@@ -13465,6 +13465,76 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.CpDemoTenantsWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpDemoTenantsService demos,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    cutoverAllowed = false,
+                    message = "Demo tenants management is available on www.ecomae.com Super CP only."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/demo-tenants-app", "Admin CP capability required for demo-tenants write.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<CpDemoTenantsWriteBody>(context, cancellationToken)
+                       ?? new();
+            var action = body.Action;
+            var siteKey = body.SiteKey;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                action = LiveWriteFormBinder.Text(form, "epc_demo_action", "action");
+                siteKey = LiveWriteFormBinder.Text(form, "site_key", "siteKey");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var key = (action ?? string.Empty).Trim();
+            var known = key is "extend" or "convert" or "delete";
+            if (confirm && known)
+            {
+                var written = key switch
+                {
+                    "extend" => await demos.ExtendAsync(siteKey ?? string.Empty, cancellationToken),
+                    "convert" => await demos.ConvertAsync(siteKey ?? string.Empty, cancellationToken),
+                    _ => await demos.DeleteAsync(siteKey ?? string.Empty, cancellationToken),
+                };
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/cp/demo-tenants-app",
+                    written.Succeeded,
+                    written.Message,
+                    new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+            }
+
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite = known,
+                writesBlocked = confirm,
+                cutoverAllowed = false,
+                validation_code = confirm ? "confirm_writes_refused" : "dry_run",
+                message = confirm
+                    ? "Unknown demo-tenants action."
+                    : "Dry-run. Set confirmWrites=true to extend, convert or delete the demo tenant.",
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+            });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.CpPriceConfigsWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -17094,6 +17164,10 @@ public sealed class ControlPanelModule : ISurfaceModule
         string? FromName = null,
         string? FromEmail = null,
         bool ConfirmWrites = false);
+    private sealed record CpDemoTenantsWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        string? SiteKey = null);
     private sealed record CpInfoBlocksWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

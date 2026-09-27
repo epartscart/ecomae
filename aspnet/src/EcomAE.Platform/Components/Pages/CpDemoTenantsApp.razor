@@ -2,125 +2,207 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
-@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpDemoTenantsService Demos
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Demo Tenants · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
-@if (_allowed)
-{
+<HeadContent>
+    <link rel="stylesheet" href="/platform-assets/epc_erp_ui.css?v=20260601demo" />
+</HeadContent>
+
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
+    <div class="col-lg-12 epc-erp-shell">
         <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Demo Tenants
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
-            </div>
             <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/demo-tenants-app")</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/demo-tenants-app" IsAdmin="_isAdmin" />
-
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-            <thead>
-                <tr>
-                    <th>Site</th>
-                    <th>Hostname</th>
-                    <th>Trade name</th>
-                    <th>Hub</th>
-                    <th>Hosted on</th>
-                    <th>Industry</th>
-                    <th>Status</th>
-                    <th>ERP only</th>
-                    <th>Active</th>
-                    <th>Expires</th>
-                    <th>Contact</th>
-                    <th></th>
-                </tr>
-            </thead>
-            <tbody>
-                @if (_tenants.Count == 0)
+                @if (!_isSuper)
                 {
-                    <tr><td colspan="12">No records yet.</td></tr>
+                    <div class="alert alert-warning">Demo tenants management is available on www.ecomae.com Super CP only.</div>
+                }
+                else if (!_isAdmin)
+                {
+                    <div class="alert alert-warning">Please <a href="/cp/login?returnUrl=/cp/demo-tenants-app">log in to Super CP</a>.</div>
+                }
+                else if (!string.IsNullOrWhiteSpace(_view.Error))
+                {
+                    <div class="alert alert-danger">Database unavailable.</div>
                 }
                 else
                 {
-                    @foreach (var t in _tenants)
+                    <div style="background:linear-gradient(135deg,#4c1d95,#7c3aed);color:#fff;border-radius:12px;padding:20px;margin-bottom:18px">
+                        <h3 style="margin:0 0 8px;color:#fff"><i class="fa fa-flask"></i> Demo sandbox tenants</h3>
+                        <p style="margin:0;opacity:.92">AI-provisioned @_view.DemoDays.ToString(CultureInfo.InvariantCulture)-day demos on www.ecomae.com — isolated MySQL per tenant. Extend +3 days, convert to live, or force delete.</p>
+                    </div>
+
+                    <div class="row" style="margin-bottom:16px">
+                        <div class="col-sm-4"><div class="well well-sm text-center"><div class="text-muted small">Active demos</div><strong>@_view.Active.ToString(CultureInfo.InvariantCulture) / @_view.MaxActive.ToString(CultureInfo.InvariantCulture)</strong></div></div>
+                        <div class="col-sm-4"><div class="well well-sm text-center"><div class="text-muted small">Listed</div><strong>@_view.Demos.Count.ToString(CultureInfo.InvariantCulture)</strong></div></div>
+                        <div class="col-sm-4"><div class="well well-sm text-center"><div class="text-muted small">Expire cron</div><code style="font-size:11px">/epc-demo-expire-cron.php</code></div></div>
+                    </div>
+
+                    @if (!string.IsNullOrWhiteSpace(_flashOk))
                     {
-                        <tr>
-                            <td><strong>@(string.IsNullOrWhiteSpace(t.SiteKey) ? "—" : t.SiteKey)</strong></td>
-                            <td>@(string.IsNullOrWhiteSpace(t.Hostname) ? "—" : t.Hostname)</td>
-                            <td>@(string.IsNullOrWhiteSpace(t.TradeName) ? "—" : t.TradeName)</td>
-                            <td>@(string.IsNullOrWhiteSpace(t.HubName) ? "—" : t.HubName)</td>
-                            <td>@(string.IsNullOrWhiteSpace(t.HostedOn) ? "—" : t.HostedOn)</td>
-                            <td>@(string.IsNullOrWhiteSpace(t.IndustryCode) ? "—" : t.IndustryCode)</td>
-                            <td>@(string.IsNullOrWhiteSpace(t.Status) ? "—" : t.Status)</td>
-                            <td>@(t.ErpOnly ? "yes" : "no")</td>
-                            <td>@(t.IsActive ? "yes" : "no")</td>
-                            <td>@(t.DemoExpiresAt > 0 ? t.DemoExpiresAt.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                            <td>@(string.IsNullOrWhiteSpace(t.DemoContactEmail) ? "—" : t.DemoContactEmail)</td>
-                            <td><a href="@PhpSurfaceLinkMap.AspNetPrimaryHref(_phpTab)">Open</a></td>
-                        </tr>
+                        <div class="alert alert-success">@_flashOk</div>
                     }
-                }
-            </tbody>
+                    @if (!string.IsNullOrWhiteSpace(_flashErr))
+                    {
+                        <div class="alert alert-danger">@_flashErr</div>
+                    }
+
+                    <p>
+                        <a class="btn btn-default btn-sm" href="@HubHref"><i class="fa fa-sitemap"></i> Tenant hub</a>
+                        <a class="btn btn-default btn-sm" href="@TccHref"><i class="fa fa-sliders"></i> Tenant control center</a>
+                        <a class="btn btn-default btn-sm" href="https://www.ecomae.com/platform/demo" target="_blank" rel="noopener"><i class="fa fa-external-link"></i> Marketing demo wizard</a>
+                        <a class="btn btn-default btn-sm ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" target="_blank" rel="noopener"><i class="fa fa-code"></i> Classic twin</a>
+                    </p>
+
+                    <p class="text-muted small">Demo CP scope: <code>https://www.ecomae.com/cp/demo/{site_key}/</code> — credentials from platform registry <code>operator_temp_password</code> (Super CP operators only; reveal or reset in Tenant control center).</p>
+
+                    <div class="table-responsive">
+                        <table class="table table-striped table-bordered" style="font-size:12px">
+                            <thead>
+                                <tr>
+                                    <th>Company</th>
+                                    <th>Industry</th>
+                                    <th>Demo URL</th>
+                                    <th>CP login</th>
+                                    <th>Login credentials</th>
+                                    <th>Created</th>
+                                    <th>Expires</th>
+                                    <th>Status</th>
+                                    <th>Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @if (_view.Demos.Count == 0)
+                                {
+                                    <tr><td colspan="10" class="text-muted">No demo tenants yet. Prospects request via <a href="https://www.ecomae.com/platform/demo">/platform/demo</a>.</td></tr>
+                                }
+                                else
+                                {
+                                    @foreach (var d in _view.Demos)
+                                    {
+                                        var rowClass = d.Expired ? "danger" : d.Suspended ? "warning" : "";
+                                        var statusLabel = d.Expired ? "Expired" : d.Suspended ? "Suspended" : "Active";
+                                        var statusClass = d.Expired ? "label-danger" : d.Suspended ? "label-warning" : "label-success";
+                                        <tr class="@rowClass">
+                                            <td>@d.TradeName<br /><code>@d.SiteKey</code></td>
+                                            <td>@d.IndustryCode</td>
+                                            <td style="max-width:180px;word-break:break-all">
+                                                @if (d.StorefrontUrl.Length > 0)
+                                                {
+                                                    <a href="@d.StorefrontUrl" target="_blank" rel="noopener">@(d.DemoHostname.Length > 0 ? d.DemoHostname : d.StorefrontUrl)</a>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">ERP-only</span>
+                                                }
+                                            </td>
+                                            <td style="max-width:220px;word-break:break-all">
+                                                <a href="@d.CpScopedUrl" target="_blank" rel="noopener">@d.CpScopedUrl</a>
+                                            </td>
+                                            <td style="min-width:200px">
+                                                @if (d.AdminEmail.Length > 0 || d.PasswordStored)
+                                                {
+                                                    <div style="margin-bottom:4px"><strong>User:</strong> @if (d.AdminEmail.Length > 0) { <code>@d.AdminEmail</code> } else { <span class="text-muted">—</span> }</div>
+                                                    <div>
+                                                        <strong>Pass:</strong>
+                                                        @if (d.PasswordStored)
+                                                        {
+                                                            <span class="label label-default">Stored</span>
+                                                            <a class="btn btn-xs btn-default" href="@TccSiteHref(d.SiteKey)">Reveal in TCC</a>
+                                                        }
+                                                        else
+                                                        {
+                                                            <span class="text-muted">Not stored</span>
+                                                            <a class="btn btn-xs btn-warning" href="@TccSiteHref(d.SiteKey)">Reset in TCC</a>
+                                                        }
+                                                    </div>
+                                                }
+                                                else
+                                                {
+                                                    <span class="text-muted">No credentials on file</span>
+                                                }
+                                            </td>
+                                            <td>@FormatTs(d.CreatedAt)</td>
+                                            <td>@FormatTs(d.ExpiresAt)<br /><small class="text-muted">@d.DaysLeft.ToString(CultureInfo.InvariantCulture)d left</small></td>
+                                            <td><span class="label @statusClass">@statusLabel</span></td>
+                                            <td style="white-space:nowrap">
+                                                @if (d.StorefrontUrl.Length > 0)
+                                                {
+                                                    <a class="btn btn-xs btn-default" target="_blank" rel="noopener" href="@d.StorefrontUrl">Store</a>
+                                                }
+                                                <a class="btn btn-xs btn-primary" target="_blank" rel="noopener" href="@d.CpScopedUrl" title="Open demo CP for @d.SiteKey"><i class="fa fa-external-link"></i> Open CP</a>
+                                                <form method="post" action="@WriteHref" style="display:inline" onsubmit="return confirm('Extend +3 days?')">
+                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="epc_demo_action" value="extend" />
+                                                    <input type="hidden" name="site_key" value="@d.SiteKey" />
+                                                    <button type="submit" class="btn btn-xs btn-success">+3d</button>
+                                                </form>
+                                                <form method="post" action="@WriteHref" style="display:inline" onsubmit="return confirm('Convert to live tenant?')">
+                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="epc_demo_action" value="convert" />
+                                                    <input type="hidden" name="site_key" value="@d.SiteKey" />
+                                                    <button type="submit" class="btn btn-xs btn-primary">Live</button>
+                                                </form>
+                                                <form method="post" action="@WriteHref" style="display:inline" onsubmit="return confirm('Delete demo and drop DB?')">
+                                                    <input type="hidden" name="confirmWrites" value="true" />
+                                                    <input type="hidden" name="epc_demo_action" value="delete" />
+                                                    <input type="hidden" name="site_key" value="@d.SiteKey" />
+                                                    <button type="submit" class="btn btn-xs btn-danger">Delete</button>
+                                                </form>
+                                            </td>
+                                        </tr>
+                                    }
+                                }
+                            </tbody>
                         </table>
-                </div>
+                    </div>
+                }
             </div>
         </div>
     </div>
-
 </PhpCpDesktopChrome>
-}
-else
-{
-    <div style="padding:2rem;font-family:sans-serif;">
-        <h1>Not found</h1>
-        <p>Demo tenants are available on the platform Super CP host only.</p>
-        <p><a href="/cp">Open Control Panel</a></p>
-    </div>
-}
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_demo_tenants_manage";
-    private bool _allowed;
+    private const string WriteHref = "/cp/demo-tenants/write";
+    private const string HubHref = "/cp/tenants-app?tab=demos";
+    private const string TccHref = "/cp/tenants-app";
     private bool _isAdmin;
-    private IReadOnlyList<CpDemoTenantDigest> _tenants = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private bool _isSuper;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpDemoTenantsView _view = new([], 0, CpDemoTenantsService.MaxActive, CpDemoTenantsService.DemoDays, "");
+
+    private static string TccSiteHref(string siteKey)
+        => TccHref + "?site_key=" + Uri.EscapeDataString(siteKey);
+
+    private static string FormatTs(long ts)
+        => ts > 0
+            ? DateTimeOffset.FromUnixTimeSeconds(ts).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
+            : "—";
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
-        _allowed = SuperCpHostGate.IsAllowed(ctx);
-        if (!_allowed || ctx is null)
+        if (ctx is null) return;
+
+        _isSuper = SuperCpHostGate.IsAllowed(ctx);
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!(_isAdmin && _isSuper))
         {
             return;
         }
 
-        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
-        if (!_isAdmin)
-        {
-            return; // guest browse — Sign in for live data
-        }
-
-        var result = await Dashboards.ListCpDemoTenantsAsync(200, ctx.RequestAborted);
-        _tenants = result.Tenants;
-        _source = result.Source;
-        _message = result.Message;
+        _view = await Demos.LoadAsync(ctx.RequestAborted);
     }
 }
