@@ -51,29 +51,8 @@ public sealed class StorefrontModule : ISurfaceModule
                 "Presentation-preserving storefront placeholder. PHP storefront remains authoritative.");
         });
 
-        endpoints.MapGet(EcomAeRoutes.StorefrontAccount, async (
-            HttpContext context,
-            ISurfaceShellCatalog shells,
-            ILegacyHtmlShellRenderer html,
-            ILegacySessionValidator validator,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Customer)
-            {
-                return Unauthorized("Customer session required for storefront account shell.");
-            }
-
-            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            return SurfaceShellResponder.Respond(
-                context,
-                "storefront",
-                shells,
-                html,
-                tenant,
-                SessionPayload(session),
-                "Customer-gated account shell only. PHP storefront remains authoritative.");
-        });
+        endpoints.MapGet(EcomAeRoutes.StorefrontAccount, () =>
+            Results.Redirect("/storefront/account-app", permanent: false));
 
         endpoints.MapGet(EcomAeRoutes.StorefrontAccountSummary, async (
             HttpContext context,
