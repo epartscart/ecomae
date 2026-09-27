@@ -23725,7 +23725,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["time_posted"] is DBNull ? 0 : reader["time_posted"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["note_len"] is DBNull ? 0 : reader["note_len"], CultureInfo.InvariantCulture),
-                        ReadStr(reader, "note_excerpt"));
+                        ReadStr(reader, "note_excerpt"),
+                        []);
                 }
             }
 
@@ -23733,6 +23734,26 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 return new(null, [], "database", "Opening batch not found.");
             }
+
+            var lines = new List<ErpOpeningLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpOpeningLines;
+                AddParameter(cmd, "@batch_id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new(
+                        ReadStr(reader, "line_type"),
+                        Convert.ToInt64(reader["entity_id"] is DBNull ? 0 : reader["entity_id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "entity_ref"),
+                        Convert.ToDecimal(reader["debit"] is DBNull ? 0m : reader["debit"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["credit"] is DBNull ? 0m : reader["credit"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["quantity"] is DBNull ? 0m : reader["quantity"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["unit_cost"] is DBNull ? 0m : reader["unit_cost"], CultureInfo.InvariantCulture)));
+                }
+            }
+            header = header with { Lines = lines };
 
             var siblings = new List<ErpOpeningBatchDigest>();
             await using (var cmd = connection.CreateCommand())
