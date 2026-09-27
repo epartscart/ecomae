@@ -7,6 +7,15 @@ namespace EcomAE.Platform.Presentation;
 /// <summary>PHP <c>epc_ext_kv_table</c> / <c>epc_ext_field_guide</c> / <c>epc_ext_commentary</c> / <c>epc_ext_cover_page</c> / print JS twin.</summary>
 public static class ErpExternalReportingHtml
 {
+    public sealed record DrillRow(
+        string Doc,
+        string Date,
+        string Party,
+        string Trn,
+        decimal Net,
+        decimal Vat,
+        string Source);
+
     public static string H(string? value) => WebUtility.HtmlEncode(value ?? "");
 
     public static string Money(decimal amount, string ccy = "AED") =>
@@ -116,6 +125,40 @@ public static class ErpExternalReportingHtml
         + "<span style=\"width:120px;text-align:right;\">Adjustment</span></div>";
 
     public static string VatBox(string box, string desc, decimal amount, decimal vat, string ccy, bool sample = false, IReadOnlyList<(string Doc, string Date, string Party, string Trn, decimal Net, decimal Vat)>? invoices = null)
+        => VatBoxRows(
+            box,
+            desc,
+            amount,
+            vat,
+            ccy,
+            sample,
+            invoices?.Select(i => new DrillRow(i.Doc, i.Date, i.Party, i.Trn, i.Net, i.Vat, "")).ToArray());
+
+    public static string SourceVatBox(
+        string box,
+        string desc,
+        decimal amount,
+        decimal vat,
+        string ccy,
+        bool sample,
+        IReadOnlyList<ErpExternalReportingSourceDocument>? documents)
+        => VatBoxRows(
+            box,
+            desc,
+            amount,
+            vat,
+            ccy,
+            sample,
+            documents?.Select(d => new DrillRow(d.DocumentNumber, d.Date, d.Party, d.Trn, d.Net, d.Vat, d.Source)).ToArray());
+
+    private static string VatBoxRows(
+        string box,
+        string desc,
+        decimal amount,
+        decimal vat,
+        string ccy,
+        bool sample,
+        IReadOnlyList<DrillRow>? invoices)
     {
         var hint = invoices is { Count: > 0 }
             ? " <span class=\"epc-drill-hint\" style=\"font-size:10px;color:#2b6cb0;font-weight:600;\">▸ " + invoices.Count.ToString(CultureInfo.InvariantCulture) + " invoices</span>"
@@ -137,7 +180,7 @@ public static class ErpExternalReportingHtml
         sb.Append("<summary style=\"cursor:pointer;padding:8px 6px;list-style:none;\">").Append(summary).Append("</summary>");
         sb.Append("<div class=\"epc-print-hide\" style=\"background:#fafbfd;padding:6px 10px 12px 52px;overflow-x:auto;\">");
         sb.Append("<table class=\"table table-condensed\" style=\"margin:0;background:#fff;border:1px solid #e6eaf1;font-size:11.5px;\">");
-        sb.Append("<thead><tr style=\"background:#f0f3f8;\"><th>Invoice</th><th>Date</th><th>Party</th><th>TRN</th><th style=\"text-align:right;\">Net</th><th style=\"text-align:right;\">VAT</th></tr></thead><tbody>");
+        sb.Append("<thead><tr style=\"background:#f0f3f8;\"><th>Invoice / bill</th><th>Date</th><th>Party</th><th>TRN</th><th style=\"text-align:right;\">Net</th><th style=\"text-align:right;\">VAT</th><th>Source</th></tr></thead><tbody>");
         decimal tn = 0, tv = 0;
         foreach (var iv in invoices)
         {
@@ -146,12 +189,19 @@ public static class ErpExternalReportingHtml
             sb.Append("<tr><td style=\"font-weight:600;\">").Append(H(iv.Doc)).Append("</td><td>").Append(H(iv.Date))
                 .Append("</td><td>").Append(H(iv.Party)).Append("</td><td class=\"text-muted\">").Append(H(iv.Trn))
                 .Append("</td><td style=\"text-align:right;\">").Append(H(Money(iv.Net, ccy)))
-                .Append("</td><td style=\"text-align:right;\">").Append(H(Money(iv.Vat, ccy))).Append("</td></tr>");
+                .Append("</td><td style=\"text-align:right;\">").Append(H(Money(iv.Vat, ccy)))
+                .Append("</td><td>");
+            if (!string.IsNullOrWhiteSpace(iv.Source))
+            {
+                sb.Append("<a href=\"").Append(H(iv.Source)).Append("\" target=\"_blank\" rel=\"noopener noreferrer\">Open source</a>");
+            }
+
+            sb.Append("</td></tr>");
         }
 
-        sb.Append("<tr style=\"background:#eef3fb;font-weight:700;\"><td colspan=\"4\">Total — ")
+        sb.Append("<tr style=\"background:#eef3fb;font-weight:700;\"><td colspan=\"5\">Total — ")
             .Append(invoices.Count.ToString(CultureInfo.InvariantCulture)).Append(" invoices</td><td style=\"text-align:right;\">")
-            .Append(H(Money(tn, ccy))).Append("</td><td style=\"text-align:right;\">").Append(H(Money(tv, ccy))).Append("</td></tr>");
+            .Append(H(Money(tn, ccy))).Append("</td><td style=\"text-align:right;\">").Append(H(Money(tv, ccy))).Append("</td><td></td></tr>");
         return sb.Append("</tbody></table></div></details>").ToString();
     }
 

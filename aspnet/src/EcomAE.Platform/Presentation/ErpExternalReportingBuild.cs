@@ -737,22 +737,14 @@ public static class ErpExternalReportingBuild
         }
 
         var sourceDocs = input.SourceDocuments ?? [];
-        IReadOnlyList<(string Doc, string Date, string Party, string Trn, decimal Net, decimal Vat)> salesDocs = sourceDocs
-            .Where(d => d.Kind == "sales")
-            .Select(d => (d.DocumentNumber, d.Date, d.Party, d.Trn, d.Net, d.Vat))
-            .ToArray();
-        IReadOnlyList<(string Doc, string Date, string Party, string Trn, decimal Net, decimal Vat)> purchaseDocs = sourceDocs
-            .Where(d => d.Kind == "purchase")
-            .Select(d => (d.DocumentNumber, d.Date, d.Party, d.Trn, d.Net, d.Vat))
-            .ToArray();
-        if (salesDocs.Count == 0)
-        {
-            salesDocs = Invoices(cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), input.From, input.To, "IFRSREV");
-        }
-        if (purchaseDocs.Count == 0)
-        {
-            purchaseDocs = Invoices(cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * TaxRate(country) / 100m, 2), input.From, input.To, "IFRSEXP", true);
-        }
+        var salesSourceDocs = sourceDocs.Where(d => d.Kind == "sales").ToArray();
+        var purchaseSourceDocs = sourceDocs.Where(d => d.Kind == "purchase").ToArray();
+        var salesDocs = salesSourceDocs.Length == 0
+            ? Invoices(cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), input.From, input.To, "IFRSREV")
+            : null;
+        var purchaseDocs = purchaseSourceDocs.Length == 0
+            ? Invoices(cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * TaxRate(country) / 100m, 2), input.From, input.To, "IFRSEXP", true)
+            : null;
         body.Append(ErpExternalReportingHtml.Section(sectionTitles[34], ErpExternalReportingHtml.Commentary("Audit evidence and source-system controls", [
             "The report is designed to reconcile face statements, trial-balance bridges and source-document schedules. In live mode, the dashboard read services provide the ERP totals; sample mode supplies deterministic rows for review."
         ]) + ErpExternalReportingHtml.CheckTable([
@@ -767,9 +759,13 @@ public static class ErpExternalReportingBuild
             ("Total assets", cur.TotalAssets, ""), ("Total liabilities", cur.TotalLiab, ""), ("Total equity", cur.TotalEquity, "total"),
         ], ccy), true));
         body.Append(ErpExternalReportingHtml.Section(sectionTitles[36],
-            ErpExternalReportingHtml.VatBox("Revenue", "Sales invoices supporting reported revenue", cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), ccy, sourceDocs.All(d => d.Kind != "sales"), salesDocs), true));
+            salesSourceDocs.Length > 0
+                ? ErpExternalReportingHtml.SourceVatBox("Revenue", "Sales invoices supporting reported revenue", cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), ccy, false, salesSourceDocs)
+                : ErpExternalReportingHtml.VatBox("Revenue", "Sales invoices supporting reported revenue", cur.Rev, decimal.Round(cur.Rev * TaxRate(country) / 100m, 2), ccy, true, salesDocs), true));
         body.Append(ErpExternalReportingHtml.Section(sectionTitles[37],
-            ErpExternalReportingHtml.VatBox("Expenses", "Supplier bills supporting cost of sales and operating expenses", cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * TaxRate(country) / 100m, 2), ccy, sourceDocs.All(d => d.Kind != "purchase"), purchaseDocs), true));
+            purchaseSourceDocs.Length > 0
+                ? ErpExternalReportingHtml.SourceVatBox("Expenses", "Supplier bills supporting cost of sales and operating expenses", cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * TaxRate(country) / 100m, 2), ccy, false, purchaseSourceDocs)
+                : ErpExternalReportingHtml.VatBox("Expenses", "Supplier bills supporting cost of sales and operating expenses", cur.Cogs + cur.Opex, decimal.Round((cur.Cogs + cur.Opex) * TaxRate(country) / 100m, 2), ccy, true, purchaseDocs), true));
         body.Append(ErpExternalReportingHtml.Section(sectionTitles[38], ErpExternalReportingHtml.Commentary("Tax and e-invoice bridge", [
             "VAT 201, Corporate Tax and PINT-AE e-invoice schedules use the same reporting period, tenant country and source-document population. The VAT and e-invoice appendices remain available from the corresponding statutory report routes."
         ]) + ErpExternalReportingHtml.KvTable([
