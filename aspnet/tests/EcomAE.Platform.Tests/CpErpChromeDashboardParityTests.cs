@@ -68,11 +68,17 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("All warehouse SKUs (S-UAE, R-UAE", src);
         Assert.Contains("Supplier warehouse stock (all price lists)", src);
         Assert.Contains("fa-car", src);
-        Assert.Contains("data-shortcut-key=\"@tile.Key\"", src);
-        Assert.Contains("\"crosses\"", src);
-        Assert.Contains("\"multivendor\"", src);
-        Assert.Contains("\"/cp/config-items-app\"", src);
+        // Shortcuts are the PHP epc_dash_shortcuts_ui.php .eds-* grid + editor over persisted rows.
+        Assert.Contains("eds-live-grid", src);
+        Assert.Contains("data-key=\"@tile.Key\"", src);
+        Assert.Contains("LoadShortcutsAsync", src);
+        Assert.Contains("shortcut_delete_key", src);
+        Assert.Contains("shortcut_reset", src);
         Assert.DoesNotContain("\"/cp/portal-settings-app\"", src);
+
+        var catalog = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Cp/CpShortcutCatalog.cs"));
+        Assert.Contains("\"crosses\"", catalog);
+        Assert.Contains("\"multivendor\"", catalog);
     }
 
     [Fact]

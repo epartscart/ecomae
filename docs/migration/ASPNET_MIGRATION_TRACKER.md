@@ -12,8 +12,8 @@ Order of work (user sequence): **CP build → ERP build → storefront/others bu
 
 Progress measurement (reported to the user on every completed step): `done / total` checklist items per phase and overall,
 plus pending %. Weighting: Phase A 20 %, B 45 % (B-J 8 %, B-F 7 % inside), C 15 %, D 8 %, E 7 %, F 5 %.
-Current: A 11.4/17 items (≈67 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 13.4 % done / 86.6 % pending**.
-(CP dashboard twin split into 3 parts: part 1 KPI/chart/currency service done, parts 2–3 pending.)
+Current: A 12/17 items (≈71 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 14.1 % done / 85.9 % pending**.
+(CP dashboard twin split into 3 parts: parts 1–3 done — KPIs/chart, persisted `.eds-*` shortcuts, conditional insights + portal industry catalogue.)
 
 Standing rules that apply to every item below:
 - Tenant isolation, per-tenant DB confidentiality, CSRF on every write, RBAC/ACL, audit log, degraded-shared-DB guard.
@@ -43,8 +43,12 @@ Standing rules that apply to every item below:
         SKU, vendors, clients, pending tasks, returns, VIN), per-KPI failure isolation, `epc_tcp_dash_stats:v7:<db>` 120 s cache,
         `TenantDataGuard` containment → zero-safe values, dynamic 7-day labels/counts, PHP `epc_tcp_dash_change` formatter,
         `epc_co_profile` company name + base currency, Finance pulse only when finance data exists
-  - [ ] Part 2: persistent per-user shortcuts (`epc_user_shortcuts` + `shortcut_*` ajax actions, `.eds-*` catalogue editor, defaults
-        seeding per industry, reset, reorder, safe relative URLs, company scope, CSRF, audit)
+  - [x] Part 2: persistent per-user shortcuts — `CpShortcutCatalog` (PHP catalogue, auto_parts + generic default strips, CP tone map),
+        `CpTenantDashboardService.LoadShortcutsAsync` (reads `epc_user_shortcuts` for surface `cp`/`both` on the per-tenant connection,
+        seeds industry defaults only on first visit, zero-safe when the table/DB is unavailable), `POST /cp/dashboard/shortcut`
+        (`shortcut_add` / `shortcut_delete` / `shortcut_delete_key` / `shortcut_reset` / `shortcut_reorder`, admin session + `cp`
+        capability + CSRF, catalogue keys resolved server-side so posted URLs can't be trusted, `javascript:`/`data:` rejected),
+        `.eds-*` grid/editor markup at PHP geometry (172 px min tile, 12 px gap, 118 px min height, 40×40 icon, hover lift)
   - [ ] Part 3: conditional insights suite projection (CP variant, CSS only when insight HTML exists), DB industry label/icon for all
         industries incl. jewellery and fit-out, tenant ERP/storefront links through `MapCpPhpPath`
 - [ ] Remaining CP PHP twins to verify/finish: `epc_tenant_features`, `epc_tenant_email_settings`, `epc_super_cp_customer_board`,

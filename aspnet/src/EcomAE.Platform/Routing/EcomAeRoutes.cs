@@ -2056,6 +2056,8 @@ public static class EcomAeRoutes
 
     /// <summary>PHP <c>cp/content/shop/prices_send/ajax_operations.php</c> twin.</summary>
     public const string CpPricesSendAction = "/cp/prices-send/action";
+    /// <summary>CP dashboard <c>.eds-*</c> shortcuts: PHP ajax_erp.php shortcut_add / shortcut_delete / shortcut_delete_key / shortcut_reset / shortcut_reorder for surface <c>cp</c>.</summary>
+    public const string CpDashboardShortcutAction = "/cp/dashboard/shortcut";
     /// <summary>Wave C catalog of CP module ajax write surfaces (procurement/document_control/customer_mgmt/auto_price/CRM).</summary>
     public const string CpModuleAjaxWriteCatalog = "/cp/module-ajax/writes/catalog";
     /// <summary>Wave C registry dry-run for any catalogued CP module ajax action (writes=0).</summary>

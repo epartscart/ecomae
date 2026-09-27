@@ -54,6 +54,15 @@ public interface ICpTenantDashboardService
     Task<CpDashboardStats> LoadStatsAsync(CancellationToken cancellationToken = default);
 
     Task<CpDashboardCompany> LoadCompanyAsync(CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// PHP <c>epc_shortcuts_seed_defaults()</c> + <c>epc_shortcuts_list_for_surface($db, $uid, 'cp')</c>:
+    /// persisted per-user tiles, seeded from the industry defaults on first visit.
+    /// </summary>
+    Task<IReadOnlyList<CpShortcutTile>> LoadShortcutsAsync(
+        int userId,
+        string? industryCode,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class CpTenantDashboardService : ICpTenantDashboardService
@@ -162,6 +171,111 @@ public sealed class CpTenantDashboardService : ICpTenantDashboardService
 
         _cache.Set(cacheKey, company, CacheTtl);
         return company;
+    }
+
+    public async Task<IReadOnlyList<CpShortcutTile>> LoadShortcutsAsync(
+        int userId,
+        string? industryCode,
+        CancellationToken cancellationToken = default)
+    {
+        // PHP epc_shortcuts_list_for_surface() filters on user_id + surface only; tenant isolation
+        // comes from the per-tenant connection, and company_id stays 0 as in epc_shortcuts_add().
+        var defaults = CpShortcutCatalog.DefaultTiles(industryCode);
+        var tenant = _httpContextAccessor?.HttpContext?.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        if (userId <= 0 || TenantDataGuard.IsContained(tenant) || !_connections.IsConfigured)
+        {
+            return defaults;
+        }
+
+        try
+        {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            if (!await TableExistsAsync(connection, "epc_user_shortcuts", cancellationToken).ConfigureAwait(false))
+            {
+                return defaults;
+            }
+
+            var rows = await ReadShortcutsAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            if (rows.Count == 0)
+            {
+                // PHP seeds the industry defaults only when this surface has nothing saved.
+                await SeedDefaultsAsync(connection, userId, industryCode, cancellationToken).ConfigureAwait(false);
+                rows = await ReadShortcutsAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+            }
+
+            return rows.Count == 0 ? defaults : rows;
+        }
+        catch (DbException)
+        {
+            // First-visit DDL / seed must never take down /cp/control — PHP swallows the same way.
+            return defaults;
+        }
+    }
+
+    private static async Task<IReadOnlyList<CpShortcutTile>> ReadShortcutsAsync(
+        DbConnection connection,
+        int userId,
+        CancellationToken cancellationToken)
+    {
+        var tiles = new List<CpShortcutTile>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            """
+            SELECT `id`, `shortcut_key`, `label`, `icon_class`, `icon_color`, `target_url`
+            FROM `epc_user_shortcuts`
+            WHERE `user_id` = ? AND (`surface` = 'cp' OR `surface` = 'both')
+            ORDER BY `sort_order` ASC, `time_created` ASC
+            """);
+        ErpDb.AddParameters(command, userId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        var index = 0;
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            var key = reader.IsDBNull(1) ? string.Empty : reader.GetString(1);
+            var icon = reader.IsDBNull(3) ? "fa fa-star" : reader.GetString(3);
+            tiles.Add(new CpShortcutTile(
+                reader.IsDBNull(0) ? 0 : reader.GetInt64(0),
+                key,
+                reader.IsDBNull(2) ? "Shortcut" : reader.GetString(2),
+                icon.StartsWith("fa ", StringComparison.Ordinal) ? icon[3..] : icon,
+                reader.IsDBNull(4) ? "#3498db" : reader.GetString(4),
+                reader.IsDBNull(5) ? "#" : reader.GetString(5),
+                CpShortcutCatalog.ToneFor(key, index)));
+            index++;
+        }
+
+        return tiles;
+    }
+
+    private static async Task SeedDefaultsAsync(
+        DbConnection connection,
+        int userId,
+        string? industryCode,
+        CancellationToken cancellationToken)
+    {
+        var createdAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var sort = 0;
+        foreach (var key in CpShortcutCatalog.DefaultsFor(industryCode))
+        {
+            var item = CpShortcutCatalog.Find(key);
+            if (item is null)
+            {
+                continue;
+            }
+
+            sort++;
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    """
+                    INSERT INTO `epc_user_shortcuts`
+                    (`company_id`,`user_id`,`surface`,`shortcut_key`,`label`,`icon_class`,`icon_color`,`target_url`,`target_tab`,`sort_order`,`time_created`)
+                    VALUES (0,?,'cp',?,?,?,?,?,'',?,?)
+                    """),
+                cancellationToken,
+                userId, item.Key, item.Label, item.IconClass, item.Color, item.Url, sort, createdAt);
+        }
     }
 
     private static async Task<CpDashboardStats> ComputeAsync(
