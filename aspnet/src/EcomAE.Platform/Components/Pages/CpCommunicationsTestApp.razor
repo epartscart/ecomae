@@ -4,7 +4,9 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Routing
+@inject ICpCommunicationsDeskService Desk
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
@@ -42,7 +44,12 @@
     .epc-cn-pill.is-ok { background:#dcfce7; color:#15803d; }
     .epc-cn-pill.is-bad { background:#fee2e2; color:#b91c1c; }
     .epc-cn-pill.is-idle { background:#e2e8f0; color:#64748b; }
+    .epc-cn-pill.is-stale { background:#fef9c3; color:#a16207; }
+    .epc-cn-pill.is-old { background:#ffedd5; color:#c2410c; }
     .epc-cn-meta { font-size:13px; color:#334155; line-height:1.5; }
+    .epc-cn-test { margin-top:14px; padding-top:14px; border-top:1px dashed #e2e8f0; }
+    .epc-cn-test label { font-size:12px; font-weight:600; color:#334155; }
+    .epc-cn-test .help { margin:6px 0 0; font-size:12px; color:#64748b; }
 </style>
 </HeadContent>
 
@@ -51,17 +58,18 @@
     <div class="col-lg-12 epc-cn" id="epc-cn-comms-root">
         <div class="epc-cn-hero">
             <h3>Communications</h3>
-            <p>Check e-mail (SMTP) and SMS delivery status from tenant tables. Send a test stays on the Classic twin — this page does not invent a send.</p>
+            <p>Check SMTP and SMS readiness, see the last test result from <code>debug_results</code>, and send a test e-mail or SMS to confirm delivery.</p>
             <div class="epc-cn-hero__actions">
-                <a class="btn btn-sm btn-primary" href="/cp/tenant-email-app">E-mail settings</a>
-                <a class="btn btn-sm" href="/cp/sms-whatsapp-app">SMS operators</a>
-                <a class="btn btn-sm" href="/cp/notifications-app">Templates</a>
+                <a class="btn btn-sm btn-primary" href="@EmailSettingsHref"><i class="far fa-envelope"></i> E-mail settings</a>
+                <a class="btn btn-sm" href="/cp/sms-whatsapp-app"><i class="fas fa-mobile-alt"></i> SMS operators</a>
+                <a class="btn btn-sm" href="/cp/notifications-app"><i class="fas fa-envelope-open-text"></i> Templates</a>
+                <a class="btn btn-sm" href="/cp"><i class="fas fa-home"></i> Control panel</a>
                 <a class="btn btn-sm" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
         </div>
 
         <div class="epc-cn-quick">
-            <a class="is-email" href="/cp/tenant-email-app">
+            <a class="is-email" href="@EmailSettingsHref">
                 <strong>SMTP / From address</strong>
                 <span>Host, port, encryption, username, From name &amp; e-mail.</span>
             </a>
@@ -73,130 +81,152 @@
                 <strong>Notification templates</strong>
                 <span>Turn e-mail / SMS on per event and edit message bodies.</span>
             </a>
-            <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">
-                <strong>Send a test</strong>
-                <span>Classic twin posts to the live SMTP / SMS gateway. This page does not invent a send.</span>
+            <a href="/cp/ops-guides-app">
+                <strong>CP guideline</strong>
+                <span>Full map of System → Communications workflows.</span>
             </a>
         </div>
 
         <div class="epc-cn-guide">
             <h4>How to get messaging working</h4>
             <ol class="epc-cn-steps">
-                <li><strong>Configure e-mail</strong>Fill SMTP fields, then return here to review last-test status.</li>
-                <li><strong>Activate SMS</strong>Pick one operator and paste API credentials on the SMS page.</li>
+                <li><strong>Configure e-mail</strong>Fill SMTP fields in Configuration → E-mail group, then return here to test.</li>
+                <li><strong>Activate SMS</strong>Pick one operator, paste API credentials, confirm sender number (default +971567607011).</li>
                 <li><strong>Edit templates</strong>Enable e-mail/SMS per event under Notification settings.</li>
-                <li><strong>Test on Classic</strong>Send a test to your inbox / mobile. Green status means the last test succeeded.</li>
+                <li><strong>Test here</strong>Send a test to your inbox / mobile. Green status means the last test succeeded.</li>
             </ol>
         </div>
 
-        <PhpParityModuleBody AppPath="/cp/communications-test-app" IsAdmin="_isAdmin" />
+        @if (!string.IsNullOrEmpty(_flashOk))
+        {
+            <div class="alert alert-success" role="status">@_flashOk</div>
+        }
+        @if (!string.IsNullOrEmpty(_flashErr))
+        {
+            <div class="alert alert-danger" role="alert">@_flashErr</div>
+        }
 
-        <div class="epc-cn-grid">
-            <div class="epc-cn-card is-email">
-                <div class="epc-cn-card__head">
-                    <div>
-                        <h4>E-mail</h4>
-                        <p>Last SMTP test from <code>debug_results</code>.</p>
-                    </div>
-                    <a class="btn btn-sm btn-success" href="/cp/tenant-email-app">Settings</a>
-                </div>
-                <div class="epc-cn-card__body">
-                    <div class="epc-cn-status">
-                        <span class="epc-cn-pill @EmailPillClass()">@_emailPill</span>
-                    </div>
-                    <div class="epc-cn-meta">
-                        @if (!_isAdmin)
-                        {
-                            <text>Sign in with a Control Panel admin session to load live tenant data.</text>
-                        }
-                        else
-                        {
-                            <text>Last test status: <code>@_emailStatus</code>. Send-test stays on the Classic twin.</text>
-                        }
-                    </div>
-                </div>
-            </div>
+        @if (!_isAdmin)
+        {
+            <div class="alert alert-warning" role="status">Sign in with an admin CP session to check and test messaging. <a href="/cp/login?returnUrl=/cp/communications-test-app">Sign in</a></div>
+        }
+        else
+        {
+            @if (!string.IsNullOrEmpty(_view.Error))
+            {
+                <div class="alert alert-warning" role="status">@_view.Error</div>
+            }
 
-            <div class="epc-cn-card is-sms">
-                <div class="epc-cn-card__head">
-                    <div>
-                        <h4>SMS</h4>
-                        <p>Active operator and last SMS test.</p>
+            <div class="epc-cn-grid">
+                <div class="epc-cn-card is-email">
+                    <div class="epc-cn-card__head">
+                        <div>
+                            <h4><i class="far fa-envelope"></i> E-mail</h4>
+                            <p>SMTP settings from Configuration → E-mail.</p>
+                        </div>
+                        <a class="btn btn-sm btn-success" href="@EmailSettingsHref"><i class="far fa-envelope"></i> Settings</a>
                     </div>
-                    <a class="btn btn-sm btn-success" href="/cp/sms-whatsapp-app">Operators</a>
-                </div>
-                <div class="epc-cn-card__body">
-                    <div class="epc-cn-status">
-                        <span class="epc-cn-pill @(_summary.SmsActiveCount > 0 ? "is-ok" : "is-bad")">@(_summary.SmsActiveCount > 0 ? "Configured" : "Not configured")</span>
-                        <span class="epc-cn-pill @SmsPillClass()">@_smsPill</span>
-                    </div>
-                    <div class="epc-cn-meta">
-                        @if (!_isAdmin)
-                        {
-                            <text>Sign in to load operators.</text>
-                        }
-                        else
-                        {
-                            <text>@_summary.SmsActiveCount.ToString(CultureInfo.InvariantCulture) active of @_summary.SmsTotalCount.ToString(CultureInfo.InvariantCulture). Last test: <code>@_smsStatus</code>.</text>
-                        }
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">SMS operators</div>
-            <div class="panel-body">
-                <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
-                        <thead>
-                            <tr>
-                                <th>Name</th>
-                                <th>Active</th>
-                                <th>Selectable</th>
-                                <th>Handler</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                        @if (!_isAdmin)
-                        {
-                            <tr><td colspan="4">Sign in for live data.</td></tr>
-                        }
-                        else if (_rows.Count == 0)
-                        {
-                            <tr><td colspan="4">No records yet.</td></tr>
-                        }
-                        else
-                        {
-                            @foreach (var row in _rows)
+                    <div class="epc-cn-card__body">
+                        <div class="epc-cn-status">
+                            <span class="epc-cn-pill @(_view.EmailConfigured ? "is-ok" : "is-bad")">@(_view.EmailConfigured ? "Configured" : "Not configured")</span>
+                            <span class="epc-cn-pill is-@_view.EmailDebug.Pill @_view.EmailDebug.AgeClass">@_view.EmailDebug.Label</span>
+                        </div>
+                        <div class="epc-cn-meta">
+                            @if (_view.EmailConfigured)
                             {
-                                <tr>
-                                    <td>@(string.IsNullOrWhiteSpace(row.Name) ? "—" : row.Name)</td>
-                                    <td>@row.Active.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@row.IsSelectable.ToString(CultureInfo.InvariantCulture)</td>
-                                    <td>@(string.IsNullOrWhiteSpace(row.Handler) ? "—" : row.Handler)</td>
-                                </tr>
+                                <text>From <code>@_view.FromEmail</code></text>
+                                @if (!string.IsNullOrEmpty(_view.SmtpHost))
+                                {
+                                    <text> · SMTP <code>@_view.SmtpHost:@_view.SmtpPort</code></text>
+                                }
+                                <br />@_view.EmailDebug.Meta
                             }
+                            else
+                            {
+                                <text>Fill all SMTP fields (From name, From e-mail, mode, encryption, host, port, username, password) to enable e-mail.</text>
+                            }
+                        </div>
+                        @if (_view.EmailConfigured)
+                        {
+                            <form class="epc-cn-test" method="post" action="@EcomAeRoutes.CpCommunicationsTest">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="type" value="email" />
+                                <input type="hidden" name="returnUrl" value="/cp/communications-test-app" />
+                                <label for="email_for_test">E-mail for test letter</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="E-mail" value="@_view.TestEmail" id="email_for_test" name="contact" required />
+                                    <span class="input-group-btn">
+                                        <button type="submit" class="btn btn-primary"><i class="far fa-envelope"></i> Send test</button>
+                                    </span>
+                                </div>
+                                <p class="help">Uses the <code>test_email</code> notification template and records the result.</p>
+                            </form>
                         }
-                        </tbody>
-                    </table>
+                    </div>
+                </div>
+
+                <div class="epc-cn-card is-sms">
+                    <div class="epc-cn-card__head">
+                        <div>
+                            <h4><i class="fas fa-mobile-alt"></i> SMS</h4>
+                            <p>Active operator from SMS operators.</p>
+                        </div>
+                        <a class="btn btn-sm btn-success" href="/cp/sms-whatsapp-app"><i class="fas fa-mobile-alt"></i> Operators</a>
+                    </div>
+                    <div class="epc-cn-card__body">
+                        <div class="epc-cn-status">
+                            <span class="epc-cn-pill @(_view.SmsConfigured ? "is-ok" : "is-bad")">@(_view.SmsConfigured ? "Configured" : "Not configured")</span>
+                            <span class="epc-cn-pill is-@_view.SmsDebug.Pill @_view.SmsDebug.AgeClass">@_view.SmsDebug.Label</span>
+                        </div>
+                        <div class="epc-cn-meta">
+                            @if (_view.SmsConfigured)
+                            {
+                                <text>Operator <code>@(string.IsNullOrEmpty(_view.SmsOperatorName) ? "Active" : _view.SmsOperatorName)</code></text>
+                                @if (!string.IsNullOrEmpty(_view.SmsHandler))
+                                {
+                                    <text> · Handler <code>@_view.SmsHandler</code></text>
+                                }
+                                @if (!string.IsNullOrEmpty(_view.SmsSender))
+                                {
+                                    <text> · From <code>@_view.SmsSender</code></text>
+                                }
+                                <br />@_view.SmsDebug.Meta
+                            }
+                            else
+                            {
+                                <text>No active SMS operator. Activate one on the SMS operators page.</text>
+                            }
+                        </div>
+                        @if (_view.SmsConfigured)
+                        {
+                            <form class="epc-cn-test" method="post" action="@EcomAeRoutes.CpCommunicationsTest">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="type" value="phone" />
+                                <input type="hidden" name="returnUrl" value="/cp/communications-test-app" />
+                                <label for="phone_for_test">Phone for test SMS</label>
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="Phone" value="@_view.TestPhone" id="phone_for_test" name="contact" required />
+                                    <span class="input-group-btn">
+                                        <button type="submit" class="btn btn-primary"><i class="fas fa-mobile-alt"></i> Send test</button>
+                                    </span>
+                                </div>
+                                <p class="help">Uses the <code>test_phone</code> notification template through the active operator.</p>
+                            </form>
+                        }
+                    </div>
                 </div>
             </div>
-        </div>
+        }
     </div>
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/control/communications";
+    private const string EmailSettingsHref = "/cp/config-items-app?need_config_group=3";
     private bool _isAdmin;
-    private CpCommunicationsTestSummary _summary = new(0, 0, "", "", "n/a", "");
-    private IReadOnlyList<CpCommunicationsTestRowDigest> _rows = [];
-    private string _emailStatus = "—";
-    private string _smsStatus = "—";
-    private string _emailPill = "idle";
-    private string _smsPill = "idle";
+    private CpCommunicationsView _view = CpCommunicationsView.Empty("", "");
+    private string _flashOk = "";
+    private string _flashErr = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -204,40 +234,14 @@
         if (ctx is null) return;
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
         if (!_isAdmin)
         {
             return;
         }
 
-        var result = await Dashboards.BuildCpCommunicationsTestDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Channels;
-        _emailStatus = string.IsNullOrWhiteSpace(_summary.EmailLastStatus) ? "—" : _summary.EmailLastStatus;
-        _smsStatus = string.IsNullOrWhiteSpace(_summary.SmsLastStatus) ? "—" : _summary.SmsLastStatus;
-        _emailPill = PillLabel(_summary.EmailLastStatus);
-        _smsPill = PillLabel(_summary.SmsLastStatus);
-    }
-
-    private static string PillLabel(string status)
-    {
-        if (string.IsNullOrWhiteSpace(status)) return "No test yet";
-        if (status == "1") return "Last test ok";
-        if (status == "0") return "Last test failed";
-        return status;
-    }
-
-    private string EmailPillClass()
-        => PillClass(_summary.EmailLastStatus);
-
-    private string SmsPillClass()
-        => PillClass(_summary.SmsLastStatus);
-
-    private static string PillClass(string status)
-    {
-        if (string.IsNullOrWhiteSpace(status)) return "is-idle";
-        if (status == "1") return "is-ok";
-        if (status == "0") return "is-bad";
-        return "is-idle";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        _view = await Desk.LoadAsync(session.UserId, session.Email, ctx.RequestAborted);
     }
 }

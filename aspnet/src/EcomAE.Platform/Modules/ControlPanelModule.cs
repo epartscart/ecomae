@@ -8764,6 +8764,50 @@ public sealed class ControlPanelModule : ISurfaceModule
                 new { ok = result.Succeeded, writes = result.Writes, validation_code = result.Code, message = result.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.CpCommunicationsTest, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpCommunicationsTestService tests,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/communications-test-app", "Admin CP capability required for communications tests.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, error = new { code = "form_required", message = "Communications tests accept form posts only." } });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to send a communications test from ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var result = await tests.SendTestAsync(
+                LiveWriteFormBinder.Text(form, "type"),
+                LiveWriteFormBinder.Text(form, "contact"),
+                cancellationToken);
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/communications-test-app",
+                result.Succeeded,
+                result.Message,
+                new { ok = result.Succeeded, writes = result.Writes, validation_code = result.Code, message = result.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelPowerBi, async (
             HttpContext context,
             int? limit,
