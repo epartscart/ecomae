@@ -37,16 +37,16 @@
                 </div>
                 <div class="epc-erp-table-wrap">
                     <table class="table table-bordered table-condensed table-epc epc-erp-table">
-                        <thead><tr><th>COA account ID</th><th>Debit</th><th>Credit</th><th>Line note</th></tr></thead>
+                        <thead><tr><th>COA account</th><th>Debit</th><th>Credit</th><th>Line note</th></tr></thead>
                         <tbody>
                             <tr>
-                                <td><input type="number" name="lines[0].coaId" min="1" required /></td>
+                                <td><select name="lines[0].coaId" required><option value="">Select account</option>@foreach (var account in _coaAccounts) { <option value="@account.Id">@account.Code · @account.Name</option> }</select></td>
                                 <td><input type="number" name="lines[0].debit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="number" name="lines[0].credit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="text" name="lines[0].lineNote" maxlength="255" /></td>
                             </tr>
                             <tr>
-                                <td><input type="number" name="lines[1].coaId" min="1" required /></td>
+                                <td><select name="lines[1].coaId" required><option value="">Select account</option>@foreach (var account in _coaAccounts) { <option value="@account.Id">@account.Code · @account.Name</option> }</select></td>
                                 <td><input type="number" name="lines[1].debit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="number" name="lines[1].credit" min="0" step="0.01" value="0" required /></td>
                                 <td><input type="text" name="lines[1].lineNote" maxlength="255" /></td>
@@ -201,6 +201,7 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=gl";
     private bool _isAdmin;
     private IReadOnlyList<ErpGlJournalDigest> _journals = [];
+    private IReadOnlyList<ErpCoaAccountDigest> _coaAccounts = [];
     private int _posted;
     private decimal _totalDebit;
     private int _limit = 100;
@@ -244,6 +245,8 @@
         }
 
         var result = await Dashboards.ListErpGlJournalsAsync(_limit, ctx.RequestAborted);
+        var coa = await Dashboards.ListErpCoaAccountsAsync(500, ctx.RequestAborted);
+        _coaAccounts = coa.Accounts;
         _journals = result.Journals;
         _openedJournal = _openedId > 0 ? _journals.FirstOrDefault(j => j.Id == _openedId) : null;
         if (_openedJournal is not null)

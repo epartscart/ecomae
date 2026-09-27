@@ -15,7 +15,7 @@ plus pending %. Weighting: Phase A 20 %, B 45 % (B-J 8 %, B-F 7 % inside), C 15 
 Current: A 24/24 items (≈99 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 20.4 % done / 79.6 % pending**.
 Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliation, tenant deny flags,
 explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
-closed-period guards, and opened-journal line drill-down are now live. The phase-level
+closed-period guards, opened-journal line drill-down, and PHP COA-backed account selectors are now live. The phase-level
 percentage remains unchanged until a complete ERP capability gate is closed.
 
 Conversation requirements audit (reconciled 2026-09-27):
@@ -214,7 +214,7 @@ Standing rules that apply to every item below:
       `epc_order_supplier_fulfillment`, `epc_erp_scm`, `epc_erp_order_planning` (no `epc_erp_syncron_policy.php` exists in repo — confirm with user)
 - [ ] B3 Procure-to-Pay — supplier portal, requisitions, RFQ, purchase orders, 3-way match, payables, payment batches, landed cost (+v2), barcode purchase
 - [ ] B4 Inventory & warehouse — inventory, groups, reports, order planning, WMS, virtual warehouse, master planning, RFID, quality; forecast → Python
-- [~] B5 Record-to-Report / GL — manual journal header/lines form, opened-journal line drill-down, and posted-journal reversal form now use the
+- [~] B5 Record-to-Report / GL — manual journal header/lines form with PHP COA-backed selectors, opened-journal line drill-down, and posted-journal reversal form now use the
       live validated GL endpoints with balanced-line validation, reversal safeguards, and audit logging; GL, COA, opening balances, aging, P&L, balance sheet, trial balance, year end, period close, fiscal periods,
       dimensions, cost models, budgeting, consolidation (BU/group/IC), multi-entity, multi-currency GL, revaluation, fixed assets, expenses, projects
 - [ ] B6 IFRS report pack + drill-down (summary → account → journal → voucher → source doc), external reports, scheduler, exec dashboard,
