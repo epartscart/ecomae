@@ -1024,7 +1024,8 @@ public static class LegacySurfaceDashboardSql
         SELECT j.`id`, IFNULL(j.`journal_no`, '') AS journal_no, j.`journal_date`,
                IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,
                IF(j.`active` = 1, 'posted', 'void') AS status,
-               (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit
+               (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit,
+               (SELECT IFNULL(SUM(`credit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_credit
         FROM `epc_erp_gl_journals` j
         WHERE j.`active` = 1
         ORDER BY j.`journal_date` DESC, j.`id` DESC
@@ -1053,7 +1054,8 @@ public static class LegacySurfaceDashboardSql
         SELECT j.`id`, IFNULL(j.`journal_no`, '') AS journal_no, j.`journal_date`,
                IFNULL(j.`source_type`, '') AS source_type, IFNULL(j.`source_id`, 0) AS source_id,
                IF(j.`active` = 1, 'posted', 'void') AS status,
-               (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit
+               (SELECT IFNULL(SUM(`debit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_debit,
+               (SELECT IFNULL(SUM(`credit`), 0) FROM `epc_erp_gl_lines` WHERE `journal_id` = j.`id`) AS total_credit
         FROM `epc_erp_gl_journals` j
         WHERE j.`active` = 1
           AND IFNULL(j.`source_type`, '') = @source_type

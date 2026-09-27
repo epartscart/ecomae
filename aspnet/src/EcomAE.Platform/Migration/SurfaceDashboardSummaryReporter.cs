@@ -2705,7 +2705,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     Convert.ToString(reader["source_type"] is DBNull ? string.Empty : reader["source_type"], CultureInfo.InvariantCulture) ?? string.Empty,
                     Convert.ToInt64(reader["source_id"] is DBNull ? 0 : reader["source_id"], CultureInfo.InvariantCulture),
                     Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToDecimal(reader["total_debit"] is DBNull ? 0m : reader["total_debit"], CultureInfo.InvariantCulture)));
+                    Convert.ToDecimal(reader["total_debit"] is DBNull ? 0m : reader["total_debit"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["total_credit"] is DBNull ? 0m : reader["total_credit"], CultureInfo.InvariantCulture)));
             }
 
             return new(rows, rows.Count, "database", string.Empty);
@@ -2797,7 +2798,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         ReadStr(reader, "source_type"),
                         ReadI64(reader, "source_id"),
                         ReadStr(reader, "status"),
-                        ReadDec(reader, "total_debit")));
+                        ReadDec(reader, "total_debit"),
+                        ReadDec(reader, "total_credit")));
                 }
             }
 

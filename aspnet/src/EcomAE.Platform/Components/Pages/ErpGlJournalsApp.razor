@@ -173,13 +173,15 @@
                     <th>Source</th>
                     <th>Status</th>
                     <th>Total debit</th>
+                    <th>Total credit</th>
+                    <th>Balance</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_journals.Count == 0)
                 {
-                    <tr><td colspan="6">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -191,6 +193,8 @@
                             <td>@(string.IsNullOrWhiteSpace(j.SourceType) ? "—" : j.SourceType)@(j.SourceId > 0 ? $" #{j.SourceId}" : "")</td>
                             <td><span class="label label-default">@j.Status</span></td>
                             <td>@j.TotalDebit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@j.TotalCredit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td>@((j.TotalDebit - j.TotalCredit).ToString("N2", CultureInfo.InvariantCulture))</td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href("/erp/gl-journals-app", "journal_id", j.Id)">Open</a></td>
                         </tr>
                     }
