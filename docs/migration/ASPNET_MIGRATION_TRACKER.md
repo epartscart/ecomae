@@ -212,7 +212,7 @@ Standing rules that apply to every item below:
       dashboard parity (payment/stock/delivery/returns funnel) is still pending.
       leads/opportunities/CRM; libs `epc_erp_order_fulfillment`, `epc_fulfillment_queue`, `epc_order_erp_pipeline`,
       `epc_order_supplier_fulfillment`, `epc_erp_scm`, `epc_erp_order_planning` (no `epc_erp_syncron_policy.php` exists in repo — confirm with user)
-- [ ] B3 Procure-to-Pay — supplier portal, requisitions, RFQ, purchase orders, 3-way match, payables, payment batches, landed cost (+v2), barcode purchase
+- [~] B3 Procure-to-Pay — supplier settlement now has a PHP-compatible ASP.NET form/JSON write with direction, entry kind, reference, note, and optional GL posting; supplier portal, requisitions, RFQ, purchase orders, 3-way match, payment batches, landed cost (+v2), and barcode purchase remain pending
 - [ ] B4 Inventory & warehouse — inventory, groups, reports, order planning, WMS, virtual warehouse, master planning, RFID, quality; forecast → Python
 - [~] B5 Record-to-Report / GL — manual journal and opening-balance lines now use PHP COA/inventory-backed selectors, selectable posting date, list/detail debit-credit balance summaries, opened-journal line drill-down, posted-journal reversal, and opening-batch line drill-down now use the
       live validated GL endpoints with balanced-line validation, reversal safeguards, and audit logging; GL, COA, opening balances, aging, P&L, balance sheet, trial balance, year end, period close, fiscal periods,

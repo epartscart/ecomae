@@ -2490,52 +2490,7 @@ public sealed class ErpModule : ISurfaceModule
             }
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpSupplierSettlement, async (
-            HttpContext context,
-            ErpSupplierSettlementBody? body,
-            ILegacySessionValidator validator,
-            IErpSupplierSettlementDryRun dryRun,
-            IErpCashWriteService writes,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for supplier settlement dry-run.");
-            }
-            body ??= new ErpSupplierSettlementBody(0, 0, "decrease", false);
-            if (!body.ConfirmWrites)
-            {
-                var result = dryRun.Evaluate(new ErpSupplierSettlementRequest(
-                    body.SupplierId, body.Amount, body.Direction, false));
-                return Results.Ok(result.ToPayload(SessionPayload(session)));
-            }
-
-            return await ExecuteErpWriteAsync(session, async () =>
-            {
-                var settled = await writes.SupplierSettlementAsync(
-                    new ErpSupplierSettlementInput
-                    {
-                        SupplierId = (int)body.SupplierId,
-                        Amount = body.Amount,
-                        Direction = body.Direction ?? "decrease",
-                        EntryKind = body.EntryKind ?? "adjustment",
-                        PurchaseId = body.PurchaseId,
-                        OrderId = body.OrderId,
-                        Reference = body.Reference ?? string.Empty,
-                        Note = body.Note ?? string.Empty,
-                        Time = body.Time,
-                        PostGl = body.PostGl,
-                    },
-                    session.UserId,
-                    cancellationToken);
-                return ("Supplier ledger updated", new
-                {
-                    ledger_id = settled.LedgerId,
-                    gl_journal_id = settled.GlJournalId,
-                });
-            });
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpSupplierSettlement, HandleSupplierSettlementAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpFiscalSetLock, HandleFiscalSetLockAsync).DisableAntiforgery();
 
@@ -11759,6 +11714,85 @@ public sealed class ErpModule : ISurfaceModule
                 message = ex.Message,
                 session = SessionPayload(session),
             });
+        }
+    }
+
+    private static async Task<IResult> HandleSupplierSettlementAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSupplierSettlementDryRun dryRun,
+        IErpCashWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for supplier settlement.");
+        }
+
+        ErpSupplierSettlementBody body;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            body = new(
+                LiveWriteFormBinder.Long(form, "supplier_id", "supplierId"),
+                LiveWriteFormBinder.Dec(form, "amount"),
+                form["direction"].ToString() is { Length: > 0 } direction ? direction : "decrease",
+                LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                form["entry_kind"].ToString() is { Length: > 0 } entryKind ? entryKind : "adjustment",
+                LiveWriteFormBinder.Long(form, "purchase_id", "purchaseId"),
+                LiveWriteFormBinder.Long(form, "order_id", "orderId"),
+                form["reference"].ToString(),
+                form["note"].ToString(),
+                LiveWriteFormBinder.Long(form, "time"),
+                LiveWriteFormBinder.Flag(form, "post_gl", "postGl"));
+        }
+        else
+        {
+            body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSupplierSettlementBody>(context, cancellationToken)
+                ?? new ErpSupplierSettlementBody(0, 0, "decrease", false);
+        }
+
+        if (!body.ConfirmWrites)
+        {
+            var result = dryRun.Evaluate(new ErpSupplierSettlementRequest(
+                body.SupplierId, body.Amount, body.Direction, false));
+            return Results.Ok(result.ToPayload(SessionPayload(session)));
+        }
+
+        try
+        {
+            var settled = await writes.SupplierSettlementAsync(
+                new ErpSupplierSettlementInput
+                {
+                    SupplierId = (int)body.SupplierId,
+                    Amount = body.Amount,
+                    Direction = body.Direction ?? "decrease",
+                    EntryKind = body.EntryKind ?? "adjustment",
+                    PurchaseId = body.PurchaseId,
+                    OrderId = body.OrderId,
+                    Reference = body.Reference ?? string.Empty,
+                    Note = body.Note ?? string.Empty,
+                    Time = body.Time,
+                    PostGl = body.PostGl,
+                },
+                session.UserId,
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                LiveWriteFormBinder.ReturnUrl(context, "/erp/payables-app"),
+                true,
+                "Supplier ledger updated",
+                new { ok = true, writes = 1, ledger_id = settled.LedgerId, gl_journal_id = settled.GlJournalId, session = SessionPayload(session) });
+        }
+        catch (ErpWriteException ex)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                LiveWriteFormBinder.ReturnUrl(context, "/erp/payables-app"),
+                false,
+                ex.Message,
+                new { ok = false, writes = 0, message = ex.Message, session = SessionPayload(session) });
         }
     }
 
