@@ -214,7 +214,7 @@ Standing rules that apply to every item below:
       `epc_order_supplier_fulfillment`, `epc_erp_scm`, `epc_erp_order_planning` (no `epc_erp_syncron_policy.php` exists in repo — confirm with user)
 - [ ] B3 Procure-to-Pay — supplier portal, requisitions, RFQ, purchase orders, 3-way match, payables, payment batches, landed cost (+v2), barcode purchase
 - [ ] B4 Inventory & warehouse — inventory, groups, reports, order planning, WMS, virtual warehouse, master planning, RFID, quality; forecast → Python
-- [~] B5 Record-to-Report / GL — manual journal and opening-balance lines now use PHP COA/inventory-backed selectors, selectable posting date, list/detail debit-credit balance summaries, opened-journal line drill-down, posted-journal reversal, and opening-batch line drill-down now use the
+- [~] B5 Record-to-Report / GL — manual journal and opening-balance lines now use PHP COA/inventory-backed selectors, opening-batch line drill-down, and a visible pre-post validation action; selectable posting date, list/detail debit-credit balance summaries, and posted-journal reversal now use the
       live validated GL endpoints with balanced-line validation, reversal safeguards, and audit logging; GL, COA, opening balances, aging, P&L, balance sheet, trial balance, year end, period close, fiscal periods,
       dimensions, cost models, budgeting, consolidation (BU/group/IC), multi-entity, multi-currency GL, revaluation, fixed assets, expenses, projects
 - [ ] B6 IFRS report pack + drill-down (summary → account → journal → voucher → source doc), external reports, scheduler, exec dashboard,

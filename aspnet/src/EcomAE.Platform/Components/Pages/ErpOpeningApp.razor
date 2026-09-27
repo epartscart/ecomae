@@ -68,6 +68,14 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No opening lines yet.</p>
             }
+            @if (_opened.Status.Equals("draft", StringComparison.OrdinalIgnoreCase))
+            {
+                <div class="erp-opening-post-check" style="margin:1rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#f8fafc">
+                    <strong>Posting validation</strong>
+                    <button type="button" class="btn btn-xs btn-default" data-opening-post-check="@_opened.Id">Validate before posting</button>
+                    <span data-opening-post-result class="text-muted">No validation run.</span>
+                </div>
+            }
             @if (!string.IsNullOrWhiteSpace(_opened.NoteExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>
@@ -157,6 +165,26 @@
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
+
+<script>
+document.querySelectorAll('[data-opening-post-check]').forEach(function (button) {
+    button.addEventListener('click', async function () {
+        var result = button.parentElement.querySelector('[data-opening-post-result]');
+        result.textContent = 'Validating…';
+        try {
+            var response = await fetch('/erp/ajax/opening-post-batch', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ id: Number(button.dataset.openingPostCheck), confirmWrites: false })
+            });
+            var payload = await response.json();
+            result.textContent = payload.detail || payload.message || 'Validation response received.';
+        } catch (error) {
+            result.textContent = 'Validation request failed.';
+        }
+    });
+});
+</script>
 
 <form method="post" action="/erp/opening/add-inv-line" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
