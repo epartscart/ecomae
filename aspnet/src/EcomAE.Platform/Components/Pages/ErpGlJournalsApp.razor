@@ -23,6 +23,40 @@
     <ErpPhpFlash Ok="@_flashOk" Err="@_flashErr" />
     @if (_isAdmin)
     {
+        <section class="epc-erp-form-panel" style="margin:0 0 1rem">
+            <div class="epc-erp-form-panel__head">
+                <strong>Manual journal entry</strong>
+                <span class="text-muted">Validate, balance, then post to the general ledger.</span>
+            </div>
+            <form method="post" action="@EcomAeRoutes.ErpGlJournalsManual" style="display:grid;gap:.65rem">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="journalDate" value="@JournalDate" />
+                <div style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
+                    <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
+                    <label>Description <input type="text" name="description" required maxlength="255" /></label>
+                </div>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>COA account ID</th><th>Debit</th><th>Credit</th><th>Line note</th></tr></thead>
+                        <tbody>
+                            <tr>
+                                <td><input type="number" name="lines[0].coaId" min="1" required /></td>
+                                <td><input type="number" name="lines[0].debit" min="0" step="0.01" value="0" required /></td>
+                                <td><input type="number" name="lines[0].credit" min="0" step="0.01" value="0" required /></td>
+                                <td><input type="text" name="lines[0].lineNote" maxlength="255" /></td>
+                            </tr>
+                            <tr>
+                                <td><input type="number" name="lines[1].coaId" min="1" required /></td>
+                                <td><input type="number" name="lines[1].debit" min="0" step="0.01" value="0" required /></td>
+                                <td><input type="number" name="lines[1].credit" min="0" step="0.01" value="0" required /></td>
+                                <td><input type="text" name="lines[1].lineNote" maxlength="255" /></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+                <div><button type="submit" class="btn btn-primary">Validate and post journal</button></div>
+            </form>
+        </section>
         <form id="erp-module-new" method="post" action="@EcomAeRoutes.ErpJewelleryVoucherSaveForm" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/gl-journals-app?tab=jw_journal_voucher" />
@@ -150,6 +184,8 @@
     private ErpGlJournalDigest? _openedJournal;
     private ErpGlJournalDetail? _openedDetail;
     private IReadOnlyList<ErpGlJournalDigest> _openedSiblings = [];
+
+    private static long JournalDate => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
     private bool OpenedFound => _openedDetail is not null || _openedJournal is not null;
 
