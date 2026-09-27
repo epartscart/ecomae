@@ -30,6 +30,20 @@ public sealed class CpPlatformCommunicationWriteTests
     }
 
     [Fact]
+    public void Task_list_sql_and_due_date_match_php()
+    {
+        Assert.Contains("WHERE `status` = @p0 ORDER BY FIELD(`priority`, 'urgent', 'high', 'normal', 'low'), `due_at` ASC, `id` DESC",
+            CpPlatformCommunicationWriteService.TasksSql(true), StringComparison.Ordinal);
+        Assert.Contains("ORDER BY FIELD(`status`, 'open', 'in_progress', 'done', 'cancelled'), FIELD(`priority`, 'urgent', 'high', 'normal', 'low'), `due_at` ASC, `id` DESC LIMIT 200",
+            CpPlatformCommunicationWriteService.TasksSql(false), StringComparison.Ordinal);
+        Assert.Equal(1767225600, CpPlatformCommunicationWriteService.ParseDueAt("2026-01-01"));
+        Assert.Equal(123, CpPlatformCommunicationWriteService.ParseDueAt("123"));
+        Assert.Equal(0, CpPlatformCommunicationWriteService.ParseDueAt("not-a-date"));
+        Assert.Equal("2026-01-01", CpPlatformCommunicationWriteService.DueDate(1767225600));
+        Assert.Equal("", CpPlatformCommunicationWriteService.DueDate(0));
+    }
+
+    [Fact]
     public void Page_posts_native_save_and_delete_task()
     {
         var razor = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Components/Pages/CpPlatformCommunicationApp.razor"));
@@ -44,9 +58,15 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Contains("name=\"notify_tenant_onboard\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"title\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"description\"", razor, StringComparison.Ordinal);
-        Assert.Contains("Leave blank to keep current description", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"description_replace\"", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"task_status\"", razor, StringComparison.Ordinal);
+        Assert.Contains("edit_task=", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-panel__hero", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-empty-state", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-scp-data-table", razor, StringComparison.Ordinal);
+        Assert.Contains("SMTP source", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("ISurfaceDashboardSummaryReporter", razor, StringComparison.Ordinal);
         Assert.Contains("_isAdmin && _isSuper", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
@@ -78,12 +98,14 @@ public sealed class CpPlatformCommunicationWriteTests
         Assert.Contains("epc_scp_task_save", service, StringComparison.Ordinal);
         Assert.Contains("epc_scp_task_delete", service, StringComparison.Ordinal);
         Assert.Contains("epc_scp_comm_settings_save", service, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", service, StringComparison.Ordinal);
+        Assert.Contains("epc_scp_tasks_list", service, StringComparison.Ordinal);
+        Assert.Contains("epc_scp_platform_users", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_platform_internal_tasks`", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_platform_comm_settings`", service, StringComparison.Ordinal);
         Assert.Contains("DELETE FROM `epc_platform_internal_tasks`", service, StringComparison.Ordinal);
-        Assert.Contains("schema-ensure stays Classic", service, StringComparison.Ordinal);
-        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_platform_internal_tasks`", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_platform_comm_settings`", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("smtp_password", service, StringComparison.Ordinal);
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
     }

@@ -3,396 +3,263 @@
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Cp
-@using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
-@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject ICpPlatformCommunicationWriteService Writes
+@inject ICpPriceConfigsWriteService Tenants
+@inject ICpCommunicationsDeskService Smtp
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
-@inject ICpPlatformCommunicationWriteService Writes
 
 <PageTitle>Platform communication · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
-
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">
-                Platform communication
-                <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
+    <div class="col-lg-12 epc-scp-panel epc-scp-communication">
+        <div class="epc-scp-panel__hero">
+            <div>
+                <span class="epc-scp-dashboard__badge">Super CP</span>
+                <h2 class="epc-scp-dashboard__title">Communication setup</h2>
+                <p class="epc-scp-dashboard__sub">Platform email notification policy, SMTP diagnostics, and internal operator tasks with assignment.</p>
             </div>
-            <div class="panel-body">
-                <p>@CpPhpModuleCopy.PurposeFor("/cp/platform-communication-app")</p>
-                <p>Open a task for a short description excerpt and other tasks in the same category. Super-CP admins can save a notification policy or a task here. SMTP and schema-ensure stay on the Classic twin. This page does not invent a send.</p>
-            </div>
-        </div>
-    </div>
-    <PhpParityModuleBody AppPath="/cp/platform-communication-app" IsAdmin="_isAdmin" ShowGhostScaffold="false" />
-
-    <ErpOpenedRecordBanner Id="_openedId" Found="@(_openedTask is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-
-    @if (!string.IsNullOrWhiteSpace(_flashOk))
-    {
-        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
-    }
-    @if (!string.IsNullOrWhiteSpace(_flashErr))
-    {
-        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
-    }
-
-    @if (_isAdmin && _isSuper)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Email notifications</div>
-                <div class="panel-body">
-                    <form method="post" action="/cp/platform-communication/write" class="well">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "task_id", _openedId) : _listHref)" />
-                        <input type="hidden" name="action" value="save_comm_settings" />
-                        <div class="form-group">
-                            <label>From name</label>
-                            <input type="text" class="form-control" name="notify_from_name" value="@Setting("notify_from_name")" />
-                        </div>
-                        <div class="form-group">
-                            <label>From email</label>
-                            <input type="text" class="form-control" name="notify_from_email" value="@Setting("notify_from_email")" />
-                        </div>
-                        <div class="form-group">
-                            <label>Reply-to</label>
-                            <input type="text" class="form-control" name="notify_reply_to" value="@Setting("notify_reply_to")" />
-                        </div>
-                        <div class="form-group">
-                            <label>Digest hour (UTC)</label>
-                            <input type="number" class="form-control" name="digest_hour_utc" min="0" max="23" value="@Setting("digest_hour_utc")" />
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                @if (FlagOn("notify_tenant_onboard"))
-                                {
-                                    <input type="checkbox" name="notify_tenant_onboard" value="1" checked />
-                                }
-                                else
-                                {
-                                    <input type="checkbox" name="notify_tenant_onboard" value="1" />
-                                }
-                                Tenant onboard confirmation
-                            </label>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                @if (FlagOn("notify_tenant_dns_live"))
-                                {
-                                    <input type="checkbox" name="notify_tenant_dns_live" value="1" checked />
-                                }
-                                else
-                                {
-                                    <input type="checkbox" name="notify_tenant_dns_live" value="1" />
-                                }
-                                Tenant goes live (DNS)
-                            </label>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                @if (FlagOn("notify_demo_expiry"))
-                                {
-                                    <input type="checkbox" name="notify_demo_expiry" value="1" checked />
-                                }
-                                else
-                                {
-                                    <input type="checkbox" name="notify_demo_expiry" value="1" />
-                                }
-                                Demo expiry reminder
-                            </label>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                @if (FlagOn("notify_task_assigned"))
-                                {
-                                    <input type="checkbox" name="notify_task_assigned" value="1" checked />
-                                }
-                                else
-                                {
-                                    <input type="checkbox" name="notify_task_assigned" value="1" />
-                                }
-                                Task assigned to operator
-                            </label>
-                        </div>
-                        <div class="checkbox">
-                            <label>
-                                @if (FlagOn("notify_daily_digest"))
-                                {
-                                    <input type="checkbox" name="notify_daily_digest" value="1" checked />
-                                }
-                                else
-                                {
-                                    <input type="checkbox" name="notify_daily_digest" value="1" />
-                                }
-                                Daily operator digest
-                            </label>
-                        </div>
-                        <button type="submit" class="btn btn-default">Save notification policy</button>
-                    </form>
-                    <p class="help-block" style="margin:.75rem 0 0">SMTP stay Classic.</p>
-                </div>
+            <div class="epc-scp-dashboard__hero-actions">
+                <a class="btn btn-sm btn-default" href="@ModernAuthHref"><i class="fa fa-sign-in"></i> Modern auth</a>
+                <a class="btn btn-sm btn-primary" href="@OperatorGuideHref"><i class="fa fa-book"></i> Operator guide</a>
+                <a class="btn btn-sm btn-default ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" target="_blank" rel="noopener"><i class="fa fa-code"></i> Classic twin</a>
             </div>
         </div>
 
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">@(_openedTask is not null ? "Edit task" : "New internal task")</div>
-                <div class="panel-body">
-                    <form method="post" action="/cp/platform-communication/write" class="well">
-                        <input type="hidden" name="confirmWrites" value="true" />
-                        <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? ErpRecordOpen.Href(_listHref, "task_id", _openedId) : _listHref)" />
-                        <input type="hidden" name="action" value="save_task" />
-                        <input type="hidden" name="id" value="@FormId.ToString(CultureInfo.InvariantCulture)" />
-                        <div class="form-group">
-                            <label>Title</label>
-                            <input type="text" class="form-control" name="title" value="@OpenedTitle" />
-                        </div>
-                        <div class="form-group">
-                            <label>Description</label>
-                            <textarea class="form-control" name="description" rows="3"></textarea>
-                            <p class="help-block">Leave blank to keep current description. The list only shows a 280-char excerpt.</p>
-                        </div>
-                        <div class="form-group">
-                            <label>Category</label>
-                            <select class="form-control" name="category">
-                                @foreach (var item in CpPlatformCommunicationWriteService.Categories)
-                                {
-                                    @if (OpenedCategory == item.Key)
-                                    {
-                                        <option value="@item.Key" selected>@item.Value</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@item.Key">@item.Value</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Priority</label>
-                            <select class="form-control" name="priority">
-                                @foreach (var item in CpPlatformCommunicationWriteService.Priorities)
-                                {
-                                    @if (OpenedPriority == item.Key)
-                                    {
-                                        <option value="@item.Key" selected>@item.Value</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@item.Key">@item.Value</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Status</label>
-                            <select class="form-control" name="status">
-                                @foreach (var item in CpPlatformCommunicationWriteService.Statuses)
-                                {
-                                    @if (OpenedStatus == item.Key)
-                                    {
-                                        <option value="@item.Key" selected>@item.Value</option>
-                                    }
-                                    else
-                                    {
-                                        <option value="@item.Key">@item.Value</option>
-                                    }
-                                }
-                            </select>
-                        </div>
-                        <div class="form-group">
-                            <label>Site key</label>
-                            <input type="text" class="form-control" name="site_key" value="@OpenedSiteKey" />
-                        </div>
-                        <div class="form-group">
-                            <label>Assigned to (user id)</label>
-                            <input type="number" class="form-control" name="assigned_to" value="@OpenedAssignedTo.ToString(CultureInfo.InvariantCulture)" />
-                        </div>
-                        <div class="form-group">
-                            <label>Assigned email</label>
-                            <input type="text" class="form-control" name="assigned_email" value="@OpenedAssignedEmail" />
-                        </div>
-                        <div class="form-group">
-                            <label>Due at (unix)</label>
-                            <input type="number" class="form-control" name="due_at" value="@OpenedDueAt.ToString(CultureInfo.InvariantCulture)" />
-                        </div>
-                        <button type="submit" class="btn btn-default">Save task</button>
-                    </form>
-                    @if (_openedTask is not null)
-                    {
-                        <form method="post" action="/cp/platform-communication/write" class="well" style="margin-top:1rem">
-                            <input type="hidden" name="confirmWrites" value="true" />
-                            <input type="hidden" name="returnUrl" value="@_listHref" />
-                            <input type="hidden" name="action" value="delete_task" />
-                            <input type="hidden" name="id" value="@FormId.ToString(CultureInfo.InvariantCulture)" />
-                            <button type="submit" class="btn btn-default">Delete task</button>
-                        </form>
-                    }
-                    <p class="help-block" style="margin:.75rem 0 0">SMTP stay Classic.</p>
-                </div>
+        <div class="epc-scp-intro-panel">
+            <div class="epc-scp-intro-panel__body">
+                <strong>Operator workspace — Communication</strong>
+                <p>Set which platform events send email, review SMTP diagnostics, and track internal tasks assigned to ECOM AE operators.</p>
             </div>
-        </div>
-    }
-
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Platform communication KPIs">
-        <div class="kpi"><div class="lbl">Tasks</div><div class="val">@_summary.TaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Open</div><div class="val">@_summary.OpenTaskCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">High priority</div><div class="val">@_summary.HighPriorityCount.ToString(CultureInfo.InvariantCulture)</div></div>
-        <div class="kpi"><div class="lbl">Opened siblings</div><div class="val">@_openedSiblings.Count.ToString(CultureInfo.InvariantCulture)</div></div>
-    </div>
-
-    @if (_openedTask is not null)
-    {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedTask.Title) ? _openedTask.Title : ("Task #" + _openedTask.Id.ToString(CultureInfo.InvariantCulture)))
-                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedTask.Status) ? _openedTask.Status : "—")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedTask.SiteKey) ? _openedTask.SiteKey : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedTask.Category) ? _openedTask.Category : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedTask.Priority) ? _openedTask.Priority : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedTask.AssignedEmail) ? _openedTask.AssignedEmail : ("user " + _openedTask.AssignedTo.ToString(CultureInfo.InvariantCulture)))</p>
-                    <p>Due @_openedTask.DueAt.ToString(CultureInfo.InvariantCulture)
-                        · created @_openedTask.CreatedAt.ToString(CultureInfo.InvariantCulture)
-                        · by @_openedTask.CreatedBy.ToString(CultureInfo.InvariantCulture)</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedTask.DescriptionExcerpt))
-                    {
-                        <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_openedTask.DescriptionExcerpt</pre>
-                        @if (_openedTask.DescriptionLen > _openedTask.DescriptionExcerpt.Length)
-                        {
-                            <p class="text-muted">Excerpt only (@_openedTask.DescriptionExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_openedTask.DescriptionLen.ToString(CultureInfo.InvariantCulture) chars). Full description stays on the Classic twin.</p>
-                        }
-                    }
-                    else
-                    {
-                        <p class="text-muted">No description excerpt yet.</p>
-                    }
-                </div>
-            </div>
+            <a class="btn btn-sm btn-default" href="@OperatorGuideHref"><i class="fa fa-book"></i> Operator guide</a>
         </div>
 
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Category siblings</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Id</th>
-                                    <th>Title</th>
-                                    <th>Status</th>
-                                    <th>Priority</th>
-                                    <th>Due</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedSiblings.Count == 0)
-                                {
-                                    <tr><td colspan="5">No category siblings yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var sib in _openedSiblings)
-                                    {
-                                        <tr>
-                                            <td>@sib.Id.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Title) ? sib.Title : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Status) ? sib.Status : "—")</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(sib.Priority) ? sib.Priority : "—")</td>
-                                            <td>@sib.DueAt.ToString(CultureInfo.InvariantCulture)</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
+        @if (!string.IsNullOrWhiteSpace(_flashOk))
+        {
+            <div class="alert alert-success">@_flashOk</div>
+        }
+        @if (!string.IsNullOrWhiteSpace(_flashErr))
+        {
+            <div class="alert alert-danger">@_flashErr</div>
+        }
+
+        @if (!_isSuper)
+        {
+            <div class="alert alert-warning">Communication setup is managed from the Super CP host only. Tenant CPs are independent.</div>
+        }
+        else if (!_isAdmin)
+        {
+            <div class="alert alert-warning">Sign in with a Super CP admin session to manage communication. <a href="/cp/login?returnUrl=/cp/platform-communication-app">Sign in</a></div>
+        }
+        else
+        {
+            @if (!string.IsNullOrWhiteSpace(_error))
+            {
+                <div class="alert alert-danger">@_error</div>
+            }
+
+            <div class="row">
+                <div class="col-md-6">
+                    <div class="epc-scp-form-card">
+                        <h4><i class="fa fa-envelope"></i> Email notifications</h4>
+                        <p class="text-muted small">Controls which platform events trigger outbound email. SMTP transport is configured in <code>config.epc-smtp.php</code> (see Modern auth).</p>
+                        <table class="table table-condensed table-bordered epc-scp-status-table" style="margin-bottom:14px">
+                            <tr><th>SMTP source</th><td>@_smtp.Source</td></tr>
+                            <tr><th>Host</th><td><code>@(_smtp.Host + ":" + _smtp.Port)</code> (@_smtp.Encryption)</td></tr>
+                            <tr><th>From</th><td>@_smtp.FromName &lt;@_smtp.FromEmail&gt;</td></tr>
                         </table>
+                        <form method="post" action="/cp/platform-communication/write">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@FilterHref" />
+                            <input type="hidden" name="action" value="save_comm_settings" />
+                            <div class="form-group"><label>From name</label><input class="form-control input-sm" name="notify_from_name" value="@Setting("notify_from_name")" /></div>
+                            <div class="form-group"><label>From email</label><input class="form-control input-sm" type="email" name="notify_from_email" value="@Setting("notify_from_email")" /></div>
+                            <div class="form-group"><label>Reply-to</label><input class="form-control input-sm" type="email" name="notify_reply_to" value="@Setting("notify_reply_to")" /></div>
+                            <div class="form-group"><label>Digest hour (UTC)</label><input class="form-control input-sm" type="number" min="0" max="23" name="digest_hour_utc" value="@Setting("digest_hour_utc")" /></div>
+                            <div class="checkbox"><label><input type="checkbox" name="notify_tenant_onboard" value="1" checked="@FlagOn("notify_tenant_onboard")" /> Tenant onboard confirmation</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="notify_tenant_dns_live" value="1" checked="@FlagOn("notify_tenant_dns_live")" /> Tenant goes live (DNS)</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="notify_demo_expiry" value="1" checked="@FlagOn("notify_demo_expiry")" /> Demo expiry reminder</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="notify_task_assigned" value="1" checked="@FlagOn("notify_task_assigned")" /> Task assigned to operator</label></div>
+                            <div class="checkbox"><label><input type="checkbox" name="notify_daily_digest" value="1" checked="@FlagOn("notify_daily_digest")" /> Daily operator digest</label></div>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save notification policy</button>
+                        </form>
+                    </div>
+                </div>
+                <div class="col-md-6">
+                    <div class="epc-scp-form-card">
+                        <h4><i class="fa fa-@(_edit is not null ? "edit" : "plus")"></i> @(_edit is not null ? "Edit task" : "New internal task")</h4>
+                        <form method="post" action="/cp/platform-communication/write">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="description_replace" value="1" />
+                            <input type="hidden" name="returnUrl" value="@FilterHref" />
+                            <input type="hidden" name="action" value="save_task" />
+                            <input type="hidden" name="id" value="@((_edit?.Id ?? 0).ToString(CultureInfo.InvariantCulture))" />
+                            <div class="form-group"><label>Title</label><input class="form-control input-sm" name="title" required value="@(_edit?.Title ?? "")" /></div>
+                            <div class="form-group"><label>Description</label><textarea class="form-control input-sm" name="description" rows="3">@(_edit?.Description ?? "")</textarea></div>
+                            <div class="row">
+                                <div class="col-sm-6"><div class="form-group"><label>Category</label>
+                                    <select class="form-control input-sm" name="category">
+                                        @foreach (var c in CpPlatformCommunicationWriteService.Categories)
+                                        {
+                                            <option value="@c.Key" selected="@(EditCategory == c.Key)">@c.Value</option>
+                                        }
+                                    </select>
+                                </div></div>
+                                <div class="col-sm-6"><div class="form-group"><label>Priority</label>
+                                    <select class="form-control input-sm" name="priority">
+                                        @foreach (var p in CpPlatformCommunicationWriteService.Priorities)
+                                        {
+                                            <option value="@p.Key" selected="@(EditPriority == p.Key)">@p.Value</option>
+                                        }
+                                    </select>
+                                </div></div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-6"><div class="form-group"><label>Status</label>
+                                    <select class="form-control input-sm" name="status">
+                                        @foreach (var st in CpPlatformCommunicationWriteService.Statuses)
+                                        {
+                                            <option value="@st.Key" selected="@(EditStatus == st.Key)">@st.Value</option>
+                                        }
+                                    </select>
+                                </div></div>
+                                <div class="col-sm-6"><div class="form-group"><label>Due date</label>
+                                    <input class="form-control input-sm" type="date" name="due_at" value="@CpPlatformCommunicationWriteService.DueDate(_edit?.DueAt ?? 0)" />
+                                </div></div>
+                            </div>
+                            <div class="form-group"><label>Assign to (platform user)</label>
+                                <select class="form-control input-sm" name="assigned_to">
+                                    <option value="0">— Unassigned —</option>
+                                    @foreach (var u in _users)
+                                    {
+                                        <option value="@u.UserId.ToString(CultureInfo.InvariantCulture)" selected="@((_edit?.AssignedTo ?? 0) == u.UserId)">@u.Label</option>
+                                    }
+                                </select>
+                            </div>
+                            <div class="form-group"><label>Assign email (fallback)</label><input class="form-control input-sm" type="email" name="assigned_email" value="@(_edit?.AssignedEmail ?? "")" /></div>
+                            <div class="form-group"><label>Related tenant</label>
+                                <select class="form-control input-sm" name="site_key">
+                                    <option value="">—</option>
+                                    @foreach (var t in _tenants)
+                                    {
+                                        <option value="@t.SiteKey" selected="@((_edit?.SiteKey ?? "") == t.SiteKey)">@t.Label</option>
+                                    }
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-sm"><i class="fa fa-save"></i> Save task</button>
+                            @if (_edit is not null)
+                            {
+                                <a class="btn btn-default btn-sm" href="@_listHref">Cancel</a>
+                            }
+                        </form>
                     </div>
                 </div>
             </div>
-        </div>
-    }
 
-    <div class="col-lg-12">
-        <div class="hpanel">
-            <div class="panel-heading hbuilt">Records</div>
-            <div class="panel-body">
+            <div class="epc-scp-table-card" style="margin-top:16px">
+                <div class="epc-scp-filter-bar" style="margin-bottom:12px;border:none;padding:0;background:transparent">
+                    <form method="get" class="form-inline" action="@_listHref">
+                        <label>Tasks:</label>
+                        <select name="task_status" class="form-control input-sm">
+                            <option value="">All statuses</option>
+                            @foreach (var st in CpPlatformCommunicationWriteService.Statuses)
+                            {
+                                <option value="@st.Key" selected="@(_taskFilter == st.Key)">@st.Value</option>
+                            }
+                        </select>
+                        <button type="submit" class="btn btn-default btn-sm">Filter</button>
+                    </form>
+                </div>
+                <h4><i class="fa fa-tasks"></i> Internal tasks (@_tasks.Count.ToString(CultureInfo.InvariantCulture))</h4>
                 <div class="table-responsive">
-                    <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-        <thead>
-            <tr>
-                    <th>Id</th>
-                    <th>Title</th>
-                    <th>Site</th>
-                    <th>Category</th>
-                    <th>Status</th>
-                    <th>Priority</th>
-                    <th>Due</th>
-                    <th>Created</th>
-                    <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @if (_rows.Count == 0)
-            {
-                <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
-            }
-            else
-            {
-                @foreach (var row in _rows)
-                {
-                    <tr id="erp-row-@row.Id.ToString(CultureInfo.InvariantCulture)" class="@ErpRecordOpen.RowClass(row.Id, _openedId)">
-                            <td>@row.Id.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Title) ? row.Title : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.SiteKey) ? row.SiteKey : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Category) ? row.Category : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Status) ? row.Status : "—")</td>
-                            <td>@(!string.IsNullOrWhiteSpace(row.Priority) ? row.Priority : "—")</td>
-                            <td>@row.DueAt.ToString(CultureInfo.InvariantCulture)</td>
-                            <td>@row.CreatedAt.ToString(CultureInfo.InvariantCulture)</td>
-                            <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "task_id", row.Id)">Open</a></td>
-                    </tr>
-                }
-            }
-        </tbody>
+                    <table class="table table-striped table-bordered table-condensed epc-scp-data-table">
+                        <thead><tr><th>Task</th><th>Category</th><th>Assignee</th><th>Status</th><th>Due</th><th></th></tr></thead>
+                        <tbody>
+                        @if (_tasks.Count == 0)
+                        {
+                            <tr><td colspan="6" class="epc-scp-empty-cell">
+                                <div class="epc-scp-empty-state">
+                                    <div class="epc-scp-empty-state__icon"><i class="fa fa-inbox"></i></div>
+                                    <h4>No internal tasks yet</h4>
+                                    <p>Track onboarding follow-ups, DNS go-live checks, or support escalations — assign to a platform user or email.</p>
+                                    <div class="epc-scp-empty-state__actions">
+                                        <a class="btn btn-sm btn-primary" href="@OperatorGuideHref"><i class="fa fa-book"></i> Operator guide</a>
+                                        <a class="btn btn-sm btn-default" href="@ModernAuthHref"><i class="fa fa-sign-in"></i> Modern auth</a>
+                                    </div>
+                                </div>
+                            </td></tr>
+                        }
+                        @foreach (var t in _tasks)
+                        {
+                            <tr>
+                                <td>
+                                    <strong>@t.Title</strong>
+                                    <span class="epc-scp-badge @PriorityBadge(t.Priority)">@Label(CpPlatformCommunicationWriteService.Priorities, t.Priority)</span>
+                                    @if (!string.IsNullOrEmpty(t.Description))
+                                    {
+                                        <div class="text-muted small">@Excerpt(t.Description)</div>
+                                    }
+                                    @if (!string.IsNullOrEmpty(t.SiteKey))
+                                    {
+                                        <div><code>@t.SiteKey</code></div>
+                                    }
+                                </td>
+                                <td>@Label(CpPlatformCommunicationWriteService.Categories, t.Category)</td>
+                                <td>@(t.AssignedEmail.Length > 0 ? t.AssignedEmail : "User #" + t.AssignedTo.ToString(CultureInfo.InvariantCulture))</td>
+                                <td><span class="label label-@StatusLabel(t.Status)">@Label(CpPlatformCommunicationWriteService.Statuses, t.Status)</span></td>
+                                <td>@(t.DueAt > 0 ? CpPlatformCommunicationWriteService.DueDate(t.DueAt) : "—")</td>
+                                <td class="epc-scp-actions-cell">
+                                    <a class="btn btn-xs btn-default" href="@EditHref(t.Id)"><i class="fa fa-edit"></i></a>
+                                    <form method="post" action="/cp/platform-communication/write" style="display:inline" onsubmit="return confirm('Delete this task?');">
+                                        <input type="hidden" name="confirmWrites" value="true" />
+                                        <input type="hidden" name="returnUrl" value="@FilterHref" />
+                                        <input type="hidden" name="action" value="delete_task" />
+                                        <input type="hidden" name="id" value="@t.Id.ToString(CultureInfo.InvariantCulture)" />
+                                        <button type="submit" class="btn btn-xs btn-danger"><i class="fa fa-trash"></i></button>
+                                    </form>
+                                </td>
+                            </tr>
+                        }
+                        </tbody>
                     </table>
                 </div>
             </div>
-        </div>
+        }
     </div>
-
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/control/portal/epc_super_cp_communication";
     private const string _listHref = "/cp/platform-communication-app";
+    private const string ModernAuthHref = "/cp/auth-mfa-app";
+    private const string OperatorGuideHref = "/cp/super-cp-operator-guide-app";
     private bool _isAdmin;
     private bool _isSuper;
-    private CpPlatformCommunicationSummary _summary = new(0, 0, 0, 0, "n/a", "");
-    private IReadOnlyList<CpPlatformCommunicationRowDigest> _rows = [];
-    private string _source = "n/a";
-    private string _message = "";
+    private string _taskFilter = "";
+    private string _error = "";
     private string _flashOk = "";
     private string _flashErr = "";
-    private long _openedId;
-    private CpPlatformCommunicationTaskDetail? _openedTask;
-    private IReadOnlyList<CpPlatformCommunicationRowDigest> _openedSiblings = [];
-
-    private long FormId => _openedTask?.Id ?? 0;
-    private string OpenedTitle => _openedTask?.Title ?? "";
-    private string OpenedCategory => CpPlatformCommunicationWriteService.NormalizeCategory(_openedTask?.Category);
-    private string OpenedPriority => CpPlatformCommunicationWriteService.NormalizePriority(_openedTask?.Priority);
-    private string OpenedStatus => CpPlatformCommunicationWriteService.NormalizeStatus(_openedTask?.Status);
-    private string OpenedSiteKey => _openedTask?.SiteKey ?? "";
-    private long OpenedAssignedTo => _openedTask?.AssignedTo ?? 0;
-    private string OpenedAssignedEmail => _openedTask?.AssignedEmail ?? "";
-    private long OpenedDueAt => _openedTask?.DueAt ?? 0;
     private IReadOnlyDictionary<string, string> _settings = CpPlatformCommunicationWriteService.DefaultSettings;
+    private IReadOnlyList<CpPlatformTaskRow> _tasks = [];
+    private IReadOnlyList<CpPlatformUserOption> _users = [];
+    private IReadOnlyList<CpPriceConfigTenantOption> _tenants = [];
+    private CpSmtpDiagnostics _smtp = new("n/a", "", "", "", "", "");
+    private CpPlatformTaskRow? _edit;
+
+    private string EditCategory => CpPlatformCommunicationWriteService.NormalizeCategory(_edit?.Category);
+    private string EditPriority => CpPlatformCommunicationWriteService.NormalizePriority(_edit?.Priority);
+    private string EditStatus => CpPlatformCommunicationWriteService.NormalizeStatus(_edit?.Status);
+
+    private string FilterHref => _taskFilter.Length == 0
+        ? _listHref
+        : _listHref + "?task_status=" + Uri.EscapeDataString(_taskFilter);
+
+    private string EditHref(long id)
+        => _listHref + "?edit_task=" + id.ToString(CultureInfo.InvariantCulture)
+           + (_taskFilter.Length == 0 ? "" : "&task_status=" + Uri.EscapeDataString(_taskFilter));
 
     private string Setting(string key)
         => _settings.TryGetValue(key, out var value) ? value : "";
@@ -400,57 +267,63 @@
     private bool FlagOn(string key)
         => CpPlatformCommunicationWriteService.SettingFlag(_settings, key);
 
-    private string OpenedCaption => _openedTask is null
-        ? ""
-        : (string.IsNullOrWhiteSpace(_openedTask.Title)
-            ? ("Task #" + _openedTask.Id.ToString(CultureInfo.InvariantCulture))
-            : _openedTask.Title)
-            + (string.IsNullOrWhiteSpace(_openedTask.Status) ? "" : (" · " + _openedTask.Status));
+    private static string Label(IReadOnlyDictionary<string, string> map, string key)
+        => map.TryGetValue(key, out var label) ? label : key;
+
+    private static string PriorityBadge(string priority) => priority switch
+    {
+        "urgent" => "epc-scp-badge--urgent",
+        "high" => "epc-scp-badge--high",
+        _ => "epc-scp-badge--normal",
+    };
+
+    private static string StatusLabel(string status) => status switch
+    {
+        "done" => "success",
+        "cancelled" => "default",
+        _ => "info",
+    };
+
+    private static string Excerpt(string html)
+    {
+        var text = System.Text.RegularExpressions.Regex.Replace(html, "<[^>]*>", string.Empty);
+        return text.Length > 120 ? text[..120] : text;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
 
-        _openedId = ErpRecordOpen.ReadId(ctx.Request, "task_id");
         _isSuper = SuperCpHostGate.IsAllowed(ctx);
-        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
-        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _flashOk = ctx.Request.Query["ok"].ToString();
+        _flashErr = ctx.Request.Query["err"].ToString();
+        _taskFilter = ctx.Request.Query["task_status"].ToString().Trim();
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
-        if (!_isAdmin)
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!(_isAdmin && _isSuper))
         {
-            return; // guest browse — Sign in for live data
+            return;
         }
 
-        var result = await Dashboards.BuildCpPlatformCommunicationDigestAsync(200, ctx.RequestAborted);
-        _summary = result.Summary;
-        _rows = result.Tasks;
-        _source = result.Source;
-        _message = result.Message;
-        if (_isSuper)
+        _settings = await Writes.LoadSettingsAsync(ctx.RequestAborted);
+        var list = await Writes.ListTasksAsync(_taskFilter, ctx.RequestAborted);
+        _tasks = list.Tasks;
+        _error = list.Error;
+        _users = await Writes.ListPlatformUsersAsync(ctx.RequestAborted);
+        _tenants = await Tenants.ListTenantOptionsAsync(ctx.RequestAborted);
+        _smtp = Smtp.Diagnose();
+
+        var editId = long.TryParse(ctx.Request.Query["edit_task"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var e) ? e : 0;
+        if (editId <= 0)
         {
-            _settings = await Writes.LoadSettingsAsync(ctx.RequestAborted);
+            editId = ErpRecordOpen.ReadId(ctx.Request, "task_id");
         }
 
-        if (_openedId > 0)
+        if (editId > 0)
         {
-            var detail = await Dashboards.BuildCpPlatformCommunicationTaskDetailAsync(_openedId, ctx.RequestAborted);
-            _openedTask = detail.Task;
-            _openedSiblings = detail.Siblings;
-            if (_openedTask is not null)
-            {
-                var openedList = _rows.FirstOrDefault(r => r.Id == _openedId);
-                if (openedList is not null)
-                {
-                    _rows = new[] { openedList }.Concat(_rows.Where(r => r.Id != _openedId)).ToList();
-                }
-            }
-            else if (!string.IsNullOrWhiteSpace(detail.Message))
-            {
-                _message = detail.Message;
-            }
+            _edit = _tasks.FirstOrDefault(t => t.Id == editId);
         }
     }
 }
