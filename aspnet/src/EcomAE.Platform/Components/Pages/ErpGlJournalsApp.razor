@@ -93,6 +93,24 @@
                 <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
+            @if (_openedDetail.Lines.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Journal lines</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Account</th><th>Line note</th><th class="text-right">Debit</th><th class="text-right">Credit</th></tr></thead>
+                    <tbody>
+                        @foreach (var line in _openedDetail.Lines)
+                        {
+                            <tr>
+                                <td>@(string.IsNullOrWhiteSpace(line.AccountCode) ? $"#{line.CoaId}" : line.AccountCode)@(string.IsNullOrWhiteSpace(line.AccountName) ? "" : $" · {line.AccountName}")</td>
+                                <td>@(string.IsNullOrWhiteSpace(line.LineNote) ? "—" : line.LineNote)</td>
+                                <td class="text-right">@line.Debit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@line.Credit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
             @if (_openedDetail.Status.Equals("posted", StringComparison.OrdinalIgnoreCase))
             {
                 <form method="post" action="@EcomAeRoutes.ErpGlJournalsReverse" style="display:grid;gap:.45rem;margin:1rem 0 0;padding: .75rem;border:1px solid #e5e7eb;background:#fafafa">

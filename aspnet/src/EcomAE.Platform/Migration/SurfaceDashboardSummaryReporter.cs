@@ -2751,7 +2751,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         ReadStr(reader, "description_excerpt"),
                         ReadI32(reader, "description_len"),
                         ReadI32(reader, "admin_id"),
-                        ReadI64(reader, "time_created"));
+                        ReadI64(reader, "time_created"),
+                        []);
                 }
             }
 
@@ -2759,6 +2760,25 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 return new(null, [], "database", "GL journal not found.");
             }
+
+            var lines = new List<ErpGlJournalLineDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpGlJournalLines;
+                AddParameter(cmd, "@journal_id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new(
+                        ReadI64(reader, "coa_id"),
+                        ReadStr(reader, "account_code"),
+                        ReadStr(reader, "account_name"),
+                        ReadDec(reader, "debit"),
+                        ReadDec(reader, "credit"),
+                        ReadStr(reader, "line_note")));
+                }
+            }
+            header = header with { Lines = lines };
 
             var siblings = new List<ErpGlJournalDigest>();
             await using (var cmd = connection.CreateCommand())
