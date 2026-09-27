@@ -1525,7 +1525,26 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for cash entry create dry-run.");
             }
 
-            body ??= new ErpCashEntryCreateBody(0, 0, false, null, null, null, false);
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new ErpCashEntryCreateBody(
+                    LiveWriteFormBinder.Long(form, "account_id", "accountId"),
+                    LiveWriteFormBinder.Dec(form, "amount"),
+                    string.Equals(LiveWriteFormBinder.Text(form, "direction"), "in", StringComparison.OrdinalIgnoreCase)
+                        || string.Equals(LiveWriteFormBinder.Text(form, "direction"), "receipt", StringComparison.OrdinalIgnoreCase),
+                    LiveWriteFormBinder.Text(form, "entry_type", "entryType"),
+                    LiveWriteFormBinder.Text(form, "reference"),
+                    LiveWriteFormBinder.Text(form, "note"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                    LiveWriteFormBinder.Text(form, "counterparty_type", "counterpartyType"),
+                    LiveWriteFormBinder.Long(form, "counterparty_id", "counterpartyId"),
+                    LiveWriteFormBinder.Text(form, "voucher_no", "voucherNo"));
+            }
+            else
+            {
+                body ??= new ErpCashEntryCreateBody(0, 0, false, null, null, null, false);
+            }
             if (!body.ConfirmWrites)
             {
                 var result = await dryRun.EvaluateAsync(

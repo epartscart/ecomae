@@ -219,7 +219,7 @@ Standing rules that apply to every item below:
       dimensions, cost models, budgeting, consolidation (BU/group/IC), multi-entity, multi-currency GL, revaluation, fixed assets, expenses, projects
 - [ ] B6 IFRS report pack + drill-down (summary → account → journal → voucher → source doc), external reports, scheduler, exec dashboard,
       print designer, doc formats — PHP sample report layouts preserved exactly
-- [ ] B7 Cash & treasury — cash/bank, petty cash, bank recon, cash forecast, instruments, collections/dunning, credit, settlement, advances, withholding
+- [~] B7 Cash & treasury — cash-entry posting now accepts the PHP form contract and uses the existing audited GL/voucher write service; petty cash, bank reconciliation, cash forecast, instruments, collections/dunning, credit, settlement, advances, and withholding remain pending
 - [ ] B8 Tax & compliance (tenant-country profiles) — VAT return boxes, CT return/filing, VAT refund, e-invoice (Peppol/XML),
       FTA legislation fetch (`epc_uae_tax_legislation_*`), elec reporting, AML, tourist refund, blockchain proofs, customs/shipping
 - [ ] B9 HR & payroll — staff, HR ops, recruitment, performance, labour-law profiles, payroll, WPS (UAE profile)
