@@ -10,6 +10,7 @@ public sealed class CpLegacyAliasRouteTests
     [InlineData("CpIntegrationsApp.razor", "/cp/integrations-hub-app")]
     [InlineData("CpMarketplaceAppsApp.razor", "/cp/marketplace-app")]
     [InlineData("CpMobileAppsApp.razor", "/cp/mobile-app")]
+    [InlineData("CpPoApprovalsApp.razor", "/cp/po-app")]
     [InlineData("CpStoragesApp.razor", "/cp/warehouses-app")]
     public void LegacyCpAliasUsesAnImplementedAspNetPage(string page, string route)
     {
