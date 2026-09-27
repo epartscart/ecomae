@@ -28,10 +28,11 @@
                 <strong>Manual journal entry</strong>
                 <span class="text-muted">Validate, balance, then post to the general ledger.</span>
             </div>
-            <form method="post" action="@EcomAeRoutes.ErpGlJournalsManual" style="display:grid;gap:.65rem">
+            <form method="post" action="@EcomAeRoutes.ErpGlJournalsManual" class="erp-journal-date-form" style="display:grid;gap:.65rem">
                 <input type="hidden" name="confirmWrites" value="true" />
-                <input type="hidden" name="journalDate" value="@JournalDate" />
+                <input type="hidden" name="journalDate" value="@JournalDate" data-unix-date />
                 <div style="display:flex;flex-wrap:wrap;gap:.65rem;align-items:end">
+                    <label>Journal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
                     <label>Reference <input type="text" name="reference" required maxlength="80" /></label>
                     <label>Description <input type="text" name="description" required maxlength="255" /></label>
                 </div>
@@ -115,11 +116,12 @@
             }
             @if (_openedDetail.Status.Equals("posted", StringComparison.OrdinalIgnoreCase))
             {
-                <form method="post" action="@EcomAeRoutes.ErpGlJournalsReverse" style="display:grid;gap:.45rem;margin:1rem 0 0;padding: .75rem;border:1px solid #e5e7eb;background:#fafafa">
+                <form method="post" action="@EcomAeRoutes.ErpGlJournalsReverse" class="erp-journal-date-form" style="display:grid;gap:.45rem;margin:1rem 0 0;padding: .75rem;border:1px solid #e5e7eb;background:#fafafa">
                     <input type="hidden" name="confirmWrites" value="true" />
                     <input type="hidden" name="journalId" value="@_openedDetail.Id" />
-                    <input type="hidden" name="reverseDate" value="@JournalDate" />
+                    <input type="hidden" name="reverseDate" value="@JournalDate" data-unix-date />
                     <strong>Reverse posted journal</strong>
+                    <label>Reversal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
                     <label>Reason <input type="text" name="note" required maxlength="255" placeholder="Reason for reversal" /></label>
                     <div><button type="submit" class="btn btn-xs btn-warning">Post reversal journal</button></div>
                 </form>
@@ -199,6 +201,20 @@
 
 </PhpErpDesktopChrome>
 
+<script>
+    document.querySelectorAll('.erp-journal-date-form').forEach(function (form) {
+        var input = form.querySelector('[data-date-input]');
+        var target = form.querySelector('[data-unix-date]');
+        if (!input || !target) return;
+        var sync = function () {
+            var milliseconds = Date.parse(input.value);
+            if (!Number.isNaN(milliseconds)) target.value = Math.floor(milliseconds / 1000);
+        };
+        input.addEventListener('change', sync);
+        sync();
+    });
+</script>
+
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=finance&tab=gl";
     private bool _isAdmin;
@@ -217,6 +233,7 @@
     private IReadOnlyList<ErpGlJournalDigest> _openedSiblings = [];
 
     private static long JournalDate => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+    private static string JournalDateInput => DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);
 
     private bool OpenedFound => _openedDetail is not null || _openedJournal is not null;
 
