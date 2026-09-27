@@ -4307,6 +4307,48 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.CpSaoWrite, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            ICpSaoWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/cp/login?returnUrl=/cp/sao-app", "Admin CP capability required for SAO state mapping.");
+            }
+
+            if (!context.Request.HasFormContentType)
+            {
+                return Results.BadRequest(new { ok = false, validation_code = "invalid", message = "SAO state links are saved as a form post." });
+            }
+
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            if (!LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"))
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to save SAO state links on ASP.NET.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var map = CpSaoWriteService.ParseStateFields(
+                form.Select(f => new KeyValuePair<string, string>(f.Key, f.Value.ToString())));
+            var written = await writes.SaveStateLinksAsync(map, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/sao-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.CpTemplatesActions, async (
             HttpContext context,
             ILegacySessionValidator validator,

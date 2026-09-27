@@ -1,39 +1,199 @@
 @page "/cp/sao-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Presentation
+@inject ICpSaoDeskService Desk
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>Order automation · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
+<HeadContent>
+<style>
+    .epc-sao-state { display:inline-block; padding:2px 8px; border-radius:3px; font-size:12px; }
+</style>
+</HeadContent>
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
-                Order automation
+                Order automation (SAO)
                 <a class="btn btn-xs btn-default pull-right" href="/cp/fulfillment-queue-app">Fulfillment</a>
                 <a class="btn btn-xs btn-default pull-right" href="/cp/orders" style="margin-right:.4rem">Orders</a>
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" style="margin-right:.4rem">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>SAO order-item state machine and robot actions. Live exec stays on the Classic twin.</p>
+                <p>SAO order-item state machine: map each supplier state to the order-item status customers see, and watch the robot queue that executes supplier actions.</p>
             </div>
         </div>
     </div>
+
+    @if (!string.IsNullOrWhiteSpace(_flashOk))
+    {
+        <div class="col-lg-12"><div class="alert alert-success" role="status">@_flashOk</div></div>
+    }
+    @if (!string.IsNullOrWhiteSpace(_flashErr))
+    {
+        <div class="col-lg-12"><div class="alert alert-danger" role="status">@_flashErr</div></div>
+    }
+    @if (!_isAdmin)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">Sign in with an admin CP session to edit SAO state mapping. <a href="/cp/login?returnUrl=/cp/sao-app">Sign in</a></div></div>
+    }
+    else if (!_desk.Available)
+    {
+        <div class="col-lg-12"><div class="alert alert-warning" role="status">@_desk.Message</div></div>
+    }
+    else
+    {
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">SAO state to order-item status</div>
+                <div class="panel-body">
+                    @if (_desk.States.Count == 0)
+                    {
+                        <p class="text-muted" style="margin:0">No SAO states are defined for this tenant.</p>
+                    }
+                    else
+                    {
+                        <form method="post" action="/cp/sao/write" name="save_form">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="save_action" value="save_action" />
+                            <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                                <thead>
+                                    <tr>
+                                        <th>SAO state</th>
+                                        <th>Order item status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var state in _desk.States)
+                                    {
+                                        <tr>
+                                            <td>
+                                                <span class="epc-sao-state" style="@StateStyle(state)">@state.Name</span>
+                                            </td>
+                                            <td>
+                                                <select class="form-control" name="@("select_item_status_" + state.Id.ToString(CultureInfo.InvariantCulture))">
+                                                    <option value="0" selected="@(state.StatusId == 0)">Not set (status is not changed)</option>
+                                                    @foreach (var status in _desk.ItemStatuses)
+                                                    {
+                                                        <option value="@status.Id" selected="@(status.Id == state.StatusId)">@status.Name</option>
+                                                    }
+                                                </select>
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                            <button type="submit" class="btn btn-primary"><i class="fa fa-save"></i> Save</button>
+                            <a class="btn btn-default" href="/cp"><i class="fa fa-home"></i> Control panel</a>
+                        </form>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-12">
+            <div class="hpanel">
+                <div class="panel-heading hbuilt">Robot queue (@_desk.RobotQueue.Count.ToString(CultureInfo.InvariantCulture))</div>
+                <div class="panel-body">
+                    @if (_desk.RobotQueue.Count == 0)
+                    {
+                        <p class="text-muted" style="margin:0">No order items are waiting for a robot action.</p>
+                    }
+                    else
+                    {
+                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
+                            <thead>
+                                <tr>
+                                    <th>Item</th>
+                                    <th>Order</th>
+                                    <th>Article</th>
+                                    <th>SAO state</th>
+                                    <th>Queued action</th>
+                                    <th>Last message</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in _desk.RobotQueue)
+                                {
+                                    <tr>
+                                        <td>@item.Id</td>
+                                        <td><a href="@("/cp/orders/" + item.OrderId.ToString(CultureInfo.InvariantCulture))">@item.OrderId</a></td>
+                                        <td>@item.Article @item.Manufacturer<br /><small class="text-muted">@item.Name</small></td>
+                                        <td>@(item.StateName.Length > 0 ? item.StateName : item.StateId.ToString(CultureInfo.InvariantCulture))</td>
+                                        <td>@(item.ActionName.Length > 0 ? item.ActionName : item.ActionId.ToString(CultureInfo.InvariantCulture))</td>
+                                        <td>@item.Message</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    }
+                </div>
+            </div>
+        </div>
+
+        @if (_desk.Actions.Count > 0)
+        {
+            <div class="col-lg-12">
+                <div class="hpanel">
+                    <div class="panel-heading hbuilt">SAO actions</div>
+                    <div class="panel-body">
+                        @foreach (var action in _desk.Actions)
+                        {
+                            <span class="@("btn btn-xs " + (action.ButtonClass.Length > 0 ? action.ButtonClass : "btn-default"))" style="margin:0 .3rem .3rem 0">
+                                @if (action.FontAwesome.Length > 0)
+                                {
+                                    <i class="@("fa " + action.FontAwesome)"></i>
+                                }
+                                @action.Name
+                            </span>
+                        }
+                        <div class="text-muted" style="margin-top:6px;font-size:12px">Supplier action scripts still execute through the classic <code>sao/ajax_exec_action.php</code> handler chain.</div>
+                    </div>
+                </div>
+            </div>
+        }
+    }
 </PhpCpDesktopChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/sao";
     private bool _isAdmin;
+    private string _flashOk = "";
+    private string _flashErr = "";
+    private CpSaoDesk _desk = CpSaoDesk.Unavailable("");
+
+    private static string StateStyle(CpSaoState state)
+    {
+        var background = state.ColorBackground.Trim();
+        var text = state.ColorText.Trim();
+        var style = "";
+        if (background.Length > 0) style += "background:" + background + ";";
+        if (text.Length > 0) style += "color:" + text + ";";
+        return style;
+    }
 
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
+        _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
-        _isAdmin = session.Kind == LegacySessionKind.Admin;
+        _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _desk = await Desk.LoadAsync(ctx.RequestAborted);
     }
 }
