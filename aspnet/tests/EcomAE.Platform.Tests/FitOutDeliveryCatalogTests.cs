@@ -156,6 +156,9 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("subcontract_certifications", financeOperations, StringComparison.Ordinal);
         Assert.Contains("retention_releases", financeOperations, StringComparison.Ordinal);
         Assert.Contains("approved_payment_vouchers", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("subcontract_payment_certificate", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("client_payment_certificate", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("status`='approved'", financeOperations, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("guardedApprovalRecord", deliveryService, StringComparison.Ordinal);
