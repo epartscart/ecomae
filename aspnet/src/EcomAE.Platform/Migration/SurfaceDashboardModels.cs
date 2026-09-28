@@ -6554,7 +6554,8 @@ public sealed record ErpDeliveryNoteDigest(
     string Status,
     long ShippedAt,
     long DeliveredAt,
-    long TimeCreated);
+    long TimeCreated,
+    string PdfPath);
 
 public sealed record ErpDeliveryNoteListResult(
     IReadOnlyList<ErpDeliveryNoteDigest> Notes,
@@ -6572,6 +6573,7 @@ public sealed record ErpDeliveryNoteDetail(
     long ShippedAt,
     long DeliveredAt,
     long TimeCreated,
+    string PdfPath,
     int NotesLen,
     string NotesExcerpt);
 
