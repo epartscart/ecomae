@@ -9,6 +9,7 @@ public static class EcomAeRoutes
     public const string SitemapXml = "/sitemap.xml";
     public const string MigrationStatus = "/migration/status";
     public const string MigrationSchema = "/migration/schema";
+    public const string MigrationFitOut = "/migration/fitout";
     public const string MigrationReadiness = "/migration/readiness";
     public const string MigrationCutoverPlan = "/migration/cutover-plan";
     public const string MigrationProgress = "/migration/progress";

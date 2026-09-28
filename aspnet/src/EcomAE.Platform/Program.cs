@@ -1234,6 +1234,7 @@ app.MapGet(EcomAeRoutes.MigrationSchema, (IExpandContractMigrationRunner runner)
     applyOnStartup = builder.Configuration.GetValue<bool>("EcomAE:SchemaMigrations:ApplyOnStartup"),
     migrations = runner.GetPlan()
 }));
+app.MapGet(EcomAeRoutes.MigrationFitOut, () => Results.Ok(FitOutDeliveryCatalog.BuildReport()));
 
 app.MapGet(EcomAeRoutes.MigrationReadiness, (IMigrationReadinessReporter reporter) => Results.Ok(reporter.BuildReport()));
 
