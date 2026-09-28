@@ -16,6 +16,8 @@ public sealed record ErpFitOutProformaReceiptRow(
     decimal InvoicedVat,
     decimal InvoicedInclVat,
     decimal Receipts,
+    int ReceiptCount,
+    long LastReceiptUnixTime,
     decimal Outstanding);
 
 public sealed record ErpFitOutProformaReceiptResult(
@@ -69,11 +71,15 @@ public sealed class ErpFitOutProformaReceiptReadService
                            links.`subtotal_ex_vat`,
                            links.`total_vat`,
                            links.`total_incl_vat`,
-                           COALESCE(receipts.`receipt_amount`,0) AS `receipts`
+                           COALESCE(receipts.`receipt_amount`,0) AS `receipts`,
+                           COALESCE(receipts.`receipt_count`,0) AS `receipt_count`,
+                           COALESCE(receipts.`last_receipt_time`,0) AS `last_receipt_time`
                     FROM `ecomae_fitout_invoice_links` links
                     LEFT JOIN (
                         SELECT `sales_invoice_id`,
                                SUM(CASE WHEN `direction`=1 THEN `amount` ELSE 0 END) AS `receipt_amount`
+                               ,COUNT(CASE WHEN `direction`=1 THEN 1 END) AS `receipt_count`
+                               ,MAX(CASE WHEN `direction`=1 THEN `time` ELSE 0 END) AS `last_receipt_time`
                         FROM `epc_erp_cash_bank_entries`
                         WHERE `active`=1 AND `sales_invoice_id`>0
                         GROUP BY `sales_invoice_id`
@@ -99,6 +105,8 @@ public sealed class ErpFitOutProformaReceiptReadService
                     reader.GetDecimal(3),
                     invoiced,
                     receipts,
+                    Convert.ToInt32(reader.GetValue(6), System.Globalization.CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader.GetValue(7), System.Globalization.CultureInfo.InvariantCulture),
                     Math.Max(0m, invoiced - receipts)));
             }
 

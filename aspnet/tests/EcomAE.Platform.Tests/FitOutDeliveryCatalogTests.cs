@@ -161,6 +161,8 @@ public sealed class FitOutDeliveryCatalogTests
         var receipts = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutProformaReceiptReadService.cs"));
         Assert.Contains("sales_invoice_id", receipts, StringComparison.Ordinal);
         Assert.Contains("TotalOutstanding", receipts, StringComparison.Ordinal);
+        Assert.Contains("receipt_count", receipts, StringComparison.Ordinal);
+        Assert.Contains("last_receipt_time", receipts, StringComparison.Ordinal);
         var reconciliation = File.ReadAllText(
             FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutCommercialReconciliationReadService.cs"));
         Assert.Contains("record_type`='retention_release'", reconciliation, StringComparison.Ordinal);
