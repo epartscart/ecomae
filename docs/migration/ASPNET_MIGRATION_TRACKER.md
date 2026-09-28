@@ -27,6 +27,10 @@ Platform operations now expose a drain-aware `/ready` probe that returns `503` o
 shutdown begins, with a bounded 30-second host shutdown timeout; rolling/blue-green orchestration,
 the deploy health-wait helper now requires both `/health` and `/ready`, while rolling/blue-green
 orchestration, session persistence, and full connection-drain verification remain pending.
+Hardening review confirms BOS write routes enforce authenticated BOS capability, host gates, and
+explicit confirmation before mutation; their framework antiforgery is intentionally disabled for
+PHP-compatible JSON/form contracts, so a module-wide CSRF token review remains pending before
+production cutover.
 
 Conversation requirements audit (reconciled 2026-09-27):
 - [x] CP and ERP menu sources remain PHP-authoritative; generated counts are not treated as proof of parity.
