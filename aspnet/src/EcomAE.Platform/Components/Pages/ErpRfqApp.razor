@@ -23,22 +23,23 @@
     {
         <form method="post" action="/erp/ajax/save-rfq" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="returnUrl" value="/erp/rfq-app" />
-            <label>Supplier <input type="number" name="supplier_id" min="0" value="0" style="width:6rem" /></label>
-            <label>Title <input type="text" name="title" required maxlength="255" /></label>
-            <label>Estimate <input type="text" name="amount_est" value="0.00" style="width:7rem" /></label>
+            <input type="hidden" name="id" value="@(_opened?.Id ?? 0)" />
+            <label>Supplier <input type="number" name="supplier_id" min="0" value="@(_opened?.SupplierId ?? 0)" style="width:6rem" /></label>
+            <label>Title <input type="text" name="title" required maxlength="255" value="@(_opened?.Title ?? string.Empty)" /></label>
+            <label>Estimate <input type="text" name="amount_est" value="@((_opened?.AmountEst ?? 0).ToString("0.00", CultureInfo.InvariantCulture))" style="width:7rem" /></label>
             <label>Status
                 <select name="status">
-                    <option value="draft">Draft</option>
-                    <option value="sent">Sent</option>
-                    <option value="quoted">Quoted</option>
-                    <option value="accepted">Accepted</option>
-                    <option value="rejected">Rejected</option>
-                    <option value="cancelled">Cancelled</option>
+                    <option value="draft" selected="@(_opened?.Status is null or "draft")">Draft</option>
+                    <option value="sent" selected="@(_opened?.Status == "sent")">Sent</option>
+                    <option value="quoted" selected="@(_opened?.Status == "quoted")">Quoted</option>
+                    <option value="accepted" selected="@(_opened?.Status == "accepted")">Accepted</option>
+                    <option value="rejected" selected="@(_opened?.Status == "rejected")">Rejected</option>
+                    <option value="cancelled" selected="@(_opened?.Status == "cancelled")">Cancelled</option>
                 </select>
             </label>
-            <label>Due <input type="date" name="due_date" /></label>
-            <label>Order <input type="number" name="order_id" min="0" value="0" style="width:6rem" /></label>
-            <label>Description <input type="text" name="description" maxlength="4000" /></label>
+            <label>Due <input type="date" name="due_date" value="@FormatDateInput(_opened?.DueDate ?? 0)" /></label>
+            <label>Order <input type="number" name="order_id" min="0" value="@(_opened?.OrderId ?? 0)" style="width:6rem" /></label>
+            <label>Description <input type="text" name="description" maxlength="4000" value="@(_opened?.DescriptionExcerpt ?? string.Empty)" /></label>
             <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Save RFQ</button>
         </form>
@@ -225,5 +226,11 @@
     {
         if (unix <= 0) return "—";
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatDateInput(long unix)
+    {
+        if (unix <= 0) return string.Empty;
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 }
