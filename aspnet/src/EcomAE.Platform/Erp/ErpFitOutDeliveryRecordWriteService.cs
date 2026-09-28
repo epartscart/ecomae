@@ -62,6 +62,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "client_payment_certificate",
         "vendor_bill",
         "payment_voucher",
+        "site_engineer_approval",
+        "project_manager_approval",
         "site_daily_report",
         "site_photo",
         "variation",
@@ -208,6 +210,15 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Approval requests require a positive approval amount.");
         }
 
+        if ((recordType == "site_engineer_approval"
+                || recordType == "project_manager_approval")
+            && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Role approvals require a positive approved amount.");
+        }
+
         if (recordType == "approval_request"
             && status.Length > 0
             && !string.Equals(status, "pending", StringComparison.Ordinal))
@@ -263,6 +274,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "client_payment_certificate" => "pending",
                 "vendor_bill" => "draft",
                 "payment_voucher" => "draft",
+                "site_engineer_approval" => "pending",
+                "project_manager_approval" => "pending",
                 "site_daily_report" => "submitted",
                 "site_photo" => "attached",
                 "variation" => "draft",
