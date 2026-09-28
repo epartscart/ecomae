@@ -12,10 +12,10 @@ public static class FitOutDeliveryCatalog
     public static IReadOnlyList<FitOutDeliveryStep> Steps { get; } =
     [
         new("P1-01", "P1 core", "Lead and customer handoff", "pending", "CRM/ERP"),
-        new("P1-02", "P1 core", "Estimate and BOQ header", "pending", "ERP"),
-        new("P1-03", "P1 core", "BOQ sections and line items", "pending", "ERP"),
-        new("P1-04", "P1 core", "Material, labour, subcontract, equipment and overhead rates", "pending", "ERP"),
-        new("P1-05", "P1 core", "Markup and estimate revisions", "pending", "ERP"),
+        new("P1-02", "P1 core", "Estimate and BOQ header", "partial", "ERP"),
+        new("P1-03", "P1 core", "BOQ sections and line items", "partial", "ERP"),
+        new("P1-04", "P1 core", "Material, labour, subcontract, equipment and overhead rates", "partial", "ERP"),
+        new("P1-05", "P1 core", "Markup and estimate revisions", "partial", "ERP"),
         new("P1-06", "P1 core", "Estimate import/export contract", "pending", "ERP"),
         new("P1-07", "P1 core", "Quotation issue and revision", "pending", "ERP"),
         new("P1-08", "P1 core", "Contract commercial terms", "partial", "ERP contracts"),
