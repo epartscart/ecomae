@@ -108,6 +108,7 @@ TARGETS = [
     ("erp-sales-orders", "erp", "/erp/sales-orders-app", "/erp/sales-orders", "/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "ErpSalesOrdersApp", "PhpErpDesktopChrome", "admin"),
     ("erp-purchase-orders", "erp", "/erp/purchase-orders-app", "/erp/purchase-orders", "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders", "ErpPurchaseOrdersApp", "PhpErpDesktopChrome", "admin"),
     ("erp-invoices", "erp", "/erp/invoices-app", "/erp/invoices", "/ERP/?epc_erp_shell=1&area=sales&tab=invoices", "ErpInvoicesApp", "PhpErpDesktopChrome", "admin"),
+    ("erp-delivery-notes", "erp", "/erp/delivery-notes-app", "", "/ERP/?epc_erp_shell=1&area=sales&tab=delivery_notes", "ErpDeliveryNotesApp", "PhpErpDesktopChrome", "admin"),
     ("erp-cash-accounts", "erp", "/erp/cash-accounts-app", "/erp/cash-accounts", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank", "ErpCashAccountsApp", "PhpErpDesktopChrome", "admin"),
     ("erp-cash-entries", "erp", "/erp/cash-entries-app", "/erp/cash-entries", "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank", "ErpCashEntriesApp", "PhpErpDesktopChrome", "admin"),
     ("erp-coa-accounts", "erp", "/erp/coa-accounts-app", "/erp/coa-accounts", "/ERP/?epc_erp_shell=1&area=finance&tab=coa", "ErpCoaAccountsApp", "PhpErpDesktopChrome", "admin"),
