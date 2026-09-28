@@ -61,6 +61,7 @@ public sealed class ExpandContractMigrationRunner : IExpandContractMigrationRunn
         }
 
         await using var connection = await _connections.OpenRegistryAsync(cancellationToken).ConfigureAwait(false);
+        await ConfigureLockTimeoutAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
         var plan = GetPlan();
@@ -87,6 +88,17 @@ public sealed class ExpandContractMigrationRunner : IExpandContractMigrationRunn
         }
 
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task ConfigureLockTimeoutAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var timeoutSeconds = Math.Clamp(_options.LockTimeoutSeconds, 1, 300);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SET SESSION lock_wait_timeout = @timeout";
+        AddParameter(command, "@timeout", timeoutSeconds);
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<bool> IsAppliedAsync(

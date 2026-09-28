@@ -29,6 +29,7 @@ public sealed class ZeroDowntimeMigrationTrancheTests
         Assert.Contains("\"contract\"", runner, StringComparison.Ordinal);
         Assert.Contains("\"ApplyOnStartup\": false", settings, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS", runner, StringComparison.Ordinal);
+        Assert.Contains("lock_wait_timeout", runner, StringComparison.Ordinal);
     }
 
     [Fact]
