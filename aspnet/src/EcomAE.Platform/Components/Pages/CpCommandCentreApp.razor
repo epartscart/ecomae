@@ -19,6 +19,10 @@
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+@if (!_isAdmin)
+{
+    <p class="alert alert-info" role="status">Guest preview — browse the Control Panel workspace; sign in to load tenant data.</p>
+}
 @if (_isSuperHost)
 {
     @* PHP: super-cp hosts render epc_super_cp_dashboard.php (BOC fleet console) —

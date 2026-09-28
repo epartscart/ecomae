@@ -13,10 +13,36 @@ Order of work (user sequence): **CP build → ERP build → storefront/others bu
 Progress measurement (reported to the user on every completed step): `done / total` checklist items per phase and overall,
 plus pending %. Weighting: Phase A 20 %, B 45 % (B-J 8 %, B-F 7 % inside), C 15 %, D 8 %, E 7 %, F 5 %.
 Current: A 24/24 items (≈99 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 20.4 % done / 79.6 % pending**.
+The headline remains unchanged when a slice improves inside an open weighted phase: this
+tracker intentionally counts only closed phase gates, not partial-field or route evidence.
+Current measured sub-slices that do not yet close a phase are: print-template editor
+`26/26` allowlisted fields exposed in the edit UI (full HTML/CSS bodies and merge-field guidance),
+CP/ERP static destination audits `34/34`,
+`11/11`, `95/95`, and `224/224`, and focused print-designer verification `7/7`.
+These figures are reported separately so the headline cannot overstate migration completion.
 Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliation, tenant deny flags,
 explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
 closed-period guards, opened-journal line drill-down, PHP COA-backed account selectors, debit/credit balance summaries, and selectable posting dates are now live. The phase-level
 percentage remains unchanged until a complete ERP capability gate is closed.
+Legacy route-contract audit: CP shop/top-level maps resolve all 34/34 and 11/11 mapped destinations;
+ERP PHP-tab mappings resolve 95/95 destinations and referenced `/erp/*-app` links resolve 224/224
+non-AJAX pages. The `/cp/carts-app` legacy path now aliases the implemented carts twin; unresolved
+scan entries are existing user/group routes or dedicated AJAX endpoints, not missing Razor pages.
+The Parts Agent desk also no longer links back to legacy `/cp/shop/*` paths: price-list and catalogue
+actions now target their implemented ASP.NET CP apps.
+Platform operations now expose a drain-aware `/ready` probe that returns `503` once application
+shutdown begins, with a bounded 30-second host shutdown timeout; rolling/blue-green orchestration,
+the deploy health-wait helper now requires both `/health` and `/ready`, while rolling/blue-green
+orchestration, session persistence, and full connection-drain verification remain pending.
+Hardening review confirms BOS write routes enforce authenticated BOS capability, host gates, and
+explicit confirmation before mutation; their framework antiforgery is intentionally disabled for
+PHP-compatible JSON/form contracts, so a module-wide CSRF token review remains pending before
+production cutover.
+The follow-up inventory counted 378 ERP, 171 CP, 60 BOS, and 44 storefront
+`DisableAntiforgery()` mappings; the existing `ICpCsrfGuard` is currently wired only in CP
+handlers. This is an audit finding, not a permission to broadly enable framework antiforgery:
+each module needs token issuance, PHP-contract compatibility, and write-by-write regression
+coverage before its routes are promoted.
 
 Conversation requirements audit (reconciled 2026-09-27):
 - [x] CP and ERP menu sources remain PHP-authoritative; generated counts are not treated as proof of parity.
@@ -232,7 +258,7 @@ Standing rules that apply to every item below:
       fixing), manufacturing/stock (verification, balance, weight ledger, valuation, transfers), sales/POS (retail, metal, fixing, return,
       advance, old-gold exchange, gold scheme, multi-currency tender), repairs/workshop chain, finance (weight + value TB, JV, petty cash,
       tourist VAT), field injection into inventory/PO/SO for jewellery tenants; all 26 `jw_*_save` ajax actions
-- [~] **B-F Fit-out / interior-contracting pack** (user spec `fitout.txt`; ASP.NET now exposes live PHP-compatible project budget, project transaction, and project-recognition writes over the shared project-accounting foundation; recognition preserves PHP POC/completed/straight-line calculation, WIP semantics, pre-post validation, and selectable as-of dates; the full pack extends PHP `epc_erp_project_accounting.php`
+- [~] **B-F Fit-out / interior-contracting pack** (user spec `fitout.txt`; ASP.NET now exposes live PHP-compatible project budget, project transaction, and project-recognition writes over the shared project-accounting foundation, plus additive tenant-isolated estimate/BOQ header and line writes with D365-style forms and the explicit phased 32-step delivery catalog at `/migration/fitout`; recognition preserves PHP POC/completed/straight-line calculation, WIP semantics, pre-post validation, and selectable as-of dates; the full pack extends PHP `epc_erp_project_accounting.php`
       `epc_prja_budget/txn/recognition` + `erp_tabs_projects.php`, industry codes `construction_contracting`/`building_materials`):
       Lead → Estimate/BOQ (sections, items, material/labour/subcontract/equipment/overhead rates, markup, revisions, Excel import)
       → Quotation → Contract (advance/retention/warranty) → Project + hierarchical cost codes → budget/committed/actual/forecast
@@ -243,8 +269,8 @@ Standing rules that apply to every item below:
       configurable approval engine (thresholds, levels), numbering (`QT-2026-00001` …), RBAC roles, dashboards (CEO/PM/finance/procurement),
       reports (sales/estimation/projects/procurement/inventory/subcontract/finance); shares ERP masters (customer, supplier, item,
       COA, tax, warehouse, currency); D365-style forms; phased P1 core → P2 operations → P3 finance → P4 advanced; MVP = 32-step scenario
-- [ ] All 321 `ajax_erp.php` actions have an ASP.NET dispatcher case (CSRF + RBAC) — tracked by a parity test
-- [ ] **ERP document/report designer** — per-tenant/company (optional branch) templates for vouchers, invoices, orders, statements,
+- [~] All 321 `ajax_erp.php` actions have an ASP.NET dispatcher case (CSRF + RBAC) — tracked by a parity test
+- [~] **ERP document/report designer** — per-tenant/company (optional branch) templates for vouchers, invoices, orders, statements,
       reports: logo, header/footer, fonts, colours, columns, layout, number/date formats, print/PDF/email variants, preview,
       versioning + effective dating, audit, rollback, tenant isolation, safe template content
 - [ ] Statutory profile tests for ≥ 2 countries (UAE + one non-UAE)
@@ -266,7 +292,7 @@ Standing rules that apply to every item below:
 ## Phase D — Platform hardening & operations (during and after migration)
 - [ ] Tenant isolation review per module (no cross-tenant reads, degraded-shared guard, credentials never leak)
 - [ ] Security: CSRF on all writes, RBAC/ACL parity, audit on all mutations, rate limits, secure headers
-- [ ] Zero-downtime releases: rolling/blue-green Kestrel, readiness/liveness probes, graceful drain, persisted session state,
+ - [~] Zero-downtime releases: readiness/liveness probes, bounded graceful drain, and deploy health waiting are implemented; rolling/blue-green Kestrel, persisted session state,
       backward-compatible app/DB versions, expand-then-contract migrations, rollback runbook
 - [ ] On-premises installation package + multi-version compatibility (1000 tenants, multi-industry, multi-country)
 - [ ] Versioning, licensing/rights, compliance & policy documentation
@@ -296,5 +322,5 @@ Standing rules that apply to every item below:
 2. ERP-only staff role (PHP RBAC allows it; ASP.NET auth currently grants CP+ERP together) — confirm wanted.
 3. Jewellery legacy schema open items (INDUS study) — verified against PHP tables + sample transactions; nothing invented.
 4. Fit-out pack: PHP only has generic project accounting (budget/txn/recognition); the BOQ/variation/progress-claim/subcontract chain is
-   new DB-backed design per the user's `fitout.txt` spec — user to confirm the Phase-1 scope (customers, suppliers, items, cost codes,
-   projects, estimation, BOQ, quotation, contracts, budget) before B-F build starts.
+   a new DB-backed design per the user's `fitout.txt` spec. The ASP.NET phased catalog is now explicit at `/migration/fitout`; the
+   Phase-1 scope remains pending implementation and live tenant-database validation.

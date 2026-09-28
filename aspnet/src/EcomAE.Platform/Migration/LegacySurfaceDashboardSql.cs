@@ -8198,14 +8198,24 @@ public const string SelectCpOpsGuidesStats = """
                IFNULL(`primary_color`,'') AS primary_color,
                IFNULL(`secondary_color`,'') AS secondary_color,
                IFNULL(`logo_position`,'') AS logo_position,
+               IFNULL(`logo_max_height`,'') AS logo_max_height,
+               IFNULL(`body_columns`,'') AS body_columns,
+               IFNULL(`show_terms`,0) AS show_terms,
+               IFNULL(`terms_html`,'') AS terms_html_excerpt,
+               IFNULL(`show_bank_details`,0) AS show_bank_details,
+               IFNULL(`bank_details_html`,'') AS bank_details_html_excerpt,
+               IFNULL(`show_signature_line`,0) AS show_signature_line,
+               IFNULL(`signature_labels`,'') AS signature_labels,
+               IFNULL(`show_qr_code`,0) AS show_qr_code,
+               IFNULL(`show_barcode`,0) AS show_barcode,
                IFNULL(`active`,1) AS active,
                IFNULL(`time_updated`,0) AS time_updated,
                CHAR_LENGTH(IFNULL(`header_html`,'')) AS header_html_len,
-               LEFT(IFNULL(`header_html`,''), 280) AS header_html_excerpt,
+               IFNULL(`header_html`,'') AS header_html_excerpt,
                CHAR_LENGTH(IFNULL(`footer_html`,'')) AS footer_html_len,
-               LEFT(IFNULL(`footer_html`,''), 280) AS footer_html_excerpt,
+               IFNULL(`footer_html`,'') AS footer_html_excerpt,
                CHAR_LENGTH(IFNULL(`custom_css`,'')) AS custom_css_len,
-               LEFT(IFNULL(`custom_css`,''), 280) AS custom_css_excerpt
+               IFNULL(`custom_css`,'') AS custom_css_excerpt
         FROM `epc_erp_print_templates`
         WHERE `id` = @id
         LIMIT 1

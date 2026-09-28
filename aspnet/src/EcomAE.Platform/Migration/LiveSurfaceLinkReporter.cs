@@ -27,6 +27,7 @@ public sealed class LiveSurfaceLinkReporter : ILiveSurfaceLinkReporter
 
             // ASP.NET diagnostics already live publicly
             Link("aspnet-diagnostics", "Health", "https://www.ecomae.com/health", "aspnet", "/health", "ASP.NET health check."),
+            Link("aspnet-diagnostics", "Readiness", "https://www.ecomae.com/ready", "aspnet", "/ready", "Drain-aware readiness probe; returns 503 while the host is shutting down."),
             Link("aspnet-diagnostics", "Zero-PHP completion", "https://www.ecomae.com/migration/zero-php-completion", "aspnet", "/migration/zero-php-completion", "Weighted completion (95%/5%)."),
             Link("aspnet-diagnostics", "PHP decommission readiness", "https://www.ecomae.com/migration/php-decommission-readiness", "aspnet", "/migration/php-decommission-readiness", "Final-gate checklist; ReadyToRemovePhp=false."),
             Link("aspnet-diagnostics", "Zero-PHP Blazor console", "https://www.ecomae.com/migration/console", "aspnet", "/migration/console", "Blazor SSR operator console (interim improvement UI). Not product chrome cutover."),

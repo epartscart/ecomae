@@ -122,7 +122,6 @@
                     <div class="field"><label for="ce_direction">Direction</label><select id="ce_direction" name="direction"><option value="in">Receipt / in</option><option value="out">Payment / out</option></select></div>
                     <div class="field"><label for="ce_type">Entry type</label><select id="ce_type" name="entry_type"><option value="receipt">Receipt</option><option value="payment">Payment</option><option value="transfer_in">Transfer in</option><option value="transfer_out">Transfer out</option><option value="adjustment">Adjustment</option></select></div>
                     <div class="field"><label for="ce_reference">Reference</label><input id="ce_reference" type="text" name="reference" maxlength="120" /></div>
-                    <div class="field"><label for="ce_voucher_no">Voucher number</label><input id="ce_voucher_no" type="text" name="voucher_no" maxlength="60" placeholder="Auto sequence when blank" /></div>
                     <div class="field wide"><label for="ce_note">Narration / note</label><input id="ce_note" type="text" name="note" maxlength="255" /></div>
                     <div class="form-actions">
                         <button type="reset" class="btn btn-sm btn-default">Clear</button>
@@ -209,6 +208,7 @@
             {
                 <p class="text-muted">No same-type siblings yet.</p>
             }
+            <p class="text-muted">Cash-entry writes stay Classic-compatible until cash parity is closed.</p>
         </div>
     }
 

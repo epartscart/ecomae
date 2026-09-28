@@ -1,6 +1,8 @@
 @page "/erp/print-designer-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Net
+@using System.Text.Json
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -15,7 +17,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Print templates" Subtitle="Open a row for page setup and 280-character HTML/CSS excerpts. Full bodies stay off this list. Save writes here." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Print templates" Subtitle="Open a row for page setup and full HTML/CSS bodies. Save writes here." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Print template KPIs">
@@ -45,46 +47,39 @@
                 <dt>Status</dt><dd>@(_opened.Active ? "active" : "inactive")</dd>
                 <dt>Updated</dt><dd>@FormatDate(_opened.TimeUpdated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Full HTML/CSS bodies stay off this list. Save writes here.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Full HTML/CSS bodies are available for editing. Save writes here.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.HeaderHtmlExcerpt))
             {
-                <p class="text-muted" style="margin:.85rem 0 .35rem">header HTML excerpt</p>
+                <p class="text-muted" style="margin:.85rem 0 .35rem">header HTML</p>
                 <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.HeaderHtmlExcerpt</pre>
-                @if (_opened.HeaderHtmlLen > _opened.HeaderHtmlExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.HeaderHtmlExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.HeaderHtmlLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
             }
             else
             {
-                <p class="text-muted" style="margin:.85rem 0 0">No header HTML excerpt yet.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">No header HTML yet.</p>
             }
             @if (!string.IsNullOrWhiteSpace(_opened.FooterHtmlExcerpt))
             {
-                <p class="text-muted" style="margin:.85rem 0 .35rem">footer HTML excerpt</p>
+                <p class="text-muted" style="margin:.85rem 0 .35rem">footer HTML</p>
                 <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.FooterHtmlExcerpt</pre>
-                @if (_opened.FooterHtmlLen > _opened.FooterHtmlExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.FooterHtmlExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.FooterHtmlLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
             }
             else
             {
-                <p class="text-muted" style="margin:.85rem 0 0">No footer HTML excerpt yet.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">No footer HTML yet.</p>
             }
             @if (!string.IsNullOrWhiteSpace(_opened.CustomCssExcerpt))
             {
-                <p class="text-muted" style="margin:.85rem 0 .35rem">custom CSS excerpt</p>
+                <p class="text-muted" style="margin:.85rem 0 .35rem">custom CSS</p>
                 <pre style="max-height:12rem;overflow:auto;white-space:pre-wrap;margin:0">@_opened.CustomCssExcerpt</pre>
-                @if (_opened.CustomCssLen > _opened.CustomCssExcerpt.Length)
-                {
-                    <p class="text-muted">Excerpt only (@_opened.CustomCssExcerpt.Length.ToString(CultureInfo.InvariantCulture) of @_opened.CustomCssLen.ToString(CultureInfo.InvariantCulture) chars).</p>
-                }
             }
             else
             {
-                <p class="text-muted" style="margin:.85rem 0 0">No custom CSS excerpt yet.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">No custom CSS yet.</p>
             }
+            <p class="text-muted" style="margin:1rem 0 .35rem">print preview</p>
+            <iframe title="Print template preview"
+                    sandbox
+                    srcdoc="@PreviewDocument"
+                    style="width:100%;min-height:22rem;border:1px solid #c5d4de;background:#fff"></iframe>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
@@ -162,6 +157,45 @@
     </div>
 </PhpErpDesktopChrome>
 
+@if (_opened is not null)
+{
+    <ErpPhpCreateWell Title="Edit print template">
+        <form method="post" action="/erp/print-designer/save" style="display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:8px;align-items:end;margin-bottom:1rem;">
+            <input type="hidden" name="id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <label>Doc type <input class="form-control input-sm" name="doc_type" value="@_opened.DocType" /></label>
+            <label>Name <input class="form-control input-sm" name="name" value="@_opened.Name" /></label>
+            <label>Page <input class="form-control input-sm" name="page_size" value="@_opened.PageSize" /></label>
+            <label>Orientation <input class="form-control input-sm" name="orientation" value="@_opened.Orientation" /></label>
+            <label>Font <input class="form-control input-sm" name="font_family" value="@_opened.FontFamily" /></label>
+            <label>Font size <input class="form-control input-sm" name="font_size" value="@_opened.FontSize" /></label>
+            <label>Primary color <input class="form-control input-sm" name="primary_color" value="@_opened.PrimaryColor" /></label>
+            <label>Secondary color <input class="form-control input-sm" name="secondary_color" value="@_opened.SecondaryColor" /></label>
+            <label>Logo position <input class="form-control input-sm" name="logo_position" value="@_opened.LogoPosition" /></label>
+            <label>Margin top <input class="form-control input-sm" name="margin_top" value="@_opened.MarginTop" /></label>
+            <label>Margin right <input class="form-control input-sm" name="margin_right" value="@_opened.MarginRight" /></label>
+            <label>Margin bottom <input class="form-control input-sm" name="margin_bottom" value="@_opened.MarginBottom" /></label>
+            <label>Margin left <input class="form-control input-sm" name="margin_left" value="@_opened.MarginLeft" /></label>
+            <label>Logo max height <input class="form-control input-sm" name="logo_max_height" value="@_opened.LogoMaxHeight" /></label>
+            <label>Body columns <input class="form-control input-sm" name="body_columns" value="@_opened.BodyColumns" /></label>
+            <label>Signature labels <input class="form-control input-sm" name="signature_labels" value="@_opened.SignatureLabels" /></label>
+            <label><input type="checkbox" name="show_terms" value="1" checked="@_opened.ShowTerms" /> Show terms</label>
+            <label><input type="checkbox" name="show_bank_details" value="1" checked="@_opened.ShowBankDetails" /> Show bank details</label>
+            <label><input type="checkbox" name="show_signature_line" value="1" checked="@_opened.ShowSignatureLine" /> Signature line</label>
+            <label><input type="checkbox" name="show_qr_code" value="1" checked="@_opened.ShowQrCode" /> QR code</label>
+            <label><input type="checkbox" name="show_barcode" value="1" checked="@_opened.ShowBarcode" /> Barcode</label>
+            <label style="grid-column:span 3">Header HTML <textarea class="form-control input-sm" name="header_html" rows="6">@_opened.HeaderHtmlExcerpt</textarea><small class="text-muted">Merge fields: @MergeFields</small></label>
+            <label style="grid-column:span 3">Footer HTML <textarea class="form-control input-sm" name="footer_html" rows="6">@_opened.FooterHtmlExcerpt</textarea><small class="text-muted">Merge fields: @MergeFields</small></label>
+            <label style="grid-column:span 3">Terms HTML <textarea class="form-control input-sm" name="terms_html" rows="6">@_opened.TermsHtmlExcerpt</textarea></label>
+            <label style="grid-column:span 3">Bank details HTML <textarea class="form-control input-sm" name="bank_details_html" rows="6">@_opened.BankDetailsHtmlExcerpt</textarea></label>
+            <label style="grid-column:span 3">Custom CSS <textarea class="form-control input-sm" name="custom_css" rows="8">@_opened.CustomCssExcerpt</textarea></label>
+            <label><input type="checkbox" name="is_default" value="1" checked="@_opened.IsDefault" /> Default</label>
+            <button type="submit" class="btn btn-primary btn-sm">Save template</button>
+        </form>
+    </ErpPhpCreateWell>
+}
+
 <ErpPhpCreateWell Title="New print template">
 <form method="post" action="/erp/print-designer/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?template_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
@@ -211,6 +245,7 @@
     private long _openedId;
     private ErpPrintTemplateDetail? _opened;
     private IReadOnlyList<ErpPrintTemplateDigest> _openedSiblings = [];
+    private const string MergeFields = "{{company_name}}, {{trn}}, {{address}}, {{phone}}, {{email}}, {{doc_no}}, {{doc_date}}, {{due_date}}, {{customer_name}}, {{supplier_name}}, {{currency}}, {{total}}, {{page}}, {{total_pages}}, {{printed_by}}, {{printed_date}}";
 
     private string OpenedCaption => _opened is null
         ? ""
@@ -221,6 +256,154 @@
     private string OpenedReturnHref => _openedId > 0
         ? _listHref + "?template_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
         : _listHref;
+
+    private string PreviewDocument
+    {
+        get
+        {
+            if (_opened is null) return string.Empty;
+
+            var header = _opened.HeaderHtmlExcerpt;
+            var footer = _opened.FooterHtmlExcerpt;
+            var logo = RenderPreviewLogo(_opened);
+            var body = RenderPreviewTable(_opened.BodyColumns);
+            var terms = _opened.ShowTerms ? _opened.TermsHtmlExcerpt : string.Empty;
+            var bank = _opened.ShowBankDetails ? _opened.BankDetailsHtmlExcerpt : string.Empty;
+            var css = _opened.CustomCssExcerpt;
+            var extras = RenderPreviewExtras(_opened);
+            var sections = string.Join(
+                Environment.NewLine,
+                new[] { logo, header, "<main><h2>Print template preview</h2>", body, terms, bank, extras, "</main>", footer }
+                    .Where(section => !string.IsNullOrWhiteSpace(section)));
+
+            return $$"""
+                <!doctype html>
+                <html lang="en">
+                <head>
+                  <meta charset="utf-8">
+                  <style>
+                    @page { size: {{_opened.PageSize}} {{_opened.Orientation}}; margin: {{_opened.MarginTop}}mm {{_opened.MarginRight}}mm {{_opened.MarginBottom}}mm {{_opened.MarginLeft}}mm; }
+                    :root { --primary: {{_opened.PrimaryColor}}; --secondary: {{_opened.SecondaryColor}}; }
+                    body { color: var(--primary); font-family: "{{_opened.FontFamily}}", Arial, sans-serif; font-size: {{_opened.FontSize}}pt; margin: 0; }
+                    h2 { color: var(--secondary); }
+                    {{css}}
+                  </style>
+                </head>
+                <body>{{sections}}</body>
+                </html>
+                """;
+        }
+    }
+
+    private static string RenderPreviewTable(string columnsJson)
+    {
+        if (string.IsNullOrWhiteSpace(columnsJson)) return "<p>No body columns configured.</p>";
+
+        try
+        {
+            using var document = JsonDocument.Parse(columnsJson);
+            if (document.RootElement.ValueKind != JsonValueKind.Array) return "<p>No body columns configured.</p>";
+
+            var headers = new List<string>();
+            var cells = new List<string>();
+            foreach (var column in document.RootElement.EnumerateArray())
+            {
+                if (column.ValueKind != JsonValueKind.Object) continue;
+                var label = column.TryGetProperty("label", out var labelValue)
+                    ? labelValue.GetString()
+                    : null;
+                var key = column.TryGetProperty("key", out var keyValue)
+                    ? keyValue.GetString()
+                    : null;
+                var text = string.IsNullOrWhiteSpace(label) ? key : label;
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    var style = ColumnStyle(column);
+                    headers.Add("<th" + style + ">" + WebUtility.HtmlEncode(text) + "</th>");
+                    cells.Add("<td" + style + ">Sample value</td>");
+                }
+            }
+
+            if (headers.Count == 0) return "<p>No body columns configured.</p>";
+            return "<table class=\"print-table\"><thead><tr>" + string.Concat(headers) +
+                   "</tr></thead><tbody><tr>" +
+                   string.Concat(cells) +
+                   "</tr></tbody></table>";
+        }
+        catch (JsonException)
+        {
+            return "<p>Body columns JSON is invalid.</p>";
+        }
+    }
+
+    private static string ColumnStyle(JsonElement column)
+    {
+        var styles = new List<string>();
+        if (column.TryGetProperty("width", out var widthValue)
+            && widthValue.ValueKind == JsonValueKind.String
+            && decimal.TryParse(widthValue.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var width)
+            && width is > 0 and <= 100)
+        {
+            styles.Add("width:" + width.ToString("0.##", CultureInfo.InvariantCulture) + "%");
+        }
+
+        if (column.TryGetProperty("align", out var alignValue)
+            && alignValue.ValueKind == JsonValueKind.String)
+        {
+            var align = alignValue.GetString()?.ToLowerInvariant();
+            if (align is "left" or "center" or "right")
+            {
+                styles.Add("text-align:" + align);
+            }
+        }
+
+        return styles.Count == 0 ? string.Empty : " style=\"" + string.Join(";", styles) + "\"";
+    }
+
+    private static string RenderPreviewExtras(ErpPrintTemplateDetail template)
+    {
+        var sections = new List<string>();
+        if (template.ShowSignatureLine)
+        {
+            var labels = template.SignatureLabels
+                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(WebUtility.HtmlEncode)
+                .ToArray();
+            if (labels.Length > 0)
+            {
+                sections.Add("<div class=\"print-signatures\">" +
+                             string.Concat(labels.Select(label => "<span>" + label + "<br><b>________________</b></span>")) +
+                             "</div>");
+            }
+        }
+
+        if (template.ShowQrCode)
+        {
+            sections.Add("<div class=\"print-code\">QR code preview</div>");
+        }
+
+        if (template.ShowBarcode)
+        {
+            sections.Add("<div class=\"print-code\">Barcode preview</div>");
+        }
+
+        return string.Concat(sections);
+    }
+
+    private static string RenderPreviewLogo(ErpPrintTemplateDetail template)
+    {
+        var position = template.LogoPosition?.ToLowerInvariant();
+        if (position is not ("left" or "center" or "right"))
+        {
+            return string.Empty;
+        }
+
+        var maxHeight = int.TryParse(template.LogoMaxHeight, NumberStyles.Integer, CultureInfo.InvariantCulture, out var height)
+            ? Math.Clamp(height, 1, 240)
+            : 60;
+        return "<div class=\"print-logo\" style=\"text-align:" + position + ";max-height:" +
+               maxHeight.ToString(CultureInfo.InvariantCulture) + "px\">Company logo preview</div>";
+    }
 
     protected override async Task OnInitializedAsync()
     {

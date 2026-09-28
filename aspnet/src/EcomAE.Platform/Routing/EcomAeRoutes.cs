@@ -3,10 +3,13 @@ namespace EcomAE.Platform.Routing;
 public static class EcomAeRoutes
 {
     public const string Health = "/health";
+    public const string Readiness = "/ready";
     public const string ReleaseIdentity = "/migration/release";
     /// <summary>Public SEO entry advertised in robots.txt; redirects to PHP sitemap-index.php.</summary>
     public const string SitemapXml = "/sitemap.xml";
     public const string MigrationStatus = "/migration/status";
+    public const string MigrationSchema = "/migration/schema";
+    public const string MigrationFitOut = "/migration/fitout";
     public const string MigrationReadiness = "/migration/readiness";
     public const string MigrationCutoverPlan = "/migration/cutover-plan";
     public const string MigrationProgress = "/migration/progress";
@@ -2399,6 +2402,7 @@ public static class EcomAeRoutes
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
     public const string StorefrontApp = "/storefront/app";
+    public const string StorefrontShell = "/storefront/shell";
     /// <summary>
     /// www.ecomae.com marketing Blazor preview (animated epm-hub). Live marketing home/pages remain PHP.
     /// </summary>
@@ -2713,6 +2717,11 @@ public static class EcomAeRoutes
     public const string ErpCostModelsTxnsAdd = "/erp/cost-models/txns/add";
     /// <summary>Live PHP epc_prja_txn_add twin (ajax alias of <see cref="ErpProjectAccountingTxnsAdd"/>).</summary>
     public const string ErpProjectAccountingTxnsAdd = "/erp/project-accounting/txns/add";
+    public const string ErpFitOutEstimateSave = "/erp/fitout/estimates/save";
+    public const string ErpFitOutBoqLineSave = "/erp/fitout/boq-lines/save";
+    public const string ErpFitOutContractTermsSave = "/erp/fitout/contracts/terms/save";
+    public const string ErpFitOutCostCodeSave = "/erp/fitout/cost-codes/save";
+    public const string ErpFitOutQuotationSave = "/erp/fitout/quotations/save";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>
     /// <summary>Live PHP epc_rtl_assortment_set twin (ajax alias of <see cref="ErpRetailAssortmentsSet"/>).</summary>
     public const string ErpRetailAssortmentsSet = "/erp/retail/assortments/set";

@@ -16,7 +16,7 @@
 <PageTitle>@_pageTitle</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" IncludePublicSeo="true" />
 <PhpChromeBodyClass Surface="storefront" />
-@* Live epartscart `/` proxies here (ASP.NET). Public SEO via IncludePublicSeo; PHP product only via /php-reference/*. *@
+@* Live epartscart `/` proxies here (ASP.NET, PHP style chrome). Public SEO via IncludePublicSeo; PHP product only via /php-reference/*. *@
 
 @if (!string.IsNullOrEmpty(_tenantSnapshotHtml))
 {
@@ -57,6 +57,11 @@ else
                     Continue on the <a href="/">storefront home</a> or <a href="@StorefrontSurfaceLinks.PartSearch">search</a>.
                 </div>
             }
+            <PhpHybridModuleDirectory
+                Title="Complete storefront surface directory"
+                Subtitle="@($"{PhpModuleCatalog.StorefrontSurfaces.Count} PHP-reference storefront surfaces")"
+                Links="@PhpModuleCatalog.StorefrontSurfaces"
+                PhpWorkspaceBase="/storefront/app" />
         </ChildContent>
     </PhpStorefrontDesktopChrome>
 }

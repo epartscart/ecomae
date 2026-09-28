@@ -57,6 +57,75 @@
             <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Save budget line</button>
         </form>
+        <form method="post" action="/erp/fitout/estimates/save" style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;display:flex;flex-wrap:wrap;gap:.4rem;align-items:end">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out estimate / BOQ revision</strong>
+            <label>Project id <input type="number" name="project_id" min="1" required style="width:7rem" /></label>
+            <label>Code <input type="text" name="code" maxlength="60" required placeholder="QT-2026-00001" style="width:10rem" /></label>
+            <label>Title <input type="text" name="title" maxlength="200" required style="width:14rem" /></label>
+            <label>Revision <input type="number" name="revision" min="1" value="1" style="width:5rem" /></label>
+            <label>Markup % <input type="number" name="markup_percent" min="0" step="0.01" style="width:6rem" /></label>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save estimate</button>
+        </form>
+        <form method="post" action="/erp/fitout/boq-lines/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out BOQ line</strong>
+            <label>Estimate id <input type="number" name="estimate_id" min="1" required style="width:7rem" /></label>
+            <label>Section <input type="text" name="section" maxlength="120" placeholder="Joinery" style="width:9rem" /></label>
+            <label>Description <input type="text" name="description" maxlength="500" required style="width:15rem" /></label>
+            <label>Cost type
+                <select name="cost_type">
+                    <option value="material">material</option>
+                    <option value="labour">labour</option>
+                    <option value="subcontract">subcontract</option>
+                    <option value="equipment">equipment</option>
+                    <option value="overhead">overhead</option>
+                </select>
+            </label>
+            <label>Qty <input type="number" name="quantity" min="0" step="0.001" style="width:5rem" /></label>
+            <label>Unit <input type="text" name="unit" maxlength="24" required placeholder="m2" style="width:4rem" /></label>
+            <label>Rate <input type="number" name="unit_rate" min="0" step="0.01" style="width:6rem" /></label>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save BOQ line</button>
+        </form>
+        <form method="post" action="/erp/fitout/cost-codes/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out hierarchical cost code</strong>
+            <label>Project id <input type="number" name="project_id" min="1" required style="width:7rem" /></label>
+            <label>Parent id <input type="number" name="parent_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Code <input type="text" name="code" maxlength="60" required placeholder="01.10" style="width:7rem" /></label>
+            <label>Name <input type="text" name="name" maxlength="200" required style="width:12rem" /></label>
+            <label>Cost type
+                <select name="cost_type">
+                    <option value="material">material</option>
+                    <option value="labour">labour</option>
+                    <option value="subcontract">subcontract</option>
+                    <option value="equipment">equipment</option>
+                    <option value="overhead">overhead</option>
+                </select>
+            </label>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save cost code</button>
+        </form>
+        <form method="post" action="/erp/fitout/quotations/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out quotation issue / revision</strong>
+            <label>Estimate id <input type="number" name="estimate_id" min="1" required style="width:7rem" /></label>
+            <label>Quotation code <input type="text" name="code" maxlength="60" required placeholder="Q-2026-001" style="width:9rem" /></label>
+            <label>Title <input type="text" name="title" maxlength="200" required style="width:14rem" /></label>
+            <label>Revision <input type="number" name="revision" min="1" value="1" style="width:5rem" /></label>
+            <label>Expires <input type="date" name="expires_on" style="width:9rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="draft">draft</option>
+                    <option value="issued">issued</option>
+                    <option value="accepted">accepted</option>
+                    <option value="rejected">rejected</option>
+                    <option value="expired">expired</option>
+                </select>
+            </label>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save quotation</button>
+        </form>
     }
 
     @if (_openedBudget is not null)
@@ -165,6 +234,7 @@
                 <dt>Created</dt><dd>@FormatTime(_openedRec.TimeCreated)</dd>
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Recognition runs are persisted with budget, actual, and WIP detail.</p>
+            <p class="text-muted">Recognition stays Classic-compatible until the project parity gate is closed.</p>
             @if (!string.IsNullOrWhiteSpace(_openedRec.DetailExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">detail excerpt</p>

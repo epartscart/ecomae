@@ -1244,9 +1244,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpGlCurrencyEntryTypeSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
         Assert.DoesNotContain("custom_css", LegacySurfaceDashboardSql.SelectErpPrintTemplates, StringComparison.Ordinal);
-        Assert.Contains("LEFT(IFNULL(`header_html`,''), 280)", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
-        Assert.Contains("LEFT(IFNULL(`footer_html`,''), 280)", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
-        Assert.Contains("LEFT(IFNULL(`custom_css`,''), 280)", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`header_html`,'') AS header_html_excerpt", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`footer_html`,'') AS footer_html_excerpt", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`custom_css`,'') AS custom_css_excerpt", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEFT(IFNULL(`header_html`", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEFT(IFNULL(`custom_css`", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpPrintTemplateDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("header_html", LegacySurfaceDashboardSql.SelectErpPrintTemplateTypeSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("custom_css", LegacySurfaceDashboardSql.SelectErpPrintTemplateTypeSiblings, StringComparison.Ordinal);

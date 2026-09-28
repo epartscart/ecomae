@@ -276,6 +276,11 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpIntegrationsEventsRaise, HandleIntgEventRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCostModelsTxnsAdd, HandleCostmTxnAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProjectAccountingTxnsAdd, HandlePrjaTxnAddAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateSave, HandleFitOutEstimateSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutBoqLineSave, HandleFitOutBoqLineSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutContractTermsSave, HandleFitOutContractTermsSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutCostCodeSave, HandleFitOutCostCodeSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutQuotationSave, HandleFitOutQuotationSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -10919,7 +10924,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_print_templates (HTML/CSS omitted). Open ?template_id= loads 280-char HTML/CSS excerpts. PHP print_designer tab remains authoritative."
+                note = "Read-only epc_erp_print_templates projection. Open ?template_id= loads full HTML/CSS bodies plus layout metadata; PHP print_designer tab remains authoritative for rendering and version history."
             });
         });
 
@@ -12181,6 +12186,247 @@ public sealed class ErpModule : ISurfaceModule
         return LiveWriteFormBinder.Complete(
             context,
             "/cp/projects-overview-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleFitOutEstimateSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutEstimateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/project-accounting-app", "Admin ERP capability required for fit-out estimate save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFitOutEstimateSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var projectId = body.ProjectId;
+        var code = body.Code;
+        var title = body.Title;
+        var revision = body.Revision;
+        var markup = body.MarkupPercent;
+        var status = body.Status;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            title = LiveWriteFormBinder.Text(form, "title");
+            revision = (int)LiveWriteFormBinder.Long(form, "revision");
+            markup = LiveWriteFormBinder.Dec(form, "markupPercent", "markup_percent");
+            status = LiveWriteFormBinder.Text(form, "status");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var written = await writes.SaveEstimateAsync(
+            new ErpFitOutEstimateSaveRequest(id, projectId, code, title, revision, markup, status),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleFitOutBoqLineSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutEstimateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/project-accounting-app", "Admin ERP capability required for BOQ line save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFitOutBoqLineSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var estimateId = body.EstimateId;
+        var section = body.Section;
+        var description = body.Description;
+        var costType = body.CostType;
+        var quantity = body.Quantity;
+        var unit = body.Unit;
+        var unitRate = body.UnitRate;
+        var sortOrder = body.SortOrder;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            estimateId = LiveWriteFormBinder.Long(form, "estimateId", "estimate_id");
+            section = LiveWriteFormBinder.Text(form, "section");
+            description = LiveWriteFormBinder.Text(form, "description");
+            costType = LiveWriteFormBinder.Text(form, "costType", "cost_type");
+            quantity = LiveWriteFormBinder.Dec(form, "quantity");
+            unit = LiveWriteFormBinder.Text(form, "unit");
+            unitRate = LiveWriteFormBinder.Dec(form, "unitRate", "unit_rate");
+            sortOrder = (int)LiveWriteFormBinder.Long(form, "sortOrder", "sort_order");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var written = await writes.SaveLineAsync(
+            new ErpFitOutBoqLineSaveRequest(id, estimateId, section, description, costType, quantity, unit, unitRate, sortOrder),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleFitOutContractTermsSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutContractTermsWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contracts-app", "Admin ERP capability required for fit-out contract terms.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFitOutContractTermsSaveBody>(context, cancellationToken) ?? new();
+        var contractId = body.ContractId;
+        var advance = body.AdvancePercent;
+        var retention = body.RetentionPercent;
+        var warranty = body.WarrantyMonths;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            contractId = LiveWriteFormBinder.Long(form, "contractId", "contract_id");
+            advance = LiveWriteFormBinder.Dec(form, "advancePercent", "advance_percent");
+            retention = LiveWriteFormBinder.Dec(form, "retentionPercent", "retention_percent");
+            warranty = LiveWriteFormBinder.Int(form, "warrantyMonths", "warranty_months");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpFitOutContractTermsSaveRequest(contractId, advance, retention, warranty),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/contracts-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleFitOutCostCodeSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutCostCodeWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/project-accounting-app", "Admin ERP capability required for fit-out cost-code save.");
+        }
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFitOutCostCodeSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var projectId = body.ProjectId;
+        var parentId = body.ParentId;
+        var code = body.Code;
+        var name = body.Name;
+        var costType = body.CostType;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            parentId = LiveWriteFormBinder.Long(form, "parentId", "parent_id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            costType = LiveWriteFormBinder.Text(form, "costType", "cost_type");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+        var written = await writes.SaveAsync(
+            new ErpFitOutCostCodeSaveRequest(id, projectId, parentId, code, name, costType),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleFitOutQuotationSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutQuotationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/project-accounting-app", "Admin ERP capability required for fit-out quotation save.");
+        }
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFitOutQuotationSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var estimateId = body.EstimateId;
+        var code = body.Code;
+        var title = body.Title;
+        var revision = body.Revision;
+        var expiresOn = body.ExpiresOn;
+        var status = body.Status;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            estimateId = LiveWriteFormBinder.Long(form, "estimateId", "estimate_id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            title = LiveWriteFormBinder.Text(form, "title");
+            revision = LiveWriteFormBinder.Int(form, "revision");
+            expiresOn = LiveWriteFormBinder.Text(form, "expiresOn", "expires_on");
+            status = LiveWriteFormBinder.Text(form, "status");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+        DateOnly? parsedExpiry = DateOnly.TryParse(expiresOn, out var expiry) ? expiry : null;
+        var written = await writes.SaveAsync(
+            new ErpFitOutQuotationSaveRequest(id, estimateId, code, title, revision, parsedExpiry, status),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
@@ -18849,6 +19095,49 @@ public sealed class ErpModule : ISurfaceModule
         string? Method = null,
         decimal Fraction = 0,
         long AsOf = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutEstimateSaveBody(
+        long Id = 0,
+        long ProjectId = 0,
+        string? Code = null,
+        string? Title = null,
+        int Revision = 1,
+        decimal MarkupPercent = 0,
+        string? Status = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutBoqLineSaveBody(
+        long Id = 0,
+        long EstimateId = 0,
+        string? Section = null,
+        string? Description = null,
+        string? CostType = null,
+        decimal Quantity = 0,
+        string? Unit = null,
+        decimal UnitRate = 0,
+        int SortOrder = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutContractTermsSaveBody(
+        long ContractId = 0,
+        decimal AdvancePercent = 0,
+        decimal RetentionPercent = 0,
+        int WarrantyMonths = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutCostCodeSaveBody(
+        long Id = 0,
+        long ProjectId = 0,
+        long ParentId = 0,
+        string? Code = null,
+        string? Name = null,
+        string? CostType = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutQuotationSaveBody(
+        long Id = 0,
+        long EstimateId = 0,
+        string? Code = null,
+        string? Title = null,
+        int Revision = 1,
+        string? ExpiresOn = null,
+        string? Status = null,
         bool ConfirmWrites = false);
     private sealed record ErpCostmItemSetBody(
         long ItemId = 0,

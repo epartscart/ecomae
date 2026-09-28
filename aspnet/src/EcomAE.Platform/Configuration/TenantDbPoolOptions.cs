@@ -10,4 +10,8 @@ public sealed class TenantDbPoolOptions
     public int ConnectionTimeoutSeconds { get; set; } = 8;
 
     public int DefaultCommandTimeoutSeconds { get; set; } = 30;
+
+    public int OpenRetryAttempts { get; set; } = 3;
+
+    public int OpenRetryDelayMilliseconds { get; set; } = 150;
 }

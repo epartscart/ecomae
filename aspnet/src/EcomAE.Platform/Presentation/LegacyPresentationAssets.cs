@@ -62,7 +62,8 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
         // Tenant animated cart + catalog brand logos on /cp/login & /erp/login
         "/platform-assets/eparts-animated-logo.css",
-        "/platform-assets/epc_portal_tenant_brand.css"
+        "/platform-assets/epc_portal_tenant_brand.css",
+        "/content/general_pages/epc_ecomae_hub_logo_css.php"
     ];
 
     /// <summary>ERP login uses the same BOS-parity shell (accents + tenant brand assets).</summary>
@@ -71,7 +72,8 @@ public static class LegacyPresentationAssets
         "/epc-static.php?f=bos/epc_bos_shell.css",
         "/platform-assets/epc_bos_login_surface_accents.css?v=20260807a",
         "/platform-assets/eparts-animated-logo.css",
-        "/platform-assets/epc_portal_tenant_brand.css"
+        "/platform-assets/epc_portal_tenant_brand.css",
+        "/content/shop/finance/epc_erp_portal_inline_css_serve.php"
     ];
 
     /// <summary>BOS login matrix/particle JS (PHP bos/epc_bos_shell.js).</summary>
