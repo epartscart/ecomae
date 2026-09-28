@@ -284,6 +284,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutProcurementLinkSave, HandleFitOutProcurementLinkSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutThreeWayMatchSave, HandleFitOutThreeWayMatchSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutMaterialMovementSave, HandleFitOutMaterialMovementSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutDeliveryRecordSave, HandleFitOutDeliveryRecordSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -12672,6 +12673,104 @@ public sealed class ErpModule : ISurfaceModule
             });
     }
 
+    private static async Task<IResult> HandleFitOutDeliveryRecordSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutDeliveryRecordWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out delivery records.");
+        }
+
+        var body = await LiveWriteFormBinder
+            .ReadJsonOrDefaultAsync<ErpFitOutDeliveryRecordSaveBody>(context, cancellationToken)
+            ?? new();
+        var id = body.Id;
+        var projectId = body.ProjectId;
+        var costCodeId = body.CostCodeId;
+        var parentId = body.ParentId;
+        var subcontractorId = body.SubcontractorId;
+        var recordType = body.RecordType;
+        var reference = body.Reference;
+        var title = body.Title;
+        var description = body.Description;
+        var quantity = body.Quantity;
+        var amount = body.Amount;
+        var completionPercent = body.CompletionPercent;
+        var eventDate = body.EventDate;
+        var status = body.Status;
+        var photoUrl = body.PhotoUrl;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            costCodeId = LiveWriteFormBinder.Long(form, "costCodeId", "cost_code_id");
+            parentId = LiveWriteFormBinder.Long(form, "parentId", "parent_id");
+            subcontractorId = LiveWriteFormBinder.Long(form, "subcontractorId", "subcontractor_id");
+            recordType = LiveWriteFormBinder.Text(form, "recordType", "record_type");
+            reference = LiveWriteFormBinder.Text(form, "reference");
+            title = LiveWriteFormBinder.Text(form, "title");
+            description = LiveWriteFormBinder.Text(form, "description");
+            quantity = LiveWriteFormBinder.Dec(form, "quantity");
+            amount = LiveWriteFormBinder.Dec(form, "amount");
+            completionPercent = LiveWriteFormBinder.Dec(form, "completionPercent", "completion_percent");
+            eventDate = LiveWriteFormBinder.Text(form, "eventDate", "event_date");
+            status = LiveWriteFormBinder.Text(form, "status");
+            photoUrl = LiveWriteFormBinder.Text(form, "photoUrl", "photo_url");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var parsedDate = DateOnly.TryParse(eventDate, out var date)
+            ? date
+            : DateOnly.FromDateTime(DateTime.UtcNow);
+        var written = await writes.SaveAsync(
+            new ErpFitOutDeliveryRecordSaveRequest(
+                id,
+                projectId,
+                costCodeId,
+                parentId,
+                subcontractorId,
+                recordType,
+                reference,
+                title,
+                description,
+                quantity,
+                amount,
+                completionPercent,
+                parsedDate,
+                status,
+                photoUrl),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+    }
+
     private static async Task<IResult> HandlePrjSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19413,6 +19512,23 @@ public sealed class ErpModule : ISurfaceModule
         decimal UnitCost = 0,
         string? Movement = null,
         string? Reference = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutDeliveryRecordSaveBody(
+        long Id = 0,
+        long ProjectId = 0,
+        long CostCodeId = 0,
+        long ParentId = 0,
+        long SubcontractorId = 0,
+        string? RecordType = null,
+        string? Reference = null,
+        string? Title = null,
+        string? Description = null,
+        decimal Quantity = 0,
+        decimal Amount = 0,
+        decimal CompletionPercent = 0,
+        string? EventDate = null,
+        string? Status = null,
+        string? PhotoUrl = null,
         bool ConfirmWrites = false);
     private sealed record ErpCostmItemSetBody(
         long ItemId = 0,

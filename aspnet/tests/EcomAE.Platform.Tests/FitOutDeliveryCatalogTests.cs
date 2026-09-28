@@ -24,6 +24,21 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Equal(
             "partial",
             FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Material issue and return").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Subcontract order and measurement").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Subcontract certification").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Site daily report and photo evidence").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Approved variations and contract value revision").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Progress claim and certification").Status);
     }
 
     [Fact]
@@ -60,6 +75,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/procurement-links/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/three-way-matches/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/material-movements/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/delivery-records/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);
@@ -68,6 +84,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_procurement_links`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutProcurementLinkWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_three_way_matches`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutThreeWayMatchWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_material_movements`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutMaterialMovementWriteService.cs")), StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_delivery_records`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutDeliveryRecordWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("HandleFitOutEstimateSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleFitOutBoqLineSaveAsync", module, StringComparison.Ordinal);
     }
