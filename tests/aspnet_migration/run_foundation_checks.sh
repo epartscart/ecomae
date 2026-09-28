@@ -1689,8 +1689,8 @@ check 'program binds route cutover options' contains "$ROOT/aspnet/src/EcomAE.Pl
 check 'route cutover policy consumes options' contains "$ROOT/aspnet/src/EcomAE.Platform/Migration/MigrationRouteCutoverPolicy.cs" 'IOptions<MigrationRouteCutoverOptions>'
 check 'route cutover tests cover disabled API shadow traffic' contains "$ROOT/aspnet/tests/EcomAE.Platform.Tests/MigrationRouteCutoverPolicyTests.cs" 'ApiCanBeDisabledByConfiguration' 
 check 'route cutover middleware exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs"
-check 'route cutover middleware emits target runtime header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-Target-Runtime'
-check 'route cutover middleware emits PHP fallback header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-PHP-Fallback'
+check 'route cutover middleware emits platform header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-Platform'
+check 'route cutover middleware emits compatibility header' contains "$ROOT/aspnet/src/EcomAE.Platform/Middleware/RouteCutoverDecisionMiddleware.cs" 'X-EcomAE-Compat'
 check 'program wires route cutover middleware' contains "$ROOT/aspnet/src/EcomAE.Platform/Program.cs" 'RouteCutoverDecisionMiddleware'
 check 'route cutover middleware tests exist' test -f "$ROOT/aspnet/tests/EcomAE.Platform.Tests/RouteCutoverDecisionMiddlewareTests.cs"
 check 'ASP.NET Core modern stack confirmation exists' test -f "$ROOT/docs/migration/ASP_NET_CORE_MODERN_STACK.md"
