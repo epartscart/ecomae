@@ -303,6 +303,7 @@
             if (document.RootElement.ValueKind != JsonValueKind.Array) return "<p>No body columns configured.</p>";
 
             var headers = new List<string>();
+            var cells = new List<string>();
             foreach (var column in document.RootElement.EnumerateArray())
             {
                 if (column.ValueKind != JsonValueKind.Object) continue;
@@ -315,20 +316,46 @@
                 var text = string.IsNullOrWhiteSpace(label) ? key : label;
                 if (!string.IsNullOrWhiteSpace(text))
                 {
-                    headers.Add("<th>" + WebUtility.HtmlEncode(text) + "</th>");
+                    var style = ColumnStyle(column);
+                    headers.Add("<th" + style + ">" + WebUtility.HtmlEncode(text) + "</th>");
+                    cells.Add("<td" + style + ">Sample value</td>");
                 }
             }
 
             if (headers.Count == 0) return "<p>No body columns configured.</p>";
             return "<table class=\"print-table\"><thead><tr>" + string.Concat(headers) +
                    "</tr></thead><tbody><tr>" +
-                   string.Concat(headers.Select(_ => "<td>Sample value</td>")) +
+                   string.Concat(cells) +
                    "</tr></tbody></table>";
         }
         catch (JsonException)
         {
             return "<p>Body columns JSON is invalid.</p>";
         }
+    }
+
+    private static string ColumnStyle(JsonElement column)
+    {
+        var styles = new List<string>();
+        if (column.TryGetProperty("width", out var widthValue)
+            && widthValue.ValueKind == JsonValueKind.String
+            && decimal.TryParse(widthValue.GetString(), NumberStyles.Number, CultureInfo.InvariantCulture, out var width)
+            && width is > 0 and <= 100)
+        {
+            styles.Add("width:" + width.ToString("0.##", CultureInfo.InvariantCulture) + "%");
+        }
+
+        if (column.TryGetProperty("align", out var alignValue)
+            && alignValue.ValueKind == JsonValueKind.String)
+        {
+            var align = alignValue.GetString()?.ToLowerInvariant();
+            if (align is "left" or "center" or "right")
+            {
+                styles.Add("text-align:" + align);
+            }
+        }
+
+        return styles.Count == 0 ? string.Empty : " style=\"" + string.Join(";", styles) + "\"";
     }
 
     protected override async Task OnInitializedAsync()
