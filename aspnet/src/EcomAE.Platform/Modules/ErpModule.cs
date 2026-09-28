@@ -296,6 +296,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRecoverySummary, HandleFitOutRecoverySummaryAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutExecutiveDashboard, HandleFitOutExecutiveDashboardAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalQueue, HandleFitOutApprovalQueueAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutOperationsReport, HandleFitOutOperationsReportAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutFinanceOperationsReport, HandleFitOutFinanceOperationsReportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutLeadHandoffSave, HandleFitOutLeadHandoffSaveAsync).DisableAntiforgery();
@@ -13225,6 +13226,37 @@ public sealed class ErpModule : ISurfaceModule
             summary = result,
             session = SessionPayload(session),
             note = "Tenant-isolated advance and retention recovery calculated from contract terms and certified records."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutApprovalQueueAsync(
+        HttpContext context,
+        long? projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutApprovalQueueReadService queue,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out approval queue.");
+        }
+
+        var result = await queue.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            rows = result.Rows,
+            totalAmount = result.TotalAmount,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Tenant-isolated pending fit-out approvals across delivery, commercial, AP, and settlement records."
         });
     }
 
