@@ -64,6 +64,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "payment_voucher",
         "site_engineer_approval",
         "project_manager_approval",
+        "variation_approval",
+        "final_settlement",
         "site_daily_report",
         "site_photo",
         "variation",
@@ -219,6 +221,20 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Role approvals require a positive approved amount.");
         }
 
+        if (recordType == "variation_approval" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Variation approvals require a positive approved amount.");
+        }
+
+        if (recordType == "final_settlement" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Final settlements require a positive settlement amount.");
+        }
+
         if (recordType == "approval_request"
             && status.Length > 0
             && !string.Equals(status, "pending", StringComparison.Ordinal))
@@ -276,6 +292,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "payment_voucher" => "draft",
                 "site_engineer_approval" => "pending",
                 "project_manager_approval" => "pending",
+                "variation_approval" => "pending",
+                "final_settlement" => "pending",
                 "site_daily_report" => "submitted",
                 "site_photo" => "attached",
                 "variation" => "draft",
@@ -474,7 +492,10 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 UPDATE `ecomae_fitout_delivery_records`
                 SET `status`=?,`updated_at_utc`=UTC_TIMESTAMP()
                 WHERE `id`=?
-                  AND `record_type` IN ('approval_request','site_engineer_approval','project_manager_approval')
+                  AND `record_type` IN (
+                      'approval_request','site_engineer_approval','project_manager_approval',
+                      'variation_approval','final_settlement'
+                  )
                   AND `status`='pending'
                 """),
             cancellationToken,

@@ -129,7 +129,9 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("retention_release", deliveryService, StringComparison.Ordinal);
         Assert.Contains("site_engineer_approval", deliveryService, StringComparison.Ordinal);
         Assert.Contains("project_manager_approval", deliveryService, StringComparison.Ordinal);
-        Assert.Contains("record_type` IN ('approval_request','site_engineer_approval','project_manager_approval')", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("variation_approval", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("final_settlement", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("'variation_approval','final_settlement'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);
@@ -170,6 +172,8 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("retention_release", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("site_engineer_approval", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("project_manager_approval", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("variation_approval", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("final_settlement", projectAccounting, StringComparison.Ordinal);
     }
 
     [Fact]
