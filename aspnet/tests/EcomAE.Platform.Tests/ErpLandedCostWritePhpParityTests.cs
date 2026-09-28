@@ -9,7 +9,8 @@ public sealed class ErpLandedCostWritePhpParityTests
     [InlineData("value", 100, 10, 100)]
     [InlineData("weight", 2, 10, 20)]
     [InlineData("volume", 3, 10, 30)]
-    [InlineData("quantity", 2, 10, 2)]
+    [InlineData("quantity", 2, 10, 10)]
+    [InlineData("qty", 2, 10, 10)]
     [InlineData("equal", 99, 10, 1)]
     public void Basis_MatchesPhpDistributionMethods(string method, decimal lineValue, decimal qty, decimal expected)
     {

@@ -131,7 +131,7 @@ public sealed class ErpLandedCostWriteService : IErpLandedCostWriteService
     {
         "weight" => line.Weight * line.Qty,
         "volume" => line.Volume * line.Qty,
-        "quantity" => line.Qty,
+        "quantity" or "qty" => line.Qty,
         "equal" => 1m,
         _ => line.LineValue,
     };
