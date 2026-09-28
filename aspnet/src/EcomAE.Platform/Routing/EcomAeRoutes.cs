@@ -2740,6 +2740,8 @@ public static class EcomAeRoutes
         "/erp/fitout/commercial-reconciliation";
     public const string ErpFitOutContractClosure =
         "/erp/fitout/contract-closure";
+    public const string ErpFitOutRetentionAgeing =
+        "/erp/fitout/retention-ageing";
     public const string ErpFitOutAcceptanceEvidence =
         "/erp/fitout/acceptance-evidence";
     public const string ErpFitOutApprovalDecide =

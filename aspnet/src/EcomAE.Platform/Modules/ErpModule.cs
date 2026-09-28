@@ -290,6 +290,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutInvoiceReconciliation, HandleFitOutInvoiceReconciliationAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutCommercialReconciliation, HandleFitOutCommercialReconciliationAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutContractClosure, HandleFitOutContractClosureAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutRetentionAgeing, HandleFitOutRetentionAgeingAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutAcceptanceEvidence, HandleFitOutAcceptanceEvidenceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
@@ -12966,6 +12967,36 @@ public sealed class ErpModule : ISurfaceModule
             message = result.Message,
             session = SessionPayload(session),
             note = "Read-only closure control; no contract is closed by this projection."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutRetentionAgeingAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutRetentionAgeingReadService ageing,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out retention ageing.");
+        }
+
+        var result = await ageing.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            ageing = result,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Tenant-isolated retention ageing and release eligibility projection."
         });
     }
 

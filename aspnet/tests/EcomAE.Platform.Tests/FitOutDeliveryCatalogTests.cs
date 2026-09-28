@@ -110,6 +110,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/invoice-reconciliation\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/commercial-reconciliation\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/contract-closure\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/retention-ageing\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/acceptance-evidence\"", routes, StringComparison.Ordinal);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-01").Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.Contains("dashboards", StringComparison.OrdinalIgnoreCase)).Status);
@@ -144,6 +145,9 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("CanClose", closure, StringComparison.Ordinal);
         Assert.Contains("No approved final settlement exists", closure, StringComparison.Ordinal);
         Assert.Contains("IErpFitOutContractClosureReadService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
+        var ageing = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutRetentionAgeingReadService.cs"));
+        Assert.Contains("ReleaseEligible", ageing, StringComparison.Ordinal);
+        Assert.Contains("warranty_months", ageing, StringComparison.Ordinal);
         var approvalQueue = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutApprovalQueueReadService.cs"));
         Assert.Contains("IErpFitOutApprovalQueueReadService", approvalQueue, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", approvalQueue, StringComparison.Ordinal);
