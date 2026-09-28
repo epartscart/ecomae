@@ -2171,7 +2171,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             Convert.ToInt64(reader["order_id"] is DBNull ? 0 : reader["order_id"], CultureInfo.InvariantCulture),
             Convert.ToInt32(reader["status_id"] is DBNull ? 0 : reader["status_id"], CultureInfo.InvariantCulture),
             Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
-            Convert.ToInt64(reader["time_unix"] is DBNull ? 0 : reader["time_unix"], CultureInfo.InvariantCulture));
+            Convert.ToInt64(reader["time_unix"] is DBNull ? 0 : reader["time_unix"], CultureInfo.InvariantCulture),
+            Convert.ToInt32(reader["item_count"] is DBNull ? 0 : reader["item_count"], CultureInfo.InvariantCulture),
+            Convert.ToDecimal(reader["total_value"] is DBNull ? 0 : reader["total_value"], CultureInfo.InvariantCulture));
 
     private static StorefrontOrderMessageDigest ReadThreadMessage(DbDataReader reader)
         => new(

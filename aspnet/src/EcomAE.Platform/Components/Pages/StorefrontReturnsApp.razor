@@ -83,7 +83,10 @@
                                             <text>—</text>
                                         }
                                     </td>
-                                    <td>—</td>
+                                    <td>
+                                        @row.ItemCount item@(row.ItemCount == 1 ? "" : "s")
+                                        · @row.TotalValue.ToString("0.00", CultureInfo.InvariantCulture)
+                                    </td>
                                     <td class="hidden"></td>
                                 </tr>
                             }
@@ -242,3 +245,17 @@
         }
     }
 }
+
+<script>
+    (() => {
+        const input = document.getElementById('search-text');
+        const table = document.getElementById('orders_returns_table');
+        if (!input || !table) return;
+        input.addEventListener('input', () => {
+            const phrase = input.value.toLowerCase();
+            for (const row of table.tBodies[0].rows) {
+                row.hidden = !row.textContent.toLowerCase().includes(phrase);
+            }
+        });
+    })();
+</script>

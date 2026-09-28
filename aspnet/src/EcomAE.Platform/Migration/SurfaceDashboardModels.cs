@@ -470,7 +470,9 @@ public sealed record StorefrontReturnDigest(
     long OrderId,
     int StatusId,
     string Status,
-    long TimeUnix);
+    long TimeUnix,
+    int ItemCount = 0,
+    decimal TotalValue = 0);
 
 public sealed record StorefrontReturnItemDigest(
     long Id,

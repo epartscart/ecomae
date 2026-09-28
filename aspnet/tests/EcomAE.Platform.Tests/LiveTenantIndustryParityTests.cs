@@ -447,6 +447,8 @@ public sealed class LiveTenantIndustryParityTests
         Assert.DoesNotContain("VIN", PhpIndustryCmsPages.Resolve("kak-zakazat", "jewellery").Lead, StringComparison.Ordinal);
         Assert.Equal(2, PhpCustomerReturns.SampleForAccount().Count);
         Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerReturns, StringComparison.Ordinal);
+        Assert.Contains("item_count", LegacySurfaceDashboardSql.SelectCustomerReturns, StringComparison.Ordinal);
+        Assert.Contains("total_value", LegacySurfaceDashboardSql.SelectCustomerReturns, StringComparison.Ordinal);
         Assert.Contains("user_id", LegacySurfaceDashboardSql.SelectCustomerVinRequests, StringComparison.Ordinal);
         Assert.Contains("shop_docpart_garage_notepad", LegacySurfaceDashboardSql.SelectCustomerGarageNotepad, StringComparison.Ordinal);
         Assert.Contains("ListStorefrontReturnsAsync", File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/StorefrontReturnsApp.razor")), StringComparison.Ordinal);
