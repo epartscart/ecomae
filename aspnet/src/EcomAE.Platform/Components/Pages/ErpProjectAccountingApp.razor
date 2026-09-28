@@ -20,6 +20,14 @@
     <PhpErpModulePageHeader Title="Project accounting" Subtitle="Post budgets, project transactions, and PHP-compatible recognition runs with validation before write." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
+    <section style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff">
+        <strong>Fit-out delivery dashboard</strong>
+        <p style="margin:.35rem 0;color:#52616b">
+            Review tenant-isolated counts, amounts, statuses, and completion summaries by project.
+        </p>
+        <a class="btn btn-default" href="/erp/fitout/delivery-dashboard">Open delivery dashboard JSON</a>
+    </section>
+
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Project accounting KPIs">
         <div class="kpi"><div class="lbl">Budgets</div><div class="val">@_count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Transactions</div><div class="val">@_txnCount.ToString(CultureInfo.InvariantCulture)</div></div>
