@@ -247,10 +247,12 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             or "retention_release"
             or "vendor_bill"
             or "payment_voucher";
+        var draftApprovalRecord = recordType is "vendor_bill" or "payment_voucher";
         if (guardedApprovalRecord
             && status.Length > 0
             && !string.Equals(status, "pending", StringComparison.Ordinal)
-            && !string.Equals(status, "draft", StringComparison.Ordinal))
+            && !(draftApprovalRecord
+                && string.Equals(status, "draft", StringComparison.Ordinal)))
         {
             return ErpSimpleWriteResult.Fail(
                 "invalid",
