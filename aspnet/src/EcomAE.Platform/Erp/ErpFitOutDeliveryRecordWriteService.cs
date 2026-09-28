@@ -494,7 +494,9 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 WHERE `id`=?
                   AND `record_type` IN (
                       'approval_request','site_engineer_approval','project_manager_approval',
-                      'variation_approval','final_settlement'
+                      'variation_approval','final_settlement','work_completion_certificate',
+                      'subcontract_payment_certificate','client_payment_certificate',
+                      'retention_release','vendor_bill','payment_voucher'
                   )
                   AND `status`='pending'
                 """),
