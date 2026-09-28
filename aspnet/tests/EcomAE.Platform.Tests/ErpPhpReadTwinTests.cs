@@ -196,6 +196,7 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("UPDATE `epc_erp_rfq`", service, StringComparison.Ordinal);
         Assert.Contains("INSERT INTO `epc_erp_rfq`", service, StringComparison.Ordinal);
         Assert.Contains("ErpRfqWriteService writes", module, StringComparison.Ordinal);
+        Assert.Contains("SaveAsync(\"rfq\"", module, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", page, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/save-rfq", page, StringComparison.Ordinal);
     }

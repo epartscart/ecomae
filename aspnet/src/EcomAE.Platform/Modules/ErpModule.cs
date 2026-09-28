@@ -565,6 +565,7 @@ public sealed class ErpModule : ISurfaceModule
             ILegacySessionValidator validator,
             IErpSaveRfqDryRun dryRun,
             IErpRfqWriteService writes,
+            IErpDimensionWriteService dimensions,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -574,9 +575,11 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             ErpSaveRfqBody body;
+            IReadOnlyDictionary<string, long>? dim = null;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
+                dim = ErpDimensionWriteService.ParseDimMap(form);
                 body = new(
                     LiveWriteFormBinder.Long(form, "id"),
                     LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
@@ -592,6 +595,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSaveRfqBody>(context, cancellationToken)
                     ?? new();
+                dim = body.Dim;
             }
 
             if (!body.ConfirmWrites)
@@ -612,6 +616,11 @@ public sealed class ErpModule : ISurfaceModule
                     body.OrderId,
                     session.UserId),
                 cancellationToken);
+            ErpSimpleWriteResult? dimensionResult = null;
+            if (written.Succeeded && written.Id > 0 && dim is { Count: > 0 })
+            {
+                dimensionResult = await dimensions.SaveAsync("rfq", written.Id, dim, cancellationToken);
+            }
             return LiveWriteFormBinder.Complete(
                 context,
                 LiveWriteFormBinder.ReturnUrl(context, "/erp/rfq-app"),
@@ -621,6 +630,7 @@ public sealed class ErpModule : ISurfaceModule
                 {
                     ok = written.Succeeded,
                     writes = written.Writes,
+                    dimensions = dimensionResult?.Writes ?? 0,
                     id = written.Id,
                     message = written.Message,
                     phpAuthoritative = false,
@@ -20961,7 +20971,8 @@ public sealed class ErpModule : ISurfaceModule
         decimal AmountEstimate = 0,
         string? Status = null,
         string? DueDate = null,
-        long OrderId = 0);
+        long OrderId = 0,
+        IReadOnlyDictionary<string, long>? Dim = null);
     private sealed record ErpDeliveryNoteCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpSaveContactBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpSyncContactsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
