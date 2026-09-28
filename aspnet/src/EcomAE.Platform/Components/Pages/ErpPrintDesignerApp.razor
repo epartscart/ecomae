@@ -265,6 +265,7 @@
 
             var header = _opened.HeaderHtmlExcerpt;
             var footer = _opened.FooterHtmlExcerpt;
+            var logo = RenderPreviewLogo(_opened);
             var body = RenderPreviewTable(_opened.BodyColumns);
             var terms = _opened.ShowTerms ? _opened.TermsHtmlExcerpt : string.Empty;
             var bank = _opened.ShowBankDetails ? _opened.BankDetailsHtmlExcerpt : string.Empty;
@@ -272,7 +273,7 @@
             var extras = RenderPreviewExtras(_opened);
             var sections = string.Join(
                 Environment.NewLine,
-                new[] { header, "<main><h2>Print template preview</h2>", body, terms, bank, extras, "</main>", footer }
+                new[] { logo, header, "<main><h2>Print template preview</h2>", body, terms, bank, extras, "</main>", footer }
                     .Where(section => !string.IsNullOrWhiteSpace(section)));
 
             return $$"""
@@ -387,6 +388,21 @@
         }
 
         return string.Concat(sections);
+    }
+
+    private static string RenderPreviewLogo(ErpPrintTemplateDetail template)
+    {
+        var position = template.LogoPosition?.ToLowerInvariant();
+        if (position is not ("left" or "center" or "right"))
+        {
+            return string.Empty;
+        }
+
+        var maxHeight = int.TryParse(template.LogoMaxHeight, NumberStyles.Integer, CultureInfo.InvariantCulture, out var height)
+            ? Math.Clamp(height, 1, 240)
+            : 60;
+        return "<div class=\"print-logo\" style=\"text-align:" + position + ";max-height:" +
+               maxHeight.ToString(CultureInfo.InvariantCulture) + "px\">Company logo preview</div>";
     }
 
     protected override async Task OnInitializedAsync()
