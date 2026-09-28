@@ -271,6 +271,7 @@ printf 'Packed gate shadow examples (price/api/surface/storefront) into %s/deplo
 printf 'Packed smoke issuer/ensure PHP helpers into %s/scripts/php\n' "$PLATFORM_DIR"
 printf 'Packed catalog/price parity compare scripts into %s/scripts\n' "$PLATFORM_DIR"
 
+PREVIOUS_RELEASE="$(readlink -f "$RELEASE_ROOT/current" 2>/dev/null || true)"
 ln -sfn "$RELEASE_DIR" "$RELEASE_ROOT/current"
 
 printf '\nPublished release: %s\n' "$RELEASE_DIR"
@@ -290,8 +291,18 @@ if [[ "$RUN_SYSTEMD" == "1" ]]; then
     systemctl restart ecomae-platform.service
     systemctl status ecomae-platform.service --no-pager
     # systemd can report active before Kestrel binds :5100 — wait before callers run smoke.
-    ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:${PLATFORM_PORT}}" \
-      bash "$ROOT/scripts/wait_for_aspnet_health.sh"
+    if ! ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:${PLATFORM_PORT}}" \
+      bash "$ROOT/scripts/wait_for_aspnet_health.sh"; then
+        if [[ -n "$PREVIOUS_RELEASE" && -d "$PREVIOUS_RELEASE" ]]; then
+            printf 'Health/readiness failed; restoring previous release: %s\n' "$PREVIOUS_RELEASE" >&2
+            ln -sfn "$PREVIOUS_RELEASE" "$RELEASE_ROOT/current"
+            systemctl restart ecomae-platform.service
+            systemctl status ecomae-platform.service --no-pager || true
+        else
+            printf 'Health/readiness failed and no previous release is available for rollback.\n' >&2
+        fi
+        exit 1
+    fi
 else
     printf '\nSkipped systemd actions. Set ECOMAE_RUN_SYSTEMD=1 to install/restart services.\n'
 fi
