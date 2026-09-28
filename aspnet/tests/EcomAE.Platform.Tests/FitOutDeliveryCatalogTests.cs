@@ -15,6 +15,9 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-07").Status);
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Approved variations and contract value revision");
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Progress claim and certification");
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Purchase requisition and RFQ linkage").Status);
     }
 
     [Fact]
@@ -48,11 +51,13 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("ErpFitOutContractTermsSave = \"/erp/fitout/contracts/terms/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutCostCodeSave = \"/erp/fitout/cost-codes/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutQuotationSave = \"/erp/fitout/quotations/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/procurement-links/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_cost_codes`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutCostCodeWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_quotations`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutQuotationWriteService.cs")), StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_procurement_links`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutProcurementLinkWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("HandleFitOutEstimateSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleFitOutBoqLineSaveAsync", module, StringComparison.Ordinal);
     }

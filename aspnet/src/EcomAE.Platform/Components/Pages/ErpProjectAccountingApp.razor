@@ -126,6 +126,29 @@
             </label>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save quotation</button>
         </form>
+        <form method="post" action="/erp/fitout/procurement-links/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out procurement PR / PO / GRN linkage</strong>
+            <label>Project id <input type="number" name="project_id" min="1" required style="width:7rem" /></label>
+            <label>Cost code id <input type="number" name="cost_code_id" min="0" value="0" style="width:7rem" /></label>
+            <label>Requisition id <input type="number" name="requisition_id" min="0" value="0" style="width:7rem" /></label>
+            <label>Purchase order id <input type="number" name="purchase_order_id" min="0" value="0" style="width:7rem" /></label>
+            <label>GRN id <input type="number" name="goods_receipt_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Description <input type="text" name="description" maxlength="240" required style="width:15rem" placeholder="Joinery material package" /></label>
+            <label>Qty <input type="number" name="quantity" min="0" step="0.001" style="width:5rem" /></label>
+            <label>Committed <input type="number" name="committed_amount" min="0" step="0.01" style="width:7rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="requested">requested</option>
+                    <option value="ordered">ordered</option>
+                    <option value="partially_received">partially received</option>
+                    <option value="received">received</option>
+                    <option value="cancelled">cancelled</option>
+                </select>
+            </label>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save procurement link</button>
+        </form>
     }
 
     @if (_openedBudget is not null)
