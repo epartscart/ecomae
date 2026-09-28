@@ -29,6 +29,72 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapGet(EcomAeRoutes.ErpAjaxWriteCatalog, (IErpAjaxWriteCatalog catalog) => Results.Ok(catalog.BuildReport()));
 
+        endpoints.MapPost(EcomAeRoutes.ErpLandedCostCalculate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpLandedCostWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/landed-cost-app", "Admin ERP capability required for landed-cost calculation.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpLandedCostBody>(context, cancellationToken)
+                       ?? new();
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "sheet_id", "sheetId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, validation_code = "confirm_required", message = "Set confirmWrites=true to calculate landed cost.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.CalculateAsync(id, cancellationToken);
+            return LiveWriteFormBinder.Complete(context, "/erp/landed-cost-app", written.Succeeded, written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ErpLandedCostPost, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpLandedCostWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/landed-cost-app", "Admin ERP capability required for landed-cost posting.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpLandedCostBody>(context, cancellationToken)
+                       ?? new();
+            var id = body.Id;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "sheet_id", "sheetId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new { ok = true, writes = 0, phpAuthoritative = false, validation_code = "confirm_required", message = "Set confirmWrites=true to post landed cost.", session = SessionPayload(session) });
+            }
+
+            var written = await writes.PostAsync(id, cancellationToken);
+            return LiveWriteFormBinder.Complete(context, "/erp/landed-cost-app", written.Succeeded, written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWriteRegistryDryRun, async (
             string action,
             ErpAjaxWriteRegistryBody? body,
@@ -21702,6 +21768,7 @@ public sealed class ErpModule : ISurfaceModule
         decimal UnitPrice = 0,
         string? PreferredVendor = null);
     private sealed record ErpProcReqConvertBody(long Id, bool ConfirmWrites = false);
+    private sealed record ErpLandedCostBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpBplanSaveBody(
         long Id = 0,
         long CompanyId = 0,
