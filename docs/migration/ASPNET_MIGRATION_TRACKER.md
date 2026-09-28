@@ -16,9 +16,9 @@ Current: A 24/24 items (≈99 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 �
 The headline remains unchanged when a slice improves inside an open weighted phase: this
 tracker intentionally counts only closed phase gates, not partial-field or route evidence.
 Current measured sub-slices that do not yet close a phase are: print-template editor
-`26/26` allowlisted fields exposed in the edit UI (HTML/CSS values remain excerpt-limited),
+`26/26` allowlisted fields exposed in the edit UI (full HTML/CSS bodies and merge-field guidance),
 CP/ERP static destination audits `34/34`,
-`11/11`, `95/95`, and `224/224`, and focused print-designer verification `6/6`.
+`11/11`, `95/95`, and `224/224`, and focused print-designer verification `7/7`.
 These figures are reported separately so the headline cannot overstate migration completion.
 Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliation, tenant deny flags,
 explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
