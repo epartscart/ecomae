@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -59,6 +60,23 @@
                     @if (!string.IsNullOrWhiteSpace(_openedSheet.Notes))
                     {
                         <p class="text-muted">@_openedSheet.Notes</p>
+                    }
+                    @if (_isAdmin)
+                    {
+                        <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.75rem">
+                            <form method="post" action="@EcomAeRoutes.ErpLandedCostCalculate">
+                                <input type="hidden" name="id" value="@_openedId.ToString(CultureInfo.InvariantCulture)" />
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@_listHref" />
+                                <button type="submit" class="btn btn-xs btn-primary">Calculate allocation</button>
+                            </form>
+                            <form method="post" action="@EcomAeRoutes.ErpLandedCostPost">
+                                <input type="hidden" name="id" value="@_openedId.ToString(CultureInfo.InvariantCulture)" />
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="returnUrl" value="@_listHref" />
+                                <button type="submit" class="btn btn-xs btn-success">Post landed cost</button>
+                            </form>
+                        </div>
                     }
                 </div>
             </div>

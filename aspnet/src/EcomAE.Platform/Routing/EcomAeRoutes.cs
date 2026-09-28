@@ -851,6 +851,10 @@ public static class EcomAeRoutes
     public const string ErpProcurementReqSubmit = "/erp/procurement/requisitions/submit";
     /// <summary>PHP epc_proc_req_decision. <c>confirmWrites=true</c> writes via <c>IErpProcurementReqWriteService</c>.</summary>
     public const string ErpProcurementReqDecision = "/erp/procurement/requisitions/decision";
+    /// <summary>Live PHP landed-cost calculation twin (confirmWrites=true).</summary>
+    public const string ErpLandedCostCalculate = "/erp/landed-cost/calculate";
+    /// <summary>Live PHP landed-cost posting twin (confirmWrites=true).</summary>
+    public const string ErpLandedCostPost = "/erp/landed-cost/post";
     /// <summary>PHP epc_wms_location_delete. <c>confirmWrites=true</c> writes via <c>IErpWmsLocationWriteService</c>.</summary>
     public const string ErpWmsLocationDelete = "/erp/wms/locations/delete";
     /// <summary>Wave B dry-run for PHP invoice_delete draft (writes=0).</summary>
