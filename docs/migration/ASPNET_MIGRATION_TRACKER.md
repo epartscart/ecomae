@@ -20,6 +20,16 @@ Current measured sub-slices that do not yet close a phase are: print-template ed
 CP/ERP static destination audits `34/34`,
 `11/11`, `95/95`, and `224/224`, and focused print-designer verification `7/7`.
 These figures are reported separately so the headline cannot overstate migration completion.
+Enterprise comparison planning addendum (provisional until the user-supplied Zoho/Odoo HTML is attached):
+the existing ECOM AE comparison surfaces require the matrix to keep explicit parity/evidence rows for
+unified cross-module data and audit trail, full GL with dimensions/periods/consolidation, warehouse
+batch/lot/serial/barcode handling, CRM-to-quote/order/invoice flow, hosted database-per-tenant and
+Super CP fleet operations, integrated storefront/B2B portal, country-driven VAT and e-invoicing
+(including Peppol/PINT-AE and tourist-refund handling), AI advisor/forecasting, and cryptographic/
+blockchain proof claims. These are comparison/acceptance requirements, not completion claims; each
+remains pending until its ASP.NET workflow, tenant isolation, PHP side-by-side evidence, human
+acceptance, and production validation are recorded. The supplied local `file:///C:/...` path is not
+accessible from the Devin VM, so no claims are made about content unique to that attachment.
 Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliation, tenant deny flags,
 explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
 closed-period guards, opened-journal line drill-down, PHP COA-backed account selectors, debit/credit balance summaries, and selectable posting dates are now live. The phase-level
