@@ -966,6 +966,14 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    public const string SelectErpSettlementAllocationsForCashEntry = """
+        SELECT `id`, `doc_type`, `invoice_id`, `counterparty_id`, `amount`, `time`,
+               IFNULL(`voucher_no`, '') AS voucher_no, `admin_id`
+        FROM `epc_erp_settlement_allocations`
+        WHERE `cash_entry_id` = @cashEntryId AND `active` = 1
+        ORDER BY `time` ASC, `id` ASC
+        """;
+
     public const string SelectErpInvoices = """
         SELECT d.`id`, IFNULL(d.`invoice_number`, '') AS invoice_number, d.`order_id`, d.`user_id`,
                IFNULL(u.`email`, '') AS customer_email, d.`issue_date`,

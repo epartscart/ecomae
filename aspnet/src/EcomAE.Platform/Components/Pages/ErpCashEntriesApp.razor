@@ -186,6 +186,32 @@
                 <dt>Admin</dt><dd>@(_openedDetail!.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Note and reference remain visible in the ledger list for audit follow-up.</p>
+            @if (_openedDetail.Allocations.Count > 0)
+            {
+                <div style="margin-top:1rem;">
+                    <p style="margin:0 0 .4rem"><strong>Settlement allocations</strong></p>
+                    <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Type</th><th>Document</th><th>Counterparty</th><th class="text-right">Amount</th><th>Voucher</th><th>Posted</th></tr></thead>
+                        <tbody>
+                            @foreach (var allocation in _openedDetail.Allocations)
+                            {
+                                <tr>
+                                    <td>@allocation.DocumentType</td>
+                                    <td>#@allocation.InvoiceId.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>#@allocation.CounterpartyId.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@allocation.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@(string.IsNullOrWhiteSpace(allocation.VoucherNumber) ? "—" : allocation.VoucherNumber)</td>
+                                    <td>@FormatTime(allocation.TimeUnix)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+            else
+            {
+                <p class="text-muted" style="margin:1rem 0 0">No settlement allocations recorded for this voucher.</p>
+            }
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>

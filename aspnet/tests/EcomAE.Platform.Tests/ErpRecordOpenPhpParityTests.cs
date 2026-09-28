@@ -419,6 +419,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(\"/erp/cash-entries-app\", \"entry_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("EntryType", razor, StringComparison.Ordinal);
         Assert.Contains("CounterpartyType", razor, StringComparison.Ordinal);
+        Assert.Contains("Settlement allocations", razor, StringComparison.Ordinal);
+        Assert.Contains("Allocations", razor, StringComparison.Ordinal);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);

@@ -511,6 +511,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("gl_journal_id", LegacySurfaceDashboardSql.SelectErpCashEntryDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("sales_order_id", LegacySurfaceDashboardSql.SelectErpCashEntryDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("voided_at", LegacySurfaceDashboardSql.SelectErpCashEntryDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_settlement_allocations", LegacySurfaceDashboardSql.SelectErpSettlementAllocationsForCashEntry, StringComparison.Ordinal);
+        Assert.Contains("cash_entry_id", LegacySurfaceDashboardSql.SelectErpSettlementAllocationsForCashEntry, StringComparison.Ordinal);
+        Assert.Contains("doc_type", LegacySurfaceDashboardSql.SelectErpSettlementAllocationsForCashEntry, StringComparison.Ordinal);
+        Assert.Contains("active", LegacySurfaceDashboardSql.SelectErpSettlementAllocationsForCashEntry, StringComparison.Ordinal);
         Assert.DoesNotContain("counterparty_type", LegacySurfaceDashboardSql.SelectErpCashEntryTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("@entry_type", LegacySurfaceDashboardSql.SelectErpCashEntryTypeSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpCashEntryTypeSiblings, StringComparison.Ordinal);
