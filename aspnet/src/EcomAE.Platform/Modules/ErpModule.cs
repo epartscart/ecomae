@@ -279,6 +279,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateSave, HandleFitOutEstimateSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutBoqLineSave, HandleFitOutBoqLineSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutContractTermsSave, HandleFitOutContractTermsSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutCostCodeSave, HandleFitOutCostCodeSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -12337,6 +12338,51 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleFitOutCostCodeSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutCostCodeWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/project-accounting-app", "Admin ERP capability required for fit-out cost-code save.");
+        }
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFitOutCostCodeSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var projectId = body.ProjectId;
+        var parentId = body.ParentId;
+        var code = body.Code;
+        var name = body.Name;
+        var costType = body.CostType;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            parentId = LiveWriteFormBinder.Long(form, "parentId", "parent_id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            costType = LiveWriteFormBinder.Text(form, "costType", "cost_type");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+        var written = await writes.SaveAsync(
+            new ErpFitOutCostCodeSaveRequest(id, projectId, parentId, code, name, costType),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandlePrjSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19026,6 +19072,14 @@ public sealed class ErpModule : ISurfaceModule
         decimal AdvancePercent = 0,
         decimal RetentionPercent = 0,
         int WarrantyMonths = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutCostCodeSaveBody(
+        long Id = 0,
+        long ProjectId = 0,
+        long ParentId = 0,
+        string? Code = null,
+        string? Name = null,
+        string? CostType = null,
         bool ConfirmWrites = false);
     private sealed record ErpCostmItemSetBody(
         long ItemId = 0,
