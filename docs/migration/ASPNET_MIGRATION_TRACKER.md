@@ -33,8 +33,8 @@ accessible from the Devin VM, so no claims are made about content unique to that
 The attached contracting evaluation adds this explicit acceptance checklist to B-F (not a new
 completion percentage): `[ ]` supplier quotations/RFQs; `[ ]` purchase/work orders; `[~]`
 subcontractor management; `[~]` monthly subcontractor progress claims; `[~]` subcontractor payment
-certificates; `[~]` site-engineer and project-manager approval levels; `[ ]` vendor bills/AP invoice
-flow; `[ ]` payment vouchers; `[~]` client progress claims; `[~]` client payment certificates;
+certificates; `[~]` site-engineer and project-manager approval levels; `[~]` vendor bills/AP invoice
+flow; `[~]` payment vouchers; `[~]` client progress claims; `[~]` client payment certificates;
 `[ ]` proforma/receipt handling; `[~]` work-completion certificates; `[~]` project profitability;
 `[~]` budget-versus-actual reporting; `[~]` retention ledger plus release/ageing; and `[~]`
 variation orders. The source also requires two parallel, reconciled chains (purchase/contract and
