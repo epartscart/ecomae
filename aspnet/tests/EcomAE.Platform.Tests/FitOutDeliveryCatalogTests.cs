@@ -9,10 +9,11 @@ public sealed class FitOutDeliveryCatalogTests
     [Fact]
     public void CatalogPreservesTheFullPhasedFitOutScenario()
     {
-        Assert.Equal(33, FitOutDeliveryCatalog.Steps.Count);
+        Assert.Equal(32, FitOutDeliveryCatalog.Steps.Count);
         Assert.Equal(4, FitOutDeliveryCatalog.Steps.Select(step => step.Phase).Distinct(StringComparer.Ordinal).Count());
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Estimate and BOQ header");
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-07").Status);
+        Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-06").Status);
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Approved variations and contract value revision");
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Progress claim and certification");
         Assert.Equal(
@@ -96,6 +97,9 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/estimates/csv\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/delivery-dashboard\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/recovery-summary\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/lead-handoff/save\"", routes, StringComparison.Ordinal);
+        Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-01").Status);
+        Assert.Contains("ecomae_fitout_lead_handoffs", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutLeadHandoffWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("equipment_usage", deliveryService, StringComparison.Ordinal);
         Assert.Contains("timesheet", deliveryService, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);

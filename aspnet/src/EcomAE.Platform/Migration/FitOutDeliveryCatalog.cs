@@ -11,12 +11,12 @@ public static class FitOutDeliveryCatalog
 {
     public static IReadOnlyList<FitOutDeliveryStep> Steps { get; } =
     [
-        new("P1-01", "P1 core", "Lead and customer handoff", "pending", "CRM/ERP"),
+        new("P1-01", "P1 core", "Lead and customer handoff", "partial", "CRM/ERP"),
         new("P1-02", "P1 core", "Estimate and BOQ header", "partial", "ERP"),
         new("P1-03", "P1 core", "BOQ sections and line items", "partial", "ERP"),
         new("P1-04", "P1 core", "Material, labour, subcontract, equipment and overhead rates", "partial", "ERP"),
         new("P1-05", "P1 core", "Markup and estimate revisions", "partial", "ERP"),
-        new("P1-06", "P1 core", "Estimate import/export contract", "pending", "ERP"),
+        new("P1-06", "P1 core", "Estimate import/export contract", "partial", "ERP"),
         new("P1-07", "P1 core", "Quotation issue and revision", "partial", "ERP"),
         new("P1-08", "P1 core", "Contract commercial terms", "partial", "ERP contracts"),
         new("P1-09", "P1 core", "Advance, retention and warranty rules", "partial", "ERP"),
@@ -33,7 +33,6 @@ public static class FitOutDeliveryCatalog
         new("P2 operations", "P2 operations", "Equipment usage and timesheets", "partial", "ERP projects"),
         new("P2 operations", "P2 operations", "RFI and drawing revisions", "partial", "ERP quality"),
         new("P2 operations", "P2 operations", "QA/QC inspection and snag lifecycle", "partial", "ERP quality"),
-        new("P2 operations", "P2 operations", "Equipment usage and site timesheets", "partial", "ERP site operations"),
         new("P3 finance", "P3 finance", "Approved variations and contract value revision", "partial", "ERP projects"),
         new("P3 finance", "P3 finance", "Weighted BOQ progress", "partial", "ERP projects"),
         new("P3 finance", "P3 finance", "Progress claim and certification", "partial", "ERP projects"),
