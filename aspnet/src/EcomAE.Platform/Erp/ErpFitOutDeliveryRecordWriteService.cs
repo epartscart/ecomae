@@ -41,7 +41,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "snag",
         "weighted_progress",
         "retention_recovery",
-        "advance_recovery"
+        "advance_recovery",
+        "approval_request"
     };
 
     private readonly IErpWriteConnectionFactory _connections;
@@ -114,6 +115,13 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Progress and recovery records require an amount or completion percentage.");
         }
 
+        if (recordType == "approval_request" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Approval requests require a positive approval amount.");
+        }
+
         if (recordType == "site_daily_report" && description.Length == 0)
         {
             return ErpSimpleWriteResult.Fail(
@@ -161,6 +169,7 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "weighted_progress" => "draft",
                 "retention_recovery" => "draft",
                 "advance_recovery" => "draft",
+                "approval_request" => "pending",
                 _ => "draft"
             };
         }

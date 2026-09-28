@@ -51,6 +51,9 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Equal(
             "partial",
             FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Retention and advance recovery").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Numbering and approval thresholds").Status);
     }
 
     [Fact]
