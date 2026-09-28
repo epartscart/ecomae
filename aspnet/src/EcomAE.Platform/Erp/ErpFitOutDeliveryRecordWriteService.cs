@@ -137,6 +137,15 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Approval requests require a positive approval amount.");
         }
 
+        if (recordType == "approval_request"
+            && status.Length > 0
+            && !string.Equals(status, "pending", StringComparison.Ordinal))
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Approval requests must use the approval decision action for terminal statuses.");
+        }
+
         if (recordType == "site_daily_report" && description.Length == 0)
         {
             return ErpSimpleWriteResult.Fail(
