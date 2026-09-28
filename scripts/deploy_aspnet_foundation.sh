@@ -292,6 +292,7 @@ if [[ "$RUN_SYSTEMD" == "1" ]]; then
     systemctl status ecomae-platform.service --no-pager
     # systemd can report active before Kestrel binds :5100 — wait before callers run smoke.
     if ! ECOMAE_ASPNET_BASE_URL="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:${PLATFORM_PORT}}" \
+      ECOMAE_EXPECTED_RELEASE_SHA="$(cat "$PLATFORM_DIR/RELEASE_SHA")" \
       bash "$ROOT/scripts/wait_for_aspnet_health.sh"; then
         if [[ -n "$PREVIOUS_RELEASE" && -d "$PREVIOUS_RELEASE" ]]; then
             printf 'Health/readiness failed; restoring previous release: %s\n' "$PREVIOUS_RELEASE" >&2
