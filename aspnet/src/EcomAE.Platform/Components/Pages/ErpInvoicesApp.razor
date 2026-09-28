@@ -16,7 +16,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Invoices" Subtitle="Open an invoice for the payment-terms excerpt, VAT, and amount due. Writes stay Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Invoices" Subtitle="Open an invoice for the payment-terms excerpt, VAT, and amount due. Cancellation and draft deletion are guarded native actions; other lifecycle actions remain pending their acceptance gates." PhpTabHref="@_phpTab" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/invoices-app" />
     <p class="text-muted" style="margin:0 0 10px;">
         <a href="/erp/sales-orders-app">Sales orders</a>
@@ -71,7 +71,24 @@
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
                 <dt>Submitted</dt><dd>@FormatTime(_openedDetail.TimeSubmitted)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Writes stay Classic.</p>
+            @if (_isAdmin && _openedDetail.Id > 0)
+            {
+                <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
+                    <strong style="width:100%">Invoice lifecycle actions</strong>
+                    <form method="post" action="/erp/invoices/cancel" style="display:flex;gap:.35rem;align-items:end">
+                        <input type="hidden" name="invoiceId" value="@_openedDetail.Id" />
+                        <label>Reason <input type="text" name="reason" maxlength="255" placeholder="Correction or cancellation reason" /></label>
+                        <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate cancel</button>
+                        <button type="submit" name="confirmWrites" value="true" class="btn btn-warning btn-xs">Cancel invoice</button>
+                    </form>
+                    <form method="post" action="/erp/invoices/delete" style="display:flex;gap:.35rem;align-items:end">
+                        <input type="hidden" name="invoiceId" value="@_openedDetail.Id" />
+                        <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate draft delete</button>
+                        <button type="submit" name="confirmWrites" value="true" class="btn btn-danger btn-xs">Delete draft</button>
+                    </form>
+                </div>
+            }
+            <p class="text-muted" style="margin:.85rem 0 0">Creation, settlement, export, and credit-note lifecycle remain pending until their full acceptance gates close.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.PaymentTermsExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">payment-terms excerpt</p>
