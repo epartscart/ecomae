@@ -179,6 +179,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("ReleaseEligible", ageing, StringComparison.Ordinal);
         Assert.Contains("warranty_months", ageing, StringComparison.Ordinal);
         Assert.Contains("client_payment_certificate", ageing, StringComparison.Ordinal);
+        Assert.Contains("subcontract_payment_certificate", ageing, StringComparison.Ordinal);
         var recovery = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutRecoverySummaryReadService.cs"));
         Assert.Contains("ClientCertifiedAmount", recovery, StringComparison.Ordinal);
         Assert.Contains("SubcontractCertifiedAmount", recovery, StringComparison.Ordinal);

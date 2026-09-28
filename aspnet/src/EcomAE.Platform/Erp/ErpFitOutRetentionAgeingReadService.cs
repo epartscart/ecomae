@@ -115,6 +115,7 @@ public sealed class ErpFitOutRetentionAgeingReadService
                   'subcontract_certification',
                   'progress_claim',
                   'subcontractor_progress_claim',
+                  'subcontract_payment_certificate',
                   'client_progress_claim',
                   'client_payment_certificate'
               )
