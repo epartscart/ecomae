@@ -18,6 +18,7 @@ public sealed record ErpFitOutContractClosure(
     int ApprovedFinalSettlementCount,
     decimal UnbilledClientAmount,
     decimal UnpaidVendorAmount,
+    decimal UnpaidSubcontractCertifiedAmount,
     decimal RetentionHeld,
     IReadOnlyList<string> Blockers,
     string Source,
@@ -28,13 +29,16 @@ public sealed class ErpFitOutContractClosureReadService
 {
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpFitOutCommercialReconciliationReadService _commercial;
+    private readonly IErpFitOutSubcontractReconciliationReadService _subcontract;
 
     public ErpFitOutContractClosureReadService(
         IErpWriteConnectionFactory connections,
-        IErpFitOutCommercialReconciliationReadService commercial)
+        IErpFitOutCommercialReconciliationReadService commercial,
+        IErpFitOutSubcontractReconciliationReadService subcontract)
     {
         _connections = connections;
         _commercial = commercial;
+        _subcontract = subcontract;
     }
 
     public async Task<ErpFitOutContractClosure> ReadAsync(
@@ -57,6 +61,14 @@ public sealed class ErpFitOutContractClosureReadService
         if (commercial.Source == "database-error")
         {
             return Empty(projectId, commercial.Message, commercial.Source);
+        }
+
+        var subcontract = await _subcontract
+            .ReadAsync(projectId, cancellationToken)
+            .ConfigureAwait(false);
+        if (subcontract.Source == "database-error")
+        {
+            return Empty(projectId, subcontract.Message, subcontract.Source);
         }
 
         await using var connection = await _connections
@@ -105,6 +117,11 @@ public sealed class ErpFitOutContractClosureReadService
                 blockers.Add("Vendor bills remain unpaid.");
             }
 
+            if (subcontract.UnpaidCertifiedAmount > 0m)
+            {
+                blockers.Add("Certified subcontract work remains unpaid.");
+            }
+
             if (commercial.RetentionHeld > 0m)
             {
                 blockers.Add("Retention remains held.");
@@ -129,6 +146,7 @@ public sealed class ErpFitOutContractClosureReadService
                 settlementCount,
                 commercial.UnbilledClientAmount,
                 commercial.UnpaidVendorAmount,
+                subcontract.UnpaidCertifiedAmount,
                 commercial.RetentionHeld,
                 blockers,
                 "database",
@@ -151,6 +169,7 @@ public sealed class ErpFitOutContractClosureReadService
             0m,
             0,
             0,
+            0m,
             0m,
             0m,
             0m,
