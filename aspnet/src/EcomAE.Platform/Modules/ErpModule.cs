@@ -287,6 +287,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDeliveryRecordSave, HandleFitOutDeliveryRecordSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutInvoiceBridgeSave, HandleFitOutInvoiceBridgeSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutInvoiceBridge, HandleFitOutInvoiceBridgeAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutInvoiceReconciliation, HandleFitOutInvoiceReconciliationAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
@@ -12875,6 +12876,34 @@ public sealed class ErpModule : ISurfaceModule
             message = result.Message,
             session = SessionPayload(session),
             note = "Tenant-isolated invoice bridge rows with authoritative VAT snapshots."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutInvoiceReconciliationAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutInvoiceReconciliationReadService reconciliation,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out invoice reconciliation.");
+        }
+
+        var result = await reconciliation.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            reconciliation = result,
+            session = SessionPayload(session),
+            note = "Tenant-isolated certification-to-invoice reconciliation using linked invoice totals."
         });
     }
 

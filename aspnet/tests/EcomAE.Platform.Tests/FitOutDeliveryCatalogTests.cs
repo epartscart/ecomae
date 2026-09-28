@@ -106,6 +106,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/approval/decide\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/invoice-reconciliation\"", routes, StringComparison.Ordinal);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-01").Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.Contains("dashboards", StringComparison.OrdinalIgnoreCase)).Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.StartsWith("Sales,", StringComparison.Ordinal)).Status);
@@ -137,6 +138,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("action=\"/erp/fitout/invoice-bridge/save\"", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("Fit-out VAT / invoice bridge", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/fitout/invoice-bridge\"", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/fitout/invoice-reconciliation\"", projectAccounting, StringComparison.Ordinal);
     }
 
     [Fact]

@@ -1020,6 +1020,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutMaterialMovementWriteSe
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutDeliveryRecordWriteService, EcomAE.Platform.Erp.ErpFitOutDeliveryRecordWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutInvoiceBridgeWriteService, EcomAE.Platform.Erp.ErpFitOutInvoiceBridgeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutInvoiceBridgeReadService, EcomAE.Platform.Erp.ErpFitOutInvoiceBridgeReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutInvoiceReconciliationReadService, EcomAE.Platform.Erp.ErpFitOutInvoiceReconciliationReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateCsvService, EcomAE.Platform.Erp.ErpFitOutEstimateCsvService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutDeliveryDashboardReadService, EcomAE.Platform.Erp.ErpFitOutDeliveryDashboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutRecoverySummaryReadService, EcomAE.Platform.Erp.ErpFitOutRecoverySummaryReadService>();
