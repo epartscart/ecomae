@@ -285,6 +285,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutThreeWayMatchSave, HandleFitOutThreeWayMatchSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutMaterialMovementSave, HandleFitOutMaterialMovementSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDeliveryRecordSave, HandleFitOutDeliveryRecordSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -12769,6 +12770,87 @@ public sealed class ErpModule : ISurfaceModule
                 id = written.Id,
                 session = SessionPayload(session)
             });
+    }
+
+    private static async Task<IResult> HandleFitOutProjectPnlAsync(
+        HttpContext context,
+        long? projectId,
+        ILegacySessionValidator validator,
+        ISurfaceDashboardSummaryReporter dashboards,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out project P&L.");
+        }
+
+        var digest = await dashboards
+            .BuildErpProjectAccountingDigestAsync(500, cancellationToken)
+            .ConfigureAwait(false);
+        var budgets = digest.Budgets
+            .Where(row => !projectId.HasValue || row.ProjectId == projectId.Value)
+            .GroupBy(row => row.ProjectId)
+            .Select(group => new
+            {
+                projectId = group.Key,
+                revenueBudget = group.Sum(row => row.RevenueBudget),
+                costBudget = group.Sum(row => row.CostBudget)
+            })
+            .ToDictionary(row => row.projectId);
+        var actuals = digest.Txns
+            .Where(row => !projectId.HasValue || row.ProjectId == projectId.Value)
+            .GroupBy(row => row.ProjectId)
+            .Select(group => new
+            {
+                projectId = group.Key,
+                actualCost = group
+                    .Where(row => row.Amount >= 0m)
+                    .Sum(row => row.Amount),
+                actualRevenue = group
+                    .Where(row => row.Amount < 0m)
+                    .Sum(row => Math.Abs(row.Amount))
+            })
+            .ToDictionary(row => row.projectId);
+        var projectIds = budgets.Keys
+            .Concat(actuals.Keys)
+            .Distinct()
+            .OrderBy(id => id)
+            .Select(id =>
+            {
+                budgets.TryGetValue(id, out var budget);
+                actuals.TryGetValue(id, out var actual);
+                var revenueBudget = budget?.revenueBudget ?? 0m;
+                var costBudget = budget?.costBudget ?? 0m;
+                var actualRevenue = actual?.actualRevenue ?? 0m;
+                var actualCost = actual?.actualCost ?? 0m;
+                return new
+                {
+                    projectId = id,
+                    revenueBudget,
+                    costBudget,
+                    actualRevenue,
+                    actualCost,
+                    forecastProfit = (revenueBudget > 0m ? revenueBudget : actualRevenue)
+                        - (costBudget > 0m ? costBudget : actualCost),
+                    actualProfit = actualRevenue - actualCost
+                };
+            })
+            .ToArray();
+        return Results.Ok(new
+        {
+            ok = true,
+            surface = "erp",
+            projectId,
+            projects = projectIds,
+            source = digest.Source,
+            message = digest.Message,
+            session = SessionPayload(session),
+            note = "Read-only project P&L projection from tenant-isolated budget and transaction ledgers."
+        });
     }
 
     private static async Task<IResult> HandlePrjSaveAsync(
