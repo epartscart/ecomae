@@ -125,6 +125,35 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("HandleFitOutBoqLineSaveAsync", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ApprovalThresholdAutoApprovesRequestsAtOrBelowPolicy()
+    {
+        Assert.Equal(
+            "approved",
+            ErpFitOutApprovalPolicy.ResolveInitialStatus(
+                "approval_request",
+                1000m,
+                1000m));
+        Assert.Equal(
+            "approved",
+            ErpFitOutApprovalPolicy.ResolveInitialStatus(
+                "approval_request",
+                900m,
+                1000m));
+        Assert.Equal(
+            "pending",
+            ErpFitOutApprovalPolicy.ResolveInitialStatus(
+                "approval_request",
+                1000.01m,
+                1000m));
+        Assert.Equal(
+            "pending",
+            ErpFitOutApprovalPolicy.ResolveInitialStatus(
+                "approval_request",
+                900m,
+                null));
+    }
+
     private static string FindRepoFile(string relativePath)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);
