@@ -1113,6 +1113,7 @@ builder.Services.AddResponseCompression(options =>
 builder.Services.Configure<BrotliCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 builder.Services.Configure<GzipCompressionProviderOptions>(options => options.Level = CompressionLevel.Fastest);
 builder.Services.AddHealthChecks();
+builder.Services.Configure<HostOptions>(options => options.ShutdownTimeout = TimeSpan.FromSeconds(30));
 
 var app = builder.Build();
 
@@ -1177,6 +1178,12 @@ app.UseRouting();
 app.UseAntiforgery();
 
 app.MapHealthChecks(EcomAeRoutes.Health);
+
+var acceptingTraffic = true;
+app.Lifetime.ApplicationStopping.Register(() => acceptingTraffic = false);
+app.MapGet(EcomAeRoutes.Readiness, () => acceptingTraffic
+    ? Results.Ok(new { status = "ready" })
+    : Results.StatusCode(StatusCodes.Status503ServiceUnavailable));
 
 app.MapGet(EcomAeRoutes.ReleaseIdentity, (IHostEnvironment environment) =>
 {
