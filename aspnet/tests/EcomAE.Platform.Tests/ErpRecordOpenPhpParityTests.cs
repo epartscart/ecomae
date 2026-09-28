@@ -2758,15 +2758,15 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("DeliveredAt", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("PDF path omitted", razor, StringComparison.Ordinal);
         Assert.Contains("Create stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("Open delivery-note document", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
         Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("pdf_path", razor, StringComparison.Ordinal);
+        Assert.Contains("PdfPath", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);

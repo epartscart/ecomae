@@ -982,12 +982,12 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpRfqStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_delivery_notes", LegacySurfaceDashboardSql.SelectErpDeliveryNotes, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpDeliveryNotes, StringComparison.Ordinal);
-        Assert.DoesNotContain("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNotes, StringComparison.Ordinal);
+        Assert.Contains("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNotes, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpDeliveryNoteDetail, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpDeliveryNoteDetail, StringComparison.Ordinal);
-        Assert.DoesNotContain("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNoteDetail, StringComparison.Ordinal);
+        Assert.Contains("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNoteDetail, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
-        Assert.DoesNotContain("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("pdf_path", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpDeliveryNoteStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_payment_batches", LegacySurfaceDashboardSql.SelectErpPaymentBatches, StringComparison.Ordinal);

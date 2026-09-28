@@ -7171,23 +7171,25 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT 50
         """;
 
-    /// <summary>ERP delivery notes (notes/pdf omitted) — PHP epc_erp_delivery_notes.</summary>
+    /// <summary>ERP delivery notes — PHP epc_erp_delivery_notes.</summary>
     public const string SelectErpDeliveryNotes = """
         SELECT `id`, IFNULL(`note_no`,'') AS note_no, IFNULL(`order_id`,0) AS order_id,
                IFNULL(`carrier`,'') AS carrier, IFNULL(`tracking_no`,'') AS tracking_no,
                IFNULL(`status`,'') AS status, IFNULL(`shipped_at`,0) AS shipped_at,
-               IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created
+               IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`pdf_path`,'') AS pdf_path
         FROM `epc_erp_delivery_notes`
         ORDER BY `id` DESC
         LIMIT @limit
         """;
 
-    /// <summary>Opened delivery note. notes is a short excerpt. pdf_path omitted. Create stays Classic.</summary>
+    /// <summary>Opened delivery note. notes is a short excerpt.</summary>
     public const string SelectErpDeliveryNoteDetail = """
         SELECT `id`, IFNULL(`note_no`,'') AS note_no, IFNULL(`order_id`,0) AS order_id,
                IFNULL(`carrier`,'') AS carrier, IFNULL(`tracking_no`,'') AS tracking_no,
                IFNULL(`status`,'') AS status, IFNULL(`shipped_at`,0) AS shipped_at,
                IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`pdf_path`,'') AS pdf_path,
                CHAR_LENGTH(IFNULL(`notes`,'')) AS notes_len,
                LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt
         FROM `epc_erp_delivery_notes`
@@ -7195,12 +7197,13 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT 1
         """;
 
-    /// <summary>Other delivery notes with the same status. notes and pdf_path omitted.</summary>
+    /// <summary>Other delivery notes with the same status.</summary>
     public const string SelectErpDeliveryNoteStatusSiblings = """
         SELECT `id`, IFNULL(`note_no`,'') AS note_no, IFNULL(`order_id`,0) AS order_id,
                IFNULL(`carrier`,'') AS carrier, IFNULL(`tracking_no`,'') AS tracking_no,
                IFNULL(`status`,'') AS status, IFNULL(`shipped_at`,0) AS shipped_at,
-               IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created
+               IFNULL(`delivered_at`,0) AS delivered_at, IFNULL(`time_created`,0) AS time_created,
+               IFNULL(`pdf_path`,'') AS pdf_path
         FROM `epc_erp_delivery_notes`
         WHERE IFNULL(`status`,'') = @status AND `id` <> @id
         ORDER BY `id` DESC

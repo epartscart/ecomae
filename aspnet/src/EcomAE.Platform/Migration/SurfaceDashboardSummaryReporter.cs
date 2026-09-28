@@ -21338,7 +21338,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
                     Convert.ToInt64(reader["shipped_at"] is DBNull ? 0 : reader["shipped_at"], CultureInfo.InvariantCulture),
                     Convert.ToInt64(reader["delivered_at"] is DBNull ? 0 : reader["delivered_at"], CultureInfo.InvariantCulture),
-                    Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                    Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["pdf_path"] is DBNull ? string.Empty : reader["pdf_path"], CultureInfo.InvariantCulture) ?? string.Empty));
             }
 
             return new(rows, rows.Count, "database", string.Empty);
@@ -21382,6 +21383,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["shipped_at"] is DBNull ? 0 : reader["shipped_at"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["delivered_at"] is DBNull ? 0 : reader["delivered_at"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["pdf_path"] is DBNull ? string.Empty : reader["pdf_path"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
                 }
@@ -21410,7 +21412,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToInt64(reader["shipped_at"] is DBNull ? 0 : reader["shipped_at"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["delivered_at"] is DBNull ? 0 : reader["delivered_at"], CultureInfo.InvariantCulture),
-                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
+                        Convert.ToString(reader["pdf_path"] is DBNull ? string.Empty : reader["pdf_path"], CultureInfo.InvariantCulture) ?? string.Empty));
                 }
             }
 
