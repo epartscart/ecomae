@@ -9448,6 +9448,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelDemoIndustryFixtures, async (
             HttpContext context,
             string? industry,
+            string? siteKey,
             ILegacySessionValidator validator,
             CancellationToken cancellationToken) =>
         {
@@ -9467,15 +9468,39 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for industry fixture coverage.");
             }
 
-            var fixtures = string.IsNullOrWhiteSpace(industry)
-                ? SuperCpIndustrySampleFixtureCatalog.All
-                : [SuperCpIndustrySampleFixtureCatalog.Resolve(industry)];
+            if (!string.IsNullOrWhiteSpace(siteKey) && string.IsNullOrWhiteSpace(industry))
+            {
+                return Results.BadRequest(new
+                {
+                    ok = false,
+                    message = "industry is required when siteKey is supplied."
+                });
+            }
+
+            object fixtures;
+            int fixtureCount;
+            if (!string.IsNullOrWhiteSpace(siteKey))
+            {
+                fixtures = SuperCpIndustrySampleFixtureCatalog.ForTenant(industry!, siteKey);
+                fixtureCount = 1;
+            }
+            else if (string.IsNullOrWhiteSpace(industry))
+            {
+                fixtures = SuperCpIndustrySampleFixtureCatalog.All;
+                fixtureCount = SuperCpIndustrySampleFixtureCatalog.All.Count;
+            }
+            else
+            {
+                fixtures = new[] { SuperCpIndustrySampleFixtureCatalog.Resolve(industry) };
+                fixtureCount = 1;
+            }
             return Results.Ok(new
             {
                 ok = true,
                 surface = "cp",
                 industry = industry,
-                count = fixtures.Count,
+                site_key = siteKey,
+                count = fixtureCount,
                 fixtures,
                 session = SessionPayload(session),
                 note = "Deterministic DEMO fixture definitions only. No tenant database is written; PHP epc_portal_demo provisioning remains authoritative."

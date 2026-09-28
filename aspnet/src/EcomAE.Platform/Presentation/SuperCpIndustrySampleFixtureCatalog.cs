@@ -15,6 +15,13 @@ public sealed record SuperCpIndustrySampleFixture(
     IReadOnlyList<string> WorkflowCodes,
     bool StorefrontEnabled);
 
+public sealed record SuperCpTenantIndustrySampleFixture(
+    string TenantKey,
+    SuperCpIndustrySampleFixture Fixture,
+    IReadOnlyList<string> ProductCodes,
+    IReadOnlyList<string> CustomerCodes,
+    IReadOnlyList<string> SupplierCodes);
+
 public static class SuperCpIndustrySampleFixtureCatalog
 {
     private static readonly IReadOnlyDictionary<string, string> ProfileByIndustry =
@@ -51,6 +58,19 @@ public static class SuperCpIndustrySampleFixtureCatalog
         => !string.IsNullOrWhiteSpace(industryCode)
             && ByCode.ContainsKey(industryCode.Trim());
 
+    public static SuperCpTenantIndustrySampleFixture ForTenant(string industryCode, string siteKey)
+    {
+        ArgumentException.ThrowIfNullOrWhiteSpace(siteKey);
+        var tenantKey = NormalizeTenantKey(siteKey);
+        var fixture = Resolve(industryCode);
+        return new(
+            tenantKey,
+            fixture,
+            fixture.ProductCodes.Select(code => $"{tenantKey}:{code}").ToArray(),
+            fixture.CustomerCodes.Select(code => $"{tenantKey}:{code}").ToArray(),
+            fixture.SupplierCodes.Select(code => $"{tenantKey}:{code}").ToArray());
+    }
+
     private static SuperCpIndustrySampleFixture Build(PhpPortalIndustry industry)
     {
         var profile = ProfileByIndustry.TryGetValue(industry.Code, out var explicitProfile)
@@ -78,5 +98,18 @@ public static class SuperCpIndustrySampleFixtureCatalog
             [$"{slug}-supplier-001", $"{slug}-supplier-002"],
             ["sales-order", "purchase-order", "receipt", "delivery", "cash-voucher", "gl-journal"],
             storefrontEnabled);
+    }
+
+    private static string NormalizeTenantKey(string siteKey)
+    {
+        var normalized = new string(siteKey
+            .Trim()
+            .ToLowerInvariant()
+            .Select(character => char.IsLetterOrDigit(character) ? character : '-')
+            .ToArray())
+            .Trim('-');
+        return string.IsNullOrWhiteSpace(normalized)
+            ? throw new ArgumentException("A valid tenant site key is required.", nameof(siteKey))
+            : normalized;
     }
 }

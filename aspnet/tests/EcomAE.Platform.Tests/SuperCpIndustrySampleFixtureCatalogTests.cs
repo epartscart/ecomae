@@ -38,4 +38,16 @@ public sealed class SuperCpIndustrySampleFixtureCatalogTests
     {
         Assert.Equal(expectedProfile, SuperCpIndustrySampleFixtureCatalog.Resolve(industryCode).Profile);
     }
+
+    [Fact]
+    public void TenantScopedFixtureIdsCannotOverlap()
+    {
+        var first = SuperCpIndustrySampleFixtureCatalog.ForTenant("jewellery", "jewellery-demo");
+        var second = SuperCpIndustrySampleFixtureCatalog.ForTenant("jewellery", "fitout-demo");
+
+        Assert.NotEqual(first.TenantKey, second.TenantKey);
+        Assert.DoesNotContain(first.ProductCodes, code => second.ProductCodes.Contains(code, StringComparer.Ordinal));
+        Assert.All(first.ProductCodes, code => Assert.StartsWith("jewellery-demo:", code, StringComparison.Ordinal));
+        Assert.All(second.CustomerCodes, code => Assert.StartsWith("fitout-demo:", code, StringComparison.Ordinal));
+    }
 }
