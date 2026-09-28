@@ -47,7 +47,11 @@ public sealed class ErpFitOutFinanceOperationsReportReadService
         var filter = projectId is > 0 ? "WHERE `project_id`=?" : string.Empty;
         command.CommandText = ErpDb.Positional($"""
             SELECT 'inventory', 'material_movements', COUNT(*),
-                   COALESCE(SUM(`quantity`*`unit_cost`),0)
+                   COALESCE(SUM(
+                       CASE
+                           WHEN `movement`='return' THEN -(`quantity`*`unit_cost`)
+                           ELSE `quantity`*`unit_cost`
+                       END),0)
             FROM `ecomae_fitout_material_movements` {filter}
             UNION ALL
             SELECT 'subcontract', 'certifications', COUNT(*),
