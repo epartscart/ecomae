@@ -8955,7 +8955,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, CancellationToken cancellationToken = default)
+    public async Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
         var empty = new CpJewelleryRetailSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
@@ -8971,6 +8971,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using (var stats = connection.CreateCommand())
             {
                 stats.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryStats;
+                AddParameter(stats, "@companyId", Math.Max(0, companyId));
                 await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -8986,6 +8987,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryVouchers;
                 AddParameter(list, "@limit", safeLimit);
+                AddParameter(list, "@companyId", Math.Max(0, companyId));
                 await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -9012,7 +9014,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
         {
@@ -9032,6 +9034,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryVoucherDetail;
                 AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@companyId", Math.Max(0, companyId));
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -9064,6 +9067,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryVoucherStatusSiblings;
                 AddParameter(cmd, "@status", header.Status);
                 AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@companyId", Math.Max(0, companyId));
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -12465,7 +12469,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, CancellationToken cancellationToken = default)
+    public async Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
         var empty = new CpJewelleryRepairsSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
@@ -12488,6 +12492,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await using (var stats = connection.CreateCommand())
                 {
                     stats.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryRepairStats;
+                    AddParameter(stats, "@companyId", Math.Max(0, companyId));
                     await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                     if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
@@ -12502,6 +12507,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 {
                     list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryRepairs;
                     AddParameter(list, "@limit", safeLimit);
+                    AddParameter(list, "@companyId", Math.Max(0, companyId));
                     await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                     while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
@@ -12516,6 +12522,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 lastError = ex.Message;
             }
 
+            // PHP integration repairs have no company_id and are only safe in
+            // the unrestricted compatibility view.
+            if (companyId == 0)
+            {
             // PHP repairs tab (epc_jw_repair_list) reads epc_erp_jw_repairs.
             try
             {
@@ -12549,6 +12559,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 lastError = ex.Message;
             }
+            }
 
             if (sourcesOk == 0)
             {
@@ -12566,7 +12577,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpJewelleryRepairDetailResult> BuildCpJewelleryRepairDetailAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<CpJewelleryRepairDetailResult> BuildCpJewelleryRepairDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
         {
@@ -12586,21 +12597,26 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 LegacySurfaceDashboardSql.SelectCpJewelleryRepairDetail,
                 LegacySurfaceDashboardSql.SelectCpJewelleryRepairStatusSiblings,
                 id,
+                companyId,
                 cancellationToken).ConfigureAwait(false);
             if (suntech.Repair is not null)
             {
                 return suntech;
             }
 
-            var integration = await TryReadJewelleryRepairDetailAsync(
-                connection,
-                LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairDetail,
-                LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairStatusSiblings,
-                id,
-                cancellationToken).ConfigureAwait(false);
-            if (integration.Repair is not null)
+            if (companyId == 0)
             {
-                return integration;
+                var integration = await TryReadJewelleryRepairDetailAsync(
+                    connection,
+                    LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairDetail,
+                    LegacySurfaceDashboardSql.SelectCpJewelleryIntegrationRepairStatusSiblings,
+                    id,
+                    companyId,
+                    cancellationToken).ConfigureAwait(false);
+                if (integration.Repair is not null)
+                {
+                    return integration;
+                }
             }
 
             return new(null, [], "database", "Repair not found.");
@@ -12616,6 +12632,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         string detailSql,
         string siblingSql,
         long id,
+        long companyId,
         CancellationToken cancellationToken)
     {
         try
@@ -12625,6 +12642,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 cmd.CommandText = detailSql;
                 AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@companyId", Math.Max(0, companyId));
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -12643,6 +12661,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 cmd.CommandText = siblingSql;
                 AddParameter(cmd, "@status", header.Status);
                 AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@companyId", Math.Max(0, companyId));
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {

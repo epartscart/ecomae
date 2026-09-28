@@ -10275,6 +10275,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelJewelleryRetail, async (
             HttpContext context,
             int? limit,
+            long? company,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -10285,7 +10286,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for jewellery-retail digest.");
             }
 
-            var result = await dashboards.BuildCpJewelleryRetailDigestAsync(limit ?? 200, cancellationToken);
+            var result = await dashboards.BuildCpJewelleryRetailDigestAsync(limit ?? 200, company ?? 0, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
@@ -11239,6 +11240,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelJewelleryRepairs, async (
             HttpContext context,
             int? limit,
+            long? company,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -11249,7 +11251,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for jewellery-repairs digest.");
             }
 
-            var result = await dashboards.BuildCpJewelleryRepairsDigestAsync(limit ?? 200, cancellationToken);
+            var result = await dashboards.BuildCpJewelleryRepairsDigestAsync(limit ?? 200, company ?? 0, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,

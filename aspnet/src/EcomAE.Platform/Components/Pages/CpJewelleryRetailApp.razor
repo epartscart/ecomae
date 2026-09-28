@@ -320,7 +320,7 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpJewelleryRetailDigestAsync(200, ctx.RequestAborted);
+        var result = await Dashboards.BuildCpJewelleryRetailDigestAsync(200, _company, ctx.RequestAborted);
         _summary = result.Summary;
         _source = result.Source;
         _message = result.Message;
@@ -337,7 +337,7 @@
             : [];
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpJewelleryVoucherDetailAsync(_openedId, ctx.RequestAborted);
+            var detail = await Dashboards.BuildCpJewelleryVoucherDetailAsync(_openedId, _company, ctx.RequestAborted);
             _opened = detail.Voucher;
             _openedSiblings = detail.Siblings;
         }
