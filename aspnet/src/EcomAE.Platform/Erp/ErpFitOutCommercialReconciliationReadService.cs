@@ -12,6 +12,7 @@ public interface IErpFitOutCommercialReconciliationReadService
 public sealed record ErpFitOutCommercialReconciliation(
     long ProjectId,
     decimal ContractValue,
+    decimal ApprovedVariationAmount,
     decimal BudgetCost,
     decimal CertifiedAmount,
     decimal VendorBills,
@@ -57,6 +58,16 @@ public sealed class ErpFitOutCommercialReconciliationReadService
                 "SELECT COALESCE(`contract_value`,0) FROM `epc_prj_projects` WHERE `id`=? LIMIT 1",
                 projectId,
                 cancellationToken).ConfigureAwait(false);
+            var approvedVariationAmount = await SumAsync(
+                connection,
+                """
+                SELECT COALESCE(SUM(`amount`),0)
+                FROM `ecomae_fitout_delivery_records`
+                WHERE `project_id`=? AND `record_type`='variation_approval'
+                  AND `status`='approved'
+                """,
+                projectId,
+                cancellationToken).ConfigureAwait(false);
             var budgetCost = await SumAsync(
                 connection,
                 "SELECT COALESCE(SUM(`cost_budget`),0) FROM `epc_prja_budget` WHERE `project_id`=?",
@@ -80,6 +91,7 @@ public sealed class ErpFitOutCommercialReconciliationReadService
             return new(
                 projectId,
                 contractValue,
+                approvedVariationAmount,
                 budgetCost,
                 totals.Certified,
                 totals.VendorBills,
@@ -89,7 +101,8 @@ public sealed class ErpFitOutCommercialReconciliationReadService
                 totals.RetentionReleased,
                 Math.Max(0m, totals.Certified - clientBilled),
                 Math.Max(0m, totals.VendorBills - totals.PaymentVouchers),
-                contractValue - Math.Max(budgetCost, totals.VendorBills),
+                contractValue + approvedVariationAmount
+                    - Math.Max(budgetCost, totals.VendorBills),
                 "database",
                 string.Empty);
         }
@@ -175,5 +188,5 @@ public sealed class ErpFitOutCommercialReconciliationReadService
         long projectId,
         string message,
         string source = "migration")
-        => new(projectId, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, source, message);
+        => new(projectId, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, source, message);
 }
