@@ -1019,6 +1019,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutThreeWayMatchWriteServi
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutMaterialMovementWriteService, EcomAE.Platform.Erp.ErpFitOutMaterialMovementWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutDeliveryRecordWriteService, EcomAE.Platform.Erp.ErpFitOutDeliveryRecordWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateCsvService, EcomAE.Platform.Erp.ErpFitOutEstimateCsvService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutDeliveryDashboardReadService, EcomAE.Platform.Erp.ErpFitOutDeliveryDashboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinPeriodStatusWriteService, EcomAE.Platform.Erp.ErpFinPeriodStatusWriteService>();
