@@ -266,12 +266,13 @@
             var header = _opened.HeaderHtmlExcerpt;
             var footer = _opened.FooterHtmlExcerpt;
             var body = RenderPreviewTable(_opened.BodyColumns);
-            var terms = _opened.TermsHtmlExcerpt;
-            var bank = _opened.BankDetailsHtmlExcerpt;
+            var terms = _opened.ShowTerms ? _opened.TermsHtmlExcerpt : string.Empty;
+            var bank = _opened.ShowBankDetails ? _opened.BankDetailsHtmlExcerpt : string.Empty;
             var css = _opened.CustomCssExcerpt;
+            var extras = RenderPreviewExtras(_opened);
             var sections = string.Join(
                 Environment.NewLine,
-                new[] { header, "<main><h2>Print template preview</h2>", body, terms, bank, "</main>", footer }
+                new[] { header, "<main><h2>Print template preview</h2>", body, terms, bank, extras, "</main>", footer }
                     .Where(section => !string.IsNullOrWhiteSpace(section)));
 
             return $$"""
@@ -356,6 +357,36 @@
         }
 
         return styles.Count == 0 ? string.Empty : " style=\"" + string.Join(";", styles) + "\"";
+    }
+
+    private static string RenderPreviewExtras(ErpPrintTemplateDetail template)
+    {
+        var sections = new List<string>();
+        if (template.ShowSignatureLine)
+        {
+            var labels = template.SignatureLabels
+                .Split(',', StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries)
+                .Select(WebUtility.HtmlEncode)
+                .ToArray();
+            if (labels.Length > 0)
+            {
+                sections.Add("<div class=\"print-signatures\">" +
+                             string.Concat(labels.Select(label => "<span>" + label + "<br><b>________________</b></span>")) +
+                             "</div>");
+            }
+        }
+
+        if (template.ShowQrCode)
+        {
+            sections.Add("<div class=\"print-code\">QR code preview</div>");
+        }
+
+        if (template.ShowBarcode)
+        {
+            sections.Add("<div class=\"print-code\">Barcode preview</div>");
+        }
+
+        return string.Concat(sections);
     }
 
     protected override async Task OnInitializedAsync()
