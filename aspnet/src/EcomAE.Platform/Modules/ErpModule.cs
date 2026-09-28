@@ -286,6 +286,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutMaterialMovementSave, HandleFitOutMaterialMovementSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDeliveryRecordSave, HandleFitOutDeliveryRecordSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutInvoiceBridgeSave, HandleFitOutInvoiceBridgeSaveAsync).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutInvoiceBridge, HandleFitOutInvoiceBridgeAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutInvoiceReconciliation, HandleFitOutInvoiceReconciliationAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutAcceptanceEvidence, HandleFitOutAcceptanceEvidenceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
@@ -12845,6 +12848,92 @@ public sealed class ErpModule : ISurfaceModule
                 id = written.Id,
                 session = SessionPayload(session)
             });
+    }
+
+    private static async Task<IResult> HandleFitOutInvoiceBridgeAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutInvoiceBridgeReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out invoice links.");
+        }
+
+        var result = await reads.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Tenant-isolated invoice bridge rows with authoritative VAT snapshots."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutInvoiceReconciliationAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutInvoiceReconciliationReadService reconciliation,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out invoice reconciliation.");
+        }
+
+        var result = await reconciliation.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            reconciliation = result,
+            session = SessionPayload(session),
+            note = "Tenant-isolated certification-to-invoice reconciliation using linked invoice totals."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutAcceptanceEvidenceAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutAcceptanceEvidenceReadService evidence,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out acceptance evidence.");
+        }
+
+        var result = await evidence.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            evidence = result,
+            session = SessionPayload(session),
+            note = "Machine evidence only; human acceptance and production validation remain required."
+        });
     }
 
     private static async Task<IResult> HandleFitOutApprovalDecideAsync(

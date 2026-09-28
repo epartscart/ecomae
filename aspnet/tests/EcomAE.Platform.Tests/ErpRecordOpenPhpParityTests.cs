@@ -307,7 +307,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("SubtotalExVat", razor, StringComparison.Ordinal);
         Assert.Contains("AmountDue", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/invoices/cancel\"", razor, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/invoices/delete\"", razor, StringComparison.Ordinal);
+        Assert.Contains("Creation, settlement, export, and credit-note lifecycle remain pending", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);

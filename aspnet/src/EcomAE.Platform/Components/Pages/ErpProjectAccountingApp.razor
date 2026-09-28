@@ -28,8 +28,20 @@
         <a class="btn btn-default" href="/erp/fitout/delivery-dashboard">Open delivery dashboard JSON</a>
         <a class="btn btn-default" href="/erp/fitout/executive-dashboard" style="margin-left:.5rem">Open executive dashboard JSON</a>
         <a class="btn btn-default" href="/erp/fitout/operations-report" style="margin-left:.5rem">Open operations report JSON</a>
-        <a class="btn btn-default" href="/erp/fitout/finance-operations-report" style="margin-left:.5rem">Open finance/operations report JSON</a>
-        <form method="get" action="/erp/fitout/recovery-summary" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <a class="btn btn-default" href="/erp/fitout/finance-operations-report" style="margin-left:.5rem">Open finance/operations report JSON</a>
+            <form method="get" action="/erp/fitout/invoice-bridge" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+                <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
+                <button type="submit" class="btn btn-default">Open VAT / invoice links JSON</button>
+            </form>
+            <form method="get" action="/erp/fitout/invoice-reconciliation" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+                <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
+                <button type="submit" class="btn btn-default">Open billing reconciliation JSON</button>
+            </form>
+            <form method="get" action="/erp/fitout/acceptance-evidence" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+                <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
+                <button type="submit" class="btn btn-default">Open acceptance evidence JSON</button>
+            </form>
+            <form method="get" action="/erp/fitout/recovery-summary" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
             <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-default">Open recovery summary JSON</button>
         </form>
