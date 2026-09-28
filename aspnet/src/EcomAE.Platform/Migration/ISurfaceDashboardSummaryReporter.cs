@@ -749,6 +749,8 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpCustomerBoardUserDetailResult> BuildCpCustomerBoardUserDetailAsync(long id, CancellationToken cancellationToken = default);
     /// <summary>Next-wave: fulfillment queue digest (OMS stage writes remain dry-run).</summary>
     Task<CpFulfillmentQueueDigestResult> BuildCpFulfillmentQueueDigestAsync(int limit, CancellationToken cancellationToken = default, string? status = null);
+    /// <summary>PHP <c>epc_erp_fulfilment_summary_light</c> plus stock/payment funnel counters.</summary>
+    Task<CpFulfillmentPipelineSummary> BuildCpFulfillmentPipelineAsync(CancellationToken cancellationToken = default);
     /// <summary>PHP <c>epc_fulfillment_get</c> read-only detail. Writes remain PHP / OMS dry-run.</summary>
     Task<CpFulfillmentDetailDigest?> GetCpFulfillmentDetailAsync(long fulfillmentId, CancellationToken cancellationToken = default);
     /// <summary>Next-wave Super-only: SSO/SAML providers (certs/metadata omitted).</summary>
@@ -997,4 +999,3 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened currency journal (Open key <c>mcgl_entry_id</c>) plus same-type siblings. Note excerpt and site are hidden from the list table.</summary>
     Task<ErpGlCurrencyEntryDetailResult> BuildErpGlCurrencyEntryDetailAsync(long id, CancellationToken cancellationToken = default);
 }
-

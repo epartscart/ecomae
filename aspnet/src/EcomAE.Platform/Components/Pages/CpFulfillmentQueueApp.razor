@@ -37,6 +37,29 @@
         </div>
     </div>
 
+    <div class="epc-scp-kpi epc-scp-orders-kpi" aria-label="ERP fulfilment pipeline">
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Customer payment</div>
+            <div class="epc-scp-kpi__val">@_pipeline.CustomerPaid / @_pipeline.TotalOrders</div>
+            <div class="epc-scp-kpi__hint">@_pipeline.CustomerPending awaiting payment</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Stock pipeline</div>
+            <div class="epc-scp-kpi__val">@_pipeline.StockIssued issued</div>
+            <div class="epc-scp-kpi__hint">@_pipeline.StockReserved reserved · @_pipeline.StockAwaiting awaiting goods</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Delivery complete</div>
+            <div class="epc-scp-kpi__val">@_pipeline.DeliveryDone</div>
+            <div class="epc-scp-kpi__hint">Orders in a PHP finish status</div>
+        </div>
+        <div class="epc-scp-kpi__card">
+            <div class="epc-scp-kpi__label">Returns open</div>
+            <div class="epc-scp-kpi__val">@_pipeline.ReturnsOpen</div>
+            <div class="epc-scp-kpi__hint">Unresolved return records</div>
+        </div>
+    </div>
+
     <div class="epc-scp-kpi epc-scp-orders-kpi" aria-label="Fulfilment queue KPIs">
         <a class="epc-scp-kpi__card is-clickable" href="@QueueHref(status: "queued")" title="Show queued jobs">
             <div class="epc-scp-kpi__label">Queued</div>
@@ -469,6 +492,7 @@
     private int _picking;
     private int _shipping;
     private int _delivered;
+    private CpFulfillmentPipelineSummary _pipeline = new(0, 0, 0, 0, 0, 0, 0, 0, "migration", "");
     private IReadOnlyList<CpFulfillmentQueueRowDigest> _rows = [];
     private long _selectedId;
     private CpFulfillmentDetailDigest? _detail;
@@ -566,6 +590,7 @@
         }
 
         var result = await Dashboards.BuildCpFulfillmentQueueDigestAsync(200, ctx.RequestAborted, _status);
+        _pipeline = await Dashboards.BuildCpFulfillmentPipelineAsync(ctx.RequestAborted);
         _queued = result.Summary.Queued;
         _picking = result.Summary.Picking;
         _shipping = result.Summary.Shipping;

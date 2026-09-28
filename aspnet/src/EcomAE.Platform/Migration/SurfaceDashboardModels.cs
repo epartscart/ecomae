@@ -6446,6 +6446,17 @@ public sealed record CpCustomerBoardUserDetailResult(
     string Message);
 
 public sealed record CpFulfillmentQueueSummary(int Queued, int Picking, int Shipping, int Delivered, string Source, string Message);
+public sealed record CpFulfillmentPipelineSummary(
+    int TotalOrders,
+    int CustomerPaid,
+    int CustomerPending,
+    int StockAwaiting,
+    int StockReserved,
+    int StockIssued,
+    int DeliveryDone,
+    int ReturnsOpen,
+    string Source,
+    string Message);
 public sealed record CpFulfillmentQueueRowDigest(
     long Id,
     string OrderNumber,
