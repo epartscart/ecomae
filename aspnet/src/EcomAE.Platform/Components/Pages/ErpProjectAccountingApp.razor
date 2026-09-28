@@ -107,6 +107,25 @@
             </label>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save cost code</button>
         </form>
+        <form method="post" action="/erp/fitout/quotations/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out quotation issue / revision</strong>
+            <label>Estimate id <input type="number" name="estimate_id" min="1" required style="width:7rem" /></label>
+            <label>Quotation code <input type="text" name="code" maxlength="60" required placeholder="Q-2026-001" style="width:9rem" /></label>
+            <label>Title <input type="text" name="title" maxlength="200" required style="width:14rem" /></label>
+            <label>Revision <input type="number" name="revision" min="1" value="1" style="width:5rem" /></label>
+            <label>Expires <input type="date" name="expires_on" style="width:9rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="draft">draft</option>
+                    <option value="issued">issued</option>
+                    <option value="accepted">accepted</option>
+                    <option value="rejected">rejected</option>
+                    <option value="expired">expired</option>
+                </select>
+            </label>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save quotation</button>
+        </form>
     }
 
     @if (_openedBudget is not null)
