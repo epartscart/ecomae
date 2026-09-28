@@ -30,6 +30,17 @@ blockchain proof claims. These are comparison/acceptance requirements, not compl
 remains pending until its ASP.NET workflow, tenant isolation, PHP side-by-side evidence, human
 acceptance, and production validation are recorded. The supplied local `file:///C:/...` path is not
 accessible from the Devin VM, so no claims are made about content unique to that attachment.
+The attached contracting evaluation adds this explicit acceptance checklist to B-F (not a new
+completion percentage): `[ ]` supplier quotations/RFQs; `[ ]` purchase/work orders; `[~]`
+subcontractor management; `[~]` monthly subcontractor progress claims; `[ ]` subcontractor payment
+certificates; `[~]` site-engineer and project-manager approval levels; `[ ]` vendor bills/AP invoice
+flow; `[ ]` payment vouchers; `[~]` client progress claims; `[ ]` client payment certificates;
+`[ ]` proforma/receipt handling; `[ ]` work-completion certificates; `[~]` project profitability;
+`[~]` budget-versus-actual reporting; `[~]` retention ledger plus release/ageing; and `[~]`
+variation orders. The source also requires two parallel, reconciled chains (purchase/contract and
+sales/client billing) converging on contract balance, profitability, and budget control. The
+comparison's vendor pricing and marketplace/customisation observations are procurement context,
+not migration scope or evidence of parity.
 Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliation, tenant deny flags,
 explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
 closed-period guards, opened-journal line drill-down, PHP COA-backed account selectors, debit/credit balance summaries, and selectable posting dates are now live. The phase-level
