@@ -88,6 +88,18 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
             </dl>
+            @if (_isAdmin && _openedDetail.PurchaseId > 0)
+            {
+                <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
+                    <strong style="width:100%">Purchase invoice lifecycle</strong>
+                    <form method="post" action="/erp/purchases/void" style="display:flex;gap:.35rem;align-items:end">
+                        <input type="hidden" name="purchaseId" value="@_openedDetail.PurchaseId" />
+                        <label>Reason <input type="text" name="reason" maxlength="255" placeholder="Void reason" /></label>
+                        <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate void</button>
+                        <button type="submit" name="confirmWrites" value="true" class="btn btn-warning btn-xs">Void purchase invoice</button>
+                    </form>
+                </div>
+            }
             <p class="text-muted" style="margin:.85rem 0 0">Barcode purchase create and sell write here. Save, approve, invoice, receive, and delete stay Classic.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
