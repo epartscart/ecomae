@@ -106,6 +106,10 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/finance-operations-report\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/approval/decide\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("Open project P&amp;L / forecast JSON", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("forecastMarginPercent", module, StringComparison.Ordinal);
+        Assert.Contains("actualMarginPercent", module, StringComparison.Ordinal);
+        Assert.Contains("Read-only project P&L projection", module, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-reconciliation\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/commercial-reconciliation\"", routes, StringComparison.Ordinal);

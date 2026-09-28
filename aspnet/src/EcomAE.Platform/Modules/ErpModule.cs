@@ -13226,6 +13226,10 @@ public sealed class ErpModule : ISurfaceModule
                 var costBudget = budget?.costBudget ?? 0m;
                 var actualRevenue = actual?.actualRevenue ?? 0m;
                 var actualCost = actual?.actualCost ?? 0m;
+                var budgetMargin = revenueBudget - costBudget;
+                var actualMargin = actualRevenue - actualCost;
+                var forecastRevenue = revenueBudget > 0m ? revenueBudget : actualRevenue;
+                var forecastCost = costBudget > 0m ? costBudget : actualCost;
                 return new
                 {
                     projectId = id,
@@ -13233,22 +13237,38 @@ public sealed class ErpModule : ISurfaceModule
                     costBudget,
                     actualRevenue,
                     actualCost,
-                    forecastProfit = (revenueBudget > 0m ? revenueBudget : actualRevenue)
-                        - (costBudget > 0m ? costBudget : actualCost),
-                    actualProfit = actualRevenue - actualCost
+                    budgetMargin,
+                    actualMargin,
+                    forecastRevenue,
+                    forecastCost,
+                    forecastProfit = forecastRevenue - forecastCost,
+                    actualProfit = actualMargin,
+                    budgetMarginPercent = revenueBudget > 0m ? decimal.Round((budgetMargin / revenueBudget) * 100m, 2, MidpointRounding.AwayFromZero) : 0m,
+                    actualMarginPercent = actualRevenue > 0m ? decimal.Round((actualMargin / actualRevenue) * 100m, 2, MidpointRounding.AwayFromZero) : 0m,
+                    forecastMarginPercent = forecastRevenue > 0m ? decimal.Round(((forecastRevenue - forecastCost) / forecastRevenue) * 100m, 2, MidpointRounding.AwayFromZero) : 0m
                 };
             })
             .ToArray();
+        var summary = new
+        {
+            revenueBudget = projectIds.Sum(row => row.revenueBudget),
+            costBudget = projectIds.Sum(row => row.costBudget),
+            actualRevenue = projectIds.Sum(row => row.actualRevenue),
+            actualCost = projectIds.Sum(row => row.actualCost),
+            forecastProfit = projectIds.Sum(row => row.forecastProfit),
+            actualProfit = projectIds.Sum(row => row.actualProfit)
+        };
         return Results.Ok(new
         {
             ok = true,
             surface = "erp",
             projectId,
             projects = projectIds,
+            summary,
             source = digest.Source,
             message = digest.Message,
             session = SessionPayload(session),
-            note = "Read-only project P&L projection from tenant-isolated budget and transaction ledgers."
+            note = "Read-only project P&L projection from tenant-isolated budget, transaction, and recognition ledgers."
         });
     }
 
