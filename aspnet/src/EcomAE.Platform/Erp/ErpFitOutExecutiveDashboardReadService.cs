@@ -74,7 +74,8 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`
                       AND `record_type` IN
-                          ('subcontract_certification','subcontractor_progress_claim')
+                          ('subcontract_certification','subcontractor_progress_claim',
+                           'subcontract_payment_certificate')
                       AND `status`='approved') AS `subcontract_certified_amount`,
                    (SELECT COALESCE(AVG(`completion_percent`),0)
                     FROM `ecomae_fitout_delivery_records`
