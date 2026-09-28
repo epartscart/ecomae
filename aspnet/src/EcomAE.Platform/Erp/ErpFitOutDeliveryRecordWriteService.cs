@@ -57,6 +57,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "subcontract_payment_certificate",
         "work_completion_certificate",
         "client_payment_certificate",
+        "vendor_bill",
+        "payment_voucher",
         "site_daily_report",
         "site_photo",
         "variation",
@@ -139,6 +141,14 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             return ErpSimpleWriteResult.Fail(
                 "invalid",
                 "Payment certificates require a positive certified amount.");
+        }
+
+        if ((recordType == "vendor_bill" || recordType == "payment_voucher")
+            && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Vendor bills and payment vouchers require a positive amount.");
         }
 
         if (recordType == "progress_claim"
@@ -226,6 +236,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "subcontract_payment_certificate" => "pending",
                 "work_completion_certificate" => "pending",
                 "client_payment_certificate" => "pending",
+                "vendor_bill" => "draft",
+                "payment_voucher" => "draft",
                 "site_daily_report" => "submitted",
                 "site_photo" => "attached",
                 "variation" => "draft",
