@@ -65,7 +65,9 @@ public sealed class ErpFitOutProformaReceiptReadService
                        COALESCE(SUM(`subtotal_ex_vat`),0),
                        COALESCE(SUM(`total_vat`),0),
                        COALESCE(SUM(`total_incl_vat`),0),
-                       COALESCE(SUM(`receipts`),0)
+                       COALESCE(SUM(`receipts`),0),
+                       COALESCE(SUM(`receipt_count`),0),
+                       COALESCE(MAX(`last_receipt_time`),0)
                 FROM (
                     SELECT links.`stage`,
                            links.`subtotal_ex_vat`,
