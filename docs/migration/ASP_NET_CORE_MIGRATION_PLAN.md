@@ -28,6 +28,53 @@ The first migration slice adds an ASP.NET Core foundation under `aspnet/` withou
 | Public APIs | ASP.NET Core Web API |
 | PHP cron/setup scripts | Worker services/jobs |
 
+## Jewellery industry pack (PHP-referenced migration tranche)
+
+Jewellery is a first-class tenant-country/industry pack, not a storefront theme
+only. The ASP.NET implementation must be driven from the existing PHP reference
+and must preserve the tenant's country profile for VAT, tourist refunds,
+currency, and statutory handling.
+
+### PHP reference inventory
+
+The authoritative reference set for this tranche is:
+
+- `content/shop/finance/epc_erp_jewellery.php` — schema, divisions, masters,
+  purchase, sales, repair, stock, and finance helpers.
+- `content/shop/finance/epc_erp_jewellery_integration.php` — jewellery fields
+  injected into shared PR/PO/SO and ERP integration records.
+- `content/shop/finance/epc_erp_jewellery_tag.php` — tag creation, barcode,
+  sale, and stock identity behavior.
+- `cp/content/shop/finance/erp/erp_tabs_jewellery.php` and every
+  `erp_tabs_jw_*.php` — PHP tab order, fields, columns, actions, and workflow
+  labels.
+- `content/general_pages/industry_templates/jewellery.php`,
+  `content/general_pages/epc_jewellery_retail_kiyasha_data.php`, and the
+  rendered Jewellery industry pages — tenant-facing content and presentation.
+- `docs/ADVANCED_ERP.md`, `docs/ROADMAP.md`, and the supplied Jewellery/INDUS
+  documents — business workflow and acceptance references.
+
+### ASP.NET delivery order
+
+1. Tenant/company gating and PHP-compatible navigation for `jw_*` tabs.
+2. Master data: karat, rate type, currency, metal stock, design, diamond,
+   pearl, colour stone, gold-rate, tag, barcode, divisions, and price types.
+3. Purchase and inventory: metal/diamond purchase, fixing, GRN/assay,
+   stock verification, weight ledger, valuation, and transfers.
+4. Sales: retail/POS, metal sales, fixing, returns, advances, old-gold
+   exchange, gold scheme, and multi-currency tender.
+5. Workshop: repair receipt → transfer → workshop receive → customer delivery
+   → repair sale/register/search.
+6. Finance and compliance: weight/value trial balance, journal/petty cash,
+   tourist VAT, country-driven VAT/CT/e-invoice rules, and audit evidence.
+7. Shared integration fields on inventory, PR/PO/GRN, SO/DO, invoice, and
+   customer-facing storefront flows.
+
+Each step requires PHP-vs-ASP.NET field/function/presentation parity tests,
+tenant isolation, guarded dry-run and confirmed-write tests where applicable,
+production shadow evidence, rollback evidence, and human acceptance. PHP
+remains the reference and fallback until every Jewellery gate is closed.
+
 ## Migration Rules
 
 1. Keep PHP running until ASP.NET Core has tested parity for the route being cut over.
