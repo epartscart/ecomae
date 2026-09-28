@@ -84,6 +84,7 @@ public sealed class FitOutDeliveryCatalogTests
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutEstimateWriteService.cs"));
         var deliveryService = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutDeliveryRecordWriteService.cs"));
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        var projectAccounting = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpProjectAccountingApp.razor"));
 
         Assert.Contains("ErpFitOutEstimateSave = \"/erp/fitout/estimates/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutBoqLineSave = \"/erp/fitout/boq-lines/save\"", routes, StringComparison.Ordinal);
@@ -132,6 +133,8 @@ public sealed class FitOutDeliveryCatalogTests
             "CREATE TABLE IF NOT EXISTS `ecomae_fitout_invoice_links`",
             File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutInvoiceBridgeWriteService.cs")),
             StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/fitout/invoice-bridge/save\"", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("Fit-out VAT / invoice bridge", projectAccounting, StringComparison.Ordinal);
     }
 
     [Fact]
