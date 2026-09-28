@@ -19,10 +19,14 @@ public sealed record ErpFitOutQuotationSaveRequest(
 public sealed class ErpFitOutQuotationWriteService : IErpFitOutQuotationWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpVoucherNumberService _vouchers;
 
-    public ErpFitOutQuotationWriteService(IErpWriteConnectionFactory connections)
+    public ErpFitOutQuotationWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpVoucherNumberService vouchers)
     {
         _connections = connections;
+        _vouchers = vouchers;
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(
@@ -31,7 +35,9 @@ public sealed class ErpFitOutQuotationWriteService : IErpFitOutQuotationWriteSer
     {
         var code = Clip(request.Code, 60);
         var title = Clip(request.Title, 200);
-        if (request.EstimateId <= 0 || code.Length == 0 || title.Length == 0)
+        if (request.EstimateId <= 0
+            || (request.Id > 0 && code.Length == 0)
+            || title.Length == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Estimate, quotation code, and title are required.");
         }
@@ -66,6 +72,12 @@ public sealed class ErpFitOutQuotationWriteService : IErpFitOutQuotationWriteSer
                 KEY `ix_ecomae_fitout_quotation_estimate` (`estimate_id`)
             ) ENGINE=InnoDB
             """, cancellationToken).ConfigureAwait(false);
+        if (request.Id == 0 && code.Length == 0)
+        {
+            code = await _vouchers
+                .NextAsync(connection, null, "QUO", cancellationToken)
+                .ConfigureAwait(false);
+        }
         var expires = request.ExpiresOn?.ToDateTime(TimeOnly.MinValue);
         if (request.Id > 0)
         {
