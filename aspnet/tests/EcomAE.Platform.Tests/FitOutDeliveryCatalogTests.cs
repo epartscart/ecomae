@@ -173,6 +173,7 @@ public sealed class FitOutDeliveryCatalogTests
             FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutSubcontractReconciliationReadService.cs"));
         Assert.Contains("UncertifiedAmount", subcontract, StringComparison.Ordinal);
         Assert.Contains("subcontract_payment_certificate", subcontract, StringComparison.Ordinal);
+        Assert.Contains("subcontractor_id`>0", subcontract, StringComparison.Ordinal);
         var approvalQueue = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutApprovalQueueReadService.cs"));
         Assert.Contains("IErpFitOutApprovalQueueReadService", approvalQueue, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", approvalQueue, StringComparison.Ordinal);

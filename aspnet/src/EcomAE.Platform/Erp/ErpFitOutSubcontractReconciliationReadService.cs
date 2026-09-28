@@ -64,7 +64,8 @@ public sealed class ErpFitOutSubcontractReconciliationReadService
                     COALESCE(SUM(CASE WHEN `record_type`='subcontract_payment_certificate'
                         AND `status`='approved' THEN `amount` ELSE 0 END),0),
                     COALESCE(SUM(CASE WHEN `record_type`='payment_voucher'
-                        AND `status`='approved' THEN `amount` ELSE 0 END),0)
+                        AND `status`='approved'
+                        AND `subcontractor_id`>0 THEN `amount` ELSE 0 END),0)
                 FROM `ecomae_fitout_delivery_records`
                 WHERE `project_id`=?
                 """);
