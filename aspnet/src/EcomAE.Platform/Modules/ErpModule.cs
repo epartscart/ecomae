@@ -289,6 +289,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRecoverySummary, HandleFitOutRecoverySummaryAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutExecutiveDashboard, HandleFitOutExecutiveDashboardAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutLeadHandoffSave, HandleFitOutLeadHandoffSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
@@ -13047,6 +13048,36 @@ public sealed class ErpModule : ISurfaceModule
                 id = written.Id,
                 session = SessionPayload(session)
             });
+    }
+
+    private static async Task<IResult> HandleFitOutExecutiveDashboardAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutExecutiveDashboardReadService dashboard,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/project-accounting-app");
+        }
+
+        var projectId = long.TryParse(
+            context.Request.Query["projectId"],
+            out var parsedProjectId)
+            ? parsedProjectId
+            : (long?)null;
+        var result = await dashboard.ReadAsync(projectId, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = result.Source is "database" or "migration",
+            surface = "erp",
+            projectId,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session)
+        });
     }
 
     private static async Task<IResult> HandlePrjSaveAsync(

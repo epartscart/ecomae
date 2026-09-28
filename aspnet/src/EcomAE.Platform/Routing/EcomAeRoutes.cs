@@ -2740,6 +2740,8 @@ public static class EcomAeRoutes
         "/erp/fitout/recovery-summary";
     public const string ErpFitOutLeadHandoffSave =
         "/erp/fitout/lead-handoff/save";
+    public const string ErpFitOutExecutiveDashboard =
+        "/erp/fitout/executive-dashboard";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>
     /// <summary>Live PHP epc_rtl_assortment_set twin (ajax alias of <see cref="ErpRetailAssortmentsSet"/>).</summary>
     public const string ErpRetailAssortmentsSet = "/erp/retail/assortments/set";
