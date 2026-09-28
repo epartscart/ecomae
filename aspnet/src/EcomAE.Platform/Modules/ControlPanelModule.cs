@@ -9445,6 +9445,43 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelDemoIndustryFixtures, async (
+            HttpContext context,
+            string? industry,
+            ILegacySessionValidator validator,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Industry fixture coverage is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for industry fixture coverage.");
+            }
+
+            var fixtures = string.IsNullOrWhiteSpace(industry)
+                ? SuperCpIndustrySampleFixtureCatalog.All
+                : [SuperCpIndustrySampleFixtureCatalog.Resolve(industry)];
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                industry = industry,
+                count = fixtures.Count,
+                fixtures,
+                session = SessionPayload(session),
+                note = "Deterministic DEMO fixture definitions only. No tenant database is written; PHP epc_portal_demo provisioning remains authoritative."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelPartsAgentChats, async (
             HttpContext context,
             int? limit,
