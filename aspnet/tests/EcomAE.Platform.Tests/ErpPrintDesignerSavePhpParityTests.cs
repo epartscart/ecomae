@@ -17,6 +17,8 @@ public sealed class ErpPrintDesignerSavePhpParityTests
         Assert.Contains("full HTML/CSS bodies", text, StringComparison.Ordinal);
         Assert.Contains("{{company_name}}", text, StringComparison.Ordinal);
         Assert.Contains("{{printed_date}}", text, StringComparison.Ordinal);
+        Assert.Contains("srcdoc=\"@PreviewDocument\"", text, StringComparison.Ordinal);
+        Assert.Contains("sandbox", text, StringComparison.Ordinal);
         Assert.DoesNotContain("280-character HTML/CSS excerpts", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Excerpt only", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes=0", text, StringComparison.Ordinal);

@@ -73,6 +73,11 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No custom CSS yet.</p>
             }
+            <p class="text-muted" style="margin:1rem 0 .35rem">print preview</p>
+            <iframe title="Print template preview"
+                    sandbox
+                    srcdoc="@PreviewDocument"
+                    style="width:100%;min-height:22rem;border:1px solid #c5d4de;background:#fff"></iframe>
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-type siblings</p>
@@ -249,6 +254,41 @@
     private string OpenedReturnHref => _openedId > 0
         ? _listHref + "?template_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
         : _listHref;
+
+    private string PreviewDocument
+    {
+        get
+        {
+            if (_opened is null) return string.Empty;
+
+            var header = _opened.HeaderHtmlExcerpt;
+            var footer = _opened.FooterHtmlExcerpt;
+            var body = _opened.TermsHtmlExcerpt;
+            var bank = _opened.BankDetailsHtmlExcerpt;
+            var css = _opened.CustomCssExcerpt;
+            var sections = string.Join(
+                Environment.NewLine,
+                new[] { header, "<main><h2>Print template preview</h2><p>Document body content is rendered by the selected document workflow.</p>", body, bank, footer }
+                    .Where(section => !string.IsNullOrWhiteSpace(section)));
+
+            return $$"""
+                <!doctype html>
+                <html lang="en">
+                <head>
+                  <meta charset="utf-8">
+                  <style>
+                    @page { size: {{_opened.PageSize}} {{_opened.Orientation}}; margin: {{_opened.MarginTop}}mm {{_opened.MarginRight}}mm {{_opened.MarginBottom}}mm {{_opened.MarginLeft}}mm; }
+                    :root { --primary: {{_opened.PrimaryColor}}; --secondary: {{_opened.SecondaryColor}}; }
+                    body { color: var(--primary); font-family: "{{_opened.FontFamily}}", Arial, sans-serif; font-size: {{_opened.FontSize}}pt; margin: 0; }
+                    h2 { color: var(--secondary); }
+                    {{css}}
+                  </style>
+                </head>
+                <body>{{sections}}</body>
+                </html>
+                """;
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
