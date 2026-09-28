@@ -178,8 +178,8 @@
             <label><input type="checkbox" name="show_signature_line" value="1" checked="@_opened.ShowSignatureLine" /> Signature line</label>
             <label><input type="checkbox" name="show_qr_code" value="1" checked="@_opened.ShowQrCode" /> QR code</label>
             <label><input type="checkbox" name="show_barcode" value="1" checked="@_opened.ShowBarcode" /> Barcode</label>
-            <label style="grid-column:span 3">Header HTML <textarea class="form-control input-sm" name="header_html" rows="6">@_opened.HeaderHtmlExcerpt</textarea></label>
-            <label style="grid-column:span 3">Footer HTML <textarea class="form-control input-sm" name="footer_html" rows="6">@_opened.FooterHtmlExcerpt</textarea></label>
+            <label style="grid-column:span 3">Header HTML <textarea class="form-control input-sm" name="header_html" rows="6">@_opened.HeaderHtmlExcerpt</textarea><small class="text-muted">Merge fields: @MergeFields</small></label>
+            <label style="grid-column:span 3">Footer HTML <textarea class="form-control input-sm" name="footer_html" rows="6">@_opened.FooterHtmlExcerpt</textarea><small class="text-muted">Merge fields: @MergeFields</small></label>
             <label style="grid-column:span 3">Terms HTML <textarea class="form-control input-sm" name="terms_html" rows="6">@_opened.TermsHtmlExcerpt</textarea></label>
             <label style="grid-column:span 3">Bank details HTML <textarea class="form-control input-sm" name="bank_details_html" rows="6">@_opened.BankDetailsHtmlExcerpt</textarea></label>
             <label style="grid-column:span 3">Custom CSS <textarea class="form-control input-sm" name="custom_css" rows="8">@_opened.CustomCssExcerpt</textarea></label>
@@ -238,6 +238,7 @@
     private long _openedId;
     private ErpPrintTemplateDetail? _opened;
     private IReadOnlyList<ErpPrintTemplateDigest> _openedSiblings = [];
+    private const string MergeFields = "{{company_name}}, {{trn}}, {{address}}, {{phone}}, {{email}}, {{doc_no}}, {{doc_date}}, {{due_date}}, {{customer_name}}, {{supplier_name}}, {{currency}}, {{total}}, {{page}}, {{total_pages}}, {{printed_by}}, {{printed_date}}";
 
     private string OpenedCaption => _opened is null
         ? ""
