@@ -289,6 +289,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutInvoiceBridge, HandleFitOutInvoiceBridgeAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutInvoiceReconciliation, HandleFitOutInvoiceReconciliationAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutCommercialReconciliation, HandleFitOutCommercialReconciliationAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutContractClosure, HandleFitOutContractClosureAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutAcceptanceEvidence, HandleFitOutAcceptanceEvidenceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
@@ -12935,6 +12936,36 @@ public sealed class ErpModule : ISurfaceModule
             reconciliation = result,
             session = SessionPayload(session),
             note = "Tenant-isolated contract balance, client billing, vendor AP, payment, and retention reconciliation."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutContractClosureAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutContractClosureReadService closure,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out contract closure.");
+        }
+
+        var result = await closure.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            closure = result,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Read-only closure control; no contract is closed by this projection."
         });
     }
 
