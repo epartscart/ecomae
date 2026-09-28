@@ -174,6 +174,11 @@ public sealed class FitOutDeliveryCatalogTests
         var ageing = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutRetentionAgeingReadService.cs"));
         Assert.Contains("ReleaseEligible", ageing, StringComparison.Ordinal);
         Assert.Contains("warranty_months", ageing, StringComparison.Ordinal);
+        var recovery = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutRecoverySummaryReadService.cs"));
+        Assert.Contains("ClientCertifiedAmount", recovery, StringComparison.Ordinal);
+        Assert.Contains("SubcontractCertifiedAmount", recovery, StringComparison.Ordinal);
+        Assert.Contains("status`='approved'", recovery, StringComparison.Ordinal);
+        Assert.Contains("clientCertified * advancePercent", recovery, StringComparison.Ordinal);
         var receipts = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutProformaReceiptReadService.cs"));
         Assert.Contains("sales_invoice_id", receipts, StringComparison.Ordinal);
         Assert.Contains("TotalOutstanding", receipts, StringComparison.Ordinal);

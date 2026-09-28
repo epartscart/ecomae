@@ -14,6 +14,8 @@ public sealed record ErpFitOutRecoverySummary(
     decimal AdvancePercent,
     decimal RetentionPercent,
     decimal CertifiedAmount,
+    decimal ClientCertifiedAmount,
+    decimal SubcontractCertifiedAmount,
     decimal AdvanceRecovered,
     decimal RetentionRecovered,
     decimal AdvanceOutstanding,
@@ -69,6 +71,8 @@ public sealed class ErpFitOutRecoverySummaryReadService : IErpFitOutRecoverySumm
             }
 
             decimal certified = 0m;
+            decimal clientCertified = 0m;
+            decimal subcontractCertified = 0m;
             decimal advanceRecovered = 0m;
             decimal retentionRecovered = 0m;
             await using (var records = connection.CreateCommand())
@@ -77,7 +81,12 @@ public sealed class ErpFitOutRecoverySummaryReadService : IErpFitOutRecoverySumm
                     SELECT `record_type`,COALESCE(SUM(`amount`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=?
-                      AND `record_type` IN ('subcontract_certification','progress_claim','advance_recovery','retention_recovery')
+                      AND `status`='approved'
+                      AND `record_type` IN (
+                          'subcontract_certification','subcontractor_progress_claim',
+                          'subcontract_payment_certificate','progress_claim',
+                          'client_progress_claim','client_payment_certificate',
+                          'advance_recovery','retention_recovery')
                     GROUP BY `record_type`
                     """);
                 ErpDb.AddParameters(records, projectId);
@@ -88,7 +97,15 @@ public sealed class ErpFitOutRecoverySummaryReadService : IErpFitOutRecoverySumm
                     switch (reader.GetString(0))
                     {
                         case "subcontract_certification":
+                        case "subcontractor_progress_claim":
+                        case "subcontract_payment_certificate":
+                            subcontractCertified += amount;
+                            certified += amount;
+                            break;
                         case "progress_claim":
+                        case "client_progress_claim":
+                        case "client_payment_certificate":
+                            clientCertified += amount;
                             certified += amount;
                             break;
                         case "advance_recovery":
@@ -101,13 +118,15 @@ public sealed class ErpFitOutRecoverySummaryReadService : IErpFitOutRecoverySumm
                 }
             }
 
-            var advanceDue = decimal.Round(certified * advancePercent / 100m, 2, MidpointRounding.AwayFromZero);
-            var retentionDue = decimal.Round(certified * retentionPercent / 100m, 2, MidpointRounding.AwayFromZero);
+            var advanceDue = decimal.Round(clientCertified * advancePercent / 100m, 2, MidpointRounding.AwayFromZero);
+            var retentionDue = decimal.Round(clientCertified * retentionPercent / 100m, 2, MidpointRounding.AwayFromZero);
             return new(
                 projectId,
                 advancePercent,
                 retentionPercent,
                 certified,
+                clientCertified,
+                subcontractCertified,
                 advanceRecovered,
                 retentionRecovered,
                 Math.Max(0m, advanceDue - advanceRecovered),
@@ -125,5 +144,5 @@ public sealed class ErpFitOutRecoverySummaryReadService : IErpFitOutRecoverySumm
         long projectId,
         string message,
         string source = "migration")
-        => new(projectId, 0m, 0m, 0m, 0m, 0m, 0m, 0m, source, message);
+        => new(projectId, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, source, message);
 }
