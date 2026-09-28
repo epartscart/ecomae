@@ -152,6 +152,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("CanClose", closure, StringComparison.Ordinal);
         Assert.Contains("No approved final settlement exists", closure, StringComparison.Ordinal);
         Assert.Contains("Certified subcontract work remains unpaid", closure, StringComparison.Ordinal);
+        Assert.Contains("Measured subcontract work exceeds ordered value", closure, StringComparison.Ordinal);
         Assert.Contains("IErpFitOutSubcontractReconciliationReadService", closure, StringComparison.Ordinal);
         Assert.Contains("IErpFitOutContractClosureReadService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
         var ageing = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutRetentionAgeingReadService.cs"));

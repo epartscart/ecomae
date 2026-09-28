@@ -19,6 +19,7 @@ public sealed record ErpFitOutContractClosure(
     decimal UnbilledClientAmount,
     decimal UnpaidVendorAmount,
     decimal UnpaidSubcontractCertifiedAmount,
+    decimal SubcontractOverrunAmount,
     decimal RetentionHeld,
     IReadOnlyList<string> Blockers,
     string Source,
@@ -122,6 +123,14 @@ public sealed class ErpFitOutContractClosureReadService
                 blockers.Add("Certified subcontract work remains unpaid.");
             }
 
+            var subcontractOverrun = Math.Max(
+                0m,
+                subcontract.MeasuredAmount - subcontract.OrderedAmount);
+            if (subcontractOverrun > 0m)
+            {
+                blockers.Add("Measured subcontract work exceeds ordered value.");
+            }
+
             if (commercial.RetentionHeld > 0m)
             {
                 blockers.Add("Retention remains held.");
@@ -147,6 +156,7 @@ public sealed class ErpFitOutContractClosureReadService
                 commercial.UnbilledClientAmount,
                 commercial.UnpaidVendorAmount,
                 subcontract.UnpaidCertifiedAmount,
+                subcontractOverrun,
                 commercial.RetentionHeld,
                 blockers,
                 "database",
@@ -169,6 +179,7 @@ public sealed class ErpFitOutContractClosureReadService
             0m,
             0,
             0,
+            0m,
             0m,
             0m,
             0m,
