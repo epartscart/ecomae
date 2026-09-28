@@ -293,6 +293,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRetentionAgeing, HandleFitOutRetentionAgeingAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProformaReceipts, HandleFitOutProformaReceiptsAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalAudit, HandleFitOutApprovalAuditAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutSubcontractReconciliation, HandleFitOutSubcontractReconciliationAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutAcceptanceEvidence, HandleFitOutAcceptanceEvidenceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
@@ -12910,7 +12911,7 @@ public sealed class ErpModule : ISurfaceModule
             projectId,
             reconciliation = result,
             session = SessionPayload(session),
-            note = "Tenant-isolated certification-to-invoice reconciliation using linked invoice totals."
+            note = "Tenant-isolated approved client/subcontract certification-to-invoice reconciliation using linked invoice totals."
         });
     }
 
@@ -12938,7 +12939,7 @@ public sealed class ErpModule : ISurfaceModule
             projectId,
             reconciliation = result,
             session = SessionPayload(session),
-            note = "Tenant-isolated contract balance, client billing, vendor AP, payment, and retention reconciliation."
+            note = "Tenant-isolated contract balance, approved client/subcontract certification, client billing, vendor AP, payment, and retention reconciliation."
         });
     }
 
@@ -13028,7 +13029,7 @@ public sealed class ErpModule : ISurfaceModule
             source = result.Source,
             message = result.Message,
             session = SessionPayload(session),
-            note = "Tenant-isolated proforma, invoice, and receipt reconciliation by billing stage."
+            note = "Tenant-isolated proforma, invoice, and receipt reconciliation by billing stage, including receipt count and latest posted receipt time."
         });
     }
 
@@ -13057,6 +13058,36 @@ public sealed class ErpModule : ISurfaceModule
             rows,
             session = SessionPayload(session),
             note = "Tenant-isolated history of guarded fit-out approval decisions."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutSubcontractReconciliationAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutSubcontractReconciliationReadService reconciliation,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for subcontract reconciliation.");
+        }
+
+        var result = await reconciliation
+            .ReadAsync(projectId, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = true,
+            surface = "erp",
+            projectId,
+            reconciliation = result,
+            session = SessionPayload(session),
+            note = "Tenant-isolated subcontract order, measurement, certification, payment-certificate, and payment reconciliation."
         });
     }
 
@@ -13195,6 +13226,10 @@ public sealed class ErpModule : ISurfaceModule
                 var costBudget = budget?.costBudget ?? 0m;
                 var actualRevenue = actual?.actualRevenue ?? 0m;
                 var actualCost = actual?.actualCost ?? 0m;
+                var budgetMargin = revenueBudget - costBudget;
+                var actualMargin = actualRevenue - actualCost;
+                var forecastRevenue = revenueBudget > 0m ? revenueBudget : actualRevenue;
+                var forecastCost = costBudget > 0m ? costBudget : actualCost;
                 return new
                 {
                     projectId = id,
@@ -13202,22 +13237,38 @@ public sealed class ErpModule : ISurfaceModule
                     costBudget,
                     actualRevenue,
                     actualCost,
-                    forecastProfit = (revenueBudget > 0m ? revenueBudget : actualRevenue)
-                        - (costBudget > 0m ? costBudget : actualCost),
-                    actualProfit = actualRevenue - actualCost
+                    budgetMargin,
+                    actualMargin,
+                    forecastRevenue,
+                    forecastCost,
+                    forecastProfit = forecastRevenue - forecastCost,
+                    actualProfit = actualMargin,
+                    budgetMarginPercent = revenueBudget > 0m ? decimal.Round((budgetMargin / revenueBudget) * 100m, 2, MidpointRounding.AwayFromZero) : 0m,
+                    actualMarginPercent = actualRevenue > 0m ? decimal.Round((actualMargin / actualRevenue) * 100m, 2, MidpointRounding.AwayFromZero) : 0m,
+                    forecastMarginPercent = forecastRevenue > 0m ? decimal.Round(((forecastRevenue - forecastCost) / forecastRevenue) * 100m, 2, MidpointRounding.AwayFromZero) : 0m
                 };
             })
             .ToArray();
+        var summary = new
+        {
+            revenueBudget = projectIds.Sum(row => row.revenueBudget),
+            costBudget = projectIds.Sum(row => row.costBudget),
+            actualRevenue = projectIds.Sum(row => row.actualRevenue),
+            actualCost = projectIds.Sum(row => row.actualCost),
+            forecastProfit = projectIds.Sum(row => row.forecastProfit),
+            actualProfit = projectIds.Sum(row => row.actualProfit)
+        };
         return Results.Ok(new
         {
             ok = true,
             surface = "erp",
             projectId,
             projects = projectIds,
+            summary,
             source = digest.Source,
             message = digest.Message,
             session = SessionPayload(session),
-            note = "Read-only project P&L projection from tenant-isolated budget and transaction ledgers."
+            note = "Read-only project P&L projection from tenant-isolated budget, transaction, and recognition ledgers."
         });
     }
 

@@ -18,6 +18,8 @@ public sealed record ErpFitOutContractClosure(
     int ApprovedFinalSettlementCount,
     decimal UnbilledClientAmount,
     decimal UnpaidVendorAmount,
+    decimal UnpaidSubcontractCertifiedAmount,
+    decimal SubcontractOverrunAmount,
     decimal RetentionHeld,
     IReadOnlyList<string> Blockers,
     string Source,
@@ -28,13 +30,16 @@ public sealed class ErpFitOutContractClosureReadService
 {
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpFitOutCommercialReconciliationReadService _commercial;
+    private readonly IErpFitOutSubcontractReconciliationReadService _subcontract;
 
     public ErpFitOutContractClosureReadService(
         IErpWriteConnectionFactory connections,
-        IErpFitOutCommercialReconciliationReadService commercial)
+        IErpFitOutCommercialReconciliationReadService commercial,
+        IErpFitOutSubcontractReconciliationReadService subcontract)
     {
         _connections = connections;
         _commercial = commercial;
+        _subcontract = subcontract;
     }
 
     public async Task<ErpFitOutContractClosure> ReadAsync(
@@ -59,6 +64,14 @@ public sealed class ErpFitOutContractClosureReadService
             return Empty(projectId, commercial.Message, commercial.Source);
         }
 
+        var subcontract = await _subcontract
+            .ReadAsync(projectId, cancellationToken)
+            .ConfigureAwait(false);
+        if (subcontract.Source == "database-error")
+        {
+            return Empty(projectId, subcontract.Message, subcontract.Source);
+        }
+
         await using var connection = await _connections
             .OpenAsync(cancellationToken)
             .ConfigureAwait(false);
@@ -67,8 +80,24 @@ public sealed class ErpFitOutContractClosureReadService
             await using var command = connection.CreateCommand();
             command.CommandText = ErpDb.Positional("""
                 SELECT
-                    COALESCE(SUM(CASE WHEN `status`='pending' THEN 1 ELSE 0 END),0),
-                    COALESCE(SUM(CASE WHEN `status`='pending' THEN `amount` ELSE 0 END),0),
+                    COALESCE(SUM(CASE WHEN `status`='pending'
+                                      AND `record_type` IN (
+                                          'approval_request','site_engineer_approval',
+                                          'project_manager_approval','variation_approval',
+                                          'final_settlement','work_completion_certificate',
+                                          'subcontract_payment_certificate',
+                                          'client_payment_certificate','retention_release',
+                                          'vendor_bill','payment_voucher')
+                                      THEN 1 ELSE 0 END),0),
+                    COALESCE(SUM(CASE WHEN `status`='pending'
+                                      AND `record_type` IN (
+                                          'approval_request','site_engineer_approval',
+                                          'project_manager_approval','variation_approval',
+                                          'final_settlement','work_completion_certificate',
+                                          'subcontract_payment_certificate',
+                                          'client_payment_certificate','retention_release',
+                                          'vendor_bill','payment_voucher')
+                                      THEN `amount` ELSE 0 END),0),
                     COALESCE(SUM(CASE WHEN `record_type`='work_completion_certificate'
                                       AND `status`='approved' THEN 1 ELSE 0 END),0),
                     COALESCE(SUM(CASE WHEN `record_type`='final_settlement'
@@ -105,6 +134,19 @@ public sealed class ErpFitOutContractClosureReadService
                 blockers.Add("Vendor bills remain unpaid.");
             }
 
+            if (subcontract.UnpaidCertifiedAmount > 0m)
+            {
+                blockers.Add("Certified subcontract work remains unpaid.");
+            }
+
+            var subcontractOverrun = Math.Max(
+                0m,
+                subcontract.MeasuredAmount - subcontract.OrderedAmount);
+            if (subcontractOverrun > 0m)
+            {
+                blockers.Add("Measured subcontract work exceeds ordered value.");
+            }
+
             if (commercial.RetentionHeld > 0m)
             {
                 blockers.Add("Retention remains held.");
@@ -129,6 +171,8 @@ public sealed class ErpFitOutContractClosureReadService
                 settlementCount,
                 commercial.UnbilledClientAmount,
                 commercial.UnpaidVendorAmount,
+                subcontract.UnpaidCertifiedAmount,
+                subcontractOverrun,
                 commercial.RetentionHeld,
                 blockers,
                 "database",
@@ -151,6 +195,8 @@ public sealed class ErpFitOutContractClosureReadService
             0m,
             0,
             0,
+            0m,
+            0m,
             0m,
             0m,
             0m,

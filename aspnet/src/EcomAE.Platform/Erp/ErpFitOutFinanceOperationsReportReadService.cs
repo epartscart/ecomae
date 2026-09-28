@@ -45,6 +45,7 @@ public sealed class ErpFitOutFinanceOperationsReportReadService
             .ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         var filter = projectId is > 0 ? "WHERE `project_id`=?" : string.Empty;
+        var andFilter = projectId is > 0 ? "AND `project_id`=?" : string.Empty;
         command.CommandText = ErpDb.Positional($"""
             SELECT 'inventory', 'material_movements', COUNT(*),
                    COALESCE(SUM(
@@ -57,26 +58,70 @@ public sealed class ErpFitOutFinanceOperationsReportReadService
             SELECT 'subcontract', 'certifications', COUNT(*),
                    COALESCE(SUM(`amount`),0)
             FROM `ecomae_fitout_delivery_records`
-            WHERE `record_type`='subcontract_certification'
-              {(projectId is > 0 ? "AND `project_id`=?" : string.Empty)}
+            WHERE `record_type` IN (
+                      'subcontract_certification',
+                      'subcontractor_progress_claim',
+                      'subcontract_payment_certificate')
+              AND `status`='approved'
+              {andFilter}
             UNION ALL
             SELECT 'finance', 'progress_claims', COUNT(*),
                    COALESCE(SUM(`amount`),0)
             FROM `ecomae_fitout_delivery_records`
-            WHERE `record_type`='progress_claim'
-              {(projectId is > 0 ? "AND `project_id`=?" : string.Empty)}
+            WHERE `record_type` IN (
+                      'progress_claim',
+                      'client_progress_claim',
+                      'client_payment_certificate')
+              AND `status`='approved'
+              {andFilter}
             UNION ALL
             SELECT 'finance', 'recoveries', COUNT(*),
                    COALESCE(SUM(`amount`),0)
             FROM `ecomae_fitout_delivery_records`
             WHERE `record_type` IN ('advance_recovery','retention_recovery')
-              {(projectId is > 0 ? "AND `project_id`=?" : string.Empty)}
+              AND `status`='approved'
+              {andFilter}
+            UNION ALL
+            SELECT 'finance', 'client_certifications', COUNT(*),
+                   COALESCE(SUM(`amount`),0)
+            FROM `ecomae_fitout_delivery_records`
+            WHERE `record_type` IN ('progress_claim','client_progress_claim','client_payment_certificate')
+              AND `status`='approved'
+              {andFilter}
+            UNION ALL
+            SELECT 'finance', 'subcontract_certifications', COUNT(*),
+                   COALESCE(SUM(`amount`),0)
+            FROM `ecomae_fitout_delivery_records`
+            WHERE `record_type` IN (
+                      'subcontract_certification',
+                      'subcontractor_progress_claim',
+                      'subcontract_payment_certificate')
+              AND `status`='approved'
+              {andFilter}
+            UNION ALL
+            SELECT 'finance', 'retention_releases', COUNT(*),
+                   COALESCE(SUM(`amount`),0)
+            FROM `ecomae_fitout_delivery_records`
+            WHERE `record_type`='retention_release'
+              AND `status`='approved'
+              {andFilter}
+            UNION ALL
+            SELECT 'finance', 'approved_payment_vouchers', COUNT(*),
+                   COALESCE(SUM(`amount`),0)
+            FROM `ecomae_fitout_delivery_records`
+            WHERE `record_type`='payment_voucher'
+              AND `status`='approved'
+              {andFilter}
             ORDER BY 1,2
             """);
         if (projectId is > 0)
         {
             ErpDb.AddParameters(
                 command,
+                projectId.Value,
+                projectId.Value,
+                projectId.Value,
+                projectId.Value,
                 projectId.Value,
                 projectId.Value,
                 projectId.Value,

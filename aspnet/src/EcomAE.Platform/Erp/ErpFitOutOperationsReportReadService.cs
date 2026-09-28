@@ -45,6 +45,7 @@ public sealed class ErpFitOutOperationsReportReadService
             .ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         var filter = projectId is > 0 ? "WHERE `project_id`=?" : string.Empty;
+        var andFilter = projectId is > 0 ? "AND `project_id`=?" : string.Empty;
         command.CommandText = ErpDb.Positional($"""
             SELECT 'estimation', 'estimates', COUNT(*),
                    COALESCE(SUM(`markup_percent`),0)
@@ -65,12 +66,36 @@ public sealed class ErpFitOutOperationsReportReadService
             FROM `ecomae_fitout_quotations`
             WHERE `estimate_id` IN (
                 SELECT `id` FROM `ecomae_fitout_estimates` {filter})
+            UNION ALL
+            SELECT 'delivery', 'approved_records', COUNT(*),
+                   COALESCE(SUM(`amount`),0)
+            FROM `ecomae_fitout_delivery_records`
+            WHERE `status`='approved' {andFilter}
+            UNION ALL
+            SELECT 'delivery', 'pending_approvals', COUNT(*),
+                   COALESCE(SUM(`amount`),0)
+            FROM `ecomae_fitout_delivery_records`
+            WHERE `status`='pending'
+              AND `record_type` IN (
+                  'approval_request','site_engineer_approval','project_manager_approval',
+                  'variation_approval','final_settlement','work_completion_certificate',
+                  'subcontract_payment_certificate','client_payment_certificate',
+                  'retention_release','vendor_bill','payment_voucher'
+              ) {andFilter}
+            UNION ALL
+            SELECT 'delivery', 'retention_ledger', COUNT(*),
+                   COALESCE(SUM(`amount`),0)
+            FROM `ecomae_fitout_retention_ledger`
+            {filter}
             ORDER BY 1,2
             """);
         if (projectId is > 0)
         {
             ErpDb.AddParameters(
                 command,
+                projectId.Value,
+                projectId.Value,
+                projectId.Value,
                 projectId.Value,
                 projectId.Value,
                 projectId.Value,

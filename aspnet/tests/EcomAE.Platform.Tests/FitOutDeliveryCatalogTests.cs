@@ -106,6 +106,10 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/finance-operations-report\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/approval/decide\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("Open project P&amp;L / forecast JSON", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("forecastMarginPercent", module, StringComparison.Ordinal);
+        Assert.Contains("actualMarginPercent", module, StringComparison.Ordinal);
+        Assert.Contains("Read-only project P&L projection", module, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-reconciliation\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/commercial-reconciliation\"", routes, StringComparison.Ordinal);
@@ -113,6 +117,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/retention-ageing\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/proforma-receipts\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/approval-audit\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/subcontract-reconciliation\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/acceptance-evidence\"", routes, StringComparison.Ordinal);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-01").Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.Contains("dashboards", StringComparison.OrdinalIgnoreCase)).Status);
@@ -139,6 +144,27 @@ public sealed class FitOutDeliveryCatalogTests
         var executiveDashboard = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutExecutiveDashboardReadService.cs"));
         Assert.Contains("'site_engineer_approval','project_manager_approval'", executiveDashboard, StringComparison.Ordinal);
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("'subcontract_payment_certificate','client_payment_certificate'", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("client_certified_amount", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("subcontract_certified_amount", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("approved_delivery_amount", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("approved_delivery_completion", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("subcontract_payment_certificate", executiveDashboard, StringComparison.Ordinal);
+        var operations = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutOperationsReportReadService.cs"));
+        Assert.Contains("delivery', 'approved_records", operations, StringComparison.Ordinal);
+        Assert.Contains("delivery', 'pending_approvals", operations, StringComparison.Ordinal);
+        Assert.Contains("delivery', 'retention_ledger", operations, StringComparison.Ordinal);
+        var financeOperations = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutFinanceOperationsReportReadService.cs"));
+        Assert.Contains("client_certifications", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("subcontract_certifications", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("retention_releases", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("approved_payment_vouchers", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("subcontract_payment_certificate", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("client_payment_certificate", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("status`='approved'", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("'subcontract_certification'", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("'subcontractor_progress_claim'", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("'subcontract_payment_certificate'", financeOperations, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("guardedApprovalRecord", deliveryService, StringComparison.Ordinal);
@@ -150,24 +176,65 @@ public sealed class FitOutDeliveryCatalogTests
         var closure = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractClosureReadService.cs"));
         Assert.Contains("CanClose", closure, StringComparison.Ordinal);
         Assert.Contains("No approved final settlement exists", closure, StringComparison.Ordinal);
+        Assert.Contains("Certified subcontract work remains unpaid", closure, StringComparison.Ordinal);
+        Assert.Contains("Measured subcontract work exceeds ordered value", closure, StringComparison.Ordinal);
+        Assert.Contains("IErpFitOutSubcontractReconciliationReadService", closure, StringComparison.Ordinal);
         Assert.Contains("IErpFitOutContractClosureReadService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
         var ageing = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutRetentionAgeingReadService.cs"));
         Assert.Contains("ReleaseEligible", ageing, StringComparison.Ordinal);
         Assert.Contains("warranty_months", ageing, StringComparison.Ordinal);
+        Assert.Contains("client_payment_certificate", ageing, StringComparison.Ordinal);
+        Assert.Contains("subcontract_payment_certificate", ageing, StringComparison.Ordinal);
+        Assert.Contains("project_manager_approval", closure, StringComparison.Ordinal);
+        Assert.Contains("`status`='pending'", closure, StringComparison.Ordinal);
+        var recovery = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutRecoverySummaryReadService.cs"));
+        Assert.Contains("ClientCertifiedAmount", recovery, StringComparison.Ordinal);
+        Assert.Contains("SubcontractCertifiedAmount", recovery, StringComparison.Ordinal);
+        Assert.Contains("status`='approved'", recovery, StringComparison.Ordinal);
+        Assert.Contains("clientCertified * advancePercent", recovery, StringComparison.Ordinal);
         var receipts = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutProformaReceiptReadService.cs"));
         Assert.Contains("sales_invoice_id", receipts, StringComparison.Ordinal);
         Assert.Contains("TotalOutstanding", receipts, StringComparison.Ordinal);
+        Assert.Contains("receipt_count", receipts, StringComparison.Ordinal);
+        Assert.Contains("last_receipt_time", receipts, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutProformaReceiptInvoiceRow", receipts, StringComparison.Ordinal);
+        Assert.Contains("GroupBy(row => row.Stage", receipts, StringComparison.Ordinal);
         var reconciliation = File.ReadAllText(
             FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutCommercialReconciliationReadService.cs"));
         Assert.Contains("record_type`='retention_release'", reconciliation, StringComparison.Ordinal);
         Assert.Contains("status`='approved'", reconciliation, StringComparison.Ordinal);
         Assert.Contains("ApprovedVariationAmount", reconciliation, StringComparison.Ordinal);
+        Assert.Contains("ClientCertifiedAmount", reconciliation, StringComparison.Ordinal);
+        Assert.Contains("SubcontractCertifiedAmount", reconciliation, StringComparison.Ordinal);
+        Assert.Contains(
+            "'progress_claim','client_progress_claim','client_payment_certificate'",
+            reconciliation,
+            StringComparison.Ordinal);
+        Assert.Contains("totals.ClientCertified - clientBilled", reconciliation, StringComparison.Ordinal);
+        var invoiceReconciliation = File.ReadAllText(
+            FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutInvoiceReconciliationReadService.cs"));
+        Assert.Contains("client_payment_certificate", invoiceReconciliation, StringComparison.Ordinal);
+        Assert.Contains("status`='approved'", invoiceReconciliation, StringComparison.Ordinal);
+        Assert.Contains("ReadCertifiedAsync", invoiceReconciliation, StringComparison.Ordinal);
+        Assert.Contains("certified.Client - invoiced.ExVat", invoiceReconciliation, StringComparison.Ordinal);
+        Assert.Contains(
+            "approved client/subcontract certification-to-invoice reconciliation",
+            File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs")),
+            StringComparison.Ordinal);
+        var erpModule = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("approved client/subcontract certification", erpModule, StringComparison.Ordinal);
         Assert.Contains("variation_approval", reconciliation, StringComparison.Ordinal);
+        Assert.Contains("client_payment_certificate", reconciliation, StringComparison.Ordinal);
         Assert.Contains("record_type`='vendor_bill'", reconciliation, StringComparison.Ordinal);
         Assert.Contains("record_type`='payment_voucher'", reconciliation, StringComparison.Ordinal);
         var audit = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutApprovalAuditReadService.cs"));
         Assert.Contains("ecomae_fitout_approval_audit", audit, StringComparison.Ordinal);
         Assert.Contains("decided_at_utc", audit, StringComparison.Ordinal);
+        var subcontract = File.ReadAllText(
+            FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutSubcontractReconciliationReadService.cs"));
+        Assert.Contains("UncertifiedAmount", subcontract, StringComparison.Ordinal);
+        Assert.Contains("subcontract_payment_certificate", subcontract, StringComparison.Ordinal);
+        Assert.Contains("subcontractor_id`>0", subcontract, StringComparison.Ordinal);
         var approvalQueue = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutApprovalQueueReadService.cs"));
         Assert.Contains("IErpFitOutApprovalQueueReadService", approvalQueue, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", approvalQueue, StringComparison.Ordinal);

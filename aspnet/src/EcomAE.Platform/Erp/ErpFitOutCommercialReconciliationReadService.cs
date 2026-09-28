@@ -15,6 +15,8 @@ public sealed record ErpFitOutCommercialReconciliation(
     decimal ApprovedVariationAmount,
     decimal BudgetCost,
     decimal CertifiedAmount,
+    decimal ClientCertifiedAmount,
+    decimal SubcontractCertifiedAmount,
     decimal VendorBills,
     decimal PaymentVouchers,
     decimal ClientBilled,
@@ -94,12 +96,14 @@ public sealed class ErpFitOutCommercialReconciliationReadService
                 approvedVariationAmount,
                 budgetCost,
                 totals.Certified,
+                totals.ClientCertified,
+                totals.SubcontractCertified,
                 totals.VendorBills,
                 totals.PaymentVouchers,
                 clientBilled,
                 retentionHeld,
                 totals.RetentionReleased,
-                Math.Max(0m, totals.Certified - clientBilled),
+                Math.Max(0m, totals.ClientCertified - clientBilled),
                 Math.Max(0m, totals.VendorBills - totals.PaymentVouchers),
                 contractValue + approvedVariationAmount
                     - Math.Max(budgetCost, totals.VendorBills),
@@ -114,6 +118,8 @@ public sealed class ErpFitOutCommercialReconciliationReadService
 
     private static async Task<(
         decimal Certified,
+        decimal ClientCertified,
+        decimal SubcontractCertified,
         decimal VendorBills,
         decimal PaymentVouchers,
         decimal RetentionReleased,
@@ -127,8 +133,18 @@ public sealed class ErpFitOutCommercialReconciliationReadService
             """
             SELECT
                 COALESCE(SUM(CASE WHEN `record_type` IN
-                    ('subcontract_certification','progress_claim','subcontractor_progress_claim','client_progress_claim')
+                    ('subcontract_certification','progress_claim','subcontractor_progress_claim',
+                     'subcontract_payment_certificate',
+                     'client_progress_claim','client_payment_certificate')
+                    AND `status`='approved'
                     THEN `amount` ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN `record_type` IN
+                    ('progress_claim','client_progress_claim','client_payment_certificate')
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN `record_type` IN
+                    ('subcontract_certification','subcontractor_progress_claim',
+                     'subcontract_payment_certificate')
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0),
                 COALESCE(SUM(CASE WHEN `record_type`='vendor_bill'
                     AND `status`='approved' THEN `amount` ELSE 0 END),0),
                 COALESCE(SUM(CASE WHEN `record_type`='payment_voucher'
@@ -140,6 +156,8 @@ public sealed class ErpFitOutCommercialReconciliationReadService
             """);
         ErpDb.AddParameters(command, projectId);
         decimal certified;
+        decimal clientCertified;
+        decimal subcontractCertified;
         decimal vendorBills;
         decimal paymentVouchers;
         decimal retentionReleased;
@@ -147,18 +165,27 @@ public sealed class ErpFitOutCommercialReconciliationReadService
         {
             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                return (0m, 0m, 0m, 0m, 0m);
+                return (0m, 0m, 0m, 0m, 0m, 0m, 0m);
             }
 
             certified = reader.GetDecimal(0);
-            vendorBills = reader.GetDecimal(1);
-            paymentVouchers = reader.GetDecimal(2);
-            retentionReleased = reader.GetDecimal(3);
+            clientCertified = reader.GetDecimal(1);
+            subcontractCertified = reader.GetDecimal(2);
+            vendorBills = reader.GetDecimal(3);
+            paymentVouchers = reader.GetDecimal(4);
+            retentionReleased = reader.GetDecimal(5);
         }
 
         var retentionPercent = await ReadRetentionPercentAsync(connection, projectId, cancellationToken)
             .ConfigureAwait(false);
-        return (certified, vendorBills, paymentVouchers, retentionReleased, retentionPercent);
+        return (
+            certified,
+            clientCertified,
+            subcontractCertified,
+            vendorBills,
+            paymentVouchers,
+            retentionReleased,
+            retentionPercent);
     }
 
     private static async Task<decimal> ReadRetentionPercentAsync(
@@ -190,5 +217,5 @@ public sealed class ErpFitOutCommercialReconciliationReadService
         long projectId,
         string message,
         string source = "migration")
-        => new(projectId, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, source, message);
+        => new(projectId, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, 0m, source, message);
 }

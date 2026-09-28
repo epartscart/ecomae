@@ -15,7 +15,11 @@ public sealed record ErpFitOutExecutiveDashboardRow(
     decimal BoqValue,
     decimal CommittedAmount,
     decimal DeliveryAmount,
+    decimal ApprovedDeliveryAmount,
+    decimal ClientCertifiedAmount,
+    decimal SubcontractCertifiedAmount,
     decimal DeliveryCompletionPercent,
+    decimal ApprovedDeliveryCompletionPercent,
     decimal PendingApprovalAmount);
 
 public sealed record ErpFitOutExecutiveDashboardResult(
@@ -62,9 +66,30 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                    (SELECT COALESCE(SUM(`amount`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`) AS `delivery_amount`,
+                   (SELECT COALESCE(SUM(`amount`),0)
+                    FROM `ecomae_fitout_delivery_records`
+                    WHERE `project_id`=p.`project_id`
+                      AND `status`='approved') AS `approved_delivery_amount`,
+                   (SELECT COALESCE(SUM(`amount`),0)
+                    FROM `ecomae_fitout_delivery_records`
+                    WHERE `project_id`=p.`project_id`
+                      AND `record_type` IN
+                          ('progress_claim','client_progress_claim','client_payment_certificate')
+                      AND `status`='approved') AS `client_certified_amount`,
+                   (SELECT COALESCE(SUM(`amount`),0)
+                    FROM `ecomae_fitout_delivery_records`
+                    WHERE `project_id`=p.`project_id`
+                      AND `record_type` IN
+                          ('subcontract_certification','subcontractor_progress_claim',
+                           'subcontract_payment_certificate')
+                      AND `status`='approved') AS `subcontract_certified_amount`,
                    (SELECT COALESCE(AVG(`completion_percent`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`) AS `delivery_completion`,
+                   (SELECT COALESCE(AVG(`completion_percent`),0)
+                    FROM `ecomae_fitout_delivery_records`
+                    WHERE `project_id`=p.`project_id`
+                      AND `status`='approved') AS `approved_delivery_completion`,
                    (SELECT COALESCE(SUM(`amount`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`
@@ -104,7 +129,11 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                     reader.GetDecimal(3),
                     reader.GetDecimal(4),
                     reader.GetDecimal(5),
-                    reader.GetDecimal(6)));
+                    reader.GetDecimal(6),
+                    reader.GetDecimal(7),
+                    reader.GetDecimal(8),
+                    reader.GetDecimal(9),
+                    reader.GetDecimal(10)));
             }
         }
         catch (DbException exception)

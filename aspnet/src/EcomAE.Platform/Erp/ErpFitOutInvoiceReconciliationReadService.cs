@@ -12,6 +12,8 @@ public interface IErpFitOutInvoiceReconciliationReadService
 public sealed record ErpFitOutInvoiceReconciliation(
     long ProjectId,
     decimal CertifiedAmount,
+    decimal ClientCertifiedAmount,
+    decimal SubcontractCertifiedAmount,
     decimal InvoicedExVat,
     decimal InvoicedVat,
     decimal InvoicedInclVat,
@@ -46,24 +48,20 @@ public sealed class ErpFitOutInvoiceReconciliationReadService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            var certified = await SumAsync(
+            var certified = await ReadCertifiedAsync(
                 connection,
-                """
-                SELECT COALESCE(SUM(`amount`),0)
-                FROM `ecomae_fitout_delivery_records`
-                WHERE `project_id`=?
-                  AND `record_type` IN ('subcontract_certification','progress_claim')
-                """,
                 projectId,
                 cancellationToken).ConfigureAwait(false);
             var invoiced = await SumInvoiceAsync(connection, projectId, cancellationToken).ConfigureAwait(false);
             return new(
                 projectId,
-                certified,
+                certified.Total,
+                certified.Client,
+                certified.Subcontract,
                 invoiced.ExVat,
                 invoiced.Vat,
                 invoiced.InclVat,
-                Math.Max(0m, certified - invoiced.ExVat),
+                Math.Max(0m, certified.Client - invoiced.ExVat),
                 "database",
                 string.Empty);
         }
@@ -71,6 +69,40 @@ public sealed class ErpFitOutInvoiceReconciliationReadService
         {
             return Empty(projectId, exception.Message, "database-error");
         }
+    }
+
+    private static async Task<(decimal Total, decimal Client, decimal Subcontract)> ReadCertifiedAsync(
+        DbConnection connection,
+        long projectId,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            """
+            SELECT
+                COALESCE(SUM(CASE WHEN `record_type` IN
+                    ('subcontract_certification','subcontractor_progress_claim',
+                     'subcontract_payment_certificate',
+                     'client_progress_claim','client_payment_certificate','progress_claim')
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN `record_type` IN
+                    ('progress_claim','client_progress_claim','client_payment_certificate')
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN `record_type` IN
+                    ('subcontract_certification','subcontractor_progress_claim',
+                     'subcontract_payment_certificate')
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0)
+            FROM `ecomae_fitout_delivery_records`
+            WHERE `project_id`=?
+            """);
+        ErpDb.AddParameters(command, projectId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return (0m, 0m, 0m);
+        }
+
+        return (reader.GetDecimal(0), reader.GetDecimal(1), reader.GetDecimal(2));
     }
 
     private static async Task<decimal> SumAsync(
@@ -119,5 +151,5 @@ public sealed class ErpFitOutInvoiceReconciliationReadService
         long projectId,
         string message,
         string source = "migration")
-        => new(projectId, 0m, 0m, 0m, 0m, 0m, source, message);
+        => new(projectId, 0m, 0m, 0m, 0m, 0m, 0m, 0m, source, message);
 }

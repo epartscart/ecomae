@@ -16,11 +16,25 @@ public sealed record ErpFitOutProformaReceiptRow(
     decimal InvoicedVat,
     decimal InvoicedInclVat,
     decimal Receipts,
+    int ReceiptCount,
+    long LastReceiptUnixTime,
+    decimal Outstanding);
+
+public sealed record ErpFitOutProformaReceiptInvoiceRow(
+    long InvoiceId,
+    string Stage,
+    decimal InvoicedExVat,
+    decimal InvoicedVat,
+    decimal InvoicedInclVat,
+    decimal Receipts,
+    int ReceiptCount,
+    long LastReceiptUnixTime,
     decimal Outstanding);
 
 public sealed record ErpFitOutProformaReceiptResult(
     long ProjectId,
     IReadOnlyList<ErpFitOutProformaReceiptRow> Rows,
+    IReadOnlyList<ErpFitOutProformaReceiptInvoiceRow> InvoiceRows,
     decimal TotalInvoiced,
     decimal TotalReceipts,
     decimal TotalOutstanding,
@@ -58,33 +72,29 @@ public sealed class ErpFitOutProformaReceiptReadService
         {
             await using var command = connection.CreateCommand();
             command.CommandText = ErpDb.Positional("""
-                SELECT `stage`,
-                       COUNT(*),
-                       COALESCE(SUM(`subtotal_ex_vat`),0),
-                       COALESCE(SUM(`total_vat`),0),
-                       COALESCE(SUM(`total_incl_vat`),0),
-                       COALESCE(SUM(`receipts`),0)
-                FROM (
-                    SELECT links.`stage`,
+                SELECT links.`invoice_id`,
+                       links.`stage`,
                            links.`subtotal_ex_vat`,
                            links.`total_vat`,
                            links.`total_incl_vat`,
-                           COALESCE(receipts.`receipt_amount`,0) AS `receipts`
-                    FROM `ecomae_fitout_invoice_links` links
-                    LEFT JOIN (
-                        SELECT `sales_invoice_id`,
-                               SUM(CASE WHEN `direction`=1 THEN `amount` ELSE 0 END) AS `receipt_amount`
-                        FROM `epc_erp_cash_bank_entries`
-                        WHERE `active`=1 AND `sales_invoice_id`>0
-                        GROUP BY `sales_invoice_id`
-                    ) receipts ON receipts.`sales_invoice_id`=links.`invoice_id`
-                    WHERE links.`project_id`=?
-                ) invoice_totals
-                GROUP BY `stage`
-                ORDER BY `stage`
+                           COALESCE(receipts.`receipt_amount`,0) AS `receipts`,
+                           COALESCE(receipts.`receipt_count`,0) AS `receipt_count`,
+                           COALESCE(receipts.`last_receipt_time`,0) AS `last_receipt_time`
+                FROM `ecomae_fitout_invoice_links` links
+                LEFT JOIN (
+                    SELECT `sales_invoice_id`,
+                           SUM(CASE WHEN `direction`=1 THEN `amount` ELSE 0 END) AS `receipt_amount`
+                           ,COUNT(CASE WHEN `direction`=1 THEN 1 END) AS `receipt_count`
+                           ,MAX(CASE WHEN `direction`=1 THEN `time` ELSE 0 END) AS `last_receipt_time`
+                    FROM `epc_erp_cash_bank_entries`
+                    WHERE `active`=1 AND `sales_invoice_id`>0
+                    GROUP BY `sales_invoice_id`
+                ) receipts ON receipts.`sales_invoice_id`=links.`invoice_id`
+                WHERE links.`project_id`=?
+                ORDER BY links.`stage`, links.`invoice_id`
                 """);
             ErpDb.AddParameters(command, projectId);
-            var rows = new List<ErpFitOutProformaReceiptRow>();
+            var invoiceRows = new List<ErpFitOutProformaReceiptInvoiceRow>();
             await using var reader = await command
                 .ExecuteReaderAsync(cancellationToken)
                 .ConfigureAwait(false);
@@ -92,19 +102,37 @@ public sealed class ErpFitOutProformaReceiptReadService
             {
                 var invoiced = reader.GetDecimal(4);
                 var receipts = reader.GetDecimal(5);
-                rows.Add(new(
-                    reader.GetString(0),
-                    Convert.ToInt32(reader.GetValue(1), System.Globalization.CultureInfo.InvariantCulture),
+                invoiceRows.Add(new(
+                    Convert.ToInt64(reader.GetValue(0), System.Globalization.CultureInfo.InvariantCulture),
+                    reader.GetString(1),
                     reader.GetDecimal(2),
                     reader.GetDecimal(3),
                     invoiced,
                     receipts,
+                    Convert.ToInt32(reader.GetValue(6), System.Globalization.CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader.GetValue(7), System.Globalization.CultureInfo.InvariantCulture),
                     Math.Max(0m, invoiced - receipts)));
             }
+
+            var rows = invoiceRows
+                .GroupBy(row => row.Stage, StringComparer.Ordinal)
+                .OrderBy(group => group.Key, StringComparer.Ordinal)
+                .Select(group => new ErpFitOutProformaReceiptRow(
+                    group.Key,
+                    group.Count(),
+                    group.Sum(row => row.InvoicedExVat),
+                    group.Sum(row => row.InvoicedVat),
+                    group.Sum(row => row.InvoicedInclVat),
+                    group.Sum(row => row.Receipts),
+                    group.Sum(row => row.ReceiptCount),
+                    group.Max(row => row.LastReceiptUnixTime),
+                    group.Sum(row => row.Outstanding)))
+                .ToList();
 
             return new(
                 projectId,
                 rows,
+                invoiceRows,
                 rows.Sum(row => row.InvoicedInclVat),
                 rows.Sum(row => row.Receipts),
                 rows.Sum(row => row.Outstanding),
@@ -121,5 +149,5 @@ public sealed class ErpFitOutProformaReceiptReadService
         long projectId,
         string message,
         string source = "migration")
-        => new(projectId, [], 0m, 0m, 0m, source, message);
+        => new(projectId, [], [], 0m, 0m, 0m, source, message);
 }
