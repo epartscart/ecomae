@@ -41,6 +41,8 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("Customer payment", text, StringComparison.Ordinal);
         Assert.Contains("Stock pipeline", text, StringComparison.Ordinal);
         Assert.Contains("Returns open", text, StringComparison.Ordinal);
+        Assert.Contains("Payment → stock → delivery → returns", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpFulfillmentPipelineRowsAsync", text, StringComparison.Ordinal);
         Assert.Contains("action=\"/cp/fulfillment-queue/write\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("value=\"transition\"", text, StringComparison.Ordinal);
@@ -108,6 +110,9 @@ public sealed class CpFulfillmentQueuePhpParityTests
         Assert.Contains("SelectCpFulfillmentPipelineSummary", sql, StringComparison.Ordinal);
         Assert.Contains("shop_orders_items_details", sql, StringComparison.Ordinal);
         Assert.Contains("shop_orders_returns", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectCpFulfillmentPipelineRows", sql, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_supplier_accounting", sql, StringComparison.Ordinal);
+        Assert.Contains("lines_delivered", sql, StringComparison.Ordinal);
         var queued = LegacySurfaceDashboardSql.BuildSelectCpFulfillmentQueueRows("queued");
         Assert.Contains("WHERE IFNULL(`status`,'') = 'queued'", queued, StringComparison.Ordinal);
         Assert.Contains("LIMIT @limit", queued, StringComparison.Ordinal);

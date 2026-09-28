@@ -3375,6 +3375,38 @@ public static class LegacySurfaceDashboardSql
              WHERE COALESCE(`status`,0) NOT IN (2,3,9)) AS returns_open
         """;
 
+    public const string SelectCpFulfillmentPipelineRows = """
+        SELECT o.`id` AS order_id,
+               IFNULL(o.`id`,0) AS order_number,
+               IFNULL((SELECT `email` FROM `users` u WHERE u.`user_id` = o.`user_id` LIMIT 1),'') AS customer_name,
+               IFNULL(o.`paid`,0) AS customer_paid_flag,
+               IFNULL((SELECT SUM(p.`total_amount`) FROM `epc_erp_purchases` p
+                       WHERE p.`active` = 1 AND p.`order_id` = o.`id`),0) AS purchase_total,
+               IFNULL((SELECT SUM(a.`amount`) FROM `epc_erp_supplier_accounting` a
+                       INNER JOIN `epc_erp_purchases` p ON p.`id` = a.`purchase_id`
+                       WHERE p.`active` = 1 AND p.`order_id` = o.`id`
+                         AND a.`active` = 1 AND a.`is_credit` = 0),0) AS supplier_paid,
+               IFNULL((SELECT SUM(i.`count_need`) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`),0) AS qty_total,
+               IFNULL((SELECT SUM(d.`count_issued`) FROM `shop_orders_items_details` d
+                       INNER JOIN `shop_orders_items` i ON i.`id` = d.`order_item_id`
+                       WHERE i.`order_id` = o.`id`),0) AS qty_issued,
+               IFNULL((SELECT SUM(d.`count_reserved`) FROM `shop_orders_items_details` d
+                       INNER JOIN `shop_orders_items` i ON i.`id` = d.`order_item_id`
+                       WHERE i.`order_id` = o.`id`),0) AS qty_reserved,
+               IFNULL((SELECT COUNT(*) FROM `shop_orders_items` i
+                       INNER JOIN `shop_orders_items_statuses_ref` s ON s.`id` = i.`status`
+                       WHERE i.`order_id` = o.`id` AND s.`for_finish` = 1),0) AS lines_delivered,
+               IFNULL((SELECT COUNT(*) FROM `shop_orders_items` i WHERE i.`order_id` = o.`id`),0) AS lines_total,
+               IFNULL((SELECT COUNT(*) FROM `shop_orders_returns` r
+                       INNER JOIN `shop_orders_returns_items` ri ON ri.`return_id` = r.`id`
+                       INNER JOIN `shop_orders_items` i ON i.`id` = ri.`item_id`
+                       WHERE i.`order_id` = o.`id`),0) AS returns_count
+        FROM `shop_orders` o
+        WHERE o.`successfully_created` = 1
+        ORDER BY o.`time` DESC, o.`id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>
     /// PHP <c>epc_fulfillment_list</c> applies <c>status</c> in SQL before
     /// <c>LIMIT</c>. Tab groups match the KPI cards (picking/packing, shipping).

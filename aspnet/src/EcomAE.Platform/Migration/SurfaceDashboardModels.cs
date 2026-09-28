@@ -6457,6 +6457,20 @@ public sealed record CpFulfillmentPipelineSummary(
     int ReturnsOpen,
     string Source,
     string Message);
+public sealed record CpFulfillmentPipelineRow(
+    long OrderId,
+    string OrderNumber,
+    string CustomerName,
+    string CustomerPayment,
+    string SupplierPayment,
+    string StockState,
+    string DeliveryState,
+    string ReturnState,
+    int PipelineStep,
+    decimal PurchaseTotal,
+    decimal SupplierPaid,
+    string Source,
+    string Message);
 public sealed record CpFulfillmentQueueRowDigest(
     long Id,
     string OrderNumber,

@@ -20834,6 +20834,74 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<IReadOnlyList<CpFulfillmentPipelineRow>> BuildCpFulfillmentPipelineRowsAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            return [];
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCpFulfillmentPipelineRows;
+            AddParameter(command, "@limit", Math.Clamp(limit, 1, 200));
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpFulfillmentPipelineRow>();
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var customerPaid = ReaderInt32(reader, "customer_paid_flag") != 0;
+                var purchaseTotal = ReaderDecimal(reader, "purchase_total");
+                var supplierPaid = ReaderDecimal(reader, "supplier_paid");
+                var qtyTotal = ReaderDecimal(reader, "qty_total");
+                var qtyIssued = ReaderDecimal(reader, "qty_issued");
+                var qtyReserved = ReaderDecimal(reader, "qty_reserved");
+                var linesTotal = ReaderInt32(reader, "lines_total");
+                var linesDelivered = ReaderInt32(reader, "lines_delivered");
+                var returns = ReaderInt32(reader, "returns_count");
+                var customerState = customerPaid ? "paid" : "pending";
+                var supplierState = purchaseTotal <= 0m
+                    ? "none"
+                    : supplierPaid >= purchaseTotal - 0.01m ? "paid"
+                    : supplierPaid > 0.01m ? "advance" : "credit";
+                var stockState = qtyTotal <= 0m
+                    ? "none"
+                    : qtyIssued >= qtyTotal - 0.001m ? "in_stock"
+                    : qtyIssued > 0m || qtyReserved > 0m ? "partial" : "awaiting";
+                var deliveryState = linesTotal > 0 && linesDelivered >= linesTotal
+                    ? "delivered"
+                    : linesDelivered > 0 ? "partial" : "pending";
+                var returnState = returns > 0 ? "open" : "none";
+                var step = returnState == "open" ? 6
+                    : deliveryState == "delivered" ? 5
+                    : stockState is "in_stock" or "partial" ? 4
+                    : supplierState is "paid" or "advance" ? 3
+                    : customerState != "pending" ? 2 : 1;
+                rows.Add(new(
+                    ReaderInt64(reader, "order_id"),
+                    ReaderString(reader, "order_number"),
+                    ReaderString(reader, "customer_name"),
+                    customerState,
+                    supplierState,
+                    stockState,
+                    deliveryState,
+                    returnState,
+                    step,
+                    purchaseTotal,
+                    supplierPaid,
+                    "database",
+                    string.Empty));
+            }
+
+            return rows;
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
     public async Task<CpFulfillmentDetailDigest?> GetCpFulfillmentDetailAsync(long fulfillmentId, CancellationToken cancellationToken = default)
     {
         if (fulfillmentId <= 0 || !_connections.IsConfigured)
