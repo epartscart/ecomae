@@ -107,6 +107,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/invoice-bridge/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-bridge\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/invoice-reconciliation\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/commercial-reconciliation\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/acceptance-evidence\"", routes, StringComparison.Ordinal);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-01").Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.Contains("dashboards", StringComparison.OrdinalIgnoreCase)).Status);
@@ -149,6 +150,11 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("Fit-out VAT / invoice bridge", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/fitout/invoice-bridge\"", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/fitout/invoice-reconciliation\"", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/fitout/commercial-reconciliation\"", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains(
+            "IErpFitOutCommercialReconciliationReadService",
+            File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs")),
+            StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/fitout/acceptance-evidence\"", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("work_completion_certificate", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("subcontract_payment_certificate", projectAccounting, StringComparison.Ordinal);
