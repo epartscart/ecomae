@@ -14,6 +14,9 @@ public sealed class ErpPrintDesignerSavePhpParityTests
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"doc_type\"", text, StringComparison.Ordinal);
         Assert.Contains("New print template", text, StringComparison.Ordinal);
+        Assert.Contains("full HTML/CSS bodies", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("280-character HTML/CSS excerpts", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Excerpt only", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes=0", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
