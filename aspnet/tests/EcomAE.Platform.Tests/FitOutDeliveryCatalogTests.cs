@@ -120,8 +120,12 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("subcontract_payment_certificate", deliveryService, StringComparison.Ordinal);
         Assert.Contains("work_completion_certificate", deliveryService, StringComparison.Ordinal);
         Assert.Contains("client_payment_certificate", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("supplier_rfq", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("subcontractor_progress_claim", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("client_progress_claim", deliveryService, StringComparison.Ordinal);
         Assert.Contains("vendor_bill", deliveryService, StringComparison.Ordinal);
         Assert.Contains("payment_voucher", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("retention_release", deliveryService, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);
@@ -149,8 +153,12 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("work_completion_certificate", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("subcontract_payment_certificate", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("client_payment_certificate", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("supplier_rfq", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("subcontractor_progress_claim", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("client_progress_claim", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("vendor_bill", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("payment_voucher", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("retention_release", projectAccounting, StringComparison.Ordinal);
     }
 
     [Fact]
