@@ -1,6 +1,8 @@
 @page "/erp/print-designer-app"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
+@using System.Net
+@using System.Text.Json
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
@@ -263,12 +265,13 @@
 
             var header = _opened.HeaderHtmlExcerpt;
             var footer = _opened.FooterHtmlExcerpt;
-            var body = _opened.TermsHtmlExcerpt;
+            var body = RenderPreviewTable(_opened.BodyColumns);
+            var terms = _opened.TermsHtmlExcerpt;
             var bank = _opened.BankDetailsHtmlExcerpt;
             var css = _opened.CustomCssExcerpt;
             var sections = string.Join(
                 Environment.NewLine,
-                new[] { header, "<main><h2>Print template preview</h2><p>Document body content is rendered by the selected document workflow.</p>", body, bank, footer }
+                new[] { header, "<main><h2>Print template preview</h2>", body, terms, bank, "</main>", footer }
                     .Where(section => !string.IsNullOrWhiteSpace(section)));
 
             return $$"""
@@ -287,6 +290,44 @@
                 <body>{{sections}}</body>
                 </html>
                 """;
+        }
+    }
+
+    private static string RenderPreviewTable(string columnsJson)
+    {
+        if (string.IsNullOrWhiteSpace(columnsJson)) return "<p>No body columns configured.</p>";
+
+        try
+        {
+            using var document = JsonDocument.Parse(columnsJson);
+            if (document.RootElement.ValueKind != JsonValueKind.Array) return "<p>No body columns configured.</p>";
+
+            var headers = new List<string>();
+            foreach (var column in document.RootElement.EnumerateArray())
+            {
+                if (column.ValueKind != JsonValueKind.Object) continue;
+                var label = column.TryGetProperty("label", out var labelValue)
+                    ? labelValue.GetString()
+                    : null;
+                var key = column.TryGetProperty("key", out var keyValue)
+                    ? keyValue.GetString()
+                    : null;
+                var text = string.IsNullOrWhiteSpace(label) ? key : label;
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    headers.Add("<th>" + WebUtility.HtmlEncode(text) + "</th>");
+                }
+            }
+
+            if (headers.Count == 0) return "<p>No body columns configured.</p>";
+            return "<table class=\"print-table\"><thead><tr>" + string.Concat(headers) +
+                   "</tr></thead><tbody><tr>" +
+                   string.Concat(headers.Select(_ => "<td>Sample value</td>")) +
+                   "</tr></tbody></table>";
+        }
+        catch (JsonException)
+        {
+            return "<p>Body columns JSON is invalid.</p>";
         }
     }
 
