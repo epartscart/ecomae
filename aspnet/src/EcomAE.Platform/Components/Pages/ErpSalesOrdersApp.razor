@@ -187,6 +187,18 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
             </dl>
+            @if (_isAdmin && _openedDetail.Id > 0)
+            {
+                <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
+                    <strong style="width:100%">Sales order lifecycle</strong>
+                    <form method="post" action="/erp/sales-orders/cancel" style="display:flex;gap:.35rem;align-items:end">
+                        <input type="hidden" name="salesOrderId" value="@_openedDetail.Id" />
+                        <label>Reason <input type="text" name="reason" maxlength="255" placeholder="Cancellation reason" /></label>
+                        <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate cancel</button>
+                        <button type="submit" name="confirmWrites" value="true" class="btn btn-warning btn-xs">Cancel sales order</button>
+                    </form>
+                </div>
+            }
             <p class="text-muted" style="margin:.85rem 0 0">Settlement and edit-lock write here. Confirm, invoice, and delete stay Classic.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {

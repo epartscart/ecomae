@@ -243,6 +243,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("NotesExcerpt", text, StringComparison.Ordinal);
         Assert.Contains("AmountExVat", text, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", text, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("action=\"/erp/sales-orders/cancel\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"salesOrderId\"", text, StringComparison.Ordinal);
         Assert.Contains("stay Classic", text, StringComparison.Ordinal);
         Assert.Contains("/erp/orders/settlement", text, StringComparison.Ordinal);
         Assert.Contains("erp-sales-orders.js", text, StringComparison.Ordinal);
