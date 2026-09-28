@@ -1,5 +1,23 @@
 namespace EcomAE.Platform.Erp;
 
+public static class ErpFitOutApprovalPolicy
+{
+    public static string ResolveInitialStatus(
+        string recordType,
+        decimal amount,
+        decimal? threshold)
+    {
+        if (!string.Equals(recordType, "approval_request", StringComparison.Ordinal))
+        {
+            return "pending";
+        }
+
+        return threshold is > 0m && amount <= threshold.Value
+            ? "approved"
+            : "pending";
+    }
+}
+
 public interface IErpFitOutDeliveryRecordWriteService
 {
     Task<ErpSimpleWriteResult> SaveAsync(
@@ -264,6 +282,17 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             return ErpSimpleWriteResult.Ok("Fit-out delivery record saved", request.Id);
         }
 
+        if (recordType == "approval_request")
+        {
+            var threshold = await LoadApprovalThresholdAsync(
+                connection,
+                cancellationToken).ConfigureAwait(false);
+            status = ErpFitOutApprovalPolicy.ResolveInitialStatus(
+                recordType,
+                amount,
+                threshold);
+        }
+
         await ErpDb.ExecuteAsync(
             connection,
             null,
@@ -294,6 +323,45 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             null,
             cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Fit-out delivery record saved", id);
+    }
+
+    private static async Task<decimal?> LoadApprovalThresholdAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var tableExists = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                """
+                SELECT COUNT(*)
+                FROM information_schema.tables
+                WHERE table_schema=DATABASE() AND table_name=?
+                """),
+            cancellationToken,
+            "epc_proc_policy").ConfigureAwait(false);
+        if (tableExists == 0)
+        {
+            return null;
+        }
+
+        var value = await ErpDb.ScalarAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                """
+                SELECT `approval_threshold`
+                FROM `epc_proc_policy`
+                WHERE `active`=1 AND `category_id`=0
+                ORDER BY `id` DESC
+                LIMIT 1
+                """),
+            cancellationToken).ConfigureAwait(false);
+        return value is null || value is DBNull
+            ? null
+            : Convert.ToDecimal(
+                value,
+                System.Globalization.CultureInfo.InvariantCulture);
     }
 
     public async Task<ErpSimpleWriteResult> DecideApprovalAsync(
