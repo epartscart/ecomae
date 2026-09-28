@@ -560,8 +560,73 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddCoaLine, HandleOpeningAddCoaLineAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddInvLine, HandleOpeningAddInvLineAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningPostBatch, HandleOpeningPostBatchAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveRfq, async (HttpContext context, ErpSaveRfqBody? body, ILegacySessionValidator validator, IErpSaveRfqDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSaveRfqRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveRfq, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpSaveRfqDryRun dryRun,
+            IErpRfqWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            ErpSaveRfqBody body;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new(
+                    LiveWriteFormBinder.Long(form, "id"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                    LiveWriteFormBinder.Long(form, "supplier_id", "supplierId"),
+                    form["title"].ToString(),
+                    form["description"].ToString(),
+                    LiveWriteFormBinder.Dec(form, "amount_est", "amountEstimate"),
+                    form["status"].ToString(),
+                    string.IsNullOrWhiteSpace(form["due_date"].ToString()) ? form["dueDate"].ToString() : form["due_date"].ToString(),
+                    LiveWriteFormBinder.Long(form, "order_id", "orderId"));
+            }
+            else
+            {
+                body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSaveRfqBody>(context, cancellationToken)
+                    ?? new();
+            }
+
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(dryRun.Evaluate(
+                    new ErpSaveRfqRequest(body.Id, body.Title, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SaveAsync(
+                new ErpRfqWriteRequest(
+                    body.Id,
+                    body.SupplierId,
+                    body.Title,
+                    body.Description,
+                    body.AmountEstimate,
+                    body.Status,
+                    body.DueDate,
+                    body.OrderId,
+                    session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                LiveWriteFormBinder.ReturnUrl(context, "/erp/rfq-app"),
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    id = written.Id,
+                    message = written.Message,
+                    phpAuthoritative = false,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDeliveryNoteCreate, async (HttpContext context, ErpDeliveryNoteCreateBody? body, ILegacySessionValidator validator, IErpDeliveryNoteCreateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDeliveryNoteCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveContact, async (HttpContext context, ErpSaveContactBody? body, ILegacySessionValidator validator, IErpSaveContactDryRun dryRun, CancellationToken cancellationToken) =>
@@ -20887,7 +20952,16 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpOpeningAddCoaLineBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOpeningAddInvLineBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOpeningPostBatchBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpSaveRfqBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpSaveRfqBody(
+        long Id = 0,
+        bool ConfirmWrites = false,
+        long SupplierId = 0,
+        string? Title = null,
+        string? Description = null,
+        decimal AmountEstimate = 0,
+        string? Status = null,
+        string? DueDate = null,
+        long OrderId = 0);
     private sealed record ErpDeliveryNoteCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpSaveContactBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpSyncContactsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
