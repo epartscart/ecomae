@@ -54,7 +54,9 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "subcontract_order",
         "subcontract_measurement",
         "subcontract_certification",
+        "subcontract_payment_certificate",
         "work_completion_certificate",
+        "client_payment_certificate",
         "site_daily_report",
         "site_photo",
         "variation",
@@ -128,6 +130,15 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             return ErpSimpleWriteResult.Fail(
                 "invalid",
                 "Work completion certificates require an amount or completion percentage.");
+        }
+
+        if ((recordType == "subcontract_payment_certificate"
+                || recordType == "client_payment_certificate")
+            && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Payment certificates require a positive certified amount.");
         }
 
         if (recordType == "progress_claim"
@@ -212,7 +223,9 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "subcontract_order" => "draft",
                 "subcontract_measurement" => "draft",
                 "subcontract_certification" => "pending",
+                "subcontract_payment_certificate" => "pending",
                 "work_completion_certificate" => "pending",
+                "client_payment_certificate" => "pending",
                 "site_daily_report" => "submitted",
                 "site_photo" => "attached",
                 "variation" => "draft",
