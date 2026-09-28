@@ -54,8 +54,11 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "subcontract_order",
         "subcontract_measurement",
         "subcontract_certification",
+        "supplier_rfq",
+        "subcontractor_progress_claim",
         "subcontract_payment_certificate",
         "work_completion_certificate",
+        "client_progress_claim",
         "client_payment_certificate",
         "vendor_bill",
         "payment_voucher",
@@ -71,6 +74,7 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "timesheet",
         "weighted_progress",
         "retention_recovery",
+        "retention_release",
         "advance_recovery",
         "approval_request"
     };
@@ -152,12 +156,23 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         }
 
         if (recordType == "progress_claim"
-            && request.Amount <= 0m
-            && request.CompletionPercent <= 0m)
+            || recordType == "subcontractor_progress_claim"
+            || recordType == "client_progress_claim")
+        {
+            if (request.Amount <= 0m && request.CompletionPercent <= 0m)
+            {
+                return ErpSimpleWriteResult.Fail(
+                    "invalid",
+                    "Progress claims require an amount or completion percentage.");
+            }
+        }
+
+        if (recordType == "supplier_rfq"
+            && request.Amount < 0m)
         {
             return ErpSimpleWriteResult.Fail(
                 "invalid",
-                "Progress claims require an amount or completion percentage.");
+                "Supplier RFQs cannot have a negative quoted amount.");
         }
 
         if ((recordType == "weighted_progress"
@@ -169,6 +184,13 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             return ErpSimpleWriteResult.Fail(
                 "invalid",
                 "Progress and recovery records require an amount or completion percentage.");
+        }
+
+        if (recordType == "retention_release" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Retention releases require a positive release amount.");
         }
 
         if ((recordType == "equipment_usage" || recordType == "timesheet")
@@ -233,8 +255,11 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "subcontract_order" => "draft",
                 "subcontract_measurement" => "draft",
                 "subcontract_certification" => "pending",
+                "supplier_rfq" => "draft",
+                "subcontractor_progress_claim" => "pending",
                 "subcontract_payment_certificate" => "pending",
                 "work_completion_certificate" => "pending",
+                "client_progress_claim" => "pending",
                 "client_payment_certificate" => "pending",
                 "vendor_bill" => "draft",
                 "payment_voucher" => "draft",
@@ -250,6 +275,7 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "timesheet" => "draft",
                 "weighted_progress" => "draft",
                 "retention_recovery" => "draft",
+                "retention_release" => "pending",
                 "advance_recovery" => "draft",
                 "approval_request" => "pending",
                 _ => "draft"

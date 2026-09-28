@@ -31,7 +31,7 @@ remains pending until its ASP.NET workflow, tenant isolation, PHP side-by-side e
 acceptance, and production validation are recorded. The supplied local `file:///C:/...` path is not
 accessible from the Devin VM, so no claims are made about content unique to that attachment.
 The attached contracting evaluation adds this explicit acceptance checklist to B-F (not a new
-completion percentage): `[ ]` supplier quotations/RFQs; `[ ]` purchase/work orders; `[~]`
+completion percentage): `[~]` supplier quotations/RFQs; `[ ]` purchase/work orders; `[~]`
 subcontractor management; `[~]` monthly subcontractor progress claims; `[~]` subcontractor payment
 certificates; `[~]` site-engineer and project-manager approval levels; `[~]` vendor bills/AP invoice
 flow; `[~]` payment vouchers; `[~]` client progress claims; `[~]` client payment certificates;
