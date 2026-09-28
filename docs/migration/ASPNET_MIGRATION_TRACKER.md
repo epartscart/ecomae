@@ -13,6 +13,13 @@ Order of work (user sequence): **CP build → ERP build → storefront/others bu
 Progress measurement (reported to the user on every completed step): `done / total` checklist items per phase and overall,
 plus pending %. Weighting: Phase A 20 %, B 45 % (B-J 8 %, B-F 7 % inside), C 15 %, D 8 %, E 7 %, F 5 %.
 Current: A 24/24 items (≈99 %) · B 0/21 · C 0/8 · D 0/6 · E 0/4 · F 0/2 → **overall ≈ 20.4 % done / 79.6 % pending**.
+The headline remains unchanged when a slice improves inside an open weighted phase: this
+tracker intentionally counts only closed phase gates, not partial-field or route evidence.
+Current measured sub-slices that do not yet close a phase are: print-template editor
+`26/26` allowlisted fields exposed in the edit UI (HTML/CSS values remain excerpt-limited),
+CP/ERP static destination audits `34/34`,
+`11/11`, `95/95`, and `224/224`, and focused print-designer verification `6/6`.
+These figures are reported separately so the headline cannot overstate migration completion.
 Latest ERP sub-slice: B0 navigation governance 4/4 controls landed (reconciliation, tenant deny flags,
 explicit pack IDs, inspection projection); B5 manual GL journal posting, posted-journal reversal, and
 closed-period guards, opened-journal line drill-down, PHP COA-backed account selectors, debit/credit balance summaries, and selectable posting dates are now live. The phase-level
@@ -262,8 +269,8 @@ Standing rules that apply to every item below:
       configurable approval engine (thresholds, levels), numbering (`QT-2026-00001` …), RBAC roles, dashboards (CEO/PM/finance/procurement),
       reports (sales/estimation/projects/procurement/inventory/subcontract/finance); shares ERP masters (customer, supplier, item,
       COA, tax, warehouse, currency); D365-style forms; phased P1 core → P2 operations → P3 finance → P4 advanced; MVP = 32-step scenario
-- [ ] All 321 `ajax_erp.php` actions have an ASP.NET dispatcher case (CSRF + RBAC) — tracked by a parity test
-- [ ] **ERP document/report designer** — per-tenant/company (optional branch) templates for vouchers, invoices, orders, statements,
+- [~] All 321 `ajax_erp.php` actions have an ASP.NET dispatcher case (CSRF + RBAC) — tracked by a parity test
+- [~] **ERP document/report designer** — per-tenant/company (optional branch) templates for vouchers, invoices, orders, statements,
       reports: logo, header/footer, fonts, colours, columns, layout, number/date formats, print/PDF/email variants, preview,
       versioning + effective dating, audit, rollback, tenant isolation, safe template content
 - [ ] Statutory profile tests for ≥ 2 countries (UAE + one non-UAE)
@@ -285,7 +292,7 @@ Standing rules that apply to every item below:
 ## Phase D — Platform hardening & operations (during and after migration)
 - [ ] Tenant isolation review per module (no cross-tenant reads, degraded-shared guard, credentials never leak)
 - [ ] Security: CSRF on all writes, RBAC/ACL parity, audit on all mutations, rate limits, secure headers
-- [ ] Zero-downtime releases: rolling/blue-green Kestrel, readiness/liveness probes, graceful drain, persisted session state,
+ - [~] Zero-downtime releases: readiness/liveness probes, bounded graceful drain, and deploy health waiting are implemented; rolling/blue-green Kestrel, persisted session state,
       backward-compatible app/DB versions, expand-then-contract migrations, rollback runbook
 - [ ] On-premises installation package + multi-version compatibility (1000 tenants, multi-industry, multi-country)
 - [ ] Versioning, licensing/rights, compliance & policy documentation
