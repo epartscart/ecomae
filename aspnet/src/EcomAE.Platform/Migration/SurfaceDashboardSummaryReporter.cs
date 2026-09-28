@@ -2518,7 +2518,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         ReadI32(reader, "order_id"),
                         ReadI32(reader, "purchase_id"),
                         ReadI32(reader, "transfer_pair_id"),
-                        ReadI32(reader, "admin_id"));
+                        ReadI32(reader, "admin_id"),
+                        []);
                 }
             }
 
@@ -2526,6 +2527,33 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 return new(null, [], "database", "Cash entry not found.");
             }
+
+            var allocations = new List<ErpSettlementAllocationDigest>();
+            try
+            {
+                await using var allocationCommand = connection.CreateCommand();
+                allocationCommand.CommandText = LegacySurfaceDashboardSql.SelectErpSettlementAllocationsForCashEntry;
+                AddParameter(allocationCommand, "@cashEntryId", id);
+                await using var allocationReader = await allocationCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await allocationReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    allocations.Add(new(
+                        ReadI64(allocationReader, "id"),
+                        ReadStr(allocationReader, "doc_type"),
+                        ReadI64(allocationReader, "invoice_id"),
+                        ReadI64(allocationReader, "counterparty_id"),
+                        ReadDec(allocationReader, "amount"),
+                        ReadI64(allocationReader, "time"),
+                        ReadStr(allocationReader, "voucher_no"),
+                        ReadI32(allocationReader, "admin_id")));
+                }
+            }
+            catch (DbException)
+            {
+                allocations = [];
+            }
+
+            header = header with { Allocations = allocations };
 
             var siblings = new List<ErpCashEntryDigest>();
             await using (var cmd = connection.CreateCommand())

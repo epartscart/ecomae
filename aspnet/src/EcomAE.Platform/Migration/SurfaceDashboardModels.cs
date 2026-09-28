@@ -610,6 +610,17 @@ public sealed record ErpCashEntryDetail(
     int OrderId,
     int PurchaseId,
     int TransferPairId,
+    int AdminId,
+    IReadOnlyList<ErpSettlementAllocationDigest> Allocations);
+
+public sealed record ErpSettlementAllocationDigest(
+    long Id,
+    string DocumentType,
+    long InvoiceId,
+    long CounterpartyId,
+    decimal Amount,
+    long TimeUnix,
+    string VoucherNumber,
     int AdminId);
 
 public sealed record ErpCashEntryDetailResult(
