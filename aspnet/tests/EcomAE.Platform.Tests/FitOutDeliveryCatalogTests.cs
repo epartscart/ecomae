@@ -171,6 +171,8 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("record_type`='retention_release'", reconciliation, StringComparison.Ordinal);
         Assert.Contains("status`='approved'", reconciliation, StringComparison.Ordinal);
         Assert.Contains("ApprovedVariationAmount", reconciliation, StringComparison.Ordinal);
+        Assert.Contains("ClientCertifiedAmount", reconciliation, StringComparison.Ordinal);
+        Assert.Contains("SubcontractCertifiedAmount", reconciliation, StringComparison.Ordinal);
         Assert.Contains("variation_approval", reconciliation, StringComparison.Ordinal);
         Assert.Contains("client_payment_certificate", reconciliation, StringComparison.Ordinal);
         Assert.Contains("record_type`='vendor_bill'", reconciliation, StringComparison.Ordinal);
