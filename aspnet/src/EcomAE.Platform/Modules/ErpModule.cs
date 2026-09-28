@@ -637,8 +637,80 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxDeliveryNoteCreate, async (HttpContext context, ErpDeliveryNoteCreateBody? body, ILegacySessionValidator validator, IErpDeliveryNoteCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDeliveryNoteCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxDeliveryNoteCreate, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpDeliveryNoteCreateDryRun dryRun,
+            IErpDeliveryNoteWriteService writes,
+            IErpDimensionWriteService dimensions,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            ErpDeliveryNoteCreateBody body;
+            IReadOnlyDictionary<string, long>? dim = null;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                dim = ErpDimensionWriteService.ParseDimMap(form);
+                body = new(
+                    LiveWriteFormBinder.Long(form, "order_id", "orderId"),
+                    LiveWriteFormBinder.Text(form, "carrier"),
+                    LiveWriteFormBinder.Text(form, "tracking_no", "trackingNumber"),
+                    LiveWriteFormBinder.Flag(form, "mark_shipped", "markShipped"),
+                    LiveWriteFormBinder.Text(form, "notes"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+            }
+            else
+            {
+                body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpDeliveryNoteCreateBody>(
+                    context,
+                    cancellationToken) ?? new();
+                dim = body.Dim;
+            }
+
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(dryRun.Evaluate(
+                    new ErpDeliveryNoteCreateRequest(body.OrderId, body.Carrier, false))
+                    .ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new ErpDeliveryNoteWriteRequest(
+                    body.OrderId,
+                    body.Carrier,
+                    body.TrackingNumber,
+                    body.MarkShipped,
+                    body.Notes,
+                    session.UserId),
+                cancellationToken);
+            ErpSimpleWriteResult? dimensionResult = null;
+            if (written.Succeeded && written.Id > 0 && dim is { Count: > 0 })
+            {
+                dimensionResult = await dimensions.SaveAsync("delivery_note", written.Id, dim, cancellationToken);
+            }
+
+            return LiveWriteFormBinder.Complete(
+                context,
+                LiveWriteFormBinder.ReturnUrl(context, "/erp/delivery-notes-app"),
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    dimensions = dimensionResult?.Writes ?? 0,
+                    id = written.Id,
+                    message = written.Message,
+                    phpAuthoritative = false,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveContact, async (HttpContext context, ErpSaveContactBody? body, ILegacySessionValidator validator, IErpSaveContactDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSaveContactRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncContacts, async (HttpContext context, ErpSyncContactsBody? body, ILegacySessionValidator validator, IErpSyncContactsDryRun dryRun, CancellationToken cancellationToken) =>
@@ -20973,7 +21045,14 @@ public sealed class ErpModule : ISurfaceModule
         string? DueDate = null,
         long OrderId = 0,
         IReadOnlyDictionary<string, long>? Dim = null);
-    private sealed record ErpDeliveryNoteCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpDeliveryNoteCreateBody(
+        long OrderId = 0,
+        string? Carrier = null,
+        string? TrackingNumber = null,
+        bool MarkShipped = false,
+        string? Notes = null,
+        bool ConfirmWrites = false,
+        IReadOnlyDictionary<string, long>? Dim = null);
     private sealed record ErpSaveContactBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpSyncContactsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpDocumentUploadBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
