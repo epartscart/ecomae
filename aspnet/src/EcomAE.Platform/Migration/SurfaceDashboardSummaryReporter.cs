@@ -27049,6 +27049,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     private static string ReadStr(System.Data.Common.DbDataReader reader, string column)
         => Convert.ToString(reader[column] is DBNull ? string.Empty : reader[column], CultureInfo.InvariantCulture) ?? string.Empty;
 
+    private static long ReadLong(System.Data.Common.DbDataReader reader, string column)
+        => ReadI64(reader, column);
+
     public static string MaskOnPremisesLicenseKey(string? key)
     {
         var k = (key ?? string.Empty).Trim();

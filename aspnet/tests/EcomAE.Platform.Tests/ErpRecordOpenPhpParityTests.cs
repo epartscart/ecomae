@@ -2758,7 +2758,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("DeliveredAt", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Create stays on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("guarded delivery-note route", razor, StringComparison.Ordinal);
         Assert.Contains("Open delivery-note document", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
