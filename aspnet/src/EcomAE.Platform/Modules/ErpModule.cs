@@ -13029,7 +13029,7 @@ public sealed class ErpModule : ISurfaceModule
             source = result.Source,
             message = result.Message,
             session = SessionPayload(session),
-            note = "Tenant-isolated proforma, invoice, and receipt reconciliation by billing stage."
+            note = "Tenant-isolated proforma, invoice, and receipt reconciliation by billing stage, including receipt count and latest posted receipt time."
         });
     }
 
