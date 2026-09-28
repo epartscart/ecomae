@@ -473,7 +473,9 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             ErpDb.Positional("""
                 UPDATE `ecomae_fitout_delivery_records`
                 SET `status`=?,`updated_at_utc`=UTC_TIMESTAMP()
-                WHERE `id`=? AND `record_type`='approval_request' AND `status`='pending'
+                WHERE `id`=?
+                  AND `record_type` IN ('approval_request','site_engineer_approval','project_manager_approval')
+                  AND `status`='pending'
                 """),
             cancellationToken,
             nextStatus,
@@ -481,7 +483,7 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         return affected == 0
             ? ErpSimpleWriteResult.Fail(
                 "not_pending",
-                "Approval request was not found or is no longer pending.")
+                "Approval record was not found or is no longer pending.")
             : ErpSimpleWriteResult.Ok("Fit-out approval decided", id);
     }
 
