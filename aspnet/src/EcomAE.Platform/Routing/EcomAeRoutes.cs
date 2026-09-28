@@ -8,6 +8,7 @@ public static class EcomAeRoutes
     /// <summary>Public SEO entry advertised in robots.txt; redirects to PHP sitemap-index.php.</summary>
     public const string SitemapXml = "/sitemap.xml";
     public const string MigrationStatus = "/migration/status";
+    public const string MigrationSchema = "/migration/schema";
     public const string MigrationReadiness = "/migration/readiness";
     public const string MigrationCutoverPlan = "/migration/cutover-plan";
     public const string MigrationProgress = "/migration/progress";

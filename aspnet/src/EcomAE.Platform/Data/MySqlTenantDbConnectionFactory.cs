@@ -1,4 +1,5 @@
 using System.Data.Common;
+using System.Net.Sockets;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Presentation;
@@ -78,9 +79,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             builder.Password = (password ?? tenant.DbPassword) ?? string.Empty;
         }
 
-        var connection = new MySqlConnection(builder.ConnectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        return connection;
+        return await OpenWithRetryAsync(builder.ConnectionString, cancellationToken).ConfigureAwait(false);
     }
 
     public Task<DbConnection> OpenForTenantAsync(TenantContext? tenant, CancellationToken cancellationToken = default)
@@ -102,9 +101,7 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
         ApplyPoolOptions(builder);
         ApplyFirstPaintTimeouts(builder);
         // Explicitly do not apply TenantContext — portal registry must stay isolated.
-        var connection = new MySqlConnection(builder.ConnectionString);
-        await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
-        return connection;
+        return await OpenWithRetryAsync(builder.ConnectionString, cancellationToken).ConfigureAwait(false);
     }
 
     private TenantContext? CurrentTenant()
@@ -135,6 +132,36 @@ public sealed class MySqlTenantDbConnectionFactory : ITenantDbConnectionFactory
             builder.DefaultCommandTimeout = (uint)pool.DefaultCommandTimeoutSeconds;
         }
     }
+
+    private async Task<DbConnection> OpenWithRetryAsync(
+        string connectionString,
+        CancellationToken cancellationToken)
+    {
+        var pool = _poolOptions.Value;
+        var attempts = Math.Clamp(pool.OpenRetryAttempts, 1, 5);
+        var delay = Math.Clamp(pool.OpenRetryDelayMilliseconds, 25, 2_000);
+
+        for (var attempt = 1; ; attempt++)
+        {
+            try
+            {
+                var connection = new MySqlConnection(connectionString);
+                await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+                return connection;
+            }
+            catch (Exception exception) when (attempt < attempts && IsTransientOpenFailure(exception))
+            {
+                await Task.Delay(TimeSpan.FromMilliseconds(delay * attempt), cancellationToken)
+                    .ConfigureAwait(false);
+            }
+        }
+    }
+
+    private static bool IsTransientOpenFailure(Exception exception)
+        => exception is MySqlException
+            || exception is TimeoutException
+            || exception is SocketException
+            || exception is IOException;
 
     /// <summary>
     /// First paint must not inherit the 30s pool default or 8s connect wait.

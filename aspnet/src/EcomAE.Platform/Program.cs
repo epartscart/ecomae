@@ -13,7 +13,9 @@ using EcomAE.Platform.Security;
 using EcomAE.Platform.Services;
 using EcomAE.Platform.Surfaces;
 using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.AspNetCore.DataProtection;
 using System.IO.Compression;
+using PlatformDataProtectionOptions = EcomAE.Platform.Configuration.DataProtectionOptions;
 
 var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddRazorComponents();
@@ -24,6 +26,18 @@ builder.Services.Configure<PhpReferenceOptions>(builder.Configuration.GetSection
 builder.Services.Configure<PriceLookupOptions>(builder.Configuration.GetSection(PriceLookupOptions.SectionName));
 builder.Services.Configure<SessionCacheOptions>(builder.Configuration.GetSection(SessionCacheOptions.SectionName));
 builder.Services.Configure<TenantDbPoolOptions>(builder.Configuration.GetSection(TenantDbPoolOptions.SectionName));
+builder.Services.Configure<PlatformDataProtectionOptions>(builder.Configuration.GetSection(PlatformDataProtectionOptions.SectionName));
+builder.Services.Configure<SchemaMigrationOptions>(builder.Configuration.GetSection(SchemaMigrationOptions.SectionName));
+var dataProtection = builder.Configuration.GetSection(PlatformDataProtectionOptions.SectionName).Get<PlatformDataProtectionOptions>()
+    ?? new PlatformDataProtectionOptions();
+var dataProtectionBuilder = builder.Services.AddDataProtection()
+    .SetApplicationName(string.IsNullOrWhiteSpace(dataProtection.ApplicationName)
+        ? "EcomAE.Platform"
+        : dataProtection.ApplicationName);
+if (!string.IsNullOrWhiteSpace(dataProtection.KeyDirectory))
+{
+    dataProtectionBuilder.PersistKeysToFileSystem(new DirectoryInfo(dataProtection.KeyDirectory));
+}
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<ConfigurationTenantRegistry>();
@@ -156,6 +170,8 @@ builder.Services.AddSingleton<IDataParityReporter, DataParityReporter>();
 builder.Services.AddSingleton<ICutoverValidationReporter, CutoverValidationReporter>();
 builder.Services.AddSingleton<IPhpReferenceModeReporter, PhpReferenceModeReporter>();
 builder.Services.AddSingleton<IMigrationProgressReporter, MigrationProgressReporter>();
+builder.Services.AddSingleton<IExpandContractMigrationRunner, ExpandContractMigrationRunner>();
+builder.Services.AddHostedService<ExpandContractMigrationHostedService>();
 builder.Services.AddSingleton<ISurfaceParityReporter, SurfaceParityReporter>();
 builder.Services.AddSingleton<IZeroPhpCompletionReporter, ZeroPhpCompletionReporter>();
 builder.Services.AddSingleton<IPhpDecommissionReadinessReporter, PhpDecommissionReadinessReporter>();
@@ -1213,6 +1229,11 @@ app.MapGet(EcomAeRoutes.SitemapXml, () =>
 });
 
 app.MapGet(EcomAeRoutes.MigrationStatus, (IMigrationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+app.MapGet(EcomAeRoutes.MigrationSchema, (IExpandContractMigrationRunner runner) => Results.Ok(new
+{
+    applyOnStartup = builder.Configuration.GetValue<bool>("EcomAE:SchemaMigrations:ApplyOnStartup"),
+    migrations = runner.GetPlan()
+}));
 
 app.MapGet(EcomAeRoutes.MigrationReadiness, (IMigrationReadinessReporter reporter) => Results.Ok(reporter.BuildReport()));
 
