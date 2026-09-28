@@ -15,6 +15,8 @@ public sealed record ErpFitOutExecutiveDashboardRow(
     decimal BoqValue,
     decimal CommittedAmount,
     decimal DeliveryAmount,
+    decimal ClientCertifiedAmount,
+    decimal SubcontractCertifiedAmount,
     decimal DeliveryCompletionPercent,
     decimal PendingApprovalAmount);
 
@@ -62,6 +64,18 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                    (SELECT COALESCE(SUM(`amount`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`) AS `delivery_amount`,
+                   (SELECT COALESCE(SUM(`amount`),0)
+                    FROM `ecomae_fitout_delivery_records`
+                    WHERE `project_id`=p.`project_id`
+                      AND `record_type` IN
+                          ('progress_claim','client_progress_claim','client_payment_certificate')
+                      AND `status`='approved') AS `client_certified_amount`,
+                   (SELECT COALESCE(SUM(`amount`),0)
+                    FROM `ecomae_fitout_delivery_records`
+                    WHERE `project_id`=p.`project_id`
+                      AND `record_type` IN
+                          ('subcontract_certification','subcontractor_progress_claim')
+                      AND `status`='approved') AS `subcontract_certified_amount`,
                    (SELECT COALESCE(AVG(`completion_percent`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`) AS `delivery_completion`,
@@ -104,7 +118,9 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                     reader.GetDecimal(3),
                     reader.GetDecimal(4),
                     reader.GetDecimal(5),
-                    reader.GetDecimal(6)));
+                    reader.GetDecimal(6),
+                    reader.GetDecimal(7),
+                    reader.GetDecimal(8)));
             }
         }
         catch (DbException exception)

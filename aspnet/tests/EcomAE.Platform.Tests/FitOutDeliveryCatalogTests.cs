@@ -141,6 +141,8 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("'site_engineer_approval','project_manager_approval'", executiveDashboard, StringComparison.Ordinal);
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", executiveDashboard, StringComparison.Ordinal);
         Assert.Contains("'subcontract_payment_certificate','client_payment_certificate'", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("client_certified_amount", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("subcontract_certified_amount", executiveDashboard, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("guardedApprovalRecord", deliveryService, StringComparison.Ordinal);
