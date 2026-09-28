@@ -235,13 +235,26 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Final settlements require a positive settlement amount.");
         }
 
-        if (recordType == "approval_request"
+        var guardedApprovalRecord = recordType is
+            "approval_request"
+            or "site_engineer_approval"
+            or "project_manager_approval"
+            or "variation_approval"
+            or "final_settlement"
+            or "work_completion_certificate"
+            or "subcontract_payment_certificate"
+            or "client_payment_certificate"
+            or "retention_release"
+            or "vendor_bill"
+            or "payment_voucher";
+        if (guardedApprovalRecord
             && status.Length > 0
-            && !string.Equals(status, "pending", StringComparison.Ordinal))
+            && !string.Equals(status, "pending", StringComparison.Ordinal)
+            && !string.Equals(status, "draft", StringComparison.Ordinal))
         {
             return ErpSimpleWriteResult.Fail(
                 "invalid",
-                "Approval requests must use the approval decision action for terminal statuses.");
+                "Approval-controlled records must use the approval decision action for terminal statuses.");
         }
 
         if (recordType == "site_daily_report" && description.Length == 0)
