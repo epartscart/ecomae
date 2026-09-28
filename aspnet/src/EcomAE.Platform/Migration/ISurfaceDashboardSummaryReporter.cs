@@ -246,10 +246,10 @@ public interface ISurfaceDashboardSummaryReporter
     Task<ErpCompaniesDigestResult> BuildErpCompaniesDigestAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
-    Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default);
 
     /// <summary>Opened jewellery retail voucher (Open key <c>voc_id</c>) plus same-status siblings. narration is a short excerpt. PII omitted.</summary>
-    Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, CancellationToken cancellationToken = default);
+    Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only price lists (stats_json/error_text/stored_relpath omitted).</summary>
     Task<CpPriceListsDigestResult> BuildCpPriceListsDigestAsync(int limit, CancellationToken cancellationToken = default);
@@ -336,10 +336,10 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpEinvoiceDocumentDetailResult> BuildCpEinvoiceDocumentDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only jewellery repairs (customer PII/narration omitted).</summary>
-    Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<CpJewelleryRepairsDigestResult> BuildCpJewelleryRepairsDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default);
 
     /// <summary>Opened jewellery repair (Open key <c>repair_id</c>) plus same-status siblings. narration/stone_details are short excerpts. Phone/mobile omitted.</summary>
-    Task<CpJewelleryRepairDetailResult> BuildCpJewelleryRepairDetailAsync(long id, CancellationToken cancellationToken = default);
+    Task<CpJewelleryRepairDetailResult> BuildCpJewelleryRepairDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only CRM tickets (message bodies omitted).</summary>
     Task<CpCrmTicketsDigestResult> BuildCpCrmTicketsDigestAsync(int limit, CancellationToken cancellationToken = default);

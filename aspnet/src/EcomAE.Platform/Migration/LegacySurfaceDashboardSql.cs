@@ -2591,10 +2591,10 @@ public static class LegacySurfaceDashboardSql
     /// <summary>Jewellery retail KPIs — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>
     public const string SelectCpJewelleryStats = """
         SELECT
-            (SELECT COUNT(*) FROM `epc_jewel_voucher`) AS voucher_count,
-            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE IFNULL(`status`,'') IN ('draft','posted','authorized')) AS open_vouchers,
-            (SELECT COUNT(*) FROM `epc_jw_tags`) AS tag_count,
-            (SELECT COUNT(*) FROM `epc_jewel_metal_stock`) AS metal_stock_rows
+            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE @companyId = 0 OR `company_id` = @companyId) AS voucher_count,
+            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`status`,'') IN ('draft','posted','authorized')) AS open_vouchers,
+            (SELECT COUNT(*) FROM `epc_jw_tags` WHERE @companyId = 0 OR `company_id` = @companyId) AS tag_count,
+            (SELECT COUNT(*) FROM `epc_jewel_metal_stock` WHERE @companyId = 0 OR `company_id` = @companyId) AS metal_stock_rows
         """;
 
     /// <summary>Jewellery vouchers — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>
@@ -2605,6 +2605,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`net_amount`,0) AS net_amount, IFNULL(`vat_amount`,0) AS vat_amount,
                IFNULL(`total_with_vat`,0) AS total_with_vat
         FROM `epc_jewel_voucher`
+        WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
         LIMIT @limit
         """;
@@ -2620,7 +2621,7 @@ public static class LegacySurfaceDashboardSql
                CHAR_LENGTH(IFNULL(`narration`,'')) AS narration_len,
                LEFT(IFNULL(`narration`,''), 280) AS narration_excerpt
         FROM `epc_jewel_voucher`
-        WHERE `id` = @id
+        WHERE `id` = @id AND (@companyId = 0 OR `company_id` = @companyId)
         LIMIT 1
         """;
 
@@ -2633,6 +2634,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`total_with_vat`,0) AS total_with_vat
         FROM `epc_jewel_voucher`
         WHERE `status` = @status AND `id` <> @id
+          AND (@companyId = 0 OR `company_id` = @companyId)
         ORDER BY `id` DESC
         LIMIT 50
         """;
@@ -4242,10 +4244,10 @@ public static class LegacySurfaceDashboardSql
     /// <summary>Jewellery repair KPIs from epc_jewel_repair (CREATE TABLE in epc_erp_jewellery.php).</summary>
     public const string SelectCpJewelleryRepairStats = """
         SELECT
-            (SELECT COUNT(*) FROM `epc_jewel_repair`) AS repair_count,
-            (SELECT COUNT(*) FROM `epc_jewel_repair` WHERE IFNULL(`status`,'') IN ('received','in_progress','workshop')) AS open_count,
-            (SELECT COUNT(*) FROM `epc_jewel_repair` WHERE IFNULL(`authorized`,0)=1) AS authorized_count,
-            (SELECT COUNT(*) FROM `epc_jewel_repair_items`) AS item_count
+            (SELECT COUNT(*) FROM `epc_jewel_repair` WHERE @companyId = 0 OR `company_id` = @companyId) AS repair_count,
+            (SELECT COUNT(*) FROM `epc_jewel_repair` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`status`,'') IN ('received','in_progress','workshop')) AS open_count,
+            (SELECT COUNT(*) FROM `epc_jewel_repair` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`authorized`,0)=1) AS authorized_count,
+            (SELECT COUNT(*) FROM `epc_jewel_repair_items` i WHERE @companyId = 0 OR EXISTS (SELECT 1 FROM `epc_jewel_repair` h WHERE h.`id` = i.`repair_id` AND h.`company_id` = @companyId)) AS item_count
         """;
 
     /// <summary>Jewellery repairs — Suntech <c>epc_jewel_repair</c> plus first item line. Email/tel/remarks omitted.</summary>
@@ -4266,6 +4268,7 @@ public static class LegacySurfaceDashboardSql
                0 AS estimated_cost
         FROM `epc_jewel_repair` r
         LEFT JOIN `epc_jewel_repair_items` i ON i.`repair_id` = r.`id` AND i.`line_no` = 1
+        WHERE @companyId = 0 OR r.`company_id` = @companyId
         ORDER BY r.`id` DESC
         LIMIT @limit
         """;
@@ -4318,7 +4321,7 @@ public static class LegacySurfaceDashboardSql
                LEFT(IFNULL(r.`repair_narration`,''), 280) AS narration_excerpt
         FROM `epc_jewel_repair` r
         LEFT JOIN `epc_jewel_repair_items` i ON i.`repair_id` = r.`id` AND i.`line_no` = 1
-        WHERE r.`id` = @id
+        WHERE r.`id` = @id AND (@companyId = 0 OR r.`company_id` = @companyId)
         LIMIT 1
         """;
 
@@ -4337,6 +4340,7 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_jewel_repair` r
         LEFT JOIN `epc_jewel_repair_items` i ON i.`repair_id` = r.`id` AND i.`line_no` = 1
         WHERE r.`status` = @status AND r.`id` <> @id
+          AND (@companyId = 0 OR r.`company_id` = @companyId)
         ORDER BY r.`id` DESC
         LIMIT 50
         """;
