@@ -12911,7 +12911,7 @@ public sealed class ErpModule : ISurfaceModule
             projectId,
             reconciliation = result,
             session = SessionPayload(session),
-            note = "Tenant-isolated certification-to-invoice reconciliation using linked invoice totals."
+            note = "Tenant-isolated approved client/subcontract certification-to-invoice reconciliation using linked invoice totals."
         });
     }
 
