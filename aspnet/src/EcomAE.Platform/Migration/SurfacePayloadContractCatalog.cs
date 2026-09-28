@@ -641,7 +641,7 @@ public static class SurfacePayloadContractCatalog
             "cp/templates/bootstrap_admin/erp_desktop.php"),
         Contract("erp", "/erp/print-templates", "epc_erp_print_templates (full HTML/CSS bodies)", "admin-erp",
             ["ok", "surface", "templates", "count", "source", "message", "session", "note"],
-            ["id", "docType", "name", "isDefault", "pageSize", "orientation", "active", "timeUpdated"],
+            ["id", "docType", "name", "isDefault", "pageSize", "orientation", "marginTop", "marginBottom", "marginLeft", "marginRight", "fontFamily", "fontSize", "primaryColor", "secondaryColor", "logoPosition", "logoMaxHeight", "bodyColumns", "showTerms", "termsHtml", "showBankDetails", "bankDetailsHtml", "showSignatureLine", "signatureLabels", "showQrCode", "showBarcode", "headerHtml", "footerHtml", "customCss", "active", "timeUpdated"],
             ["Print designer templates", "Full HTML/CSS bodies plus layout metadata", "rendering/version history remain PHP-authoritative"],
             "cp/templates/bootstrap_admin/erp_desktop.php"),
         Contract("erp", "/erp/order-planning", "epc_erp_order_recommendations + planning params", "admin-erp",
