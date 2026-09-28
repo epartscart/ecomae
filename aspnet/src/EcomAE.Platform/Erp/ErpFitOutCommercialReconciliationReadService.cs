@@ -103,7 +103,7 @@ public sealed class ErpFitOutCommercialReconciliationReadService
                 clientBilled,
                 retentionHeld,
                 totals.RetentionReleased,
-                Math.Max(0m, totals.Certified - clientBilled),
+                Math.Max(0m, totals.ClientCertified - clientBilled),
                 Math.Max(0m, totals.VendorBills - totals.PaymentVouchers),
                 contractValue + approvedVariationAmount
                     - Math.Max(budgetCost, totals.VendorBills),
