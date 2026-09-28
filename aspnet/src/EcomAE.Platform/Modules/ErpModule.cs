@@ -278,6 +278,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpProjectAccountingTxnsAdd, HandlePrjaTxnAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateSave, HandleFitOutEstimateSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutBoqLineSave, HandleFitOutBoqLineSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutContractTermsSave, HandleFitOutContractTermsSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -12292,6 +12293,50 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleFitOutContractTermsSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutContractTermsWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contracts-app", "Admin ERP capability required for fit-out contract terms.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFitOutContractTermsSaveBody>(context, cancellationToken) ?? new();
+        var contractId = body.ContractId;
+        var advance = body.AdvancePercent;
+        var retention = body.RetentionPercent;
+        var warranty = body.WarrantyMonths;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            contractId = LiveWriteFormBinder.Long(form, "contractId", "contract_id");
+            advance = LiveWriteFormBinder.Dec(form, "advancePercent", "advance_percent");
+            retention = LiveWriteFormBinder.Dec(form, "retentionPercent", "retention_percent");
+            warranty = LiveWriteFormBinder.Int(form, "warrantyMonths", "warranty_months");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpFitOutContractTermsSaveRequest(contractId, advance, retention, warranty),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/contracts-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandlePrjSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -18975,6 +19020,12 @@ public sealed class ErpModule : ISurfaceModule
         string? Unit = null,
         decimal UnitRate = 0,
         int SortOrder = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutContractTermsSaveBody(
+        long ContractId = 0,
+        decimal AdvancePercent = 0,
+        decimal RetentionPercent = 0,
+        int WarrantyMonths = 0,
         bool ConfirmWrites = false);
     private sealed record ErpCostmItemSetBody(
         long ItemId = 0,

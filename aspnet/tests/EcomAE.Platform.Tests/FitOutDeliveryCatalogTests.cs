@@ -44,8 +44,10 @@ public sealed class FitOutDeliveryCatalogTests
 
         Assert.Contains("ErpFitOutEstimateSave = \"/erp/fitout/estimates/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutBoqLineSave = \"/erp/fitout/boq-lines/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutContractTermsSave = \"/erp/fitout/contracts/terms/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("HandleFitOutEstimateSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleFitOutBoqLineSaveAsync", module, StringComparison.Ordinal);
     }

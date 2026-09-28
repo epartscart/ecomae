@@ -68,6 +68,16 @@
             <label>OCR text <input name="text" placeholder="Extracted text" style="width:16rem" /></label>
             <button type="submit">Save OCR</button>
         </form>
+        <form method="post" action="/erp/fitout/contracts/terms/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="/erp/contracts-app" />
+            <strong style="width:100%">Fit-out commercial terms</strong>
+            <label>Contract id <input type="number" name="contract_id" min="1" required style="width:6rem" /></label>
+            <label>Advance % <input type="number" name="advance_percent" min="0" max="100" step="0.01" value="0" style="width:6rem" /></label>
+            <label>Retention % <input type="number" name="retention_percent" min="0" max="100" step="0.01" value="0" style="width:6rem" /></label>
+            <label>Warranty months <input type="number" name="warranty_months" min="0" max="1200" value="0" style="width:7rem" /></label>
+            <button type="submit">Save terms</button>
+        </form>
     }
 
     @if (_opened is not null)
