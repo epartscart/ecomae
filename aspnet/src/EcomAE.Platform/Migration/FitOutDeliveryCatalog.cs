@@ -26,7 +26,7 @@ public static class FitOutDeliveryCatalog
         new("P2 operations", "P2 operations", "Purchase requisition and RFQ linkage", "partial", "ERP procurement"),
         new("P2 operations", "P2 operations", "Purchase order and GRN linkage", "partial", "ERP procurement"),
         new("P2 operations", "P2 operations", "Three-way match and tolerance", "partial", "ERP procurement"),
-        new("P2 operations", "P2 operations", "Material issue and return", "pending", "ERP inventory"),
+        new("P2 operations", "P2 operations", "Material issue and return", "partial", "ERP inventory"),
         new("P2 operations", "P2 operations", "Subcontract order and measurement", "pending", "ERP subcontract"),
         new("P2 operations", "P2 operations", "Subcontract certification", "pending", "ERP subcontract"),
         new("P2 operations", "P2 operations", "Site daily report and photo evidence", "pending", "ERP mobile"),
