@@ -34,6 +34,13 @@ public sealed class StorefrontModule : ISurfaceModule
             HandleWebTrackerCollectAsync).DisableAntiforgery().AllowAnonymous();
 
         endpoints.MapGet(EcomAeRoutes.StorefrontParity, (IStorefrontParityReporter reporter) => Results.Ok(reporter.BuildReport()));
+        endpoints.MapGet(EcomAeRoutes.StorefrontShell, (
+            HttpContext context,
+            ISurfaceShellCatalog shells) =>
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            return Results.Ok(shells.Build("storefront", tenant));
+        });
 
         endpoints.MapGet("/storefront/migration-placeholder", () =>
             Results.Redirect("/storefront/app", permanent: false));

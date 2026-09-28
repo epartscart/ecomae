@@ -2400,6 +2400,7 @@ public static class EcomAeRoutes
     public const string PriceLookupParity = "/api/v1/price/parity";
     public const string StorefrontParity = "/storefront/parity";
     public const string StorefrontApp = "/storefront/app";
+    public const string StorefrontShell = "/storefront/shell";
     /// <summary>
     /// www.ecomae.com marketing Blazor preview (animated epm-hub). Live marketing home/pages remain PHP.
     /// </summary>

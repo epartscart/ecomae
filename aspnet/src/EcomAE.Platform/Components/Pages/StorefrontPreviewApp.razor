@@ -57,6 +57,11 @@ else
                     Continue on the <a href="/">storefront home</a> or <a href="@StorefrontSurfaceLinks.PartSearch">search</a>.
                 </div>
             }
+            <PhpHybridModuleDirectory
+                Title="Complete storefront surface directory"
+                Subtitle="@($"{PhpModuleCatalog.StorefrontSurfaces.Count} PHP-reference storefront surfaces")"
+                Links="@PhpModuleCatalog.StorefrontSurfaces"
+                PhpWorkspaceBase="/storefront/app" />
         </ChildContent>
     </PhpStorefrontDesktopChrome>
 }

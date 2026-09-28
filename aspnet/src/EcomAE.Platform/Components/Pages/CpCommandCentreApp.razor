@@ -545,6 +545,11 @@ else
     })();
     </script>
 }
+    <PhpHybridModuleDirectory
+        Title="Complete CP module directory"
+        Subtitle="@($"{PhpModuleCatalog.CpBrochureFeatures.Count} PHP-reference CP modules")"
+        Links="@PhpModuleCatalog.CpBrochureFeatures"
+        PhpWorkspaceBase="/cp/app" />
 </PhpCpDesktopChrome>
 
 @code {
