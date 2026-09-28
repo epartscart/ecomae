@@ -80,8 +80,24 @@ public sealed class ErpFitOutContractClosureReadService
             await using var command = connection.CreateCommand();
             command.CommandText = ErpDb.Positional("""
                 SELECT
-                    COALESCE(SUM(CASE WHEN `status`='pending' THEN 1 ELSE 0 END),0),
-                    COALESCE(SUM(CASE WHEN `status`='pending' THEN `amount` ELSE 0 END),0),
+                    COALESCE(SUM(CASE WHEN `status`='pending'
+                                      AND `record_type` IN (
+                                          'approval_request','site_engineer_approval',
+                                          'project_manager_approval','variation_approval',
+                                          'final_settlement','work_completion_certificate',
+                                          'subcontract_payment_certificate',
+                                          'client_payment_certificate','retention_release',
+                                          'vendor_bill','payment_voucher')
+                                      THEN 1 ELSE 0 END),0),
+                    COALESCE(SUM(CASE WHEN `status`='pending'
+                                      AND `record_type` IN (
+                                          'approval_request','site_engineer_approval',
+                                          'project_manager_approval','variation_approval',
+                                          'final_settlement','work_completion_certificate',
+                                          'subcontract_payment_certificate',
+                                          'client_payment_certificate','retention_release',
+                                          'vendor_bill','payment_voucher')
+                                      THEN `amount` ELSE 0 END),0),
                     COALESCE(SUM(CASE WHEN `record_type`='work_completion_certificate'
                                       AND `status`='approved' THEN 1 ELSE 0 END),0),
                     COALESCE(SUM(CASE WHEN `record_type`='final_settlement'
