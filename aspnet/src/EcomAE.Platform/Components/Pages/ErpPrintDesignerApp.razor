@@ -162,6 +162,31 @@
     </div>
 </PhpErpDesktopChrome>
 
+@if (_opened is not null)
+{
+    <ErpPhpCreateWell Title="Edit print template">
+        <form method="post" action="/erp/print-designer/save" style="display:grid;grid-template-columns:repeat(3,minmax(180px,1fr));gap:8px;align-items:end;margin-bottom:1rem;">
+            <input type="hidden" name="id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+            <input type="hidden" name="confirmWrites" value="true" />
+            <label>Doc type <input class="form-control input-sm" name="doc_type" value="@_opened.DocType" /></label>
+            <label>Name <input class="form-control input-sm" name="name" value="@_opened.Name" /></label>
+            <label>Page <input class="form-control input-sm" name="page_size" value="@_opened.PageSize" /></label>
+            <label>Orientation <input class="form-control input-sm" name="orientation" value="@_opened.Orientation" /></label>
+            <label>Font <input class="form-control input-sm" name="font_family" value="@_opened.FontFamily" /></label>
+            <label>Font size <input class="form-control input-sm" name="font_size" value="@_opened.FontSize" /></label>
+            <label>Primary color <input class="form-control input-sm" name="primary_color" value="@_opened.PrimaryColor" /></label>
+            <label>Secondary color <input class="form-control input-sm" name="secondary_color" value="@_opened.SecondaryColor" /></label>
+            <label>Logo position <input class="form-control input-sm" name="logo_position" value="@_opened.LogoPosition" /></label>
+            <label style="grid-column:span 3">Header HTML <textarea class="form-control input-sm" name="header_html" rows="3">@_opened.HeaderHtmlExcerpt</textarea></label>
+            <label style="grid-column:span 3">Footer HTML <textarea class="form-control input-sm" name="footer_html" rows="3">@_opened.FooterHtmlExcerpt</textarea></label>
+            <label style="grid-column:span 3">Custom CSS <textarea class="form-control input-sm" name="custom_css" rows="4">@_opened.CustomCssExcerpt</textarea></label>
+            <label><input type="checkbox" name="is_default" value="1" checked="@_opened.IsDefault" /> Default</label>
+            <button type="submit" class="btn btn-primary btn-sm">Save template</button>
+        </form>
+    </ErpPhpCreateWell>
+}
+
 <ErpPhpCreateWell Title="New print template">
 <form method="post" action="/erp/print-designer/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
                 <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?template_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
