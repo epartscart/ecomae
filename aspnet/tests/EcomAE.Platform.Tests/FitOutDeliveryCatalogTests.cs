@@ -9,7 +9,7 @@ public sealed class FitOutDeliveryCatalogTests
     [Fact]
     public void CatalogPreservesTheFullPhasedFitOutScenario()
     {
-        Assert.Equal(32, FitOutDeliveryCatalog.Steps.Count);
+        Assert.Equal(33, FitOutDeliveryCatalog.Steps.Count);
         Assert.Equal(4, FitOutDeliveryCatalog.Steps.Select(step => step.Phase).Distinct(StringComparer.Ordinal).Count());
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Estimate and BOQ header");
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-07").Status);
@@ -39,6 +39,21 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Equal(
             "partial",
             FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Progress claim and certification").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "RFI and drawing revisions").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "QA/QC inspection and snag lifecycle").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Weighted BOQ progress").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Retention and advance recovery").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Numbering and approval thresholds").Status);
     }
 
     [Fact]
@@ -65,6 +80,7 @@ public sealed class FitOutDeliveryCatalogTests
     {
         var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutEstimateWriteService.cs"));
+        var deliveryService = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutDeliveryRecordWriteService.cs"));
         var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
 
         Assert.Contains("ErpFitOutEstimateSave = \"/erp/fitout/estimates/save\"", routes, StringComparison.Ordinal);
@@ -76,6 +92,12 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/three-way-matches/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/material-movements/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/delivery-records/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/project-pnl\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/estimates/csv\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/delivery-dashboard\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/recovery-summary\"", routes, StringComparison.Ordinal);
+        Assert.Contains("equipment_usage", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("timesheet", deliveryService, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);

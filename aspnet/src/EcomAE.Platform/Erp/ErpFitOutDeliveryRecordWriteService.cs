@@ -34,7 +34,17 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "site_daily_report",
         "site_photo",
         "variation",
-        "progress_claim"
+        "progress_claim",
+        "rfi",
+        "drawing_revision",
+        "qa_inspection",
+        "snag",
+        "equipment_usage",
+        "timesheet",
+        "weighted_progress",
+        "retention_recovery",
+        "advance_recovery",
+        "approval_request"
     };
 
     private readonly IErpWriteConnectionFactory _connections;
@@ -96,11 +106,50 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Progress claims require an amount or completion percentage.");
         }
 
+        if ((recordType == "weighted_progress"
+                || recordType == "retention_recovery"
+                || recordType == "advance_recovery")
+            && request.Amount <= 0m
+            && request.CompletionPercent <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Progress and recovery records require an amount or completion percentage.");
+        }
+
+        if ((recordType == "equipment_usage" || recordType == "timesheet")
+            && request.Quantity <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Equipment usage and timesheet records require a positive quantity.");
+        }
+
+        if (recordType == "approval_request" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Approval requests require a positive approval amount.");
+        }
+
         if (recordType == "site_daily_report" && description.Length == 0)
         {
             return ErpSimpleWriteResult.Fail(
                 "invalid",
                 "Site daily reports require a description.");
+        }
+
+        if ((recordType == "rfi"
+                || recordType == "drawing_revision"
+                || recordType == "qa_inspection"
+                || recordType == "snag"
+                || recordType == "equipment_usage"
+                || recordType == "timesheet")
+            && description.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Quality and site-control records require a description.");
         }
 
         if (!_connections.IsConfigured)
@@ -125,6 +174,16 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "site_photo" => "attached",
                 "variation" => "draft",
                 "progress_claim" => "draft",
+                "rfi" => "open",
+                "drawing_revision" => "issued",
+                "qa_inspection" => "scheduled",
+                "snag" => "open",
+                "equipment_usage" => "draft",
+                "timesheet" => "draft",
+                "weighted_progress" => "draft",
+                "retention_recovery" => "draft",
+                "advance_recovery" => "draft",
+                "approval_request" => "pending",
                 _ => "draft"
             };
         }
