@@ -127,6 +127,17 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("vendor_bill", deliveryService, StringComparison.Ordinal);
         Assert.Contains("payment_voucher", deliveryService, StringComparison.Ordinal);
         Assert.Contains("retention_release", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("site_engineer_approval", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("project_manager_approval", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("variation_approval", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("final_settlement", deliveryService, StringComparison.Ordinal);
+        var executiveDashboard = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutExecutiveDashboardReadService.cs"));
+        Assert.Contains("'site_engineer_approval','project_manager_approval'", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("'retention_release','vendor_bill','payment_voucher'", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("'variation_approval','final_settlement'", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("'retention_release','vendor_bill','payment_voucher'", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("guardedApprovalRecord", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("draftApprovalRecord", deliveryService, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);
@@ -165,6 +176,11 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("vendor_bill", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("payment_voucher", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("retention_release", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("site_engineer_approval", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("project_manager_approval", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("variation_approval", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("final_settlement", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("Approval-controlled records remain pending", projectAccounting, StringComparison.Ordinal);
     }
 
     [Fact]

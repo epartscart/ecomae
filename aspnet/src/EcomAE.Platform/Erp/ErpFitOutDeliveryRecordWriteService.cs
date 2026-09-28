@@ -62,6 +62,10 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "client_payment_certificate",
         "vendor_bill",
         "payment_voucher",
+        "site_engineer_approval",
+        "project_manager_approval",
+        "variation_approval",
+        "final_settlement",
         "site_daily_report",
         "site_photo",
         "variation",
@@ -208,13 +212,51 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Approval requests require a positive approval amount.");
         }
 
-        if (recordType == "approval_request"
-            && status.Length > 0
-            && !string.Equals(status, "pending", StringComparison.Ordinal))
+        if ((recordType == "site_engineer_approval"
+                || recordType == "project_manager_approval")
+            && request.Amount <= 0m)
         {
             return ErpSimpleWriteResult.Fail(
                 "invalid",
-                "Approval requests must use the approval decision action for terminal statuses.");
+                "Role approvals require a positive approved amount.");
+        }
+
+        if (recordType == "variation_approval" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Variation approvals require a positive approved amount.");
+        }
+
+        if (recordType == "final_settlement" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Final settlements require a positive settlement amount.");
+        }
+
+        var guardedApprovalRecord = recordType is
+            "approval_request"
+            or "site_engineer_approval"
+            or "project_manager_approval"
+            or "variation_approval"
+            or "final_settlement"
+            or "work_completion_certificate"
+            or "subcontract_payment_certificate"
+            or "client_payment_certificate"
+            or "retention_release"
+            or "vendor_bill"
+            or "payment_voucher";
+        var draftApprovalRecord = recordType is "vendor_bill" or "payment_voucher";
+        if (guardedApprovalRecord
+            && status.Length > 0
+            && !string.Equals(status, "pending", StringComparison.Ordinal)
+            && !(draftApprovalRecord
+                && string.Equals(status, "draft", StringComparison.Ordinal)))
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Approval-controlled records must use the approval decision action for terminal statuses.");
         }
 
         if (recordType == "site_daily_report" && description.Length == 0)
@@ -263,6 +305,10 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "client_payment_certificate" => "pending",
                 "vendor_bill" => "draft",
                 "payment_voucher" => "draft",
+                "site_engineer_approval" => "pending",
+                "project_manager_approval" => "pending",
+                "variation_approval" => "pending",
+                "final_settlement" => "pending",
                 "site_daily_report" => "submitted",
                 "site_photo" => "attached",
                 "variation" => "draft",
@@ -460,7 +506,14 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             ErpDb.Positional("""
                 UPDATE `ecomae_fitout_delivery_records`
                 SET `status`=?,`updated_at_utc`=UTC_TIMESTAMP()
-                WHERE `id`=? AND `record_type`='approval_request' AND `status`='pending'
+                WHERE `id`=?
+                  AND `record_type` IN (
+                      'approval_request','site_engineer_approval','project_manager_approval',
+                      'variation_approval','final_settlement','work_completion_certificate',
+                      'subcontract_payment_certificate','client_payment_certificate',
+                      'retention_release','vendor_bill','payment_voucher'
+                  )
+                  AND `status`='pending'
                 """),
             cancellationToken,
             nextStatus,
@@ -468,7 +521,7 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         return affected == 0
             ? ErpSimpleWriteResult.Fail(
                 "not_pending",
-                "Approval request was not found or is no longer pending.")
+                "Approval record was not found or is no longer pending.")
             : ErpSimpleWriteResult.Ok("Fit-out approval decided", id);
     }
 

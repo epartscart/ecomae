@@ -68,7 +68,12 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                    (SELECT COALESCE(SUM(`amount`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`
-                      AND `record_type`='approval_request'
+                      AND `record_type` IN (
+                          'approval_request','site_engineer_approval','project_manager_approval',
+                          'variation_approval','final_settlement','work_completion_certificate',
+                          'subcontract_payment_certificate','client_payment_certificate',
+                          'retention_release','vendor_bill','payment_voucher'
+                      )
                       AND `status`='pending') AS `pending_approval_amount`
             FROM (
                 SELECT `project_id` FROM `ecomae_fitout_estimates` {filter}

@@ -253,6 +253,10 @@
                     <option value="client_payment_certificate">client payment certificate</option>
                     <option value="vendor_bill">vendor bill / AP invoice</option>
                     <option value="payment_voucher">payment voucher</option>
+                    <option value="site_engineer_approval">site engineer approval</option>
+                    <option value="project_manager_approval">project manager approval</option>
+                    <option value="variation_approval">variation approval</option>
+                    <option value="final_settlement">final settlement</option>
                     <option value="site_daily_report">site daily report</option>
                     <option value="site_photo">site photo</option>
                     <option value="variation">variation</option>
@@ -282,6 +286,7 @@
             <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save delivery record</button>
         </form>
+        <p class="help-block">Approval-controlled records remain pending until this guarded decision action is applied; vendor bills and payment vouchers may remain draft.</p>
         <form method="post" action="/erp/fitout/approval/decide" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
             <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
             <strong style="width:100%">Fit-out approval decision</strong>
