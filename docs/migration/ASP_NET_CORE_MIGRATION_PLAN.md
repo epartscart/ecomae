@@ -53,6 +53,9 @@ The authoritative reference set for this tranche is:
   rendered Jewellery industry pages — tenant-facing content and presentation.
 - `docs/ADVANCED_ERP.md`, `docs/ROADMAP.md`, and the supplied Jewellery/INDUS
   documents — business workflow and acceptance references.
+- `docs/migration/evidence/jewellery/INDUS_LIVE_FIELD_AND_WORKFLOW_MAPPING.md`
+  — durable record of the supplied INDUS field vocabulary, observed versus
+  inferred/proposed mappings, full menu inventory, and validation backlog.
 
 ### ASP.NET delivery order
 
@@ -74,6 +77,11 @@ Each step requires PHP-vs-ASP.NET field/function/presentation parity tests,
 tenant isolation, guarded dry-run and confirmed-write tests where applicable,
 production shadow evidence, rollback evidence, and human acceptance. PHP
 remains the reference and fallback until every Jewellery gate is closed.
+
+The INDUS studies are retained as a discovery and acceptance reference. They
+must not be treated as a verified database dictionary: proposed entity names,
+foreign keys, formulas, lifecycle states, and permissions require read-only
+schema or approved transaction evidence before implementation is marked complete.
 
 ## Migration Rules
 

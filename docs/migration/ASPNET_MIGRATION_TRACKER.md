@@ -341,7 +341,14 @@ Standing rules that apply to every item below:
 ## Open questions for the user
 1. Syncron: no `epc_erp_syncron_policy.php` in repo — send original policy/docs or confirm twinning `epc_erp_scm.php` + `epc_erp_order_fulfillment.php`.
 2. ERP-only staff role (PHP RBAC allows it; ASP.NET auth currently grants CP+ERP together) — confirm wanted.
-3. Jewellery legacy schema open items (INDUS study) — verified against PHP tables + sample transactions; nothing invented.
+3. Jewellery legacy schema open items (INDUS study) — the supplied studies are
+   now preserved in
+   `docs/migration/evidence/jewellery/INDUS_LIVE_FIELD_AND_WORKFLOW_MAPPING.md`.
+   Their observed field/menu inventory informs target mapping, while actual
+   INDUS keys, formulas, posting lineage, lifecycle states, permissions, and
+   report definitions remain open until read-only schema or approved
+   transaction evidence is available; nothing proposed is treated as a legacy
+   column.
 4. Fit-out pack: PHP only has generic project accounting (budget/txn/recognition); the BOQ/variation/progress-claim/subcontract chain is
    a new DB-backed design per the user's `fitout.txt` spec. The ASP.NET phased catalog is now explicit at `/migration/fitout`; the
    Phase-1 scope remains pending implementation and live tenant-database validation.

@@ -1458,6 +1458,14 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
         Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKaratDetail, StringComparison.Ordinal);
         Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryStockVerificationStats, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryStockVerificationRows, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryStockVerificationDetail, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryStockVerificationStatusSiblings, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStats, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryFixingRows, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryFixingDetail, StringComparison.Ordinal);
+        Assert.Contains("@companyId", LegacySurfaceDashboardSql.SelectCpJewelleryFixingStatusSiblings, StringComparison.Ordinal);
         Assert.DoesNotContain("`description`", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`description`,''), 280)", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKaratDetail, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectCpJewelleryMastersKaratDetail, StringComparison.Ordinal);

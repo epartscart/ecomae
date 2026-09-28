@@ -12675,6 +12675,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelJewelleryStockVerification, async (
             HttpContext context,
             int? limit,
+            long? company,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -12685,7 +12686,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for jewellery-stock-verification digest.");
             }
 
-            var result = await dashboards.BuildCpJewelleryStockVerificationDigestAsync(limit ?? 200, cancellationToken);
+            var result = await dashboards.BuildCpJewelleryStockVerificationDigestAsync(limit ?? 200, company ?? 0, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
@@ -12788,6 +12789,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelJewelleryFixing, async (
             HttpContext context,
             int? limit,
+            long? company,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -12798,7 +12800,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for jewellery-fixing digest.");
             }
 
-            var result = await dashboards.BuildCpJewelleryFixingDigestAsync(limit ?? 200, cancellationToken);
+            var result = await dashboards.BuildCpJewelleryFixingDigestAsync(limit ?? 200, company ?? 0, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
