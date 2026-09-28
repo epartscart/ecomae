@@ -131,6 +131,9 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("project_manager_approval", deliveryService, StringComparison.Ordinal);
         Assert.Contains("variation_approval", deliveryService, StringComparison.Ordinal);
         Assert.Contains("final_settlement", deliveryService, StringComparison.Ordinal);
+        var executiveDashboard = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutExecutiveDashboardReadService.cs"));
+        Assert.Contains("'site_engineer_approval','project_manager_approval'", executiveDashboard, StringComparison.Ordinal);
+        Assert.Contains("'retention_release','vendor_bill','payment_voucher'", executiveDashboard, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("guardedApprovalRecord", deliveryService, StringComparison.Ordinal);
