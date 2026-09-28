@@ -285,6 +285,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutThreeWayMatchSave, HandleFitOutThreeWayMatchSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutMaterialMovementSave, HandleFitOutMaterialMovementSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDeliveryRecordSave, HandleFitOutDeliveryRecordSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutInvoiceBridgeSave, HandleFitOutInvoiceBridgeSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
@@ -12780,6 +12781,72 @@ public sealed class ErpModule : ISurfaceModule
             });
     }
 
+    private static async Task<IResult> HandleFitOutInvoiceBridgeSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutInvoiceBridgeWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out invoice links.");
+        }
+
+        var body = await LiveWriteFormBinder
+            .ReadJsonOrDefaultAsync<ErpFitOutInvoiceBridgeSaveBody>(context, cancellationToken)
+            ?? new();
+        var id = body.Id;
+        var projectId = body.ProjectId;
+        var invoiceId = body.InvoiceId;
+        var stage = body.Stage;
+        var reference = body.Reference;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            invoiceId = LiveWriteFormBinder.Long(form, "invoiceId", "invoice_id");
+            stage = LiveWriteFormBinder.Text(form, "stage");
+            reference = LiveWriteFormBinder.Text(form, "reference");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpFitOutInvoiceBridgeSaveRequest(
+                id,
+                projectId,
+                invoiceId,
+                stage,
+                reference,
+                confirm),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+    }
+
     private static async Task<IResult> HandleFitOutApprovalDecideAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19953,6 +20020,14 @@ public sealed class ErpModule : ISurfaceModule
         string? EventDate = null,
         string? Status = null,
         string? PhotoUrl = null,
+        bool ConfirmWrites = false);
+
+    private sealed record ErpFitOutInvoiceBridgeSaveBody(
+        long Id = 0,
+        long ProjectId = 0,
+        long InvoiceId = 0,
+        string? Stage = null,
+        string? Reference = null,
         bool ConfirmWrites = false);
     private sealed record ErpFitOutApprovalDecideBody(
         long Id = 0,
