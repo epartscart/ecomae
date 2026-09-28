@@ -39,6 +39,12 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Equal(
             "partial",
             FitOutDeliveryCatalog.Steps.Single(step => step.Name == "Progress claim and certification").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "RFI and drawing revisions").Status);
+        Assert.Equal(
+            "partial",
+            FitOutDeliveryCatalog.Steps.Single(step => step.Name == "QA/QC inspection and snag lifecycle").Status);
     }
 
     [Fact]

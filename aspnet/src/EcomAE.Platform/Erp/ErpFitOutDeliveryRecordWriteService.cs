@@ -34,7 +34,11 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "site_daily_report",
         "site_photo",
         "variation",
-        "progress_claim"
+        "progress_claim",
+        "rfi",
+        "drawing_revision",
+        "qa_inspection",
+        "snag"
     };
 
     private readonly IErpWriteConnectionFactory _connections;
@@ -103,6 +107,17 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Site daily reports require a description.");
         }
 
+        if ((recordType == "rfi"
+                || recordType == "drawing_revision"
+                || recordType == "qa_inspection"
+                || recordType == "snag")
+            && description.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Quality and site-control records require a description.");
+        }
+
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail(
@@ -125,6 +140,10 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "site_photo" => "attached",
                 "variation" => "draft",
                 "progress_claim" => "draft",
+                "rfi" => "open",
+                "drawing_revision" => "issued",
+                "qa_inspection" => "scheduled",
+                "snag" => "open",
                 _ => "draft"
             };
         }
