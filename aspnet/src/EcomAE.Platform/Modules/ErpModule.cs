@@ -292,6 +292,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutContractClosure, HandleFitOutContractClosureAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRetentionAgeing, HandleFitOutRetentionAgeingAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProformaReceipts, HandleFitOutProformaReceiptsAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalAudit, HandleFitOutApprovalAuditAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutAcceptanceEvidence, HandleFitOutAcceptanceEvidenceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
@@ -13028,6 +13029,34 @@ public sealed class ErpModule : ISurfaceModule
             message = result.Message,
             session = SessionPayload(session),
             note = "Tenant-isolated proforma, invoice, and receipt reconciliation by billing stage."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutApprovalAuditAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutApprovalAuditReadService audit,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out approval audit.");
+        }
+
+        var rows = await audit.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = true,
+            surface = "erp",
+            projectId,
+            rows,
+            session = SessionPayload(session),
+            note = "Tenant-isolated history of guarded fit-out approval decisions."
         });
     }
 
