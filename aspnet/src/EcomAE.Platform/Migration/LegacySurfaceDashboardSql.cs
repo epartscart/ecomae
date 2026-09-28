@@ -5614,10 +5614,10 @@ public static class LegacySurfaceDashboardSql
     /// <summary>Jewellery stock verification KPIs. Open = in_progress/Draft (PHP schema default + save path); complete = remaining_pcs=0 (PHP INSERT/schema status vocabulary is inconsistent).</summary>
     public const string SelectCpJewelleryStockVerificationStats = """
         SELECT
-            (SELECT COUNT(*) FROM `epc_jewel_stock_verification`) AS verification_count,
-            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`status`,'') IN ('in_progress','Draft','draft')) AS in_progress_count,
-            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE IFNULL(`remaining_pcs`,0)=0 AND IFNULL(`total_pcs`,0)>0) AS complete_count,
-            (SELECT COUNT(*) FROM `epc_jewel_stock_verification_lines`) AS line_count
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE @companyId = 0 OR `company_id` = @companyId) AS verification_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`status`,'') IN ('in_progress','Draft','draft')) AS in_progress_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`remaining_pcs`,0)=0 AND IFNULL(`total_pcs`,0)>0) AS complete_count,
+            (SELECT COUNT(*) FROM `epc_jewel_stock_verification_lines` v WHERE @companyId = 0 OR EXISTS (SELECT 1 FROM `epc_jewel_stock_verification` h WHERE h.`id` = v.`verification_id` AND h.`company_id` = @companyId)) AS line_count
         """;
 
     /// <summary>Jewellery stock verification rows — omits remarks.</summary>
@@ -5629,6 +5629,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`remaining_pcs`,0) AS remaining_pcs, IFNULL(`status`,'') AS status,
                IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_stock_verification`
+        WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
         LIMIT @limit
         """;
@@ -5645,7 +5646,7 @@ public static class LegacySurfaceDashboardSql
                CHAR_LENGTH(IFNULL(`remarks`,'')) AS remarks_len,
                LEFT(IFNULL(`remarks`,''), 280) AS remarks_excerpt
         FROM `epc_jewel_stock_verification`
-        WHERE `id` = @id
+        WHERE `id` = @id AND (@companyId = 0 OR `company_id` = @companyId)
         LIMIT 1
         """;
 
@@ -5659,6 +5660,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_stock_verification`
         WHERE `status` = @status AND `id` <> @id
+          AND (@companyId = 0 OR `company_id` = @companyId)
         ORDER BY `id` DESC
         LIMIT 50
         """;
@@ -5802,11 +5804,11 @@ public static class LegacySurfaceDashboardSql
     /// <summary>Jewellery fixing KPIs. Petty-cash count uses epc_jewel_voucher PCV (PHP save path); epc_jewel_petty_cash is a stale/empty helper table.</summary>
     public const string SelectCpJewelleryFixingStats = """
         SELECT
-            (SELECT COUNT(*) FROM `epc_jewel_fixing`) AS fixing_count,
-            (SELECT COUNT(*) FROM `epc_jewel_fixing` WHERE IFNULL(`status`,'')='open') AS open_fixing_count,
-            (SELECT COUNT(*) FROM `epc_fix_unfix_purchases`) AS purchase_fix_count,
-            (SELECT COUNT(*) FROM `epc_fix_unfix_settlements`) AS settlement_count,
-            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE IFNULL(`voc_type`,'')='PCV') AS petty_cash_count
+            (SELECT COUNT(*) FROM `epc_jewel_fixing` WHERE @companyId = 0 OR `company_id` = @companyId) AS fixing_count,
+            (SELECT COUNT(*) FROM `epc_jewel_fixing` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`status`,'')='open') AS open_fixing_count,
+            (SELECT COUNT(*) FROM `epc_fix_unfix_purchases` WHERE @companyId = 0 OR `company_id` = @companyId) AS purchase_fix_count,
+            (SELECT COUNT(*) FROM `epc_fix_unfix_settlements` s WHERE @companyId = 0 OR EXISTS (SELECT 1 FROM `epc_fix_unfix_purchases` p WHERE p.`id` = s.`purchase_fix_id` AND p.`company_id` = @companyId)) AS settlement_count,
+            (SELECT COUNT(*) FROM `epc_jewel_voucher` WHERE (@companyId = 0 OR `company_id` = @companyId) AND IFNULL(`voc_type`,'')='PCV') AS petty_cash_count
         """;
 
     /// <summary>Jewellery fixing rows — remarks/notes omitted.</summary>
@@ -5819,6 +5821,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`fix_amount`,0) AS fix_amount, IFNULL(`status`,'') AS status,
                IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_fixing`
+        WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
         LIMIT @limit
         """;
@@ -5837,7 +5840,7 @@ public static class LegacySurfaceDashboardSql
                CHAR_LENGTH(IFNULL(`remarks`,'')) AS remarks_len,
                LEFT(IFNULL(`remarks`,''), 280) AS remarks_excerpt
         FROM `epc_jewel_fixing`
-        WHERE `id` = @id
+        WHERE `id` = @id AND (@companyId = 0 OR `company_id` = @companyId)
         LIMIT 1
         """;
 
@@ -5852,6 +5855,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`created_by`,'') AS created_by
         FROM `epc_jewel_fixing`
         WHERE `status` = @status AND `id` <> @id
+          AND (@companyId = 0 OR `company_id` = @companyId)
         ORDER BY `id` DESC
         LIMIT 50
         """;

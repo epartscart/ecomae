@@ -254,7 +254,7 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpJewelleryStockVerificationDigestAsync(200, ctx.RequestAborted);
+        var result = await Dashboards.BuildCpJewelleryStockVerificationDigestAsync(200, _company, ctx.RequestAborted);
         _summary = result.Summary;
         _source = result.Source;
         _message = result.Message;
@@ -270,7 +270,7 @@
             string.IsNullOrWhiteSpace(r.Status) ? "—" : r.Status)).ToList();
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpJewelleryStockVerificationDetailAsync(_openedId, ctx.RequestAborted);
+            var detail = await Dashboards.BuildCpJewelleryStockVerificationDetailAsync(_openedId, _company, ctx.RequestAborted);
             _opened = detail.Verification;
             _openedSiblings = detail.Siblings;
         }
