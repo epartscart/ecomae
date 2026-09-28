@@ -23473,6 +23473,121 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpSupplierPortalDetailResult> BuildErpSupplierPortalDetailAsync(long supplierId, CancellationToken cancellationToken = default)
+    {
+        if (supplierId <= 0)
+        {
+            return new(null, [], [], [], "invalid", "A supplier id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], [], [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            var digest = await BuildErpSupplierPortalDigestAsync(500, cancellationToken).ConfigureAwait(false);
+            var card = digest.Cards.FirstOrDefault(item => item.Id == supplierId);
+            if (card is null)
+            {
+                return new(null, [], [], [], "database", "Supplier not found.");
+            }
+
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var purchaseOrders = new List<ErpSupplierPortalPurchaseDigest>();
+            var rfqs = new List<ErpSupplierPortalRfqDigest>();
+            var bills = new List<ErpSupplierPortalBillDigest>();
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = """
+                    SELECT `po_no`,`title`,`total_amount`,`status`,`approved_at`,`received_at`,`time_created`
+                    FROM `epc_erp_purchase_orders`
+                    WHERE `supplier_id`=@supplier_id
+                    ORDER BY `id` DESC
+                    LIMIT 25
+                    """;
+                AddParameter(command, "@supplier_id", supplierId);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    purchaseOrders.Add(new(
+                        ReadStr(reader, "po_no"),
+                        ReadStr(reader, "title"),
+                        ReadDecimal(reader, "total_amount"),
+                        ReadStr(reader, "status"),
+                        ReadLong(reader, "approved_at"),
+                        ReadLong(reader, "received_at"),
+                        ReadLong(reader, "time_created")));
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = """
+                    SELECT `rfq_no`,`title`,`amount_est`,`status`,`due_date`,`time_created`
+                    FROM `epc_erp_rfq`
+                    WHERE `supplier_id`=@supplier_id
+                    ORDER BY `id` DESC
+                    LIMIT 25
+                    """;
+                AddParameter(command, "@supplier_id", supplierId);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rfqs.Add(new(
+                        ReadStr(reader, "rfq_no"),
+                        ReadStr(reader, "title"),
+                        ReadDecimal(reader, "amount_est"),
+                        ReadStr(reader, "status"),
+                        ReadLong(reader, "due_date"),
+                        ReadLong(reader, "time_created")));
+                }
+            }
+            catch
+            {
+            }
+
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = """
+                    SELECT `id`,`invoice_number`,`total_amount`,`purchase_date`,`status`
+                    FROM `epc_erp_purchases`
+                    WHERE `supplier_id`=@supplier_id AND `active`=1
+                    ORDER BY `purchase_date` DESC, `id` DESC
+                    LIMIT 25
+                    """;
+                AddParameter(command, "@supplier_id", supplierId);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    bills.Add(new(
+                        Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "invoice_number"),
+                        ReadDecimal(reader, "total_amount"),
+                        ReadLong(reader, "purchase_date"),
+                        ReadStr(reader, "status")));
+                }
+            }
+            catch
+            {
+            }
+
+            return new(card, purchaseOrders, rfqs, bills, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], [], [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpVirtualWarehouseDigestResult> BuildErpVirtualWarehouseDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

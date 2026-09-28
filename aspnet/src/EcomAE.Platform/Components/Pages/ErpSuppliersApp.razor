@@ -57,7 +57,11 @@
                         @foreach (var c in _cards)
                         {
                             <tr>
-                                <td><strong>@(string.IsNullOrWhiteSpace(c.Name) ? $"#{c.Id}" : c.Name)</strong></td>
+                                <td>
+                                    <a href="@SupplierPortalHref(c.Id)">
+                                        <strong>@(string.IsNullOrWhiteSpace(c.Name) ? $"#{c.Id}" : c.Name)</strong>
+                                    </a>
+                                </td>
                                 <td><span class="label label-default">@c.Rating</span></td>
                                 <td class="text-right">@c.Score.ToString("0.0", CultureInfo.InvariantCulture)</td>
                                 <td class="text-right">@c.PoCount.ToString(CultureInfo.InvariantCulture)</td>
@@ -71,6 +75,45 @@
                 </tbody>
             </table>
         </div>
+        @if (_portalDetail is not null)
+        {
+            <div class="epc-erp-table-wrap" style="margin-top:12px">
+                <p style="margin:0 0 .5rem">
+                    <strong>@(_portalDetail.Card?.Name ?? $"Supplier #{_portalSupplierId}")</strong>
+                    <a class="btn btn-xs btn-default" href="/erp/suppliers-app?tab=supplier_portal">Close</a>
+                </p>
+                <p class="text-muted">Recent purchase orders, RFQs, and payable bills.</p>
+                <div class="row">
+                    <div class="col-sm-4">
+                        <strong>Purchase orders</strong>
+                        <ul>
+                            @foreach (var row in _portalDetail.PurchaseOrders)
+                            {
+                                <li>@row.PurchaseNo · @row.Status · @row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-sm-4">
+                        <strong>RFQs</strong>
+                        <ul>
+                            @foreach (var row in _portalDetail.Rfqs)
+                            {
+                                <li>@row.RfqNo · @row.Status · @row.AmountEstimate.ToString("N2", CultureInfo.InvariantCulture)</li>
+                            }
+                        </ul>
+                    </div>
+                    <div class="col-sm-4">
+                        <strong>Payable bills</strong>
+                        <ul>
+                            @foreach (var row in _portalDetail.Bills)
+                            {
+                                <li>@row.InvoiceNumber · @row.Status · @row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</li>
+                            }
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        }
     }
     else
     {
@@ -175,6 +218,8 @@
     private IReadOnlyList<ErpSupplierDigest> _suppliers = [];
     private ErpSupplierPortalSummary _portal = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpSupplierPortalCardDigest> _cards = [];
+    private ErpSupplierPortalDetailResult? _portalDetail;
+    private long _portalSupplierId;
     private int _openBalance;
     private decimal _totalBalance;
     private int _limit = 100;
@@ -239,6 +284,11 @@
             _cards = portal.Cards;
             _source = portal.Source;
             _message = portal.Message;
+            _portalSupplierId = ErpRecordOpen.ReadId(ctx.Request, "supplier_id");
+            if (_portalSupplierId > 0)
+            {
+                _portalDetail = await Dashboards.BuildErpSupplierPortalDetailAsync(_portalSupplierId, ctx.RequestAborted);
+            }
             return;
         }
 
@@ -270,4 +320,7 @@
         if (unix <= 0) return "—";
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
+
+    private static string SupplierPortalHref(long supplierId)
+        => "/erp/suppliers-app?tab=supplier_portal&supplier_id=" + supplierId.ToString(CultureInfo.InvariantCulture);
 }
