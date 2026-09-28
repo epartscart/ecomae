@@ -31,6 +31,11 @@ Hardening review confirms BOS write routes enforce authenticated BOS capability,
 explicit confirmation before mutation; their framework antiforgery is intentionally disabled for
 PHP-compatible JSON/form contracts, so a module-wide CSRF token review remains pending before
 production cutover.
+The follow-up inventory counted 378 ERP, 171 CP, 60 BOS, and 44 storefront
+`DisableAntiforgery()` mappings; the existing `ICpCsrfGuard` is currently wired only in CP
+handlers. This is an audit finding, not a permission to broadly enable framework antiforgery:
+each module needs token issuance, PHP-contract compatibility, and write-by-write regression
+coverage before its routes are promoted.
 
 Conversation requirements audit (reconciled 2026-09-27):
 - [x] CP and ERP menu sources remain PHP-authoritative; generated counts are not treated as proof of parity.
