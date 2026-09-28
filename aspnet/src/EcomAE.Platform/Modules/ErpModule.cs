@@ -10919,7 +10919,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_erp_print_templates (HTML/CSS omitted). Open ?template_id= loads 280-char HTML/CSS excerpts. PHP print_designer tab remains authoritative."
+                note = "Read-only epc_erp_print_templates projection. Open ?template_id= loads full HTML/CSS bodies plus layout metadata; PHP print_designer tab remains authoritative for rendering and version history."
             });
         });
 

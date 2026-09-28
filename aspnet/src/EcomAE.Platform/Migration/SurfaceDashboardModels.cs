@@ -7797,7 +7797,7 @@ public sealed record ErpGlCurrencyEntryDetailResult(
     string Source,
     string Message);
 
-/// <summary>PHP <c>epc_erp_print_templates</c> (HTML/CSS bodies omitted).</summary>
+/// <summary>PHP <c>epc_erp_print_templates</c> detail projection.</summary>
 public sealed record ErpPrintTemplateDigest(
     long Id,
     string DocType,

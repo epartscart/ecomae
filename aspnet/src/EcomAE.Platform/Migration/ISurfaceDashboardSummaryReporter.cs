@@ -889,7 +889,7 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened payroll run (Open key <c>payroll_id</c>) plus same-status siblings. note is a short excerpt.</summary>
     Task<ErpPayrollRunDetailResult> BuildErpPayrollRunDetailAsync(long id, CancellationToken cancellationToken = default);
 
-    /// <summary>Read-only print templates (PHP <c>epc_erp_print_templates</c>; HTML/CSS omitted).</summary>
+    /// <summary>Read-only print templates (PHP <c>epc_erp_print_templates</c>).</summary>
     Task<ErpPrintTemplatesListResult> ListErpPrintTemplatesAsync(int limit, CancellationToken cancellationToken = default);
 
     /// <summary>Opened print template (Open key <c>template_id</c>, remapped by <c>tab=print_designer</c>) plus same-type siblings. HTML/CSS are short excerpts.</summary>
@@ -997,5 +997,4 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened currency journal (Open key <c>mcgl_entry_id</c>) plus same-type siblings. Note excerpt and site are hidden from the list table.</summary>
     Task<ErpGlCurrencyEntryDetailResult> BuildErpGlCurrencyEntryDetailAsync(long id, CancellationToken cancellationToken = default);
 }
-
 
