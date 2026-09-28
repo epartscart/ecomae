@@ -59,7 +59,7 @@ for m in re.finditer(r"(?m)^(location = (/[^\s{]+)\s*\{.*?\n\})", example, flags
         raise SystemExit(f"ERROR: refusing broad path {route}")
     indented="\n".join(("  "+line if line.strip() else line) for line in block_raw.splitlines())
     blocks.append((route, indented.rstrip()+"\n"))
-expected = 236  # Exact presentation/login routes; broad product chrome remains excluded.
+expected = 411  # Exact ASP.NET page and presentation routes; broad product chrome remains excluded.
 if len(blocks) != expected:
     raise SystemExit(f"ERROR: expected {expected} presentation/login routes, found {len(blocks)}")
 inserted=[]; already=[]
