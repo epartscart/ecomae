@@ -95,6 +95,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/project-pnl\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/estimates/csv\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/delivery-dashboard\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/recovery-summary\"", routes, StringComparison.Ordinal);
         Assert.Contains("equipment_usage", deliveryService, StringComparison.Ordinal);
         Assert.Contains("timesheet", deliveryService, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);

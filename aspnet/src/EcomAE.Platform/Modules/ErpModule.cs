@@ -288,6 +288,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutRecoverySummary, HandleFitOutRecoverySummaryAsync);
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -12955,6 +12956,33 @@ public sealed class ErpModule : ISurfaceModule
             message = result.Message,
             session = SessionPayload(session),
             note = "Tenant-isolated delivery counts, amounts, statuses, and completion summaries."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutRecoverySummaryAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutRecoverySummaryReadService recovery,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out recovery summary.");
+        }
+
+        var result = await recovery.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            summary = result,
+            session = SessionPayload(session),
+            note = "Tenant-isolated advance and retention recovery calculated from contract terms and certified records."
         });
     }
 
