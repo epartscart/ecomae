@@ -3340,6 +3340,42 @@ public static class LegacySurfaceDashboardSql
         """;
 
     /// <summary>
+    /// PHP <c>epc_erp_fulfilment_summary_light</c> pipeline counters. Each
+    /// stock counter is deliberately item-detail based, matching the PHP
+    /// fulfilment movement view without requiring a tenant-specific status map.
+    /// </summary>
+    public const string SelectCpFulfillmentPipelineSummary = """
+        SELECT
+            (SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1) AS total_orders,
+            (SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND IFNULL(`paid`,0) <> 0) AS customer_paid,
+            (SELECT COUNT(*) FROM `shop_orders` WHERE `successfully_created` = 1 AND IFNULL(`paid`,0) = 0) AS customer_pending,
+            (SELECT COUNT(*) FROM `shop_orders_items_details` d
+             INNER JOIN `shop_orders_items` i ON i.`id` = d.`order_item_id`
+             INNER JOIN `shop_orders` o ON o.`id` = i.`order_id`
+             WHERE o.`successfully_created` = 1
+               AND IFNULL(d.`count_issued`,0) = 0
+               AND IFNULL(d.`count_reserved`,0) = 0
+               AND IFNULL(d.`count_canceled`,0) = 0) AS stock_awaiting,
+            (SELECT COUNT(*) FROM `shop_orders_items_details` d
+             INNER JOIN `shop_orders_items` i ON i.`id` = d.`order_item_id`
+             INNER JOIN `shop_orders` o ON o.`id` = i.`order_id`
+             WHERE o.`successfully_created` = 1
+               AND IFNULL(d.`count_reserved`,0) > 0
+               AND IFNULL(d.`count_issued`,0) < IFNULL(i.`count_need`,0)) AS stock_reserved,
+            (SELECT COUNT(*) FROM `shop_orders_items_details` d
+             INNER JOIN `shop_orders_items` i ON i.`id` = d.`order_item_id`
+             INNER JOIN `shop_orders` o ON o.`id` = i.`order_id`
+             WHERE o.`successfully_created` = 1
+               AND IFNULL(d.`count_issued`,0) >= IFNULL(i.`count_need`,0)
+               AND IFNULL(i.`count_need`,0) > 0) AS stock_issued,
+            (SELECT COUNT(*) FROM `shop_orders`
+             WHERE `successfully_created` = 1
+               AND `status` IN (SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1)) AS delivery_done,
+            (SELECT COUNT(*) FROM `shop_orders_returns`
+             WHERE COALESCE(`status`,0) NOT IN (2,3,9)) AS returns_open
+        """;
+
+    /// <summary>
     /// PHP <c>epc_fulfillment_list</c> applies <c>status</c> in SQL before
     /// <c>LIMIT</c>. Tab groups match the KPI cards (picking/packing, shipping).
     /// </summary>

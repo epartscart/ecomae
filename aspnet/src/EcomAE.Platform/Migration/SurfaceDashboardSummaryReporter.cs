@@ -20797,6 +20797,43 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpFulfillmentPipelineSummary> BuildCpFulfillmentPipelineAsync(CancellationToken cancellationToken = default)
+    {
+        var empty = new CpFulfillmentPipelineSummary(0, 0, 0, 0, 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return empty;
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCpFulfillmentPipelineSummary;
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return empty with { Source = "database", Message = "No fulfilment pipeline row returned." };
+            }
+
+            return new(
+                ReaderInt32(reader, "total_orders"),
+                ReaderInt32(reader, "customer_paid"),
+                ReaderInt32(reader, "customer_pending"),
+                ReaderInt32(reader, "stock_awaiting"),
+                ReaderInt32(reader, "stock_reserved"),
+                ReaderInt32(reader, "stock_issued"),
+                ReaderInt32(reader, "delivery_done"),
+                ReaderInt32(reader, "returns_open"),
+                "database",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return empty with { Source = "database-error", Message = ex.Message };
+        }
+    }
+
     public async Task<CpFulfillmentDetailDigest?> GetCpFulfillmentDetailAsync(long fulfillmentId, CancellationToken cancellationToken = default)
     {
         if (fulfillmentId <= 0 || !_connections.IsConfigured)
