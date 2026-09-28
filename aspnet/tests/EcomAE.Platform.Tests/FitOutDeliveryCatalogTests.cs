@@ -182,6 +182,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("client_payment_certificate", invoiceReconciliation, StringComparison.Ordinal);
         Assert.Contains("status`='approved'", invoiceReconciliation, StringComparison.Ordinal);
         Assert.Contains("ReadCertifiedAsync", invoiceReconciliation, StringComparison.Ordinal);
+        Assert.Contains("certified.Client - invoiced.ExVat", invoiceReconciliation, StringComparison.Ordinal);
         Assert.Contains(
             "approved client/subcontract certification-to-invoice reconciliation",
             File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs")),

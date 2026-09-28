@@ -61,7 +61,7 @@ public sealed class ErpFitOutInvoiceReconciliationReadService
                 invoiced.ExVat,
                 invoiced.Vat,
                 invoiced.InclVat,
-                Math.Max(0m, certified.Total - invoiced.ExVat),
+                Math.Max(0m, certified.Client - invoiced.ExVat),
                 "database",
                 string.Empty);
         }
