@@ -5,6 +5,11 @@ public interface IErpFitOutDeliveryRecordWriteService
     Task<ErpSimpleWriteResult> SaveAsync(
         ErpFitOutDeliveryRecordSaveRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DecideApprovalAsync(
+        long id,
+        string? status,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpFitOutDeliveryRecordSaveRequest(
@@ -280,6 +285,50 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             null,
             cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Fit-out delivery record saved", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> DecideApprovalAsync(
+        long id,
+        string? status,
+        CancellationToken cancellationToken = default)
+    {
+        var nextStatus = status?.Trim().ToLowerInvariant() switch
+        {
+            "approved" => "approved",
+            "rejected" => "rejected",
+            _ => string.Empty
+        };
+        if (id <= 0 || nextStatus.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Approval id and approved or rejected status are required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "db",
+                "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections
+            .OpenAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var affected = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("""
+                UPDATE `ecomae_fitout_delivery_records`
+                SET `status`=?,`updated_at_utc`=UTC_TIMESTAMP()
+                WHERE `id`=? AND `record_type`='approval_request'
+                """),
+            cancellationToken,
+            nextStatus,
+            id).ConfigureAwait(false);
+        return affected == 0
+            ? ErpSimpleWriteResult.Fail("not_found", "Approval request was not found.")
+            : ErpSimpleWriteResult.Ok("Fit-out approval decided", id);
     }
 
     private static string Clip(string? value, int max)

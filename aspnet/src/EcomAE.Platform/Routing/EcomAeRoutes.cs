@@ -2730,6 +2730,8 @@ public static class EcomAeRoutes
         "/erp/fitout/material-movements/save";
     public const string ErpFitOutDeliveryRecordSave =
         "/erp/fitout/delivery-records/save";
+    public const string ErpFitOutApprovalDecide =
+        "/erp/fitout/approval/decide";
     public const string ErpFitOutProjectPnl =
         "/erp/fitout/project-pnl";
     public const string ErpFitOutEstimateCsv =
