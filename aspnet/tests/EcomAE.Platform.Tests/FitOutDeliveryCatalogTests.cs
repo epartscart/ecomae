@@ -173,6 +173,8 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("ApprovedVariationAmount", reconciliation, StringComparison.Ordinal);
         Assert.Contains("ClientCertifiedAmount", reconciliation, StringComparison.Ordinal);
         Assert.Contains("SubcontractCertifiedAmount", reconciliation, StringComparison.Ordinal);
+        var erpModule = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("approved client/subcontract certification", erpModule, StringComparison.Ordinal);
         Assert.Contains("variation_approval", reconciliation, StringComparison.Ordinal);
         Assert.Contains("client_payment_certificate", reconciliation, StringComparison.Ordinal);
         Assert.Contains("record_type`='vendor_bill'", reconciliation, StringComparison.Ordinal);

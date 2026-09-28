@@ -12939,7 +12939,7 @@ public sealed class ErpModule : ISurfaceModule
             projectId,
             reconciliation = result,
             session = SessionPayload(session),
-            note = "Tenant-isolated contract balance, client billing, vendor AP, payment, and retention reconciliation."
+            note = "Tenant-isolated contract balance, approved client/subcontract certification, client billing, vendor AP, payment, and retention reconciliation."
         });
     }
 
