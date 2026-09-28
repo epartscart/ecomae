@@ -555,6 +555,51 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             id,
             nextStatus,
             adminId > 0 ? adminId : 0).ConfigureAwait(false);
+        if (nextStatus == "approved")
+        {
+            var recordType = Convert.ToString(
+                await ErpDb.ScalarAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        "SELECT `record_type` FROM `ecomae_fitout_delivery_records` WHERE `id`=?"),
+                    cancellationToken,
+                    id).ConfigureAwait(false),
+                System.Globalization.CultureInfo.InvariantCulture);
+            if (string.Equals(recordType, "retention_release", StringComparison.Ordinal))
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    """
+                    CREATE TABLE IF NOT EXISTS `ecomae_fitout_retention_ledger` (
+                        `id` bigint NOT NULL AUTO_INCREMENT,
+                        `delivery_record_id` bigint NOT NULL,
+                        `entry_type` varchar(24) NOT NULL,
+                        `amount` decimal(14,2) NOT NULL,
+                        `posted_at_utc` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        PRIMARY KEY (`id`),
+                        UNIQUE KEY `uq_ecomae_fitout_retention_ledger_record`
+                            (`delivery_record_id`,`entry_type`)
+                    ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+                    """,
+                    cancellationToken).ConfigureAwait(false);
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional(
+                        """
+                        INSERT INTO `ecomae_fitout_retention_ledger`
+                            (`delivery_record_id`,`entry_type`,`amount`)
+                        SELECT `id`,'release',`amount`
+                        FROM `ecomae_fitout_delivery_records`
+                        WHERE `id`=?
+                        ON DUPLICATE KEY UPDATE `amount`=VALUES(`amount`)
+                        """),
+                    cancellationToken,
+                    id).ConfigureAwait(false);
+            }
+        }
         return ErpSimpleWriteResult.Ok("Fit-out approval decided", id);
     }
 
