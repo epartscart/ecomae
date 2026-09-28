@@ -257,6 +257,19 @@
             <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save delivery record</button>
         </form>
+        <form method="post" action="/erp/fitout/approval/decide" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out approval decision</strong>
+            <label>Approval record id <input type="number" name="id" min="1" required style="width:8rem" /></label>
+            <label>Decision
+                <select name="status">
+                    <option value="approved">approved</option>
+                    <option value="rejected">rejected</option>
+                </select>
+            </label>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Apply decision</button>
+        </form>
     }
 
     @if (_openedBudget is not null)
