@@ -118,7 +118,8 @@ public sealed class ErpFitOutCommercialReconciliationReadService
                     THEN `amount` ELSE 0 END),0),
                 COALESCE(SUM(CASE WHEN `record_type`='vendor_bill' THEN `amount` ELSE 0 END),0),
                 COALESCE(SUM(CASE WHEN `record_type`='payment_voucher' THEN `amount` ELSE 0 END),0),
-                COALESCE(SUM(CASE WHEN `record_type`='retention_release' THEN `amount` ELSE 0 END),0)
+                COALESCE(SUM(CASE WHEN `record_type`='retention_release'
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0)
             FROM `ecomae_fitout_delivery_records`
             WHERE `project_id`=?
             """);
