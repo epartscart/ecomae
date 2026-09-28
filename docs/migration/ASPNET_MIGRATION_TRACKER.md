@@ -25,7 +25,8 @@ The Parts Agent desk also no longer links back to legacy `/cp/shop/*` paths: pri
 actions now target their implemented ASP.NET CP apps.
 Platform operations now expose a drain-aware `/ready` probe that returns `503` once application
 shutdown begins, with a bounded 30-second host shutdown timeout; rolling/blue-green orchestration,
-session persistence, and connection-drain verification remain pending.
+the deploy health-wait helper now requires both `/health` and `/ready`, while rolling/blue-green
+orchestration, session persistence, and full connection-drain verification remain pending.
 
 Conversation requirements audit (reconciled 2026-09-27):
 - [x] CP and ERP menu sources remain PHP-authoritative; generated counts are not treated as proof of parity.
