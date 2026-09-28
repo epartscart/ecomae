@@ -291,6 +291,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRecoverySummary, HandleFitOutRecoverySummaryAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutExecutiveDashboard, HandleFitOutExecutiveDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutOperationsReport, HandleFitOutOperationsReportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutFinanceOperationsReport, HandleFitOutFinanceOperationsReportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutLeadHandoffSave, HandleFitOutLeadHandoffSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
@@ -13085,6 +13086,36 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpFitOutOperationsReportReadService report,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Results.Redirect("/erp/login?returnUrl=/erp/project-accounting-app");
+        }
+
+        var projectId = long.TryParse(
+            context.Request.Query["projectId"],
+            out var parsedProjectId)
+            ? parsedProjectId
+            : (long?)null;
+        var result = await report.ReadAsync(projectId, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = result.Source is "database" or "migration",
+            surface = "erp",
+            projectId,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session)
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutFinanceOperationsReportAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutFinanceOperationsReportReadService report,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);

@@ -100,9 +100,11 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/lead-handoff/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/executive-dashboard\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/operations-report\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/finance-operations-report\"", routes, StringComparison.Ordinal);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-01").Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.Contains("dashboards", StringComparison.OrdinalIgnoreCase)).Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.StartsWith("Sales,", StringComparison.Ordinal)).Status);
+        Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.StartsWith("Inventory,", StringComparison.Ordinal)).Status);
         Assert.Contains("ecomae_fitout_lead_handoffs", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutLeadHandoffWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("equipment_usage", deliveryService, StringComparison.Ordinal);
         Assert.Contains("timesheet", deliveryService, StringComparison.Ordinal);

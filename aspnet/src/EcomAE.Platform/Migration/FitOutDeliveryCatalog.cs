@@ -41,7 +41,7 @@ public static class FitOutDeliveryCatalog
         new("P3 finance", "P3 finance", "Project P&L and forecast profit", "partial", "ERP project accounting"),
         new("P4 advanced", "P4 advanced", "CEO, PM, finance and procurement dashboards", "partial", "ERP dashboards"),
         new("P4 advanced", "P4 advanced", "Sales, estimation and procurement reports", "partial", "ERP reporting"),
-        new("P4 advanced", "P4 advanced", "Inventory, subcontract and finance reports", "pending", "ERP reporting"),
+        new("P4 advanced", "P4 advanced", "Inventory, subcontract and finance reports", "partial", "ERP reporting"),
         new("P4 advanced", "P4 advanced", "Fit-out scenario acceptance evidence", "pending", "Migration gates")
     ];
 
