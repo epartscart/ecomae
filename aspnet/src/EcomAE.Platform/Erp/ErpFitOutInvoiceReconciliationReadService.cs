@@ -86,7 +86,7 @@ public sealed class ErpFitOutInvoiceReconciliationReadService
                      'client_progress_claim','client_payment_certificate','progress_claim')
                     AND `status`='approved' THEN `amount` ELSE 0 END),0),
                 COALESCE(SUM(CASE WHEN `record_type` IN
-                    ('client_progress_claim','client_payment_certificate')
+                    ('progress_claim','client_progress_claim','client_payment_certificate')
                     AND `status`='approved' THEN `amount` ELSE 0 END),0),
                 COALESCE(SUM(CASE WHEN `record_type` IN
                     ('subcontract_certification','subcontractor_progress_claim',
