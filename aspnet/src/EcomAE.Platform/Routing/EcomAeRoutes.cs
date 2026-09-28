@@ -2754,6 +2754,8 @@ public static class EcomAeRoutes
         "/erp/fitout/lead-handoff/save";
     public const string ErpFitOutExecutiveDashboard =
         "/erp/fitout/executive-dashboard";
+    public const string ErpFitOutApprovalQueue =
+        "/erp/fitout/approval-queue";
     public const string ErpFitOutOperationsReport =
         "/erp/fitout/operations-report";
     public const string ErpFitOutFinanceOperationsReport =
