@@ -2,7 +2,7 @@
 @inject ILegacyAdminLoginService LoginService
 @inject IHttpContextAccessor Http
 
-<div class="epc-login-form">
+<div class="epc-login-form" data-epc-guest-browse="true">
     @if (!string.IsNullOrEmpty(ErrorMessage))
     {
         <div class="epc-login-error" id="wrong_authentication">@ErrorMessage</div>

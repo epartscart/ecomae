@@ -188,7 +188,7 @@
                         <span class="bos-login__btn-loading"><i class="fa fa-circle-o-notch fa-spin"></i> Authenticating...</span>
                     </button>
                 </form>
-                <div class="bos-login__erp-features">
+                <div class="bos-login__erp-features epc-cp-login-features--card">
                     @foreach (var feat in _content.PanelFeatures)
                     {
                         <div class="bos-login__erp-feat"><i class="fa fa-check-circle"></i> @feat</div>
@@ -206,6 +206,8 @@
                     <span>@_content.IndustryCode.Replace('_', ' ') CP</span>
                     <span class="bos-login__footer-sep">&middot;</span>
                     <a href="/erp/login">ERP</a>
+                    <span class="bos-login__footer-sep">&middot;</span>
+                    <a href="/">Browse without login</a>
                 </div>
             </div>
         </div>
