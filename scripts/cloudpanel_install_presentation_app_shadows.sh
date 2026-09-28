@@ -62,18 +62,51 @@ for m in re.finditer(r"(?m)^(location = (/[^\s{]+)\s*\{.*?\n\})", example, flags
 expected = 411  # Exact ASP.NET page and presentation routes; broad product chrome remains excluded.
 if len(blocks) != expected:
     raise SystemExit(f"ERROR: expected {expected} presentation/login routes, found {len(blocks)}")
-inserted=[]; already=[]
-for route, block in blocks:
-    if re.search(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{", text):
-        already.append(route); continue
-    marker = find_insert_marker(text)
-    text = text[:marker] + block + "\n" + text[marker:]
-    inserted.append(route)
+def server_ranges(cfg: str):
+    ranges = []
+    for match in re.finditer(r"(?m)^\s*server\s*\{", cfg):
+        depth = 0
+        end = None
+        for index in range(match.end() - 1, len(cfg)):
+            char = cfg[index]
+            if char == "{":
+                depth += 1
+            elif char == "}":
+                depth -= 1
+                if depth == 0:
+                    end = index + 1
+                    break
+        if end is not None:
+            ranges.append((match.start(), end))
+    return ranges
+
+def is_product_server(server: str) -> bool:
+    return (
+        "root /home/ecomae/htdocs/www.ecomae.com;" in server
+        and re.search(r"(?m)^\s*server_name\s+[^;]+;", server) is not None
+        and not re.search(r"(?m)^\s*return\s+301\s+", server)
+    )
+
+inserted=[]; already=[]; target_count=0
+for start, end in reversed(server_ranges(text)):
+    server = text[start:end]
+    if not is_product_server(server):
+        continue
+    target_count += 1
+    for route, block in blocks:
+        if re.search(rf"(?m)^[ \t]*location\s*=\s*{re.escape(route)}\s*\{{", server):
+            already.append(route)
+            continue
+        marker = find_insert_marker(server)
+        server = server[:marker] + block + "\n" + server[marker:]
+        inserted.append(route)
+    text = text[:start] + server + text[end:]
+if target_count == 0:
+    raise SystemExit("ERROR: no non-redirect product server blocks matched")
 conf_path.write_text(text, encoding="utf-8")
+print(f"TARGET SERVER BLOCKS: {target_count}")
 print(f"ALREADY PRESENT: {len(already)}")
-for r in already: print("  =", r)
 print(f"INSERTED: {len(inserted)}")
-for r in inserted: print("  +", r)
 PY
 
 nginx -t
