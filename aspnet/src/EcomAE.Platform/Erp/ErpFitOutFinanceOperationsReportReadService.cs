@@ -92,7 +92,10 @@ public sealed class ErpFitOutFinanceOperationsReportReadService
             SELECT 'finance', 'subcontract_certifications', COUNT(*),
                    COALESCE(SUM(`amount`),0)
             FROM `ecomae_fitout_delivery_records`
-            WHERE `record_type` IN ('subcontract_certification','subcontractor_progress_claim')
+            WHERE `record_type` IN (
+                      'subcontract_certification',
+                      'subcontractor_progress_claim',
+                      'subcontract_payment_certificate')
               AND `status`='approved'
               {andFilter}
             UNION ALL
