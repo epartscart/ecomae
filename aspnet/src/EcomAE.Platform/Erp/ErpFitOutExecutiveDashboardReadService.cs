@@ -15,6 +15,7 @@ public sealed record ErpFitOutExecutiveDashboardRow(
     decimal BoqValue,
     decimal CommittedAmount,
     decimal DeliveryAmount,
+    decimal ApprovedDeliveryAmount,
     decimal ClientCertifiedAmount,
     decimal SubcontractCertifiedAmount,
     decimal DeliveryCompletionPercent,
@@ -64,6 +65,10 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                    (SELECT COALESCE(SUM(`amount`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`) AS `delivery_amount`,
+                   (SELECT COALESCE(SUM(`amount`),0)
+                    FROM `ecomae_fitout_delivery_records`
+                    WHERE `project_id`=p.`project_id`
+                      AND `status`='approved') AS `approved_delivery_amount`,
                    (SELECT COALESCE(SUM(`amount`),0)
                     FROM `ecomae_fitout_delivery_records`
                     WHERE `project_id`=p.`project_id`
@@ -121,7 +126,8 @@ public sealed class ErpFitOutExecutiveDashboardReadService
                     reader.GetDecimal(5),
                     reader.GetDecimal(6),
                     reader.GetDecimal(7),
-                    reader.GetDecimal(8)));
+                    reader.GetDecimal(8),
+                    reader.GetDecimal(9)));
             }
         }
         catch (DbException exception)
