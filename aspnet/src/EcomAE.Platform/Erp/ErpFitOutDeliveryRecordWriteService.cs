@@ -71,6 +71,38 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Site photo records require a photo URL.");
         }
 
+        if ((recordType == "subcontract_measurement"
+                || recordType == "subcontract_certification")
+            && request.ParentId <= 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Subcontract measurements and certifications require a parent subcontract record.");
+        }
+
+        if (recordType == "subcontract_certification" && request.Amount <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Subcontract certifications require a positive certified amount.");
+        }
+
+        if (recordType == "progress_claim"
+            && request.Amount <= 0m
+            && request.CompletionPercent <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Progress claims require an amount or completion percentage.");
+        }
+
+        if (recordType == "site_daily_report" && description.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Site daily reports require a description.");
+        }
+
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail(
