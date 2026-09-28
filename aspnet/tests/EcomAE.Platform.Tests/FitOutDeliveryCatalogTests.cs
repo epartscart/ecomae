@@ -163,8 +163,8 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("TotalOutstanding", receipts, StringComparison.Ordinal);
         Assert.Contains("receipt_count", receipts, StringComparison.Ordinal);
         Assert.Contains("last_receipt_time", receipts, StringComparison.Ordinal);
-        Assert.Contains("SUM(`receipt_count`)", receipts, StringComparison.Ordinal);
-        Assert.Contains("MAX(`last_receipt_time`)", receipts, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutProformaReceiptInvoiceRow", receipts, StringComparison.Ordinal);
+        Assert.Contains("GroupBy(row => row.Stage", receipts, StringComparison.Ordinal);
         var reconciliation = File.ReadAllText(
             FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutCommercialReconciliationReadService.cs"));
         Assert.Contains("record_type`='retention_release'", reconciliation, StringComparison.Ordinal);
