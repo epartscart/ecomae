@@ -12,6 +12,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Equal(32, FitOutDeliveryCatalog.Steps.Count);
         Assert.Equal(4, FitOutDeliveryCatalog.Steps.Select(step => step.Phase).Distinct(StringComparer.Ordinal).Count());
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Estimate and BOQ header");
+        Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-07").Status);
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Approved variations and contract value revision");
         Assert.Contains(FitOutDeliveryCatalog.Steps, step => step.Name == "Progress claim and certification");
     }

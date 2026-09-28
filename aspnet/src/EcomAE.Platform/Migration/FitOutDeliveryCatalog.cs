@@ -17,7 +17,7 @@ public static class FitOutDeliveryCatalog
         new("P1-04", "P1 core", "Material, labour, subcontract, equipment and overhead rates", "partial", "ERP"),
         new("P1-05", "P1 core", "Markup and estimate revisions", "partial", "ERP"),
         new("P1-06", "P1 core", "Estimate import/export contract", "pending", "ERP"),
-        new("P1-07", "P1 core", "Quotation issue and revision", "pending", "ERP"),
+        new("P1-07", "P1 core", "Quotation issue and revision", "partial", "ERP"),
         new("P1-08", "P1 core", "Contract commercial terms", "partial", "ERP contracts"),
         new("P1-09", "P1 core", "Advance, retention and warranty rules", "partial", "ERP"),
         new("P1-10", "P1 core", "Project and hierarchical cost codes", "partial", "ERP projects"),
