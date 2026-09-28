@@ -5052,10 +5052,10 @@ public static class LegacySurfaceDashboardSql
     /// <summary>Jewellery master KPIs from epc_jewel_* masters (CREATE TABLE in epc_erp_jewellery.php).</summary>
     public const string SelectCpJewelleryMastersStats = """
         SELECT
-            (SELECT COUNT(*) FROM `epc_jewel_karat_master`) AS karat_count,
-            (SELECT COUNT(*) FROM `epc_jewel_rate_type`) AS rate_type_count,
-            (SELECT COUNT(*) FROM `epc_jewel_barcode`) AS barcode_count,
-            (SELECT COUNT(*) FROM `epc_jewel_diamond_master`) AS diamond_count
+            (SELECT COUNT(*) FROM `epc_jewel_karat_master` WHERE @companyId = 0 OR `company_id` = @companyId) AS karat_count,
+            (SELECT COUNT(*) FROM `epc_jewel_rate_type` WHERE @companyId = 0 OR `company_id` = @companyId) AS rate_type_count,
+            (SELECT COUNT(*) FROM `epc_jewel_barcode` WHERE @companyId = 0 OR `company_id` = @companyId) AS barcode_count,
+            (SELECT COUNT(*) FROM `epc_jewel_diamond_master` WHERE @companyId = 0 OR `company_id` = @companyId) AS diamond_count
         """;
 
     /// <summary>Jewellery karat masters — omits description.</summary>
@@ -5065,6 +5065,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`range_to`,0) AS range_to, IFNULL(`sp_gravity`,0) AS sp_gravity,
                IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at
         FROM `epc_jewel_karat_master`
+        WHERE @companyId = 0 OR `company_id` = @companyId
         ORDER BY `id` DESC
         LIMIT @limit
         """;
@@ -5079,7 +5080,7 @@ public static class LegacySurfaceDashboardSql
                CHAR_LENGTH(IFNULL(`description`,'')) AS description_len,
                LEFT(IFNULL(`description`,''), 280) AS description_excerpt
         FROM `epc_jewel_karat_master`
-        WHERE `id` = @id
+        WHERE `id` = @id AND (@companyId = 0 OR `company_id` = @companyId)
         LIMIT 1
         """;
 
@@ -5091,6 +5092,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`division`,'') AS division, IFNULL(`created_at`,'') AS created_at
         FROM `epc_jewel_karat_master`
         WHERE `division` = @division AND `id` <> @id
+          AND (@companyId = 0 OR `company_id` = @companyId)
         ORDER BY `id` DESC
         LIMIT 50
         """;

@@ -12308,6 +12308,7 @@ public sealed class ControlPanelModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ControlPanelJewelleryMasters, async (
             HttpContext context,
             int? limit,
+            long? company,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
             CancellationToken cancellationToken) =>
@@ -12318,7 +12319,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for jewellery-masters digest.");
             }
 
-            var result = await dashboards.BuildCpJewelleryMastersDigestAsync(limit ?? 200, cancellationToken);
+            var result = await dashboards.BuildCpJewelleryMastersDigestAsync(limit ?? 200, company ?? 0, cancellationToken);
             return Results.Ok(new
             {
                 ok = true,

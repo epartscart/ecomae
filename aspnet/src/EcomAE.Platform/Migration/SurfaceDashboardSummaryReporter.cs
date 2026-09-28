@@ -14479,7 +14479,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpJewelleryMastersDigestResult> BuildCpJewelleryMastersDigestAsync(int limit, CancellationToken cancellationToken = default)
+    public async Task<CpJewelleryMastersDigestResult> BuildCpJewelleryMastersDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
         var empty = new CpJewelleryMastersSummary(0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
@@ -14495,6 +14495,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using (var stats = connection.CreateCommand())
             {
                 stats.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersStats;
+                AddParameter(stats, "@companyId", Math.Max(0, companyId));
                 await using var reader = await stats.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -14509,6 +14510,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using (var list = connection.CreateCommand())
             {
                 list.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersKarats;
+                AddParameter(list, "@companyId", Math.Max(0, companyId));
                 AddParameter(list, "@limit", safeLimit);
                 await using var reader = await list.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -14536,7 +14538,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpJewelleryMastersKaratDetailResult> BuildCpJewelleryMastersDetailAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<CpJewelleryMastersKaratDetailResult> BuildCpJewelleryMastersDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
         {
@@ -14556,6 +14558,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersKaratDetail;
                 AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@companyId", Math.Max(0, companyId));
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -14586,6 +14589,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryMastersDivisionSiblings;
                 AddParameter(cmd, "@division", header.Division);
                 AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@companyId", Math.Max(0, companyId));
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
