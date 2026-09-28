@@ -454,6 +454,7 @@ builder.Services.AddSingleton<IErpOpeningAddInvLineDryRun, ErpOpeningAddInvLineD
 builder.Services.AddSingleton<IErpOpeningPostBatchDryRun, ErpOpeningPostBatchDryRun>();
 builder.Services.AddSingleton<IErpSaveRfqDryRun, ErpSaveRfqDryRun>();
 builder.Services.AddSingleton<IErpDeliveryNoteCreateDryRun, ErpDeliveryNoteCreateDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDeliveryNoteWriteService, EcomAE.Platform.Erp.ErpDeliveryNoteWriteService>();
 builder.Services.AddSingleton<IErpSaveContactDryRun, ErpSaveContactDryRun>();
 builder.Services.AddSingleton<IErpSyncContactsDryRun, ErpSyncContactsDryRun>();
 builder.Services.AddSingleton<IErpDocumentUploadDryRun, ErpDocumentUploadDryRun>();

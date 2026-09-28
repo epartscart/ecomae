@@ -16,8 +16,22 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Open a row for delivered time and the 280-character notes excerpt. PDF path omitted. Create stays on the Classic twin." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Create PHP-compatible shipment notes with optional carrier, tracking, and shipped status." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/delivery-note-create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="returnUrl" value="/erp/delivery-notes-app" />
+            <label>Order <input type="number" name="order_id" min="1" required style="width:6rem" /></label>
+            <label>Carrier <input type="text" name="carrier" maxlength="128" /></label>
+            <label>Tracking <input type="text" name="tracking_no" maxlength="128" /></label>
+            <label>Notes <input type="text" name="notes" maxlength="4000" /></label>
+            <label><input type="checkbox" name="mark_shipped" value="true" /> Mark shipped</label>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Create note</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Delivery Notes KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_notes.Count</div></div>
@@ -42,7 +56,7 @@
                 <dt>Shipped</dt><dd>@FormatTime(_opened.ShippedAt)</dd>
                 <dt>Delivered</dt><dd>@FormatTime(_opened.DeliveredAt)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">PDF path omitted. Create stays on the Classic twin.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">PDF path omitted. Create stays on the Classic twin for PDF rendering; note creation uses the guarded PHP-compatible live write path.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>

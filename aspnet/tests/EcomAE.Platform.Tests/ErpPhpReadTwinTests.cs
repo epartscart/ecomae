@@ -201,6 +201,27 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("/erp/ajax/save-rfq", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void DeliveryNoteCreateUsesPhpCompatibleGuardedWriteSurface()
+    {
+        var root = FindRepoRoot();
+        var module = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        var service = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Erp/ErpDeliveryNoteWriteService.cs"));
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpDeliveryNotesApp.razor"));
+
+        Assert.Contains("INSERT INTO `epc_erp_delivery_notes`", service, StringComparison.Ordinal);
+        Assert.Contains("UPDATE `epc_erp_delivery_notes` SET `pdf_path`", service, StringComparison.Ordinal);
+        Assert.Contains("IErpDeliveryNoteWriteService writes", module, StringComparison.Ordinal);
+        Assert.Contains("mark_shipped", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/delivery-note-create", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
