@@ -33,6 +33,7 @@ public static class FitOutDeliveryCatalog
         new("P2 operations", "P2 operations", "Equipment usage and timesheets", "partial", "ERP projects"),
         new("P2 operations", "P2 operations", "RFI and drawing revisions", "partial", "ERP quality"),
         new("P2 operations", "P2 operations", "QA/QC inspection and snag lifecycle", "partial", "ERP quality"),
+        new("P2 operations", "P2 operations", "Equipment usage and site timesheets", "partial", "ERP site operations"),
         new("P3 finance", "P3 finance", "Approved variations and contract value revision", "partial", "ERP projects"),
         new("P3 finance", "P3 finance", "Weighted BOQ progress", "partial", "ERP projects"),
         new("P3 finance", "P3 finance", "Progress claim and certification", "partial", "ERP projects"),

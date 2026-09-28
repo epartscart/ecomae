@@ -39,6 +39,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         "drawing_revision",
         "qa_inspection",
         "snag",
+        "equipment_usage",
+        "timesheet",
         "weighted_progress",
         "retention_recovery",
         "advance_recovery",
@@ -115,6 +117,14 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "Progress and recovery records require an amount or completion percentage.");
         }
 
+        if ((recordType == "equipment_usage" || recordType == "timesheet")
+            && request.Quantity <= 0m)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Equipment usage and timesheet records require a positive quantity.");
+        }
+
         if (recordType == "approval_request" && request.Amount <= 0m)
         {
             return ErpSimpleWriteResult.Fail(
@@ -132,7 +142,9 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         if ((recordType == "rfi"
                 || recordType == "drawing_revision"
                 || recordType == "qa_inspection"
-                || recordType == "snag")
+                || recordType == "snag"
+                || recordType == "equipment_usage"
+                || recordType == "timesheet")
             && description.Length == 0)
         {
             return ErpSimpleWriteResult.Fail(
@@ -166,6 +178,8 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
                 "drawing_revision" => "issued",
                 "qa_inspection" => "scheduled",
                 "snag" => "open",
+                "equipment_usage" => "draft",
+                "timesheet" => "draft",
                 "weighted_progress" => "draft",
                 "retention_recovery" => "draft",
                 "advance_recovery" => "draft",
