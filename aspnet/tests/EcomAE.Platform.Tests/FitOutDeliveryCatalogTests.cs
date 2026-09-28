@@ -103,6 +103,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("\"/erp/fitout/operations-report\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/finance-operations-report\"", routes, StringComparison.Ordinal);
         Assert.Contains("\"/erp/fitout/approval/decide\"", routes, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/fitout/invoice-bridge/save\"", routes, StringComparison.Ordinal);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Id == "P1-01").Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.Contains("dashboards", StringComparison.OrdinalIgnoreCase)).Status);
         Assert.Equal("partial", FitOutDeliveryCatalog.Steps.Single(step => step.Name.StartsWith("Sales,", StringComparison.Ordinal)).Status);
@@ -123,6 +124,14 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_delivery_records`", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutDeliveryRecordWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("HandleFitOutEstimateSaveAsync", module, StringComparison.Ordinal);
         Assert.Contains("HandleFitOutBoqLineSaveAsync", module, StringComparison.Ordinal);
+        Assert.Contains(
+            "IErpFitOutInvoiceBridgeWriteService",
+            File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs")),
+            StringComparison.Ordinal);
+        Assert.Contains(
+            "CREATE TABLE IF NOT EXISTS `ecomae_fitout_invoice_links`",
+            File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutInvoiceBridgeWriteService.cs")),
+            StringComparison.Ordinal);
     }
 
     [Fact]
