@@ -944,6 +944,7 @@ public static class EcomAeRoutes
     /// <summary>ERP delivery notes Blazor list (JSON digest remains <see cref="ErpDeliveryNotes"/>).</summary>
     public const string ErpDeliveryNotes = "/erp/delivery-notes";
     public const string ErpDeliveryNotesApp = "/erp/delivery-notes-app";
+    public const string ErpDeliveryNoteDocument = "/erp/delivery-note-document";
     /// <summary>ERP RFQ Blazor list (JSON digest remains <see cref="ErpRfqs"/>).</summary>
     public const string ErpRfqs = "/erp/rfqs";
     public const string ErpRfqApp = "/erp/rfq-app";

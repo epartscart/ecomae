@@ -211,12 +211,18 @@ public sealed class ErpPhpReadTwinTests
         var service = File.ReadAllText(Path.Combine(
             root,
             "aspnet/src/EcomAE.Platform/Erp/ErpDeliveryNoteWriteService.cs"));
+        var documentService = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Erp/ErpDeliveryNoteDocumentService.cs"));
         var page = File.ReadAllText(Path.Combine(
             root,
             "aspnet/src/EcomAE.Platform/Components/Pages/ErpDeliveryNotesApp.razor"));
 
         Assert.Contains("INSERT INTO `epc_erp_delivery_notes`", service, StringComparison.Ordinal);
         Assert.Contains("UPDATE `epc_erp_delivery_notes` SET `pdf_path`", service, StringComparison.Ordinal);
+        Assert.Contains("IErpDeliveryNoteDocumentService", documentService, StringComparison.Ordinal);
+        Assert.Contains("HtmlEncode", documentService, StringComparison.Ordinal);
+        Assert.Contains("ErpDeliveryNoteDocument", module, StringComparison.Ordinal);
         Assert.Contains("IErpDeliveryNoteWriteService writes", module, StringComparison.Ordinal);
         Assert.Contains("mark_shipped", page, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/delivery-note-create", page, StringComparison.Ordinal);

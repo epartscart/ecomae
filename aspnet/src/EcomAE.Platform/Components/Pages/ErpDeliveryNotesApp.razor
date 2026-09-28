@@ -59,13 +59,13 @@
             <p class="text-muted" style="margin:.85rem 0 0">
                 @if (!string.IsNullOrWhiteSpace(_opened.PdfPath))
                 {
-                    <a href="@_opened.PdfPath">Open delivery-note document</a>
+                    <a href="@($"/erp/delivery-note-document?id={_opened.Id}")">Open delivery-note document</a>
                 }
                 else
                 {
                     <span>Delivery-note document is not generated yet.</span>
                 }
-                Create stays on the Classic twin for PDF rendering; note creation uses the guarded PHP-compatible live write path.
+                The document is rendered by the guarded delivery-note route; note creation uses the PHP-compatible live write path.
             </p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {

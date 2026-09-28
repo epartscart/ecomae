@@ -11687,8 +11687,27 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Open ?delivery_note_id= loads 280-char notes excerpt; same-status siblings. PDF path omitted. PHP epc_erp_delivery_notes / delivery_note_create remain authoritative."
+                note = "Open ?delivery_note_id= loads 280-char notes excerpt and PdfPath; document rendering requires the guarded delivery-note document route. PHP epc_erp_delivery_notes / delivery_note_create remain the behavioral reference."
             });
+        });
+
+        endpoints.MapGet(EcomAeRoutes.ErpDeliveryNoteDocument, async (
+            HttpContext context,
+            long id,
+            ILegacySessionValidator validator,
+            IErpDeliveryNoteDocumentService documents,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for delivery-note documents.");
+            }
+
+            var html = await documents.RenderAsync(id, cancellationToken);
+            return html is null
+                ? Results.NotFound()
+                : Results.Content(html, "text/html; charset=utf-8");
         });
 
         endpoints.MapGet(EcomAeRoutes.ErpRfqs, async (
