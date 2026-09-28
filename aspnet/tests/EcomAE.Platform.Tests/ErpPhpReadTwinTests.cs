@@ -178,6 +178,28 @@ public sealed class ErpPhpReadTwinTests
         Assert.True(offenders.Count == 0, "ASP.NET disclosure leftovers: " + string.Join(", ", offenders));
     }
 
+    [Fact]
+    public void RfqSaveUsesPhpCompatibleGuardedWriteSurface()
+    {
+        var root = FindRepoRoot();
+        var module = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        var service = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Erp/ErpRfqWriteService.cs"));
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpRfqApp.razor"));
+
+        Assert.Contains("ErpRfqWriteService", service, StringComparison.Ordinal);
+        Assert.Contains("UPDATE `epc_erp_rfq`", service, StringComparison.Ordinal);
+        Assert.Contains("INSERT INTO `epc_erp_rfq`", service, StringComparison.Ordinal);
+        Assert.Contains("ErpRfqWriteService writes", module, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/save-rfq", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

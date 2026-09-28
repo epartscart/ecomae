@@ -16,8 +16,33 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="RFQs" Subtitle="Open a row for the 280-character description excerpt. Save stays on the Classic twin." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="RFQs" Subtitle="Create and edit supplier requests for quotation with PHP-compatible lifecycle fields; unsupported workflow actions remain on the Classic twin." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+
+    @if (_isAdmin)
+    {
+        <form method="post" action="/erp/ajax/save-rfq" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="returnUrl" value="/erp/rfq-app" />
+            <label>Supplier <input type="number" name="supplier_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Title <input type="text" name="title" required maxlength="255" /></label>
+            <label>Estimate <input type="text" name="amount_est" value="0.00" style="width:7rem" /></label>
+            <label>Status
+                <select name="status">
+                    <option value="draft">Draft</option>
+                    <option value="sent">Sent</option>
+                    <option value="quoted">Quoted</option>
+                    <option value="accepted">Accepted</option>
+                    <option value="rejected">Rejected</option>
+                    <option value="cancelled">Cancelled</option>
+                </select>
+            </label>
+            <label>Due <input type="date" name="due_date" /></label>
+            <label>Order <input type="number" name="order_id" min="0" value="0" style="width:6rem" /></label>
+            <label>Description <input type="text" name="description" maxlength="4000" /></label>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Save RFQ</button>
+        </form>
+    }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQs KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_rfqs.Count</div></div>
@@ -44,7 +69,8 @@
                 <dt>Order</dt><dd>@(_opened.OrderId > 0 ? _opened.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Updated</dt><dd>@(_opened.TimeUpdated > 0 ? _opened.TimeUpdated.ToString(CultureInfo.InvariantCulture) : "—")</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Save stays on the Classic twin.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path; unsupported workflow actions remain on the Classic twin.</p>
+            <p class="text-muted">Save stays on the Classic twin for unsupported workflow actions.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">description excerpt</p>
