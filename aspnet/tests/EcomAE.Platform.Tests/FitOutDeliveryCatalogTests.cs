@@ -143,6 +143,15 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("'subcontract_payment_certificate','client_payment_certificate'", executiveDashboard, StringComparison.Ordinal);
         Assert.Contains("client_certified_amount", executiveDashboard, StringComparison.Ordinal);
         Assert.Contains("subcontract_certified_amount", executiveDashboard, StringComparison.Ordinal);
+        var operations = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutOperationsReportReadService.cs"));
+        Assert.Contains("delivery', 'approved_records", operations, StringComparison.Ordinal);
+        Assert.Contains("delivery', 'pending_approvals", operations, StringComparison.Ordinal);
+        Assert.Contains("delivery', 'retention_ledger", operations, StringComparison.Ordinal);
+        var financeOperations = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutFinanceOperationsReportReadService.cs"));
+        Assert.Contains("client_certifications", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("subcontract_certifications", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("retention_releases", financeOperations, StringComparison.Ordinal);
+        Assert.Contains("approved_payment_vouchers", financeOperations, StringComparison.Ordinal);
         Assert.Contains("'variation_approval','final_settlement'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("guardedApprovalRecord", deliveryService, StringComparison.Ordinal);
