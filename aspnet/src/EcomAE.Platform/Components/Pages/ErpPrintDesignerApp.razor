@@ -182,8 +182,18 @@
             <label>Margin right <input class="form-control input-sm" name="margin_right" value="@_opened.MarginRight" /></label>
             <label>Margin bottom <input class="form-control input-sm" name="margin_bottom" value="@_opened.MarginBottom" /></label>
             <label>Margin left <input class="form-control input-sm" name="margin_left" value="@_opened.MarginLeft" /></label>
+            <label>Logo max height <input class="form-control input-sm" name="logo_max_height" value="@_opened.LogoMaxHeight" /></label>
+            <label>Body columns <input class="form-control input-sm" name="body_columns" value="@_opened.BodyColumns" /></label>
+            <label>Signature labels <input class="form-control input-sm" name="signature_labels" value="@_opened.SignatureLabels" /></label>
+            <label><input type="checkbox" name="show_terms" value="1" checked="@_opened.ShowTerms" /> Show terms</label>
+            <label><input type="checkbox" name="show_bank_details" value="1" checked="@_opened.ShowBankDetails" /> Show bank details</label>
+            <label><input type="checkbox" name="show_signature_line" value="1" checked="@_opened.ShowSignatureLine" /> Signature line</label>
+            <label><input type="checkbox" name="show_qr_code" value="1" checked="@_opened.ShowQrCode" /> QR code</label>
+            <label><input type="checkbox" name="show_barcode" value="1" checked="@_opened.ShowBarcode" /> Barcode</label>
             <label style="grid-column:span 3">Header HTML <textarea class="form-control input-sm" name="header_html" rows="3">@_opened.HeaderHtmlExcerpt</textarea></label>
             <label style="grid-column:span 3">Footer HTML <textarea class="form-control input-sm" name="footer_html" rows="3">@_opened.FooterHtmlExcerpt</textarea></label>
+            <label style="grid-column:span 3">Terms HTML <textarea class="form-control input-sm" name="terms_html" rows="3">@_opened.TermsHtmlExcerpt</textarea></label>
+            <label style="grid-column:span 3">Bank details HTML <textarea class="form-control input-sm" name="bank_details_html" rows="3">@_opened.BankDetailsHtmlExcerpt</textarea></label>
             <label style="grid-column:span 3">Custom CSS <textarea class="form-control input-sm" name="custom_css" rows="4">@_opened.CustomCssExcerpt</textarea></label>
             <label><input type="checkbox" name="is_default" value="1" checked="@_opened.IsDefault" /> Default</label>
             <button type="submit" class="btn btn-primary btn-sm">Save template</button>
