@@ -293,6 +293,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRetentionAgeing, HandleFitOutRetentionAgeingAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProformaReceipts, HandleFitOutProformaReceiptsAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalAudit, HandleFitOutApprovalAuditAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutSubcontractReconciliation, HandleFitOutSubcontractReconciliationAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutAcceptanceEvidence, HandleFitOutAcceptanceEvidenceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
@@ -13057,6 +13058,36 @@ public sealed class ErpModule : ISurfaceModule
             rows,
             session = SessionPayload(session),
             note = "Tenant-isolated history of guarded fit-out approval decisions."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutSubcontractReconciliationAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutSubcontractReconciliationReadService reconciliation,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for subcontract reconciliation.");
+        }
+
+        var result = await reconciliation
+            .ReadAsync(projectId, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = true,
+            surface = "erp",
+            projectId,
+            reconciliation = result,
+            session = SessionPayload(session),
+            note = "Tenant-isolated subcontract order, measurement, certification, payment-certificate, and payment reconciliation."
         });
     }
 

@@ -2746,6 +2746,8 @@ public static class EcomAeRoutes
         "/erp/fitout/proforma-receipts";
     public const string ErpFitOutApprovalAudit =
         "/erp/fitout/approval-audit";
+    public const string ErpFitOutSubcontractReconciliation =
+        "/erp/fitout/subcontract-reconciliation";
     public const string ErpFitOutAcceptanceEvidence =
         "/erp/fitout/acceptance-evidence";
     public const string ErpFitOutApprovalDecide =

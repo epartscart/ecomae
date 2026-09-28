@@ -1026,6 +1026,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutContractClosureReadServ
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutRetentionAgeingReadService, EcomAE.Platform.Erp.ErpFitOutRetentionAgeingReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutProformaReceiptReadService, EcomAE.Platform.Erp.ErpFitOutProformaReceiptReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutApprovalAuditReadService, EcomAE.Platform.Erp.ErpFitOutApprovalAuditReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutSubcontractReconciliationReadService, EcomAE.Platform.Erp.ErpFitOutSubcontractReconciliationReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutAcceptanceEvidenceReadService, EcomAE.Platform.Erp.ErpFitOutAcceptanceEvidenceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateCsvService, EcomAE.Platform.Erp.ErpFitOutEstimateCsvService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutDeliveryDashboardReadService, EcomAE.Platform.Erp.ErpFitOutDeliveryDashboardReadService>();
