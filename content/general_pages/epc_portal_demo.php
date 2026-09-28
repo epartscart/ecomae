@@ -22,31 +22,44 @@ function epc_portal_demo_days(): int
 
 function epc_portal_demo_industry_presets(): array
 {
-	return array(
-		'auto_parts' => array(
-			'industry_code' => 'auto_parts',
-			'storefront_package' => 'automotive_spareparts_pro',
-			'theme_template' => 'classic',
-			'label' => 'Auto spare parts (eParts Cart style)',
-			'cp_packs' => array('core', 'commerce', 'auto_parts', 'logistics', 'erp', 'professional', 'marketing'),
-		),
-		'fashion' => array(
-			'industry_code' => 'fashion',
-			'storefront_package' => 'fashion_retail_namshi',
-			'theme_template' => 'classic',
-			'label' => 'Fashion retail (Stylenlook style)',
-			'cp_packs' => array('core', 'commerce', 'catalogue', 'erp', 'professional', 'marketing'),
-		),
-		'erp_only' => array(
-			'industry_code' => 'erp_only',
-			'registry_industry' => 'erp_standalone',
-			'storefront_package' => 'none',
-			'theme_template' => 'classic',
-			'label' => 'ERP only (no storefront)',
-			'cp_packs' => array('core', 'erp', 'professional'),
-			'demo_erp_only' => true,
-		),
+	require_once __DIR__ . '/epc_portal_storefront_packages.php';
+	$presets = array();
+	foreach (epc_portal_industries() as $code => $industry) {
+		$package = epc_portal_storefront_package_for_industry($code);
+		$presets[$code] = array(
+			'industry_code' => $code,
+			'storefront_package' => $package !== '' ? $package : 'none',
+			'theme_template' => (string) ($industry['theme_template_default'] ?? 'classic'),
+			'label' => 'DEMO | ' . (string) ($industry['name'] ?? $code),
+			'cp_packs' => (array) ($industry['cp_packs'] ?? array('core', 'erp', 'professional')),
+			'demo_erp_only' => $code === 'erp_standalone',
+		);
+	}
+
+	$presets['auto_parts'] = array_merge($presets['auto_parts'], array(
+		'industry_code' => 'auto_parts',
+		'storefront_package' => 'automotive_spareparts_pro',
+		'theme_template' => 'classic',
+		'label' => 'DEMO | Auto spare parts (eParts Cart style)',
+		'cp_packs' => array('core', 'commerce', 'auto_parts', 'logistics', 'erp', 'professional', 'marketing'),
+	));
+	$presets['fashion'] = array_merge($presets['fashion'], array(
+		'industry_code' => 'fashion',
+		'storefront_package' => 'fashion_retail_namshi',
+		'theme_template' => 'classic',
+		'label' => 'DEMO | Fashion retail (Stylenlook style)',
+		'cp_packs' => array('core', 'commerce', 'catalogue', 'erp', 'professional', 'marketing'),
+	));
+	$presets['erp_only'] = array(
+		'industry_code' => 'erp_only',
+		'registry_industry' => 'erp_standalone',
+		'storefront_package' => 'none',
+		'theme_template' => 'classic',
+		'label' => 'DEMO | ERP only (no storefront)',
+		'cp_packs' => array('core', 'erp', 'professional'),
+		'demo_erp_only' => true,
 	);
+	return $presets;
 }
 
 /** True for Layla ERP-only sandbox demos (isolated DB, no commerce storefront). */
@@ -62,7 +75,7 @@ function epc_portal_demo_row_is_erp_only(?array $row): bool
 		}
 	}
 	$ind = (string) ($row['industry_code'] ?? '');
-	return $ind === 'erp_only';
+	return $ind === 'erp_only' || $ind === 'erp_standalone';
 }
 
 function epc_portal_demo_ensure_schema(PDO $pdo): void
@@ -2233,9 +2246,9 @@ function epc_portal_demo_provision(PDO $pdo, array $params): array
 	}
 	if (!isset($presets[$industry])) {
 		if ($industry !== '') {
-			return array('ok' => false, 'message' => 'Industry not available — choose auto parts, fashion, or ERP only');
+			return array('ok' => false, 'message' => 'Industry not available — choose a supported industry');
 		}
-		return array('ok' => false, 'message' => 'Select an industry (auto_parts, fashion, or erp_only)');
+		return array('ok' => false, 'message' => 'Select a supported industry');
 	}
 	if (epc_portal_demo_count_active($pdo) >= epc_portal_demo_max_active()) {
 		return array('ok' => false, 'message' => 'Demo capacity reached (' . epc_portal_demo_max_active() . ' active). Try again later or contact hello@ecomae.com');
