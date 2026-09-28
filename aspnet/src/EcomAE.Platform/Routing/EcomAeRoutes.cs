@@ -2732,6 +2732,8 @@ public static class EcomAeRoutes
         "/erp/fitout/delivery-records/save";
     public const string ErpFitOutInvoiceBridgeSave =
         "/erp/fitout/invoice-bridge/save";
+    public const string ErpFitOutInvoiceBridge =
+        "/erp/fitout/invoice-bridge";
     public const string ErpFitOutApprovalDecide =
         "/erp/fitout/approval/decide";
     public const string ErpFitOutProjectPnl =
