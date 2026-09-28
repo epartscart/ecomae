@@ -80,11 +80,24 @@ def server_ranges(cfg: str):
             ranges.append((match.start(), end))
     return ranges
 
+def has_top_level_return_301(server: str) -> bool:
+    """Ignore redirects nested inside locations; only server-level redirects exclude a block."""
+    depth = 0
+    top_level = []
+    for char in server:
+        if char == "{":
+            depth += 1
+        elif char == "}":
+            depth -= 1
+        elif depth == 1:
+            top_level.append(char)
+    return re.search(r"(?m)^\s*return\s+301\s+", "".join(top_level)) is not None
+
 def is_product_server(server: str) -> bool:
     return (
         "root /home/ecomae/htdocs/www.ecomae.com;" in server
         and re.search(r"(?m)^\s*server_name\s+[^;]+;", server) is not None
-        and not re.search(r"(?m)^\s*return\s+301\s+", server)
+        and not has_top_level_return_301(server)
     )
 
 inserted=[]; already=[]; target_count=0
