@@ -129,8 +129,10 @@ public sealed class ErpFitOutCommercialReconciliationReadService
                 COALESCE(SUM(CASE WHEN `record_type` IN
                     ('subcontract_certification','progress_claim','subcontractor_progress_claim','client_progress_claim')
                     THEN `amount` ELSE 0 END),0),
-                COALESCE(SUM(CASE WHEN `record_type`='vendor_bill' THEN `amount` ELSE 0 END),0),
-                COALESCE(SUM(CASE WHEN `record_type`='payment_voucher' THEN `amount` ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN `record_type`='vendor_bill'
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0),
+                COALESCE(SUM(CASE WHEN `record_type`='payment_voucher'
+                    AND `status`='approved' THEN `amount` ELSE 0 END),0),
                 COALESCE(SUM(CASE WHEN `record_type`='retention_release'
                     AND `status`='approved' THEN `amount` ELSE 0 END),0)
             FROM `ecomae_fitout_delivery_records`
