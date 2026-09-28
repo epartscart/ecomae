@@ -35,6 +35,21 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("EcomAeRoutes.MigrationFitOut", program, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void PhaseOneExposesEstimateAndBoqWriteContracts()
+    {
+        var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
+        var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutEstimateWriteService.cs"));
+        var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+
+        Assert.Contains("ErpFitOutEstimateSave = \"/erp/fitout/estimates/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutBoqLineSave = \"/erp/fitout/boq-lines/save\"", routes, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutEstimateSaveAsync", module, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutBoqLineSaveAsync", module, StringComparison.Ordinal);
+    }
+
     private static string FindRepoFile(string relativePath)
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

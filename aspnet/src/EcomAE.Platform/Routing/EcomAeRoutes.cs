@@ -2717,6 +2717,8 @@ public static class EcomAeRoutes
     public const string ErpCostModelsTxnsAdd = "/erp/cost-models/txns/add";
     /// <summary>Live PHP epc_prja_txn_add twin (ajax alias of <see cref="ErpProjectAccountingTxnsAdd"/>).</summary>
     public const string ErpProjectAccountingTxnsAdd = "/erp/project-accounting/txns/add";
+    public const string ErpFitOutEstimateSave = "/erp/fitout/estimates/save";
+    public const string ErpFitOutBoqLineSave = "/erp/fitout/boq-lines/save";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>
     /// <summary>Live PHP epc_rtl_assortment_set twin (ajax alias of <see cref="ErpRetailAssortmentsSet"/>).</summary>
     public const string ErpRetailAssortmentsSet = "/erp/retail/assortments/set";
