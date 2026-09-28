@@ -291,6 +291,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutCommercialReconciliation, HandleFitOutCommercialReconciliationAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutContractClosure, HandleFitOutContractClosureAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRetentionAgeing, HandleFitOutRetentionAgeingAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutProformaReceipts, HandleFitOutProformaReceiptsAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutAcceptanceEvidence, HandleFitOutAcceptanceEvidenceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutApprovalDecide, HandleFitOutApprovalDecideAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
@@ -12997,6 +12998,36 @@ public sealed class ErpModule : ISurfaceModule
             message = result.Message,
             session = SessionPayload(session),
             note = "Tenant-isolated retention ageing and release eligibility projection."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutProformaReceiptsAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutProformaReceiptReadService receipts,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out proforma and receipt summary.");
+        }
+
+        var result = await receipts.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            receipts = result,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Tenant-isolated proforma, invoice, and receipt reconciliation by billing stage."
         });
     }
 

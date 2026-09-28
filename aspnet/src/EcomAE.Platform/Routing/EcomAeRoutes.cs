@@ -2742,6 +2742,8 @@ public static class EcomAeRoutes
         "/erp/fitout/contract-closure";
     public const string ErpFitOutRetentionAgeing =
         "/erp/fitout/retention-ageing";
+    public const string ErpFitOutProformaReceipts =
+        "/erp/fitout/proforma-receipts";
     public const string ErpFitOutAcceptanceEvidence =
         "/erp/fitout/acceptance-evidence";
     public const string ErpFitOutApprovalDecide =
