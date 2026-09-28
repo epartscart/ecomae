@@ -5,6 +5,11 @@ public interface IErpFitOutDeliveryRecordWriteService
     Task<ErpSimpleWriteResult> SaveAsync(
         ErpFitOutDeliveryRecordSaveRequest request,
         CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> DecideApprovalAsync(
+        long id,
+        string? status,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpFitOutDeliveryRecordSaveRequest(
@@ -130,6 +135,15 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             return ErpSimpleWriteResult.Fail(
                 "invalid",
                 "Approval requests require a positive approval amount.");
+        }
+
+        if (recordType == "approval_request"
+            && status.Length > 0
+            && !string.Equals(status, "pending", StringComparison.Ordinal))
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Approval requests must use the approval decision action for terminal statuses.");
         }
 
         if (recordType == "site_daily_report" && description.Length == 0)
@@ -280,6 +294,52 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             null,
             cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Fit-out delivery record saved", id);
+    }
+
+    public async Task<ErpSimpleWriteResult> DecideApprovalAsync(
+        long id,
+        string? status,
+        CancellationToken cancellationToken = default)
+    {
+        var nextStatus = status?.Trim().ToLowerInvariant() switch
+        {
+            "approved" => "approved",
+            "rejected" => "rejected",
+            _ => string.Empty
+        };
+        if (id <= 0 || nextStatus.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "invalid",
+                "Approval id and approved or rejected status are required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "db",
+                "TenantRegistry DB is not configured.");
+        }
+
+        await using var connection = await _connections
+            .OpenAsync(cancellationToken)
+            .ConfigureAwait(false);
+        var affected = await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("""
+                UPDATE `ecomae_fitout_delivery_records`
+                SET `status`=?,`updated_at_utc`=UTC_TIMESTAMP()
+                WHERE `id`=? AND `record_type`='approval_request' AND `status`='pending'
+                """),
+            cancellationToken,
+            nextStatus,
+            id).ConfigureAwait(false);
+        return affected == 0
+            ? ErpSimpleWriteResult.Fail(
+                "not_pending",
+                "Approval request was not found or is no longer pending.")
+            : ErpSimpleWriteResult.Ok("Fit-out approval decided", id);
     }
 
     private static string Clip(string? value, int max)

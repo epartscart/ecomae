@@ -26,6 +26,9 @@
             Review tenant-isolated counts, amounts, statuses, and completion summaries by project.
         </p>
         <a class="btn btn-default" href="/erp/fitout/delivery-dashboard">Open delivery dashboard JSON</a>
+        <a class="btn btn-default" href="/erp/fitout/executive-dashboard" style="margin-left:.5rem">Open executive dashboard JSON</a>
+        <a class="btn btn-default" href="/erp/fitout/operations-report" style="margin-left:.5rem">Open operations report JSON</a>
+        <a class="btn btn-default" href="/erp/fitout/finance-operations-report" style="margin-left:.5rem">Open finance/operations report JSON</a>
         <form method="get" action="/erp/fitout/recovery-summary" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
             <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-default">Open recovery summary JSON</button>
@@ -253,6 +256,19 @@
             <label>Photo URL <input type="url" name="photo_url" maxlength="500" style="width:14rem" /></label>
             <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save delivery record</button>
+        </form>
+        <form method="post" action="/erp/fitout/approval/decide" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
+            <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
+            <strong style="width:100%">Fit-out approval decision</strong>
+            <label>Approval record id <input type="number" name="id" min="1" required style="width:8rem" /></label>
+            <label>Decision
+                <select name="status">
+                    <option value="approved">approved</option>
+                    <option value="rejected">rejected</option>
+                </select>
+            </label>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Apply decision</button>
         </form>
     }
 

@@ -25,6 +25,8 @@ public sealed class ErpVoucherNumberService : IErpVoucherNumberService
         ["PV"] = "PV-",
         ["GV"] = "GV-",
         ["TV"] = "TV-",
+        ["EST"] = "EST-",
+        ["QUO"] = "QUO-",
     };
 
     public async Task<string> NextAsync(DbConnection connection, DbTransaction? transaction, string voucherType, CancellationToken cancellationToken = default)

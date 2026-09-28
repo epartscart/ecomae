@@ -36,10 +36,14 @@ public sealed record ErpFitOutBoqLineSaveRequest(
 public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpVoucherNumberService _vouchers;
 
-    public ErpFitOutEstimateWriteService(IErpWriteConnectionFactory connections)
+    public ErpFitOutEstimateWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpVoucherNumberService vouchers)
     {
         _connections = connections;
+        _vouchers = vouchers;
     }
 
     public async Task<ErpSimpleWriteResult> SaveEstimateAsync(
@@ -48,7 +52,9 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
     {
         var code = Clip(request.Code, 60);
         var title = Clip(request.Title, 200);
-        if (request.ProjectId <= 0 || code.Length == 0 || title.Length == 0)
+        if (request.ProjectId <= 0
+            || (request.Id > 0 && code.Length == 0)
+            || title.Length == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Project, estimate code, and title are required.");
         }
@@ -60,6 +66,12 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (request.Id == 0 && code.Length == 0)
+        {
+            code = await _vouchers
+                .NextAsync(connection, null, "EST", cancellationToken)
+                .ConfigureAwait(false);
+        }
         var revision = Math.Max(1, request.Revision);
         var markup = decimal.Round(Math.Max(0, request.MarkupPercent), 4, MidpointRounding.AwayFromZero);
         var status = NormalizeStatus(request.Status);

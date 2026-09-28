@@ -2730,6 +2730,8 @@ public static class EcomAeRoutes
         "/erp/fitout/material-movements/save";
     public const string ErpFitOutDeliveryRecordSave =
         "/erp/fitout/delivery-records/save";
+    public const string ErpFitOutApprovalDecide =
+        "/erp/fitout/approval/decide";
     public const string ErpFitOutProjectPnl =
         "/erp/fitout/project-pnl";
     public const string ErpFitOutEstimateCsv =
@@ -2740,6 +2742,12 @@ public static class EcomAeRoutes
         "/erp/fitout/recovery-summary";
     public const string ErpFitOutLeadHandoffSave =
         "/erp/fitout/lead-handoff/save";
+    public const string ErpFitOutExecutiveDashboard =
+        "/erp/fitout/executive-dashboard";
+    public const string ErpFitOutOperationsReport =
+        "/erp/fitout/operations-report";
+    public const string ErpFitOutFinanceOperationsReport =
+        "/erp/fitout/finance-operations-report";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>
     /// <summary>Live PHP epc_rtl_assortment_set twin (ajax alias of <see cref="ErpRetailAssortmentsSet"/>).</summary>
     public const string ErpRetailAssortmentsSet = "/erp/retail/assortments/set";
