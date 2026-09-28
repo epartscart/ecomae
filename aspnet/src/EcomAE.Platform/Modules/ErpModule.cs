@@ -286,6 +286,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutMaterialMovementSave, HandleFitOutMaterialMovementSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDeliveryRecordSave, HandleFitOutDeliveryRecordSaveAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -12853,6 +12854,77 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandleFitOutEstimateCsvAsync(
+        HttpContext context,
+        IErpFitOutEstimateCsvService csvService,
+        ILegacySessionValidator validator,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for estimate CSV.");
+        }
+
+        var body = await LiveWriteFormBinder
+            .ReadJsonOrDefaultAsync<ErpFitOutEstimateCsvBody>(context, cancellationToken)
+            ?? new();
+        var estimateId = body.EstimateId;
+        var csv = body.Csv;
+        var export = body.Export;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            estimateId = LiveWriteFormBinder.Long(form, "estimateId", "estimate_id");
+            csv = LiveWriteFormBinder.Text(form, "csv");
+            export = LiveWriteFormBinder.Flag(form, "export");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (export)
+        {
+            var content = await csvService
+                .ExportAsync(estimateId, cancellationToken)
+                .ConfigureAwait(false);
+            return Results.Text(content, "text/csv; charset=utf-8");
+        }
+
+        if (!confirm)
+        {
+            var importCsv = csv ?? string.Empty;
+            return Results.Ok(new
+            {
+                ok = false,
+                dryRun = true,
+                estimateId,
+                lines = importCsv.Split('\n', StringSplitOptions.RemoveEmptyEntries).Length - 1,
+                session = SessionPayload(session)
+            });
+        }
+
+        var result = await csvService
+            .ImportAsync(estimateId, csv ?? string.Empty, cancellationToken)
+            .ConfigureAwait(false);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            result.Succeeded,
+            result.Message,
+            new
+            {
+                ok = result.Succeeded,
+                writes = result.Writes,
+                validation_code = result.Code,
+                message = result.Message,
+                id = result.Id,
+                session = SessionPayload(session)
+            });
+    }
+
     private static async Task<IResult> HandlePrjSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19611,6 +19683,11 @@ public sealed class ErpModule : ISurfaceModule
         string? EventDate = null,
         string? Status = null,
         string? PhotoUrl = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutEstimateCsvBody(
+        long EstimateId = 0,
+        string? Csv = null,
+        bool Export = false,
         bool ConfirmWrites = false);
     private sealed record ErpCostmItemSetBody(
         long ItemId = 0,

@@ -2732,6 +2732,8 @@ public static class EcomAeRoutes
         "/erp/fitout/delivery-records/save";
     public const string ErpFitOutProjectPnl =
         "/erp/fitout/project-pnl";
+    public const string ErpFitOutEstimateCsv =
+        "/erp/fitout/estimates/csv";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>
     /// <summary>Live PHP epc_rtl_assortment_set twin (ajax alias of <see cref="ErpRetailAssortmentsSet"/>).</summary>
     public const string ErpRetailAssortmentsSet = "/erp/retail/assortments/set";
