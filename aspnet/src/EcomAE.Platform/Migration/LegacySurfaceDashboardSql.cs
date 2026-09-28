@@ -426,7 +426,18 @@ public static class LegacySurfaceDashboardSql
                    INNER JOIN `shop_orders_items` i ON i.`id` = ri.`item_id`
                    WHERE ri.`return_id` = r.`id`
                    LIMIT 1
-               ), 0) AS order_id
+               ), 0) AS order_id,
+               IFNULL((
+                   SELECT COUNT(*)
+                   FROM `shop_orders_returns_items` ri
+                   WHERE ri.`return_id` = r.`id`
+               ), 0) AS item_count,
+               IFNULL((
+                   SELECT SUM(oi.`price` * oi.`count_need`)
+                   FROM `shop_orders_returns_items` ri
+                   INNER JOIN `shop_orders_items` oi ON oi.`id` = ri.`item_id`
+                   WHERE ri.`return_id` = r.`id`
+               ), 0) AS total_value
         FROM `shop_orders_returns` r
         LEFT JOIN `shop_orders_returns_statuses` s ON s.`id` = r.`status_id`
         WHERE r.`user_id` = @userId
