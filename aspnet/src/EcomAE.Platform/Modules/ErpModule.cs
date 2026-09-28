@@ -282,6 +282,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutCostCodeSave, HandleFitOutCostCodeSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutQuotationSave, HandleFitOutQuotationSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutProcurementLinkSave, HandleFitOutProcurementLinkSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutThreeWayMatchSave, HandleFitOutThreeWayMatchSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpFitOutMaterialMovementSave, HandleFitOutMaterialMovementSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPlatformJobsRun, HandlePltJobRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailDiscountsSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
@@ -12513,6 +12515,163 @@ public sealed class ErpModule : ISurfaceModule
             });
     }
 
+    private static async Task<IResult> HandleFitOutThreeWayMatchSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutThreeWayMatchWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out three-way matching.");
+        }
+
+        var body = await LiveWriteFormBinder
+            .ReadJsonOrDefaultAsync<ErpFitOutThreeWayMatchSaveBody>(context, cancellationToken)
+            ?? new();
+        var id = body.Id;
+        var procurementLinkId = body.ProcurementLinkId;
+        var projectId = body.ProjectId;
+        var purchaseOrderId = body.PurchaseOrderId;
+        var goodsReceiptId = body.GoodsReceiptId;
+        var invoiceReference = body.InvoiceReference;
+        var orderedAmount = body.OrderedAmount;
+        var receivedAmount = body.ReceivedAmount;
+        var invoicedAmount = body.InvoicedAmount;
+        var tolerancePercent = body.TolerancePercent;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            procurementLinkId = LiveWriteFormBinder.Long(form, "procurementLinkId", "procurement_link_id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            purchaseOrderId = LiveWriteFormBinder.Long(form, "purchaseOrderId", "purchase_order_id");
+            goodsReceiptId = LiveWriteFormBinder.Long(form, "goodsReceiptId", "goods_receipt_id");
+            invoiceReference = LiveWriteFormBinder.Text(form, "invoiceReference", "invoice_reference");
+            orderedAmount = LiveWriteFormBinder.Dec(form, "orderedAmount", "ordered_amount");
+            receivedAmount = LiveWriteFormBinder.Dec(form, "receivedAmount", "received_amount");
+            invoicedAmount = LiveWriteFormBinder.Dec(form, "invoicedAmount", "invoiced_amount");
+            tolerancePercent = LiveWriteFormBinder.Dec(form, "tolerancePercent", "tolerance_percent");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpFitOutThreeWayMatchSaveRequest(
+                id,
+                procurementLinkId,
+                projectId,
+                purchaseOrderId,
+                goodsReceiptId,
+                invoiceReference,
+                orderedAmount,
+                receivedAmount,
+                invoicedAmount,
+                tolerancePercent),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+    }
+
+    private static async Task<IResult> HandleFitOutMaterialMovementSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFitOutMaterialMovementWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out material movement.");
+        }
+
+        var body = await LiveWriteFormBinder
+            .ReadJsonOrDefaultAsync<ErpFitOutMaterialMovementSaveBody>(context, cancellationToken)
+            ?? new();
+        var id = body.Id;
+        var projectId = body.ProjectId;
+        var costCodeId = body.CostCodeId;
+        var itemCode = body.ItemCode;
+        var description = body.Description;
+        var quantity = body.Quantity;
+        var unitCost = body.UnitCost;
+        var movement = body.Movement;
+        var reference = body.Reference;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            projectId = LiveWriteFormBinder.Long(form, "projectId", "project_id");
+            costCodeId = LiveWriteFormBinder.Long(form, "costCodeId", "cost_code_id");
+            itemCode = LiveWriteFormBinder.Text(form, "itemCode", "item_code");
+            description = LiveWriteFormBinder.Text(form, "description");
+            quantity = LiveWriteFormBinder.Dec(form, "quantity");
+            unitCost = LiveWriteFormBinder.Dec(form, "unitCost", "unit_cost");
+            movement = LiveWriteFormBinder.Text(form, "movement");
+            reference = LiveWriteFormBinder.Text(form, "reference");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpFitOutMaterialMovementSaveRequest(
+                id,
+                projectId,
+                costCodeId,
+                itemCode,
+                description,
+                quantity,
+                unitCost,
+                movement,
+                reference),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/project-accounting-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+    }
+
     private static async Task<IResult> HandlePrjSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -19231,6 +19390,29 @@ public sealed class ErpModule : ISurfaceModule
         decimal Quantity = 0,
         decimal CommittedAmount = 0,
         string? Status = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutThreeWayMatchSaveBody(
+        long Id = 0,
+        long ProcurementLinkId = 0,
+        long ProjectId = 0,
+        long PurchaseOrderId = 0,
+        long GoodsReceiptId = 0,
+        string? InvoiceReference = null,
+        decimal OrderedAmount = 0,
+        decimal ReceivedAmount = 0,
+        decimal InvoicedAmount = 0,
+        decimal TolerancePercent = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpFitOutMaterialMovementSaveBody(
+        long Id = 0,
+        long ProjectId = 0,
+        long CostCodeId = 0,
+        string? ItemCode = null,
+        string? Description = null,
+        decimal Quantity = 0,
+        decimal UnitCost = 0,
+        string? Movement = null,
+        string? Reference = null,
         bool ConfirmWrites = false);
     private sealed record ErpCostmItemSetBody(
         long ItemId = 0,
