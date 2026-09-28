@@ -286,6 +286,7 @@
             <button type="submit" name="confirmWrites" value="false" class="btn btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-primary">Save delivery record</button>
         </form>
+        <p class="help-block">Approval-controlled records remain pending until this guarded decision action is applied; vendor bills and payment vouchers may remain draft.</p>
         <form method="post" action="/erp/fitout/approval/decide" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff;">
             <input type="hidden" name="returnUrl" value="/erp/project-accounting-app" />
             <strong style="width:100%">Fit-out approval decision</strong>

@@ -180,6 +180,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("project_manager_approval", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("variation_approval", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("final_settlement", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("Approval-controlled records remain pending", projectAccounting, StringComparison.Ordinal);
     }
 
     [Fact]
