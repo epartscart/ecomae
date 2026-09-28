@@ -25,6 +25,7 @@ public sealed class LiveSurfaceLinkReporterTests
         Assert.Contains(report.Links, link => link.Url == "https://www.epartscart.com/php-reference/erp");
         Assert.Contains(report.Links, link => link.HostClass == "tenant" && link.Url.Contains("electronicae.com", StringComparison.OrdinalIgnoreCase));
         Assert.Contains(report.Links, link => link.HostClass == "aspnet-diagnostics" && link.StackToday == "aspnet");
+        Assert.Contains(report.Links, link => link.AspNetRouteHint == "/ready");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/migration/php-reference-mode");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/migration/surface-field-parity");
         Assert.Contains(report.Links, link => link.AspNetRouteHint == "/cp/parity");
