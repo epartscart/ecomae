@@ -26,6 +26,10 @@
             Review tenant-isolated counts, amounts, statuses, and completion summaries by project.
         </p>
         <a class="btn btn-default" href="/erp/fitout/delivery-dashboard">Open delivery dashboard JSON</a>
+        <form method="get" action="/erp/fitout/recovery-summary" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
+            <button type="submit" class="btn btn-default">Open recovery summary JSON</button>
+        </form>
     </section>
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Project accounting KPIs">
