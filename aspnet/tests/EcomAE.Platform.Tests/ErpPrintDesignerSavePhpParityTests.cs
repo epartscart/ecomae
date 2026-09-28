@@ -65,6 +65,23 @@ public sealed class ErpPrintDesignerSavePhpParityTests
     }
 
     [Fact]
+    public void DetailProjection_PreservesFullBodiesAndExposesAllAllowlistedFields()
+    {
+        var sql = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs"));
+        var designerSql = sql[sql.IndexOf("FROM `epc_erp_print_templates`", StringComparison.Ordinal)..];
+        Assert.Contains("IFNULL(`header_html`,'') AS header_html_excerpt", designerSql, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`footer_html`,'') AS footer_html_excerpt", designerSql, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`custom_css`,'') AS custom_css_excerpt", designerSql, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEFT(IFNULL(`header_html`", designerSql, StringComparison.Ordinal);
+        Assert.DoesNotContain("LEFT(IFNULL(`custom_css`", designerSql, StringComparison.Ordinal);
+
+        var catalog = SurfacePayloadContractCatalog.All.First(item =>
+            item.AspNetRoute == "/erp/print-templates");
+        Assert.Contains("Full HTML/CSS bodies plus layout metadata", catalog.FunctionsCovered, StringComparer.Ordinal);
+        Assert.Contains("rendering/version history remain PHP-authoritative", catalog.FunctionsCovered, StringComparer.Ordinal);
+    }
+
+    [Fact]
     public void Module_WiresFormAliasesAndLiveComplete()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
