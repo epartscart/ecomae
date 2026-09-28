@@ -857,6 +857,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Read-only supplier performance scorecards (PHP <c>epc_sp_scorecards</c>).</summary>
     Task<ErpSupplierPortalDigestResult> BuildErpSupplierPortalDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    /// <summary>Opened supplier performance detail (PHP <c>epc_sp_supplier_detail</c>).</summary>
+    Task<ErpSupplierPortalDetailResult> BuildErpSupplierPortalDetailAsync(long supplierId, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only virtual/exhibition warehouse locations + transfer history.</summary>
     Task<ErpVirtualWarehouseDigestResult> BuildErpVirtualWarehouseDigestAsync(int limit, CancellationToken cancellationToken = default);
 

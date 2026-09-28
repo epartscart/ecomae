@@ -7343,6 +7343,38 @@ public sealed record ErpSupplierPortalDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpSupplierPortalPurchaseDigest(
+    string PurchaseNo,
+    string Title,
+    decimal TotalAmount,
+    string Status,
+    long ApprovedAt,
+    long ReceivedAt,
+    long TimeCreated);
+
+public sealed record ErpSupplierPortalRfqDigest(
+    string RfqNo,
+    string Title,
+    decimal AmountEstimate,
+    string Status,
+    long DueDate,
+    long TimeCreated);
+
+public sealed record ErpSupplierPortalBillDigest(
+    long Id,
+    string InvoiceNumber,
+    decimal TotalAmount,
+    long PurchaseDate,
+    string Status);
+
+public sealed record ErpSupplierPortalDetailResult(
+    ErpSupplierPortalCardDigest? Card,
+    IReadOnlyList<ErpSupplierPortalPurchaseDigest> PurchaseOrders,
+    IReadOnlyList<ErpSupplierPortalRfqDigest> Rfqs,
+    IReadOnlyList<ErpSupplierPortalBillDigest> Bills,
+    string Source,
+    string Message);
+
 public sealed record ErpVirtualWarehouseDigestResult(
     int LocationCount,
     IReadOnlyList<ErpWarehouseDigest> Locations,

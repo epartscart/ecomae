@@ -10812,6 +10812,35 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ErpSupplierPortalDetail, async (
+            HttpContext context,
+            long supplierId,
+            ILegacySessionValidator validator,
+            ISurfaceDashboardSummaryReporter dashboards,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required for supplier-portal detail.");
+            }
+
+            var result = await dashboards.BuildErpSupplierPortalDetailAsync(supplierId, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Card is not null,
+                surface = "erp",
+                card = result.Card,
+                purchaseOrders = result.PurchaseOrders,
+                rfqs = result.Rfqs,
+                bills = result.Bills,
+                source = result.Source,
+                message = result.Message,
+                session = SessionPayload(session),
+                note = "Read-only PHP supplier detail projection."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ErpVirtualWarehouses, async (
             HttpContext context,
             int? limit,

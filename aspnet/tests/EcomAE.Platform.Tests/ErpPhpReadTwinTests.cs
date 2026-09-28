@@ -99,6 +99,8 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("BuildErpBankInstrumentsDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpBankReconciliationApp.razor")), StringComparison.Ordinal);
         Assert.Contains("BuildErpSubscriptionsDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpSalesOrdersApp.razor")), StringComparison.Ordinal);
         Assert.Contains("BuildErpSupplierPortalDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpSuppliersApp.razor")), StringComparison.Ordinal);
+        Assert.Contains("BuildErpSupplierPortalDetailAsync", File.ReadAllText(Path.Combine(pages, "ErpSuppliersApp.razor")), StringComparison.Ordinal);
+        Assert.Equal("/erp/supplier-portal/{supplierId:long}", EcomAeRoutes.ErpSupplierPortalDetail);
         Assert.Contains("BuildErpVirtualWarehouseDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpWarehousesApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListErpStaffAsync", File.ReadAllText(Path.Combine(pages, "ErpStaffApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListErpContractsAsync", File.ReadAllText(Path.Combine(pages, "ErpContractsApp.razor")), StringComparison.Ordinal);

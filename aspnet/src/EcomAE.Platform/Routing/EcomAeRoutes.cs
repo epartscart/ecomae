@@ -855,6 +855,8 @@ public static class EcomAeRoutes
     public const string ErpLandedCostCalculate = "/erp/landed-cost/calculate";
     /// <summary>Live PHP landed-cost posting twin (confirmWrites=true).</summary>
     public const string ErpLandedCostPost = "/erp/landed-cost/post";
+    /// <summary>Read-only PHP supplier performance detail.</summary>
+    public const string ErpSupplierPortalDetail = "/erp/supplier-portal/{supplierId:long}";
     /// <summary>PHP epc_wms_location_delete. <c>confirmWrites=true</c> writes via <c>IErpWmsLocationWriteService</c>.</summary>
     public const string ErpWmsLocationDelete = "/erp/wms/locations/delete";
     /// <summary>Wave B dry-run for PHP invoice_delete draft (writes=0).</summary>
