@@ -522,7 +522,7 @@
             return;
         }
 
-        var result = await Dashboards.BuildCpJewelleryMastersDigestAsync(200, ctx.RequestAborted);
+        var result = await Dashboards.BuildCpJewelleryMastersDigestAsync(200, _company, ctx.RequestAborted);
         _summary = result.Summary;
         _rows = result.Karats;
         _karatDisplay = _rows.Select((r, i) => new KaratRow((i + 1).ToString(CultureInfo.InvariantCulture), r)).ToList();
@@ -530,7 +530,7 @@
         _message = result.Message;
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpJewelleryMastersDetailAsync(_openedId, ctx.RequestAborted);
+            var detail = await Dashboards.BuildCpJewelleryMastersDetailAsync(_openedId, _company, ctx.RequestAborted);
             _opened = detail.Karat;
             _openedSiblings = detail.Siblings;
         }
