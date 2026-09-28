@@ -35,7 +35,7 @@ completion percentage): `[ ]` supplier quotations/RFQs; `[ ]` purchase/work orde
 subcontractor management; `[~]` monthly subcontractor progress claims; `[ ]` subcontractor payment
 certificates; `[~]` site-engineer and project-manager approval levels; `[ ]` vendor bills/AP invoice
 flow; `[ ]` payment vouchers; `[~]` client progress claims; `[ ]` client payment certificates;
-`[ ]` proforma/receipt handling; `[ ]` work-completion certificates; `[~]` project profitability;
+`[ ]` proforma/receipt handling; `[~]` work-completion certificates; `[~]` project profitability;
 `[~]` budget-versus-actual reporting; `[~]` retention ledger plus release/ageing; and `[~]`
 variation orders. The source also requires two parallel, reconciled chains (purchase/contract and
 sales/client billing) converging on contract balance, profitability, and budget control. The

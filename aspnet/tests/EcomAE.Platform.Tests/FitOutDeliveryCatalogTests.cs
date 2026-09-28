@@ -117,6 +117,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("ecomae_fitout_lead_handoffs", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutLeadHandoffWriteService.cs")), StringComparison.Ordinal);
         Assert.Contains("equipment_usage", deliveryService, StringComparison.Ordinal);
         Assert.Contains("timesheet", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("work_completion_certificate", deliveryService, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_estimates`", service, StringComparison.Ordinal);
         Assert.Contains("CREATE TABLE IF NOT EXISTS `ecomae_fitout_boq_lines`", service, StringComparison.Ordinal);
         Assert.Contains("ErpFitOutContractTermsWriteService", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractTermsWriteService.cs")), StringComparison.Ordinal);
@@ -141,6 +142,7 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("action=\"/erp/fitout/invoice-bridge\"", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/fitout/invoice-reconciliation\"", projectAccounting, StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/fitout/acceptance-evidence\"", projectAccounting, StringComparison.Ordinal);
+        Assert.Contains("work_completion_certificate", projectAccounting, StringComparison.Ordinal);
     }
 
     [Fact]
