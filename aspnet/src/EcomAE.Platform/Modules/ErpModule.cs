@@ -13093,7 +13093,7 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(new { ok = false, dryRun = true, session = SessionPayload(session) });
         }
 
-        var written = await writes.DecideApprovalAsync(id, status, cancellationToken);
+        var written = await writes.DecideApprovalAsync(id, status, session.UserId, cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
             "/erp/project-accounting-app",

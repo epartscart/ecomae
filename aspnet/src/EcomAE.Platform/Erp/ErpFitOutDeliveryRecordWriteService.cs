@@ -27,6 +27,7 @@ public interface IErpFitOutDeliveryRecordWriteService
     Task<ErpSimpleWriteResult> DecideApprovalAsync(
         long id,
         string? status,
+        long adminId = 0,
         CancellationToken cancellationToken = default);
 }
 
@@ -475,6 +476,7 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
     public async Task<ErpSimpleWriteResult> DecideApprovalAsync(
         long id,
         string? status,
+        long adminId,
         CancellationToken cancellationToken = default)
     {
         var nextStatus = status?.Trim().ToLowerInvariant() switch
@@ -500,6 +502,21 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
         await using var connection = await _connections
             .OpenAsync(cancellationToken)
             .ConfigureAwait(false);
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            """
+            CREATE TABLE IF NOT EXISTS `ecomae_fitout_approval_audit` (
+                `id` bigint NOT NULL AUTO_INCREMENT,
+                `delivery_record_id` bigint NOT NULL,
+                `decision` varchar(24) NOT NULL,
+                `admin_id` bigint NOT NULL DEFAULT 0,
+                `decided_at_utc` datetime NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                PRIMARY KEY (`id`),
+                KEY `ix_ecomae_fitout_approval_audit_record` (`delivery_record_id`,`decided_at_utc`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+            """,
+            cancellationToken).ConfigureAwait(false);
         var affected = await ErpDb.ExecuteAsync(
             connection,
             null,
@@ -518,11 +535,27 @@ public sealed class ErpFitOutDeliveryRecordWriteService : IErpFitOutDeliveryReco
             cancellationToken,
             nextStatus,
             id).ConfigureAwait(false);
-        return affected == 0
-            ? ErpSimpleWriteResult.Fail(
+        if (affected == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
                 "not_pending",
-                "Approval record was not found or is no longer pending.")
-            : ErpSimpleWriteResult.Ok("Fit-out approval decided", id);
+                "Approval record was not found or is no longer pending.");
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                """
+                INSERT INTO `ecomae_fitout_approval_audit`
+                    (`delivery_record_id`,`decision`,`admin_id`)
+                VALUES (?,?,?)
+                """),
+            cancellationToken,
+            id,
+            nextStatus,
+            adminId > 0 ? adminId : 0).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Fit-out approval decided", id);
     }
 
     private static string Clip(string? value, int max)

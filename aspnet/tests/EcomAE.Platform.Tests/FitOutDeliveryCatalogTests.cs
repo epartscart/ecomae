@@ -142,6 +142,8 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Contains("'retention_release','vendor_bill','payment_voucher'", deliveryService, StringComparison.Ordinal);
         Assert.Contains("guardedApprovalRecord", deliveryService, StringComparison.Ordinal);
         Assert.Contains("draftApprovalRecord", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("ecomae_fitout_approval_audit", deliveryService, StringComparison.Ordinal);
+        Assert.Contains("decided_at_utc", deliveryService, StringComparison.Ordinal);
         var closure = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutContractClosureReadService.cs"));
         Assert.Contains("CanClose", closure, StringComparison.Ordinal);
         Assert.Contains("No approved final settlement exists", closure, StringComparison.Ordinal);
