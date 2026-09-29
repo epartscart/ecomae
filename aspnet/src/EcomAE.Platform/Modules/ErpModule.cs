@@ -11542,7 +11542,7 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
                 return Unauthorized("Admin ERP capability required for inventory-forecast digest.");
             var result = await dashboards.ListErpInventoryForecastAsync(limit ?? 200, cancellationToken);
-            return Results.Ok(new { ok = true, surface = "erp", forecasts = result.Forecasts, count = result.Count, healthyCount = result.HealthyCount, lowCount = result.LowCount, criticalCount = result.CriticalCount, stockoutCount = result.StockoutCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_forecast. Open ?inv_forecast_id= loads site key, lead time, safety stock, and EOQ. POST /erp/inventory-forecast/recompute is the ASP.NET live twin of epc_forecast_compute." });
+            return Results.Ok(new { ok = true, surface = "erp", forecasts = result.Forecasts, count = result.Count, healthyCount = result.HealthyCount, lowCount = result.LowCount, criticalCount = result.CriticalCount, stockoutCount = result.StockoutCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "Read-only epc_inventory_forecast. Open ?inv_forecast_id= loads site key, lead time, safety stock, and EOQ. POST /erp/inventory-forecast/recompute and /erp/inventory-forecast/demand are guarded ASP.NET live twins; schema remains PHP-managed." });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpInventoryForecastRecompute, async (
@@ -11591,6 +11591,73 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.RecomputeSkuAsync(siteKey, sku, stock, name, lead, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/inventory-forecast-app",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Succeeded,
+                    surface = "erp",
+                    writes = written.Writes,
+                    writesBlocked = false,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    session = SessionPayload(session),
+                });
+        }).DisableAntiforgery();
+
+        endpoints.MapPost(EcomAeRoutes.ErpInventoryForecastDemand, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpInventoryForecastWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/inventory-forecast-app", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInventoryForecastDemandBody>(context, cancellationToken) ?? new();
+            var siteKey = body.SiteKey ?? string.Empty;
+            var sku = body.Sku ?? string.Empty;
+            var period = body.Period ?? string.Empty;
+            var qtySold = body.QtySold;
+            var qtyReturned = body.QtyReturned;
+            var revenue = body.Revenue;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = LiveWriteFormBinder.Text(form, "siteKey", "site_key");
+                sku = LiveWriteFormBinder.Text(form, "sku");
+                period = LiveWriteFormBinder.Text(form, "period");
+                qtySold = LiveWriteFormBinder.Int(form, "qtySold", "qty_sold");
+                qtyReturned = LiveWriteFormBinder.Int(form, "qtyReturned", "qty_returned");
+                revenue = LiveWriteFormBinder.Dec(form, "revenue");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    status = false,
+                    surface = "erp",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Set confirmWrites=true to record demand history on ASP.NET.",
+                    session = SessionPayload(session),
+                });
+            }
+
+            var written = await writes.RecordDemandAsync(siteKey, sku, period, qtySold, qtyReturned, revenue, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 "/erp/inventory-forecast-app",
@@ -21304,6 +21371,14 @@ public sealed class ErpModule : ISurfaceModule
         int CurrentStock = 0,
         string? ProductName = null,
         int LeadTimeDays = 7,
+        bool ConfirmWrites = false);
+    private sealed record ErpInventoryForecastDemandBody(
+        string? SiteKey = null,
+        string? Sku = null,
+        string? Period = null,
+        int QtySold = 0,
+        int QtyReturned = 0,
+        decimal Revenue = 0,
         bool ConfirmWrites = false);
     private sealed record ErpMultiEntityWriteBody(
         string? Action = null,

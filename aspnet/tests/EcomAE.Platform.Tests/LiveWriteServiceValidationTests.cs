@@ -1637,6 +1637,16 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(mvDb.Succeeded);
         Assert.Equal("db", mvDb.Code);
 
+        var demandInvalid = await new ErpInventoryForecastWriteService(new ConfiguredNeverOpened())
+            .RecordDemandAsync("", "SKU-1", "2026-09-01", 1, 0, 0);
+        Assert.False(demandInvalid.Succeeded);
+        Assert.Equal("invalid", demandInvalid.Code);
+
+        var demandDb = await new ErpInventoryForecastWriteService(new UnconfiguredConnections())
+            .RecordDemandAsync("site", "SKU-1", "2026-09-01", 1, 0, 10m);
+        Assert.False(demandDb.Succeeded);
+        Assert.Equal("db", demandDb.Code);
+
         var trInvalid = await new ErpInventoryMovementWriteService(new ConfiguredNeverOpened())
             .TransferAsync(new ErpInventoryTransferWriteRequest(1, 1, 1, 9, 2));
         Assert.False(trInvalid.Succeeded);
