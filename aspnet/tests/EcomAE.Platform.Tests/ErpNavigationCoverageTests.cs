@@ -348,6 +348,24 @@ public sealed class ErpNavigationCoverageTests
             [delegation]).Allowed);
     }
 
+    [Fact]
+    public void ErpScopedPermissionReadServiceDefinesAdditiveTenantSchema()
+    {
+        var service = File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Erp/ErpPermissionScopeReadService.cs"));
+
+        Assert.Contains("epc_erp_permission_grant", service, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_permission_delegation", service, StringComparison.Ordinal);
+        Assert.Contains("effective_from", service, StringComparison.Ordinal);
+        Assert.Contains("effective_to", service, StringComparison.Ordinal);
+        Assert.Contains("approval_limit", service, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS", service, StringComparison.Ordinal);
+        Assert.Contains("IErpPermissionScopeReadService", File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
