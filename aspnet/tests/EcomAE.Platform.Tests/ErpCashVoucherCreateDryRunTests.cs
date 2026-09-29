@@ -43,6 +43,8 @@ public sealed class ErpCashVoucherCreateDryRunTests
         var r = new ErpReceiptVoucherDryRun().Evaluate(new ErpReceiptVoucherRequest(9, 2, 100m));
         Assert.Equal("ok", r.ValidationCode);
         Assert.True(r.WouldWrite);
+        Assert.False(r.PhpAuthoritative);
+        Assert.Contains("no write was performed", r.Detail, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -58,5 +60,23 @@ public sealed class ErpCashVoucherCreateDryRunTests
         var r = new ErpPaymentVoucherDryRun().Evaluate(new ErpPaymentVoucherRequest(5, 2, 50m));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Contains(r.SimulatedSql, s => s.Contains("NOT executed", StringComparison.Ordinal));
+        Assert.False(r.PhpAuthoritative);
+        Assert.Contains("no write was performed", r.Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CashVoucherCatalogUsesLiveWriteGates()
+    {
+        var receipt = SurfacePayloadContractCatalog.Functions.Single(item =>
+            item.AspNetRouteOrCapability == "/erp/cash-entries/receipt-voucher");
+        var payment = SurfacePayloadContractCatalog.Functions.Single(item =>
+            item.AspNetRouteOrCapability == "/erp/cash-entries/payment-voucher");
+
+        Assert.Equal("write-live-gated", receipt.Status);
+        Assert.Equal("write-live-gated", payment.Status);
+        Assert.Contains("confirm_writes=true", receipt.Notes, StringComparison.Ordinal);
+        Assert.Contains("confirm_writes=true", payment.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP authoritative", receipt.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP authoritative", payment.Notes, StringComparison.Ordinal);
     }
 }

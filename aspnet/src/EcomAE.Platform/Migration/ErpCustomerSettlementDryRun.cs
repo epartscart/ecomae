@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>customer_settlement</c>. Never INSERT. PHP authoritative.</summary>
+/// <summary>Validation envelope for the live ASP.NET customer-settlement writer.</summary>
 public interface IErpCustomerSettlementDryRun
 {
     ErpCustomerSettlementDryRunResult Evaluate(ErpCustomerSettlementRequest request);
@@ -14,7 +14,7 @@ public sealed class ErpCustomerSettlementDryRun : IErpCustomerSettlementDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET customer_settlement is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET customer-settlement writer.",
                 request);
         }
 
@@ -44,19 +44,19 @@ public sealed class ErpCustomerSettlementDryRun : IErpCustomerSettlementDryRun
         }
 
         return new ErpCustomerSettlementDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, false, false, "ok", true,
             request.UserId, request.Amount, direction, kind, request.OrderId,
             [
                 "INSERT INTO `shop_users_accounting` (…) (NOT executed)",
-                "Optional GL post_gl path stays PHP until dual-sample"
+                "Optional GL post_gl path is applied by the confirmed ASP.NET write"
             ],
-            "Customer settlement payload validated; accounting INSERT blocked.",
+            "Customer settlement payload validated; no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=customer_settlement");
     }
 
     private static ErpCustomerSettlementDryRunResult Refuse(
         string status, string code, string detail, ErpCustomerSettlementRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, false, false, code, false,
             request.UserId, request.Amount, request.Direction, request.EntryKind, request.OrderId,
             [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=customer_settlement");
 }
