@@ -146,6 +146,29 @@ public sealed class CpErpChromeDashboardParityTests
     }
 
     [Fact]
+    public void DocumentWorkspaceUsesSharedHeaderActionsAndSummaryRail()
+    {
+        var workspace = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpDocumentWorkspace.razor"));
+        var css = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/wwwroot/css/erp-document-workspace.css"));
+        var sales = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesOrdersApp.razor"));
+        var purchase = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchaseOrdersApp.razor"));
+        var invoices = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpInvoicesApp.razor"));
+
+        Assert.Contains("epc-document-workspace__summary", workspace);
+        Assert.Contains("epc-document-workspace__actions", workspace);
+        Assert.Contains("HeaderActions", workspace);
+        Assert.Contains("CompanyContext", workspace);
+        Assert.Contains("epc-document-workspace__summary", css);
+        Assert.Contains("epc-document-workspace__actions", css);
+        Assert.Contains("SalesOrderHeaderActions", sales);
+        Assert.Contains("PurchaseOrderHeaderActions", purchase);
+        Assert.Contains("InvoiceHeaderActions", invoices);
+        Assert.Contains("HeaderActions=\"@SalesOrderHeaderActions\"", sales);
+        Assert.Contains("HeaderActions=\"@PurchaseOrderHeaderActions\"", purchase);
+        Assert.Contains("HeaderActions=\"@InvoiceHeaderActions\"", invoices);
+    }
+
+    [Fact]
     public void DesktopChromeCatalogStillDocumentsTopnavSelectors()
     {
         Assert.Contains(".epc-cp-topnav", LegacyDesktopChromeCatalog.RequiredStructuralSelectors("cp"));

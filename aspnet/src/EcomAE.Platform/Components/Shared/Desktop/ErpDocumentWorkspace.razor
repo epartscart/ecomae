@@ -13,6 +13,21 @@
         </div>
     </div>
 
+    <div class="epc-document-workspace__summary" aria-label="Document summary">
+        <div><span>Company</span><strong>@CompanyContext</strong></div>
+        <div><span>Status</span><strong>@Status</strong></div>
+        <div><span>Approval</span><strong>@ApprovalState</strong></div>
+        <div><span>Currency</span><strong>@Currency</strong></div>
+        <div><span>Balance due</span><strong>@BalanceDue.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+    </div>
+
+    @if (HeaderActions is not null)
+    {
+        <div class="epc-document-workspace__actions">
+            @HeaderActions
+        </div>
+    }
+
     <nav class="epc-document-workspace__tabs" aria-label="Document sections">
         @foreach (var tab in Tabs)
         {
@@ -129,6 +144,7 @@
     [Parameter] public IReadOnlyList<ErpDocumentWorkspaceField> Fields { get; set; } = [];
     [Parameter] public IReadOnlyList<ErpDocumentWorkspaceLine> Lines { get; set; } = [];
     [Parameter] public IReadOnlyList<string> Tabs { get; set; } = ["General", "Address", "Delivery", "Lines", "Financial"];
+    [Parameter] public RenderFragment? HeaderActions { get; set; }
 
     private static string Anchor(string value) => value.ToLowerInvariant().Replace(' ', '-');
 }
