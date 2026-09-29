@@ -38,6 +38,15 @@ public sealed class ErpHostContextTests
     }
 
     [Fact]
+    public void ActiveCompanyQuery_PreservesFitOutCompanyThree()
+    {
+        var http = new DefaultHttpContext();
+        http.Request.QueryString = new QueryString("?company=3");
+
+        Assert.Equal(3, ErpHostContext.ActiveCompanyIdFromQuery(http.Request));
+    }
+
+    [Fact]
     public void ChromeExposesCompanyIndustryBar()
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpDesktopChrome.razor");

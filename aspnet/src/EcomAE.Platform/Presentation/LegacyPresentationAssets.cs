@@ -100,7 +100,8 @@ public static class LegacyPresentationAssets
         // /platform-assets survives PHP pause on Super / Tenant / ERP-only hosts.
         "/platform-assets/epc_erp_aspnet_module_parity.css?v=20260909clip",
         "/content/shop/finance/epc_erp_aspnet_module_parity_css.php",
-        "/erp-document-workspace.css?v=20260929workspace"
+        "/erp-document-workspace.css?v=20260929workspace",
+        "/erp-finance-voucher-workspace.css?v=20260929finance"
     ];
 
     public static readonly IReadOnlyList<string> BosStylesheets =

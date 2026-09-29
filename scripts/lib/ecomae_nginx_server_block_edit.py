@@ -415,6 +415,7 @@ def strip_classic_entry_from_host_servers(conf_text: str, host: str | None = Non
         "/cp/login/",
         "/erp/login",
         "/erp/login/",
+        "/erp/logout",
         "/bos/login",
         "/bos/login/",
         "/auth/login/admin",
