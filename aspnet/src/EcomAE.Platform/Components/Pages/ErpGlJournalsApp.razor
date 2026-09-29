@@ -99,7 +99,8 @@
                 VoucherCredit="@_openedDetail.TotalCredit"
                 JournalDebit="@_openedDetail.TotalDebit"
                 JournalCredit="@_openedDetail.TotalCredit"
-                Actions="@GeneralJournalActions" />
+                Actions="@GeneralJournalActions"
+                HeaderActions="@GeneralJournalHeaderActions" />
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>Journal id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Journal #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.JournalNo) ? "—" : _openedDetail.JournalNo)</dd>
@@ -130,18 +131,6 @@
                         }
                     </tbody>
                 </table>
-            }
-            @if (_openedDetail.Status.Equals("posted", StringComparison.OrdinalIgnoreCase))
-            {
-                <form method="post" action="@EcomAeRoutes.ErpGlJournalsReverse" class="erp-journal-date-form" style="display:grid;gap:.45rem;margin:1rem 0 0;padding: .75rem;border:1px solid #e5e7eb;background:#fafafa">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="journalId" value="@_openedDetail.Id" />
-                    <input type="hidden" name="reverseDate" value="@JournalDate" data-unix-date />
-                    <strong>Reverse posted journal</strong>
-                    <label>Reversal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
-                    <label>Reason <input type="text" name="note" required maxlength="255" placeholder="Reason for reversal" /></label>
-                    <div><button type="submit" class="btn btn-xs btn-warning">Post reversal journal</button></div>
-                </form>
             }
             @if (!string.IsNullOrWhiteSpace(_openedDetail.DescriptionExcerpt))
             {
@@ -300,6 +289,26 @@
         new("Print", "fa-print", "Print journal"),
         new("Options", "fa-cog", "Journal options")
     ];
+    private RenderFragment? GeneralJournalHeaderActions => _isAdmin && _openedDetail is not null
+        ? @<div>
+            <strong><i class="fa fa-cog"></i> Journal lifecycle</strong>
+            @if (_openedDetail.Status.Equals("posted", StringComparison.OrdinalIgnoreCase))
+            {
+                <form method="post" action="@EcomAeRoutes.ErpGlJournalsReverse" class="erp-journal-date-form">
+                    <input type="hidden" name="confirmWrites" value="true" />
+                    <input type="hidden" name="journalId" value="@_openedDetail.Id" />
+                    <input type="hidden" name="reverseDate" value="@JournalDate" data-unix-date />
+                    <label>Reversal date <input type="datetime-local" value="@JournalDateInput" data-date-input required /></label>
+                    <label>Reason <input type="text" name="note" required maxlength="255" placeholder="Reason for reversal" /></label>
+                    <button type="submit" class="btn btn-xs btn-warning">Post reversal journal</button>
+                </form>
+            }
+            else
+            {
+                <span class="text-muted">Draft journal can be validated and posted from the journal entry form.</span>
+            }
+        </div>
+        : null;
 
     private static long JournalDate => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     private static string JournalDateInput => DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);

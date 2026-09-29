@@ -149,28 +149,6 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/cash-entries-app">Close</a>
             </p>
-            @if (_isAdmin)
-            {
-                <div id="voucher-options" style="border:1px solid #dfe5ee;background:#f8fafc;padding:.7rem .8rem;margin:0 0 .9rem;">
-                    <div style="font-size:12px;font-weight:700;color:#1d2740;margin-bottom:.45rem;"><i class="fa fa-cog"></i> Options</div>
-                    <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;">
-                        <form method="post" action="@EcomAeRoutes.ErpCashEntriesAmend" style="display:flex;gap:.35rem;align-items:end;flex-wrap:wrap;">
-                            <input type="hidden" name="entry_id" value="@_openedId" />
-                            <input type="hidden" name="confirmWrites" value="true" />
-                            <label style="font-size:11px;color:#475569;">Reference <input type="text" name="reference" maxlength="120" value="@_openedDetail?.Reference" /></label>
-                            <label style="font-size:11px;color:#475569;">Note <input type="text" name="note" maxlength="255" /></label>
-                            <button type="submit" class="btn btn-xs btn-default"><i class="fa fa-pencil"></i> Amend narrative</button>
-                        </form>
-                        <form method="post" action="@EcomAeRoutes.ErpCashEntriesVoid" onsubmit="return confirm('Void this voucher and post its reversing journal?');" style="display:flex;gap:.35rem;align-items:end;flex-wrap:wrap;">
-                            <input type="hidden" name="entry_id" value="@_openedId" />
-                            <input type="hidden" name="confirmWrites" value="true" />
-                            <label style="font-size:11px;color:#475569;">Void reason <input type="text" name="reason" maxlength="255" required placeholder="Required audit reason" /></label>
-                            <button type="submit" class="btn btn-xs btn-warning"><i class="fa fa-ban"></i> Void voucher</button>
-                        </form>
-                        <span class="text-muted" style="font-size:11px;">Delete is intentionally unavailable for posted vouchers; void creates the reversing journal and preserves the audit trail.</span>
-                    </div>
-                </div>
-            }
             <ErpFinanceVoucherWorkspace
                 DocumentKind="@PaymentWorkspaceKind"
                 Title="@PaymentWorkspaceTitle"
@@ -186,7 +164,8 @@
                 VoucherCredit="@_openedDetail.Amount"
                 JournalDebit="@_openedDetail.Amount"
                 JournalCredit="@_openedDetail.Amount"
-                Actions="@PaymentActions" />
+                Actions="@PaymentActions"
+                HeaderActions="@PaymentHeaderActions" />
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>Entry id</dt><dd>@_openedDetail!.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>When</dt><dd>@FormatTime(_openedDetail!.TimeUnix)</dd>
@@ -370,6 +349,25 @@
         new("Print", "fa-print", "Print voucher"),
         new("Options", "fa-cog", "Voucher options")
     ];
+    private RenderFragment? PaymentHeaderActions => _isAdmin && _openedDetail is not null
+        ? @<div>
+            <strong><i class="fa fa-cog"></i> Voucher options</strong>
+            <form method="post" action="@EcomAeRoutes.ErpCashEntriesAmend">
+                <input type="hidden" name="entry_id" value="@_openedId" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Reference <input type="text" name="reference" maxlength="120" value="@_openedDetail.Reference" /></label>
+                <label>Note <input type="text" name="note" maxlength="255" /></label>
+                <button type="submit" class="btn btn-xs btn-default"><i class="fa fa-pencil"></i> Amend narrative</button>
+            </form>
+            <form method="post" action="@EcomAeRoutes.ErpCashEntriesVoid" onsubmit="return confirm('Void this voucher and post its reversing journal?');">
+                <input type="hidden" name="entry_id" value="@_openedId" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Void reason <input type="text" name="reason" maxlength="255" required placeholder="Required audit reason" /></label>
+                <button type="submit" class="btn btn-xs btn-warning"><i class="fa fa-ban"></i> Void voucher</button>
+            </form>
+            <span class="text-muted" style="font-size:11px;">Delete is unavailable for posted vouchers; void creates the reversing journal and preserves the audit trail.</span>
+        </div>
+        : null;
 
     private bool OpenedFound => _openedDetail is not null || _openedEntry is not null;
 

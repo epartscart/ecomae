@@ -21,6 +21,20 @@
             <span class="label label-default">@Currency</span>
         </div>
     </div>
+    <div class="epc-finance-voucher__summary" aria-label="Voucher summary">
+        <div><span>Company</span><strong>@CompanyContext</strong></div>
+        <div><span>Posting state</span><strong>@(Posted ? "Posted" : "Not posted")</strong></div>
+        <div><span>Voucher debit</span><strong>@VoucherDebit.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+        <div><span>Voucher credit</span><strong>@VoucherCredit.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+        <div><span>Balance</span><strong class="@(IsBalanced ? "is-balanced" : "is-unbalanced")">@Balance.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+        <div><span>Lines</span><strong>@Lines.Count.ToString(CultureInfo.InvariantCulture)</strong></div>
+    </div>
+    @if (HeaderActions is not null)
+    {
+        <div class="epc-finance-voucher__actions" aria-label="Voucher lifecycle actions">
+            @HeaderActions
+        </div>
+    }
     <nav class="epc-finance-voucher__tabs" aria-label="Voucher sections">
         @foreach (var tab in Tabs)
         {
@@ -122,6 +136,9 @@
     [Parameter] public decimal JournalDebit { get; set; }
     [Parameter] public decimal JournalCredit { get; set; }
     [Parameter] public IReadOnlyList<ErpFinanceVoucherAction> Actions { get; set; } = [];
+    [Parameter] public RenderFragment? HeaderActions { get; set; }
 
     private static string TabId(string tab) => "finance-" + tab.Replace(" ", "-", StringComparison.Ordinal).ToLowerInvariant();
+    private decimal Balance => VoucherDebit - VoucherCredit;
+    private bool IsBalanced => Math.Abs(Balance) < 0.01m;
 }

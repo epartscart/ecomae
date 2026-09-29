@@ -169,6 +169,29 @@ public sealed class CpErpChromeDashboardParityTests
     }
 
     [Fact]
+    public void FinanceVoucherWorkspaceKeepsPostingSummaryAndLifecycleActionsTogether()
+    {
+        var workspace = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/ErpFinanceVoucherWorkspace.razor"));
+        var css = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/wwwroot/css/erp-finance-voucher-workspace.css"));
+        var cashEntries = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpCashEntriesApp.razor"));
+        var journals = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpGlJournalsApp.razor"));
+
+        Assert.Contains("epc-finance-voucher__summary", workspace);
+        Assert.Contains("epc-finance-voucher__actions", workspace);
+        Assert.Contains("IsBalanced", workspace);
+        Assert.Contains("HeaderActions", workspace);
+        Assert.Contains("epc-finance-voucher__summary", css);
+        Assert.Contains("epc-finance-voucher__actions", css);
+        Assert.Contains("PaymentHeaderActions", cashEntries);
+        Assert.Contains("HeaderActions=\"@PaymentHeaderActions\"", cashEntries);
+        Assert.Contains("ErpCashEntriesVoid", cashEntries);
+        Assert.Contains("Delete is unavailable for posted vouchers", cashEntries);
+        Assert.Contains("GeneralJournalHeaderActions", journals);
+        Assert.Contains("HeaderActions=\"@GeneralJournalHeaderActions\"", journals);
+        Assert.Contains("ErpGlJournalsReverse", journals);
+    }
+
+    [Fact]
     public void DesktopChromeCatalogStillDocumentsTopnavSelectors()
     {
         Assert.Contains(".epc-cp-topnav", LegacyDesktopChromeCatalog.RequiredStructuralSelectors("cp"));
