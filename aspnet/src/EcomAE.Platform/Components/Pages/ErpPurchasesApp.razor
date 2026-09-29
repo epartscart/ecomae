@@ -79,6 +79,22 @@
                             <button type="submit" name="confirmWrites" value="true" class="btn btn-warning btn-xs">Void bill</button>
                         </form>
                     }
+                    @if (_openedDetail.SupplierId > 0
+                        && !string.Equals(_openedDetail.Status, "voided", StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(_openedDetail.Status, "cancelled", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form method="post" action="@EcomAeRoutes.ErpSupplierSettlement" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:end">
+                            <input type="hidden" name="supplier_id" value="@_openedDetail.SupplierId" />
+                            <input type="hidden" name="purchase_id" value="@_openedDetail.Id" />
+                            <input type="hidden" name="direction" value="decrease" />
+                            <input type="hidden" name="entry_kind" value="settlement" />
+                            <label>Settlement amount <input class="form-control input-sm" type="number" name="amount" min="0" step="0.01" value="@_openedDetail.TotalAmount.ToString("0.00", CultureInfo.InvariantCulture)" /></label>
+                            <label>Reference <input class="form-control input-sm" type="text" name="reference" maxlength="120" value="@_openedDetail.InvoiceNumber" /></label>
+                            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                            <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate settlement</button>
+                            <button type="submit" name="confirmWrites" value="true" class="btn btn-success btn-xs">Settle bill</button>
+                        </form>
+                    }
                 </div>
             }
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NoteExcerpt))
