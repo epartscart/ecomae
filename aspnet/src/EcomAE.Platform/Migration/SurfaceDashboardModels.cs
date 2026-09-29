@@ -7963,6 +7963,15 @@ public sealed record ErpOrderPlanningDigestResult(
     IReadOnlyList<ErpPlanningParamDigest> Params,
     int Count, int PendingCount, decimal PendingValue, string Source, string Message);
 
+public sealed record ErpMasterPlannedOrderDigest(
+    long Id, long ItemId, string OrderType, decimal Qty, int Level,
+    long DueDate, string Source, string Status, long TimeCreated);
+
+public sealed record ErpMasterPlanningDigestResult(
+    IReadOnlyList<ErpMasterPlannedOrderDigest> PlannedOrders,
+    int Count, int PlannedProduction, int PlannedPurchase,
+    string Source, string Message);
+
 public sealed record ErpOrderRecommendationDetail(
     long Id, long ItemId, string Sku, string ItemName, long WarehouseId,
     decimal Roq, decimal OrderValue, string Status, string Supplier, long OrderedPoId, long TimeUpdated);

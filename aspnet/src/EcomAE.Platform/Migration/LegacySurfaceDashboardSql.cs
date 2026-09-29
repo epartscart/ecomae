@@ -8387,6 +8387,17 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    public const string SelectErpMasterPlannedOrders = """
+        SELECT `id`, `item_id`, IFNULL(`order_type`, '') AS order_type,
+               IFNULL(`qty`, 0) AS qty, IFNULL(`level`, 0) AS level,
+               IFNULL(`due_date`, 0) AS due_date, IFNULL(`source`, '') AS source,
+               IFNULL(`status`, '') AS status, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_mfg_planned`
+        WHERE `source` = 'mrp'
+        ORDER BY `level` DESC, `item_id`, `id`
+        LIMIT @limit
+        """;
+
     public const string SelectErpOrderRecommendationDetail = """
         SELECT r.`id`, IFNULL(r.`item_id`,0) AS item_id,
                IFNULL(i.`sku`,'') AS sku,

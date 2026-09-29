@@ -109,6 +109,8 @@ public sealed class ErpGuideParityTests
         Assert.Contains("schema ownership stays PHP", forecast, StringComparison.Ordinal);
         Assert.Contains("ErpDocumentWorkspace", planning, StringComparison.Ordinal);
         Assert.Contains("PlanningWorkspaceLines", planning, StringComparison.Ordinal);
+        Assert.Contains("BuildErpMasterPlanningDigestAsync", planning, StringComparison.Ordinal);
+        Assert.Contains("Persisted MRP planned orders", planning, StringComparison.Ordinal);
         Assert.Contains("ErpDocumentWorkspace", report, StringComparison.Ordinal);
         Assert.Contains("SnapshotWorkspaceFields", report, StringComparison.Ordinal);
     }

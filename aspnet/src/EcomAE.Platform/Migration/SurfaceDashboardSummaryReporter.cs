@@ -24597,6 +24597,47 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpMasterPlanningDigestResult> BuildErpMasterPlanningDigestAsync(int limit, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+            return new([], 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var orders = new List<ErpMasterPlannedOrderDigest>();
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpMasterPlannedOrders;
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                orders.Add(new(
+                    ReadI64(reader, "id"),
+                    ReadI64(reader, "item_id"),
+                    ReadStr(reader, "order_type"),
+                    ReadDec(reader, "qty"),
+                    ReadI32(reader, "level"),
+                    ReadI64(reader, "due_date"),
+                    ReadStr(reader, "source"),
+                    ReadStr(reader, "status"),
+                    ReadI64(reader, "time_created")));
+            }
+
+            return new(
+                orders,
+                orders.Count,
+                orders.Count(o => string.Equals(o.OrderType, "production", StringComparison.OrdinalIgnoreCase)),
+                orders.Count(o => string.Equals(o.OrderType, "purchase", StringComparison.OrdinalIgnoreCase)),
+                "database",
+                string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpOrderRecommendationDetailResult> BuildErpOrderPlanningRecommendationDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)
