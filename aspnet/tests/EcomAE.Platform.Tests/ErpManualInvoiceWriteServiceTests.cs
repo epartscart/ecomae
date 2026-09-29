@@ -22,6 +22,8 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("transaction_type_code", service, StringComparison.Ordinal);
         Assert.Contains("payment_means_code", service, StringComparison.Ordinal);
         Assert.Contains("bank_account", service, StringComparison.Ordinal);
+        Assert.Contains("quantity must be positive", service, StringComparison.Ordinal);
+        Assert.Contains("unit price cannot be negative", service, StringComparison.Ordinal);
         Assert.Contains("IErpDimensionWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpBosWfRaiseWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpManualInvoiceWriteService", program, StringComparison.Ordinal);

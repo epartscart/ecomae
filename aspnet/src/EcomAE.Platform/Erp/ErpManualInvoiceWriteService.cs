@@ -69,6 +69,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         {
             throw new ErpWriteException("Add at least one line item");
         }
+        ValidateLines(lines);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
@@ -321,6 +322,33 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         catch (JsonException)
         {
             throw new ErpWriteException("Invalid invoice lines");
+        }
+    }
+
+    private static void ValidateLines(IReadOnlyList<ErpManualInvoiceLineInput> lines)
+    {
+        for (var index = 0; index < lines.Count; index++)
+        {
+            var line = lines[index];
+            if (string.IsNullOrWhiteSpace(line.ItemName))
+            {
+                throw new ErpWriteException($"Line {index + 1}: item name is required");
+            }
+
+            if (line.Quantity <= 0)
+            {
+                throw new ErpWriteException($"Line {index + 1}: quantity must be positive");
+            }
+
+            if (line.UnitPrice < 0)
+            {
+                throw new ErpWriteException($"Line {index + 1}: unit price cannot be negative");
+            }
+
+            if (line.TaxRate < 0)
+            {
+                throw new ErpWriteException($"Line {index + 1}: tax rate cannot be negative");
+            }
         }
     }
 
