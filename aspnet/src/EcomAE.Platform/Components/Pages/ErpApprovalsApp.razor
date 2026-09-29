@@ -3,6 +3,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -96,6 +97,25 @@
         </form>
     }
 
+    @if (_opened is not null)
+    {
+        <ErpDocumentWorkspace
+            DocumentKind="Approval queue"
+            Title="@_opened.Label"
+            DocumentNumber="@_opened.Id"
+            PartyLabel="Category"
+            Party="@_opened.Category"
+            ReferenceLabel="Target"
+            Reference="@_opened.Link"
+            Status="@_opened.Severity"
+            ApprovalState="Action required"
+            CompanyContext="Tenant / company"
+            Currency="—"
+            Fields="@ApprovalWorkspaceFields"
+            Lines="@ApprovalWorkspaceLines"
+            Tabs="@ApprovalWorkspaceTabs" />
+    }
+
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Approval queue stats">
         <div class="kpi"><div class="lbl">Queue rows</div><div class="val">@_queue.Count.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Total items</div><div class="val">@_queue.Sum(i => i.Count).ToString(CultureInfo.InvariantCulture)</div></div>
@@ -131,7 +151,10 @@
                             <td>@item.Label</td>
                             <td>@item.Count.ToString(CultureInfo.InvariantCulture)</td>
                             <td><span class="epc-ea-sev @item.Severity">@item.Severity</span></td>
-                            <td><a href="@href">@item.Action</a></td>
+                            <td>
+                                <a class="btn btn-xs btn-default" href="@ApprovalHref(item.Id)">Open</a>
+                                <a href="@href">@item.Action</a>
+                            </td>
                         </tr>
                     }
                 }
@@ -148,6 +171,27 @@
     private string _message = "";
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _openedId = "";
+    private ErpApprovalQueueItemDigest? _opened;
+    private IReadOnlyList<string> ApprovalWorkspaceTabs => ["General", "Queue", "Target", "Actions"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> ApprovalWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Category", _opened.Category, "General"),
+            new("Queue key", _opened.Id, "Queue"),
+            new("Count", _opened.Count.ToString(CultureInfo.InvariantCulture), "Queue"),
+            new("Severity", _opened.Severity, "Queue"),
+            new("Action", _opened.Action, "Actions"),
+            new("Target link", _opened.Link, "Target"),
+            new("Icon", _opened.Icon, "General")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> ApprovalWorkspaceLines => _opened is null
+        ? []
+        : [
+            new("1", _opened.Label, _opened.Count, "items", _opened.Category, "approval queue", 0, 0, 0, 0, 0, _opened.Link)
+        ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -155,6 +199,7 @@
         if (ctx is null) return;
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _openedId = ctx.Request.Query["item"].ToString() ?? "";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("erp");
@@ -167,6 +212,7 @@
         _queue = result.ApprovalQueue;
         _source = result.Source;
         _message = result.Message;
+        _opened = string.IsNullOrWhiteSpace(_openedId) ? null : _queue.FirstOrDefault(item => item.Id == _openedId);
     }
 
     private static string AppHrefFor(string id) => id switch
@@ -179,4 +225,6 @@
         "pending_einvoice" => "/cp/einvoice-documents-app",
         _ => "/erp/dashboard-summary-app",
     };
+
+    private static string ApprovalHref(string id) => "/erp/approvals-app?item=" + Uri.EscapeDataString(id);
 }
