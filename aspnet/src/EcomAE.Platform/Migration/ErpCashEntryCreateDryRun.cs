@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP ERP <c>cash_entry</c> / <c>epc_erp_cash_entry</c>.
-/// Never executes INSERT. PHP ajax_erp.php remains authoritative.
+/// Validation envelope for the live ASP.NET cash-entry writer.
 /// </summary>
 public interface IErpCashEntryCreateDryRun
 {
@@ -25,7 +24,7 @@ public sealed class ErpCashEntryCreateDryRun : IErpCashEntryCreateDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET cash_entry is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET cash-entry writer.",
                 request);
         }
 
@@ -46,7 +45,7 @@ public sealed class ErpCashEntryCreateDryRun : IErpCashEntryCreateDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET cash_entry is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET cash-entry writer.",
                 request);
         }
 
@@ -66,7 +65,7 @@ public sealed class ErpCashEntryCreateDryRun : IErpCashEntryCreateDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             AccountId: request.AccountId,
@@ -78,13 +77,13 @@ public sealed class ErpCashEntryCreateDryRun : IErpCashEntryCreateDryRun
                 "INSERT INTO `epc_erp_cash_bank_entries` (…) (NOT executed)",
                 "GL post / dimension save (NOT executed)"
             ],
-            Detail: "Payload shape validated; cash entry INSERT blocked. Voucher numbering + GL stay PHP until dual-sample.",
+            Detail: "Payload shape validated; no write was performed.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=cash_entry");
     }
 
     private static ErpCashEntryCreateDryRunResult Refuse(
         string status, string code, string detail, ErpCashEntryCreateRequest request) =>
-        new(status, 0, true, false, true, code, false, request.AccountId, request.Amount,
+        new(status, 0, true, false, false, code, false, request.AccountId, request.Amount,
             request.Direction ? 1 : 0, request.EntryType, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=cash_entry");
 }
