@@ -12,6 +12,8 @@ public sealed class ErpThreeWayMatchWriteContractTests
         var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpThreeWayMatchWriteService.cs"));
         var module = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
         var page = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpThreeWayMatchApp.razor"));
+        var readService = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpThreeWayMatchDecisionReadService.cs"));
+        var program = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Program.cs"));
 
         Assert.Contains("ErpThreeWayMatchSave = \"/erp/three-way-match/save\"", routes, StringComparison.Ordinal);
         Assert.Contains("epc_erp_purchase_orders", service, StringComparison.Ordinal);
@@ -26,6 +28,10 @@ public sealed class ErpThreeWayMatchWriteContractTests
         Assert.Contains("/erp/three-way-match/save", page, StringComparison.Ordinal);
         Assert.Contains("Accept match", page, StringComparison.Ordinal);
         Assert.Contains("Route exception", page, StringComparison.Ordinal);
+        Assert.Contains("DecisionLabel", page, StringComparison.Ordinal);
+        Assert.Contains("ecomae_erp_three_way_matches", readService, StringComparison.Ordinal);
+        Assert.Contains("TableExistsAsync", readService, StringComparison.Ordinal);
+        Assert.Contains("IErpThreeWayMatchDecisionReadService", program, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
