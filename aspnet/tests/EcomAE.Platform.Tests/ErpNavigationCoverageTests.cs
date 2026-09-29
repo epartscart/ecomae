@@ -108,6 +108,10 @@ public sealed class ErpNavigationCoverageTests
 
         Assert.Contains("@page \"/erp/uae-tax-compliance-app\"", page, StringComparison.Ordinal);
         Assert.Contains("<TaxComplianceSurfaceChrome", page, StringComparison.Ordinal);
+        Assert.Contains("Tax operations", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/vat-app", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/einvoice-documents-app", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/tax-external-reporting-app", page, StringComparison.Ordinal);
         Assert.Contains("PhpErpDesktopChrome", chrome, StringComparison.Ordinal);
         Assert.Contains("PhpCpDesktopChrome", chrome, StringComparison.Ordinal);
         Assert.Contains("\"/erp/uae-tax-compliance-app\"", chrome, StringComparison.Ordinal);

@@ -87,6 +87,22 @@
         <div class="kpi"><div class="lbl">VAT refunds</div><div class="val">@_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture)</div></div>
     </div>
 
+    <div class="hpanel" style="margin-top:1rem;">
+        <div class="panel-heading hbuilt">Tax operations</div>
+        <div class="panel-body">
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/vat-app" : "/cp/tax-toolkits-app")">VAT returns and boxes</a>
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/einvoice-documents-app" : "/cp/einvoice-documents-app")">E-invoice documents</a>
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/tax-external-reporting-app" : "/cp/tax-external-reporting-app")">External reporting</a>
+                <a class="btn btn-default btn-sm" href="/erp/guide-app">Process guides</a>
+            </div>
+            <p class="text-muted" style="margin:.65rem 0 0;">
+                Use the operations links for period work, filing status, document validation, and reporting drill-downs.
+                This workspace remains tenant-country driven; UAE panels are shown only for the UAE profile.
+            </p>
+        </div>
+    </div>
+
     @if (_opened is not null)
     {
         <div class="col-lg-12">
