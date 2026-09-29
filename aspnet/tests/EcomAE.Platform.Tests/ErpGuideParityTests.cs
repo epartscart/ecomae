@@ -154,6 +154,16 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void QualityOrdersUseSharedWorkspaceWithoutClaimingResultWriteOwnership()
+    {
+        var quality = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpQualityApp.razor"));
+        Assert.Contains("DocumentKind=\"Quality order\"", quality, StringComparison.Ordinal);
+        Assert.Contains("QualityOrderWorkspaceFields", quality, StringComparison.Ordinal);
+        Assert.Contains("QualityOrderWorkspaceLines", quality, StringComparison.Ordinal);
+        Assert.Contains("Inspection-result recording remains on the Classic/ERP ajax ownership path.", quality, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));
