@@ -21600,7 +21600,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
                     Convert.ToDecimal(reader["invoice_total"] is DBNull ? 0m : reader["invoice_total"], CultureInfo.InvariantCulture),
                     Convert.ToString(reader["purchase_status"] is DBNull ? string.Empty : reader["purchase_status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                    Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture)));
+                    Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture),
+                    ThreeWayMatchHint(
+                        Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(reader["purchase_id"] is DBNull ? 0 : reader["purchase_id"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["po_total"] is DBNull ? 0m : reader["po_total"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["invoice_total"] is DBNull ? 0m : reader["invoice_total"], CultureInfo.InvariantCulture))));
             }
 
             return new(rows, rows.Count, "database", string.Empty);
@@ -21677,7 +21682,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToString(reader["invoice_number"] is DBNull ? string.Empty : reader["invoice_number"], CultureInfo.InvariantCulture) ?? string.Empty,
                         Convert.ToDecimal(reader["invoice_total"] is DBNull ? 0m : reader["invoice_total"], CultureInfo.InvariantCulture),
                         Convert.ToString(reader["purchase_status"] is DBNull ? string.Empty : reader["purchase_status"], CultureInfo.InvariantCulture) ?? string.Empty,
-                        Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture)));
+                        Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture),
+                        ThreeWayMatchHint(
+                            Convert.ToInt32(reader["receipt_count"] is DBNull ? 0 : reader["receipt_count"], CultureInfo.InvariantCulture),
+                            Convert.ToInt64(reader["purchase_id"] is DBNull ? 0 : reader["purchase_id"], CultureInfo.InvariantCulture),
+                            Convert.ToDecimal(reader["po_total"] is DBNull ? 0m : reader["po_total"], CultureInfo.InvariantCulture),
+                            Convert.ToDecimal(reader["invoice_total"] is DBNull ? 0m : reader["invoice_total"], CultureInfo.InvariantCulture))));
                 }
             }
 
@@ -21687,6 +21697,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(null, [], "database-error", ex.Message);
         }
+    }
+
+    private static string ThreeWayMatchHint(int receiptCount, long purchaseId, decimal poTotal, decimal invoiceTotal)
+    {
+        if (receiptCount > 0 && purchaseId > 0)
+        {
+            return Math.Abs(poTotal - invoiceTotal) < 0.02m
+                ? "Matched"
+                : $"Variance {invoiceTotal - poTotal:N2}";
+        }
+
+        return receiptCount == 0
+            ? "Awaiting receipt"
+            : "Awaiting invoice";
     }
 
     public async Task<ErpContactListResult> ListErpContactsAsync(int limit, CancellationToken cancellationToken = default)
