@@ -25,6 +25,22 @@
                 </div>
                 <div class="epc-d365-ap-group">
                     <div class="epc-d365-ap-buttons">
+                        @foreach (var action in StandardActions)
+                        {
+                            <button type="button"
+                                    class="epc-d365-ap-btn"
+                                    data-erp-standard-action="@action.Key"
+                                    disabled
+                                    aria-disabled="true"
+                                    title="Select a record to use @action.Label">
+                                <i class="fa @action.Icon" aria-hidden="true"></i><span>@action.Label</span>
+                            </button>
+                        }
+                    </div>
+                    <div class="epc-d365-ap-label">Record</div>
+                </div>
+                <div class="epc-d365-ap-group">
+                    <div class="epc-d365-ap-buttons">
                         <a class="epc-d365-ap-btn" href="@RefreshHref">
                             <i class="fa fa-refresh" aria-hidden="true"></i><span>Refresh</span>
                         </a>
@@ -43,6 +59,16 @@
 </div>
 
 @code {
+    private static readonly (string Key, string Label, string Icon)[] StandardActions =
+    [
+        ("edit", "Edit", "fa-pencil"),
+        ("delete", "Delete", "fa-trash"),
+        ("void", "Void", "fa-ban"),
+        ("submit", "Submit", "fa-send"),
+        ("approve", "Approve", "fa-check"),
+        ("post", "Post", "fa-book")
+    ];
+
     [Parameter] public string? PhpTabHref { get; set; }
     [Parameter] public string RefreshHref { get; set; } = "?";
 }
