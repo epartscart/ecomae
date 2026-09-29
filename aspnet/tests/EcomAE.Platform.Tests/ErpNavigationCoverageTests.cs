@@ -250,6 +250,32 @@ public sealed class ErpNavigationCoverageTests
             "ErpRbacUserRoleWriteService.cs")), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ErpUserControlProjectsRbacAuditHistory()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Components",
+            "Pages",
+            "ErpUserControlApp.razor"));
+        var service = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Erp",
+            "ErpRbacAuditReadService.cs"));
+
+        Assert.Contains("RBAC change history", page, StringComparison.Ordinal);
+        Assert.Contains("RbacAudit.ListAsync", page, StringComparison.Ordinal);
+        Assert.Contains("WHERE `entity_type` LIKE 'rbac_%'", service, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_audit_log", service, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

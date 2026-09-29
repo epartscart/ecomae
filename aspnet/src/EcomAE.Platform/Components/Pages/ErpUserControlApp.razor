@@ -1,10 +1,12 @@
 @page "/erp/user-control-app"
 @layout Layout.PhpChromeLayout
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Services
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject IErpRbacAuditReadService RbacAudit
 
 <PageTitle>ERP user control · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -59,10 +61,39 @@
             </table>
         </div>
 
+        <h3 style="margin-top:1.2rem">RBAC change history</h3>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr><th>Time</th><th>Actor</th><th>Action</th><th>Entity</th><th>Record</th><th>Summary</th></tr>
+                </thead>
+                <tbody>
+                    @if (_auditEntries.Count == 0)
+                    {
+                        <tr><td colspan="6">No RBAC audit records are available.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var entry in _auditEntries)
+                        {
+                            <tr>
+                                <td>@FormatAuditTime(entry.Time)</td>
+                                <td>#@entry.AdminId</td>
+                                <td>@entry.Action</td>
+                                <td>@entry.EntityType</td>
+                                <td>@entry.EntityId</td>
+                                <td>@entry.Summary</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+
         <p class="text-muted">
             This window is the control-plane view for role → capability → area/action mappings.
-            Company/site scope, approval limits, effective dates, delegations, and audit history
-            remain mandatory fields for the live administration workflow.
+            Company/site scope, approval limits, effective dates, and delegations remain mandatory
+            live-control fields; RBAC mutations now have an auditable history projection.
         </p>
     }
 </PhpErpDesktopChrome>
@@ -72,6 +103,7 @@
     private string _email = string.Empty;
     private IReadOnlyList<string> _capabilities = [];
     private IReadOnlyList<ModuleAclEntry> _modules = [];
+    private IReadOnlyList<ErpRbacAuditEntry> _auditEntries = [];
     private LegacySessionContext? _session;
 
     protected override async Task OnInitializedAsync()
@@ -93,6 +125,7 @@
         _email = session.Email;
         _capabilities = session.Capabilities;
         _modules = session.Modules;
+        _auditEntries = await RbacAudit.ListAsync(50, ctx.RequestAborted);
     }
 
     private bool AreaEnabled(ErpCapabilityGroup group)
@@ -102,4 +135,9 @@
         => _session is null
             ? "—"
             : string.Join(", ", ErpCapabilityCatalog.Actions.Where(action => ErpCapabilityCatalog.CanAction(_session, group.Key, action)));
+
+    private static string FormatAuditTime(long time)
+        => time <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(time).UtcDateTime.ToString("yyyy-MM-dd HH:mm 'UTC'");
 }
