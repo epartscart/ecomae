@@ -2822,6 +2822,8 @@ public static class EcomAeRoutes
     public const string ErpPerformanceGoalAdd = "/erp/performance/goals/add";
     /// <summary>HTML form POST for PHP <c>opl_params_save</c>. <c>confirmWrites=true</c> writes via <c>IErpOplParamsSaveWriteService</c>.</summary>
     public const string ErpOrderPlanningParamsSave = "/erp/order-planning/params/save";
+    /// <summary>HTML form POST for PHP <c>mfgr_planned_firm</c>. MRP generation remains PHP-owned.</summary>
+    public const string ErpMasterPlanningFirm = "/erp/master-planning/firm";
     /// <summary>HTML form POST for PHP <c>cft_forecast_save</c>. <c>confirmWrites=true</c> writes via <c>IErpCftForecastSaveWriteService</c>.</summary>
     public const string ErpCashForecastSave = "/erp/cash-forecast/save";
     /// <summary>HTML form POST for PHP <c>cft_line_add</c>. <c>confirmWrites=true</c> writes via <c>IErpCftLineAddWriteService</c>.</summary>
