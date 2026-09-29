@@ -4,6 +4,14 @@
 .epc-finance-voucher__eyebrow{text-transform:uppercase;letter-spacing:.08em;color:#64748b;font-size:10px;font-weight:700}
 .epc-finance-voucher h3{margin:.2rem 0;color:#172554;font-size:18px}.epc-finance-voucher p{margin:0;color:#64748b;font-size:12px}
 .epc-finance-voucher__badges{display:flex;gap:.35rem;align-items:flex-start;flex-wrap:wrap}.epc-finance-voucher__tabs{display:flex;overflow:auto;border-bottom:1px solid #d8e0eb;background:#fff}
+.epc-finance-voucher__summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:.45rem;padding:.65rem .7rem;background:#fff;border-top:1px solid #e5e7eb;border-bottom:1px solid #d8e0eb}
+.epc-finance-voucher__summary div{padding:.45rem .55rem;border:1px solid #e2e8f0;border-radius:4px;background:#f8fbff}
+.epc-finance-voucher__summary span{display:block;color:#64748b;font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+.epc-finance-voucher__summary strong{display:block;margin-top:.15rem;color:#172554;font-size:12px;overflow-wrap:anywhere}
+.epc-finance-voucher__summary strong.is-balanced{color:#166534}.epc-finance-voucher__summary strong.is-unbalanced{color:#b91c1c}
+.epc-finance-voucher__actions{display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;padding:.7rem .8rem;background:#fff;border-bottom:1px solid #d8e0eb}
+.epc-finance-voucher__actions form{display:flex;flex-wrap:wrap;gap:.35rem;align-items:end;margin:0}
+.epc-finance-voucher__actions strong{display:block;width:100%;color:#172554;font-size:12px}
 .epc-finance-voucher__tabs a{padding:.65rem .85rem;border-right:1px solid #e5e7eb;color:#475569;text-decoration:none;font-size:12px;white-space:nowrap}
 .epc-finance-voucher__tabs a.active,.epc-finance-voucher__tabs a:hover{color:#1d4e89;background:#f8fbff;box-shadow:inset 0 -2px 0 #2563eb}
 .epc-finance-voucher__body{padding:1rem 1.1rem}.epc-finance-voucher__fields{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem}
@@ -13,4 +21,4 @@
 .epc-finance-voucher__grid-wrap{overflow:auto;border:1px solid #d8e0eb}.epc-finance-voucher__grid{margin:0;min-width:1320px;font-size:11px}.epc-finance-voucher__grid th{background:#eef4fb;color:#334155;white-space:nowrap}.epc-finance-voucher__grid td{white-space:nowrap}
 .epc-finance-voucher__totals{display:grid;grid-template-columns:repeat(6,minmax(7rem,1fr));gap:.5rem;margin-top:.75rem}.epc-finance-voucher__totals div{padding:.55rem .65rem;background:#f8fafc;border:1px solid #e2e8f0}.epc-finance-voucher__totals span{display:block;color:#64748b;font-size:10px}.epc-finance-voucher__totals strong{display:block;margin-top:.2rem;color:#172554;font-size:13px}
 .epc-finance-voucher__footer{display:flex;flex-wrap:wrap;gap:1rem;margin-top:.75rem;padding:.65rem .75rem;background:#f8fafc;border-top:1px solid #e2e8f0;color:#64748b;font-size:11px}
-@media (max-width:900px){.epc-finance-voucher__identity{display:block}.epc-finance-voucher__badges{margin-top:.65rem}.epc-finance-voucher__fields{grid-template-columns:1fr}.epc-finance-voucher__totals{grid-template-columns:repeat(2,minmax(7rem,1fr))}}
+@media (max-width:900px){.epc-finance-voucher__identity{display:block}.epc-finance-voucher__badges{margin-top:.65rem}.epc-finance-voucher__summary{grid-template-columns:repeat(2,minmax(7rem,1fr))}.epc-finance-voucher__fields{grid-template-columns:1fr}.epc-finance-voucher__totals{grid-template-columns:repeat(2,minmax(7rem,1fr))}}
