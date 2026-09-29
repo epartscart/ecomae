@@ -146,7 +146,6 @@ public static class ErpPhpTabRouteMap
         ["mfg_planning"] = "/erp/production-overview-app?tab=mfg_planning",
         ["movements"] = "/erp/stock-movements-app",
         ["multi_entity"] = "/erp/consolidations-app?tab=multi_entity",
-        ["navigation_coverage"] = "/erp/navigation-coverage-app",
         ["on_premises"] = "/erp/on-premises-app",
         ["onpremises"] = "/erp/on-premises-app",
         ["opening"] = "/erp/opening-app",

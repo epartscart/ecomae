@@ -92,6 +92,10 @@
                 <a href="@ErpHomeHref">Dashboard</a>
                 <a href="/erp/guide-app">Guide</a>
                 <a href="/erp/approvals-app">Approvals</a>
+                @if (IsAdmin)
+                {
+                    <a href="/erp/navigation-coverage-app">Coverage</a>
+                }
                 @if (_showControlPanel)
                 {
                     <a href="/cp">Control panel</a>

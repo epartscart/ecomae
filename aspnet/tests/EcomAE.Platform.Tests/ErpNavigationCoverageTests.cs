@@ -24,6 +24,17 @@ public sealed class ErpNavigationCoverageTests
         Assert.Contains("ErpIndustryNav.Inspect", text, StringComparison.Ordinal);
         Assert.Contains("ErpPhpTabRouteMap.TryMapTab", text, StringComparison.Ordinal);
         Assert.DoesNotContain("PhpReferenceOnlyHref", text, StringComparison.Ordinal);
+
+        var chrome = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Components",
+            "Shared",
+            "Desktop",
+            "PhpErpDesktopChrome.razor"));
+        Assert.Contains("navigation-coverage-app", chrome, StringComparison.Ordinal);
     }
 
     [Fact]
