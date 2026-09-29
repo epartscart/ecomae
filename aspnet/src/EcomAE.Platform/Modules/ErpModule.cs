@@ -596,13 +596,20 @@ public sealed class ErpModule : ISurfaceModule
                         "INV #" + saved.InvoiceId,
                         session.UserId),
                     cancellationToken);
-                return ("Invoice saved as draft", new
+                var redirect =
+                    "/erp?area=sales&tab=invoices&inv_id=" +
+                    saved.InvoiceId.ToString(CultureInfo.InvariantCulture);
+                var message = body.Id > 0
+                    ? "Invoice updated"
+                    : "Invoice saved as draft";
+                return (message, new
                 {
                     invoice_id = saved.InvoiceId,
                     invoice_number = saved.InvoiceNumber,
                     subtotal_ex_vat = saved.SubtotalExVat,
                     total_vat = saved.TotalVat,
-                    total_incl_vat = saved.TotalInclVat
+                    total_incl_vat = saved.TotalInclVat,
+                    redirect
                 });
             });
         });
