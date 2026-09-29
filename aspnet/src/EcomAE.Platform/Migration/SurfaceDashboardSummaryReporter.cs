@@ -10900,7 +10900,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["active"] is DBNull ? 0 : reader["active"], CultureInfo.InvariantCulture) != 0,
                         Convert.ToInt32(reader["notes_len"] is DBNull ? 0 : reader["notes_len"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                        Convert.ToString(reader["notes_excerpt"] is DBNull ? string.Empty : reader["notes_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        []);
                 }
             }
 
@@ -10909,6 +10910,29 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 return new(null, [], "database", "Sales quotation not found.");
             }
 
+            var lines = new List<ErpSalesQuotationLine>();
+            try
+            {
+                await using var lineCommand = connection.CreateCommand();
+                lineCommand.CommandText = LegacySurfaceDashboardSql.SelectErpSalesQuotationLines;
+                AddParameter(lineCommand, "@id", id);
+                await using var lineReader = await lineCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await lineReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new ErpSalesQuotationLine(
+                        Convert.ToInt64(lineReader["id"] is DBNull ? 0 : lineReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(lineReader["description"] is DBNull ? string.Empty : lineReader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(lineReader["qty"] is DBNull ? 0 : lineReader["qty"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["unit_price"] is DBNull ? 0 : lineReader["unit_price"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(lineReader["sort_order"] is DBNull ? 0 : lineReader["sort_order"], CultureInfo.InvariantCulture)));
+                }
+            }
+            catch (DbException)
+            {
+                lines = [];
+            }
+
+            header = header with { Lines = lines };
             var siblings = new List<ErpSalesQuotationDigest>();
             await using (var cmd = connection.CreateCommand())
             {
