@@ -16,6 +16,9 @@ public sealed class ErpUaeTaxSaveCtAdjustmentsPhpParityTests
         Assert.Contains("name=\"date_to\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"ct_non_deductible_entertainment\"", text, StringComparison.Ordinal);
         Assert.Contains("Save CT adjustments", text, StringComparison.Ordinal);
+        Assert.Contains("epc-ct-workspace", text, StringComparison.Ordinal);
+        Assert.Contains("UAE registered country", text, StringComparison.Ordinal);
+        Assert.Contains("Administration approval", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes=0", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
