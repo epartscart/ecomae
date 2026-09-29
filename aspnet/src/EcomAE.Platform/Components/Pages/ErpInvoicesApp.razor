@@ -88,24 +88,8 @@
                 Total="@_openedDetail.TotalInclVat"
                 BalanceDue="@_openedDetail.AmountDue"
                 Fields="@InvoiceWorkspaceFields"
-                Lines="@InvoiceWorkspaceLines" />
-            @if (_isAdmin && _openedDetail.Id > 0)
-            {
-                <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
-                    <strong style="width:100%">Invoice lifecycle actions</strong>
-                    <form method="post" action="/erp/invoices/cancel" style="display:flex;gap:.35rem;align-items:end">
-                        <input type="hidden" name="invoiceId" value="@_openedDetail.Id" />
-                        <label>Reason <input type="text" name="reason" maxlength="255" placeholder="Correction or cancellation reason" /></label>
-                        <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate cancel</button>
-                        <button type="submit" name="confirmWrites" value="true" class="btn btn-warning btn-xs">Cancel invoice</button>
-                    </form>
-                    <form method="post" action="/erp/invoices/delete" style="display:flex;gap:.35rem;align-items:end">
-                        <input type="hidden" name="invoiceId" value="@_openedDetail.Id" />
-                        <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate draft delete</button>
-                        <button type="submit" name="confirmWrites" value="true" class="btn btn-danger btn-xs">Delete draft</button>
-                    </form>
-                </div>
-            }
+                Lines="@InvoiceWorkspaceLines"
+                HeaderActions="@InvoiceHeaderActions" />
             <p class="text-muted" style="margin:.85rem 0 0">Creation, settlement, export, and credit-note lifecycle remain pending until their full acceptance gates close.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.PaymentTermsExcerpt))
             {
@@ -239,6 +223,22 @@
     private ErpInvoiceDigest? _openedInvoice;
     private ErpInvoiceDetail? _openedDetail;
     private IReadOnlyList<ErpInvoiceDigest> _openedSiblings = [];
+    private RenderFragment? InvoiceHeaderActions => _isAdmin && _openedDetail is not null && _openedDetail.Id > 0
+        ? @<div>
+            <strong>Invoice lifecycle actions</strong>
+            <form method="post" action="/erp/invoices/cancel">
+                <input type="hidden" name="invoiceId" value="@_openedDetail.Id" />
+                <label>Reason <input type="text" name="reason" maxlength="255" placeholder="Correction or cancellation reason" /></label>
+                <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate cancel</button>
+                <button type="submit" name="confirmWrites" value="true" class="btn btn-warning btn-xs">Cancel invoice</button>
+            </form>
+            <form method="post" action="/erp/invoices/delete">
+                <input type="hidden" name="invoiceId" value="@_openedDetail.Id" />
+                <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate draft delete</button>
+                <button type="submit" name="confirmWrites" value="true" class="btn btn-danger btn-xs">Delete draft</button>
+            </form>
+        </div>
+        : null;
 
     private bool OpenedFound => _openedDetail is not null || _openedInvoice is not null;
 
