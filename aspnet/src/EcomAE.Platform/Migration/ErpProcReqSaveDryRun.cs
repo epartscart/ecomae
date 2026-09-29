@@ -19,7 +19,7 @@ public sealed class ErpProcReqSaveDryRun : IErpProcReqSaveDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                "Use confirm_writes=true to execute the live ASP.NET procurement-requisition writer.",
                 request);
         }
 
@@ -32,7 +32,7 @@ public sealed class ErpProcReqSaveDryRun : IErpProcReqSaveDryRun
         return new ErpProcReqSaveDryRunResult(
             "dry-run-validated", 0, true, false, false, "ok", true, requester, request.Id,
             ["INSERT/UPDATE `epc_proc_req` (NOT executed)"],
-            "ErpProcurementReqSave payload validated; write blocked until confirmWrites=true.",
+            "ErpProcurementReqSave payload validated; no write was performed.",
             "content/shop/finance/epc_erp_procurement.php");
     }
 

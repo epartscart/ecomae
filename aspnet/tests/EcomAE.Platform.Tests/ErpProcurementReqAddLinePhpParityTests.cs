@@ -38,7 +38,8 @@ public sealed class ErpProcurementReqAddLinePhpParityTests
         var row = SurfacePayloadContractCatalog.Functions.First(item =>
             item.AspNetRouteOrCapability == "/erp/procurement/requisitions/add-line");
         Assert.Equal("write-live-gated", row.Status);
-        Assert.Contains("epc_proc_req_add_line", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("confirm_writes=false", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("ASP.NET writer", row.Notes, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP remains authoritative", row.Notes, StringComparison.Ordinal);
 
         var ajax = SurfacePayloadContractCatalog.Functions.First(item =>
