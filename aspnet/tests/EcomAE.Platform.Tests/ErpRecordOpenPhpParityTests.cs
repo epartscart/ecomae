@@ -423,6 +423,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("CounterpartyType", razor, StringComparison.Ordinal);
         Assert.Contains("Settlement allocations", razor, StringComparison.Ordinal);
         Assert.Contains("Allocations", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpFinanceVoucherWorkspace", razor, StringComparison.Ordinal);
+        Assert.Contains("PaymentHeaderActions", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("<dl", razor, StringComparison.Ordinal);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
@@ -565,6 +568,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("Reference", razor, StringComparison.Ordinal);
         Assert.Contains("same-source siblings", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("ErpFinanceVoucherWorkspace", razor, StringComparison.Ordinal);
+        Assert.Contains("GeneralJournalLines", razor, StringComparison.Ordinal);
+        Assert.Contains("GeneralJournalHeaderActions", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("<dl", razor, StringComparison.Ordinal);
         Assert.Contains("Reverse stays Classic", razor, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryVoucherSaveForm", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
