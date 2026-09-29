@@ -27,6 +27,8 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("IErpDimensionWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpBosWfRaiseWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpManualInvoiceWriteService", program, StringComparison.Ordinal);
+        Assert.Contains("area=sales&tab=invoices&inv_id=", module, StringComparison.Ordinal);
+        Assert.Contains("Invoice updated", module, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
