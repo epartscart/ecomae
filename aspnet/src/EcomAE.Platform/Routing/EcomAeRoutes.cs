@@ -1199,7 +1199,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxEinvoiceSaveBuyer = "/erp/ajax/einvoice-save-buyer";
     /// <summary>PHP einvoice_save_asp. <c>confirmWrites=true</c> writes via <c>IErpEinvoiceProfileWriteService</c>.</summary>
     public const string ErpAjaxEinvoiceSaveAsp = "/erp/ajax/einvoice-save-asp";
-    /// <summary>Wave B dry-run for PHP einvoice_submit (writes=0).</summary>
+    /// <summary>PHP einvoice_submit. Dry-run remains available; confirmed manual ASP submissions write the queued document/event transition.</summary>
     public const string ErpAjaxEinvoiceSubmit = "/erp/ajax/einvoice-submit";
     /// <summary>Wave B dry-run for PHP einvoice_credit_note (writes=0).</summary>
     public const string ErpAjaxEinvoiceCreditNote = "/erp/ajax/einvoice-credit-note";

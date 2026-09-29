@@ -5761,8 +5761,54 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSubmit, async (HttpContext context, ErpEinvoiceSubmitBody? body, ILegacySessionValidator validator, IErpEinvoiceSubmitDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSubmitRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSubmit, async (
+            HttpContext context,
+            ErpEinvoiceSubmitBody? body,
+            ILegacySessionValidator validator,
+            IErpEinvoiceSubmitDryRun dryRun,
+            EcomAE.Platform.Erp.IErpEinvoiceSubmitWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/einvoice-documents-app", "Admin ERP capability required for e-invoice submission.");
+            }
+
+            var request = body ?? await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceSubmitBody>(context, cancellationToken) ?? new(0, false);
+            var id = request.Id;
+            var confirm = request.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "document_id", "documentId", "id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpEinvoiceSubmitRequest(id, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.SubmitAsync(id, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/einvoice-documents-app?ei_id=" + id.ToString(CultureInfo.InvariantCulture),
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    id = written.Id,
+                    status = written.Status,
+                    asp_reference = written.AspReference,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    session = SessionPayload(session)
+                });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreditNote, async (HttpContext context, ErpEinvoiceCreditNoteBody? body, ILegacySessionValidator validator, IErpEinvoiceCreditNoteDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceCreditNoteRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoicePollAsp, async (HttpContext context, ErpEinvoicePollAspBody? body, ILegacySessionValidator validator, IErpEinvoicePollAspDryRun dryRun, CancellationToken cancellationToken) =>
