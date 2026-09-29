@@ -33,6 +33,8 @@ public sealed class ErpMasterDataWriteDryRunTests
         var dig = new ErpPurchaseDigest(1, 2, "S", 1, "INV", 10m, "draft", 0, []);
         var r = ErpPurchaseDeleteDryRun.EvaluateAgainstPurchases([dig], new ErpPurchaseDeleteRequest(1));
         Assert.Equal("dry-run-validated", r.Status);
+        Assert.False(r.PhpAuthoritative);
+        Assert.Contains("no write was performed", r.Detail, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -41,5 +43,6 @@ public sealed class ErpMasterDataWriteDryRunTests
         var dig = new ErpInvoiceDigest(1, "SI-1", 0, 9, "a@b.c", 1, "posted", 10m);
         var r = ErpInvoiceDeleteDryRun.EvaluateAgainstInvoices([dig], new ErpInvoiceDeleteRequest(1));
         Assert.Equal("not_draft", r.ValidationCode);
+        Assert.False(r.PhpAuthoritative);
     }
 }

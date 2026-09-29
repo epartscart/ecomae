@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP ERP <c>so_cancel</c>.
-/// Simulates status → cancelled; invoiced SOs refused. PHP remains authoritative.
+/// Validation envelope for the live ASP.NET sales-order cancellation writer.
 /// </summary>
 public interface IErpSalesOrderCancelDryRun
 {
@@ -25,7 +24,7 @@ public sealed class ErpSalesOrderCancelDryRun : IErpSalesOrderCancelDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET so_cancel is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET sales-order cancellation writer.",
                 request);
         }
 
@@ -48,7 +47,7 @@ public sealed class ErpSalesOrderCancelDryRun : IErpSalesOrderCancelDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET so_cancel is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET sales-order cancellation writer.",
                 request);
         }
 
@@ -91,7 +90,7 @@ public sealed class ErpSalesOrderCancelDryRun : IErpSalesOrderCancelDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             SalesOrderId: order.Id,
@@ -104,13 +103,13 @@ public sealed class ErpSalesOrderCancelDryRun : IErpSalesOrderCancelDryRun
                 "epc_erp_sales_order_set_status(@id, 'cancelled') (NOT executed)",
                 "Audit log cancel remains PHP-only when reason provided"
             ],
-            Detail: "SO found in digest window and not invoiced; cancel simulated. sales_invoice_id edge cases stay PHP until dual-sample.",
+            Detail: "SO found in digest window and not invoiced; cancellation validated and no write was performed.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=so_cancel");
     }
 
     private static ErpSalesOrderCancelDryRunResult Refuse(
         string status, string code, string detail, ErpSalesOrderCancelRequest request) =>
-        new(status, 0, true, false, true, code, false, request.SalesOrderId, null, null, null,
+        new(status, 0, true, false, false, code, false, request.SalesOrderId, null, null, null,
             request.Reason, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=so_cancel");
 }

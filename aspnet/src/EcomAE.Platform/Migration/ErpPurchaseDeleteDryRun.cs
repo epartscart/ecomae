@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>purchase_delete</c> (draft only). Never DELETE. PHP authoritative.</summary>
+/// <summary>Validation envelope for the live ASP.NET purchase-delete writer.</summary>
 public interface IErpPurchaseDeleteDryRun
 {
     Task<ErpPurchaseDeleteDryRunResult> EvaluateAsync(ErpPurchaseDeleteRequest request, CancellationToken cancellationToken = default);
@@ -18,7 +18,7 @@ public sealed class ErpPurchaseDeleteDryRun : IErpPurchaseDeleteDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_delete is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET purchase-delete writer.",
                 request);
         }
 
@@ -39,7 +39,7 @@ public sealed class ErpPurchaseDeleteDryRun : IErpPurchaseDeleteDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_delete is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET purchase-delete writer.",
                 request);
         }
 
@@ -64,18 +64,18 @@ public sealed class ErpPurchaseDeleteDryRun : IErpPurchaseDeleteDryRun
         }
 
         return new ErpPurchaseDeleteDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, row.Id, row.Status,
+            "dry-run-validated", 0, true, false, false, "ok", true, row.Id, row.Status,
             [
                 "DELETE FROM `epc_erp_supplier_accounting` WHERE purchase_id=@id (NOT executed)",
                 "DELETE FROM `epc_erp_purchases` WHERE id=@id (NOT executed)"
             ],
-            "Draft purchase found; hard-delete simulated. Posted invoices must use void (PHP).",
+            "Draft purchase found; deletion validated and no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_delete");
     }
 
     private static ErpPurchaseDeleteDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseDeleteRequest request) =>
-        new(status, 0, true, false, true, code, false, request.PurchaseId, null, [], detail,
+        new(status, 0, true, false, false, code, false, request.PurchaseId, null, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_delete");
 }
 

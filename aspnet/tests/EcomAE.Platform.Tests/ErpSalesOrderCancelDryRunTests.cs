@@ -34,6 +34,7 @@ public sealed class ErpSalesOrderCancelDryRunTests
             [Order(9, "confirmed")], new ErpSalesOrderCancelRequest(9, "customer withdrew"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.True(r.WouldWrite);
+        Assert.False(r.PhpAuthoritative);
         Assert.Equal(0, r.Writes);
         Assert.Contains(r.SimulatedSql, s => s.Contains("NOT executed", StringComparison.Ordinal));
     }

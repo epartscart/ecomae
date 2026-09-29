@@ -877,7 +877,7 @@ public static class EcomAeRoutes
     public const string ErpPurchasesVoid = "/erp/purchases/void";
     /// <summary>Wave B dry-run invoice cancel (PHP invoice_cancel remains authoritative).</summary>
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
-    /// <summary>Wave B dry-run sales order cancel (PHP so_cancel remains authoritative).</summary>
+    /// <summary>ERP so_cancel compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpSalesOrdersCancel = "/erp/sales-orders/cancel";
     /// <summary>Wave B dry-run draft PO delete (PHP po_delete remains authoritative).</summary>
     public const string ErpPurchaseOrdersDelete = "/erp/purchase-orders/delete";
