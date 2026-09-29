@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP ERP <c>purchase_void</c>.
-/// Simulates soft-void UPDATE; GL reverse journals stay PHP-authoritative.
+/// Validation envelope for the live ASP.NET purchase-void writer.
 /// </summary>
 public interface IErpPurchaseVoidDryRun
 {
@@ -25,7 +24,7 @@ public sealed class ErpPurchaseVoidDryRun : IErpPurchaseVoidDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_void is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET purchase-void writer.",
                 request);
         }
 
@@ -48,7 +47,7 @@ public sealed class ErpPurchaseVoidDryRun : IErpPurchaseVoidDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_void is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET purchase-void writer.",
                 request);
         }
 
@@ -84,7 +83,7 @@ public sealed class ErpPurchaseVoidDryRun : IErpPurchaseVoidDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             PurchaseId: purchase.Id,
@@ -98,13 +97,13 @@ public sealed class ErpPurchaseVoidDryRun : IErpPurchaseVoidDryRun
                 "UPDATE `epc_erp_purchases` SET `active`=0, `status`='voided', `voided_at`=@now, `void_reason`=@reason, `voided_by`=@admin, `reversal_journal_id`=@rev WHERE `id`=@id (NOT executed)",
                 "GL reverse journals (epc_erp_doc_reverse_journals) remain PHP-only in this dry-run slice"
             ],
-            Detail: "Purchase found in digest window; soft-void UPDATE simulated. GL reverse + can_void edge cases stay PHP until dual-sample.",
+            Detail: "Purchase found in digest window; soft-void validated and no write was performed.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_void");
     }
 
     private static ErpPurchaseVoidDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseVoidRequest request) =>
-        new(status, 0, true, false, true, code, false, request.PurchaseId, null, null, null,
+        new(status, 0, true, false, false, code, false, request.PurchaseId, null, null, null,
             request.Reason, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_void");
 }

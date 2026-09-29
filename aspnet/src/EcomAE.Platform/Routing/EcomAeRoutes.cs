@@ -873,7 +873,7 @@ public static class EcomAeRoutes
     public const string ErpGlJournalsManual = "/erp/gl-journals/manual";
     /// <summary>Wave B dry-run GL reverse journal (PHP gl_reverse_journal remains authoritative).</summary>
     public const string ErpGlJournalsReverse = "/erp/gl-journals/reverse";
-    /// <summary>Wave B dry-run purchase void (PHP purchase_void remains authoritative).</summary>
+    /// <summary>ERP purchase_void compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpPurchasesVoid = "/erp/purchases/void";
     /// <summary>Wave B dry-run invoice cancel (PHP invoice_cancel remains authoritative).</summary>
     public const string ErpInvoicesCancel = "/erp/invoices/cancel";
