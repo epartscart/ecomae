@@ -14830,6 +14830,10 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "Admin ERP capability required for approval rule save.");
         }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "ERP administration approval capability required for approval rule save.");
+        }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosWfSaveRuleBody>(context, cancellationToken) ?? new();
         var id = body.RuleId > 0 ? body.RuleId : body.Id;
@@ -15096,6 +15100,10 @@ public sealed class ErpModule : ISurfaceModule
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "Admin ERP capability required for approval decide.");
+        }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "ERP administration approval capability required for approval decide.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosWfDecideBody>(context, cancellationToken) ?? new();
