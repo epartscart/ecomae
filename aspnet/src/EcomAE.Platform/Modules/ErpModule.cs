@@ -910,13 +910,42 @@ public sealed class ErpModule : ISurfaceModule
                 });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPoStatus, async (HttpContext context, ErpPoStatusBody? body, ILegacySessionValidator validator, IErpPoStatusDryRun dryRun, IErpPurchaseOrderWriteService writes, CancellationToken cancellationToken) =>
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPoStatus, async (HttpContext context, ErpPoStatusBody? body, ILegacySessionValidator validator, IErpPoStatusDryRun dryRun, IErpPurchaseOrderWriteService writes, IErpPermissionScopeReadService permissionScopes, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required.");
             body ??= new(0,null,false);
             if (!body.ConfirmWrites)
                 return Results.Ok(dryRun.Evaluate(new ErpPoStatusRequest(body.Id, body.TargetStatus, false)).ToPayload(SessionPayload(session)));
+
+            var scopedPermissions = await permissionScopes.ListForUserAsync(session.UserId, cancellationToken);
+            if (scopedPermissions.Grants.Count > 0 || scopedPermissions.Delegations.Count > 0)
+            {
+                var scope = await writes.GetPermissionContextAsync(body.Id, cancellationToken);
+                if (scope is null)
+                {
+                    return Results.Json(
+                        new { ok = false, code = "not_found", message = "Purchase order was not found.", session = SessionPayload(session) },
+                        statusCode: StatusCodes.Status404NotFound);
+                }
+
+                var action = string.Equals(body.TargetStatus, "approved", StringComparison.OrdinalIgnoreCase)
+                    ? "Approve"
+                    : "Edit";
+                var request = new ErpPermissionRequest(scope.CompanyId, scope.SiteId, scope.Amount);
+                var decisions = new[]
+                {
+                    ErpPermissionScopePolicy.Evaluate(session, "purchasing", action, request, scopedPermissions.Grants, scopedPermissions.Delegations),
+                    ErpPermissionScopePolicy.Evaluate(session, "finance", action, request, scopedPermissions.Grants, scopedPermissions.Delegations)
+                };
+                if (!decisions.Any(decision => decision.Allowed))
+                {
+                    var decision = decisions.First();
+                    return Results.Json(
+                        new { ok = false, code = decision.ReasonCode, message = decision.Reason, session = SessionPayload(session) },
+                        statusCode: StatusCodes.Status403Forbidden);
+                }
+            }
 
             return await ExecuteErpWriteAsync(session, async () =>
             {
