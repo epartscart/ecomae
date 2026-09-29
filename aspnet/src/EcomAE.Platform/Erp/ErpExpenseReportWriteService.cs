@@ -50,6 +50,7 @@ public sealed class ErpExpenseReportWriteService : IErpExpenseReportWriteService
         var notes = (request.Notes ?? string.Empty).Trim();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var lastReport = await ErpDb.StringAsync(
             connection,
             null,
@@ -78,6 +79,34 @@ public sealed class ErpExpenseReportWriteService : IErpExpenseReportWriteService
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Expense report submitted", id);
     }
+
+    private static Task EnsureSchemaAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+        => ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_erp_expense_reports` (
+                `id` int(11) NOT NULL AUTO_INCREMENT,
+                `report_no` varchar(32) NOT NULL,
+                `staff_user_id` int(11) NOT NULL DEFAULT 0,
+                `title` varchar(255) NOT NULL,
+                `total_amount` decimal(14,2) NOT NULL DEFAULT 0.00,
+                `status` enum('draft','submitted','approved','paid','rejected') NOT NULL DEFAULT 'draft',
+                `period_from` int(11) NOT NULL DEFAULT 0,
+                `period_to` int(11) NOT NULL DEFAULT 0,
+                `notes` text,
+                `cash_entry_id` int(11) NOT NULL DEFAULT 0,
+                `admin_id` int(11) NOT NULL DEFAULT 0,
+                `time_created` int(11) NOT NULL DEFAULT 0,
+                `time_updated` int(11) NOT NULL DEFAULT 0,
+                PRIMARY KEY (`id`),
+                UNIQUE KEY `x_report_no` (`report_no`),
+                KEY `x_staff` (`staff_user_id`),
+                KEY `x_status` (`status`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+            """,
+            cancellationToken);
 
     private static long ParseDate(string? value, long fallback, bool endOfDay)
     {
