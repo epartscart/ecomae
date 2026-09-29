@@ -18,15 +18,18 @@ public interface IErpRbacRoleDutyWriteService
 public sealed record ErpRbacRoleDutyWriteRequest(
     long RoleId = 0,
     long DutyId = 0,
-    int? Attach = null);
+    int? Attach = null,
+    int ActorUserId = 0);
 
 public sealed class ErpRbacRoleDutyWriteService : IErpRbacRoleDutyWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpRbacRoleDutyWriteService(IErpWriteConnectionFactory connections)
+    public ErpRbacRoleDutyWriteService(IErpWriteConnectionFactory connections, IErpAuditLogWriter audit)
     {
         _connections = connections;
+        _audit = audit;
     }
 
     public async Task<ErpSimpleWriteResult> AttachAsync(
@@ -69,6 +72,20 @@ public sealed class ErpRbacRoleDutyWriteService : IErpRbacRoleDutyWriteService
                 request.DutyId).ConfigureAwait(false);
         }
 
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorUserId,
+            attach ? "rbac_role_duty_attach" : "rbac_role_duty_detach",
+            "rbac_role_duty",
+            request.RoleId,
+            attach ? "ERP duty attached to role" : "ERP duty detached from role",
+            new Dictionary<string, string?>
+            {
+                ["role_id"] = request.RoleId.ToString(),
+                ["duty_id"] = request.DutyId.ToString(),
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Role duties updated", request.RoleId);
     }
 

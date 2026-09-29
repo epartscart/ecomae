@@ -217,6 +217,39 @@ public sealed class ErpNavigationCoverageTests
         Assert.True(ErpCapabilityCatalog.CanAction(super, "administration", "Approve"));
     }
 
+    [Fact]
+    public void ErpRbacWritesRecordAuditableActorAndScopeEvidence()
+    {
+        var root = FindRepoRoot();
+        var erpRoot = Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Erp");
+        foreach (var service in new[]
+        {
+            "ErpRbacPrivSaveWriteService.cs",
+            "ErpRbacDutySaveWriteService.cs",
+            "ErpRbacRoleSaveWriteService.cs",
+            "ErpRbacDutyPrivWriteService.cs",
+            "ErpRbacRoleDutyWriteService.cs",
+            "ErpRbacUserRoleWriteService.cs",
+        })
+        {
+            var source = File.ReadAllText(Path.Combine(erpRoot, service));
+            Assert.Contains("IErpAuditLogWriter", source, StringComparison.Ordinal);
+            Assert.Contains("ActorUserId", source, StringComparison.Ordinal);
+        }
+
+        var module = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Modules",
+            "ErpModule.cs"));
+        Assert.Contains("session.UserId)", module, StringComparison.Ordinal);
+        Assert.Contains("rbac_user_role_assign", File.ReadAllText(Path.Combine(
+            erpRoot,
+            "ErpRbacUserRoleWriteService.cs")), StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

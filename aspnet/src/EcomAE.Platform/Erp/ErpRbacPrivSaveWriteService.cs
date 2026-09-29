@@ -19,7 +19,8 @@ public sealed record ErpRbacPrivSaveWriteRequest(
     long CompanyId = 0,
     string? Code = null,
     string? Name = null,
-    string? AccessLevel = null);
+    string? AccessLevel = null,
+    int ActorUserId = 0);
 
 public sealed class ErpRbacPrivSaveWriteService : IErpRbacPrivSaveWriteService
 {
@@ -29,10 +30,12 @@ public sealed class ErpRbacPrivSaveWriteService : IErpRbacPrivSaveWriteService
     };
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpRbacPrivSaveWriteService(IErpWriteConnectionFactory connections)
+    public ErpRbacPrivSaveWriteService(IErpWriteConnectionFactory connections, IErpAuditLogWriter audit)
     {
         _connections = connections;
+        _audit = audit;
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(
@@ -85,6 +88,21 @@ public sealed class ErpRbacPrivSaveWriteService : IErpRbacPrivSaveWriteService
             cancellationToken,
             companyId,
             code).ConfigureAwait(false);
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorUserId,
+            "rbac_privilege_save",
+            "rbac_privilege",
+            id,
+            "ERP privilege saved",
+            new Dictionary<string, string?>
+            {
+                ["company_id"] = companyId.ToString(),
+                ["code"] = code,
+                ["access_level"] = level,
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Privilege saved", id);
     }
 
