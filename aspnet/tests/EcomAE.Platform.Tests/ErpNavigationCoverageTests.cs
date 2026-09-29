@@ -276,6 +276,78 @@ public sealed class ErpNavigationCoverageTests
         Assert.Contains("epc_erp_audit_log", service, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ErpScopedPolicyEnforcesDatesCompanySiteLimitsAndDelegation()
+    {
+        var session = new LegacySessionContext(
+            LegacySessionKind.Admin,
+            25,
+            "session",
+            [EcomAePermissions.TenantErpAccess],
+            ModuleAcl: [new ModuleAclEntry(8, "Finance Approve", false)]);
+        var now = DateTimeOffset.UtcNow;
+        var grants = new[]
+        {
+            new ErpPermissionGrant(
+                25,
+                "finance",
+                new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Approve" },
+                new HashSet<long> { 7 },
+                new HashSet<long> { 3 },
+                1000m,
+                now.AddMinutes(-1),
+                now.AddMinutes(1)),
+        };
+
+        Assert.True(ErpPermissionScopePolicy.Evaluate(
+            session,
+            "finance",
+            "Approve",
+            new ErpPermissionRequest(7, 3, 500, now),
+            grants,
+            []).Allowed);
+        Assert.Equal("approval_limit", ErpPermissionScopePolicy.Evaluate(
+            session,
+            "finance",
+            "Approve",
+            new ErpPermissionRequest(7, 3, 1500, now),
+            grants,
+            []).ReasonCode);
+        Assert.Equal("company_site_scope", ErpPermissionScopePolicy.Evaluate(
+            session,
+            "finance",
+            "Approve",
+            new ErpPermissionRequest(8, 3, 500, now),
+            grants,
+            []).ReasonCode);
+        Assert.Equal("effective_window", ErpPermissionScopePolicy.Evaluate(
+            session,
+            "finance",
+            "Approve",
+            new ErpPermissionRequest(7, 3, 500, now.AddDays(2)),
+            grants,
+            []).ReasonCode);
+
+        var delegated = session with { UserId = 26 };
+        var delegation = new ErpPermissionDelegation(
+            25,
+            26,
+            "finance",
+            new HashSet<string>(StringComparer.OrdinalIgnoreCase) { "Approve" },
+            new HashSet<long> { 7 },
+            new HashSet<long> { 3 },
+            750m,
+            now.AddMinutes(-1),
+            now.AddMinutes(1));
+        Assert.True(ErpPermissionScopePolicy.Evaluate(
+            delegated,
+            "finance",
+            "Approve",
+            new ErpPermissionRequest(7, 3, 500, now),
+            [],
+            [delegation]).Allowed);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
