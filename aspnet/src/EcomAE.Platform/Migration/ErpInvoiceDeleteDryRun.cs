@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>invoice_delete</c> (draft only). Never DELETE. PHP authoritative.</summary>
+/// <summary>Validation envelope for the live ASP.NET invoice-delete writer.</summary>
 public interface IErpInvoiceDeleteDryRun
 {
     Task<ErpInvoiceDeleteDryRunResult> EvaluateAsync(ErpInvoiceDeleteRequest request, CancellationToken cancellationToken = default);
@@ -18,7 +18,7 @@ public sealed class ErpInvoiceDeleteDryRun : IErpInvoiceDeleteDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET invoice_delete is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET invoice-delete writer.",
                 request);
         }
 
@@ -39,7 +39,7 @@ public sealed class ErpInvoiceDeleteDryRun : IErpInvoiceDeleteDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET invoice_delete is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET invoice-delete writer.",
                 request);
         }
 
@@ -62,18 +62,18 @@ public sealed class ErpInvoiceDeleteDryRun : IErpInvoiceDeleteDryRun
         }
 
         return new ErpInvoiceDeleteDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true, row.Id, row.Status,
+            "dry-run-validated", 0, true, false, false, "ok", true, row.Id, row.Status,
             [
                 "DELETE FROM `epc_einvoice_lines` WHERE document_id=@id (NOT executed)",
                 "DELETE FROM `epc_einvoice_documents` WHERE id=@id AND status='draft' (NOT executed)"
             ],
-            "Draft invoice found; hard-delete simulated. Cancel/credit-note path stays PHP for non-draft.",
+            "Draft invoice found; deletion validated and no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=invoice_delete");
     }
 
     private static ErpInvoiceDeleteDryRunResult Refuse(
         string status, string code, string detail, ErpInvoiceDeleteRequest request) =>
-        new(status, 0, true, false, true, code, false, request.InvoiceId, null, [], detail,
+        new(status, 0, true, false, false, code, false, request.InvoiceId, null, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=invoice_delete");
 }
 
