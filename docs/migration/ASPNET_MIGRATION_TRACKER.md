@@ -20,6 +20,47 @@ Current measured sub-slices that do not yet close a phase are: print-template ed
 CP/ERP static destination audits `34/34`,
 `11/11`, `95/95`, and `224/224`, and focused print-designer verification `7/7`.
 These figures are reported separately so the headline cannot overstate migration completion.
+
+## Production reconciliation and remaining completion gates
+
+The production state must be reported separately from repository implementation
+progress. The merged ASP.NET releases are not automatically live: each release
+still requires deployment from authoritative `main`, service restart, `/health`
+and `/ready` checks, `/migration/release` evidence, exact-route probes, and
+rollback verification. The login bridge is operational, but the latest merged
+permission-scope persistence release still requires this deployment evidence.
+
+| Production surface | Current authority | What remains before ASP.NET ownership |
+|---|---|---|
+| Public frontend / marketing | PHP-primary on the live product host; ASP.NET marketing is a shadow/preview path | Install and dual-sample `/marketing/app`, complete contact/demo forms, SEO/sitemap parity, brand-host probes, and human same-to-same approval |
+| Super CP | ASP.NET twins and guarded exact-route previews exist; PHP remains the live fallback for uncovered product chrome and writes | Finish the generated menu-to-page matrix, remove digest/missing pages, complete write parity and operator-guide acceptance, then run the CP browser round |
+| Platform ERP | ASP.NET login/workspaces and selected write paths are live in the migration branch; PHP remains reference/fallback | Close the remaining PHP tab/action families, wire persisted scoped grants into effective sessions and every write/approval/export path, complete CT/VAT/e-invoice/IFRS/external-reporting comparisons, and run the CP+ERP browser round |
+| Tenant CP / tenant ERP | Tenant product chrome remains PHP-primary by design | Prove tenant isolation, company/site scope, country profiles, direct-URL denial, tenant-host same-to-same dual samples, rollback, and explicit host-by-host shadow approval |
+| Demo / industry hosts | ASP.NET fixture/catalog coverage exists; live provisioning and expiry remain guarded | Verify every demo/industry host against PHP presentation and isolated data, exercise expiry/restore, and capture production smoke evidence |
+| BOS / tenant hub / APIs / workers | Mixed ASP.NET previews, PHP handlers, and sidecars | Replace provisioning writes, API gaps, scheduled jobs, webhooks, uploads/downloads, and operator flows; verify queue/retry/backup/restore behavior |
+
+The following are therefore still **pending**, even when their route or
+read-only preview exists: complete field/action/workflow parity, tenant-country
+statutory behavior, server-side capability enforcement, CSRF/audit coverage,
+on-premises and hybrid registration/synchronization/backup recovery, production
+dual-sample evidence, and the three combined browser regression rounds. PHP
+source deletion and PHP-FPM removal remain prohibited until
+`/migration/php-decommission-readiness` is ready and release-owner approval is
+attached.
+
+### How to read the percentages
+
+The repository currently has several intentionally separate meters:
+
+- `726/726` catalog contracts and `142/145` presentation shadows measure
+  inventory/preview wiring, not production ownership.
+- The `95% / 5%` weighted decommission meter measures the residual PHP runtime
+  path; it does not mean 95% of live product traffic is ASP.NET.
+- The automated suite is a regression signal, not proof of deployed
+  presentation or interactive parity.
+- Formal migration completion remains **not ready** until the live authority
+  table above, the PHP-vs-ASP.NET browser rounds, and release/rollback evidence
+  all pass.
 Enterprise comparison planning addendum (provisional until the user-supplied Zoho/Odoo HTML is attached):
 the existing ECOM AE comparison surfaces require the matrix to keep explicit parity/evidence rows for
 unified cross-module data and audit trail, full GL with dimensions/periods/consolidation, warehouse
