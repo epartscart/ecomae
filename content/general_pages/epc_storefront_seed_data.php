@@ -199,6 +199,35 @@ function epc_storefront_seed_upsert_product(PDO $pdo, array $prod, int $timeCrea
 	}
 }
 
+function epc_storefront_seed_generic_catalog(string $industry, array $locale = array()): array
+{
+	$name = str_replace('_', ' ', $industry);
+	if (function_exists('epc_portal_industries')) {
+		$industries = epc_portal_industries();
+		if (isset($industries[$industry]['name'])) {
+			$name = (string) $industries[$industry]['name'];
+		}
+	}
+	$slug = preg_replace('/[^a-z0-9]+/', '-', strtolower($industry));
+	$slug = trim((string) $slug, '-');
+	$taxLabel = isset($locale['tax_label']) ? (string) $locale['tax_label'] : 'VAT';
+	$currency = isset($locale['currency']) ? (string) $locale['currency'] : 'AED';
+	$price = epc_storefront_seed_convert_price(25.0, $currency);
+
+	return array(
+		'categories' => array(
+			array('alias' => 'demo-' . $slug . '-featured', 'name' => 'DEMO | ' . $name . ' featured', 'url' => $slug . '/featured', 'level' => 1, 'order' => 10),
+			array('alias' => 'demo-' . $slug . '-services', 'name' => 'DEMO | ' . $name . ' services', 'url' => $slug . '/services', 'level' => 1, 'order' => 20),
+			array('alias' => 'demo-' . $slug . '-compliance', 'name' => 'DEMO | ' . $taxLabel . ' and compliance', 'url' => $slug . '/compliance', 'level' => 1, 'order' => 30),
+		),
+		'products' => array(
+			array('name' => 'DEMO | ' . $name . ' starter offering', 'alias' => 'DEMO-' . strtoupper($slug) . '-001', 'price' => $price, 'category_alias' => 'demo-' . $slug . '-featured'),
+			array('name' => 'DEMO | ' . $name . ' professional service', 'alias' => 'DEMO-' . strtoupper($slug) . '-002', 'price' => $price * 2, 'category_alias' => 'demo-' . $slug . '-services'),
+			array('name' => 'DEMO | ' . $name . ' compliance package', 'alias' => 'DEMO-' . strtoupper($slug) . '-003', 'price' => $price * 3, 'category_alias' => 'demo-' . $slug . '-compliance'),
+		),
+	);
+}
+
 /* ── CATEGORY TREES ─────────────────────────────────────────────────── */
 
 function epc_storefront_seed_category_tree(string $industry, array $locale = array()): array
@@ -215,9 +244,12 @@ function epc_storefront_seed_category_tree(string $industry, array $locale = arr
 			if (is_file($themeFile)) {
 				require_once $themeFile;
 				$theme = epc_industry_theme($industry);
-				return isset($theme['categories']) ? $theme['categories'] : array();
+				if (isset($theme['categories']) && is_array($theme['categories']) && $theme['categories'] !== array()) {
+					return $theme['categories'];
+				}
 			}
-			return array();
+			$generic = epc_storefront_seed_generic_catalog($industry, $locale);
+			return $generic['categories'];
 	}
 }
 
@@ -348,7 +380,9 @@ function epc_storefront_seed_product_catalog(string $industry, array $locale = a
 				$theme = epc_industry_theme($industry);
 				$raw = isset($theme['products']) ? $theme['products'] : array();
 			}
-			if (empty($raw)) { return array(); }
+			if (empty($raw)) {
+				$raw = epc_storefront_seed_generic_catalog($industry, $locale)['products'];
+			}
 			break;
 	}
 	if ($currency === 'AED') {
