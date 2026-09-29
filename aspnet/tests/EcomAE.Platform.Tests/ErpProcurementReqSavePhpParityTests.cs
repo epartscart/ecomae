@@ -14,6 +14,10 @@ public sealed class ErpProcurementReqSavePhpParityTests
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpPurchaseRequestsApp.razor"));
         Assert.Contains("/erp/procurement/requisitions/save", text, StringComparison.Ordinal);
         Assert.Contains("/erp/procurement/requisitions/submit", text, StringComparison.Ordinal);
+        Assert.Contains("<ErpDocumentWorkspace", text, StringComparison.Ordinal);
+        Assert.Contains("<PhpErpModulePageHeader", text, StringComparison.Ordinal);
+        Assert.Contains("Purchase requisition", text, StringComparison.Ordinal);
+        Assert.Contains("_isErpRoute", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Save requisition", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
