@@ -65,6 +65,19 @@ public sealed class WaveBPeriodSettlementDryRunTests
         var r = new ErpSupplierSettlementDryRun().Evaluate(new ErpSupplierSettlementRequest(3, 25m, "decrease"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
+        Assert.False(r.PhpAuthoritative);
+        Assert.Contains("no write was performed", r.Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SupplierSettlementCatalogUsesLiveWriteGate()
+    {
+        var row = SurfacePayloadContractCatalog.Functions.Single(item =>
+            item.AspNetRouteOrCapability == "/erp/suppliers/settlement");
+
+        Assert.Equal("write-live-gated", row.Status);
+        Assert.Contains("confirm_writes=true", row.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP authoritative", row.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
