@@ -61,6 +61,29 @@ public sealed class ErpNavigationCoverageTests
         Assert.Empty(missing);
     }
 
+    [Fact]
+    public void EveryPhpErpAreaHubStaysOnAnExistingErpRoute()
+    {
+        var root = FindRepoRoot();
+        var pages = Directory
+            .GetFiles(
+                Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Components", "Pages"),
+                "*.razor")
+            .SelectMany(path => Regex.Matches(
+                File.ReadAllText(path),
+                "@page\\s+\"([^\"]+)\"")
+                .Select(match => match.Groups[1].Value.Split('?', 2)[0]))
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        var invalid = PhpModuleCatalog.ErpAreas
+            .Select(area => PhpSurfaceLinkMap.AspNetPrimaryHref(area.Href))
+            .Where(href => !href.StartsWith("/erp", StringComparison.OrdinalIgnoreCase)
+                || !pages.Contains(href.Split('?', 2)[0]))
+            .ToArray();
+
+        Assert.Empty(invalid);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
