@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>payment_batch_save</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Validation envelope for the live ASP.NET payment-batch writer.</summary>
 public interface IErpPaymentBatchSaveDryRun { ErpPaymentBatchSaveDryRunResult Evaluate(ErpPaymentBatchSaveRequest request); }
 public sealed class ErpPaymentBatchSaveDryRun : IErpPaymentBatchSaveDryRun
 {
@@ -8,20 +8,20 @@ public sealed class ErpPaymentBatchSaveDryRun : IErpPaymentBatchSaveDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET payment_batch_save is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","Use confirm_writes=true to execute the live ASP.NET payment-batch writer.", request);
         if (request.AccountId < 0)
             return Refuse("dry-run-invalid","invalid_account","account_id must be >= 0.", request);
         if (request.BatchType is not null && request.BatchType is not ("sepa" or "local" or "cheque"))
             return Refuse("dry-run-invalid","invalid_batch_type","batch_type must be sepa, local, or cheque.", request);
         if (request.LineCount < 0)
             return Refuse("dry-run-invalid","invalid_line_count","line_count must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
-            ["ajax_erp.php?action=payment_batch_save (NOT executed)"],
-            "ERP payment_batch_save payload validated; UPDATE blocked.",
+        return new("dry-run-validated",0,true,false,false,"ok",true,request.Id, request.Code,
+            ["INSERT epc_erp_payment_batches (NOT executed)"],
+            "Payment-batch payload validated; no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=payment_batch_save");
     }
     private static ErpPaymentBatchSaveDryRunResult Refuse(string s,string c,string d,ErpPaymentBatchSaveRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=payment_batch_save");
+        new(s,0,true,false,false,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=payment_batch_save");
 }
 public sealed record ErpPaymentBatchSaveRequest(
     long Id = 0,
