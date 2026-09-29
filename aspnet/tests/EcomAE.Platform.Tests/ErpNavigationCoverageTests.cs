@@ -366,6 +366,20 @@ public sealed class ErpNavigationCoverageTests
             "aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void InvoiceWriteEndpointUsesPersistedScopedPermissionDecision()
+    {
+        var module = File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+
+        Assert.Contains("IErpPermissionScopeReadService permissionScopes", module, StringComparison.Ordinal);
+        Assert.Contains("permissionScopes.ListForUserAsync", module, StringComparison.Ordinal);
+        Assert.Contains("ErpPermissionScopePolicy.Evaluate", module, StringComparison.Ordinal);
+        Assert.Contains("body.CompanyId, body.SiteId", module, StringComparison.Ordinal);
+        Assert.Contains("StatusCodes.Status403Forbidden", module, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

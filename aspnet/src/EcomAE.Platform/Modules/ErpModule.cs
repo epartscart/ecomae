@@ -546,6 +546,7 @@ public sealed class ErpModule : ISurfaceModule
             ILegacySessionValidator validator,
             IErpInvoiceSaveDryRun dryRun,
             EcomAE.Platform.Erp.IErpManualInvoiceWriteService writes,
+            IErpPermissionScopeReadService permissionScopes,
             IErpDimensionWriteService dimensions,
             IErpBosWfRaiseWriteService workflow,
             CancellationToken cancellationToken) =>
@@ -560,6 +561,29 @@ public sealed class ErpModule : ISurfaceModule
                 && !ErpCapabilityCatalog.CanAction(session, "finance", invoiceAction))
             {
                 return Unauthorized($"ERP {invoiceAction.ToLowerInvariant()} capability required for invoice save.");
+            }
+            var scopedPermissions = await permissionScopes.ListForUserAsync(session.UserId, cancellationToken);
+            if (scopedPermissions.Grants.Count > 0 || scopedPermissions.Delegations.Count > 0)
+            {
+                var request = new ErpPermissionRequest(body.CompanyId, body.SiteId);
+                var decisions = new[]
+                {
+                    ErpPermissionScopePolicy.Evaluate(session, "sales", invoiceAction, request, scopedPermissions.Grants, scopedPermissions.Delegations),
+                    ErpPermissionScopePolicy.Evaluate(session, "finance", invoiceAction, request, scopedPermissions.Grants, scopedPermissions.Delegations)
+                };
+                if (!decisions.Any(decision => decision.Allowed))
+                {
+                    var decision = decisions.First();
+                    return Results.Json(
+                        new
+                        {
+                            ok = false,
+                            code = decision.ReasonCode,
+                            message = decision.Reason,
+                            session = SessionPayload(session)
+                        },
+                        statusCode: StatusCodes.Status403Forbidden);
+                }
             }
             if (!body.ConfirmWrites)
                 return Results.Ok(dryRun.Evaluate(new ErpInvoiceSaveRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
@@ -21216,6 +21240,8 @@ public sealed class ErpModule : ISurfaceModule
         string? TransactionTypeCode = null,
         string? PaymentMeansCode = null,
         string? BankAccount = null,
+        long CompanyId = 0,
+        long SiteId = 0,
         Dictionary<string, long>? Dimensions = null,
         IReadOnlyList<string>? LineDesc = null,
         IReadOnlyList<decimal>? LineQty = null,
