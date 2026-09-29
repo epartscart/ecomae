@@ -789,7 +789,7 @@ public static class EcomAeRoutes
     public const string ErpPeriodSoftClose = "/erp/periods/soft-close";
     /// <summary>Wave B dry-run for PHP period_lock (writes=0).</summary>
     public const string ErpPeriodLock = "/erp/periods/lock";
-    /// <summary>Live PHP customer_settlement / epc_erp_customer_settlement (confirmWrites required).</summary>
+    /// <summary>ERP customer_settlement compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpCustomerSettlement = "/erp/customers/settlement";
     /// <summary>ERP supplier_settlement compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpSupplierSettlement = "/erp/suppliers/settlement";
