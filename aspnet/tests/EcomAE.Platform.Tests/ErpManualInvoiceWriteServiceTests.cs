@@ -43,6 +43,9 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("BuildInvoiceXml", service, StringComparison.Ordinal);
         Assert.Contains("xml_content", service, StringComparison.Ordinal);
         Assert.Contains("urn:peppol:pint:billing-1@ae-1", service, StringComparison.Ordinal);
+        Assert.Contains("PartyTaxScheme", service, StringComparison.Ordinal);
+        Assert.Contains("TaxSubtotal", service, StringComparison.Ordinal);
+        Assert.Contains("TaxCategory", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
