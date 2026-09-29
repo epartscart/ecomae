@@ -41,6 +41,8 @@ public sealed class ErpThreeWayMatchWriteContractTests
         Assert.Contains("\"finance\"", module, StringComparison.Ordinal);
         Assert.Contains("GetPermissionContextAsync", service, StringComparison.Ordinal);
         Assert.Contains("scope.Amount", module, StringComparison.Ordinal);
+        Assert.Contains("ErpAjaxPoStatus", module, StringComparison.Ordinal);
+        Assert.Contains("GetPermissionContextAsync", module, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

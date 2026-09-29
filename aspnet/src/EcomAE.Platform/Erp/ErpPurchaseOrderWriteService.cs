@@ -35,6 +35,11 @@ public sealed record ErpPoReceiveResult(
     decimal QtyReceived,
     decimal QtyOpen);
 
+public sealed record ErpPurchaseOrderPermissionContext(
+    long CompanyId,
+    long SiteId,
+    decimal Amount);
+
 public sealed record ErpPurchaseOrderSaveResult(
     long Id,
     string PoNo,
@@ -53,6 +58,10 @@ public sealed record ErpPurchaseOrderSaveResult(
 public interface IErpPurchaseOrderWriteService
 {
     Task<ErpPurchaseOrderSaveResult> SaveAsync(ErpPurchaseOrderInput input, int adminId, CancellationToken cancellationToken = default);
+
+    Task<ErpPurchaseOrderPermissionContext?> GetPermissionContextAsync(
+        long purchaseOrderId,
+        CancellationToken cancellationToken = default);
 
     Task SetStatusAsync(long purchaseOrderId, string status, int adminId, CancellationToken cancellationToken = default);
 
@@ -212,6 +221,45 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
+    }
+
+    public async Task<ErpPurchaseOrderPermissionContext?> GetPermissionContextAsync(
+        long purchaseOrderId,
+        CancellationToken cancellationToken = default)
+    {
+        EnsureConfigured();
+        if (purchaseOrderId <= 0)
+        {
+            return null;
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional("""
+            SELECT
+                IFNULL(po.`total_amount`,0) AS amount,
+                IFNULL((
+                    SELECT l.`storage_id`
+                    FROM `epc_erp_po_lines` l
+                    WHERE l.`po_id`=po.`id` AND l.`storage_id`>0
+                    ORDER BY l.`id`
+                    LIMIT 1
+                ),0) AS site_id
+            FROM `epc_erp_purchase_orders` po
+            WHERE po.`id`=? AND po.`status` <> 'cancelled'
+            LIMIT 1
+            """);
+        ErpDb.AddParameters(command, purchaseOrderId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            return null;
+        }
+
+        return new ErpPurchaseOrderPermissionContext(
+            CompanyId: 0,
+            SiteId: Convert.ToInt64(reader["site_id"], CultureInfo.InvariantCulture),
+            Amount: Convert.ToDecimal(reader["amount"], CultureInfo.InvariantCulture));
     }
 
     public async Task SetStatusAsync(long purchaseOrderId, string status, int adminId, CancellationToken cancellationToken = default)
