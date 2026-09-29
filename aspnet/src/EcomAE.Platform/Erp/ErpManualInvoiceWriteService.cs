@@ -36,6 +36,12 @@ public sealed record ErpManualInvoiceWriteResult(
     decimal TotalVat,
     decimal TotalInclVat);
 
+internal sealed record ErpInvoiceTaxBreakdown(
+    string TaxCategory,
+    decimal TaxableAmount,
+    decimal TaxRate,
+    decimal TaxAmount);
+
 public interface IErpManualInvoiceWriteService
 {
     Task<ErpManualInvoiceWriteResult> SaveAsync(
@@ -111,15 +117,18 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             invoiceNumber,
             issueDate,
             dueDate,
-            request.TransactionTypeCode,
-            request.PaymentMeansCode,
+            Clip(request.TransactionTypeCode, 32) is { Length: > 0 } resolvedTransactionType ? resolvedTransactionType : "00000000",
+            paymentMeansCode,
             sellerJson,
             buyerJson,
             lines);
         var validationOk = validationErrors.Count == 0;
         var documentStatus = validationOk ? "validated" : "draft";
         var validationErrorsJson = JsonSerializer.Serialize(validationErrors);
+        var taxBreakdown = BuildTaxBreakdown(lines);
+        var uuid = Guid.NewGuid().ToString("D");
         var xmlContent = BuildInvoiceXml(
+            uuid,
             invoiceNumber,
             issueDate,
             dueDate,
@@ -133,7 +142,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             totalVat,
             totalIncl,
             paidAmount,
-            amountDue);
+            amountDue,
+            taxBreakdown);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -144,7 +154,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 ErpDb.Positional(
                     "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`business_process`,`specification_id`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`rounding_amount`,`amount_due`,`tax_breakdown_json`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)"),
                 cancellationToken,
-                Guid.NewGuid().ToString("D"),
+                uuid,
                 invoiceNumber,
                 request.OrderId,
                 request.UserId > 0 ? request.UserId : 0,
@@ -169,16 +179,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 paidAmount,
                 0m,
                 amountDue,
-                JsonSerializer.Serialize(new[]
-                {
-                    new
-                    {
-                        tax_category = lines[0].TaxRate > 0 ? "S" : "Z",
-                        taxable_amount = subtotal,
-                        tax_rate = lines[0].TaxRate,
-                        tax_amount = totalVat,
-                    },
-                }),
+                SerializeTaxBreakdown(taxBreakdown),
                 documentStatus,
                 validationOk ? 1 : 0,
                 validationErrorsJson,
@@ -267,6 +268,12 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 cancellationToken,
                 request.Id).ConfigureAwait(false) ?? ("SI-" + request.Id)
             : request.InvoiceNumber.Trim();
+        var uuid = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `uuid` FROM `epc_einvoice_documents` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            request.Id).ConfigureAwait(false) ?? Guid.NewGuid().ToString("D");
         var currency = Clip(request.CurrencyCode, 8);
         if (currency.Length == 0)
         {
@@ -292,15 +299,17 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             invoiceNumber,
             issueDate,
             dueDate,
-            request.TransactionTypeCode,
-            request.PaymentMeansCode,
+            Clip(request.TransactionTypeCode, 32) is { Length: > 0 } resolvedTransactionType ? resolvedTransactionType : "00000000",
+            paymentMeansCode,
             sellerJson,
             buyerJson,
             lines);
         var validationOk = validationErrors.Count == 0;
         var documentStatus = validationOk ? "validated" : "draft";
         var validationErrorsJson = JsonSerializer.Serialize(validationErrors);
+        var taxBreakdown = BuildTaxBreakdown(lines);
         var xmlContent = BuildInvoiceXml(
+            uuid,
             invoiceNumber,
             issueDate,
             dueDate,
@@ -314,7 +323,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             totalVat,
             totalIncl,
             paidAmount,
-            amountDue);
+            amountDue,
+            taxBreakdown);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -347,16 +357,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 paidAmount,
                 0m,
                 amountDue,
-                JsonSerializer.Serialize(new[]
-                {
-                    new
-                    {
-                        tax_category = lines[0].TaxRate > 0 ? "S" : "Z",
-                        taxable_amount = subtotal,
-                        tax_rate = lines[0].TaxRate,
-                        tax_amount = totalVat,
-                    },
-                }),
+                SerializeTaxBreakdown(taxBreakdown),
                 documentStatus,
                 validationOk ? 1 : 0,
                 validationErrorsJson,
@@ -666,6 +667,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
     }
 
     private static string BuildInvoiceXml(
+        string uuid,
         string invoiceNumber,
         long issueDate,
         long dueDate,
@@ -679,7 +681,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         decimal totalVat,
         decimal totalIncl,
         decimal paidAmount,
-        decimal amountDue)
+        decimal amountDue,
+        IReadOnlyList<ErpInvoiceTaxBreakdown> taxBreakdown)
     {
         var cbc = XNamespace.Get("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2");
         var cac = XNamespace.Get("urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2");
@@ -690,6 +693,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             new XElement(cbc + "CustomizationID", "urn:peppol:pint:billing-1@ae-1"),
             new XElement(cbc + "ProfileID", "urn:peppol:bis:billing"),
             new XElement(cbc + "ID", invoiceNumber),
+            new XElement(cbc + "UUID", uuid),
             new XElement(cbc + "IssueDate", IsoDate(issueDate)),
             new XElement(cbc + "DueDate", IsoDate(dueDate)),
             new XElement(cbc + "InvoiceTypeCode", "380"),
@@ -708,17 +712,18 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             new XElement(
                 cac + "TaxTotal",
                 new XElement(cbc + "TaxAmount", Amount(totalVat), new XAttribute("currencyID", currency)),
-                new XElement(
-                    cac + "TaxSubtotal",
-                    new XElement(cbc + "TaxableAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
-                    new XElement(cbc + "TaxAmount", Amount(totalVat), new XAttribute("currencyID", currency)),
+                taxBreakdown.Select(row =>
                     new XElement(
-                        cac + "TaxCategory",
-                        new XElement(cbc + "ID", lines[0].TaxRate > 0 ? "S" : "Z"),
-                        new XElement(cbc + "Percent", lines[0].TaxRate),
+                        cac + "TaxSubtotal",
+                        new XElement(cbc + "TaxableAmount", Amount(row.TaxableAmount), new XAttribute("currencyID", currency)),
+                        new XElement(cbc + "TaxAmount", Amount(row.TaxAmount), new XAttribute("currencyID", currency)),
                         new XElement(
-                            cac + "TaxScheme",
-                            new XElement(cbc + "ID", "VAT"))))),
+                            cac + "TaxCategory",
+                            new XElement(cbc + "ID", row.TaxCategory),
+                            new XElement(cbc + "Percent", row.TaxRate),
+                            new XElement(
+                                cac + "TaxScheme",
+                                new XElement(cbc + "ID", "VAT"))))).ToArray()),
             new XElement(
                 cac + "LegalMonetaryTotal",
                 new XElement(cbc + "LineExtensionAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
@@ -752,6 +757,33 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 
         return new XDocument(new XDeclaration("1.0", "utf-8", "yes"), invoice).ToString(SaveOptions.DisableFormatting);
     }
+
+    private static IReadOnlyList<ErpInvoiceTaxBreakdown> BuildTaxBreakdown(
+        IReadOnlyList<ErpManualInvoiceLineInput> lines)
+        => lines
+            .GroupBy(line => line.TaxRate)
+            .OrderBy(group => group.Key)
+            .Select(group =>
+            {
+                var taxableAmount = Round(group.Sum(line => line.Quantity * line.UnitPrice));
+                var taxAmount = Round(group.Sum(line => line.Quantity * line.UnitPrice * line.TaxRate / 100m));
+                return new ErpInvoiceTaxBreakdown(
+                    group.Key > 0 ? "S" : "Z",
+                    taxableAmount,
+                    group.Key,
+                    taxAmount);
+            })
+            .ToArray();
+
+    private static string SerializeTaxBreakdown(
+        IReadOnlyList<ErpInvoiceTaxBreakdown> taxBreakdown)
+        => JsonSerializer.Serialize(taxBreakdown.Select(row => new
+        {
+            tax_category = row.TaxCategory,
+            taxable_amount = row.TaxableAmount,
+            tax_rate = row.TaxRate,
+            tax_amount = row.TaxAmount,
+        }));
 
     private static XElement BuildParty(
         XNamespace cac,

@@ -46,6 +46,10 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("PartyTaxScheme", service, StringComparison.Ordinal);
         Assert.Contains("TaxSubtotal", service, StringComparison.Ordinal);
         Assert.Contains("TaxCategory", service, StringComparison.Ordinal);
+        Assert.Contains("new XElement(cbc + \"UUID\", uuid)", service, StringComparison.Ordinal);
+        Assert.Contains("BuildTaxBreakdown", service, StringComparison.Ordinal);
+        Assert.Contains(".GroupBy(line => line.TaxRate)", service, StringComparison.Ordinal);
+        Assert.Contains("resolvedTransactionType", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
