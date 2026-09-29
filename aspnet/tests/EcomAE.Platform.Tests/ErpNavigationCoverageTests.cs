@@ -199,6 +199,10 @@ public sealed class ErpNavigationCoverageTests
         {
             ModuleAcl = [new ModuleAclEntry(7, "Sales Delete", false)],
         };
+        var delegatedAdministration = tenant with
+        {
+            ModuleAcl = [new ModuleAclEntry(8, "Administration Approve", false)],
+        };
         var super = tenant with
         {
             Permissions = [EcomAePermissions.SuperErpAccess],
@@ -209,6 +213,7 @@ public sealed class ErpNavigationCoverageTests
         Assert.True(ErpCapabilityCatalog.CanAction(delegatedDelete, "sales", "Delete"));
         Assert.True(ErpCapabilityCatalog.CanAction(super, "finance", "Reverse"));
         Assert.False(ErpCapabilityCatalog.CanAction(tenant, "administration", "Approve"));
+        Assert.True(ErpCapabilityCatalog.CanAction(delegatedAdministration, "administration", "Approve"));
         Assert.True(ErpCapabilityCatalog.CanAction(super, "administration", "Approve"));
     }
 
