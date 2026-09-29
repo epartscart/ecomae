@@ -392,6 +392,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpPerformanceReviewSave, HandleHrtReviewSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPerformanceGoalAdd, HandleHrtGoalAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpOrderPlanningParamsSave, HandleOplParamsSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpMasterPlanningFirm, HandleMasterPlanningFirmAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCashForecastSave, HandleCftForecastSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpCashForecastLineAdd, HandleCftLineAddAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpBankInstrumentSave, HandleCftInstrumentSaveAsync).DisableAntiforgery();
@@ -17767,6 +17768,44 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleMasterPlanningFirmAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMasterPlannedOrderFirmWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/order-planning-app?tab=master_planning", "Admin ERP capability required for MRP firming.");
+
+        var plannedOrderId = 0L;
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            plannedOrderId = LiveWriteFormBinder.Long(form, "id", "planned_order_id");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/order-planning-app?tab=master_planning",
+                false,
+                "Set confirmWrites=true to firm an MRP planned order.",
+                new { ok = true, writes = 0, phpAuthoritative = false, validation_code = "confirm_required", message = "Set confirmWrites=true to firm an MRP planned order.", session = SessionPayload(session) });
+        }
+
+        var result = await writes.FirmAsync(plannedOrderId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/order-planning-app?tab=master_planning",
+            result.Succeeded,
+            result.Message,
+            new { ok = result.Succeeded, writes = result.Writes, phpAuthoritative = false, validation_code = result.Code, message = result.Message, id = result.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleCftForecastSaveAsync(

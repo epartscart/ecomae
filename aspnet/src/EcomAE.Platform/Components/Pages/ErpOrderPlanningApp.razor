@@ -54,7 +54,17 @@
                                 <td>@row.Level.ToString(CultureInfo.InvariantCulture)</td>
                                 <td>@FormatTime(row.DueDate)</td>
                                 <td><span class="label label-default">@row.Status</span></td>
-                                <td><span class="text-muted">@row.Source</span></td>
+                                <td>
+                                    <span class="text-muted">@row.Source</span>
+                                    @if (string.Equals(row.Status, "planned", StringComparison.OrdinalIgnoreCase))
+                                    {
+                                        <form method="post" action="@EcomAeRoutes.ErpMasterPlanningFirm" style="display:inline;margin-left:.35rem">
+                                            <input type="hidden" name="confirmWrites" value="true" />
+                                            <input type="hidden" name="id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                            <button type="submit" class="btn btn-xs btn-default">Firm</button>
+                                        </form>
+                                    }
+                                </td>
                             </tr>
                         }
                     }
