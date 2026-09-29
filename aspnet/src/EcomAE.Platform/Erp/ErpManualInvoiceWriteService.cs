@@ -78,6 +78,13 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var sellerJson = await ResolveSellerJsonAsync(connection, request.SellerJson, cancellationToken).ConfigureAwait(false);
         var buyerJson = await ResolveBuyerJsonAsync(connection, request.UserId, request.BuyerJson, cancellationToken).ConfigureAwait(false);
+        var paymentMeansCode = await ResolveSettingAsync(connection, request.PaymentMeansCode, "payment_means_code", "30", cancellationToken).ConfigureAwait(false);
+        var paymentTerms = await ResolveSettingAsync(connection, request.PaymentTerms, "payment_terms", "Within 7 days", cancellationToken).ConfigureAwait(false);
+        var bankAccount = Clip(request.BankAccount, 255);
+        if (bankAccount.Length == 0)
+        {
+            bankAccount = Clip(JsonText(sellerJson, "seller_bank_account"), 255);
+        }
         if (request.Id > 0)
         {
             return await UpdateAsync(connection, request, lines, sellerJson, buyerJson, cancellationToken).ConfigureAwait(false);
@@ -117,8 +124,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             issueDate,
             dueDate,
             currency,
-            request.PaymentMeansCode,
-            request.BankAccount,
+            paymentMeansCode,
+            bankAccount,
             sellerJson,
             buyerJson,
             lines,
@@ -147,9 +154,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 currency,
                 currency,
                 Clip(request.TransactionTypeCode, 32) is { Length: > 0 } transactionType ? transactionType : "00000000",
-                Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
-                Clip(request.PaymentTerms, 255),
-                Clip(request.BankAccount, 255),
+                paymentMeansCode,
+                paymentTerms,
+                bankAccount,
                 "urn:peppol:bis:billing",
                 "urn:peppol:pint:billing-1@ae-1",
                 sellerJson,
@@ -263,6 +270,13 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         {
             currency = "AED";
         }
+        var paymentMeansCode = await ResolveSettingAsync(connection, request.PaymentMeansCode, "payment_means_code", "30", cancellationToken).ConfigureAwait(false);
+        var paymentTerms = await ResolveSettingAsync(connection, request.PaymentTerms, "payment_terms", "Within 7 days", cancellationToken).ConfigureAwait(false);
+        var bankAccount = Clip(request.BankAccount, 255);
+        if (bankAccount.Length == 0)
+        {
+            bankAccount = Clip(JsonText(sellerJson, "seller_bank_account"), 255);
+        }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var subtotal = Round(lines.Sum(line => line.Quantity * line.UnitPrice));
@@ -289,8 +303,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             issueDate,
             dueDate,
             currency,
-            request.PaymentMeansCode,
-            request.BankAccount,
+            paymentMeansCode,
+            bankAccount,
             sellerJson,
             buyerJson,
             lines,
@@ -316,9 +330,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 currency,
                 currency,
                 Clip(request.TransactionTypeCode, 32) is { Length: > 0 } transactionType ? transactionType : "00000000",
-                Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
-                Clip(request.PaymentTerms, 255),
-                Clip(request.BankAccount, 255),
+                paymentMeansCode,
+                paymentTerms,
+                bankAccount,
                 "urn:peppol:bis:billing",
                 "urn:peppol:pint:billing-1@ae-1",
                 sellerJson,
@@ -437,6 +451,19 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         profile["seller_peppol_endpoint"] = PeppolEndpoint(profile["seller_trn"]);
 
         return JsonSerializer.Serialize(profile);
+    }
+
+    private static async Task<string> ResolveSettingAsync(
+        DbConnection connection,
+        string? supplied,
+        string key,
+        string fallback,
+        CancellationToken cancellationToken)
+    {
+        var value = Clip(supplied, 255);
+        return value.Length > 0
+            ? value
+            : await SettingAsync(connection, key, fallback, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<string> ResolveBuyerJsonAsync(
