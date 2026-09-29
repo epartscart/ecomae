@@ -19,7 +19,7 @@ public sealed class ErpWmsLocationSaveDryRun : IErpWmsLocationSaveDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                "Use confirm_writes=true to execute the live ASP.NET WMS location writer.",
                 request);
         }
 
@@ -32,7 +32,7 @@ public sealed class ErpWmsLocationSaveDryRun : IErpWmsLocationSaveDryRun
         return new ErpWmsLocationSaveDryRunResult(
             "dry-run-validated", 0, true, false, false, "ok", true, code, request.Id,
             ["INSERT/UPDATE `epc_erp_wms_locations` (NOT executed)"],
-            "ErpWmsLocationSave payload validated; write blocked until confirmWrites=true.",
+            "ErpWmsLocationSave payload validated; no write was performed.",
             "content/shop/finance/epc_erp_wms.php");
     }
 

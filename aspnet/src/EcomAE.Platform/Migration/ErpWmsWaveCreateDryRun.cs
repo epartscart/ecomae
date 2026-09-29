@@ -19,7 +19,7 @@ public sealed class ErpWmsWaveCreateDryRun : IErpWmsWaveCreateDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                "Use confirm_writes=true to execute the live ASP.NET WMS wave-creation writer.",
                 request);
         }
 
@@ -41,7 +41,7 @@ public sealed class ErpWmsWaveCreateDryRun : IErpWmsWaveCreateDryRun
             request.Qty,
             request.Reference,
             ["epc_wms_wave_create + epc_wms_wave_add_pick (NOT executed)"],
-            "ErpWmsWaveCreate payload validated; INSERT blocked until confirmWrites=true.",
+            "ErpWmsWaveCreate payload validated; no write was performed.",
             "content/shop/finance/epc_erp_wms.php");
     }
 
