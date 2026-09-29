@@ -18,6 +18,8 @@ public sealed class ErpThreeWayMatchWriteContractTests
         Assert.Contains("epc_erp_po_receipts", service, StringComparison.Ordinal);
         Assert.Contains("epc_erp_purchases", service, StringComparison.Ordinal);
         Assert.Contains("ecomae_erp_three_way_matches", service, StringComparison.Ordinal);
+        Assert.Contains("PhpMatchToleranceAmount = 0.02m", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("request.ToleranceAmount", service, StringComparison.Ordinal);
         Assert.Contains("three_way_match", service, StringComparison.Ordinal);
         Assert.Contains("ErpCapabilityCatalog.CanAction(session, \"purchasing\", \"Approve\")", module, StringComparison.Ordinal);
         Assert.Contains("writesBlocked = true", module, StringComparison.Ordinal);

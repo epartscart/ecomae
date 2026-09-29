@@ -13,12 +13,12 @@ public interface IErpThreeWayMatchWriteService
 public sealed record ErpThreeWayMatchDecisionRequest(
     long PurchaseOrderId = 0,
     string Decision = "match",
-    decimal ToleranceAmount = 0,
     string? ExceptionReason = null,
     long AdminId = 0);
 
 public sealed class ErpThreeWayMatchWriteService : IErpThreeWayMatchWriteService
 {
+    private const decimal PhpMatchToleranceAmount = 0.02m;
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IErpAuditLogWriter _audit;
 
@@ -79,8 +79,7 @@ public sealed class ErpThreeWayMatchWriteService : IErpThreeWayMatchWriteService
                 receiptCount <= 0 ? "Goods receipt is required before matching." : "Supplier invoice is required before matching.");
         }
 
-        var tolerance = Math.Max(0m, request.ToleranceAmount);
-        var withinTolerance = Math.Abs(variance) <= tolerance;
+        var withinTolerance = Math.Abs(variance) < PhpMatchToleranceAmount;
         var decision = request.Decision.Trim().ToLowerInvariant();
         if (decision == "match" && !withinTolerance)
         {
@@ -139,7 +138,7 @@ public sealed class ErpThreeWayMatchWriteService : IErpThreeWayMatchWriteService
             poTotal,
             invoiceTotal,
             variance,
-            tolerance,
+            PhpMatchToleranceAmount,
             status,
             Clip(request.ExceptionReason, 500),
             request.AdminId).ConfigureAwait(false);
@@ -156,7 +155,7 @@ public sealed class ErpThreeWayMatchWriteService : IErpThreeWayMatchWriteService
                 ["po_total"] = poTotal.ToString("N2", CultureInfo.InvariantCulture),
                 ["invoice_total"] = invoiceTotal.ToString("N2", CultureInfo.InvariantCulture),
                 ["variance_amount"] = variance.ToString("N2", CultureInfo.InvariantCulture),
-                ["tolerance_amount"] = tolerance.ToString("N2", CultureInfo.InvariantCulture),
+                ["tolerance_amount"] = PhpMatchToleranceAmount.ToString("N2", CultureInfo.InvariantCulture),
                 ["exception_reason"] = Clip(request.ExceptionReason, 500)
             },
             cancellationToken).ConfigureAwait(false);
