@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -27,8 +28,7 @@
 
     @if (_isAdmin)
     {
-        <form method="post" action="/erp/suppliers/settlement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="confirmWrites" value="true" />
+        <form method="post" action="@EcomAeRoutes.ErpSupplierSettlement" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="returnUrl" value="/erp/payables-app" />
             <label>Supplier ID <input type="number" name="supplier_id" min="1" required style="width:6rem" value="@(_openedId > 0 ? _openedId.ToString(CultureInfo.InvariantCulture) : null)" /></label>
             <label>Amount <input type="text" name="amount" required placeholder="0.00" /></label>
@@ -47,7 +47,8 @@
             </label>
             <label>Reference <input type="text" name="reference" maxlength="120" /></label>
             <label>Note <input type="text" name="note" maxlength="255" /></label>
-            <button type="submit" class="btn btn-sm btn-primary">Post supplier settlement</button>
+            <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate settlement</button>
+            <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Post supplier settlement</button>
         </form>
     }
 
@@ -66,7 +67,7 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Email, phone, and bank details stay omitted from this operational view.</p>
-            <p class="text-muted">Supplier settlement writes stay Classic-compatible until payables parity is closed.</p>
+            <p class="text-muted">Settlement validates first, then posts a tenant-scoped supplier ledger entry when confirmed.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.TrnExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">TRN excerpt</p>
