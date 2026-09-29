@@ -7,6 +7,7 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -215,16 +216,27 @@
         </div>
     </div>
 
-<form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/cp/uae-tax-compliance-app")" />
+<div class="hpanel" style="margin-top:1rem;">
+    <div class="panel-heading hbuilt">Corporate Tax adjustments</div>
+    <div class="panel-body">
+<form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:.5rem;">
+                <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
                 <input type="hidden" name="confirmWrites" value="true" />
-                <label>From <input class="form-control input-sm" type="date" name="date_from" /></label>
-                <label>To <input class="form-control input-sm" type="date" name="date_to" /></label>
-                <label>Entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" style="width:90px;" /></label>
-                <label>Fines <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" style="width:90px;" /></label>
-                <label>Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" style="width:90px;" /></label>
+                <label>From <input class="form-control input-sm" type="date" name="date_from" required /></label>
+                <label>To <input class="form-control input-sm" type="date" name="date_to" required /></label>
+                @foreach (var field in ErpUaeTaxSaveCtAdjustmentsWriteService.Fields)
+                {
+                    <label>
+                        @FormatAdjustmentLabel(field.Key)
+                        <input class="form-control input-sm" name="@("ct_" + field.Key)" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" />
+                        <small class="text-muted">@((field.Direction == "add") ? "add-back" : "deduct")</small>
+                    </label>
+                }
                 <button type="submit" class="btn btn-primary btn-sm">Save CT adjustments</button>
             </form>
+            <p class="text-muted" style="margin:0;">Adjustments are period-scoped and use the same add-back/deduction field set as the compliance write service.</p>
+    </div>
+</div>
 
 <ErpPhpCreateWell Title="Checklist step">
 <form method="post" action="/erp/uae-tax/legislation/checklist/set" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
@@ -259,6 +271,14 @@
     private long _openedId;
     private CpUaeTaxItemDetail? _opened;
     private IReadOnlyList<CpUaeTaxItemDigest> _openedSiblings = [];
+
+    private static string FormatAdjustmentLabel(string key)
+        => string.Join(
+            " ",
+            key.Split('_', StringSplitOptions.RemoveEmptyEntries)
+                .Select(part => part.Length == 0
+                    ? part
+                    : char.ToUpperInvariant(part[0]) + part[1..]));
 
     private string OpenedCaption =>
         !string.IsNullOrWhiteSpace(_opened?.Title)

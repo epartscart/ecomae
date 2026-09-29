@@ -108,9 +108,34 @@ public sealed class ErpNavigationCoverageTests
 
         Assert.Contains("@page \"/erp/uae-tax-compliance-app\"", page, StringComparison.Ordinal);
         Assert.Contains("<TaxComplianceSurfaceChrome", page, StringComparison.Ordinal);
+        Assert.Contains("ErpUaeTaxSaveCtAdjustmentsWriteService.Fields", page, StringComparison.Ordinal);
         Assert.Contains("PhpErpDesktopChrome", chrome, StringComparison.Ordinal);
         Assert.Contains("PhpCpDesktopChrome", chrome, StringComparison.Ordinal);
         Assert.Contains("\"/erp/uae-tax-compliance-app\"", chrome, StringComparison.Ordinal);
+
+        var adjustments = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Erp",
+            "ErpUaeTaxSaveCtAdjustmentsWriteService.cs"));
+        foreach (var field in new[]
+        {
+            "non_deductible_entertainment",
+            "fines_penalties",
+            "book_depreciation_excess",
+            "related_party_adjustments",
+            "other_add_backs",
+            "exempt_income",
+            "foreign_branch_exemption",
+            "loss_carryforward",
+            "qualifying_donations",
+            "other_deductions",
+        })
+        {
+            Assert.Contains("(\"" + field + "\"", adjustments, StringComparison.Ordinal);
+        }
     }
 
     private static string FindRepoRoot()
