@@ -32,8 +32,19 @@
     @if (_isMasterPlanning)
     {
         <div class="epc-erp-empty" style="display:block;margin:0 0 12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-            Persisted MRP planned orders are shown below. The PHP MRP run remains authoritative for regeneration and schema creation.
+            Persisted MRP planned orders are shown below. Regeneration accepts submitted demand/on-hand inputs; PHP remains authoritative for schema creation and the Classic fallback.
         </div>
+        <form method="post" action="@EcomAeRoutes.ErpAjaxMfgrMrpRun" style="margin:0 0 12px;padding:10px;border:1px solid #dbe4ea;background:#fff">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <div class="row">
+                <div class="col-md-2"><label>Company id</label><input class="form-control input-sm" name="companyId" type="number" min="1" required /></div>
+                <div class="col-md-2"><label>Due date (Unix)</label><input class="form-control input-sm" name="dueDate" type="number" value="0" /></div>
+                <div class="col-md-4"><label>Demand JSON</label><input class="form-control input-sm" name="demand" placeholder='{"1001":10}' required /></div>
+                <div class="col-md-4"><label>On-hand JSON</label><input class="form-control input-sm" name="onHand" placeholder='{"1001":2}' /></div>
+            </div>
+            <p class="text-muted" style="margin:.5rem 0">JSON keys are item IDs. This guarded action replaces prior company MRP rows and writes planned production/purchase rows in PHP-compatible level order.</p>
+            <button type="submit" class="btn btn-sm btn-primary">Regenerate MRP</button>
+        </form>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
                 <thead><tr><th>Order</th><th>Item id</th><th>Type</th><th class="text-right">Qty</th><th>Level</th><th>Due</th><th>Status</th><th></th></tr></thead>
