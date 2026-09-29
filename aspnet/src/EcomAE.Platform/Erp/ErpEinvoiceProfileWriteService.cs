@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>einvoice_save_seller</c> / <c>einvoice_save_buyer</c> / <c>einvoice_save_asp</c> twins.
-/// Create / submit / credit-note / ASP poll stay Classic. Schema-ensure stays PHP.
+/// Document creation, API-mode submission, credit-note, and ASP-poll workflows stay Classic; manual ASP-portal submission is live in its dedicated write service. Schema-ensure stays PHP.
 /// </summary>
 public interface IErpEinvoiceProfileWriteService
 {

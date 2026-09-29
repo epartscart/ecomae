@@ -319,6 +319,7 @@ builder.Services.AddSingleton<IErpEinvoiceSaveSellerDryRun, ErpEinvoiceSaveSelle
 builder.Services.AddSingleton<IErpEinvoiceSaveBuyerDryRun, ErpEinvoiceSaveBuyerDryRun>();
 builder.Services.AddSingleton<IErpEinvoiceSaveAspDryRun, ErpEinvoiceSaveAspDryRun>();
 builder.Services.AddSingleton<IErpEinvoiceSubmitDryRun, ErpEinvoiceSubmitDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEinvoiceSubmitWriteService, EcomAE.Platform.Erp.ErpEinvoiceSubmitWriteService>();
 builder.Services.AddSingleton<IErpEinvoiceCreditNoteDryRun, ErpEinvoiceCreditNoteDryRun>();
 builder.Services.AddSingleton<IErpEinvoicePollAspDryRun, ErpEinvoicePollAspDryRun>();
 builder.Services.AddSingleton<IErpExternalReportingFetchDryRun, ErpExternalReportingFetchDryRun>();
