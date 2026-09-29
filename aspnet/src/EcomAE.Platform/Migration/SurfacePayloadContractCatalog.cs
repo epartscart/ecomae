@@ -1782,7 +1782,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "mfg_wo_complete dry-run", "/erp/ajax/mfg-wo-complete", "write-dry-run-gated", "POST dry-run for PHP mfg_wo_complete; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "payroll generate", "/erp/payroll/generate", "write-live-gated", "POST PHP epc_erp_payroll_generate_run; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "payroll_generate", "/erp/ajax/payroll-generate", "write-live-gated", "POST PHP epc_erp_payroll_generate_run ajax alias; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
-        new("erp", "payroll_approve write", "/erp/ajax/payroll-approve", "write-live-gated", "POST live payroll_approve when confirmWrites=true; dry-run otherwise."),
+        new("erp", "payroll_approve write", "/erp/ajax/payroll-approve", "write-live-gated", "POST validates with confirm_writes=false (writes=0); confirm_writes=true approves the tenant-scoped payroll run through the authenticated ASP.NET writer; tenant schema remains PHP-managed."),
         new("erp", "payroll pay", "/erp/payroll/pay", "write-live-gated", "POST PHP epc_erp_payroll_pay_run; confirmWrites=true writes ASP.NET; schema ensure and COA GL stay PHP."),
         new("erp", "payroll_pay", "/erp/ajax/payroll-pay", "write-live-gated", "POST PHP epc_erp_payroll_pay_run ajax alias; confirmWrites=true writes ASP.NET; schema ensure and COA GL stay PHP."),
         new("erp", "payroll update-days", "/erp/payroll/update-days", "write-live-gated", "POST PHP epc_erp_payroll_update_line_days; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
