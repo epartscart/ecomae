@@ -734,7 +734,10 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                         new XElement(
                             cac + "ClassifiedTaxCategory",
                             new XElement(cbc + "ID", line.TaxRate > 0 ? "S" : "Z"),
-                            new XElement(cbc + "Percent", line.TaxRate))),
+                            new XElement(cbc + "Percent", line.TaxRate),
+                            new XElement(
+                                cac + "TaxScheme",
+                                new XElement(cbc + "ID", "VAT")))),
                     new XElement(
                         cac + "Price",
                         new XElement(cbc + "PriceAmount", Amount(line.UnitPrice), new XAttribute("currencyID", currency)))))
