@@ -69,6 +69,31 @@
             <div class="kpi"><div class="lbl">Virtual locations</div><div class="val">@_virtual.Count.ToString(CultureInfo.InvariantCulture)</div></div>
             <div class="kpi"><div class="lbl">Transfers</div><div class="val">@_transfers.Summary.TransferCount.ToString(CultureInfo.InvariantCulture)</div></div>
         </div>
+        @if (_openedVirtual is not null)
+        {
+            <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+                <p style="margin:0 0 .5rem"><strong>@VirtualOpenedCaption</strong>
+                    <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
+                    <a class="btn btn-xs btn-default" href="@OpenedListHref">Close</a>
+                </p>
+                <ErpDocumentWorkspace
+                    DocumentKind="Virtual warehouse"
+                    Title="@VirtualOpenedCaption"
+                    DocumentNumber="@_openedVirtual.Id.ToString(CultureInfo.InvariantCulture)"
+                    PartyLabel="Storage"
+                    Party="@(_openedVirtual.StorageId > 0 ? _openedVirtual.StorageId.ToString(CultureInfo.InvariantCulture) : "—")"
+                    ReferenceLabel="Code"
+                    Reference="@_openedVirtual.Code"
+                    Status="@(_openedVirtual.Active ? "active" : "inactive")"
+                    ApprovalState="Warehouse master"
+                    CompanyContext="Tenant / company"
+                    Currency="—"
+                    Fields="@VirtualWorkspaceFields"
+                    Lines="@VirtualWorkspaceLines"
+                    Tabs="@VirtualWorkspaceTabs" />
+                <p class="text-muted" style="margin:.85rem 0 0">This workspace reflects the persisted virtual-location row; create and transfer actions stay on the tab.</p>
+            </div>
+        }
         <h2 style="font-size:16px;">Virtual locations</h2>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -78,12 +103,13 @@
                         <th>Name</th>
                         <th>Storage ID</th>
                         <th>Active</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (_virtual.Count == 0)
                     {
-                        <tr><td colspan="4">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No virtual / exhibition / consignment locations in the warehouse master." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="5">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No virtual / exhibition / consignment locations in the warehouse master." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                     }
                     else
                     {
@@ -94,6 +120,7 @@
                                 <td>@(string.IsNullOrWhiteSpace(w.Name) ? "—" : w.Name)</td>
                                 <td>@(w.StorageId > 0 ? w.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</td>
                                 <td><span class="label label-default">@(w.Active ? "active" : "inactive")</span></td>
+                                <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(OpenedListHref, "warehouse_id", w.Id)">Open</a></td>
                             </tr>
                         }
                     }
@@ -259,6 +286,7 @@
     private bool _isAdmin;
     private long _openedId;
     private ErpWarehouseDetail? _opened;
+    private ErpWarehouseDigest? _openedVirtual;
     private IReadOnlyList<ErpWarehouseDigest> _openedSiblings = [];
     private IReadOnlyList<ErpWarehouseDigest> _warehouses = [];
     private IReadOnlyList<ErpWarehouseDigest> _virtual = [];
@@ -271,6 +299,7 @@
     private string _ok = "";
     private string _err = "";
     private IReadOnlyList<string> WarehouseWorkspaceTabs => ["General", "Storage", "Audit"];
+    private IReadOnlyList<string> VirtualWorkspaceTabs => ["General", "Storage", "Audit"];
 
     private IReadOnlyList<ErpDocumentWorkspaceField> WarehouseWorkspaceFields => _opened is null
         ? []
@@ -288,6 +317,23 @@
             string.IsNullOrWhiteSpace(_opened.Name) ? "Warehouse" : _opened.Name,
             1, "location", _opened.StorageId.ToString(CultureInfo.InvariantCulture), "master",
             0, 0, 0, 0, 0, "Warehouse master")];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> VirtualWorkspaceFields => _openedVirtual is null
+        ? []
+        : [
+            new("Code", _openedVirtual.Code, "General"),
+            new("Name", _openedVirtual.Name, "General"),
+            new("Storage id", _openedVirtual.StorageId > 0 ? _openedVirtual.StorageId.ToString(CultureInfo.InvariantCulture) : "—", "Storage"),
+            new("Active", _openedVirtual.Active ? "Yes" : "No", "General"),
+            new("Created", FormatTime(_openedVirtual.TimeCreated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> VirtualWorkspaceLines => _openedVirtual is null
+        ? []
+        : [new(string.IsNullOrWhiteSpace(_openedVirtual.Code) ? $"VW-{_openedVirtual.Id}" : _openedVirtual.Code,
+            string.IsNullOrWhiteSpace(_openedVirtual.Name) ? "Virtual warehouse" : _openedVirtual.Name,
+            1, "location", _openedVirtual.StorageId.ToString(CultureInfo.InvariantCulture), "master",
+            0, 0, 0, 0, 0, "Virtual warehouse master")];
 
     protected override async Task OnInitializedAsync()
     {
@@ -321,6 +367,14 @@
             _transfers = vw.Transfers;
             _source = vw.Source;
             _message = vw.Message;
+            if (_openedId > 0)
+            {
+                _openedVirtual = _virtual.FirstOrDefault(w => w.Id == _openedId);
+                if (_openedVirtual is not null)
+                {
+                    _virtual = new[] { _openedVirtual }.Concat(_virtual.Where(w => w.Id != _openedId)).ToList();
+                }
+            }
             return;
         }
 
@@ -367,6 +421,15 @@
                 ? _opened.Name
                 : ("Warehouse #" + _opened.Id.ToString(CultureInfo.InvariantCulture))))
             + (_opened.Active ? " · active" : " · inactive");
+
+    private string VirtualOpenedCaption => _openedVirtual is null
+        ? ""
+        : (!string.IsNullOrWhiteSpace(_openedVirtual.Code)
+            ? _openedVirtual.Code
+            : (!string.IsNullOrWhiteSpace(_openedVirtual.Name)
+                ? _openedVirtual.Name
+                : ("Virtual warehouse #" + _openedVirtual.Id.ToString(CultureInfo.InvariantCulture))))
+            + (_openedVirtual.Active ? " · active" : " · inactive");
 
     private static string FormatTime(long unix)
     {
