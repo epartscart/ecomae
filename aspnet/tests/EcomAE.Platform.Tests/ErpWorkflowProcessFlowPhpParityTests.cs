@@ -8,6 +8,22 @@ namespace EcomAE.Platform.Tests;
 public sealed class ErpWorkflowProcessFlowPhpParityTests
 {
     [Fact]
+    public void Shared_d365_action_pane_exposes_standard_erp_record_actions()
+    {
+        var source = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpErpD365ActionPane.razor"));
+
+        Assert.Contains("<span>New</span>", source, StringComparison.Ordinal);
+        foreach (var action in new[] { "edit", "delete", "void", "submit", "approve", "post" })
+        {
+            Assert.Contains($"(\"{action}\",", source, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("data-erp-standard-action", source, StringComparison.Ordinal);
+        Assert.Contains("Select a record to use", source, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void WorkflowBoard_MatchesPhpDepartmentBoard()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpWorkflowApp.razor"));
