@@ -467,6 +467,7 @@ builder.Services.AddSingleton<IErpUploadAttachmentDryRun, ErpUploadAttachmentDry
 builder.Services.AddSingleton<IErpDeleteAttachmentDryRun, ErpDeleteAttachmentDryRun>();
 builder.Services.AddSingleton<IErpSyncEinvoiceSellerDryRun, ErpSyncEinvoiceSellerDryRun>();
 builder.Services.AddSingleton<IErpExpenseReportSaveDryRun, ErpExpenseReportSaveDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpExpenseReportWriteService, EcomAE.Platform.Erp.ErpExpenseReportWriteService>();
 builder.Services.AddSingleton<IErpPoSaveDryRun, ErpPoSaveDryRun>();
 builder.Services.AddSingleton<IErpPoStatusDryRun, ErpPoStatusDryRun>();
 builder.Services.AddSingleton<IErpPoReceiveLinesDryRun, ErpPoReceiveLinesDryRun>();
