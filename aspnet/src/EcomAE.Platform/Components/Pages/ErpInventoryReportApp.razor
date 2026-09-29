@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -32,17 +33,21 @@
                 <a class="btn btn-xs btn-default" href="@OpenedCategoryReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>Category id</dt><dd>@_openedCategory.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_openedCategory.Code) ? "—" : _openedCategory.Code)</dd>
-                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_openedCategory.Name) ? "—" : _openedCategory.Name)</dd>
-                <dt>Level</dt><dd>@_openedCategory.Level.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Parent</dt><dd>@(_openedCategory.ParentId > 0 ? _openedCategory.ParentId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Sort</dt><dd>@_openedCategory.SortOrder.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Company</dt><dd>@(_openedCategory.CompanyId > 0 ? _openedCategory.CompanyId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Status</dt><dd>@(_openedCategory.IsActive ? "active" : "inactive")</dd>
-                <dt>Created</dt><dd>@FormatTime(_openedCategory.TimeCreated)</dd>
-            </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Inventory category"
+                Title="@OpenedCategoryCaption"
+                DocumentNumber="@_openedCategory.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Company"
+                Party="@(_openedCategory.CompanyId > 0 ? _openedCategory.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant")"
+                ReferenceLabel="Code"
+                Reference="@_openedCategory.Code"
+                Status="@(_openedCategory.IsActive ? "active" : "inactive")"
+                ApprovalState="Reference data"
+                CompanyContext="Tenant / company"
+                Currency="—"
+                Fields="@CategoryWorkspaceFields"
+                Lines="@CategoryWorkspaceLines"
+                Tabs="@InventoryWorkspaceTabs" />
             <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate stays Classic.</p>
             @if (_openedCategorySiblings.Count > 0)
             {
@@ -76,17 +81,21 @@
                 <a class="btn btn-xs btn-default" href="@OpenedSnapshotReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>Snapshot id</dt><dd>@_openedSnapshot.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Date</dt><dd>@(string.IsNullOrWhiteSpace(_openedSnapshot.SnapshotDate) ? "—" : _openedSnapshot.SnapshotDate)</dd>
-                <dt>Category</dt><dd>@(_openedSnapshot.CategoryId > 0 ? _openedSnapshot.CategoryId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>SKUs</dt><dd>@_openedSnapshot.TotalSkus.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Qty</dt><dd>@_openedSnapshot.TotalQty.ToString("N3", CultureInfo.InvariantCulture)</dd>
-                <dt>Value</dt><dd>@_openedSnapshot.TotalValue.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Avg age</dt><dd>@_openedSnapshot.AvgAgeDays.ToString("N1", CultureInfo.InvariantCulture)</dd>
-                <dt>Company</dt><dd>@(_openedSnapshot.CompanyId > 0 ? _openedSnapshot.CompanyId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Created</dt><dd>@FormatTime(_openedSnapshot.TimeCreated)</dd>
-            </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Inventory snapshot"
+                Title="@OpenedSnapshotCaption"
+                DocumentNumber="@_openedSnapshot.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Company"
+                Party="@(_openedSnapshot.CompanyId > 0 ? _openedSnapshot.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant")"
+                ReferenceLabel="Category"
+                Reference="@(_openedSnapshot.CategoryId > 0 ? _openedSnapshot.CategoryId.ToString(CultureInfo.InvariantCulture) : "—")"
+                Status="Captured"
+                ApprovalState="Read-only snapshot"
+                CompanyContext="Tenant / company"
+                Currency="—"
+                Fields="@SnapshotWorkspaceFields"
+                Lines="@SnapshotWorkspaceLines"
+                Tabs="@InventoryWorkspaceTabs" />
             <p class="text-muted" style="margin:.85rem 0 0">Snapshot generate stays Classic.</p>
             @if (_openedSnapshotSiblings.Count > 0)
             {
@@ -187,6 +196,42 @@
     private ErpInventoryReportSnapshotDetail? _openedSnapshot;
     private IReadOnlyList<ErpInventoryReportCategoryDigest> _openedCategorySiblings = [];
     private IReadOnlyList<ErpInventoryReportSnapshotDigest> _openedSnapshotSiblings = [];
+    private IReadOnlyList<string> InventoryWorkspaceTabs => ["General", "Classification", "Metrics", "Audit"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> CategoryWorkspaceFields => _openedCategory is null
+        ? []
+        : [
+            new("Code", _openedCategory.Code, "General"),
+            new("Name", _openedCategory.Name, "General"),
+            new("Level", _openedCategory.Level.ToString(CultureInfo.InvariantCulture), "Classification"),
+            new("Parent", _openedCategory.ParentId > 0 ? _openedCategory.ParentId.ToString(CultureInfo.InvariantCulture) : "—", "Classification"),
+            new("Sort order", _openedCategory.SortOrder.ToString(CultureInfo.InvariantCulture), "Classification"),
+            new("Company", _openedCategory.CompanyId > 0 ? _openedCategory.CompanyId.ToString(CultureInfo.InvariantCulture) : "—", "General"),
+            new("Created", FormatTime(_openedCategory.TimeCreated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> CategoryWorkspaceLines => _openedCategory is null
+        ? []
+        : [new("1", string.IsNullOrWhiteSpace(_openedCategory.Name) ? _openedCategory.Code : _openedCategory.Name,
+            1, "category", "—", "—", 0, 0, 0, 0, 0, "Inventory reference")];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> SnapshotWorkspaceFields => _openedSnapshot is null
+        ? []
+        : [
+            new("Snapshot date", _openedSnapshot.SnapshotDate, "General"),
+            new("Category", _openedSnapshot.CategoryId > 0 ? _openedSnapshot.CategoryId.ToString(CultureInfo.InvariantCulture) : "—", "Classification"),
+            new("SKUs", _openedSnapshot.TotalSkus.ToString(CultureInfo.InvariantCulture), "Metrics"),
+            new("Quantity", _openedSnapshot.TotalQty.ToString("N3", CultureInfo.InvariantCulture), "Metrics"),
+            new("Value", _openedSnapshot.TotalValue.ToString("N2", CultureInfo.InvariantCulture), "Metrics"),
+            new("Average age", _openedSnapshot.AvgAgeDays.ToString("N1", CultureInfo.InvariantCulture), "Metrics"),
+            new("Company", _openedSnapshot.CompanyId > 0 ? _openedSnapshot.CompanyId.ToString(CultureInfo.InvariantCulture) : "—", "General"),
+            new("Created", FormatTime(_openedSnapshot.TimeCreated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> SnapshotWorkspaceLines => _openedSnapshot is null
+        ? []
+        : [new("1", "Inventory snapshot", _openedSnapshot.TotalSkus, "SKUs", "—", "—", 0, 0, 0,
+            _openedSnapshot.TotalValue, 0, _openedSnapshot.SnapshotDate)];
 
     private long _openedId => _openedCategoryId > 0 ? _openedCategoryId : _openedSnapshotId;
 
