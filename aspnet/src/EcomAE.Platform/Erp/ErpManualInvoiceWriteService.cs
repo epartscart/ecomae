@@ -131,7 +131,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             lines,
             subtotal,
             totalVat,
-            totalIncl);
+            totalIncl,
+            paidAmount,
+            amountDue);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -310,7 +312,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             lines,
             subtotal,
             totalVat,
-            totalIncl);
+            totalIncl,
+            paidAmount,
+            amountDue);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -673,7 +677,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         IReadOnlyList<ErpManualInvoiceLineInput> lines,
         decimal subtotal,
         decimal totalVat,
-        decimal totalIncl)
+        decimal totalIncl,
+        decimal paidAmount,
+        decimal amountDue)
     {
         var cbc = XNamespace.Get("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2");
         var cac = XNamespace.Get("urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2");
@@ -718,7 +724,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 new XElement(cbc + "LineExtensionAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
                 new XElement(cbc + "TaxExclusiveAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
                 new XElement(cbc + "TaxInclusiveAmount", Amount(totalIncl), new XAttribute("currencyID", currency)),
-                new XElement(cbc + "PayableAmount", Amount(totalIncl), new XAttribute("currencyID", currency))),
+                new XElement(cbc + "PrepaidAmount", Amount(paidAmount), new XAttribute("currencyID", currency)),
+                new XElement(cbc + "PayableAmount", Amount(amountDue), new XAttribute("currencyID", currency))),
             lines.Select((line, index) =>
                 new XElement(
                     cac + "InvoiceLine",
