@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -19,20 +20,6 @@
     <PhpErpModulePageHeader Title="Delivery Notes" Subtitle="Create PHP-compatible shipment notes with optional carrier, tracking, and shipped status." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    @if (_isAdmin)
-    {
-        <form method="post" action="/erp/ajax/delivery-note-create" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="returnUrl" value="/erp/delivery-notes-app" />
-            <label>Order <input type="number" name="order_id" min="1" required style="width:6rem" /></label>
-            <label>Carrier <input type="text" name="carrier" maxlength="128" /></label>
-            <label>Tracking <input type="text" name="tracking_no" maxlength="128" /></label>
-            <label>Notes <input type="text" name="notes" maxlength="4000" /></label>
-            <label><input type="checkbox" name="mark_shipped" value="true" /> Mark shipped</label>
-            <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
-            <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Create note</button>
-        </form>
-    }
-
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Delivery Notes KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_notes.Count</div></div>
         <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
@@ -46,16 +33,22 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Note #</dt><dd>@(string.IsNullOrWhiteSpace(_opened.NoteNo) ? "—" : _opened.NoteNo)</dd>
-                <dt>Order</dt><dd>@(_opened.OrderId > 0 ? _opened.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Carrier</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Carrier) ? "—" : _opened.Carrier)</dd>
-                <dt>Tracking</dt><dd>@(string.IsNullOrWhiteSpace(_opened.TrackingNo) ? "—" : _opened.TrackingNo)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Shipped</dt><dd>@FormatTime(_opened.ShippedAt)</dd>
-                <dt>Delivered</dt><dd>@FormatTime(_opened.DeliveredAt)</dd>
-            </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Delivery note"
+                Title="@(_opened.NoteNo is { Length: > 0 } ? _opened.NoteNo : $"Delivery note #{_opened.Id}")"
+                DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Source order"
+                Party="@FormatId(_opened.OrderId)"
+                ReferenceLabel="Tracking"
+                Reference="@(_opened.TrackingNo is { Length: > 0 } ? _opened.TrackingNo : "—")"
+                Status="@(_opened.Status is { Length: > 0 } ? _opened.Status : "created")"
+                ApprovalState="@(_opened.ShippedAt > 0 ? "Shipped" : "Not shipped")"
+                CompanyContext="Tenant / company"
+                Currency="—"
+                Fields="@DeliveryWorkspaceFields"
+                Tabs="@DeliveryWorkspaceTabs"
+                HeaderActions="@DeliveryHeaderActions" />
+            <p class="text-muted" style="margin:.85rem 0 0">This delivery-note read model exposes shipment header and tracking data; no line body is invented. The guarded document route remains available when a PDF has been generated.</p>
             <p class="text-muted" style="margin:.85rem 0 0">
                 @if (!string.IsNullOrWhiteSpace(_opened.PdfPath))
                 {
@@ -173,6 +166,42 @@
     private long _openedId;
     private ErpDeliveryNoteDetail? _opened;
     private IReadOnlyList<ErpDeliveryNoteDigest> _openedSiblings = [];
+
+    private IReadOnlyList<string> DeliveryWorkspaceTabs =>
+        ["General", "Delivery", "Tracking", "Lines", "Financial"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> DeliveryWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Note id", _opened.Id.ToString(CultureInfo.InvariantCulture), "General"),
+            new("Note number", string.IsNullOrWhiteSpace(_opened.NoteNo) ? "—" : _opened.NoteNo, "General"),
+            new("Source order", FormatId(_opened.OrderId), "Operational"),
+            new("Carrier", string.IsNullOrWhiteSpace(_opened.Carrier) ? "—" : _opened.Carrier, "Delivery"),
+            new("Tracking", string.IsNullOrWhiteSpace(_opened.TrackingNo) ? "—" : _opened.TrackingNo, "Delivery"),
+            new("Shipped", FormatTime(_opened.ShippedAt), "Delivery"),
+            new("Delivered", FormatTime(_opened.DeliveredAt), "Delivery"),
+            new("Document", string.IsNullOrWhiteSpace(_opened.PdfPath) ? "Not generated" : "Available", "Financial")
+        ];
+
+    private RenderFragment? DeliveryHeaderActions => _isAdmin
+        ? @<div>
+            <strong>Delivery-note lifecycle</strong>
+            <form method="post" action="/erp/ajax/delivery-note-create">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <label>Order <input type="number" name="order_id" min="1" required /></label>
+                <label>Carrier <input type="text" name="carrier" maxlength="128" /></label>
+                <label>Tracking <input type="text" name="tracking_no" maxlength="128" /></label>
+                <label>Notes <input type="text" name="notes" maxlength="4000" /></label>
+                <label><input type="checkbox" name="mark_shipped" value="true" /> Mark shipped</label>
+                <button type="submit" name="confirmWrites" value="false" class="btn btn-xs btn-default">Validate</button>
+                <button type="submit" name="confirmWrites" value="true" class="btn btn-xs btn-primary">Create note</button>
+            </form>
+        </div>
+        : null;
+
+    private static string FormatId(long id) => id > 0
+        ? id.ToString(CultureInfo.InvariantCulture)
+        : "—";
 
     private string OpenedCaption => _opened is null
         ? ""

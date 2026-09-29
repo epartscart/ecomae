@@ -2724,7 +2724,7 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void RfqApp_OpenLoadsDescriptionExcerptAndKeepsErpChrome()
+    public void RfqApp_OpenLoadsDescriptionExcerptInSharedWorkspace()
     {
         var root = FindRepoRoot();
         var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpRfqApp.razor"));
@@ -2734,8 +2734,11 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("rfq_id=", razor, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"rfq_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("DescriptionExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", razor, StringComparison.Ordinal);
+        Assert.Contains("RfqWorkspaceFields", razor, StringComparison.Ordinal);
+        Assert.Contains("RfqHeaderActions", razor, StringComparison.Ordinal);
+        Assert.Contains("No line body is invented", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Save stays on the Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
@@ -2758,7 +2761,7 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void DeliveryNotesApp_OpenLoadsNotesExcerptAndKeepsErpChrome()
+    public void DeliveryNotesApp_OpenLoadsNotesExcerptInSharedWorkspace()
     {
         var root = FindRepoRoot();
         var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpDeliveryNotesApp.razor"));
@@ -2769,6 +2772,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"delivery_note_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("DeliveredAt", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", razor, StringComparison.Ordinal);
+        Assert.Contains("DeliveryWorkspaceFields", razor, StringComparison.Ordinal);
+        Assert.Contains("DeliveryHeaderActions", razor, StringComparison.Ordinal);
+        Assert.Contains("no line body is invented", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("guarded delivery-note route", razor, StringComparison.Ordinal);
         Assert.Contains("Open delivery-note document", razor, StringComparison.Ordinal);
