@@ -21693,12 +21693,38 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         .First())
                     .OrderBy(item => item.RfqLineId)
                     .ToArray();
+                var recommendedSupplierId = ranking.FirstOrDefault()?.SupplierId ?? 0;
+                var awardLines = responses
+                    .Where(response => response.SupplierId == recommendedSupplierId)
+                    .GroupBy(response => response.RfqLineId)
+                    .Select(group => group.First())
+                    .OrderBy(response => lineById.TryGetValue(response.RfqLineId, out var line) ? line.SortOrder : int.MaxValue)
+                    .ThenBy(response => response.RfqLineId)
+                    .Select(response =>
+                    {
+                        lineById.TryGetValue(response.RfqLineId, out var line);
+                        return new ErpRfqAwardLineDigest(
+                            response.RfqLineId,
+                            line?.Description ?? response.Description,
+                            line?.Qty ?? 0m,
+                            response.UnitPrice,
+                            response.LineTotal);
+                    })
+                    .ToArray();
                 header = header with
                 {
                     Responses = responses,
                     SupplierRanking = ranking,
                     BestQuotes = bestQuotes,
-                    RecommendedSupplierId = ranking.FirstOrDefault()?.SupplierId ?? 0
+                    RecommendedSupplierId = recommendedSupplierId,
+                    AwardPreview = recommendedSupplierId > 0
+                        ? new ErpRfqAwardPreviewDigest(
+                            recommendedSupplierId,
+                            awardLines.Sum(line => line.LineTotal),
+                            awardLines.Length,
+                            lines.Count,
+                            awardLines)
+                        : null
                 };
             }
 

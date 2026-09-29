@@ -2751,11 +2751,15 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("OrderBy(response => response.UnitPrice)", reporter, StringComparison.Ordinal);
         Assert.Contains("ThenBy(response => response.Id)", reporter, StringComparison.Ordinal);
         Assert.Contains("LineTotal", reporter, StringComparison.Ordinal);
+        Assert.Contains("ErpRfqAwardPreviewDigest", reporter, StringComparison.Ordinal);
+        Assert.Contains("awardLines.Sum(line => line.LineTotal)", reporter, StringComparison.Ordinal);
         Assert.Contains("SupplierRanking", razor, StringComparison.Ordinal);
         Assert.Contains("BestQuotes", razor, StringComparison.Ordinal);
         Assert.Contains("RecommendedSupplierId", razor, StringComparison.Ordinal);
         Assert.Contains("PHP comparison recommendation", razor, StringComparison.Ordinal);
         Assert.Contains("Best supplier per RFQ line", razor, StringComparison.Ordinal);
+        Assert.Contains("AwardPreview", razor, StringComparison.Ordinal);
+        Assert.Contains("draft PO preview", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("comparison read-only", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);

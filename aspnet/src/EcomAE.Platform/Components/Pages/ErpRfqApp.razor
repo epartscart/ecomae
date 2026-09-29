@@ -121,6 +121,39 @@
                         </tbody>
                     </table>
                 }
+                @if (_opened.AwardPreview is { } awardPreview)
+                {
+                    <p class="text-muted" style="margin:1rem 0 .4rem">Read-only draft PO preview for recommended supplier</p>
+                    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQ draft purchase order preview">
+                        <div class="kpi">
+                            <div class="lbl">Supplier</div>
+                            <div class="val">@awardPreview.SupplierId.ToString(CultureInfo.InvariantCulture)</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="lbl">Quoted lines</div>
+                            <div class="val">@($"{awardPreview.QuotedLineCount.ToString(CultureInfo.InvariantCulture)} / {awardPreview.RfqLineCount.ToString(CultureInfo.InvariantCulture)}")</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="lbl">Preview total ex VAT</div>
+                            <div class="val">@awardPreview.TotalEx.ToString("N2", CultureInfo.InvariantCulture)</div>
+                        </div>
+                    </div>
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Line</th><th class="text-right">Qty</th><th class="text-right">Unit cost ex VAT</th><th class="text-right">Line ex VAT</th></tr></thead>
+                        <tbody>
+                            @foreach (var line in awardPreview.Lines)
+                            {
+                                <tr>
+                                    <td>@line.Description</td>
+                                    <td class="text-right">@line.Qty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@line.UnitPrice.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@line.LineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p class="text-muted">This preview uses only persisted responses; it does not create a purchase order or award the RFQ. Award remains Classic-owned.</p>
+                }
                 <p class="text-muted">Comparison is read-only here; response writes and award-to-PO remain Classic-owned until their guarded PHP-schema services are implemented.</p>
             }
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
