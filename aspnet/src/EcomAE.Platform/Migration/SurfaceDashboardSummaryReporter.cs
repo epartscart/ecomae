@@ -21625,6 +21625,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var lines = new List<ErpRfqLineDigest>();
+            var responses = new List<ErpRfqResponseDigest>();
             if (await TenantTableExistsAsync(connection, "epc_scm_rfq_lines", cancellationToken).ConfigureAwait(false))
             {
                 await using var lineCommand = connection.CreateCommand();
@@ -21643,6 +21644,46 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt32(lineReader["sort_order"] is DBNull ? 0 : lineReader["sort_order"], CultureInfo.InvariantCulture)));
                 }
                 header = header with { Lines = lines };
+            }
+
+            if (lines.Count > 0
+                && await TenantTableExistsAsync(connection, "epc_scm_rfq_responses", cancellationToken).ConfigureAwait(false))
+            {
+                var lineById = lines.ToDictionary(line => line.Id);
+                await using var responseCommand = connection.CreateCommand();
+                responseCommand.CommandText = LegacySurfaceDashboardSql.SelectErpScmRfqResponses;
+                AddParameter(responseCommand, "@rfq_id", id);
+                await using var responseReader = await responseCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await responseReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var lineId = Convert.ToInt64(responseReader["rfq_line_id"] is DBNull ? 0 : responseReader["rfq_line_id"], CultureInfo.InvariantCulture);
+                    lineById.TryGetValue(lineId, out var line);
+                    var unitPrice = Convert.ToDecimal(responseReader["unit_price"] is DBNull ? 0m : responseReader["unit_price"], CultureInfo.InvariantCulture);
+                    var qty = line?.Qty ?? 0m;
+                    responses.Add(new ErpRfqResponseDigest(
+                        Convert.ToInt64(responseReader["id"] is DBNull ? 0 : responseReader["id"], CultureInfo.InvariantCulture),
+                        lineId,
+                        Convert.ToInt64(responseReader["supplier_id"] is DBNull ? 0 : responseReader["supplier_id"], CultureInfo.InvariantCulture),
+                        unitPrice,
+                        Convert.ToInt32(responseReader["lead_time_days"] is DBNull ? 0 : responseReader["lead_time_days"], CultureInfo.InvariantCulture),
+                        Convert.ToString(responseReader["notes"] is DBNull ? string.Empty : responseReader["notes"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        line is null ? $"Line {lineId}" : line.Description,
+                        qty * unitPrice));
+                }
+
+                var ranking = responses
+                    .GroupBy(response => response.SupplierId)
+                    .Select(group => new ErpRfqSupplierRanking(
+                        group.Key,
+                        group.Sum(response => response.LineTotal)))
+                    .OrderBy(item => item.TotalQuoted)
+                    .ThenBy(item => item.SupplierId)
+                    .ToArray();
+                header = header with
+                {
+                    Responses = responses,
+                    SupplierRanking = ranking
+                };
             }
 
             var siblings = new List<ErpRfqDigest>();
