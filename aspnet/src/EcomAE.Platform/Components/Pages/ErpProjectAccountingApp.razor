@@ -22,58 +22,59 @@
 
     <section style="margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#fff">
         <strong>Fit-out delivery dashboard</strong>
+        <span style="float:right;color:#52616b;font-size:12px"><i class="fa fa-building"></i> @_companyScopeLabel</span>
         <p style="margin:.35rem 0;color:#52616b">
-            Review tenant-isolated counts, amounts, statuses, and completion summaries by project.
+            Review tenant-isolated counts, amounts, statuses, and completion summaries by project. Report links retain the selected legal entity.
         </p>
-        <a class="btn btn-default" href="/erp/fitout/delivery-dashboard">Open delivery dashboard JSON</a>
-        <a class="btn btn-default" href="/erp/fitout/executive-dashboard" style="margin-left:.5rem">Open executive dashboard JSON</a>
-        <a class="btn btn-default" href="/erp/fitout/operations-report" style="margin-left:.5rem">Open operations report JSON</a>
-            <a class="btn btn-default" href="/erp/fitout/finance-operations-report" style="margin-left:.5rem">Open finance/operations report JSON</a>
-            <form method="get" action="/erp/fitout/project-pnl" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+        <a class="btn btn-default" href="@FitOutHref("/erp/fitout/delivery-dashboard")">Open delivery dashboard JSON</a>
+        <a class="btn btn-default" href="@FitOutHref("/erp/fitout/executive-dashboard")" style="margin-left:.5rem">Open executive dashboard JSON</a>
+        <a class="btn btn-default" href="@FitOutHref("/erp/fitout/operations-report")" style="margin-left:.5rem">Open operations report JSON</a>
+            <a class="btn btn-default" href="@FitOutHref("/erp/fitout/finance-operations-report")" style="margin-left:.5rem">Open finance/operations report JSON</a>
+            <form method="get" action="@FitOutHref("/erp/fitout/project-pnl")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open project P&amp;L / forecast JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/invoice-bridge" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/invoice-bridge")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open VAT / invoice links JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/invoice-reconciliation" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/invoice-reconciliation")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open approved billing reconciliation JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/commercial-reconciliation" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/commercial-reconciliation")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open contract balance and certification split JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/contract-closure" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/contract-closure")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open contract closure JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/retention-ageing" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/retention-ageing")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open retention ageing JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/proforma-receipts" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/proforma-receipts")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open proforma and receipt history JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/approval-audit" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/approval-audit")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open approval audit JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/subcontract-reconciliation" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/subcontract-reconciliation")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open subcontract reconciliation JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/approval-queue" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/approval-queue")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open pending approval queue JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/acceptance-evidence" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/acceptance-evidence")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
                 <button type="submit" class="btn btn-default">Open acceptance evidence JSON</button>
             </form>
-            <form method="get" action="/erp/fitout/recovery-summary" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+            <form method="get" action="@FitOutHref("/erp/fitout/recovery-summary")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
             <label>Project id <input type="number" name="projectId" min="1" required style="width:6rem" /></label>
             <button type="submit" class="btn btn-default">Open recovery summary JSON</button>
         </form>
@@ -607,6 +608,7 @@
     private long _openedBudgetId;
     private long _openedTxnId;
     private long _openedRecId;
+    private int _activeCompanyId;
     private ErpPrjaBudgetDetail? _openedBudget;
     private ErpPrjaTxnDetail? _openedTxn;
     private ErpPrjaRecognitionDetail? _openedRec;
@@ -649,10 +651,29 @@
         ? OpenedRecCaption
         : (_openedTxn is not null ? OpenedTxnCaption : OpenedBudgetCaption);
 
+    private string _companyScopeLabel => _activeCompanyId switch
+    {
+        3 => "FITOUT · Fit-out Company · Company 3",
+        > 0 => $"Company {_activeCompanyId}",
+        _ => "Current legal entity"
+    };
+
+    private string FitOutHref(string href)
+    {
+        if (_activeCompanyId <= 0)
+        {
+            return href;
+        }
+
+        var separator = href.Contains('?', StringComparison.Ordinal) ? "&" : "?";
+        return href + separator + "company=" + _activeCompanyId.ToString(CultureInfo.InvariantCulture);
+    }
+
     protected override async Task OnInitializedAsync()
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+        _activeCompanyId = ErpHostContext.ActiveCompanyIdFromQuery(ctx.Request) ?? 0;
         _openedBudgetId = ErpRecordOpen.ReadId(ctx.Request, "prja_budget_id");
         _openedTxnId = ErpRecordOpen.ReadId(ctx.Request, "prja_txn_id");
         _openedRecId = ErpRecordOpen.ReadId(ctx.Request, "prja_rec_id");
