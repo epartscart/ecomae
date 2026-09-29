@@ -26,10 +26,15 @@ public sealed class ErpPaymentBatchLiveWriteParityTests
     {
         var row = SurfacePayloadContractCatalog.Functions.Single(item =>
             item.AspNetRouteOrCapability == "/erp/payment-batches-app");
+        var endpoint = SurfacePayloadContractCatalog.Functions.Single(item =>
+            item.AspNetRouteOrCapability == "/erp/ajax/payment-batch-save");
 
         Assert.Equal("live-write-gated", row.Status);
         Assert.Contains("confirm_writes=true", row.Notes, StringComparison.Ordinal);
         Assert.DoesNotContain("payment_batch_save stays Classic", row.Notes, StringComparison.Ordinal);
+        Assert.Equal("write-live-gated", endpoint.Status);
+        Assert.Contains("authenticated ASP.NET writer", endpoint.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP authoritative", endpoint.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
