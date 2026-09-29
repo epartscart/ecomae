@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -26,24 +27,21 @@
 
     @if (_opened is not null)
     {
-        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
-            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
-                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
-                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
-            </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>SKU</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Sku) ? "—" : _opened.Sku)</dd>
-                <dt>Item</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ItemName) ? "—" : _opened.ItemName)</dd>
-                <dt>Item id</dt><dd>@(_opened.ItemId > 0 ? _opened.ItemId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Warehouse</dt><dd>@_opened.WarehouseId.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>ROQ</dt><dd>@_opened.Roq.ToString("N3", CultureInfo.InvariantCulture)</dd>
-                <dt>Value</dt><dd>@_opened.OrderValue.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Supplier</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Supplier) ? "—" : _opened.Supplier)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>PO</dt><dd>@(_opened.OrderedPoId > 0 ? _opened.OrderedPoId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Updated</dt><dd>@FormatTime(_opened.TimeUpdated)</dd>
-            </dl>
+        <ErpDocumentWorkspace
+            DocumentKind="Order planning recommendation"
+            Title="@OpenedCaption"
+            DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+            PartyLabel="Supplier"
+            Party="@_opened.Supplier"
+            ReferenceLabel="Warehouse"
+            Reference="@_opened.WarehouseId.ToString(CultureInfo.InvariantCulture)"
+            Status="@_opened.Status"
+            ApprovalState="@(_opened.OrderedPoId > 0 ? "PO linked" : "Recommendation pending")"
+            CompanyContext="Tenant / company"
+            Currency="—"
+            Fields="@PlanningWorkspaceFields"
+            Lines="@PlanningWorkspaceLines"
+            Tabs="@PlanningWorkspaceTabs" />
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
@@ -73,7 +71,6 @@
             {
                 <p class="text-muted">No same-status siblings yet.</p>
             }
-        </div>
     }
 
     @if (_isAdmin)
@@ -170,6 +167,31 @@
     private long _openedId;
     private ErpOrderRecommendationDetail? _opened;
     private IReadOnlyList<ErpOrderRecommendationDigest> _openedSiblings = [];
+    private IReadOnlyList<string> PlanningWorkspaceTabs => ["General", "Demand", "Supplier", "Procurement"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> PlanningWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("SKU", _opened.Sku, "General"),
+            new("Item", _opened.ItemName, "General"),
+            new("Item id", _opened.ItemId.ToString(CultureInfo.InvariantCulture), "General"),
+            new("Warehouse", _opened.WarehouseId.ToString(CultureInfo.InvariantCulture), "Demand"),
+            new("Recommended order qty", _opened.Roq.ToString("N3", CultureInfo.InvariantCulture), "Demand"),
+            new("Order value", _opened.OrderValue.ToString("N2", CultureInfo.InvariantCulture), "Demand"),
+            new("Supplier", _opened.Supplier, "Supplier"),
+            new("Status", _opened.Status, "Procurement"),
+            new("Ordered PO", _opened.OrderedPoId > 0 ? _opened.OrderedPoId.ToString(CultureInfo.InvariantCulture) : "—", "Procurement"),
+            new("Updated", FormatTime(_opened.TimeUpdated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> PlanningWorkspaceLines => _opened is null
+        ? []
+        : [
+            new("1", string.IsNullOrWhiteSpace(_opened.ItemName) ? _opened.Sku : _opened.ItemName,
+                _opened.Roq, "recommended", _opened.WarehouseId.ToString(CultureInfo.InvariantCulture),
+                "planning", 0, 0, 0, _opened.OrderValue, 0,
+                string.IsNullOrWhiteSpace(_opened.Supplier) ? "Supplier not assigned" : _opened.Supplier)
+        ];
 
     private string OpenedCaption => _opened is null
         ? ""

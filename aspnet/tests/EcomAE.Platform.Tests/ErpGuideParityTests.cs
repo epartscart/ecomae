@@ -97,6 +97,20 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void InventoryPlanningAndForecastPagesUseSharedWorkspaceForOpenedRecords()
+    {
+        var forecast = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryForecastApp.razor"));
+        var planning = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpOrderPlanningApp.razor"));
+        var report = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryReportApp.razor"));
+        Assert.Contains("ErpDocumentWorkspace", forecast, StringComparison.Ordinal);
+        Assert.Contains("ForecastWorkspaceFields", forecast, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", planning, StringComparison.Ordinal);
+        Assert.Contains("PlanningWorkspaceLines", planning, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", report, StringComparison.Ordinal);
+        Assert.Contains("SnapshotWorkspaceFields", report, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));

@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -48,27 +49,21 @@
 
     @if (_opened is not null)
     {
-        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
-            <p style="margin:0 0 .5rem"><strong>@OpenedCaption</strong>
-                <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
-                <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
-            </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Site</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SiteKey) ? "—" : _opened.SiteKey)</dd>
-                <dt>SKU</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Sku) ? "—" : _opened.Sku)</dd>
-                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ProductName) ? "—" : _opened.ProductName)</dd>
-                <dt>Stock</dt><dd>@_opened.CurrentStock.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Daily demand</dt><dd>@_opened.AvgDailyDemand.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Lead days</dt><dd>@_opened.LeadTimeDays.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Safety stock</dt><dd>@_opened.SafetyStock.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>ROP</dt><dd>@_opened.ReorderPoint.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>EOQ</dt><dd>@_opened.Eoq.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Days</dt><dd>@_opened.DaysOfStock.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ForecastStatus) ? "—" : _opened.ForecastStatus)</dd>
-                <dt>Stockout</dt><dd>@(string.IsNullOrWhiteSpace(_opened.StockoutDate) ? "—" : _opened.StockoutDate)</dd>
-                <dt>Computed</dt><dd>@(string.IsNullOrWhiteSpace(_opened.LastComputed) ? "—" : _opened.LastComputed)</dd>
-            </dl>
+        <ErpDocumentWorkspace
+            DocumentKind="Inventory forecast"
+            Title="@OpenedCaption"
+            DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+            PartyLabel="Site"
+            Party="@_opened.SiteKey"
+            ReferenceLabel="SKU"
+            Reference="@_opened.Sku"
+            Status="@_opened.ForecastStatus"
+            ApprovalState="@(_opened.StockoutDate.Length == 0 ? "Within coverage" : "Stockout risk")"
+            CompanyContext="Tenant / company"
+            Currency="—"
+            Fields="@ForecastWorkspaceFields"
+            Lines="@ForecastWorkspaceLines"
+            Tabs="@ForecastWorkspaceTabs" />
             <p class="text-muted" style="margin:.85rem 0 0">Recompute writes stay here. Demand-history ingest stays PHP.</p>
             @if (_openedSiblings.Count > 0)
             {
@@ -99,7 +94,6 @@
             {
                 <p class="text-muted">No same-status siblings yet.</p>
             }
-        </div>
     }
 
     <div class="epc-erp-table-wrap">
@@ -181,6 +175,32 @@
     private long _openedId;
     private ErpInventoryForecastDetail? _opened;
     private IReadOnlyList<ErpInventoryForecastDigest> _openedSiblings = [];
+    private IReadOnlyList<string> ForecastWorkspaceTabs => ["General", "Demand", "Replenishment", "Audit"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> ForecastWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Site", _opened.SiteKey, "General"),
+            new("SKU", _opened.Sku, "General"),
+            new("Product", _opened.ProductName, "General"),
+            new("Current stock", _opened.CurrentStock.ToString(CultureInfo.InvariantCulture), "Demand"),
+            new("Average daily demand", _opened.AvgDailyDemand.ToString("N2", CultureInfo.InvariantCulture), "Demand"),
+            new("Lead time days", _opened.LeadTimeDays.ToString(CultureInfo.InvariantCulture), "Replenishment"),
+            new("Safety stock", _opened.SafetyStock.ToString(CultureInfo.InvariantCulture), "Replenishment"),
+            new("Reorder point", _opened.ReorderPoint.ToString(CultureInfo.InvariantCulture), "Replenishment"),
+            new("EOQ", _opened.Eoq.ToString(CultureInfo.InvariantCulture), "Replenishment"),
+            new("Days of stock", _opened.DaysOfStock.ToString(CultureInfo.InvariantCulture), "Demand"),
+            new("Stockout date", _opened.StockoutDate, "Demand"),
+            new("Last computed", _opened.LastComputed, "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> ForecastWorkspaceLines => _opened is null
+        ? []
+        : [
+            new("1", string.IsNullOrWhiteSpace(_opened.ProductName) ? _opened.Sku : _opened.ProductName,
+                1, "forecast", _opened.SiteKey, "—", 0, 0, 0, 0, 0,
+                $"ROP {_opened.ReorderPoint.ToString(CultureInfo.InvariantCulture)} · {_opened.ForecastStatus}")
+        ];
 
     private string OpenedCaption => _opened is null
         ? ""
