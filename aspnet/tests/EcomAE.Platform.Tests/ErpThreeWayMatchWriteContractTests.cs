@@ -35,6 +35,12 @@ public sealed class ErpThreeWayMatchWriteContractTests
         Assert.Contains("ecomae_erp_three_way_matches", readService, StringComparison.Ordinal);
         Assert.Contains("TableExistsAsync", readService, StringComparison.Ordinal);
         Assert.Contains("IErpThreeWayMatchDecisionReadService", program, StringComparison.Ordinal);
+        Assert.Contains("IErpPermissionScopeReadService", module, StringComparison.Ordinal);
+        Assert.Contains("ErpPermissionScopePolicy.Evaluate", module, StringComparison.Ordinal);
+        Assert.Contains("\"purchasing\"", module, StringComparison.Ordinal);
+        Assert.Contains("\"finance\"", module, StringComparison.Ordinal);
+        Assert.Contains("GetPermissionContextAsync", service, StringComparison.Ordinal);
+        Assert.Contains("scope.Amount", module, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

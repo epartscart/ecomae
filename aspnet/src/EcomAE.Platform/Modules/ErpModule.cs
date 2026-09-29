@@ -13077,10 +13077,11 @@ public sealed class ErpModule : ISurfaceModule
     }
 
     private static async Task<IResult> HandleThreeWayMatchSaveAsync(
-        HttpContext context,
-        ILegacySessionValidator validator,
-        IErpThreeWayMatchWriteService writes,
-        CancellationToken cancellationToken)
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpThreeWayMatchWriteService writes,
+            IErpPermissionScopeReadService permissionScopes,
+            CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);
         if (session.Kind != LegacySessionKind.Admin
@@ -13116,6 +13117,64 @@ public sealed class ErpModule : ISurfaceModule
                 phpAuthoritative = true,
                 session = SessionPayload(session)
             });
+        }
+
+        var scopedPermissions = await permissionScopes.ListForUserAsync(
+            session.UserId,
+            cancellationToken);
+        if (scopedPermissions.Grants.Count > 0
+            || scopedPermissions.Delegations.Count > 0)
+        {
+            var scope = await writes.GetPermissionContextAsync(
+                body.PurchaseOrderId,
+                cancellationToken);
+            if (scope is null)
+            {
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        code = "not_found",
+                        message = "Approved purchase order was not found.",
+                        session = SessionPayload(session)
+                    },
+                    statusCode: StatusCodes.Status404NotFound);
+            }
+
+            var request = new ErpPermissionRequest(
+                scope.CompanyId,
+                scope.SiteId,
+                scope.Amount);
+            var decisions = new[]
+            {
+                ErpPermissionScopePolicy.Evaluate(
+                    session,
+                    "purchasing",
+                    "Approve",
+                    request,
+                    scopedPermissions.Grants,
+                    scopedPermissions.Delegations),
+                ErpPermissionScopePolicy.Evaluate(
+                    session,
+                    "finance",
+                    "Approve",
+                    request,
+                    scopedPermissions.Grants,
+                    scopedPermissions.Delegations)
+            };
+            if (!decisions.Any(decision => decision.Allowed))
+            {
+                var decision = decisions.First();
+                return Results.Json(
+                    new
+                    {
+                        ok = false,
+                        code = decision.ReasonCode,
+                        message = decision.Reason,
+                        session = SessionPayload(session)
+                    },
+                    statusCode: StatusCodes.Status403Forbidden);
+            }
         }
 
         var written = await writes.DecideAsync(
