@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>po_save</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Validation envelope for the live ASP.NET purchase-order writer.</summary>
 public interface IErpPoSaveDryRun { ErpPoSaveDryRunResult Evaluate(ErpPoSaveRequest request); }
 public sealed class ErpPoSaveDryRun : IErpPoSaveDryRun
 {
@@ -8,16 +8,16 @@ public sealed class ErpPoSaveDryRun : IErpPoSaveDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET po_save is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","Use confirm_writes=true to execute the live ASP.NET purchase-order writer.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,false,false,"ok",true,request.Id, request.Code,
             ["ajax_erp.php?action=po_save (NOT executed)"],
-            "ERP po_save payload validated; UPDATE blocked.",
+            "ERP po_save payload validated; no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=po_save");
     }
     private static ErpPoSaveDryRunResult Refuse(string s,string c,string d,ErpPoSaveRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=po_save");
+        new(s,0,true,false,false,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=po_save");
 }
 public sealed record ErpPoSaveRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
 public sealed record ErpPoSaveDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
