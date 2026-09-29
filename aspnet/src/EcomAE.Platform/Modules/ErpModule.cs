@@ -3993,6 +3993,33 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpWmsWorkAssign, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpWmsWorkAssignWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/warehouse-wms-app", "Admin ERP capability required for WMS work assignment.");
+
+            var id = 0L;
+            var assignee = session.Email ?? string.Empty;
+            var confirm = false;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                id = LiveWriteFormBinder.Long(form, "id", "workId", "work_id");
+                assignee = LiveWriteFormBinder.Text(form, "assignee", "assigned_to") ?? assignee;
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+                return LiveWriteFormBinder.Complete(context, "/erp/warehouse-wms-app", false, "Set confirmWrites=true to assign WMS work.", new { ok = true, writes = 0, phpAuthoritative = false, validation_code = "confirm_required", message = "Set confirmWrites=true to assign WMS work.", session = SessionPayload(session) });
+
+            var result = await writes.AssignAsync(id, assignee, cancellationToken);
+            return LiveWriteFormBinder.Complete(context, "/erp/warehouse-wms-app", result.Succeeded, result.Message, new { ok = result.Succeeded, writes = result.Writes, phpAuthoritative = false, validation_code = result.Code, message = result.Message, id = result.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpSubscriptionsStatus, async (
             HttpContext context,
             ILegacySessionValidator validator,

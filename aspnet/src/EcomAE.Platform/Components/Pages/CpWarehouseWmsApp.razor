@@ -125,6 +125,13 @@
                         Tabs="@WmsWorkspaceTabs" />
                     @if (!string.Equals(_openedWork.Status, "closed", StringComparison.OrdinalIgnoreCase))
                     {
+                        <form method="post" action="/erp/wms/work/assign" style="display:inline;margin:0 .35rem 0 0">
+                            <input type="hidden" name="confirmWrites" value="true" />
+                            <input type="hidden" name="returnUrl" value="@_openedReturnUrl" />
+                            <input type="hidden" name="id" value="@_openedWork.Id.ToString(CultureInfo.InvariantCulture)" />
+                            <input type="text" name="assignee" value="@_openedWork.AssignedTo" placeholder="Assignee" aria-label="Assignee" />
+                            <button type="submit">Assign</button>
+                        </form>
                         <form method="post" action="/erp/wms/work/complete" style="display:inline;margin:0">
                             <input type="hidden" name="confirmWrites" value="true" />
                             <input type="hidden" name="returnUrl" value="@_openedReturnUrl" />

@@ -845,6 +845,7 @@ public static class EcomAeRoutes
     public const string ErpWmsWaveRelease = "/erp/wms/waves/release";
     /// <summary>Live PHP epc_wms_work_complete twin (confirmWrites=true). Schema ensure stays PHP.</summary>
     public const string ErpWmsWorkComplete = "/erp/wms/work/complete";
+    public const string ErpWmsWorkAssign = "/erp/wms/work/assign";
     /// <summary>PHP epc_sub_set_status. <c>confirmWrites=true</c> writes via <c>IErpSubscriptionStatusWriteService</c>.</summary>
     public const string ErpSubscriptionsStatus = "/erp/subscriptions/status";
     /// <summary>PHP epc_coll_case_set_status. <c>confirmWrites=true</c> writes via <c>IErpCollectionsCaseStatusWriteService</c>.</summary>
