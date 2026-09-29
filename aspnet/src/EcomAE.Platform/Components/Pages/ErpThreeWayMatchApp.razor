@@ -61,7 +61,7 @@
                     <dt>Decision updated</dt><dd>@FormatDecisionTime(_openedDecision.UpdatedAtUtc)</dd>
                 }
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Use the match hint before approving supplier settlement; variance is calculated against the PO total.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Use the match hint before approving supplier settlement; the decision is persisted with PHP-compatible server-side evidence.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>

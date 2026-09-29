@@ -11938,6 +11938,7 @@ public sealed class ErpModule : ISurfaceModule
             int? limit,
             ILegacySessionValidator validator,
             ISurfaceDashboardSummaryReporter dashboards,
+            IErpThreeWayMatchDecisionReadService decisions,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -11947,16 +11948,18 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var result = await dashboards.ListErpThreeWayMatchAsync(limit ?? 200, cancellationToken);
+            var decisionRows = await decisions.ListAsync(cancellationToken);
             return Results.Ok(new
             {
                 ok = true,
                 surface = "erp",
                 rows = result.Rows,
+                decisions = decisionRows,
                 count = result.Count,
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only ERP three-way match digest. Open ?po_id= loads a 280-char notes excerpt plus same-status siblings. Writes stay Classic."
+                note = "ERP three-way match digest with persisted decision readback. Open ?po_id= loads a 280-char notes excerpt, same-status siblings, and decision evidence. PHP remains the reference/fallback."
             });
         });
 
