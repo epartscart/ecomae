@@ -27,6 +27,25 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("IErpDimensionWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpBosWfRaiseWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpManualInvoiceWriteService", program, StringComparison.Ordinal);
+        Assert.Contains("area=sales&tab=invoices&inv_id=", module, StringComparison.Ordinal);
+        Assert.Contains("Invoice updated", module, StringComparison.Ordinal);
+        Assert.Contains("BuildInvoiceLinesJson", module, StringComparison.Ordinal);
+        Assert.Contains("item_description", module, StringComparison.Ordinal);
+        Assert.Contains("issue_date", service, StringComparison.Ordinal);
+        Assert.Contains("IssueDate", module, StringComparison.Ordinal);
+        Assert.Contains("ResolveSellerJsonAsync", service, StringComparison.Ordinal);
+        Assert.Contains("ResolveBuyerJsonAsync", service, StringComparison.Ordinal);
+        Assert.Contains("epc_einvoice_buyer_profiles", service, StringComparison.Ordinal);
+        Assert.Contains("seller_bank_account", service, StringComparison.Ordinal);
+        Assert.Contains("ePartsCart LLC", service, StringComparison.Ordinal);
+        Assert.Contains("seller_peppol_endpoint", service, StringComparison.Ordinal);
+        Assert.Contains("ALTER TABLE `epc_einvoice_lines` ADD COLUMN `item_description`", service, StringComparison.Ordinal);
+        Assert.Contains("BuildInvoiceXml", service, StringComparison.Ordinal);
+        Assert.Contains("xml_content", service, StringComparison.Ordinal);
+        Assert.Contains("urn:peppol:pint:billing-1@ae-1", service, StringComparison.Ordinal);
+        Assert.Contains("PartyTaxScheme", service, StringComparison.Ordinal);
+        Assert.Contains("TaxSubtotal", service, StringComparison.Ordinal);
+        Assert.Contains("TaxCategory", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

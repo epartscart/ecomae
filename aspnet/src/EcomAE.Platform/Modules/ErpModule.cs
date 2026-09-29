@@ -568,9 +568,10 @@ public sealed class ErpModule : ISurfaceModule
                         body.CurrencyCode,
                         body.SellerJson,
                         body.BuyerJson,
-                        body.LinesJson,
+                        BuildInvoiceLinesJson(body),
                         body.PaymentTerms,
                         body.DueDate,
+                        body.IssueDate,
                         body.OrderId,
                         body.PaidAmount,
                         body.TransactionTypeCode,
@@ -596,13 +597,20 @@ public sealed class ErpModule : ISurfaceModule
                         "INV #" + saved.InvoiceId,
                         session.UserId),
                     cancellationToken);
-                return ("Invoice saved as draft", new
+                var redirect =
+                    "/erp?area=sales&tab=invoices&inv_id=" +
+                    saved.InvoiceId.ToString(CultureInfo.InvariantCulture);
+                var message = body.Id > 0
+                    ? "Invoice updated"
+                    : "Invoice saved as draft";
+                return (message, new
                 {
                     invoice_id = saved.InvoiceId,
                     invoice_number = saved.InvoiceNumber,
                     subtotal_ex_vat = saved.SubtotalExVat,
                     total_vat = saved.TotalVat,
-                    total_incl_vat = saved.TotalInclVat
+                    total_incl_vat = saved.TotalInclVat,
+                    redirect
                 });
             });
         });
@@ -21154,12 +21162,18 @@ public sealed class ErpModule : ISurfaceModule
                         string? LinesJson = null,
                         string? PaymentTerms = null,
                         string? DueDate = null,
+        string? IssueDate = null,
         long OrderId = 0,
         decimal PaidAmount = 0,
         string? TransactionTypeCode = null,
         string? PaymentMeansCode = null,
         string? BankAccount = null,
-                        Dictionary<string, long>? Dimensions = null);
+        Dictionary<string, long>? Dimensions = null,
+        IReadOnlyList<string>? LineDesc = null,
+        IReadOnlyList<decimal>? LineQty = null,
+        IReadOnlyList<decimal>? LineUnit = null,
+        IReadOnlyList<decimal>? LineVatRate = null,
+        IReadOnlyList<string>? LineDetail = null);
     private sealed record ErpInvoiceListBody(bool ConfirmWrites = false);
     private sealed record ErpInvoiceFromOrderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
@@ -22133,6 +22147,37 @@ public sealed class ErpModule : ISurfaceModule
         string? Reference = null,
         string? Note = null,
         long Time = 0);
+
+    private static string? BuildInvoiceLinesJson(ErpInvoiceSaveBody body)
+    {
+        if (!string.IsNullOrWhiteSpace(body.LinesJson))
+        {
+            return body.LinesJson;
+        }
+
+        var descriptions = body.LineDesc ?? [];
+        if (descriptions.Count == 0)
+        {
+            return body.LinesJson;
+        }
+
+        var quantities = body.LineQty ?? [];
+        var units = body.LineUnit ?? [];
+        var rates = body.LineVatRate ?? [];
+        var details = body.LineDetail ?? [];
+        var lines = descriptions
+            .Select((description, index) => new
+            {
+                item_name = description,
+                item_description = index < details.Count ? details[index] : string.Empty,
+                quantity = index < quantities.Count ? quantities[index] : 1m,
+                unit_price = index < units.Count ? units[index] : 0m,
+                tax_rate = index < rates.Count ? rates[index] : 5m,
+            })
+            .ToArray();
+
+        return JsonSerializer.Serialize(lines);
+    }
 
     private static string JsonText(System.Text.Json.JsonElement root, params string[] names)
     {
