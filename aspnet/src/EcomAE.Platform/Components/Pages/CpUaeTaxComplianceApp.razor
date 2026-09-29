@@ -6,14 +6,14 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
 <PageTitle>UAE Tax Compliance · Control Panel · eParts Cart</PageTitle>
-<PhpChromeStyles Surface="cp" />
 
-<PhpCpDesktopChrome IsAdmin="_isAdmin">
+<TaxComplianceSurfaceChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -85,6 +85,22 @@
         <div class="kpi"><div class="lbl">Legislation</div><div class="val">@_summary.LegislationCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">VAT advance</div><div class="val">@_summary.VatAdvanceRows.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">VAT refunds</div><div class="val">@_summary.VatRefundRows.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    <div class="hpanel" style="margin-top:1rem;">
+        <div class="panel-heading hbuilt">Tax operations</div>
+        <div class="panel-body">
+            <div style="display:flex;flex-wrap:wrap;gap:.5rem;">
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/vat-app" : "/cp/tax-toolkits-app")">VAT returns and boxes</a>
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/einvoice-documents-app" : "/cp/einvoice-documents-app")">E-invoice documents</a>
+                <a class="btn btn-default btn-sm" href="@(_listHref.StartsWith("/erp/", StringComparison.Ordinal) ? "/erp/tax-external-reporting-app" : "/cp/tax-external-reporting-app")">External reporting</a>
+                <a class="btn btn-default btn-sm" href="/erp/guide-app">Process guides</a>
+            </div>
+            <p class="text-muted" style="margin:.65rem 0 0;">
+                Use the operations links for period work, filing status, document validation, and reporting drill-downs.
+                This workspace remains tenant-country driven; UAE panels are shown only for the UAE profile.
+            </p>
+        </div>
     </div>
 
     @if (_opened is not null)
@@ -215,16 +231,29 @@
         </div>
     </div>
 
-<form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
-                <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : "/cp/uae-tax-compliance-app")" />
+<div class="hpanel" style="margin-top:1rem;">
+    <div class="panel-heading hbuilt">Corporate Tax adjustments</div>
+    <div class="panel-body">
+<form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:.5rem;">
+                <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
                 <input type="hidden" name="confirmWrites" value="true" />
-                <label>From <input class="form-control input-sm" type="date" name="date_from" /></label>
-                <label>To <input class="form-control input-sm" type="date" name="date_to" /></label>
-                <label>Entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" style="width:90px;" /></label>
-                <label>Fines <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" style="width:90px;" /></label>
-                <label>Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" style="width:90px;" /></label>
+                <label>From <input class="form-control input-sm" type="date" name="date_from" required /></label>
+                <label>To <input class="form-control input-sm" type="date" name="date_to" required /></label>
+                <label>Non-deductible entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Fines / penalties <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Book depreciation excess <input class="form-control input-sm" name="ct_book_depreciation_excess" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Related-party adjustments <input class="form-control input-sm" name="ct_related_party_adjustments" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Other add-backs <input class="form-control input-sm" name="ct_other_add_backs" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Foreign branch exemption <input class="form-control input-sm" name="ct_foreign_branch_exemption" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Loss carryforward <input class="form-control input-sm" name="ct_loss_carryforward" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Qualifying donations <input class="form-control input-sm" name="ct_qualifying_donations" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Other deductions <input class="form-control input-sm" name="ct_other_deductions" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save CT adjustments</button>
             </form>
+            <p class="text-muted" style="margin:0;">Adjustments are period-scoped and use the same add-back/deduction field set as the compliance write service.</p>
+    </div>
+</div>
 
 <ErpPhpCreateWell Title="Checklist step">
 <form method="post" action="/erp/uae-tax/legislation/checklist/set" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
@@ -243,7 +272,7 @@
             </form>
 </ErpPhpCreateWell>
 
-</PhpCpDesktopChrome>
+</TaxComplianceSurfaceChrome>
 
 @code {
     private const string _phpTab = "/CP/shop/finance/erp/uae-tax-compliance?epc_erp_shell=1";

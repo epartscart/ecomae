@@ -82,6 +82,25 @@
             </div>
         </div>
 
+        @if (_workspaceGroups.Count > 0)
+        {
+            <div class="ns-port">
+                <div class="bd" style="padding-top:14px">
+                    <h4 style="margin:0 0 12px;"><i class="fa fa-folder-open"></i> Area workspaces</h4>
+                    <div class="ns-tiles">
+                        @foreach (var group in _workspaceGroups)
+                        {
+                            <a class="ns-tile @group.Tone" href="@WithCompany(group.Href)">
+                                <i class="fa @group.Icon ic"></i>
+                                <span class="tl">@group.Label</span>
+                                <small style="display:block;opacity:.8;line-height:1.2;margin-top:.25rem;">@group.Description</small>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        }
+
         <div class="ns-port">
             <div class="bd" style="padding:12px">
                 <div class="epc-insights epc-insights--erp" id="epc-insights">
@@ -719,6 +738,7 @@
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.FinCell> _fin = [];
     private IReadOnlyList<ErpWorkspaceOpKpi> _opKpis = [];
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.IndustryControl> _controls = [];
+    private IReadOnlyList<ErpCapabilityGroup> _workspaceGroups = [];
     private IReadOnlyDictionary<string, int> _controlState = new Dictionary<string, int>(StringComparer.Ordinal);
     private int _controlDone;
     private ErpInsightsSuite _insights = ErpInsightsSuiteCatalog.Build(
@@ -838,6 +858,7 @@
         _opKpis = ErpNetsuiteDashboardCatalog.OperationalKpis(_profile, _cur, days);
         _controls = ErpNetsuiteDashboardCatalog.IndustryControls(_industryCode, _jewellery);
         _controlDone = _controls.Count(c => _controlState.TryGetValue(c.Code, out var flag) && flag != 0);
+        _workspaceGroups = ErpCapabilityCatalog.Groups.Where(WorkspaceVisible).ToArray();
         var autoParts = !_jewellery && (
             string.Equals(_industryCode, "auto_parts", StringComparison.OrdinalIgnoreCase)
             || string.Equals(_industryCode, "core", StringComparison.OrdinalIgnoreCase));
@@ -845,6 +866,26 @@
             _cur, prev, _home.Commerce ?? ErpInsightsSuiteCatalog.EmptyCommerce,
             _arGrand, _arTotals, _currency, _periodFrom, _periodTo, autoParts);
     }
+
+    private bool WorkspaceVisible(ErpCapabilityGroup group)
+        => _isAdmin || group.Key switch
+        {
+            "finance" => ErpNetsuiteDashboardCatalog.Can(_profile, "cash")
+                || ErpNetsuiteDashboardCatalog.Can(_profile, "gl")
+                || ErpNetsuiteDashboardCatalog.Can(_profile, "vat")
+                || ErpNetsuiteDashboardCatalog.Can(_profile, "profit"),
+            "purchasing" => ErpNetsuiteDashboardCatalog.Can(_profile, "purchases")
+                || ErpNetsuiteDashboardCatalog.Can(_profile, "ap"),
+            "sales" => ErpNetsuiteDashboardCatalog.Can(_profile, "sales")
+                || ErpNetsuiteDashboardCatalog.Can(_profile, "ar"),
+            "inventory" => ErpNetsuiteDashboardCatalog.Can(_profile, "inventory"),
+            "projects" => ErpNetsuiteDashboardCatalog.Can(_profile, "profit")
+                || ErpNetsuiteDashboardCatalog.Can(_profile, "financials"),
+            "jewellery" => _jewellery,
+            "people" => ErpNetsuiteDashboardCatalog.Can(_profile, "hr_tasks"),
+            "administration" => _isAdmin,
+            _ => false,
+        };
 
     private void RecalcGauge()
     {

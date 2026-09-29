@@ -555,6 +555,12 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required.");
 
             body ??= new();
+            var invoiceAction = body.Id > 0 ? "Edit" : "New";
+            if (!ErpCapabilityCatalog.CanAction(session, "sales", invoiceAction)
+                && !ErpCapabilityCatalog.CanAction(session, "finance", invoiceAction))
+            {
+                return Unauthorized($"ERP {invoiceAction.ToLowerInvariant()} capability required for invoice save.");
+            }
             if (!body.ConfirmWrites)
                 return Results.Ok(dryRun.Evaluate(new ErpInvoiceSaveRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
 
@@ -10151,6 +10157,11 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return Unauthorized("Admin ERP capability required for invoice delete dry-run.");
             }
+            if (!ErpCapabilityCatalog.CanAction(session, "sales", "Delete")
+                && !ErpCapabilityCatalog.CanAction(session, "finance", "Delete"))
+            {
+                return Unauthorized("ERP delete capability required for invoice delete.");
+            }
             body ??= new ErpInvoiceDeleteBody(0, false);
             if (!body.ConfirmWrites)
             {
@@ -10397,6 +10408,11 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
                 return Unauthorized("Admin ERP capability required for invoice cancel dry-run.");
+            }
+            if (!ErpCapabilityCatalog.CanAction(session, "sales", "Void")
+                && !ErpCapabilityCatalog.CanAction(session, "finance", "Void"))
+            {
+                return Unauthorized("ERP void capability required for invoice cancellation.");
             }
 
             body ??= new ErpInvoiceCancelBody(0, null, false);
@@ -14814,6 +14830,10 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "Admin ERP capability required for approval rule save.");
         }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "ERP administration approval capability required for approval rule save.");
+        }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosWfSaveRuleBody>(context, cancellationToken) ?? new();
         var id = body.RuleId > 0 ? body.RuleId : body.Id;
@@ -15080,6 +15100,10 @@ public sealed class ErpModule : ISurfaceModule
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "Admin ERP capability required for approval decide.");
+        }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/approvals-app", "ERP administration approval capability required for approval decide.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosWfDecideBody>(context, cancellationToken) ?? new();
@@ -16507,6 +16531,10 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "Admin ERP capability required for privilege save.");
         }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "ERP administration approval capability required for privilege save.");
+        }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRbacPrivSaveBody>(context, cancellationToken) ?? new();
         var companyId = body.CompanyId;
@@ -16554,6 +16582,10 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "Admin ERP capability required for duty save.");
         }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "ERP administration approval capability required for duty save.");
+        }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRbacDutySaveBody>(context, cancellationToken) ?? new();
         var companyId = body.CompanyId;
@@ -16597,6 +16629,10 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "Admin ERP capability required for role save.");
         }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "ERP administration approval capability required for role save.");
+        }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRbacRoleSaveBody>(context, cancellationToken) ?? new();
         var companyId = body.CompanyId;
@@ -16639,6 +16675,10 @@ public sealed class ErpModule : ISurfaceModule
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "Admin ERP capability required for duty privilege attach.");
+        }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "ERP administration approval capability required for duty privilege attach.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRbacDutyPrivBody>(context, cancellationToken) ?? new();
@@ -16687,6 +16727,10 @@ public sealed class ErpModule : ISurfaceModule
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "Admin ERP capability required for role duty attach.");
         }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "ERP administration approval capability required for role duty attach.");
+        }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRbacRoleDutyBody>(context, cancellationToken) ?? new();
         var roleId = body.RoleId;
@@ -16733,6 +16777,10 @@ public sealed class ErpModule : ISurfaceModule
         if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
         {
             return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "Admin ERP capability required for user role assign.");
+        }
+        if (!ErpCapabilityCatalog.CanAction(session, "administration", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/tenant-config-app?tab=security_roles", "ERP administration approval capability required for user role assign.");
         }
 
         var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRbacUserRoleBody>(context, cancellationToken) ?? new();

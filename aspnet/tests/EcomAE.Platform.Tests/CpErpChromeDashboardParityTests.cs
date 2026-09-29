@@ -114,6 +114,9 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("chart.js@4.4.1", src);
         Assert.Contains("A/R aging", src);
         Assert.Contains("ns-qa-grid", src);
+        Assert.Contains("Area workspaces", src);
+        Assert.Contains("ErpCapabilityCatalog.Groups", src);
+        Assert.Contains("WorkspaceVisible", src);
         Assert.Contains("Executive cockpit", src);
         Assert.Contains("Planning alerts", src);
         Assert.Contains("Top suppliers by spend", src);
