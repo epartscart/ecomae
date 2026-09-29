@@ -1015,6 +1015,7 @@ public static class EcomAeRoutes
     public const string ErpQualityPlanSaveForm = "/erp/quality/plan-save";
     /// <summary>HTML form POST for PHP <c>qm_order_create</c> dry-run.</summary>
     public const string ErpQualityOrderCreateForm = "/erp/quality/order-create";
+    public const string ErpQualityOrderRecordForm = "/erp/quality/order-record";
     /// <summary>HTML form POST for PHP <c>qm_ncr_create</c> dry-run.</summary>
     public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
     /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>

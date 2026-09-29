@@ -5963,6 +5963,46 @@ public sealed class ErpModule : ISurfaceModule
             var result = dryRun.Evaluate(new ErpQmOrderCreateRequest(0, code, false));
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpQualityOrderRecordForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmOrderRecordWriteService writes, CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/quality-app", "Admin ERP capability required for quality recording.");
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var orderId = LiveWriteFormBinder.Long(form, "order_id", "id");
+            var values = new Dictionary<long, (decimal? Number, string Text)>();
+            var valuesJson = form["values_json"].ToString();
+            if (!string.IsNullOrWhiteSpace(valuesJson))
+            {
+                try
+                {
+                    var payload = System.Text.Json.JsonSerializer.Deserialize<Dictionary<string, System.Text.Json.JsonElement>>(valuesJson);
+                    if (payload is not null)
+                    {
+                        foreach (var entry in payload)
+                        {
+                            if (!long.TryParse(entry.Key, out var testId) || entry.Value.ValueKind != System.Text.Json.JsonValueKind.Object) continue;
+                            decimal? number = entry.Value.TryGetProperty("value_num", out var numberValue) && numberValue.TryGetDecimal(out var parsed) ? parsed : null;
+                            var text = entry.Value.TryGetProperty("value_text", out var textValue) ? textValue.GetString() ?? string.Empty : string.Empty;
+                            values[testId] = (number, text);
+                        }
+                    }
+                }
+                catch (System.Text.Json.JsonException)
+                {
+                    return LiveWriteFormBinder.Complete(context, "/erp/quality-app", false, "values_json must be an object keyed by test id.", new { ok = false, writes = 0, phpAuthoritative = false, validation_code = "invalid_values", message = "values_json must be an object keyed by test id.", session = SessionPayload(session) });
+                }
+            }
+            foreach (var key in form.Keys.Where(k => k.StartsWith("v[", StringComparison.Ordinal) && k.EndsWith("][value_num]", StringComparison.Ordinal)))
+            {
+                if (!long.TryParse(key[2..^11], out var testId)) continue;
+                var textKey = $"v[{testId}][value_text]";
+                decimal? number = decimal.TryParse(form[key], System.Globalization.NumberStyles.Any, System.Globalization.CultureInfo.InvariantCulture, out var parsed) ? parsed : null;
+                values[testId] = (number, form[textKey].ToString());
+            }
+            var result = await writes.RecordAsync(orderId, values, cancellationToken);
+            return LiveWriteFormBinder.Complete(context, "/erp/quality-app", result.Succeeded, result.Message, new { ok = result.Succeeded, writes = result.Writes, phpAuthoritative = false, validation_code = result.Code, message = result.Message, id = result.Id, session = SessionPayload(session) });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityNcrCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmNcrCreateDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
