@@ -99,6 +99,18 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var amountDue = Round(Math.Max(0, totalIncl - paidAmount));
         var issueDate = ParseDate(request.IssueDate, now);
         var dueDate = ParseDate(request.DueDate, issueDate + 30 * 86400L);
+        var validationErrors = BuildValidationErrors(
+            invoiceNumber,
+            issueDate,
+            dueDate,
+            request.TransactionTypeCode,
+            request.PaymentMeansCode,
+            sellerJson,
+            buyerJson,
+            lines);
+        var validationOk = validationErrors.Count == 0;
+        var documentStatus = validationOk ? "validated" : "draft";
+        var validationErrorsJson = JsonSerializer.Serialize(validationErrors);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -107,7 +119,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`business_process`,`specification_id`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`rounding_amount`,`amount_due`,`tax_breakdown_json`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'draft',0,'[]','',?,?,?,1)"),
+                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`business_process`,`specification_id`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`rounding_amount`,`amount_due`,`tax_breakdown_json`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'',?,?,?,1)"),
                 cancellationToken,
                 Guid.NewGuid().ToString("D"),
                 invoiceNumber,
@@ -144,6 +156,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                         tax_amount = totalVat,
                     },
                 }),
+                documentStatus,
+                validationOk ? 1 : 0,
+                validationErrorsJson,
                 now,
                 now,
                 request.AdminId).ConfigureAwait(false);
@@ -242,6 +257,18 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var amountDue = Round(Math.Max(0, totalIncl - paidAmount));
         var issueDate = ParseDate(request.IssueDate, now);
         var dueDate = ParseDate(request.DueDate, issueDate + 30 * 86400L);
+        var validationErrors = BuildValidationErrors(
+            invoiceNumber,
+            issueDate,
+            dueDate,
+            request.TransactionTypeCode,
+            request.PaymentMeansCode,
+            sellerJson,
+            buyerJson,
+            lines);
+        var validationOk = validationErrors.Count == 0;
+        var documentStatus = validationOk ? "validated" : "draft";
+        var validationErrorsJson = JsonSerializer.Serialize(validationErrors);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -250,7 +277,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`issue_date`=?,`vat_point_date`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`business_process`=?,`specification_id`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`rounding_amount`=?,`amount_due`=?,`tax_breakdown_json`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
+                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`issue_date`=?,`vat_point_date`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`business_process`=?,`specification_id`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`rounding_amount`=?,`amount_due`=?,`tax_breakdown_json`=?,`status`=?,`validation_ok`=?,`validation_errors_json`=?,`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
                 cancellationToken,
                 request.OrderId,
                 invoiceNumber,
@@ -284,6 +311,9 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                         tax_amount = totalVat,
                     },
                 }),
+                documentStatus,
+                validationOk ? 1 : 0,
+                validationErrorsJson,
                 now,
                 request.Id).ConfigureAwait(false);
             if (changed == 0)
@@ -512,6 +542,66 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             {
                 throw new ErpWriteException($"Line {index + 1}: tax rate cannot be negative");
             }
+        }
+    }
+
+    private static List<string> BuildValidationErrors(
+        string invoiceNumber,
+        long issueDate,
+        long dueDate,
+        string? transactionTypeCode,
+        string? paymentMeansCode,
+        string sellerJson,
+        string buyerJson,
+        IReadOnlyList<ErpManualInvoiceLineInput> lines)
+    {
+        var errors = new List<string>();
+        if (string.IsNullOrWhiteSpace(invoiceNumber)) errors.Add("Invoice number is required");
+        if (issueDate <= 0) errors.Add("Issue date is required");
+        if (dueDate <= 0) errors.Add("Payment due date is required");
+        if (string.IsNullOrWhiteSpace(transactionTypeCode)) errors.Add("Transaction type code is required");
+        if (string.IsNullOrWhiteSpace(paymentMeansCode)) errors.Add("Payment means type code is required");
+
+        CheckJsonField(errors, sellerJson, "seller_name", "Seller name");
+        CheckJsonField(errors, sellerJson, "seller_legal_reg_no", "Seller legal registration identifier");
+        CheckJsonField(errors, sellerJson, "seller_legal_reg_type", "Seller legal registration identifier type");
+        CheckJsonField(errors, sellerJson, "seller_trn", "Seller tax identifier (TRN)");
+        CheckJsonField(errors, sellerJson, "seller_address_line1", "Seller address line 1");
+        CheckJsonField(errors, sellerJson, "seller_city", "Seller city");
+        CheckJsonField(errors, sellerJson, "seller_emirate", "Seller country subdivision");
+        CheckJsonField(errors, sellerJson, "seller_country_code", "Seller country code");
+        CheckJsonField(errors, sellerJson, "seller_peppol_endpoint", "Seller electronic address (Peppol)");
+        CheckJsonField(errors, buyerJson, "buyer_name", "Buyer name");
+        CheckJsonField(errors, buyerJson, "buyer_address_line1", "Buyer address line 1");
+        CheckJsonField(errors, buyerJson, "buyer_city", "Buyer city");
+        CheckJsonField(errors, buyerJson, "buyer_emirate", "Buyer country subdivision");
+        CheckJsonField(errors, buyerJson, "buyer_country_code", "Buyer country code");
+        CheckJsonField(errors, buyerJson, "buyer_peppol_endpoint", "Buyer electronic address");
+        for (var index = 0; index < lines.Count; index++)
+        {
+            if (string.IsNullOrWhiteSpace(lines[index].ItemName))
+            {
+                errors.Add($"Line {index + 1}: item_name is required");
+            }
+        }
+
+        return errors;
+    }
+
+    private static void CheckJsonField(List<string> errors, string json, string key, string label)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            if (!document.RootElement.TryGetProperty(key, out var value) ||
+                string.IsNullOrWhiteSpace(value.GetString()))
+            {
+                errors.Add(label + " is required");
+            }
+        }
+        catch (JsonException)
+        {
+            errors.Add(label + " is required");
         }
     }
 
