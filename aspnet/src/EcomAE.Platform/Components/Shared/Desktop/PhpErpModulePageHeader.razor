@@ -5,12 +5,89 @@
 *@
 @using EcomAE.Platform.Presentation
 
+<HeadContent>
+<style>
+    .epc-erp-page-hd {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        gap: 12px 16px;
+        padding: 14px 16px;
+        margin: 0 0 12px;
+        background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+        border: 1px solid #d8e3ef;
+        border-left: 4px solid #1d4ed8;
+        border-radius: 12px;
+        box-shadow: 0 8px 20px rgba(15, 23, 42, 0.05);
+    }
+    .epc-erp-page-hd-main {
+        min-width: 220px;
+        flex: 1 1 320px;
+    }
+    .epc-erp-page-title {
+        margin: 0;
+        font-size: 21px;
+        line-height: 1.15;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.01em;
+    }
+    .epc-erp-page-sub {
+        margin: 6px 0 0;
+        color: #475569;
+        font-size: 13px;
+        line-height: 1.45;
+        max-width: 900px;
+    }
+    .epc-erp-page-context {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+    }
+    .epc-erp-page-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        border: 1px solid #cbd5e1;
+        background: #fff;
+        color: #1d4ed8;
+        font-size: 11px;
+        font-weight: 700;
+        white-space: nowrap;
+    }
+    .epc-erp-page-actions {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 6px;
+        align-items: flex-start;
+        margin-left: auto;
+        padding-top: 1px;
+    }
+</style>
+</HeadContent>
+
 <div class="epc-erp-page-hd">
     <div class="epc-erp-page-hd-main">
         <h3 class="epc-erp-page-title">@Title</h3>
         @if (!string.IsNullOrWhiteSpace(Subtitle))
         {
             <p class="epc-erp-page-sub">@Subtitle</p>
+        }
+        @if (ContextItems is not null && ContextItems.Count > 0)
+        {
+            <div class="epc-erp-page-context" aria-label="Workspace context">
+                @foreach (var item in ContextItems)
+                {
+                    if (!string.IsNullOrWhiteSpace(item))
+                    {
+                        <span class="epc-erp-page-chip">@item</span>
+                    }
+                }
+            </div>
         }
     </div>
     <div class="epc-erp-page-actions">
@@ -34,5 +111,6 @@
     [Parameter] public string? Subtitle { get; set; }
     /// <summary>PHP-shaped /ERP/?… tab href — primary maps to ASP.NET; compare uses /php-reference only.</summary>
     [Parameter] public string? PhpTabHref { get; set; }
+    [Parameter] public IReadOnlyList<string>? ContextItems { get; set; }
     [Parameter] public RenderFragment? ChildContent { get; set; }
 }

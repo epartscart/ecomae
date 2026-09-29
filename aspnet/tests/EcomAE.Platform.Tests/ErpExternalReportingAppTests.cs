@@ -56,6 +56,7 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("External Reporting", razor, StringComparison.Ordinal);
         Assert.Contains("Registration country", razor, StringComparison.Ordinal);
         Assert.Contains("Preview jurisdiction", razor, StringComparison.Ordinal);
+        Assert.Contains("ContextItems=\"@_headerContextItems\"", razor, StringComparison.Ordinal);
         Assert.Contains("Import from Excel", razor, StringComparison.Ordinal);
         Assert.Contains("Guided IFRS report builder", razor, StringComparison.Ordinal);
         Assert.Contains("Fetch &amp; build", razor, StringComparison.Ordinal);
