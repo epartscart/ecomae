@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>supplier_settlement</c>. Never INSERT. PHP authoritative.</summary>
+/// <summary>Validation envelope for the live ASP.NET supplier-settlement writer.</summary>
 public interface IErpSupplierSettlementDryRun
 {
     ErpSupplierSettlementDryRunResult Evaluate(ErpSupplierSettlementRequest request);
@@ -14,7 +14,7 @@ public sealed class ErpSupplierSettlementDryRun : IErpSupplierSettlementDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET supplier_settlement is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET supplier-settlement writer.",
                 request);
         }
 
@@ -32,19 +32,19 @@ public sealed class ErpSupplierSettlementDryRun : IErpSupplierSettlementDryRun
         }
 
         return new ErpSupplierSettlementDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, false, false, "ok", true,
             request.SupplierId, request.Amount, direction,
             [
                 "INSERT INTO `epc_erp_supplier_accounting` (…) (NOT executed)",
-                "Optional GL / purchase link stays PHP until dual-sample"
+                "Optional GL / purchase link is applied by the confirmed ASP.NET write"
             ],
-            "Supplier settlement payload validated; accounting INSERT blocked.",
+            "Supplier settlement payload validated; no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=supplier_settlement");
     }
 
     private static ErpSupplierSettlementDryRunResult Refuse(
         string status, string code, string detail, ErpSupplierSettlementRequest request) =>
-        new(status, 0, true, false, true, code, false,
+        new(status, 0, true, false, false, code, false,
             request.SupplierId, request.Amount, request.Direction, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=supplier_settlement");
 }

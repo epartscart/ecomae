@@ -1393,7 +1393,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "period soft-close", "/erp/periods/soft-close", "write-live-gated", "POST PHP epc_erp_period_soft_close ajax period_soft_close; confirmWrites=true writes ASP.NET; monthly lock/reopen, year-end close, and schema ensure stay PHP."),
         new("erp", "period lock dry-run", "/erp/periods/lock", "write-dry-run-gated", "POST dry-run for PHP period_lock; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "customer settlement write", "/erp/customers/settlement", "write-live-gated", "POST PHP customer_settlement; confirmWrites=true inserts shop_users_accounting. Schema-ensure stays PHP."),
-        new("erp", "supplier settlement dry-run", "/erp/suppliers/settlement", "write-dry-run-gated", "POST dry-run for PHP supplier_settlement; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "supplier settlement", "/erp/suppliers/settlement", "write-live-gated", "POST validates with confirm_writes=false (writes=0); confirm_writes=true posts the tenant-scoped supplier ledger through the ASP.NET writer; tenant schema remains PHP-managed."),
         new("erp", "fiscal set-lock", "/erp/fiscal/set-lock", "write-live-gated", "POST PHP epc_erp_fiscal_set_lock; confirmWrites=true writes ASP.NET; monthly period close, year-end close, audit, and schema ensure stay PHP."),
         new("erp", "period reopen dry-run", "/erp/periods/reopen", "write-dry-run-gated", "POST dry-run for PHP period_reopen; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "purchase adjust dry-run", "/erp/purchases/adjust", "write-dry-run-gated", "POST dry-run for PHP purchase_adjustment; writes=0; confirm_writes refused; PHP authoritative."),
