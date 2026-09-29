@@ -18,6 +18,6 @@ public sealed class ErpPurchaseAmendDryRunTests
         Assert.Equal("dry-run-validated", result.Status);
         Assert.False(result.PhpAuthoritative);
         Assert.True(result.WouldWrite);
-        Assert.Contains("NOT executed", result.SimulatedSql, StringComparison.Ordinal);
+        Assert.Contains(result.SimulatedSql, sql => sql.Contains("NOT executed", StringComparison.Ordinal));
     }
 }
