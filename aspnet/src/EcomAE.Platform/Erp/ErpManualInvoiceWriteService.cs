@@ -54,11 +54,6 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         CancellationToken cancellationToken = default)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.Id > 0)
-        {
-            throw new ErpWriteException("Invoice edits remain on the PHP reference path.");
-        }
-
         if (!_connections.IsConfigured)
         {
             throw new ErpWriteException("No database");
@@ -72,6 +67,10 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (request.Id > 0)
+        {
+            return await UpdateAsync(connection, request, lines, cancellationToken).ConfigureAwait(false);
+        }
 
         var invoiceNumber = string.IsNullOrWhiteSpace(request.InvoiceNumber)
             ? await _vouchers.NextAsync(connection, null, "SI", cancellationToken).ConfigureAwait(false)
@@ -158,6 +157,129 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return new(invoiceId, invoiceNumber, subtotal, totalVat, totalIncl);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private static async Task<ErpManualInvoiceWriteResult> UpdateAsync(
+        DbConnection connection,
+        ErpManualInvoiceWriteRequest request,
+        IReadOnlyList<ErpManualInvoiceLineInput> lines,
+        CancellationToken cancellationToken)
+    {
+        var status = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `status` FROM `epc_einvoice_documents` WHERE `id` = ? AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            request.Id).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(status))
+        {
+            throw new ErpWriteException("Invoice not found");
+        }
+
+        if (status is "submitted" or "accepted" or "queued")
+        {
+            throw new ErpWriteException("Submitted invoices cannot be edited — issue a credit note instead");
+        }
+
+        var invoiceNumber = string.IsNullOrWhiteSpace(request.InvoiceNumber)
+            ? await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `invoice_number` FROM `epc_einvoice_documents` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                request.Id).ConfigureAwait(false) ?? ("SI-" + request.Id)
+            : request.InvoiceNumber.Trim();
+        var currency = Clip(request.CurrencyCode, 8);
+        if (currency.Length == 0)
+        {
+            currency = "AED";
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var subtotal = Round(lines.Sum(line => line.Quantity * line.UnitPrice));
+        var totalVat = Round(lines.Sum(line => line.Quantity * line.UnitPrice * line.TaxRate / 100m));
+        var totalIncl = Round(subtotal + totalVat);
+        var dueDate = ParseDate(request.DueDate, now + 30 * 86400L);
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var changed = await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "UPDATE `epc_einvoice_documents` SET `invoice_number`=?,`user_id`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`payment_terms`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`amount_due`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
+                cancellationToken,
+                invoiceNumber,
+                request.UserId > 0 ? request.UserId : 0,
+                dueDate,
+                currency,
+                currency,
+                Clip(request.PaymentTerms, 255),
+                request.SellerJson ?? "{}",
+                request.BuyerJson ?? "{}",
+                subtotal,
+                totalVat,
+                totalIncl,
+                totalIncl,
+                now,
+                request.Id).ConfigureAwait(false);
+            if (changed == 0)
+            {
+                throw new ErpWriteException("Invoice could not be updated — another user may have submitted it.");
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `epc_einvoice_lines` WHERE `document_id` = ?"),
+                cancellationToken,
+                request.Id).ConfigureAwait(false);
+
+            var lineNo = 1;
+            foreach (var line in lines)
+            {
+                var net = Round(line.Quantity * line.UnitPrice);
+                var vat = Round(net * line.TaxRate / 100m);
+                var gross = Round(net + vat);
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_einvoice_lines` (`document_id`,`line_no`,`item_name`,`item_type`,`quantity`,`uom_code`,`unit_price`,`line_net`,`tax_category`,`tax_rate`,`tax_amount`,`gross_amount`,`vat_line_aed`,`line_amount_aed`) VALUES (?,?,?,'G',?,'C62',?,?, 'S',?,?,?,?,?)"),
+                    cancellationToken,
+                    request.Id,
+                    lineNo++,
+                    Clip(line.ItemName, 255),
+                    line.Quantity,
+                    line.UnitPrice,
+                    net,
+                    line.TaxRate,
+                    vat,
+                    gross,
+                    vat,
+                    gross).ConfigureAwait(false);
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_einvoice_events` (`document_id`,`event_type`,`status`,`message`,`payload_json`,`time_created`) VALUES (?,'updated','draft',?,?,?)"),
+                cancellationToken,
+                request.Id,
+                "Manual invoice updated as draft",
+                request.LinesJson ?? "[]",
+                now).ConfigureAwait(false);
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new(request.Id, invoiceNumber, subtotal, totalVat, totalIncl);
         }
         catch
         {
