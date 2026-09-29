@@ -54,6 +54,12 @@
                 {
                     <dt>Exception reason</dt><dd>@_openedDecision.ExceptionReason</dd>
                 }
+                @if (_openedDecision is not null)
+                {
+                    <dt>Decision variance</dt><dd>@_openedDecision.VarianceAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                    <dt>PHP tolerance</dt><dd>&lt; @_openedDecision.ToleranceAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                    <dt>Decision updated</dt><dd>@FormatDecisionTime(_openedDecision.UpdatedAtUtc)</dd>
+                }
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Use the match hint before approving supplier settlement; variance is calculated against the PO total.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
@@ -240,6 +246,11 @@
                 : decision.Status.Equals("exception", StringComparison.OrdinalIgnoreCase)
                     ? "Exception"
                     : decision.Status;
+
+    private static string FormatDecisionTime(DateTimeOffset value)
+        => value == DateTimeOffset.MinValue
+            ? "—"
+            : value.ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
     private static string MatchHint(int receiptCount, long purchaseId, decimal poTotal, decimal invoiceTotal)
     {
