@@ -21,6 +21,33 @@ CP/ERP static destination audits `34/34`,
 `11/11`, `95/95`, and `224/224`, and focused print-designer verification `7/7`.
 These figures are reported separately so the headline cannot overstate migration completion.
 
+### Cross-surface audit checkpoint
+
+The all-surface review is now explicit: CP and frontend route inventories are
+not completion evidence. The current implementation inventory includes 331
+ASP.NET presentation pages, while the PHP primary CP/ERP trees contain 609 CP
+module files and 188 files under the primary ERP module tree. The difference
+is not a one-to-one
+defect count because PHP files include shared fragments and handlers, but it
+confirms that a route/page count cannot replace a PHP field/action/workflow
+matrix.
+
+The remaining audit sequence is:
+
+1. CP: generated menu → page/body → write/action → permission/audit →
+   desktop/mobile presentation → tenant and Super-CP browser evidence.
+2. Storefront/frontend: theme/assets → catalogue/search → cart/checkout/payment
+   callbacks → customer/vendor workflows → SEO/sitemap → tenant-host evidence.
+3. Marketing/demo/BOS: forms and provisioning writes, expiry/restore,
+   operator workflows, brand-host routing, and visual comparison.
+4. Tenant CP/ERP plus API/workers: isolation, country profile, sync, queue
+   retry, backup/restore, rollback, and on-prem/hybrid registration evidence.
+
+Until each sequence has same-tenant PHP/ASP.NET dual samples and human
+acceptance, the phase headline remains **24/24 Phase A checklist items,
+20.4% weighted done, 79.6% pending**; formal interactive acceptance remains
+zero even where route and dry-run catalog coverage is high.
+
 ## Production reconciliation and remaining completion gates
 
 The production state must be reported separately from repository implementation
