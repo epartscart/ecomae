@@ -32,7 +32,7 @@ public sealed class ErpIndustryNavTests
     }
 
     [Fact]
-    public void EnsureSwitchableCompanies_SuperCpAlwaysHasMainAndJewellery()
+    public void EnsureSwitchableCompanies_SuperCpAlwaysHasMainJewelleryAndFitOut()
     {
         var onlyMain = new[] { new ErpCompanyDigest(1, "MAIN", "Main", "AED", "AE", "", true) };
         var merged = ErpIndustryNav.EnsureSwitchableCompanies(onlyMain, isSuperCpHost: true, "ECOM AE");
@@ -40,7 +40,8 @@ public sealed class ErpIndustryNavTests
         Assert.Contains(merged, c => c.Id == 2 && c.Code == "JW");
 
         var empty = ErpIndustryNav.EnsureSwitchableCompanies([], isSuperCpHost: true, "ECOM AE");
-        Assert.Equal(2, empty.Count);
+        Assert.Equal(3, empty.Count);
+        Assert.Contains(empty, c => c.Id == 3 && c.Code == "FITOUT" && c.IndustryPack == "fitout_contracting");
 
         var emptyTenant = ErpIndustryNav.EnsureSwitchableCompanies([], isSuperCpHost: false, "eParts");
         Assert.Contains(emptyTenant, c => c.Id == 2 && c.Code == "JW");
@@ -48,6 +49,14 @@ public sealed class ErpIndustryNavTests
         var tenantOnly = ErpIndustryNav.EnsureSwitchableCompanies(onlyMain, isSuperCpHost: false, "eParts");
         Assert.Single(tenantOnly);
         Assert.Equal(1, tenantOnly[0].Id);
+    }
+
+    [Fact]
+    public void FitOutCompany_UsesFitOutIndustryPack()
+    {
+        var company = new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true);
+        Assert.True(ErpIndustryNav.IsFitOutCompany(company));
+        Assert.False(ErpIndustryNav.IsJewelleryCompany(company));
     }
 
     [Fact]

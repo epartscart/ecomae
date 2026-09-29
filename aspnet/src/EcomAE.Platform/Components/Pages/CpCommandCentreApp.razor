@@ -594,6 +594,11 @@ else
     })();
     </script>
 }
+    <PhpHybridModuleDirectory
+        Title="Complete Control Panel feature directory"
+        Subtitle="@($"{PhpModuleCatalog.CpBrochureFeatureCount} CP features")"
+        Links="@PhpModuleCatalog.CpBrochureFeatures"
+        PhpWorkspaceBase="/cp/app" />
 </PhpCpDesktopChrome>
 
 @code {

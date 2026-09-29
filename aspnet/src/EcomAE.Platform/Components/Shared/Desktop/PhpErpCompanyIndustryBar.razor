@@ -30,6 +30,7 @@
     }
     .epc-erp-jw-badge { font-style: normal; font-size: 10px; font-weight: 800; color: #92400e; background: #fef3c7; border-radius: 999px; padding: 2px 8px; }
     .epc-erp-core-badge { font-style: normal; font-size: 10px; font-weight: 800; color: #1e3a8a; background: #dbeafe; border-radius: 999px; padding: 2px 8px; }
+    .epc-erp-fitout-badge { font-style: normal; font-size: 10px; font-weight: 800; color: #166534; background: #dcfce7; border-radius: 999px; padding: 2px 8px; }
     .epc-erp-company-picker { display: inline-block; position: relative; z-index: 80; }
     .epc-erp-company-btn {
         list-style: none; cursor: pointer; display: inline-flex; align-items: center; gap: .4rem;
@@ -92,6 +93,10 @@
             {
                 <em class="epc-erp-jw-badge">Jewellery modules</em>
             }
+            else if (_fitOut)
+            {
+                <em class="epc-erp-fitout-badge">Fit-out modules</em>
+            }
             else
             {
                 <em class="epc-erp-core-badge">Core modules</em>
@@ -120,7 +125,7 @@
                             <strong>@company.Code</strong> · @company.Name
                             <span class="text-muted epc-erp-company-meta">
                                 @(string.IsNullOrWhiteSpace(company.CurrencyCode) ? "AED" : company.CurrencyCode)
-                                · @(jw ? "jewellery modules" : "core modules")
+                                · @(jw ? "jewellery modules" : ErpIndustryNav.IsFitOutCompany(company) ? "fit-out modules" : "core modules")
                                 @if (!string.IsNullOrWhiteSpace(company.IndustryPack))
                                 {
                                     <text> · @company.IndustryPack</text>
@@ -191,6 +196,7 @@
     private string _industryCode = "core";
     private string _industryLabel = "Core / multi-industry";
     private bool _jewellery;
+    private bool _fitOut;
     private string _message = "";
 
     protected override async Task OnInitializedAsync()
@@ -216,6 +222,7 @@
         var current = _companies.FirstOrDefault(c => c.Id == _activeCompanyId) ?? _companies[0];
         _activeLabel = $"{current.Code} · {current.Name}";
         _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, current);
+        _fitOut = ErpIndustryNav.IsFitOutCompany(current);
         _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(current.IndustryPack) ? "core" : current.IndustryPack);
         _industryLabel = ErpIndustryNav.IndustryLabelForPack(current.IndustryPack, _jewellery);
     }

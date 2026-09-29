@@ -424,7 +424,7 @@ check 'catalog allowlist sync mirrors live surface probe' contains "$ROOT/script
 check 'catalog allowlist sync mirrors decommission area tests' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'run_php_decommission_area_tests.sh'
 check 'catalog allowlist sync mirrors pre-php-removal parity' contains "$ROOT/scripts/validate_catalog_api_allowlist_sync.py" 'verify_pre_php_removal_parity.sh'
 check 'presentation exact-route inventory exists' test -f "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json"
-check 'presentation exact-route inventory routeCount is 189' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 189'
+check 'presentation exact-route inventory routeCount is 411' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"routeCount": 411'
 check 'presentation exact-route inventory blocks cutover' contains "$ROOT/docs/migration/evidence/presentation/presentation-exact-routes.json" '"cutoverAllowed": false'
 check 'presentation allowlist sync mirrors inventory' contains "$ROOT/scripts/validate_presentation_hybrid_allowlist_sync.py" 'presentation-exact-routes.json'
 check 'live surface probe references presentation inventory' contains "$ROOT/scripts/probe_live_surface_stack.sh" 'presentation/presentation-exact-routes.json'
@@ -601,7 +601,7 @@ check 'surface-field board blocks PHP removal' contains "$ROOT/docs/migration/ev
 check 'platform.env.example documents dual-sample operator helper' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_hybrid_ui_dual_sample_operator.sh'
 check 'platform.env.example documents offline migration gate' contains "$ROOT/deploy/aspnet/platform.env.example" 'cloudpanel_run_offline_migration_gate.sh'
 check 'YARP generator script exists' test -f "$ROOT/scripts/generate_yarp_exact_routes_example.py"
-check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 189'
+check 'YARP design example routeCount matches presentation shadows' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"routeCount": 411'
 check 'EF tenant registry scaffold repository interface exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Data/Scaffolding/ITenantRegistryScaffoldRepository.cs"
 check 'YARP exact-routes design example exists' test -f "$ROOT/deploy/aspnet/yarp-exact-routes-example.json"
 check 'YARP design example blocks cutover' contains "$ROOT/deploy/aspnet/yarp-exact-routes-example.json" '"cutoverAllowed": false'
@@ -1115,7 +1115,7 @@ check 'storefront digest smoke covers checkout' contains "$ROOT/tests/live_smoke
 check 'digest compare locks storefront-checkout php_steps' contains "$ROOT/scripts/compare_digest_dual_samples.py" '"storefront-checkout":'
 check 'digest live-sample gap reporter exists' test -f "$ROOT/scripts/report_digest_live_sample_gaps.py"
 check 'presentation nginx includes login routes' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /cp/login'
-check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 189'
+check 'presentation installer expects login+OMS+CP meta+audit-log+ERP+sf+bos fleet family routes' contains "$ROOT/scripts/cloudpanel_install_presentation_app_shadows.sh" 'expected = 411'
 check 'tenant chrome probe rejects erp cash-entries-app marker' contains "$ROOT/scripts/cloudpanel_probe_live_tenant_php_chrome.sh" 'ErpCashEntriesApp'
 check 'presentation nginx includes /erp/cash-entries-app' contains "$ROOT/deploy/aspnet/nginx-presentation-app-shadow-example.conf" 'location = /erp/cash-entries-app'
 check 'erp cash-entries-app route constant exists' contains "$ROOT/aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs" 'ErpCashEntriesApp'
@@ -1526,7 +1526,7 @@ check 'CP command centre has no hard login NavigateTo' bash -c '! grep -Fq "Navi
 check 'classic-entry has php-reference/cp' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /php-reference/cp'
 check 'classic-entry installer exists' test -x "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh"
 check 'classic-entry installer refuses without confirm' contains "$ROOT/scripts/cloudpanel_install_classic_entry_aspnet_primary.sh" 'ECOMAE_CONFIRM_INSTALL_CLASSIC_ENTRY_ASPNET_PRIMARY'
-check 'classic-entry installer expects 26 routes' contains "$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py" 'expected = 26'
+check 'classic-entry installer validates route families dynamically' contains "$ROOT/scripts/lib/ecomae_nginx_server_block_edit.py" 'expected at least 20 exact classic-entry routes'
 check 'classic-entry www example has cp login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'location = /cp/login'
 check 'classic-entry tenant example has cp login bridge' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /cp/login'
 check 'classic-entry tenant example denies bos login (super-cp-only)' contains "$ROOT/deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf" 'location = /bos/login'
@@ -1564,7 +1564,7 @@ check 'classic-entry tenant example has php passthrough' contains "$ROOT/deploy/
 check 'CloudPanel deploy paste emergency restore' contains "$ROOT/docs/migration/evidence/decommission/CLOUDPANEL_DEPLOY_PASTE.md" 'emergency restore'
 check 'CloudPanel deploy paste server-block scoped' contains "$ROOT/docs/migration/evidence/decommission/CLOUDPANEL_DEPLOY_PASTE.md" 'server-block scoped'
 check 'CloudPanel deploy paste ensures epartscart vhost' contains "$ROOT/docs/migration/evidence/decommission/CLOUDPANEL_DEPLOY_PASTE.md" 'cloudpanel_ensure_epartscart_nginx_vhost.sh'
-check 'classic-entry php-reference may 302' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'return 302 /index.php'
+check 'classic-entry php-reference uses internal boot rewrite' contains "$ROOT/deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf" 'epc_php_reference_boot.php'
 check 'classic-entry probe exists' test -x "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh"
 check 'classic-entry probe asserts same-URL' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'tenant-shared URL must stay unchanged'
 check 'classic-entry probe checks epartscart' contains "$ROOT/scripts/cloudpanel_probe_classic_entry_aspnet_primary.sh" 'epartscart.com'

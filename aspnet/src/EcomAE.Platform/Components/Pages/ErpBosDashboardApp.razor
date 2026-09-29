@@ -47,6 +47,10 @@
                     {
                         <span class="ns-chip" title="Profit and margin are hidden for this profile"><i class="fa fa-lock"></i> Profit restricted</span>
                     }
+                    @if (_fitOut)
+                    {
+                        <span class="ns-chip ns-chip--fitout"><i class="fa fa-building"></i> Fit-out company pack</span>
+                    }
                 </div>
             </div>
             <div class="ns-hero-metrics">
@@ -251,6 +255,20 @@
                         <a class="ns-tile green" href="@WithCompany("/cp/jewellery-repairs-app")"><i class="fa fa-wrench ic"></i><span class="tl">Repair jobs</span></a>
                         <a class="ns-tile slate" href="@WithCompany("/cp/jewellery-masters-app?tab=gold_rate")"><i class="fa fa-line-chart ic"></i><span class="tl">Gold rate board</span></a>
                         <a class="ns-tile rust" href="@WithCompany("/cp/jewellery-masters-app?tab=jewellery_tag")"><i class="fa fa-tags ic"></i><span class="tl">Jewellery tags</span></a>
+                    </div>
+                </div>
+            </div>
+        }
+        @if (_fitOut)
+        {
+            <div class="ns-port ns-fitout-pack" data-epc-industry-pack="fitout_contracting">
+                <h4><i class="fa fa-building"></i> Fit-out project modules</h4>
+                <div class="bd">
+                    <div class="ns-tiles" style="margin:0">
+                        <a class="ns-tile green" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-sitemap ic"></i><span class="tl">Projects &amp; cost control</span></a>
+                        <a class="ns-tile blue" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-shopping-cart ic"></i><span class="tl">Project procurement</span></a>
+                        <a class="ns-tile teal" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-truck ic"></i><span class="tl">Site delivery dashboard</span></a>
+                        <a class="ns-tile rust" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-line-chart ic"></i><span class="tl">Project P&amp;L</span></a>
                     </div>
                 </div>
             </div>
@@ -640,6 +658,16 @@
             </div>
         </div>
     }
+    <PhpHybridModuleDirectory
+        Title="Complete ERP area directory"
+        Subtitle="@($"{PhpModuleCatalog.ErpAreaCount} ERP areas")"
+        Links="@PhpModuleCatalog.ErpAreas"
+        PhpWorkspaceBase="/erp/app" />
+    <PhpHybridModuleDirectory
+        Title="Complete ERP module directory"
+        Subtitle="@($"{PhpModuleCatalog.ErpTabCount} ERP modules")"
+        Links="@PhpModuleCatalog.ErpTabs"
+        PhpWorkspaceBase="/erp/app" />
 </PhpErpDesktopChrome>
 
 <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js" crossorigin="anonymous"></script>
@@ -775,6 +803,7 @@
     private bool _hasFullErpAccess;
     private bool _isSuperHost;
     private bool _jewellery;
+    private bool _fitOut;
     private long _activeCompanyId;
     private string _companyLabel = "MAIN";
     private string _heroEntity = "Operations";
@@ -857,12 +886,14 @@
                 }
 
                 _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, active);
+                _fitOut = ErpIndustryNav.IsFitOutCompany(active);
                 _industryCode = _jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
                 _industryLabel = ErpIndustryNav.IndustryLabelForPack(active.IndustryPack, _jewellery);
             }
             else
             {
                 _jewellery = ErpIndustryNav.ShowJewelleryModules(_ctx.IndustryCode, null);
+                _fitOut = false;
                 _heroEntity = string.IsNullOrWhiteSpace(_ctx.BrandLabel) ? "Operations" : _ctx.BrandLabel;
             }
         }

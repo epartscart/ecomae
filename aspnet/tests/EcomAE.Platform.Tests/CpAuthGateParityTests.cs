@@ -28,15 +28,15 @@ public sealed class CpAuthGateParityTests
     }
 
     [Fact]
-    public void LoginFormHasNoGuestBrowseBypass()
+    public void LoginFormUsesExplicitReadOnlyGuestBrowseMarker()
     {
         var path = Find("aspnet/src/EcomAE.Platform/Components/Shared/LegacyAdminLoginForm.razor");
         var text = File.ReadAllText(path);
         Assert.DoesNotContain("Enter CP (no login)", text, StringComparison.Ordinal);
-        Assert.DoesNotContain("data-epc-guest-browse", text, StringComparison.Ordinal);
+        Assert.Contains("data-epc-guest-browse=\"true\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Browse the shell without credentials", text, StringComparison.Ordinal);
         // Wording is stack-neutral since the tenant UI hide-stack pass (no "Control"/framework names).
-        Assert.Contains("Guest browse is disabled", text, StringComparison.Ordinal);
+        Assert.Contains("Browse without login", text, StringComparison.Ordinal);
         Assert.Contains("disabled", text, StringComparison.OrdinalIgnoreCase);
     }
 

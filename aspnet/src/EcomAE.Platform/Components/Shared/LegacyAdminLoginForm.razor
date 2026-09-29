@@ -80,6 +80,9 @@
 
     <p class="epc-login-bridge-note">
         After login you continue in <a class="epc-login-shell" href="@ShellHref">@ShellLabel</a>.
+        <a class="epc-login-guest-browse" data-epc-guest-browse="true" href="@GuestBrowseHref">
+            Browse without login
+        </a>
     </p>
 </div>
 
@@ -108,6 +111,14 @@
         LegacyLoginSurface.Bos => EcomAE.Platform.Routing.EcomAeRoutes.BosLogin,
         LegacyLoginSurface.Storefront => EcomAE.Platform.Routing.EcomAeRoutes.StorefrontLogin,
         _ => EcomAE.Platform.Routing.EcomAeRoutes.ControlPanelLogin
+    };
+
+    private string GuestBrowseHref => Surface switch
+    {
+        LegacyLoginSurface.Erp => EcomAE.Platform.Routing.EcomAeRoutes.ErpApp,
+        LegacyLoginSurface.Bos => EcomAE.Platform.Routing.EcomAeRoutes.BosApp,
+        LegacyLoginSurface.Storefront => EcomAE.Platform.Routing.EcomAeRoutes.StorefrontApp,
+        _ => EcomAE.Platform.Routing.EcomAeRoutes.ControlPanelApp
     };
 
     private string RedirectPath
