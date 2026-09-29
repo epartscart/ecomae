@@ -29,6 +29,32 @@
 
     <ErpPhpViewTabs QueryName="qv" Active="@_view" BaseHref="/erp/quality-app" Tabs="@_views" />
 
+    @if (_openedOrder is not null)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>@OpenedOrderCaption</strong>
+                <a class="btn btn-xs btn-default" href="@OpenedOrderReturnHref">This order</a>
+                <a class="btn btn-xs btn-default" href="/erp/quality-app?qv=orders">Close</a>
+            </p>
+            <ErpDocumentWorkspace
+                DocumentKind="Quality order"
+                Title="@OpenedOrderCaption"
+                DocumentNumber="@_openedOrder.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Plan"
+                Party="@(_openedOrder.PlanId > 0 ? _openedOrder.PlanId.ToString(CultureInfo.InvariantCulture) : "—")"
+                ReferenceLabel="Reference"
+                Reference="@($"{_openedOrder.RefType} {_openedOrder.RefId}".Trim())"
+                Status="@_openedOrder.Status"
+                ApprovalState="@QualityOrderState"
+                CompanyContext="Tenant / company"
+                Currency="—"
+                Fields="@QualityOrderWorkspaceFields"
+                Lines="@QualityOrderWorkspaceLines"
+                Tabs="@QualityOrderWorkspaceTabs" />
+            <p class="text-muted" style="margin:.85rem 0 0">Inspection-result recording remains on the Classic/ERP ajax ownership path.</p>
+        </div>
+    }
+
     @if (_view == "plans")
     {
         <div class="row">
@@ -346,6 +372,40 @@
     private long _openedId;
     private ErpQmNcrDetail? _opened;
     private IReadOnlyList<ErpQmNcrDigest> _openedSiblings = [];
+    private ErpQmOrderDigest? _openedOrder;
+
+    private IReadOnlyList<string> QualityOrderWorkspaceTabs => ["General", "Inspection", "Reference", "Audit"];
+
+    private string QualityOrderState => _openedOrder is null
+        ? "—"
+        : !string.IsNullOrWhiteSpace(_openedOrder.Verdict)
+            ? _openedOrder.Verdict
+            : "Inspection pending";
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> QualityOrderWorkspaceFields => _openedOrder is null
+        ? []
+        : [
+            new("Plan", _openedOrder.PlanId > 0 ? _openedOrder.PlanId.ToString(CultureInfo.InvariantCulture) : "—", "General"),
+            new("Reference type", _openedOrder.RefType, "Reference"),
+            new("Reference", _openedOrder.RefId, "Reference"),
+            new("Item", _openedOrder.ItemId > 0 ? _openedOrder.ItemId.ToString(CultureInfo.InvariantCulture) : "—", "General"),
+            new("Quantity", _openedOrder.Qty.ToString("N3", CultureInfo.InvariantCulture), "Inspection"),
+            new("Status", _openedOrder.Status, "Inspection"),
+            new("Verdict", _openedOrder.Verdict, "Inspection"),
+            new("Created", FormatTime(_openedOrder.TimeCreated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> QualityOrderWorkspaceLines => _openedOrder is null
+        ? []
+        : [new(
+            $"QO-{_openedOrder.Id.ToString(CultureInfo.InvariantCulture)}",
+            string.IsNullOrWhiteSpace(_openedOrder.RefType) ? "Quality order" : _openedOrder.RefType,
+            _openedOrder.Qty,
+            "units",
+            "—",
+            "quality",
+            0, 0, 0, 0, 0,
+            string.IsNullOrWhiteSpace(_openedOrder.Verdict) ? _openedOrder.Status : _openedOrder.Verdict)];
 
     private IReadOnlyList<string> QualityWorkspaceTabs => ["General", "Disposition", "Corrective action", "Audit"];
 
@@ -379,7 +439,16 @@
         ? ""
         : (!string.IsNullOrWhiteSpace(_opened.Title)
             ? _opened.Title
-            : ("NCR #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+                : ("NCR #" + _opened.Id.ToString(CultureInfo.InvariantCulture)));
+
+    private string OpenedOrderCaption => _openedOrder is null
+        ? ""
+        : $"QO-{_openedOrder.Id.ToString(CultureInfo.InvariantCulture)}"
+            + (string.IsNullOrWhiteSpace(_openedOrder.RefId) ? "" : $" · {_openedOrder.RefId}");
+
+    private string OpenedOrderReturnHref => _openedOrder is null
+        ? "/erp/quality-app?qv=orders"
+        : $"/erp/quality-app?qv=orders&order_id={_openedOrder.Id.ToString(CultureInfo.InvariantCulture)}";
 
     private string OpenedReturnHref => _openedId > 0
         ? _listHref + "&ncr_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
@@ -412,6 +481,7 @@
         _openNcrs = result.OpenNcrCount;
         _passed = _orders.Count(o => string.Equals(o.Verdict, "pass", StringComparison.OrdinalIgnoreCase));
         _failed = _orders.Count(o => string.Equals(o.Verdict, "fail", StringComparison.OrdinalIgnoreCase));
+        _openedOrder = _selOrder > 0 ? _orders.FirstOrDefault(o => o.Id == _selOrder) : null;
         _source = result.Source;
         _message = result.Message;
 
