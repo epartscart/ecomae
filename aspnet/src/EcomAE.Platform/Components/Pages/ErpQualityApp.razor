@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -173,17 +174,21 @@
                     <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                     <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
                 </p>
-                <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                    <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                    <dt>Order</dt><dd>@(_opened.OrderId > 0 ? _opened.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                    <dt>Title</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Title) ? "—" : _opened.Title)</dd>
-                    <dt>Severity</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Severity) ? "—" : _opened.Severity)</dd>
-                    <dt>Disposition</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Disposition) ? "—" : _opened.Disposition.Replace('_', ' '))</dd>
-                    <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                    <dt>Corrective action</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ActionExcerpt) ? "—" : _opened.ActionExcerpt)</dd>
-                    <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
-                    <dt>Closed</dt><dd>@FormatTime(_opened.TimeClosed)</dd>
-                </dl>
+                <ErpDocumentWorkspace
+                    DocumentKind="Quality non-conformance"
+                    Title="@OpenedCaption"
+                    DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                    PartyLabel="Quality order"
+                    Party="@(_opened.OrderId > 0 ? _opened.OrderId.ToString(CultureInfo.InvariantCulture) : "Standalone")"
+                    ReferenceLabel="Severity"
+                    Reference="@_opened.Severity"
+                    Status="@_opened.Status"
+                    ApprovalState="@(_opened.Status.Equals("closed", StringComparison.OrdinalIgnoreCase) ? "Closed" : "Corrective action pending")"
+                    CompanyContext="Tenant / company"
+                    Currency="—"
+                    Fields="@QualityWorkspaceFields"
+                    Lines="@QualityWorkspaceLines"
+                    Tabs="@QualityWorkspaceTabs" />
                 <p class="text-muted" style="margin:.85rem 0 0">NCR update writes stay here. Order create/record and NCR create stay Classic.</p>
                 @if (_openedSiblings.Count > 0)
                 {
@@ -341,6 +346,34 @@
     private long _openedId;
     private ErpQmNcrDetail? _opened;
     private IReadOnlyList<ErpQmNcrDigest> _openedSiblings = [];
+
+    private IReadOnlyList<string> QualityWorkspaceTabs => ["General", "Disposition", "Corrective action", "Audit"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> QualityWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Quality order", _opened.OrderId > 0 ? _opened.OrderId.ToString(CultureInfo.InvariantCulture) : "Standalone", "General"),
+            new("Title", _opened.Title, "General"),
+            new("Severity", _opened.Severity, "General"),
+            new("Status", _opened.Status, "General"),
+            new("Disposition", _opened.Disposition.Replace('_', ' '), "Disposition"),
+            new("Corrective action", _opened.ActionExcerpt, "Corrective action"),
+            new("Created", FormatTime(_opened.TimeCreated), "Audit"),
+            new("Closed", FormatTime(_opened.TimeClosed), "Audit"),
+            new("Action length", _opened.ActionLen.ToString(CultureInfo.InvariantCulture), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> QualityWorkspaceLines => _opened is null
+        ? []
+        : [new(
+            $"NCR-{_opened.Id.ToString(CultureInfo.InvariantCulture)}",
+            string.IsNullOrWhiteSpace(_opened.Title) ? "Non-conformance" : _opened.Title,
+            1,
+            "case",
+            _opened.OrderId.ToString(CultureInfo.InvariantCulture),
+            "quality",
+            0, 0, 0, 0, 0,
+            string.IsNullOrWhiteSpace(_opened.Disposition) ? _opened.Status : _opened.Disposition)];
 
     private string OpenedCaption => _opened is null
         ? ""

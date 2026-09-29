@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -34,20 +35,21 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Transfer #</dt><dd>@(string.IsNullOrWhiteSpace(_opened.TransferNo) ? "—" : _opened.TransferNo)</dd>
-                <dt>From</dt><dd>@_opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>To</dt><dd>@_opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Reason</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Reason) ? "—" : _opened.Reason)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Items</dt><dd>@_opened.TotalItems.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Qty</dt><dd>@_opened.TotalQty.ToString("0.###", CultureInfo.InvariantCulture)</dd>
-                <dt>Shipped</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ShippedAt) ? "—" : _opened.ShippedAt)</dd>
-                <dt>Received</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ReceivedAt) ? "—" : _opened.ReceivedAt)</dd>
-                <dt>Created by</dt><dd>@_opened.CreatedBy.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Received by</dt><dd>@_opened.ReceivedBy.ToString(CultureInfo.InvariantCulture)</dd>
-            </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Stock transfer"
+                Title="@OpenedCaption"
+                DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="From warehouse"
+                Party="@_opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture)"
+                ReferenceLabel="To warehouse"
+                Reference="@_opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture)"
+                Status="@_opened.Status"
+                ApprovalState="@TransferState"
+                CompanyContext="@(_opened.CompanyId > 0 ? _opened.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant / company")"
+                Currency="—"
+                Fields="@TransferWorkspaceFields"
+                Lines="@TransferWorkspaceLines"
+                Tabs="@TransferWorkspaceTabs" />
             <p class="text-muted" style="margin:.85rem 0 0">Line bodies omitted. Ship and receive stay on the Classic twin.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
@@ -151,6 +153,45 @@
     private ErpStockTransferDetail? _opened;
     private IReadOnlyList<ErpStockTransferDigest> _openedSiblings = [];
 
+    private IReadOnlyList<string> TransferWorkspaceTabs => ["General", "Movement", "Lifecycle", "Audit"];
+
+    private string TransferState => _opened is null
+        ? "—"
+        : !string.IsNullOrWhiteSpace(_opened.ReceivedAt)
+            ? "Received"
+            : !string.IsNullOrWhiteSpace(_opened.ShippedAt)
+                ? "In transit"
+                : "Draft";
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> TransferWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Transfer number", _opened.TransferNo, "General"),
+            new("Reason", _opened.Reason, "General"),
+            new("Company", _opened.CompanyId > 0 ? _opened.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant", "General"),
+            new("From warehouse", _opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("To warehouse", _opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("Items", _opened.TotalItems.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("Quantity", _opened.TotalQty.ToString("0.###", CultureInfo.InvariantCulture), "Movement"),
+            new("Shipped", _opened.ShippedAt, "Lifecycle"),
+            new("Received", _opened.ReceivedAt, "Lifecycle"),
+            new("Created by", _opened.CreatedBy.ToString(CultureInfo.InvariantCulture), "Audit"),
+            new("Received by", _opened.ReceivedBy.ToString(CultureInfo.InvariantCulture), "Audit"),
+            new("Created", FormatTime(_opened.TimeCreated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> TransferWorkspaceLines => _opened is null
+        ? []
+        : [new(
+            string.IsNullOrWhiteSpace(_opened.TransferNo) ? $"TR-{_opened.Id}" : _opened.TransferNo,
+            string.IsNullOrWhiteSpace(_opened.Reason) ? "Stock transfer summary" : _opened.Reason,
+            _opened.TotalQty,
+            "units",
+            _opened.FromWarehouseId.ToString(CultureInfo.InvariantCulture),
+            _opened.ToWarehouseId.ToString(CultureInfo.InvariantCulture),
+            0, 0, 0, 0, 0,
+            $"{_opened.TotalItems.ToString(CultureInfo.InvariantCulture)} item(s)")];
+
     private string OpenedCaption => _opened is null
         ? ""
         : (!string.IsNullOrWhiteSpace(_opened.TransferNo)
@@ -160,6 +201,12 @@
     private string OpenedReturnHref => _openedId > 0
         ? _listHref + "?transfer_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
         : _listHref;
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
 
     protected override async Task OnInitializedAsync()
     {

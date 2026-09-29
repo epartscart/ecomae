@@ -131,6 +131,19 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void InventoryTransferAndQualityPagesUseSharedWorkspaceForOpenedRecords()
+    {
+        var transfers = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpStockTransfersApp.razor"));
+        var quality = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpQualityApp.razor"));
+        Assert.Contains("ErpDocumentWorkspace", transfers, StringComparison.Ordinal);
+        Assert.Contains("TransferWorkspaceFields", transfers, StringComparison.Ordinal);
+        Assert.Contains("TransferWorkspaceLines", transfers, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", quality, StringComparison.Ordinal);
+        Assert.Contains("QualityWorkspaceFields", quality, StringComparison.Ordinal);
+        Assert.Contains("QualityWorkspaceLines", quality, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));
