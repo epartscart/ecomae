@@ -21697,7 +21697,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 {
                     Responses = responses,
                     SupplierRanking = ranking,
-                    BestQuotes = bestQuotes
+                    BestQuotes = bestQuotes,
+                    RecommendedSupplierId = ranking.FirstOrDefault()?.SupplierId ?? 0
                 };
             }
 

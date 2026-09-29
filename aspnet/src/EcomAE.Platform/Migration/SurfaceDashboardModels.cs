@@ -6640,7 +6640,8 @@ public sealed record ErpRfqDetail(
     IReadOnlyList<ErpRfqLineDigest> Lines,
     IReadOnlyList<ErpRfqResponseDigest>? Responses = null,
     IReadOnlyList<ErpRfqSupplierRanking>? SupplierRanking = null,
-    IReadOnlyList<ErpRfqBestQuoteDigest>? BestQuotes = null);
+    IReadOnlyList<ErpRfqBestQuoteDigest>? BestQuotes = null,
+    long RecommendedSupplierId = 0);
 
 public sealed record ErpRfqLineDigest(
     long Id,

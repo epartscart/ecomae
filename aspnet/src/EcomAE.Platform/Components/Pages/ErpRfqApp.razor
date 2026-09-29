@@ -55,6 +55,16 @@
             <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path. When PHP SCM lines exist, the workspace reads their persisted request quantities and target prices without creating or mutating the PHP-owned schema; supplier response comparison and award remain Classic-owned.</p>
             @if (_opened.Responses is { Count: > 0 })
             {
+                <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQ comparison recommendation" style="margin-top:1rem">
+                    <div class="kpi">
+                        <div class="lbl">PHP comparison recommendation</div>
+                        <div class="val">@(_opened.RecommendedSupplierId > 0 ? $"Supplier {_opened.RecommendedSupplierId.ToString(CultureInfo.InvariantCulture)}" : "No recommendation")</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="lbl">Award state</div>
+                        <div class="val">Classic-owned</div>
+                    </div>
+                </div>
                 <p class="text-muted" style="margin:1rem 0 .4rem">Persisted supplier responses (comparison read-only)</p>
                 <table class="table table-bordered table-condensed table-epc epc-erp-table">
                     <thead><tr><th>Line</th><th>Supplier</th><th class="text-right">Unit price</th><th class="text-right">Line total</th><th class="text-right">Lead days</th><th>Notes</th></tr></thead>

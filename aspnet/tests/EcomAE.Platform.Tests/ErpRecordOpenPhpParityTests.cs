@@ -2753,6 +2753,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("LineTotal", reporter, StringComparison.Ordinal);
         Assert.Contains("SupplierRanking", razor, StringComparison.Ordinal);
         Assert.Contains("BestQuotes", razor, StringComparison.Ordinal);
+        Assert.Contains("RecommendedSupplierId", razor, StringComparison.Ordinal);
+        Assert.Contains("PHP comparison recommendation", razor, StringComparison.Ordinal);
         Assert.Contains("Best supplier per RFQ line", razor, StringComparison.Ordinal);
         Assert.Contains("comparison read-only", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
