@@ -349,7 +349,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("AmountExVat", razor, StringComparison.Ordinal);
         Assert.Contains("VatAmount", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpPurchasesAmend", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpPurchasesDelete", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpPurchasesVoid", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
