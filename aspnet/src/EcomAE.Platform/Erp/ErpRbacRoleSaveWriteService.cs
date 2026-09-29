@@ -18,15 +18,18 @@ public interface IErpRbacRoleSaveWriteService
 public sealed record ErpRbacRoleSaveWriteRequest(
     long CompanyId = 0,
     string? Code = null,
-    string? Name = null);
+    string? Name = null,
+    int ActorUserId = 0);
 
 public sealed class ErpRbacRoleSaveWriteService : IErpRbacRoleSaveWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpRbacRoleSaveWriteService(IErpWriteConnectionFactory connections)
+    public ErpRbacRoleSaveWriteService(IErpWriteConnectionFactory connections, IErpAuditLogWriter audit)
     {
         _connections = connections;
+        _audit = audit;
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(
@@ -72,6 +75,20 @@ public sealed class ErpRbacRoleSaveWriteService : IErpRbacRoleSaveWriteService
             cancellationToken,
             companyId,
             code).ConfigureAwait(false);
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorUserId,
+            "rbac_role_save",
+            "rbac_role",
+            id,
+            "ERP role saved",
+            new Dictionary<string, string?>
+            {
+                ["company_id"] = companyId.ToString(),
+                ["code"] = code,
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Role saved", id);
     }
 

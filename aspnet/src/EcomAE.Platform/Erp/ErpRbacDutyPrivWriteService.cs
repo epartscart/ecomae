@@ -18,15 +18,18 @@ public interface IErpRbacDutyPrivWriteService
 public sealed record ErpRbacDutyPrivWriteRequest(
     long DutyId = 0,
     long PrivilegeId = 0,
-    int? Attach = null);
+    int? Attach = null,
+    int ActorUserId = 0);
 
 public sealed class ErpRbacDutyPrivWriteService : IErpRbacDutyPrivWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpRbacDutyPrivWriteService(IErpWriteConnectionFactory connections)
+    public ErpRbacDutyPrivWriteService(IErpWriteConnectionFactory connections, IErpAuditLogWriter audit)
     {
         _connections = connections;
+        _audit = audit;
     }
 
     public async Task<ErpSimpleWriteResult> AttachAsync(
@@ -69,6 +72,20 @@ public sealed class ErpRbacDutyPrivWriteService : IErpRbacDutyPrivWriteService
                 request.PrivilegeId).ConfigureAwait(false);
         }
 
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorUserId,
+            attach ? "rbac_duty_priv_attach" : "rbac_duty_priv_detach",
+            "rbac_duty_privilege",
+            request.DutyId,
+            attach ? "ERP privilege attached to duty" : "ERP privilege detached from duty",
+            new Dictionary<string, string?>
+            {
+                ["duty_id"] = request.DutyId.ToString(),
+                ["privilege_id"] = request.PrivilegeId.ToString(),
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Duty privileges updated", request.DutyId);
     }
 

@@ -16560,7 +16560,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.SaveAsync(
-            new ErpRbacPrivSaveWriteRequest(companyId, code, name, accessLevel),
+            new ErpRbacPrivSaveWriteRequest(companyId, code, name, accessLevel, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -16607,7 +16607,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.SaveAsync(
-            new ErpRbacDutySaveWriteRequest(companyId, code, name),
+            new ErpRbacDutySaveWriteRequest(companyId, code, name, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -16654,7 +16654,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.SaveAsync(
-            new ErpRbacRoleSaveWriteRequest(companyId, code, name),
+            new ErpRbacRoleSaveWriteRequest(companyId, code, name, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -16705,7 +16705,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.AttachAsync(
-            new ErpRbacDutyPrivWriteRequest(dutyId, privilegeId, attach),
+            new ErpRbacDutyPrivWriteRequest(dutyId, privilegeId, attach, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -16756,7 +16756,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.AttachAsync(
-            new ErpRbacRoleDutyWriteRequest(roleId, dutyId, attach),
+            new ErpRbacRoleDutyWriteRequest(roleId, dutyId, attach, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -16809,7 +16809,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.AssignAsync(
-            new ErpRbacUserRoleWriteRequest(companyId, userId, roleId, assign),
+            new ErpRbacUserRoleWriteRequest(companyId, userId, roleId, assign, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,

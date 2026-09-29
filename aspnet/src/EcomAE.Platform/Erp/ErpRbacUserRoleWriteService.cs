@@ -19,15 +19,18 @@ public sealed record ErpRbacUserRoleWriteRequest(
     long CompanyId = 0,
     long UserId = 0,
     long RoleId = 0,
-    int? Assign = null);
+    int? Assign = null,
+    int ActorUserId = 0);
 
 public sealed class ErpRbacUserRoleWriteService : IErpRbacUserRoleWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpRbacUserRoleWriteService(IErpWriteConnectionFactory connections)
+    public ErpRbacUserRoleWriteService(IErpWriteConnectionFactory connections, IErpAuditLogWriter audit)
     {
         _connections = connections;
+        _audit = audit;
     }
 
     public async Task<ErpSimpleWriteResult> AssignAsync(
@@ -73,6 +76,21 @@ public sealed class ErpRbacUserRoleWriteService : IErpRbacUserRoleWriteService
                 request.RoleId).ConfigureAwait(false);
         }
 
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorUserId,
+            assign ? "rbac_user_role_assign" : "rbac_user_role_revoke",
+            "rbac_user_role",
+            request.RoleId,
+            assign ? "ERP role assigned to user" : "ERP role revoked from user",
+            new Dictionary<string, string?>
+            {
+                ["company_id"] = companyId.ToString(),
+                ["user_id"] = request.UserId.ToString(),
+                ["role_id"] = request.RoleId.ToString(),
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("User role updated", request.RoleId);
     }
 
