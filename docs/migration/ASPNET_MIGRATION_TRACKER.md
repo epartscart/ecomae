@@ -48,6 +48,11 @@ acceptance, the phase headline remains **24/24 Phase A checklist items,
 20.4% weighted done, 79.6% pending**; formal interactive acceptance remains
 zero even where route and dry-run catalog coverage is high.
 
+See `docs/migration/ASP_NET_COMPLETION_ROADMAP.md` for the area-by-area
+pending-work bands, ordered execution steps, and session-based planning
+estimates. Those estimates are not acceptance percentages and do not authorize
+PHP/PHP-FPM removal.
+
 ## Production reconciliation and remaining completion gates
 
 The production state must be reported separately from repository implementation

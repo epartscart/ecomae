@@ -58,6 +58,11 @@ inventory remains approximately **98% presentation routes live** and
 **0% formally accepted interactive migration**. These figures must not be
 merged into a single completion percentage.
 
+The area-by-area pending percentages, execution order, and session bands are
+maintained in `docs/migration/ASP_NET_COMPLETION_ROADMAP.md`. They are planning
+estimates only; the strictest unresolved parity or production gate controls
+cutover.
+
 ## Owner-supplied PHP ERP screenshot audit
 
 The owner supplied a 31-screenshot PHP reference pack on 2026-09-29 covering
