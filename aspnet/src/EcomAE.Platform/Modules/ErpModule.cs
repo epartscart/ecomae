@@ -546,6 +546,8 @@ public sealed class ErpModule : ISurfaceModule
             ILegacySessionValidator validator,
             IErpInvoiceSaveDryRun dryRun,
             EcomAE.Platform.Erp.IErpManualInvoiceWriteService writes,
+            IErpDimensionWriteService dimensions,
+            IErpBosWfRaiseWriteService workflow,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -569,6 +571,24 @@ public sealed class ErpModule : ISurfaceModule
                         body.LinesJson,
                         body.PaymentTerms,
                         body.DueDate,
+                        session.UserId),
+                    cancellationToken);
+                if (body.Dimensions is { Count: > 0 })
+                {
+                    await dimensions.SaveAsync(
+                        "invoice",
+                        saved.InvoiceId,
+                        ErpDimensionWriteService.ParseDimMap(body.Dimensions),
+                        cancellationToken);
+                }
+
+                await workflow.RaiseAsync(
+                    new ErpBosWfRaiseWriteRequest(
+                        "sales_invoice",
+                        saved.InvoiceId,
+                        "INV #" + saved.InvoiceId,
+                        saved.TotalInclVat,
+                        "INV #" + saved.InvoiceId,
                         session.UserId),
                     cancellationToken);
                 return ("Invoice saved as draft", new
@@ -21128,7 +21148,8 @@ public sealed class ErpModule : ISurfaceModule
         string? BuyerJson = null,
         string? LinesJson = null,
         string? PaymentTerms = null,
-        string? DueDate = null);
+        string? DueDate = null,
+        Dictionary<string, long>? Dimensions = null);
     private sealed record ErpInvoiceListBody(bool ConfirmWrites = false);
     private sealed record ErpInvoiceFromOrderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
