@@ -20,7 +20,7 @@ public sealed class ErpWmsReceiveDryRun : IErpWmsReceiveDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                "Use confirm_writes=true to execute the live ASP.NET WMS receiving writer.",
                 request);
         }
 
@@ -39,7 +39,7 @@ public sealed class ErpWmsReceiveDryRun : IErpWmsReceiveDryRun
             "dry-run-validated", 0, true, false, false, "ok", true,
             item, request.Qty, request.ReceiveLocationId, request.PutawayLocationId,
             ["INSERT `epc_erp_wms_lp` + INSERT `epc_erp_wms_work` putaway (NOT executed)"],
-            "ErpWmsReceive payload validated; write blocked until confirmWrites=true.",
+            "ErpWmsReceive payload validated; no write was performed.",
             "content/shop/finance/epc_erp_wms.php");
     }
 

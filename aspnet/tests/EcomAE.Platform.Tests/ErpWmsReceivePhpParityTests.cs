@@ -41,7 +41,8 @@ public sealed class ErpWmsReceivePhpParityTests
         var row = SurfacePayloadContractCatalog.Functions.First(item =>
             item.AspNetRouteOrCapability == "/erp/wms/receive");
         Assert.Equal("write-live-gated", row.Status);
-        Assert.Contains("epc_wms_receive", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("confirm_writes=false", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("ASP.NET writer", row.Notes, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP remains authoritative", row.Notes, StringComparison.Ordinal);
     }
 

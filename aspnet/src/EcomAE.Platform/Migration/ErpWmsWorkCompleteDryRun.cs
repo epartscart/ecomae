@@ -20,7 +20,7 @@ public sealed class ErpWmsWorkCompleteDryRun : IErpWmsWorkCompleteDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                "Use confirm_writes=true to execute the live ASP.NET WMS work-completion writer.",
                 request);
         }
 
@@ -32,7 +32,7 @@ public sealed class ErpWmsWorkCompleteDryRun : IErpWmsWorkCompleteDryRun
         return new ErpWmsWorkCompleteDryRunResult(
             "dry-run-validated", 0, true, false, false, "ok", true, request.Id,
             ["epc_wms_work_complete(@id) (NOT executed)"],
-            "ErpWmsWorkComplete payload validated; write blocked until confirmWrites=true.",
+            "ErpWmsWorkComplete payload validated; no write was performed.",
             "content/shop/finance/epc_erp_wms.php");
     }
 

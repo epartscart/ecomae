@@ -36,7 +36,8 @@ public sealed class ErpWmsWorkCompletePhpParityTests
         var row = SurfacePayloadContractCatalog.Functions.First(item =>
             item.AspNetRouteOrCapability == "/erp/wms/work/complete");
         Assert.Equal("write-live-gated", row.Status);
-        Assert.Contains("epc_wms_work_complete", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("confirm_writes=false", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("ASP.NET writer", row.Notes, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP remains authoritative", row.Notes, StringComparison.Ordinal);
 
         var delete = SurfacePayloadContractCatalog.Functions.First(item =>
