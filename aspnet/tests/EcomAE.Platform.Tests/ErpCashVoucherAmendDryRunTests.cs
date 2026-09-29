@@ -28,6 +28,7 @@ public sealed class ErpCashVoucherAmendDryRunTests
         Assert.Equal("dry-run-validated", result.Status);
         Assert.Equal("ok", result.ValidationCode);
         Assert.True(result.WouldWrite);
+        Assert.False(result.PhpAuthoritative);
         Assert.Contains("NOT executed", result.SimulatedSql, StringComparison.Ordinal);
     }
 
@@ -39,5 +40,6 @@ public sealed class ErpCashVoucherAmendDryRunTests
             new ErpCashVoucherAmendRequest(9, "SAME", "n"));
         Assert.Equal("no_change", result.ValidationCode);
         Assert.False(result.WouldWrite);
+        Assert.False(result.PhpAuthoritative);
     }
 }

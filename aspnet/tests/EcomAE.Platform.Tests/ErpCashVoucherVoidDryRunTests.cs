@@ -23,6 +23,7 @@ public sealed class ErpCashVoucherVoidDryRunTests
         var r = ErpCashVoucherVoidDryRun.EvaluateAgainstEntries([Entry(9)], new ErpCashVoucherVoidRequest(9, "bad cheque"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.True(r.WouldWrite);
+        Assert.False(r.PhpAuthoritative);
         Assert.Contains(r.SimulatedSql, s => s.Contains("NOT executed", StringComparison.Ordinal));
     }
 }
