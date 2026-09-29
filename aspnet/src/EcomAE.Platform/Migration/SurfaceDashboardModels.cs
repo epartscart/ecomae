@@ -8053,6 +8053,10 @@ public sealed record ErpQualityDigestResult(
     IReadOnlyList<ErpQmNcrDigest> Ncrs,
     int Count, int OpenOrderCount, int OpenNcrCount, string Source, string Message);
 
+public sealed record ErpQmResultDigest(
+    long Id, long OrderId, long TestId, string TestName, decimal? ValueNum,
+    string ValueText, string Result, long TimeCreated);
+
 public sealed record ErpRfidTagDigest(
     long Id, string RfidEpc, string Sku, string ItemDescription, long WarehouseId,
     string LocationZone, string Status, string LastScannedAt, long TimeCreated);

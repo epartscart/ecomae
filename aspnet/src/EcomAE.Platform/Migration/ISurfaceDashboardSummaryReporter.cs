@@ -918,6 +918,8 @@ public interface ISurfaceDashboardSummaryReporter
 
     Task<ErpQualityDigestResult> BuildErpQualityDigestAsync(int limit, CancellationToken cancellationToken = default);
 
+    Task<IReadOnlyList<ErpQmResultDigest>> ListErpQualityResultsAsync(long orderId, CancellationToken cancellationToken = default);
+
     /// <summary>Opened NCR (Open key <c>ncr_id</c>, remapped by <c>qv=ncr</c>) plus same-status siblings. Surfaces 280-char corrective-action excerpt and time_closed hidden from the list.</summary>
     Task<ErpQmNcrDetailResult> BuildErpQualityNcrDetailAsync(long id, CancellationToken cancellationToken = default);
 

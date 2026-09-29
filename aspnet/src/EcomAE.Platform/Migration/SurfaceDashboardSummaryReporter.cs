@@ -25014,6 +25014,38 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<IReadOnlyList<ErpQmResultDigest>> ListErpQualityResultsAsync(long orderId, CancellationToken cancellationToken = default)
+    {
+        if (orderId <= 0 || !_connections.IsConfigured)
+            return [];
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpQmResults;
+            AddParameter(command, "@order_id", orderId);
+            var results = new List<ErpQmResultDigest>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                results.Add(new(
+                    ReadI64(reader, "id"),
+                    ReadI64(reader, "order_id"),
+                    ReadI64(reader, "test_id"),
+                    ReadStr(reader, "test_name"),
+                    reader["value_num"] is DBNull ? null : ReadDec(reader, "value_num"),
+                    ReadStr(reader, "value_text"),
+                    ReadStr(reader, "result"),
+                    ReadI64(reader, "time_created")));
+            }
+            return results;
+        }
+        catch
+        {
+            return [];
+        }
+    }
+
     public async Task<ErpRfidDigestResult> BuildErpRfidDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
