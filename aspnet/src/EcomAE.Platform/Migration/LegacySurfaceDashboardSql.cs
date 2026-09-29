@@ -7389,7 +7389,7 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
-    /// <summary>Opened payment batch. notes is a short excerpt. Save stays Classic.</summary>
+    /// <summary>Opened payment batch. notes is a short excerpt.</summary>
     public const string SelectErpPaymentBatchDetail = """
         SELECT b.`id`, IFNULL(b.`batch_no`,'') AS batch_no, IFNULL(b.`batch_type`,'') AS batch_type,
                IFNULL(b.`account_id`,0) AS account_id, IFNULL(a.`name`,'') AS account_name,

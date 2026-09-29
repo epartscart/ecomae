@@ -12042,7 +12042,7 @@ public sealed class ErpModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Open ?batch_id= loads 280-char notes excerpt; same-status siblings. PHP epc_erp_payment_batches / payment_batch_save remain authoritative."
+                note = "Open ?batch_id= loads 280-char notes excerpt; same-status siblings. Confirmed draft creation uses the authenticated ASP.NET payment-batch writer."
             });
         });
 

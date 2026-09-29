@@ -1832,7 +1832,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "so_status dry-run", "/erp/ajax/so-status", "write-dry-run-gated", "POST dry-run for PHP so_status; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "so_to_invoice dry-run", "/erp/ajax/so-to-invoice", "write-dry-run-gated", "POST dry-run for PHP so_to_invoice; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "transfer_voucher dry-run", "/erp/ajax/transfer-voucher", "write-dry-run-gated", "POST dry-run for PHP transfer_voucher; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "payment_batch_save dry-run", "/erp/ajax/payment-batch-save", "write-dry-run-gated", "POST dry-run for PHP payment_batch_save; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "payment_batch_save", "/erp/ajax/payment-batch-save", "write-live-gated", "POST validates with confirm_writes=false (writes=0); confirm_writes=true creates a draft through the authenticated ASP.NET writer; tenant schema remains PHP-managed."),
         new("erp", "petty_cash_save dry-run", "/erp/ajax/petty-cash-save", "write-dry-run-gated", "POST dry-run for PHP petty_cash_save; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "agenda_save", "/erp/ajax/agenda-save", "write-live-gated", "POST PHP epc_erp_agenda_save ajax alias; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "kb_save", "/erp/ajax/kb-save", "write-live-gated", "POST PHP epc_erp_kb_save ajax alias; confirmWrites=true writes ASP.NET; kb seed defaults and schema ensure stay PHP."),
