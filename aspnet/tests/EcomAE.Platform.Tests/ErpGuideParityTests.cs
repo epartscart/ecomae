@@ -122,6 +122,15 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void InventoryRfidPageUsesSharedWorkspaceForOpenedSessions()
+    {
+        var rfid = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpRfidApp.razor"));
+        Assert.Contains("ErpDocumentWorkspace", rfid, StringComparison.Ordinal);
+        Assert.Contains("RfidWorkspaceFields", rfid, StringComparison.Ordinal);
+        Assert.Contains("RfidWorkspaceLines", rfid, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));

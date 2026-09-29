@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -50,22 +51,21 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.SessionType) ? "—" : _opened.SessionType)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Warehouse</dt><dd>@(_opened.WarehouseId > 0 ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Zone</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Zone) ? "—" : _opened.Zone)</dd>
-                <dt>Scanned</dt><dd>@_opened.TotalScanned.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Expected</dt><dd>@_opened.TotalExpected.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Found</dt><dd>@_opened.TotalFound.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Missing</dt><dd>@_opened.TotalMissing.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Unexpected</dt><dd>@_opened.TotalUnexpected.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Scanner</dt><dd>@(_opened.ScannedBy > 0 ? _opened.ScannedBy.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Scanner name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ScannedByName) ? "—" : _opened.ScannedByName)</dd>
-                <dt>Started</dt><dd>@FormatTime(_opened.TimeStarted)</dd>
-                <dt>Completed</dt><dd>@FormatTime(_opened.TimeCompleted)</dd>
-            </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="RFID scan session"
+                Title="@OpenedCaption"
+                DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Warehouse"
+                Party="@(_opened.WarehouseId > 0 ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : "—")"
+                ReferenceLabel="Zone"
+                Reference="@_opened.Zone"
+                Status="@_opened.Status"
+                ApprovalState="@(_opened.TotalMissing == 0 && _opened.TotalUnexpected == 0 ? "Reconciled" : "Exception review")"
+                CompanyContext="Tenant / company"
+                Currency="—"
+                Fields="@RfidWorkspaceFields"
+                Lines="@RfidWorkspaceLines"
+                Tabs="@RfidWorkspaceTabs" />
             <p class="text-muted" style="margin:.85rem 0 0">Reader IP/TID omitted. Register, start, and scan write here.</p>
             @if (_openedSiblings.Count > 0)
             {
@@ -259,6 +259,31 @@
     private long _openedId;
     private ErpRfidSessionDetail? _opened;
     private IReadOnlyList<ErpRfidSessionDigest> _openedSiblings = [];
+    private IReadOnlyList<string> RfidWorkspaceTabs => ["General", "Counts", "Exceptions", "Audit"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> RfidWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Session type", _opened.SessionType, "General"),
+            new("Status", _opened.Status, "General"),
+            new("Warehouse", _opened.WarehouseId > 0 ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : "—", "General"),
+            new("Zone", _opened.Zone, "General"),
+            new("Scanned", _opened.TotalScanned.ToString(CultureInfo.InvariantCulture), "Counts"),
+            new("Expected", _opened.TotalExpected.ToString(CultureInfo.InvariantCulture), "Counts"),
+            new("Found", _opened.TotalFound.ToString(CultureInfo.InvariantCulture), "Counts"),
+            new("Missing", _opened.TotalMissing.ToString(CultureInfo.InvariantCulture), "Exceptions"),
+            new("Unexpected", _opened.TotalUnexpected.ToString(CultureInfo.InvariantCulture), "Exceptions"),
+            new("Scanner", _opened.ScannedBy > 0 ? _opened.ScannedBy.ToString(CultureInfo.InvariantCulture) : "—", "Audit"),
+            new("Scanner name", _opened.ScannedByName, "Audit"),
+            new("Started", FormatTime(_opened.TimeStarted), "Audit"),
+            new("Completed", FormatTime(_opened.TimeCompleted), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> RfidWorkspaceLines => _opened is null
+        ? []
+        : [new("RFID", $"{_opened.SessionType} session", _opened.TotalScanned, "scans",
+            _opened.WarehouseId.ToString(CultureInfo.InvariantCulture), _opened.Zone,
+            0, 0, 0, 0, _opened.TotalFound, $"Expected {_opened.TotalExpected}; missing {_opened.TotalMissing}; unexpected {_opened.TotalUnexpected}")];
 
     private string OpenedCaption => _opened is null
         ? ""
