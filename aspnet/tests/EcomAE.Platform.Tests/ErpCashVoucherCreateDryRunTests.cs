@@ -12,6 +12,7 @@ public sealed class ErpCashVoucherCreateDryRunTests
             new ErpCashEntryCreateRequest(1, 10m, ConfirmWrites: true));
         Assert.Equal("dry-run-confirm-refused", r.Status);
         Assert.False(r.CutoverAllowed);
+        Assert.False(r.PhpAuthoritative);
     }
 
     [Fact]
@@ -21,6 +22,19 @@ public sealed class ErpCashVoucherCreateDryRunTests
         Assert.Equal("dry-run-validated", r.Status);
         Assert.Equal(0, r.Writes);
         Assert.Equal("receipt", r.EntryType);
+        Assert.False(r.PhpAuthoritative);
+        Assert.Contains("no write was performed", r.Detail, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void CashEntryCatalogUsesLiveWriteGate()
+    {
+        var row = SurfacePayloadContractCatalog.Functions.Single(item =>
+            item.AspNetRouteOrCapability == "/erp/cash-entries/create");
+
+        Assert.Equal("write-live-gated", row.Status);
+        Assert.Contains("confirm_writes=true", row.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP authoritative", row.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
