@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Migration;
 using Xunit;
@@ -6,6 +7,20 @@ namespace EcomAE.Platform.Tests;
 
 public sealed class SurfaceDashboardSummaryReporterTests
 {
+    [Fact]
+    public async Task BuildErpWorkspaceHome_ReportsRequestedCompanyScope()
+    {
+        var http = new DefaultHttpContext();
+        http.Request.QueryString = new QueryString("?company=3");
+        var reporter = new SurfaceDashboardSummaryReporter(
+            new UnconfiguredFactory(),
+            new HttpContextAccessor { HttpContext = http });
+
+        var workspace = await reporter.BuildErpWorkspaceHomeAsync();
+
+        Assert.Equal("Company 3", workspace.CompanyScope);
+    }
+
     [Fact]
     public async Task BuildReturnsMigrationPlaceholderWhenDbUnavailable()
     {

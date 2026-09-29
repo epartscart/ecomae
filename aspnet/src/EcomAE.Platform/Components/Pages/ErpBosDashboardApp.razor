@@ -42,6 +42,7 @@
                     <span class="ns-chip"><i class="fa fa-money"></i> @_currency</span>
                     <span class="ns-chip"><i class="fa fa-user"></i> @_profile.Label</span>
                     <span class="ns-chip"><i class="fa fa-building"></i> @_companyLabel</span>
+                    <span class="ns-chip"><i class="fa fa-filter"></i> Data scope: @_home.CompanyScope</span>
                     @if (!ErpNetsuiteDashboardCatalog.Can(_profile, "profit"))
                     {
                         <span class="ns-chip" title="Profit and margin are hidden for this profile"><i class="fa fa-lock"></i> Profit restricted</span>

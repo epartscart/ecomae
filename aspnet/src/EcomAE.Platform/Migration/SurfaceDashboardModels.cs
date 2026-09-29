@@ -8477,7 +8477,8 @@ public sealed record ErpWorkspaceHomeDigest(
     string PeriodTo,
     string Source,
     string Message,
-    ErpInsightsCommerceStats? Commerce = null);
+    ErpInsightsCommerceStats? Commerce = null,
+    string CompanyScope = "Tenant");
 
 /// <summary>PHP <c>epc_insights_suite_commerce_stats</c>.</summary>
 public sealed record ErpInsightsCommerceStats(

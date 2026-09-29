@@ -130,6 +130,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         using var activity = EcomAeActivitySources.Surfaces.StartActivity("surface.erp.workspace-home");
         activity?.SetTag("ecomae.surface", "erp");
         activity?.SetTag("ecomae.digest", "/erp/workspace-home");
+        var requestedCompanyId = ErpHostContext.ActiveCompanyIdFromQuery(
+            _httpContextAccessor?.HttpContext?.Request);
+        var companyScope = requestedCompanyId > 0
+            ? $"Company {requestedCompanyId}"
+            : "Tenant";
+        activity?.SetTag("ecomae.erp_company_scope", companyScope);
 
         var nowDt = DateTime.UtcNow;
         var periodFrom = new DateTime(nowDt.Year, nowDt.Month, 1, 0, 0, 0, DateTimeKind.Utc);
@@ -258,7 +264,8 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 periodToStr,
                 currentSummary.Source,
                 currentSummary.Message,
-                commerce);
+                commerce,
+                companyScope);
         }
         catch (Exception ex)
         {
@@ -16355,7 +16362,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             0, 0, 0,
             source, message);
 
-    private static ErpWorkspaceHomeDigest EmptyErpWorkspaceHome(string source, string message, string periodFrom, string periodTo)
+    private ErpWorkspaceHomeDigest EmptyErpWorkspaceHome(string source, string message, string periodFrom, string periodTo)
     {
         var zero = new ErpWorkspacePeriodKpis(
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
@@ -16382,7 +16389,16 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             periodFrom,
             periodTo,
             source,
-            message);
+            message,
+            null,
+            GetRequestedCompanyScope());
+    }
+
+    private string GetRequestedCompanyScope()
+    {
+        var requestedCompanyId = ErpHostContext.ActiveCompanyIdFromQuery(
+            _httpContextAccessor?.HttpContext?.Request);
+        return requestedCompanyId > 0 ? $"Company {requestedCompanyId}" : "Tenant";
     }
 
     /// <summary>Mirrors PHP <c>epc_erp_cc_approval_queue</c> — only emits rows when count &gt; 0.</summary>
