@@ -1,5 +1,6 @@
 @page "/erp/user-control-app"
 @layout Layout.PhpChromeLayout
+@using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Presentation
@@ -7,6 +8,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpRbacAuditReadService RbacAudit
+@inject IErpPermissionScopeReadService PermissionScopes
 
 <PageTitle>ERP user control · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -26,6 +28,8 @@
             <div class="kpi"><div class="lbl">Surface capabilities</div><div class="val">@_capabilities.Count</div></div>
             <div class="kpi"><div class="lbl">Module ACL rows</div><div class="val">@_modules.Count</div></div>
             <div class="kpi"><div class="lbl">Standard actions</div><div class="val">@ErpCapabilityCatalog.Actions.Count</div></div>
+            <div class="kpi"><div class="lbl">Scoped grants</div><div class="val">@_grants.Count</div></div>
+            <div class="kpi"><div class="lbl">Delegations</div><div class="val">@_delegations.Count</div></div>
         </div>
 
         <div class="epc-erp-table-wrap">
@@ -56,6 +60,56 @@
                             <td>@moduleEvidence</td>
                             <td><a href="@group.Href">Open area</a></td>
                         </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <h3 style="margin-top:1.2rem">Company/site scope and approval controls</h3>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Type</th>
+                        <th>Group</th>
+                        <th>Actions</th>
+                        <th>Company scope</th>
+                        <th>Site scope</th>
+                        <th>Approval limit</th>
+                        <th>Effective window</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (_grants.Count == 0 && _delegations.Count == 0)
+                    {
+                        <tr><td colspan="7">No persisted company/site grants or delegations are available.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var grant in _grants)
+                        {
+                            <tr>
+                                <td>Direct grant</td>
+                                <td>@grant.GroupKey</td>
+                                <td>@FormatSet(grant.Actions)</td>
+                                <td>@FormatScope(grant.CompanyIds)</td>
+                                <td>@FormatScope(grant.SiteIds)</td>
+                                <td>@FormatLimit(grant.ApprovalLimit)</td>
+                                <td>@FormatWindow(grant.EffectiveFrom, grant.EffectiveTo)</td>
+                            </tr>
+                        }
+                        @foreach (var delegation in _delegations)
+                        {
+                            <tr>
+                                <td>Delegation from #@delegation.PrincipalUserId</td>
+                                <td>@delegation.GroupKey</td>
+                                <td>@FormatSet(delegation.Actions)</td>
+                                <td>@FormatScope(delegation.CompanyIds)</td>
+                                <td>@FormatScope(delegation.SiteIds)</td>
+                                <td>@FormatLimit(delegation.ApprovalLimit)</td>
+                                <td>@FormatWindow(delegation.EffectiveFrom, delegation.EffectiveTo)</td>
+                            </tr>
+                        }
                     }
                 </tbody>
             </table>
@@ -92,8 +146,9 @@
 
         <p class="text-muted">
             This window is the control-plane view for role → capability → area/action mappings.
-            Company/site scope, approval limits, effective dates, and delegations remain mandatory
-            live-control fields; RBAC mutations now have an auditable history projection.
+            Company/site scope, approval limits, effective dates, and delegations are loaded from
+            the tenant-scoped permission tables and remain enforced by the server-side write policy.
+            RBAC mutations retain an auditable history projection.
         </p>
     }
 </PhpErpDesktopChrome>
@@ -104,6 +159,8 @@
     private IReadOnlyList<string> _capabilities = [];
     private IReadOnlyList<ModuleAclEntry> _modules = [];
     private IReadOnlyList<ErpRbacAuditEntry> _auditEntries = [];
+    private IReadOnlyList<ErpPermissionGrant> _grants = [];
+    private IReadOnlyList<ErpPermissionDelegation> _delegations = [];
     private LegacySessionContext? _session;
 
     protected override async Task OnInitializedAsync()
@@ -126,6 +183,9 @@
         _capabilities = session.Capabilities;
         _modules = session.Modules;
         _auditEntries = await RbacAudit.ListAsync(50, ctx.RequestAborted);
+        var scopedPermissions = await PermissionScopes.ListForUserAsync(session.UserId, ctx.RequestAborted);
+        _grants = scopedPermissions.Grants;
+        _delegations = scopedPermissions.Delegations;
     }
 
     private bool AreaEnabled(ErpCapabilityGroup group)
@@ -140,4 +200,23 @@
         => time <= 0
             ? "—"
             : DateTimeOffset.FromUnixTimeSeconds(time).UtcDateTime.ToString("yyyy-MM-dd HH:mm 'UTC'");
+
+    private static string FormatSet(IReadOnlySet<string>? values)
+        => values is null || values.Count == 0
+            ? "All"
+            : string.Join(", ", values.Order(StringComparer.OrdinalIgnoreCase));
+
+    private static string FormatScope(IReadOnlySet<long>? values)
+        => values is null || values.Count == 0
+            ? "All"
+            : string.Join(", ", values.Order());
+
+    private static string FormatLimit(decimal? value)
+        => value is null ? "Unlimited" : value.Value.ToString("N2", CultureInfo.InvariantCulture);
+
+    private static string FormatWindow(DateTimeOffset? from, DateTimeOffset? to)
+        => $"{FormatTime(from)} → {FormatTime(to)}";
+
+    private static string FormatTime(DateTimeOffset? value)
+        => value is null ? "Open" : value.Value.UtcDateTime.ToString("yyyy-MM-dd HH:mm 'UTC'");
 }

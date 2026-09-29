@@ -174,6 +174,9 @@ public sealed class ErpNavigationCoverageTests
 
         Assert.Contains("@page \"/erp/user-control-app\"", page, StringComparison.Ordinal);
         Assert.Contains("role → capability → area/action mappings", page, StringComparison.Ordinal);
+        Assert.Contains("@inject IErpPermissionScopeReadService PermissionScopes", page, StringComparison.Ordinal);
+        Assert.Contains("Company/site scope and approval controls", page, StringComparison.Ordinal);
+        Assert.Contains("FormatWindow", page, StringComparison.Ordinal);
         foreach (var group in new[] { "Finance", "Purchasing", "Sales", "Inventory", "Projects / fit-out", "Jewellery", "HR / payroll", "Administration" })
         {
             Assert.Contains("new(\"" + group, catalog, StringComparison.Ordinal);
