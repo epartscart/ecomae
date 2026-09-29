@@ -332,15 +332,15 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var profile = new Dictionary<string, string>(StringComparer.Ordinal);
         foreach (var (key, fallback) in new[]
         {
-            ("seller_name", ""),
+            ("seller_name", "ePartsCart LLC"),
             ("seller_trn", ""),
             ("seller_tin", ""),
             ("seller_legal_reg_no", ""),
             ("seller_legal_reg_type", "TL"),
-            ("seller_authority_name", ""),
+            ("seller_authority_name", "Dubai Economy and Tourism"),
             ("seller_address_line1", ""),
-            ("seller_city", ""),
-            ("seller_emirate", ""),
+            ("seller_city", "Dubai"),
+            ("seller_emirate", "Dubai"),
             ("seller_country_code", "AE"),
             ("seller_phone", ""),
             ("seller_email", ""),
@@ -349,6 +349,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         {
             profile[key] = await SettingAsync(connection, key, fallback, cancellationToken).ConfigureAwait(false);
         }
+        profile["seller_peppol_endpoint"] = PeppolEndpoint(profile["seller_trn"]);
 
         return JsonSerializer.Serialize(profile);
     }
@@ -374,7 +375,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             ["buyer_city"] = "Dubai",
             ["buyer_emirate"] = "Dubai",
             ["buyer_country_code"] = "AE",
-            ["buyer_email"] = "",
+            ["buyer_email"] = userId > 0 ? "customer" + userId + "@epartscart.local" : "customer@epartscart.local",
             ["buyer_peppol_endpoint"] = "0235:9900000098",
         };
 
@@ -437,6 +438,12 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 
     private static string Text(DbDataReader reader, int ordinal)
         => reader.IsDBNull(ordinal) ? string.Empty : Convert.ToString(reader.GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+
+    private static string PeppolEndpoint(string trn)
+    {
+        var digits = new string(trn.Where(char.IsAsciiDigit).ToArray());
+        return digits.Length >= 10 ? "0235:" + digits[..10] : "0235:9900000098";
+    }
 
     private static List<ErpManualInvoiceLineInput> ParseLines(string? json)
     {
