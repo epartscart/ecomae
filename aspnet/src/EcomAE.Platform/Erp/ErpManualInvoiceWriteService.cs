@@ -777,7 +777,12 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 new XElement(
                     cac + "PartyLegalEntity",
                     new XElement(cbc + "RegistrationName", JsonText(json, prefix + "_name")),
-                    new XElement(cbc + "CompanyID", JsonText(json, prefix + "_legal_reg_no"))),
+                    new XElement(
+                        cbc + "CompanyID",
+                        JsonText(json, prefix + "_legal_reg_no"),
+                        prefix == "seller"
+                            ? new XAttribute("schemeID", JsonText(json, prefix + "_legal_reg_type"))
+                            : null)),
                 new XElement(
                     cac + "PostalAddress",
                     new XElement(cbc + "StreetName", JsonText(json, prefix + "_address_line1")),
