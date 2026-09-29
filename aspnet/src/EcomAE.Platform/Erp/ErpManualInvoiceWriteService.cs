@@ -7,7 +7,8 @@ public sealed record ErpManualInvoiceLineInput(
     string? ItemName,
     decimal Quantity,
     decimal UnitPrice,
-    decimal TaxRate = 5m);
+    decimal TaxRate = 5m,
+    string? ItemDescription = null);
 
 public sealed record ErpManualInvoiceWriteRequest(
     long Id,
@@ -145,11 +146,12 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_einvoice_lines` (`document_id`,`line_no`,`item_name`,`item_type`,`quantity`,`uom_code`,`unit_price`,`line_net`,`tax_category`,`tax_rate`,`tax_amount`,`gross_amount`,`vat_line_aed`,`line_amount_aed`) VALUES (?,?,?,'G',?,'C62',?,?, 'S',?,?,?,?,?)"),
+                        "INSERT INTO `epc_einvoice_lines` (`document_id`,`line_no`,`item_name`,`item_description`,`item_type`,`quantity`,`uom_code`,`unit_price`,`line_net`,`tax_category`,`tax_rate`,`tax_amount`,`gross_amount`,`vat_line_aed`,`line_amount_aed`) VALUES (?,?,?,?,'G',?,'C62',?,?, 'S',?,?,?,?,?)"),
                     cancellationToken,
                     invoiceId,
                     lineNo++,
                     Clip(line.ItemName, 255),
+                    Clip(line.ItemDescription, 1000),
                     line.Quantity,
                     line.UnitPrice,
                     net,
@@ -280,11 +282,12 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "INSERT INTO `epc_einvoice_lines` (`document_id`,`line_no`,`item_name`,`item_type`,`quantity`,`uom_code`,`unit_price`,`line_net`,`tax_category`,`tax_rate`,`tax_amount`,`gross_amount`,`vat_line_aed`,`line_amount_aed`) VALUES (?,?,?,'G',?,'C62',?,?, 'S',?,?,?,?,?)"),
+                        "INSERT INTO `epc_einvoice_lines` (`document_id`,`line_no`,`item_name`,`item_description`,`item_type`,`quantity`,`uom_code`,`unit_price`,`line_net`,`tax_category`,`tax_rate`,`tax_amount`,`gross_amount`,`vat_line_aed`,`line_amount_aed`) VALUES (?,?,?,?,'G',?,'C62',?,?, 'S',?,?,?,?,?)"),
                     cancellationToken,
                     request.Id,
                     lineNo++,
                     Clip(line.ItemName, 255),
+                    Clip(line.ItemDescription, 1000),
                     line.Quantity,
                     line.UnitPrice,
                     net,
@@ -485,7 +488,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `transaction_type_code` varchar(32) NOT NULL DEFAULT '00000000'", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `payment_means_code` varchar(16) NOT NULL DEFAULT '30'", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `bank_account` varchar(255) DEFAULT NULL", cancellationToken);
-        await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_lines` (`id` int NOT NULL AUTO_INCREMENT, `document_id` int NOT NULL, `line_no` int NOT NULL DEFAULT 1, `item_name` varchar(255) NOT NULL, `item_type` varchar(4) NOT NULL DEFAULT 'G', `quantity` decimal(14,4) NOT NULL DEFAULT 0, `uom_code` varchar(16) NOT NULL DEFAULT 'C62', `unit_price` decimal(14,4) NOT NULL DEFAULT 0, `line_net` decimal(14,2) NOT NULL DEFAULT 0, `tax_category` varchar(8) NOT NULL DEFAULT 'S', `tax_rate` decimal(5,2) NOT NULL DEFAULT 5, `tax_amount` decimal(14,2) NOT NULL DEFAULT 0, `gross_amount` decimal(14,2) NOT NULL DEFAULT 0, `vat_line_aed` decimal(14,2) NOT NULL DEFAULT 0, `line_amount_aed` decimal(14,2) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doc` (`document_id`))", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_lines` (`id` int NOT NULL AUTO_INCREMENT, `document_id` int NOT NULL, `line_no` int NOT NULL DEFAULT 1, `item_name` varchar(255) NOT NULL, `item_description` text, `item_type` varchar(4) NOT NULL DEFAULT 'G', `quantity` decimal(14,4) NOT NULL DEFAULT 0, `uom_code` varchar(16) NOT NULL DEFAULT 'C62', `unit_price` decimal(14,4) NOT NULL DEFAULT 0, `line_net` decimal(14,2) NOT NULL DEFAULT 0, `tax_category` varchar(8) NOT NULL DEFAULT 'S', `tax_rate` decimal(5,2) NOT NULL DEFAULT 5, `tax_amount` decimal(14,2) NOT NULL DEFAULT 0, `gross_amount` decimal(14,2) NOT NULL DEFAULT 0, `vat_line_aed` decimal(14,2) NOT NULL DEFAULT 0, `line_amount_aed` decimal(14,2) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doc` (`document_id`))", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_lines` ADD COLUMN `item_description` text", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_events` (`id` int NOT NULL AUTO_INCREMENT, `document_id` int NOT NULL, `event_type` varchar(32) NOT NULL, `status` varchar(32) NOT NULL DEFAULT 'info', `message` text, `payload_json` mediumtext, `time_created` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doc` (`document_id`,`time_created`))", cancellationToken);
     }
 
