@@ -104,6 +104,9 @@ public sealed class ErpGuideParityTests
         var report = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryReportApp.razor"));
         Assert.Contains("ErpDocumentWorkspace", forecast, StringComparison.Ordinal);
         Assert.Contains("ForecastWorkspaceFields", forecast, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/inventory-forecast/demand\"", forecast, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", forecast, StringComparison.Ordinal);
+        Assert.Contains("schema ownership stays PHP", forecast, StringComparison.Ordinal);
         Assert.Contains("ErpDocumentWorkspace", planning, StringComparison.Ordinal);
         Assert.Contains("PlanningWorkspaceLines", planning, StringComparison.Ordinal);
         Assert.Contains("ErpDocumentWorkspace", report, StringComparison.Ordinal);

@@ -7,6 +7,7 @@ namespace EcomAE.Platform.Erp;
 public interface IErpInventoryForecastWriteService
 {
     Task<ErpSimpleWriteResult> RecomputeSkuAsync(string siteKey, string sku, int currentStock, string productName, int leadTimeDays, CancellationToken cancellationToken = default);
+    Task<ErpSimpleWriteResult> RecordDemandAsync(string siteKey, string sku, string period, int qtySold, int qtyReturned, decimal revenue, CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpInventoryForecastWriteService : IErpInventoryForecastWriteService
@@ -120,6 +121,53 @@ public sealed class ErpInventoryForecastWriteService : IErpInventoryForecastWrit
         Add(upsert, "@status", status);
         await upsert.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Forecast recomputed (" + status + ").", 0);
+    }
+
+    public async Task<ErpSimpleWriteResult> RecordDemandAsync(
+        string siteKey,
+        string sku,
+        string period,
+        int qtySold,
+        int qtyReturned,
+        decimal revenue,
+        CancellationToken cancellationToken = default)
+    {
+        var key = (siteKey ?? string.Empty).Trim();
+        var code = (sku ?? string.Empty).Trim();
+        if (!_connections.IsConfigured)
+        {
+            return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        }
+
+        if (key.Length == 0 || code.Length == 0 || !DateOnly.TryParseExact(period, "yyyy-MM-dd", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Site, SKU, and a yyyy-MM-dd period are required.");
+        }
+
+        if (qtySold < 0 || qtyReturned < 0 || revenue < 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Demand quantities and revenue cannot be negative.");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            INSERT INTO `epc_demand_history`
+                (`site_key`, `sku`, `period`, `qty_sold`, `qty_returned`, `revenue`)
+            VALUES (@site, @sku, @period, @sold, @returned, @revenue)
+            ON DUPLICATE KEY UPDATE
+                `qty_sold` = `qty_sold` + VALUES(`qty_sold`),
+                `qty_returned` = `qty_returned` + VALUES(`qty_returned`),
+                `revenue` = `revenue` + VALUES(`revenue`)
+            """;
+        Add(command, "@site", key);
+        Add(command, "@sku", code);
+        Add(command, "@period", period);
+        Add(command, "@sold", qtySold);
+        Add(command, "@returned", qtyReturned);
+        Add(command, "@revenue", revenue);
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        return ErpSimpleWriteResult.Ok("Demand history recorded.", 1);
     }
 
     private static void Add(DbCommand command, string name, object? value)
