@@ -18,6 +18,13 @@
 
 <PageTitle>@_pageTitle</PageTitle>
 <PhpChromeStyles Surface="erp" />
+<HeadContent>
+    <style>
+        .ns-fitout-module-grid { grid-template-columns: repeat(auto-fit, minmax(185px, 1fr)); }
+        .ns-fitout-scope-note { margin:.75rem 0 0; color:#64748b; font-size:11px; }
+        .ns-fitout-scope-note i { color:#166534; margin-right:.25rem; }
+    </style>
+</HeadContent>
 
 @*
   PHP product /ERP on ecomae.com is the company workspace (erp_main + erp_dashboard_netsuite),
@@ -264,12 +271,17 @@
             <div class="ns-port ns-fitout-pack" data-epc-industry-pack="fitout_contracting">
                 <h4><i class="fa fa-building"></i> Fit-out project modules</h4>
                 <div class="bd">
-                    <div class="ns-tiles" style="margin:0">
-                        <a class="ns-tile green" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-sitemap ic"></i><span class="tl">Projects &amp; cost control</span></a>
-                        <a class="ns-tile blue" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-shopping-cart ic"></i><span class="tl">Project procurement</span></a>
-                        <a class="ns-tile teal" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-truck ic"></i><span class="tl">Site delivery dashboard</span></a>
-                        <a class="ns-tile rust" href="@WithCompany("/erp/project-accounting-app")"><i class="fa fa-line-chart ic"></i><span class="tl">Project P&amp;L</span></a>
+                    <div class="ns-tiles ns-fitout-module-grid" style="margin:0">
+                        <a class="ns-tile green" href="@FitOutHref("/erp/project-accounting-app")"><i class="fa fa-sitemap ic"></i><span class="tl">Projects &amp; cost control</span></a>
+                        <a class="ns-tile blue" href="@FitOutHref("/erp/project-accounting-app")"><i class="fa fa-shopping-cart ic"></i><span class="tl">Project procurement</span></a>
+                        <a class="ns-tile teal" href="@FitOutHref("/erp/fitout/delivery-dashboard")"><i class="fa fa-truck ic"></i><span class="tl">Site delivery dashboard</span></a>
+                        <a class="ns-tile rust" href="@FitOutHref("/erp/fitout/executive-dashboard")"><i class="fa fa-line-chart ic"></i><span class="tl">Project P&amp;L &amp; forecast</span></a>
+                        <a class="ns-tile slate" href="@FitOutHref("/erp/fitout/operations-report")"><i class="fa fa-tasks ic"></i><span class="tl">Site operations report</span></a>
+                        <a class="ns-tile gold" href="@FitOutHref("/erp/fitout/finance-operations-report")"><i class="fa fa-calculator ic"></i><span class="tl">Finance operations</span></a>
+                        <a class="ns-tile purple" href="@FitOutHref("/erp/fitout/approval-queue")"><i class="fa fa-check-circle ic"></i><span class="tl">Approval queue</span></a>
+                        <a class="ns-tile orange" href="@FitOutHref("/erp/fitout/subcontract-reconciliation")"><i class="fa fa-handshake-o ic"></i><span class="tl">Subcontract reconciliation</span></a>
                     </div>
+                    <p class="ns-fitout-scope-note"><i class="fa fa-lock"></i> Every fit-out entry keeps the selected legal-entity scope: <strong>@_companyLabel</strong>.</p>
                 </div>
             </div>
         }
@@ -854,6 +866,24 @@
 
         var sep = href.Contains('?', StringComparison.Ordinal) ? "&" : "?";
         return href + sep + "company=" + _activeCompanyId;
+    }
+
+    private string FitOutHref(string href)
+    {
+        if (!_fitOut || _activeCompanyId <= 0)
+        {
+            return href;
+        }
+
+        var fragmentIndex = href.IndexOf('#');
+        if (fragmentIndex < 0)
+        {
+            return WithCompany(href);
+        }
+
+        var pathAndQuery = href[..fragmentIndex];
+        var fragment = href[fragmentIndex..];
+        return WithCompany(pathAndQuery) + fragment;
     }
 
     protected override async Task OnInitializedAsync()
