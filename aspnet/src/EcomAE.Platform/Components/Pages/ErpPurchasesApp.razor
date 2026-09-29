@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -16,7 +17,7 @@
 
 
     
-    <PhpErpModulePageHeader Title="Purchases" Subtitle="Open a purchase for the note excerpt and VAT. Writes stay Classic." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Purchases" Subtitle="Supplier bills, VAT, lifecycle controls, and settlement-ready payable records." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchases-app" />
 
@@ -48,7 +49,38 @@
                 <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Writes stay Classic.</p>
+            @if (_isAdmin && _openedDetail.Id > 0)
+            {
+                <div class="epc-erp-action-pane" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
+                    <strong style="width:100%">Supplier bill actions</strong>
+                    <form method="post" action="@EcomAeRoutes.ErpPurchasesAmend" style="display:flex;flex-wrap:wrap;gap:.35rem;align-items:end">
+                        <input type="hidden" name="purchaseId" value="@_openedDetail.Id" />
+                        <label>Invoice # <input class="form-control input-sm" type="text" name="invoiceNumber" maxlength="64" value="@_openedDetail.InvoiceNumber" /></label>
+                        <label>Ex VAT <input class="form-control input-sm" type="number" name="amountExVat" min="0" step="0.01" value="@_openedDetail.AmountExVat.ToString("0.00", CultureInfo.InvariantCulture)" /></label>
+                        <label>Note <input class="form-control input-sm" type="text" name="note" maxlength="255" /></label>
+                        <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate edit</button>
+                        <button type="submit" name="confirmWrites" value="true" class="btn btn-primary btn-xs">Save edit</button>
+                    </form>
+                    @if (string.Equals(_openedDetail.Status, "draft", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form method="post" action="@EcomAeRoutes.ErpPurchasesDelete">
+                            <input type="hidden" name="purchaseId" value="@_openedDetail.Id" />
+                            <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate delete</button>
+                            <button type="submit" name="confirmWrites" value="true" class="btn btn-danger btn-xs">Delete draft</button>
+                        </form>
+                    }
+                    @if (!string.Equals(_openedDetail.Status, "voided", StringComparison.OrdinalIgnoreCase)
+                        && !string.Equals(_openedDetail.Status, "cancelled", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form method="post" action="@EcomAeRoutes.ErpPurchasesVoid" style="display:flex;gap:.35rem;align-items:end">
+                            <input type="hidden" name="purchaseId" value="@_openedDetail.Id" />
+                            <input class="form-control input-sm" type="text" name="reason" maxlength="255" placeholder="Void reason" />
+                            <button type="submit" name="confirmWrites" value="false" class="btn btn-default btn-xs">Validate void</button>
+                            <button type="submit" name="confirmWrites" value="true" class="btn btn-warning btn-xs">Void bill</button>
+                        </form>
+                    }
+                </div>
+            }
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NoteExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>

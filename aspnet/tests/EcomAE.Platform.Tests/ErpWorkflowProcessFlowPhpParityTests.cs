@@ -119,6 +119,20 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
     }
 
     [Fact]
+    public void PurchasesAppExposesSupplierBillLifecycleActions()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchasesApp.razor"));
+
+        Assert.Contains("ErpPurchasesAmend", text, StringComparison.Ordinal);
+        Assert.Contains("ErpPurchasesDelete", text, StringComparison.Ordinal);
+        Assert.Contains("ErpPurchasesVoid", text, StringComparison.Ordinal);
+        Assert.Contains("Validate edit", text, StringComparison.Ordinal);
+        Assert.Contains("Void bill", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("Writes stay Classic", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void StatusLabel_MapsPhpBadgeClasses()
     {
         Assert.Equal("success", ErpPhpStatusLabel.Class("paid"));
