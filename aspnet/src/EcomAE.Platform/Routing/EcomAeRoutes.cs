@@ -149,6 +149,8 @@ public static class EcomAeRoutes
     public const string ControlPanelMarketingBroadcastApp = "/cp/marketing-broadcast-app";
     /// <summary>CP demo tenants registry (passwords never returned; provision remains PHP).</summary>
     public const string ControlPanelDemoTenants = "/cp/demo-tenants";
+    /// <summary>Super CP industry fixture coverage (definitions only; provisioning remains PHP).</summary>
+    public const string ControlPanelDemoIndustryFixtures = "/cp/demo-tenants/industry-fixtures";
     /// <summary>CP demo tenants Blazor list (JSON digest remains <see cref="ControlPanelDemoTenants"/>).</summary>
     public const string ControlPanelDemoTenantsApp = "/cp/demo-tenants-app";
     /// <summary>CP AI Parts Agent sessions metadata (system_prompt / client_ip / full transcripts omitted).</summary>

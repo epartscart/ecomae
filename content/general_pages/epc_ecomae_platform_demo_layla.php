@@ -14,7 +14,7 @@ function epc_ecomae_demo_layla_pitch_lines($demoDays = 3)
 	$days = (int) $demoDays;
 	return array(
 		"Hi! I'm Layla — your ECOM AE demo specialist. Let's spin up your {$days}-day sandbox in minutes.",
-		'Pick auto spare parts, fashion retail, or ERP only — full storefront or finance/CRM without a shop.',
+		'Pick any supported industry — full storefront, ERP, CRM, and finance capabilities stay isolated in your sandbox.',
 		'ERP + CRM + optional e-commerce in one cloud. Go live in 24 hours after DNS — UAE e-invoice ready.',
 		'Your sandbox is fully isolated on MySQL — explore modules, then convert or expire.',
 		'Ready when you are — choose a path and I\'ll launch your personal demo tenant.',
@@ -179,6 +179,7 @@ function epc_ecomae_demo_layla_wizard_html(array $demo, array $presets, $pref = 
 	$days = (int) $demo['days'];
 	require_once $_SERVER['DOCUMENT_ROOT'] . '/content/users/epc_countries.php';
 	$demoCountries = epc_countries_registration_options();
+	$industryCatalog = function_exists('epc_portal_industries') ? epc_portal_industries() : array();
 	ob_start();
 	?>
 	<?php if (is_array($flash)) { ?>
@@ -196,7 +197,7 @@ function epc_ecomae_demo_layla_wizard_html(array $demo, array $presets, $pref = 
 				<?php foreach ($demo['includes'] as $inc) { ?><li><?php echo epc_ecomae_h($inc); ?></li><?php } ?>
 				<li>Isolated MySQL — never mixed with production data</li>
 			</ul>
-			<h3 class="epm-section-title" style="font-size:20px">Phase 1–2 industries</h3>
+			<h3 class="epm-section-title" style="font-size:20px">Supported industries</h3>
 			<ul class="epm-feature-list">
 				<?php foreach ($presets as $p) { ?>
 				<li><strong><?php echo epc_ecomae_h($p['label']); ?></strong></li>
@@ -211,11 +212,16 @@ function epc_ecomae_demo_layla_wizard_html(array $demo, array $presets, $pref = 
 				<div class="epm-demo-chat" id="epm-demo-chat" aria-live="polite"></div>
 				<div class="epm-demo-step active" data-step="industry">
 					<div class="epm-demo-industry">
-						<label><input type="radio" name="epm_industry" value="auto_parts"<?php echo ($pref === '' || $pref === 'auto_parts') ? ' checked' : ''; ?>><span><i class="fa fa-car"></i>Auto spare parts</span><small style="display:block;margin-top:6px;opacity:.85">Storefront + CP + ERP</small></label>
-						<label><input type="radio" name="epm_industry" value="fashion"<?php echo $pref === 'fashion' ? ' checked' : ''; ?>><span><i class="fa fa-shopping-bag"></i>Fashion retail</span><small style="display:block;margin-top:6px;opacity:.85">Storefront + CP + ERP</small></label>
-						<label class="epm-demo-industry--erp"><input type="radio" name="epm_industry" value="erp_only"<?php echo $pref === 'erp_only' ? ' checked' : ''; ?>><span><i class="fa fa-university"></i>ERP only</span><small style="display:block;margin-top:6px;opacity:.85">No storefront — ERP / CRM / finance</small></label>
+						<?php foreach ($industryCatalog as $code => $industry) {
+							$isErpOnly = $code === 'erp_standalone';
+							$selected = $pref !== ''
+								? ($pref === $code || ($isErpOnly && $pref === 'erp_only'))
+								: $code === 'auto_parts';
+							?>
+						<label<?php echo $isErpOnly ? ' class="epm-demo-industry--erp"' : ''; ?>><input type="radio" name="epm_industry" value="<?php echo epc_ecomae_h($code); ?>"<?php echo $selected ? ' checked' : ''; ?>><span><i class="fa <?php echo epc_ecomae_h((string) ($industry['icon'] ?? 'fa-industry')); ?>"></i><?php echo epc_ecomae_h((string) ($industry['name'] ?? $code)); ?></span><small style="display:block;margin-top:6px;opacity:.85"><?php echo $isErpOnly ? 'No storefront — ERP / CRM / finance' : 'Storefront + CP + ERP'; ?></small></label>
+						<?php } ?>
 					</div>
-					<p style="font-size:12px;color:var(--epm-muted)">ERP-only skips the e-commerce shop — ideal for back-office teams. More industries in Phase 3.</p>
+					<p style="font-size:12px;color:var(--epm-muted)">ERP standalone skips the e-commerce shop; all other supported industries receive an isolated storefront and ERP preview.</p>
 					<div class="epm-demo-actions"><button type="button" class="epm-btn epm-btn--primary" id="epm-demo-next-industry">Continue →</button></div>
 				</div>
 				<div class="epm-demo-step" data-step="details">
@@ -265,11 +271,12 @@ function epc_ecomae_demo_layla_home_section(array $demo, $base)
 		<div>
 			<div class="epm-badge"><i class="fa fa-magic"></i> AI demo wizard · <?php echo $days; ?> days free</div>
 			<h2 class="epm-section-title" id="epm-layla-home-title" style="margin-top:8px">Meet Layla — launch your sandbox now</h2>
-			<p class="epm-section-lead" style="margin-bottom:0">Answer a few questions and we provision an isolated tenant — full storefront or ERP-only. Auto parts, fashion, and ERP-only ready today.</p>
+			<p class="epm-section-lead" style="margin-bottom:0">Answer a few questions and we provision an isolated tenant for any supported industry — storefront, ERP, CRM, and finance stay separated from production.</p>
 			<div class="epm-layla-home__pills">
 				<a class="epm-layla-pill" href="<?php echo $demoUrl; ?>?industry=auto_parts"><i class="fa fa-car"></i> Auto spare parts</a>
-				<a class="epm-layla-pill" href="<?php echo $demoUrl; ?>?industry=fashion"><i class="fa fa-shopping-bag"></i> Fashion retail</a>
-				<a class="epm-layla-pill" href="<?php echo $demoUrl; ?>?industry=erp_only"><i class="fa fa-university"></i> ERP only</a>
+				<a class="epm-layla-pill" href="<?php echo $demoUrl; ?>?industry=jewellery"><i class="fa fa-diamond"></i> Jewellery</a>
+				<a class="epm-layla-pill" href="<?php echo $demoUrl; ?>?industry=construction_contracting"><i class="fa fa-building"></i> Fit-out &amp; contracting</a>
+				<a class="epm-layla-pill" href="<?php echo $demoUrl; ?>?industry=erp_standalone"><i class="fa fa-university"></i> ERP standalone</a>
 			</div>
 			<div class="epm-layla-home__cta">
 				<a class="epm-btn epm-btn--primary" href="<?php echo $demoUrl; ?>"><i class="fa fa-play-circle"></i> Start AI demo wizard</a>
@@ -586,9 +593,11 @@ function epc_ecomae_demo_layla_scripts($demoDays = 3, $prefIndustry = 'auto_part
 	var nextBtn=qs('epm-demo-next-industry');
 	if(nextBtn)nextBtn.addEventListener('click',function(){
 		var r=document.querySelector('input[name="epm_industry"]:checked');
-		if(!r){say('Please pick auto parts, fashion, or ERP only.',false);return;}
+		if(!r){say('Please pick a supported industry.',false);return;}
 		industry=r.value;
-		var industryMsg=r.value==='auto_parts'?'Auto spare parts — eParts Cart style!':r.value==='fashion'?'Fashion retail — Namshi style!':'ERP only — finance, CRM, and operations (no storefront).';
+		var label=r.closest('label');
+		var industryName=label&&label.querySelector('span')?label.querySelector('span').textContent.trim():industry;
+		var industryMsg=industryName+' — isolated storefront, ERP, and CRM sandbox.';
 		say(industryMsg,false);
 		say('Tell me your name, work email, country, phone number, and company — country and phone are required.',false);
 		setProgress(25,'Industry selected — almost there…');
@@ -628,7 +637,7 @@ function epc_ecomae_demo_layla_scripts($demoDays = 3, $prefIndustry = 'auto_part
 		var btn=this;btn.disabled=true;
 		var body=new URLSearchParams({contact_name:name,contact_email:email,contact_phone:phone,company:company,country_code:country,industry_code:industry,terms:'1'});
 		var tick=40;
-		var erpOnly=industry==='erp_only';
+		var erpOnly=industry==='erp_only'||industry==='erp_standalone';
 		var timer=window.setInterval(function(){
 			tick=Math.min(92,tick+4);
 			var lbl=erpOnly
@@ -651,7 +660,7 @@ function epc_ecomae_demo_layla_scripts($demoDays = 3, $prefIndustry = 'auto_part
 			btn.disabled=false;
 			if(j.ok){
 				setProgress(100,'Demo ready!');
-				var doneMsg=(j.demo_erp_only||industry==='erp_only')
+				var doneMsg=(j.demo_erp_only||industry==='erp_only'||industry==='erp_standalone')
 					?'Done! Check your email for ERP demo CP login — no storefront on this path.'
 					:'Done! Check your email for storefront, CP, and ERP links.';
 				say(doneMsg,false);

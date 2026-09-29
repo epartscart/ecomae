@@ -9445,6 +9445,68 @@ public sealed class ControlPanelModule : ISurfaceModule
             });
         });
 
+        endpoints.MapGet(EcomAeRoutes.ControlPanelDemoIndustryFixtures, async (
+            HttpContext context,
+            string? industry,
+            string? siteKey,
+            ILegacySessionValidator validator,
+            CancellationToken cancellationToken) =>
+        {
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound(new
+                {
+                    ok = false,
+                    surface = "cp",
+                    message = "Industry fixture coverage is Super CP only. Tenant CPs are independent."
+                });
+            }
+
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("cp"))
+            {
+                return Unauthorized("Admin CP capability required for industry fixture coverage.");
+            }
+
+            if (!string.IsNullOrWhiteSpace(siteKey) && string.IsNullOrWhiteSpace(industry))
+            {
+                return Results.BadRequest(new
+                {
+                    ok = false,
+                    message = "industry is required when siteKey is supplied."
+                });
+            }
+
+            object fixtures;
+            int fixtureCount;
+            if (!string.IsNullOrWhiteSpace(siteKey))
+            {
+                fixtures = SuperCpIndustrySampleFixtureCatalog.ForTenant(industry!, siteKey);
+                fixtureCount = 1;
+            }
+            else if (string.IsNullOrWhiteSpace(industry))
+            {
+                fixtures = SuperCpIndustrySampleFixtureCatalog.All;
+                fixtureCount = SuperCpIndustrySampleFixtureCatalog.All.Count;
+            }
+            else
+            {
+                fixtures = new[] { SuperCpIndustrySampleFixtureCatalog.Resolve(industry) };
+                fixtureCount = 1;
+            }
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "cp",
+                industry = industry,
+                site_key = siteKey,
+                count = fixtureCount,
+                fixtures,
+                session = SessionPayload(session),
+                note = "Deterministic DEMO fixture definitions only. No tenant database is written; PHP epc_portal_demo provisioning remains authoritative."
+            });
+        });
+
         endpoints.MapGet(EcomAeRoutes.ControlPanelPartsAgentChats, async (
             HttpContext context,
             int? limit,

@@ -61,6 +61,14 @@
                         <a class="btn btn-default btn-sm ghost" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)" target="_blank" rel="noopener"><i class="fa fa-code"></i> Classic twin</a>
                     </p>
 
+                    <div class="alert alert-info" style="margin-bottom:16px">
+                        <strong>Industry fixture coverage:</strong>
+                        @SuperCpIndustrySampleFixtureCatalog.All.Count.ToString(CultureInfo.InvariantCulture)/@PhpPortalIndustryCatalog.All.Count.ToString(CultureInfo.InvariantCulture)
+                        supported industries have deterministic, tenant-scoped <code>DEMO</code> fixture definitions.
+                        <a href="/cp/demo-tenants/industry-fixtures" target="_blank" rel="noopener">Inspect JSON</a>.
+                        Live provisioning remains on the guarded reference path.
+                    </div>
+
                     <p class="text-muted small">Demo CP scope: <code>https://www.ecomae.com/cp/demo/{site_key}/</code> — credentials from platform registry <code>operator_temp_password</code> (Super CP operators only; reveal or reset in Tenant control center).</p>
 
                     <div class="table-responsive">
