@@ -5,12 +5,15 @@
 @using System.Globalization
 @using System.Text.Json
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Security
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IErpBosIntelToggleWriteService BosIntel
+@inject ICpPowerBiService PowerBi
 @inject IHttpContextAccessor Http
 
 <PageTitle>@_pageTitle</PageTitle>
@@ -56,6 +59,23 @@
                 }
             </div>
         </div>
+
+        @if (_powerBi.Embed.Ok)
+        {
+            <section class="ns-port" aria-label="Embedded Power BI">
+                <div class="bd" style="padding:14px">
+                    <div style="display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap">
+                        <div>
+                            <h4 style="margin:0"><i class="fa fa-bar-chart"></i> Executive analytics</h4>
+                            <p style="margin:4px 0 0;color:var(--ns-muted,#64748b);font-size:12px">Tenant-scoped Power BI report inside the ERP workspace.</p>
+                        </div>
+                        <a class="btn btn-default btn-xs" href="/cp/power-bi-app">Manage reports</a>
+                    </div>
+                    <iframe src="@_powerBi.Embed.Url" title="Power BI executive analytics" loading="lazy" allowfullscreen
+                            style="width:100%;min-height:460px;margin-top:12px;border:1px solid #dbe4ee;border-radius:10px;"></iframe>
+                </div>
+            </section>
+        }
 
         <div class="ns-tiles">
             @foreach (var tile in _tiles)
@@ -705,6 +725,7 @@
     private ErpWorkspaceHomeDigest _home = EmptyHome();
     private ErpWorkspacePeriodKpis _cur = EmptyPeriod();
     private bool _isAdmin;
+    private bool _hasFullErpAccess;
     private bool _isSuperHost;
     private bool _jewellery;
     private long _activeCompanyId;
@@ -729,6 +750,7 @@
     private bool _showProfitTrend = true;
     private bool _hasTrend;
     private bool _hasTasks;
+    private CpPowerBiView _powerBi = CpPowerBiView.Empty(string.Empty, "unconfigured");
     private ErpNetsuiteDashboardCatalog.Profile _profile = ErpNetsuiteDashboardCatalog.Profiles["finance"];
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.Tile> _tiles = [];
     private IReadOnlyList<ErpNetsuiteDashboardCatalog.Tile> _quick = [];
@@ -807,7 +829,13 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin;
-        ApplyProfile(_isAdmin || _isSuperHost, ctx.Request.Query["dash_profile"].ToString());
+        _hasFullErpAccess = _isSuperHost
+            || session.Permissions.Contains(EcomAePermissions.SuperErpAccess);
+        ApplyProfile(_hasFullErpAccess, ctx.Request.Query["dash_profile"].ToString(), session);
+        _powerBi = await PowerBi.LoadAsync(
+            null,
+            ctx.Request.Host.Host,
+            ctx.RequestAborted);
 
         if (_isAdmin)
         {
@@ -838,9 +866,14 @@
         RecalcGauge();
     }
 
-    private void ApplyProfile(bool fullAdmin, string? requested)
+    private void ApplyProfile(
+        bool fullAdmin,
+        string? requested,
+        LegacySessionContext? session = null)
     {
-        _profile = ErpNetsuiteDashboardCatalog.Resolve(requested, fullAdmin);
+        _profile = session is null
+            ? ErpNetsuiteDashboardCatalog.Resolve(requested, fullAdmin)
+            : ErpNetsuiteDashboardCatalog.ResolveForSession(session, requested, fullAdmin);
         _showProfitTrend = ErpNetsuiteDashboardCatalog.Can(_profile, "profit");
         BindProfileViews();
     }
@@ -868,7 +901,7 @@
     }
 
     private bool WorkspaceVisible(ErpCapabilityGroup group)
-        => _isAdmin || group.Key switch
+        => _hasFullErpAccess || group.Key switch
         {
             "finance" => ErpNetsuiteDashboardCatalog.Can(_profile, "cash")
                 || ErpNetsuiteDashboardCatalog.Can(_profile, "gl")
@@ -883,7 +916,7 @@
                 || ErpNetsuiteDashboardCatalog.Can(_profile, "financials"),
             "jewellery" => _jewellery,
             "people" => ErpNetsuiteDashboardCatalog.Can(_profile, "hr_tasks"),
-            "administration" => _isAdmin,
+            "administration" => _hasFullErpAccess,
             _ => false,
         };
 

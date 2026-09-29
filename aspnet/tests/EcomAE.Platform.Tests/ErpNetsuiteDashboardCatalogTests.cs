@@ -1,5 +1,7 @@
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
+using EcomAE.Platform.Auth;
+using EcomAE.Platform.Security;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -62,6 +64,26 @@ public sealed class ErpNetsuiteDashboardCatalogTests
     {
         var profile = ErpNetsuiteDashboardCatalog.Resolve("sales", fullAdmin: false);
         Assert.Equal("finance", profile.Key);
+    }
+
+    [Fact]
+    public void ResolveForSessionMapsModuleAclToRoleDashboard()
+    {
+        var session = new LegacySessionContext(
+            LegacySessionKind.Admin,
+            42,
+            "session",
+            [EcomAePermissions.TenantErpAccess],
+            ModuleAcl: [new ModuleAclEntry(7, "Purchasing Manager", false)]);
+
+        var profile = ErpNetsuiteDashboardCatalog.ResolveForSession(
+            session,
+            requested: null,
+            fullAdmin: false);
+
+        Assert.Equal("purchase", profile.Key);
+        Assert.Contains("purchase_orders", profile.TileKeys);
+        Assert.DoesNotContain("profit", profile.Capabilities);
     }
 
     [Fact]

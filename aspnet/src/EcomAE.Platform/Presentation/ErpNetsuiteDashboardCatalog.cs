@@ -1,4 +1,5 @@
 using System.Globalization;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Presentation;
@@ -185,6 +186,65 @@ public static class ErpNetsuiteDashboardCatalog
         }
 
         return fullAdmin ? Profiles["admin"] : Profiles["finance"];
+    }
+
+    public static Profile ResolveForSession(
+        LegacySessionContext session,
+        string? requested,
+        bool fullAdmin)
+    {
+        if (fullAdmin)
+        {
+            return Resolve(requested, true);
+        }
+
+        var acl = string.Join(
+            " ",
+            session.Modules.Select(module => module.Caption))
+            .ToLowerInvariant();
+
+        if (acl.Contains("cfo", StringComparison.Ordinal)
+            || acl.Contains("finance", StringComparison.Ordinal)
+            || acl.Contains("account", StringComparison.Ordinal))
+        {
+            return Profiles["cfo"];
+        }
+
+        if (acl.Contains("ceo", StringComparison.Ordinal)
+            || acl.Contains("executive", StringComparison.Ordinal))
+        {
+            return Profiles["ceo"];
+        }
+
+        if (acl.Contains("sales", StringComparison.Ordinal)
+            || acl.Contains("customer", StringComparison.Ordinal)
+            || acl.Contains("order", StringComparison.Ordinal))
+        {
+            return Profiles["sales"];
+        }
+
+        if (acl.Contains("purchas", StringComparison.Ordinal)
+            || acl.Contains("procure", StringComparison.Ordinal)
+            || acl.Contains("supplier", StringComparison.Ordinal))
+        {
+            return Profiles["purchase"];
+        }
+
+        if (acl.Contains("inventory", StringComparison.Ordinal)
+            || acl.Contains("warehouse", StringComparison.Ordinal)
+            || acl.Contains("stock", StringComparison.Ordinal))
+        {
+            return Profiles["logistics"];
+        }
+
+        if (acl.Contains("hr", StringComparison.Ordinal)
+            || acl.Contains("payroll", StringComparison.Ordinal)
+            || acl.Contains("staff", StringComparison.Ordinal))
+        {
+            return Profiles["hr"];
+        }
+
+        return Profiles["finance"];
     }
 
     public static bool Can(Profile profile, string capability)
