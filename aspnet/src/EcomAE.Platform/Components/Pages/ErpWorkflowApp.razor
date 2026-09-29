@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -13,6 +14,25 @@
 
     <PhpErpModulePageHeader Title="Department workflow board" Subtitle="Cross-department order flow: Sales → Purchase → Logistics → Finance → Accounts. Marketing and HR support parallel tracks." />
     <PhpErpD365ActionPane RefreshHref="?" />
+
+    @if (_opened is not null)
+    {
+        <ErpDocumentWorkspace
+            DocumentKind="Workflow task"
+            Title="@(_opened.Title.Length == 0 ? $"Task #{_opened.Id.ToString(CultureInfo.InvariantCulture)}" : _opened.Title)"
+            DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+            PartyLabel="Assignee"
+            Party="@(_opened.AssigneeName.Length == 0 ? "Unassigned" : _opened.AssigneeName)"
+            ReferenceLabel="Order"
+            Reference="@(_opened.OrderId > 0 ? $"#{_opened.OrderId.ToString(CultureInfo.InvariantCulture)}" : "—")"
+            Status="@(_opened.Status.Length == 0 ? "pending" : _opened.Status)"
+            ApprovalState="@(_opened.Status is "done" or "cancelled" ? "Closed" : "Action required")"
+            CompanyContext="Tenant / company"
+            Currency="—"
+            Fields="@WorkflowWorkspaceFields"
+            Lines="@WorkflowWorkspaceLines"
+            Tabs="@WorkflowWorkspaceTabs" />
+    }
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
     {
@@ -102,6 +122,7 @@
                             <td><span class="label label-@statusClass">@row.Status</span></td>
                             <td>@FormatDate(row.DueAt)</td>
                             <td>
+                                <a class="btn btn-xs btn-default" href="@TaskHref(row.Id)">Open</a>
                                 @if (_isAdmin && row.Status != "done" && row.Status != "cancelled")
                                 {
                                     <form method="post" action="/erp/workflow/status" style="display:inline">
@@ -137,6 +158,42 @@
     private string _flashErr = "";
     private string _dept = "";
     private string _returnUrl = "/erp/workflow-app";
+    private long _openedId;
+    private ErpWorkflowTaskDigest? _opened;
+
+    private IReadOnlyList<string> WorkflowWorkspaceTabs =>
+        ["General", "Assignment", "Process", "Audit"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> WorkflowWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Department", ErpStaffDepartmentCatalog.NameFor(_opened.DepartmentCode), "General"),
+            new("Workflow step", string.IsNullOrWhiteSpace(_opened.WorkflowStep) ? "—" : _opened.WorkflowStep, "Process"),
+            new("Description", string.IsNullOrWhiteSpace(_opened.Description) ? "—" : _opened.Description, "General"),
+            new("Priority", string.IsNullOrWhiteSpace(_opened.Priority) ? "—" : _opened.Priority, "Process"),
+            new("Assignee", string.IsNullOrWhiteSpace(_opened.AssigneeName) ? "Unassigned" : _opened.AssigneeName, "Assignment"),
+            new("Due", FormatDate(_opened.DueAt), "Assignment"),
+            new("Completed", FormatDate(_opened.CompletedAt), "Audit"),
+            new("Created", FormatDate(_opened.TimeCreated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> WorkflowWorkspaceLines => _opened is null
+        ? []
+        : [
+            new(
+                "1",
+                string.IsNullOrWhiteSpace(_opened.WorkflowStep) ? "Workflow task" : _opened.WorkflowStep,
+                1,
+                "task",
+                _opened.DepartmentCode,
+                "—",
+                0,
+                0,
+                0,
+                0,
+                0,
+                _opened.OrderId > 0 ? $"Order #{_opened.OrderId.ToString(CultureInfo.InvariantCulture)}" : "Internal workflow")
+        ];
 
     protected override async Task OnInitializedAsync()
     {
@@ -145,6 +202,9 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _dept = (ctx.Request.Query["dept"].ToString() ?? "").Trim();
+        _openedId = long.TryParse(ctx.Request.Query["task_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var taskId)
+            ? taskId
+            : 0;
         _returnUrl = string.IsNullOrWhiteSpace(_dept)
             ? "/erp/workflow-app"
             : "/erp/workflow-app?dept=" + Uri.EscapeDataString(_dept);
@@ -161,7 +221,16 @@
         _tasks = string.IsNullOrWhiteSpace(_dept)
             ? result.Tasks
             : result.Tasks.Where(t => string.Equals(t.DepartmentCode, _dept, StringComparison.OrdinalIgnoreCase)).ToList();
+        _opened = _openedId > 0 ? _tasks.FirstOrDefault(t => t.Id == _openedId) : null;
+        if (_opened is not null)
+        {
+            _tasks = new[] { _opened }.Concat(_tasks.Where(t => t.Id != _openedId)).ToList();
+        }
     }
+
+    private string TaskHref(long taskId) =>
+        "/erp/workflow-app?task_id=" + taskId.ToString(CultureInfo.InvariantCulture)
+        + (string.IsNullOrWhiteSpace(_dept) ? "" : "&dept=" + Uri.EscapeDataString(_dept));
 
     private static string FormatDate(long unix)
     {

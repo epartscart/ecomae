@@ -74,6 +74,16 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void WorkflowAppUsesSharedDocumentWorkspaceForOpenedTasks()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpWorkflowApp.razor"));
+        Assert.Contains("ErpDocumentWorkspace", text, StringComparison.Ordinal);
+        Assert.Contains("WorkflowWorkspaceFields", text, StringComparison.Ordinal);
+        Assert.Contains("WorkflowWorkspaceLines", text, StringComparison.Ordinal);
+        Assert.Contains("task_id", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));
