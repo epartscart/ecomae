@@ -1951,7 +1951,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxBankReconcile = "/erp/ajax/bank-reconcile";
     /// <summary>Wave B dry-run for PHP fx_post_revaluation (writes=0).</summary>
     public const string ErpAjaxFxPostRevaluation = "/erp/ajax/fx-post-revaluation";
-    /// <summary>Wave B dry-run for PHP supplier_payment (writes=0).</summary>
+    /// <summary>ERP supplier_payment compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpAjaxSupplierPayment = "/erp/ajax/supplier-payment";
 
     /// <summary>Wave B dry-run for PHP api/v1/on-premises/health.php (writes=0; PHP authoritative).</summary>
