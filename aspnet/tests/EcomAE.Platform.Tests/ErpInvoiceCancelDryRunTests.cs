@@ -34,6 +34,8 @@ public sealed class ErpInvoiceCancelDryRunTests
             [Invoice(9, "validated")], new ErpInvoiceCancelRequest(9, "customer cancelled"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.True(r.WouldWrite);
+        Assert.False(r.PhpAuthoritative);
+        Assert.Contains("no write was performed", r.Detail, StringComparison.Ordinal);
         Assert.Equal(0, r.Writes);
         Assert.Contains(r.SimulatedSql, s => s.Contains("NOT executed", StringComparison.Ordinal));
     }
