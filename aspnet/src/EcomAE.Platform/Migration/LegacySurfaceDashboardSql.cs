@@ -8556,6 +8556,15 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT @limit
         """;
 
+    public const string SelectErpQmResults = """
+        SELECT `id`, `order_id`, `test_id`, IFNULL(`test_name`, '') AS test_name,
+               `value_num`, IFNULL(`value_text`, '') AS value_text,
+               IFNULL(`result`, '') AS result, IFNULL(`time_created`, 0) AS time_created
+        FROM `epc_qm_result`
+        WHERE `order_id` = @order_id
+        ORDER BY `id`
+        """;
+
     /// <summary>Opened NCR (Open key <c>ncr_id</c>, remapped by <c>qv=ncr</c>). corrective_action is a 280-char excerpt. Surfaces time_closed hidden from the list.</summary>
     public const string SelectErpQmNcrDetail = """
         SELECT `id`, IFNULL(`order_id`,0) AS order_id,

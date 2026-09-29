@@ -332,8 +332,26 @@
                         <div class="panel-body">
                             <p class="text-muted">Record results stay on ERP ajax (<code>qm_order_record</code>). Pick an order after plans exist.</p>
                             <table class="table table-condensed table-epc">
-                                <thead><tr><th>Test</th><th>Acceptance</th><th>Result</th><th>Eval</th></tr></thead>
-                                <tbody><tr><td colspan="4" class="text-muted">Plan has no tests.</td></tr></tbody>
+                                <thead><tr><th>Test</th><th>Numeric value</th><th>Text value</th><th>Eval</th><th>Recorded</th></tr></thead>
+                                <tbody>
+                                    @if (_results.Count == 0)
+                                    {
+                                        <tr><td colspan="5" class="text-muted">No persisted results yet. Record results on the Classic ERP ajax form.</td></tr>
+                                    }
+                                    else
+                                    {
+                                        @foreach (var result in _results)
+                                        {
+                                            <tr>
+                                                <td>@result.TestName</td>
+                                                <td>@(result.ValueNum.HasValue ? result.ValueNum.Value.ToString("N4", CultureInfo.InvariantCulture) : "—")</td>
+                                                <td>@(string.IsNullOrWhiteSpace(result.ValueText) ? "—" : result.ValueText)</td>
+                                                <td><span class="label label-default">@result.Result</span></td>
+                                                <td>@FormatTime(result.TimeCreated)</td>
+                                            </tr>
+                                        }
+                                    }
+                                </tbody>
                             </table>
                         </div>
                     </div>
@@ -373,6 +391,7 @@
     private ErpQmNcrDetail? _opened;
     private IReadOnlyList<ErpQmNcrDigest> _openedSiblings = [];
     private ErpQmOrderDigest? _openedOrder;
+    private IReadOnlyList<ErpQmResultDigest> _results = [];
 
     private IReadOnlyList<string> QualityOrderWorkspaceTabs => ["General", "Inspection", "Reference", "Audit"];
 
@@ -482,6 +501,10 @@
         _passed = _orders.Count(o => string.Equals(o.Verdict, "pass", StringComparison.OrdinalIgnoreCase));
         _failed = _orders.Count(o => string.Equals(o.Verdict, "fail", StringComparison.OrdinalIgnoreCase));
         _openedOrder = _selOrder > 0 ? _orders.FirstOrDefault(o => o.Id == _selOrder) : null;
+        if (_selOrder > 0)
+        {
+            _results = await Dashboards.ListErpQualityResultsAsync(_selOrder, ctx.RequestAborted);
+        }
         _source = result.Source;
         _message = result.Message;
 
