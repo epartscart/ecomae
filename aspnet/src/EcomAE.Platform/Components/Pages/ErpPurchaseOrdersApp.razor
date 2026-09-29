@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
@@ -88,6 +89,23 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
             </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Purchase order"
+                Title="@_openedDetail.Title"
+                DocumentNumber="@_openedDetail.PoNo"
+                PartyLabel="Supplier"
+                Party="@_openedDetail.SupplierId.ToString(CultureInfo.InvariantCulture)"
+                ReferenceLabel="Purchase invoice"
+                Reference="@(_openedDetail.PurchaseId > 0 ? _openedDetail.PurchaseId.ToString(CultureInfo.InvariantCulture) : "Not invoiced")"
+                Status="@_openedDetail.Status"
+                ApprovalState="@(_openedDetail.ApprovedAt > 0 ? "Approved" : "Approval pending")"
+                Currency="AED"
+                Subtotal="@_openedDetail.AmountExVat"
+                Tax="@_openedDetail.VatAmount"
+                Total="@_openedDetail.TotalAmount"
+                BalanceDue="@_openedDetail.TotalAmount"
+                Fields="@PurchaseOrderWorkspaceFields"
+                Lines="@PurchaseOrderWorkspaceLines" />
             @if (_isAdmin && _openedDetail.PurchaseId > 0)
             {
                 <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
@@ -331,6 +349,38 @@
     private IReadOnlyList<ErpPurchaseOrderDigest> _openedSiblings = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedOrder is not null;
+    private IReadOnlyList<ErpDocumentWorkspaceField> PurchaseOrderWorkspaceFields =>
+        _openedDetail is null
+            ? []
+            :
+            [
+                new("Supplier account", _openedDetail.SupplierId.ToString(CultureInfo.InvariantCulture)),
+                new("Buyer", _openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "Unassigned"),
+                new("Requested delivery", "Not captured"),
+                new("Confirmed delivery", _openedDetail.ReceivedAt > 0 ? FormatTime(_openedDetail.ReceivedAt) : "Not received", "Delivery"),
+                new("Warehouse", "Tenant default", "Delivery"),
+                new("Procurement category", "Inventory / services", "Operational"),
+                new("Payment terms", "Supplier profile", "Financial"),
+                new("Three-way match", _openedDetail.PurchaseId > 0 ? "Invoice linked" : "Awaiting invoice", "Financial"),
+                new("Financial dimensions", "Company / site / project", "Dimensions"),
+                new("Receipt status", _openedDetail.ReceivedAt > 0 ? "Received" : "Open", "Operational")
+            ];
+    private IReadOnlyList<ErpDocumentWorkspaceLine> PurchaseOrderWorkspaceLines =>
+        _orders.FirstOrDefault(item => item.Id == _openedDetail?.Id)?.Lines
+            .Select(line => new ErpDocumentWorkspaceLine(
+                line.ItemCode,
+                line.Description,
+                line.Qty,
+                "ea",
+                "Default",
+                "Default",
+                line.UnitPriceExVat,
+                0,
+                0,
+                line.LineExVat,
+                line.QtyReceived,
+                line.DocumentId > 0 ? "PO " + line.DocumentId.ToString(CultureInfo.InvariantCulture) : "—"))
+            .ToArray() ?? [];
 
     private string OpenedReturnHref => _openedId > 0
         ? "/erp/purchase-orders-app?po_id=" + _openedId.ToString(CultureInfo.InvariantCulture)

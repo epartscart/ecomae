@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -187,6 +188,23 @@
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
             </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Sales order"
+                Title="@_openedDetail.Title"
+                DocumentNumber="@_openedDetail.SoNo"
+                PartyLabel="Customer"
+                Party="@_openedDetail.CustomerUserId.ToString(CultureInfo.InvariantCulture)"
+                ReferenceLabel="Sales invoice"
+                Reference="@(_openedDetail.SalesInvoiceId > 0 ? _openedDetail.SalesInvoiceId.ToString(CultureInfo.InvariantCulture) : "Not invoiced")"
+                Status="@_openedDetail.Status"
+                ApprovalState="@(string.Equals(_openedDetail.Status, "confirmed", StringComparison.OrdinalIgnoreCase) ? "Confirmed" : "Approval pending")"
+                Currency="AED"
+                Subtotal="@_openedDetail.AmountExVat"
+                Tax="@_openedDetail.VatAmount"
+                Total="@_openedDetail.TotalAmount"
+                BalanceDue="@_openedDetail.TotalAmount"
+                Fields="@SalesOrderWorkspaceFields"
+                Lines="@SalesOrderWorkspaceLines" />
             @if (_isAdmin && _openedDetail.Id > 0)
             {
                 <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
@@ -418,6 +436,38 @@
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
     private ErpSubscriptionsSummary _subs = new(0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpSubscriptionDigest> _subscriptions = [];
+    private IReadOnlyList<ErpDocumentWorkspaceField> SalesOrderWorkspaceFields =>
+        _openedDetail is null
+            ? []
+            :
+            [
+                new("Customer account", _openedDetail.CustomerUserId.ToString(CultureInfo.InvariantCulture)),
+                new("Contact", _openedDetail.ContactId > 0 ? _openedDetail.ContactId.ToString(CultureInfo.InvariantCulture) : "—"),
+                new("Requested ship date", "Not captured"),
+                new("Confirmed ship date", "Not captured"),
+                new("Warehouse", "Tenant default", "Delivery"),
+                new("Fulfilment policy", "Standard reservation", "Delivery"),
+                new("Payment terms", "Tenant profile", "Financial"),
+                new("Sales tax", _openedDetail.VatAmount.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
+                new("Financial dimensions", "Company / site / department", "Dimensions"),
+                new("Notes", _openedDetail.NotesLen.ToString(CultureInfo.InvariantCulture) + " chars", "General")
+            ];
+    private IReadOnlyList<ErpDocumentWorkspaceLine> SalesOrderWorkspaceLines =>
+        _orders.FirstOrDefault(item => item.Id == _openedDetail?.Id)?.Lines
+            .Select(line => new ErpDocumentWorkspaceLine(
+                line.ItemCode,
+                line.Description,
+                line.Qty,
+                "ea",
+                "Default",
+                "Default",
+                line.UnitPriceExVat,
+                0,
+                0,
+                line.LineExVat,
+                line.QtyReceived,
+                line.DocumentId > 0 ? "SO " + line.DocumentId.ToString(CultureInfo.InvariantCulture) : "—"))
+            .ToArray() ?? [];
     private int _open;
     private decimal _totalAmount;
     private int _limit = 100;
