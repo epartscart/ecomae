@@ -571,6 +571,11 @@ public sealed class ErpModule : ISurfaceModule
                         body.LinesJson,
                         body.PaymentTerms,
                         body.DueDate,
+                        body.OrderId,
+                        body.PaidAmount,
+                        body.TransactionTypeCode,
+                        body.PaymentMeansCode,
+                        body.BankAccount,
                         session.UserId),
                     cancellationToken);
                 if (body.Dimensions is { Count: > 0 })
@@ -21145,11 +21150,16 @@ public sealed class ErpModule : ISurfaceModule
         string? InvoiceNumber = null,
         string? CurrencyCode = null,
         string? SellerJson = null,
-        string? BuyerJson = null,
-        string? LinesJson = null,
-        string? PaymentTerms = null,
-        string? DueDate = null,
-        Dictionary<string, long>? Dimensions = null);
+                        string? BuyerJson = null,
+                        string? LinesJson = null,
+                        string? PaymentTerms = null,
+                        string? DueDate = null,
+        long OrderId = 0,
+        decimal PaidAmount = 0,
+        string? TransactionTypeCode = null,
+        string? PaymentMeansCode = null,
+        string? BankAccount = null,
+                        Dictionary<string, long>? Dimensions = null);
     private sealed record ErpInvoiceListBody(bool ConfirmWrites = false);
     private sealed record ErpInvoiceFromOrderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

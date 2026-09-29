@@ -18,6 +18,10 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("epc_einvoice_lines", service, StringComparison.Ordinal);
         Assert.Contains("Submitted invoices cannot be edited", service, StringComparison.Ordinal);
         Assert.Contains("epc_einvoice_events", service, StringComparison.Ordinal);
+        Assert.Contains("paid_amount", service, StringComparison.Ordinal);
+        Assert.Contains("transaction_type_code", service, StringComparison.Ordinal);
+        Assert.Contains("payment_means_code", service, StringComparison.Ordinal);
+        Assert.Contains("bank_account", service, StringComparison.Ordinal);
         Assert.Contains("IErpDimensionWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpBosWfRaiseWriteService", module, StringComparison.Ordinal);
         Assert.Contains("IErpManualInvoiceWriteService", program, StringComparison.Ordinal);

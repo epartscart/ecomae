@@ -19,6 +19,11 @@ public sealed record ErpManualInvoiceWriteRequest(
     string? LinesJson,
     string? PaymentTerms,
     string? DueDate,
+    long OrderId,
+    decimal PaidAmount,
+    string? TransactionTypeCode,
+    string? PaymentMeansCode,
+    string? BankAccount,
     int AdminId);
 
 public sealed record ErpManualInvoiceWriteResult(
@@ -35,7 +40,7 @@ public interface IErpManualInvoiceWriteService
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>Live create path for the PHP manual invoice save contract; edits remain PHP-backed until parity is complete.</summary>
+/// <summary>Live guarded implementation of the PHP manual invoice save contract.</summary>
 public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
@@ -85,6 +90,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var subtotal = Round(lines.Sum(line => line.Quantity * line.UnitPrice));
         var totalVat = Round(lines.Sum(line => line.Quantity * line.UnitPrice * line.TaxRate / 100m));
         var totalIncl = Round(subtotal + totalVat);
+        var paidAmount = Round(Math.Max(0, request.PaidAmount));
+        var amountDue = Round(Math.Max(0, totalIncl - paidAmount));
         var issueDate = now;
         var dueDate = ParseDate(request.DueDate, now + 30 * 86400L);
 
@@ -95,10 +102,11 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`payment_terms`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`amount_due`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'draft',0,'[]','',?,?,?,1)"),
+                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`amount_due`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'draft',0,'[]','',?,?,?,1)"),
                 cancellationToken,
                 Guid.NewGuid().ToString("D"),
                 invoiceNumber,
+                request.OrderId,
                 request.UserId > 0 ? request.UserId : 0,
                 "tax_invoice",
                 "380",
@@ -107,13 +115,17 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 issueDate,
                 currency,
                 currency,
+                Clip(request.TransactionTypeCode, 32) is { Length: > 0 } transactionType ? transactionType : "00000000",
+                Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
                 Clip(request.PaymentTerms, 255),
+                Clip(request.BankAccount, 255),
                 request.SellerJson ?? "{}",
                 request.BuyerJson ?? "{}",
                 subtotal,
                 totalVat,
                 totalIncl,
-                totalIncl,
+                paidAmount,
+                amountDue,
                 now,
                 now,
                 request.AdminId).ConfigureAwait(false);
@@ -205,6 +217,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var subtotal = Round(lines.Sum(line => line.Quantity * line.UnitPrice));
         var totalVat = Round(lines.Sum(line => line.Quantity * line.UnitPrice * line.TaxRate / 100m));
         var totalIncl = Round(subtotal + totalVat);
+        var paidAmount = Round(Math.Max(0, request.PaidAmount));
+        var amountDue = Round(Math.Max(0, totalIncl - paidAmount));
         var dueDate = ParseDate(request.DueDate, now + 30 * 86400L);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
@@ -214,20 +228,25 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "UPDATE `epc_einvoice_documents` SET `invoice_number`=?,`user_id`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`payment_terms`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`amount_due`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
+                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`amount_due`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
                 cancellationToken,
+                request.OrderId,
                 invoiceNumber,
                 request.UserId > 0 ? request.UserId : 0,
                 dueDate,
                 currency,
                 currency,
+                Clip(request.TransactionTypeCode, 32) is { Length: > 0 } transactionType ? transactionType : "00000000",
+                Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
                 Clip(request.PaymentTerms, 255),
+                Clip(request.BankAccount, 255),
                 request.SellerJson ?? "{}",
                 request.BuyerJson ?? "{}",
                 subtotal,
                 totalVat,
                 totalIncl,
-                totalIncl,
+                paidAmount,
+                amountDue,
                 now,
                 request.Id).ConfigureAwait(false);
             if (changed == 0)
