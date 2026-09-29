@@ -1,0 +1,95 @@
+@page "/erp/user-control-app"
+@layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject ILegacySessionValidator Sessions
+@inject IHttpContextAccessor Http
+
+<PageTitle>ERP user control · eParts Cart</PageTitle>
+<PhpChromeStyles Surface="erp" />
+
+<PhpErpDesktopChrome IsAdmin="_isAdmin" Title="ERP user control" BreadcrumbArea="Administration" BreadcrumbTab="User control">
+    <PhpErpModulePageHeader Title="ERP user control"
+                            Subtitle="Review role, capability, area, action, and module access before enabling live changes." />
+
+    @if (!_isAdmin)
+    {
+        <div class="alert alert-info">Sign in with ERP capability to inspect user control.</div>
+    }
+    else
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="ERP user control summary">
+            <div class="kpi"><div class="lbl">Current operator</div><div class="val">@(_email.Length == 0 ? "—" : _email)</div></div>
+            <div class="kpi"><div class="lbl">Surface capabilities</div><div class="val">@_capabilities.Count</div></div>
+            <div class="kpi"><div class="lbl">Module ACL rows</div><div class="val">@_modules.Count</div></div>
+            <div class="kpi"><div class="lbl">Standard actions</div><div class="val">@ErpCapabilityCatalog.Actions.Count</div></div>
+        </div>
+
+        <div class="epc-erp-table-wrap">
+            <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr>
+                        <th>Capability group</th>
+                        <th>Area access</th>
+                        <th>Standard actions</th>
+                        <th>Module ACL evidence</th>
+                        <th>Workspace</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var group in ErpCapabilityCatalog.Groups)
+                    {
+                        var enabled = _capabilities.Contains(group.Key, StringComparer.OrdinalIgnoreCase);
+                        var moduleEvidence = _modules.Count == 0
+                            ? "No module ACL rows loaded"
+                            : $"{_modules.Count} ACL row(s) loaded";
+                        <tr>
+                            <td>
+                                <strong>@group.Label</strong>
+                                <div class="text-muted">@group.Description</div>
+                            </td>
+                            <td>@(enabled ? "enabled" : "not enabled")</td>
+                            <td>@(enabled ? string.Join(", ", ErpCapabilityCatalog.Actions) : "—")</td>
+                            <td>@moduleEvidence</td>
+                            <td><a href="@group.Href">Open area</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <p class="text-muted">
+            This window is the control-plane view for role → capability → area/action mappings.
+            Company/site scope, approval limits, effective dates, delegations, and audit history
+            remain mandatory fields for the live administration workflow.
+        </p>
+    }
+</PhpErpDesktopChrome>
+
+@code {
+    private bool _isAdmin;
+    private string _email = string.Empty;
+    private IReadOnlyList<string> _capabilities = [];
+    private IReadOnlyList<ModuleAclEntry> _modules = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
+        if (!_isAdmin)
+        {
+            return;
+        }
+
+        _email = session.Email;
+        _capabilities = session.Capabilities;
+        _modules = session.Modules;
+    }
+}

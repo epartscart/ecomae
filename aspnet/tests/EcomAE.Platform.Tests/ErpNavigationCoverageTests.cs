@@ -137,6 +137,50 @@ public sealed class ErpNavigationCoverageTests
         }
     }
 
+    [Fact]
+    public void ErpUserControlDefinesCapabilityGroupsAndStandardActions()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Components",
+            "Pages",
+            "ErpUserControlApp.razor"));
+        var catalog = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Presentation",
+            "ErpCapabilityCatalog.cs"));
+        var chrome = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Components",
+            "Shared",
+            "Desktop",
+            "PhpErpDesktopChrome.razor"));
+
+        Assert.Contains("@page \"/erp/user-control-app\"", page, StringComparison.Ordinal);
+        Assert.Contains("role → capability → area/action mappings", page, StringComparison.Ordinal);
+        foreach (var group in new[] { "Finance", "Purchasing", "Sales", "Inventory", "Projects / fit-out", "Jewellery", "HR / payroll", "Administration" })
+        {
+            Assert.Contains("new(\"" + group, catalog, StringComparison.Ordinal);
+        }
+
+        foreach (var action in new[] { "View", "New", "Edit", "Delete", "Void", "Submit", "Approve", "Reject", "Post", "Reverse", "Print", "Export" })
+        {
+            Assert.Contains("\"" + action + "\"", catalog, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("<a href=\"/erp/user-control-app\">User control</a>", chrome, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
