@@ -5938,8 +5938,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmChequeSave, HandlePmChequeSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrWcSave, HandleMfgrWcSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrRouteSave, HandleMfgrRouteSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrMrpRun, async (HttpContext context, ErpMfgrMrpRunBody? body, ILegacySessionValidator validator, IErpMfgrMrpRunDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpMfgrMrpRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrMrpRun, HandleMfgrMrpRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrPlannedFirm, HandleMfgrPlannedFirmAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmPlanSave, HandleQmPlanSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmTestAdd, HandleQmTestAddAsync).DisableAntiforgery();
@@ -17875,6 +17874,62 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = result.Succeeded, writes = result.Writes, phpAuthoritative = false, validation_code = result.Code, message = result.Message, id = result.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleMfgrMrpRunAsync(
+        HttpContext context,
+        ErpMfgrMrpRunBody? body,
+        ILegacySessionValidator validator,
+        IErpMfgrMrpRunDryRun dryRun,
+        IErpMfgrMrpRunWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            return Unauthorized("Admin ERP capability required.");
+
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            try
+            {
+                body = new(
+                    LiveWriteFormBinder.Long(form, "companyId", "company_id"),
+                    System.Text.Json.JsonSerializer.Deserialize<Dictionary<long, decimal>>(form["demand"].ToString()),
+                    string.IsNullOrWhiteSpace(form["onHand"].ToString())
+                        ? new Dictionary<long, decimal>()
+                        : System.Text.Json.JsonSerializer.Deserialize<Dictionary<long, decimal>>(form["onHand"].ToString()),
+                    LiveWriteFormBinder.Long(form, "dueDate", "due_date"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+            }
+            catch (System.Text.Json.JsonException)
+            {
+                return Results.Ok(new { ok = false, status = "rejected", writes = 0, phpAuthoritative = false, cutoverAllowed = false, validation_code = "invalid_json", message = "Demand and on-hand must be JSON objects keyed by item id.", session = SessionPayload(session) });
+            }
+        }
+
+        body ??= new();
+        if (!body.ConfirmWrites)
+            return Results.Ok(dryRun.Evaluate(new ErpMfgrMrpRunRequest(false)).ToPayload(SessionPayload(session)));
+
+        var result = await writes.RunAsync(
+            body.CompanyId,
+            body.Demand ?? new Dictionary<long, decimal>(),
+            body.OnHand ?? new Dictionary<long, decimal>(),
+            body.DueDate,
+            cancellationToken);
+        return Results.Ok(new
+        {
+            ok = result.Succeeded,
+            status = result.Succeeded ? "completed" : "rejected",
+            writes = result.Writes,
+            phpAuthoritative = false,
+            cutoverAllowed = false,
+            validation_code = result.Code,
+            message = result.Message,
+            id = result.Id,
+            session = SessionPayload(session)
+        });
+    }
+
     private static async Task<IResult> HandleCftForecastSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -20765,7 +20820,12 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPmChequeSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrWcSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrRouteSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpMfgrMrpRunBody(bool ConfirmWrites = false);
+    private sealed record ErpMfgrMrpRunBody(
+        long CompanyId = 0,
+        Dictionary<long, decimal>? Demand = null,
+        Dictionary<long, decimal>? OnHand = null,
+        long DueDate = 0,
+        bool ConfirmWrites = false);
     private sealed record ErpMfgrPlannedFirmBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpQmPlanSaveBody(
         long Id = 0,

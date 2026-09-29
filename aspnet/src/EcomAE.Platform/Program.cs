@@ -342,6 +342,7 @@ builder.Services.AddSingleton<IErpPmChequeSaveDryRun, ErpPmChequeSaveDryRun>();
 builder.Services.AddSingleton<IErpMfgrWcSaveDryRun, ErpMfgrWcSaveDryRun>();
 builder.Services.AddSingleton<IErpMfgrRouteSaveDryRun, ErpMfgrRouteSaveDryRun>();
 builder.Services.AddSingleton<IErpMfgrMrpRunDryRun, ErpMfgrMrpRunDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgrMrpRunWriteService, EcomAE.Platform.Erp.ErpMfgrMrpRunWriteService>();
 builder.Services.AddSingleton<IErpMfgrPlannedFirmDryRun, ErpMfgrPlannedFirmDryRun>();
 builder.Services.AddSingleton<IErpQmPlanSaveDryRun, ErpQmPlanSaveDryRun>();
 builder.Services.AddSingleton<IErpQmTestAddDryRun, ErpQmTestAddDryRun>();
