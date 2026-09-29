@@ -1,5 +1,7 @@
 using System.Text.RegularExpressions;
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Presentation;
+using EcomAE.Platform.Security;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -183,6 +185,29 @@ public sealed class ErpNavigationCoverageTests
         }
 
         Assert.Contains("<a href=\"/erp/user-control-app\">User control</a>", chrome, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ErpCapabilityPolicySeparatesStandardAndPrivilegedActions()
+    {
+        var tenant = new LegacySessionContext(
+            LegacySessionKind.Admin,
+            10,
+            "session",
+            [EcomAePermissions.TenantErpAccess]);
+        var delegatedDelete = tenant with
+        {
+            ModuleAcl = [new ModuleAclEntry(7, "Sales Delete", false)],
+        };
+        var super = tenant with
+        {
+            Permissions = [EcomAePermissions.SuperErpAccess],
+        };
+
+        Assert.True(ErpCapabilityCatalog.CanAction(tenant, "sales", "New"));
+        Assert.False(ErpCapabilityCatalog.CanAction(tenant, "sales", "Delete"));
+        Assert.True(ErpCapabilityCatalog.CanAction(delegatedDelete, "sales", "Delete"));
+        Assert.True(ErpCapabilityCatalog.CanAction(super, "finance", "Reverse"));
     }
 
     private static string FindRepoRoot()

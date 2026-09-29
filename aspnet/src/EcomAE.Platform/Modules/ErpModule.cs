@@ -555,6 +555,12 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required.");
 
             body ??= new();
+            var invoiceAction = body.Id > 0 ? "Edit" : "New";
+            if (!ErpCapabilityCatalog.CanAction(session, "sales", invoiceAction)
+                && !ErpCapabilityCatalog.CanAction(session, "finance", invoiceAction))
+            {
+                return Unauthorized($"ERP {invoiceAction.ToLowerInvariant()} capability required for invoice save.");
+            }
             if (!body.ConfirmWrites)
                 return Results.Ok(dryRun.Evaluate(new ErpInvoiceSaveRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
 
@@ -10151,6 +10157,11 @@ public sealed class ErpModule : ISurfaceModule
             {
                 return Unauthorized("Admin ERP capability required for invoice delete dry-run.");
             }
+            if (!ErpCapabilityCatalog.CanAction(session, "sales", "Delete")
+                && !ErpCapabilityCatalog.CanAction(session, "finance", "Delete"))
+            {
+                return Unauthorized("ERP delete capability required for invoice delete.");
+            }
             body ??= new ErpInvoiceDeleteBody(0, false);
             if (!body.ConfirmWrites)
             {
@@ -10397,6 +10408,11 @@ public sealed class ErpModule : ISurfaceModule
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
                 return Unauthorized("Admin ERP capability required for invoice cancel dry-run.");
+            }
+            if (!ErpCapabilityCatalog.CanAction(session, "sales", "Void")
+                && !ErpCapabilityCatalog.CanAction(session, "finance", "Void"))
+            {
+                return Unauthorized("ERP void capability required for invoice cancellation.");
             }
 
             body ??= new ErpInvoiceCancelBody(0, null, false);

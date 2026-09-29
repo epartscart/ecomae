@@ -1,3 +1,6 @@
+using EcomAE.Platform.Auth;
+using EcomAE.Platform.Security;
+
 namespace EcomAE.Platform.Presentation;
 
 public static class ErpCapabilityCatalog
@@ -29,6 +32,63 @@ public static class ErpCapabilityCatalog
         "Print",
         "Export",
     ];
+
+    public static bool CanAccess(LegacySessionContext session, string groupKey)
+    {
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return false;
+        }
+
+        if (session.Permissions.Contains(EcomAePermissions.SuperErpAccess))
+        {
+            return true;
+        }
+
+        if (session.Modules.Count == 0 || session.Modules.Any(m => m.OpenAccess))
+        {
+            return true;
+        }
+
+        return session.Modules.Any(module => ModuleMatches(module.Caption, groupKey));
+    }
+
+    public static bool CanAction(LegacySessionContext session, string groupKey, string action)
+    {
+        if (!CanAccess(session, groupKey))
+        {
+            return false;
+        }
+
+        if (session.Permissions.Contains(EcomAePermissions.SuperErpAccess)
+            || action is "View" or "New" or "Edit" or "Submit" or "Print" or "Export")
+        {
+            return true;
+        }
+
+        return session.Modules.Any(module =>
+            ModuleMatches(module.Caption, groupKey)
+            && module.Caption.Contains(action, StringComparison.OrdinalIgnoreCase));
+    }
+
+    private static bool ModuleMatches(string caption, string groupKey)
+    {
+        var text = caption.Trim();
+        var aliases = groupKey switch
+        {
+            "finance" => new[] { "finance", "account", "ledger", "vat", "tax", "invoice", "payment", "cash" },
+            "purchasing" => new[] { "purchase", "procure", "supplier", "vendor", "rfq", "receiving" },
+            "sales" => new[] { "sales", "invoice", "customer", "order", "quotation", "receivable" },
+            "inventory" => new[] { "inventory", "warehouse", "stock", "transfer", "quality" },
+            "projects" => new[] { "project", "fit-out", "contract", "boq", "claim" },
+            "jewellery" => new[] { "jewel", "diamond", "karat", "metal", "workshop" },
+            "people" => new[] { "hr", "human", "payroll", "staff", "employee", "leave", "attendance" },
+            "administration" => new[] { "admin", "security", "role", "user", "integration", "audit" },
+            _ => Array.Empty<string>(),
+        };
+
+        return aliases.Any(alias => text.Contains(alias, StringComparison.OrdinalIgnoreCase));
+    }
 }
 
 public sealed record ErpCapabilityGroup(

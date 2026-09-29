@@ -40,7 +40,7 @@
                 <tbody>
                     @foreach (var group in ErpCapabilityCatalog.Groups)
                     {
-                        var enabled = _capabilities.Contains(group.Key, StringComparer.OrdinalIgnoreCase);
+                        var enabled = AreaEnabled(group);
                         var moduleEvidence = _modules.Count == 0
                             ? "No module ACL rows loaded"
                             : $"{_modules.Count} ACL row(s) loaded";
@@ -50,7 +50,7 @@
                                 <div class="text-muted">@group.Description</div>
                             </td>
                             <td>@(enabled ? "enabled" : "not enabled")</td>
-                            <td>@(enabled ? string.Join(", ", ErpCapabilityCatalog.Actions) : "—")</td>
+                            <td>@AllowedActions(group)</td>
                             <td>@moduleEvidence</td>
                             <td><a href="@group.Href">Open area</a></td>
                         </tr>
@@ -72,6 +72,7 @@
     private string _email = string.Empty;
     private IReadOnlyList<string> _capabilities = [];
     private IReadOnlyList<ModuleAclEntry> _modules = [];
+    private LegacySessionContext? _session;
 
     protected override async Task OnInitializedAsync()
     {
@@ -82,6 +83,7 @@
         }
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        _session = session;
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
         {
@@ -92,4 +94,12 @@
         _capabilities = session.Capabilities;
         _modules = session.Modules;
     }
+
+    private bool AreaEnabled(ErpCapabilityGroup group)
+        => _session is not null && ErpCapabilityCatalog.CanAccess(_session, group.Key);
+
+    private string AllowedActions(ErpCapabilityGroup group)
+        => _session is null
+            ? "—"
+            : string.Join(", ", ErpCapabilityCatalog.Actions.Where(action => ErpCapabilityCatalog.CanAction(_session, group.Key, action)));
 }
