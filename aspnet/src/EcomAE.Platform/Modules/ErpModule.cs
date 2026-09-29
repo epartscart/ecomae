@@ -349,6 +349,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutQuotationSave, HandleFitOutQuotationSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutProcurementLinkSave, HandleFitOutProcurementLinkSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutThreeWayMatchSave, HandleFitOutThreeWayMatchSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpThreeWayMatchSave, HandleThreeWayMatchSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutMaterialMovementSave, HandleFitOutMaterialMovementSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutDeliveryRecordSave, HandleFitOutDeliveryRecordSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFitOutInvoiceBridgeSave, HandleFitOutInvoiceBridgeSaveAsync).DisableAntiforgery();
@@ -13072,6 +13073,74 @@ public sealed class ErpModule : ISurfaceModule
             });
     }
 
+    private static async Task<IResult> HandleThreeWayMatchSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpThreeWayMatchWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin
+            || !ErpCapabilityCatalog.CanAction(session, "purchasing", "Approve")
+                && !ErpCapabilityCatalog.CanAction(session, "finance", "Approve"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/three-way-match-app",
+                "Purchasing or Finance approval capability required for three-way matching.");
+        }
+
+        var body = await LiveWriteFormBinder
+            .ReadJsonOrDefaultAsync<ErpThreeWayMatchSaveBody>(context, cancellationToken)
+            ?? new();
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            body = new(
+                LiveWriteFormBinder.Long(form, "purchaseOrderId", "purchase_order_id"),
+                LiveWriteFormBinder.Text(form, "decision"),
+                LiveWriteFormBinder.Dec(form, "toleranceAmount", "tolerance_amount"),
+                LiveWriteFormBinder.Text(form, "exceptionReason", "exception_reason"),
+                LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+        }
+        if (!body.ConfirmWrites)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                dryRun = true,
+                writes = 0,
+                writesBlocked = true,
+                phpAuthoritative = true,
+                session = SessionPayload(session)
+            });
+        }
+
+        var written = await writes.DecideAsync(
+            new ErpThreeWayMatchDecisionRequest(
+                body.PurchaseOrderId,
+                body.Decision,
+                body.ToleranceAmount,
+                body.ExceptionReason,
+                session.UserId),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/three-way-match-app",
+            written.Succeeded,
+            written.Message,
+            new
+            {
+                ok = written.Succeeded,
+                writes = written.Writes,
+                phpAuthoritative = false,
+                validation_code = written.Code,
+                message = written.Message,
+                id = written.Id,
+                session = SessionPayload(session)
+            });
+    }
+
     private static async Task<IResult> HandleFitOutMaterialMovementSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -20803,6 +20872,12 @@ public sealed class ErpModule : ISurfaceModule
         decimal ReceivedAmount = 0,
         decimal InvoicedAmount = 0,
         decimal TolerancePercent = 0,
+        bool ConfirmWrites = false);
+    private sealed record ErpThreeWayMatchSaveBody(
+        long PurchaseOrderId = 0,
+        string Decision = "match",
+        decimal ToleranceAmount = 0,
+        string? ExceptionReason = null,
         bool ConfirmWrites = false);
     private sealed record ErpFitOutMaterialMovementSaveBody(
         long Id = 0,
