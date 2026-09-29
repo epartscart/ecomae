@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -144,14 +145,21 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Code</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Code) ? "—" : _opened.Code)</dd>
-                <dt>Name</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Name) ? "—" : _opened.Name)</dd>
-                <dt>Storage ID</dt><dd>@(_opened.StorageId > 0 ? _opened.StorageId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Active</dt><dd>@(_opened.Active ? "active" : "inactive")</dd>
-                <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
-            </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Warehouse"
+                Title="@OpenedCaption"
+                DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Storage"
+                Party="@(_opened.StorageId > 0 ? _opened.StorageId.ToString(CultureInfo.InvariantCulture) : "—")"
+                ReferenceLabel="Code"
+                Reference="@_opened.Code"
+                Status="@(_opened.Active ? "active" : "inactive")"
+                ApprovalState="Warehouse master"
+                CompanyContext="Tenant / company"
+                Currency="—"
+                Fields="@WarehouseWorkspaceFields"
+                Lines="@WarehouseWorkspaceLines"
+                Tabs="@WarehouseWorkspaceTabs" />
             <p class="text-muted" style="margin:.85rem 0 0">Create and transfer stay on the virtual-warehouse tab.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NameExcerpt))
             {
@@ -262,6 +270,24 @@
     private string _message = "";
     private string _ok = "";
     private string _err = "";
+    private IReadOnlyList<string> WarehouseWorkspaceTabs => ["General", "Storage", "Audit"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> WarehouseWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Code", _opened.Code, "General"),
+            new("Name", _opened.Name, "General"),
+            new("Storage id", _opened.StorageId > 0 ? _opened.StorageId.ToString(CultureInfo.InvariantCulture) : "—", "Storage"),
+            new("Active", _opened.Active ? "Yes" : "No", "General"),
+            new("Created", FormatTime(_opened.TimeCreated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> WarehouseWorkspaceLines => _opened is null
+        ? []
+        : [new(string.IsNullOrWhiteSpace(_opened.Code) ? $"WH-{_opened.Id}" : _opened.Code,
+            string.IsNullOrWhiteSpace(_opened.Name) ? "Warehouse" : _opened.Name,
+            1, "location", _opened.StorageId.ToString(CultureInfo.InvariantCulture), "master",
+            0, 0, 0, 0, 0, "Warehouse master")];
 
     protected override async Task OnInitializedAsync()
     {

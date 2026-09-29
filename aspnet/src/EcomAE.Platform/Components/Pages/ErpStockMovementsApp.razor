@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -34,21 +35,21 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Date</dt><dd>@FormatTime(_opened.MovementDate)</dd>
-                <dt>Type</dt><dd>@(string.IsNullOrWhiteSpace(_opened.MovementType) ? "—" : _opened.MovementType)</dd>
-                <dt>Warehouse</dt><dd>@(string.IsNullOrWhiteSpace(_opened.WarehouseName) ? (_opened.WarehouseId > 0 ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : "—") : _opened.WarehouseName)</dd>
-                <dt>SKU</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Sku) ? "—" : _opened.Sku)</dd>
-                <dt>Item</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ItemName) ? "—" : _opened.ItemName)</dd>
-                <dt>Qty</dt><dd>@_opened.Qty.ToString("N3", CultureInfo.InvariantCulture)</dd>
-                <dt>Unit cost</dt><dd>@_opened.UnitCost.ToString("N4", CultureInfo.InvariantCulture)</dd>
-                <dt>Total cost</dt><dd>@_opened.TotalCost.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Batch</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BatchNo) ? "—" : _opened.BatchNo)</dd>
-                <dt>Expiry</dt><dd>@(string.IsNullOrWhiteSpace(_opened.ExpiryDate) ? "—" : _opened.ExpiryDate)</dd>
-                <dt>Transfer WH</dt><dd>@(_opened.TransferWarehouseId > 0 ? _opened.TransferWarehouseId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Ref</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Reference) ? "—" : _opened.Reference)</dd>
-            </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="Stock movement"
+                Title="@OpenedCaption"
+                DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Warehouse"
+                Party="@(string.IsNullOrWhiteSpace(_opened.WarehouseName) ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : _opened.WarehouseName)"
+                ReferenceLabel="Reference"
+                Reference="@_opened.Reference"
+                Status="@_opened.MovementType"
+                ApprovalState="@MovementDirection"
+                CompanyContext="Tenant / company"
+                Currency="—"
+                Fields="@MovementWorkspaceFields"
+                Lines="@MovementWorkspaceLines"
+                Tabs="@MovementWorkspaceTabs" />
             <p class="text-muted" style="margin:.85rem 0 0">Writes stay on the Classic twin.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NoteExcerpt))
             {
@@ -146,6 +147,41 @@
     private long _openedId;
     private ErpInventoryMovementDetail? _opened;
     private IReadOnlyList<ErpInventoryMovementDigest> _openedSiblings = [];
+    private IReadOnlyList<string> MovementWorkspaceTabs => ["General", "Quantity", "Costing", "Traceability"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> MovementWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Movement date", FormatTime(_opened.MovementDate), "General"),
+            new("Movement type", _opened.MovementType, "General"),
+            new("Warehouse", string.IsNullOrWhiteSpace(_opened.WarehouseName) ? _opened.WarehouseId.ToString(CultureInfo.InvariantCulture) : _opened.WarehouseName, "General"),
+            new("SKU", _opened.Sku, "General"),
+            new("Item", _opened.ItemName, "General"),
+            new("Quantity", _opened.Qty.ToString("N3", CultureInfo.InvariantCulture), "Quantity"),
+            new("Signed quantity", SignedQuantity.ToString("N3", CultureInfo.InvariantCulture), "Quantity"),
+            new("Unit cost", _opened.UnitCost.ToString("N4", CultureInfo.InvariantCulture), "Costing"),
+            new("Total cost", _opened.TotalCost.ToString("N2", CultureInfo.InvariantCulture), "Costing"),
+            new("Batch", _opened.BatchNo, "Traceability"),
+            new("Expiry", _opened.ExpiryDate, "Traceability"),
+            new("Transfer warehouse", _opened.TransferWarehouseId > 0 ? _opened.TransferWarehouseId.ToString(CultureInfo.InvariantCulture) : "—", "Traceability"),
+            new("Reference", _opened.Reference, "Traceability")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> MovementWorkspaceLines => _opened is null
+        ? []
+        : [
+            new(_opened.Sku, string.IsNullOrWhiteSpace(_opened.ItemName) ? _opened.Sku : _opened.ItemName,
+                _opened.Qty, "units", _opened.WarehouseName, "—", _opened.UnitCost, 0, 0,
+                _opened.TotalCost, SignedQuantity, _opened.Reference)
+        ];
+
+    private decimal SignedQuantity => _opened is null
+        ? 0
+        : _opened.MovementType.Contains("out", StringComparison.OrdinalIgnoreCase)
+            ? -_opened.Qty
+            : _opened.Qty;
+
+    private string MovementDirection => SignedQuantity >= 0 ? "Inbound / positive" : "Outbound / negative";
 
     private string OpenedCaption => _opened is null
         ? ""

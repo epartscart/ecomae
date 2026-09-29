@@ -111,6 +111,17 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void InventoryWarehouseAndMovementPagesUseSharedWorkspaceForOpenedRecords()
+    {
+        var warehouses = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpWarehousesApp.razor"));
+        var movements = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpStockMovementsApp.razor"));
+        Assert.Contains("ErpDocumentWorkspace", warehouses, StringComparison.Ordinal);
+        Assert.Contains("WarehouseWorkspaceFields", warehouses, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", movements, StringComparison.Ordinal);
+        Assert.Contains("MovementWorkspaceLines", movements, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));
