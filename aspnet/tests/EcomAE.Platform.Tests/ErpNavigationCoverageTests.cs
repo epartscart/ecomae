@@ -84,6 +84,35 @@ public sealed class ErpNavigationCoverageTests
         Assert.Empty(invalid);
     }
 
+    [Fact]
+    public void TaxComplianceUsesTheErpChromeOnItsErpRoute()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Components",
+            "Pages",
+            "CpUaeTaxComplianceApp.razor"));
+        var chrome = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet",
+            "src",
+            "EcomAE.Platform",
+            "Components",
+            "Shared",
+            "Desktop",
+            "TaxComplianceSurfaceChrome.razor"));
+
+        Assert.Contains("@page \"/erp/uae-tax-compliance-app\"", page, StringComparison.Ordinal);
+        Assert.Contains("<TaxComplianceSurfaceChrome", page, StringComparison.Ordinal);
+        Assert.Contains("PhpErpDesktopChrome", chrome, StringComparison.Ordinal);
+        Assert.Contains("PhpCpDesktopChrome", chrome, StringComparison.Ordinal);
+        Assert.Contains("\"/erp/uae-tax-compliance-app\"", chrome, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

@@ -1,0 +1,35 @@
+@using EcomAE.Platform.Presentation
+@inject IHttpContextAccessor Http
+
+@if (_isErp)
+{
+    <PhpChromeStyles Surface="erp" />
+    <PhpErpDesktopChrome IsAdmin="IsAdmin"
+                         Title="UAE tax compliance"
+                         BreadcrumbArea="Tax"
+                         BreadcrumbTab="Compliance">
+        @ChildContent
+    </PhpErpDesktopChrome>
+}
+else
+{
+    <PhpChromeStyles Surface="cp" />
+    <PhpCpDesktopChrome IsAdmin="IsAdmin">
+        @ChildContent
+    </PhpCpDesktopChrome>
+}
+
+@code {
+    [Parameter] public bool IsAdmin { get; set; }
+    [Parameter] public RenderFragment? ChildContent { get; set; }
+
+    private bool _isErp;
+
+    protected override void OnInitialized()
+    {
+        _isErp = string.Equals(
+            Http.HttpContext?.Request.Path.Value,
+            "/erp/uae-tax-compliance-app",
+            StringComparison.OrdinalIgnoreCase);
+    }
+}
