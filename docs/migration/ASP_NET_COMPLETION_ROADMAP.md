@@ -33,6 +33,7 @@ and rollback evidence pass.
 | APIs / webhooks / workers | Dispatcher and catalog contracts are extensive, but operational parity is not proven for every callback, queue, retry, upload/download, cron, or scheduled compliance job. | **70–80%** | Enumerate every PHP API/cron; prove idempotency, retry, dead-letter, auth/rate limits, webhook signatures, and tenant scope. | 3–5 Devin sessions |
 | Cloud / on-premises / hybrid operations | Health checks and zero-downtime foundations exist; install, licensing, registration/expiry, synchronization, encrypted backup/restore, and disaster recovery are open gates. | **80–90%** | Produce cloud, on-prem, and hybrid runbooks; test offline/on-prem registration expiry; encrypted backup/restore; sync conflict handling; rollback. | 4–6 Devin sessions plus environment waits |
 | Security / tenant isolation | RBAC, scoped grants, audit history, CSRF, and company/site policies have substantial coverage, but the module-by-module denial matrix is not closed. | **35–45%** | Negative tests for every write and direct URL; cross-tenant leakage tests; country/effective-date checks; rate-limit and secret-handling review. | 3–4 Devin sessions |
+| ERP role dashboards / embedded analytics | ERP already has a PHP-shaped dashboard and role preview catalogue; server-derived manager profiles and tenant-scoped Power BI embed plumbing are being promoted into the ERP home. | **65–75%** | Persist/customise role definitions per user/group; derive every KPI/card from capability and company/site scope; add CFO, CEO, Sales Manager, Purchasing Manager, and custom-role acceptance; protect Power BI embed tokens and validate desktop/mobile layouts. | 2–4 Devin sessions plus Azure/customer configuration |
 | Browser acceptance / production cutover | No combined human acceptance round has passed; PHP remains the live fallback/reference. | **100%** | Round 1 CP+ERP; Round 2 storefront+BOS+marketing+workers; Round 3 full regression; shadow approval; rollback rehearsal; release-owner sign-off. | 3–4 Devin sessions plus deployment windows |
 
 These bands deliberately do not add to 100%: they describe independent gates,
@@ -60,6 +61,27 @@ Work in process order rather than isolated route order:
 5. Record-to-report, treasury, tax, e-invoice, and external reporting.
 6. Jewellery and fit-out industry scenarios.
 7. Setup, guides, document designer, and country profiles.
+
+#### Role dashboards and embedded Power BI
+
+The ERP home must be a role-aware workspace, not one unrestricted executive page:
+
+* **CEO:** company-wide revenue, margin, cash, risk, operations, and cross-area
+  exception tiles.
+* **CFO:** liquidity, GL, AR/AP, tax, treasury, close, and audit evidence.
+* **Sales Manager:** pipeline, orders, fulfilment, collections, returns, and
+  customer actions without finance-only figures.
+* **Purchasing Manager:** RFQs, purchase orders, receipts, supplier exposure,
+  three-way match, and AP actions.
+* **Custom role:** an administrator-configured combination of areas, KPI cards,
+  actions, company/site scope, approval limit, and effective dates.
+
+Power BI is part of the ERP workspace acceptance gate: reports must be embedded
+inside the tenant ERP shell when a validated URL/token configuration exists,
+while configuration remains in the secured Power BI control surface. API keys,
+embed URLs, report IDs, and future Azure embed tokens must never be trusted from
+the browser or exposed across tenants. A missing customer Azure configuration
+must degrade to a clear setup state, not a broken iframe or PHP-only claim.
 
 Each process requires New/Edit/Delete/Void/Submit/Approve/Post where applicable,
 field validation, audit, permission denial, source-document links, and database
