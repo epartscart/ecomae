@@ -495,6 +495,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-currency siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("Validate settlement", razor, StringComparison.Ordinal);
         Assert.Contains("Post supplier settlement", razor, StringComparison.Ordinal);
+        Assert.Contains("Recent supplier bills", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
