@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -19,32 +20,6 @@
     <PhpErpModulePageHeader Title="RFQs" Subtitle="Create and edit supplier requests for quotation with PHP-compatible lifecycle fields; unsupported workflow actions remain on the Classic twin." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
-    @if (_isAdmin)
-    {
-        <form method="post" action="/erp/ajax/save-rfq" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
-            <input type="hidden" name="returnUrl" value="/erp/rfq-app" />
-            <input type="hidden" name="id" value="@(_opened?.Id ?? 0)" />
-            <label>Supplier <input type="number" name="supplier_id" min="0" value="@(_opened?.SupplierId ?? 0)" style="width:6rem" /></label>
-            <label>Title <input type="text" name="title" required maxlength="255" value="@(_opened?.Title ?? string.Empty)" /></label>
-            <label>Estimate <input type="text" name="amount_est" value="@((_opened?.AmountEst ?? 0).ToString("0.00", CultureInfo.InvariantCulture))" style="width:7rem" /></label>
-            <label>Status
-                <select name="status">
-                    <option value="draft" selected="@(_opened?.Status is null or "draft")">Draft</option>
-                    <option value="sent" selected="@(_opened?.Status == "sent")">Sent</option>
-                    <option value="quoted" selected="@(_opened?.Status == "quoted")">Quoted</option>
-                    <option value="accepted" selected="@(_opened?.Status == "accepted")">Accepted</option>
-                    <option value="rejected" selected="@(_opened?.Status == "rejected")">Rejected</option>
-                    <option value="cancelled" selected="@(_opened?.Status == "cancelled")">Cancelled</option>
-                </select>
-            </label>
-            <label>Due <input type="date" name="due_date" value="@FormatDateInput(_opened?.DueDate ?? 0)" /></label>
-            <label>Order <input type="number" name="order_id" min="0" value="@(_opened?.OrderId ?? 0)" style="width:6rem" /></label>
-            <label>Description <input type="text" name="description" maxlength="4000" value="@(_opened?.DescriptionExcerpt ?? string.Empty)" /></label>
-            <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
-            <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Save RFQ</button>
-        </form>
-    }
-
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQs KPIs">
         <div class="kpi"><div class="lbl">Shown (limit @_limit)</div><div class="val">@_rfqs.Count</div></div>
         <div class="kpi"><div class="lbl">Digest source</div><div class="val">@_source</div></div>
@@ -58,20 +33,25 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>RFQ #</dt><dd>@(string.IsNullOrWhiteSpace(_opened.RfqNo) ? "—" : _opened.RfqNo)</dd>
-                <dt>Title</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Title) ? "—" : _opened.Title)</dd>
-                <dt>Supplier</dt><dd>@(_opened.SupplierId > 0 ? _opened.SupplierId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Est. amount</dt><dd>@_opened.AmountEst.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CurrencyCode) ? "—" : _opened.CurrencyCode)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Due</dt><dd>@FormatTime(_opened.DueDate)</dd>
-                <dt>Order</dt><dd>@(_opened.OrderId > 0 ? _opened.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Updated</dt><dd>@(_opened.TimeUpdated > 0 ? _opened.TimeUpdated.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-            </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path; unsupported workflow actions remain on the Classic twin.</p>
-            <p class="text-muted">Save stays on the Classic twin for unsupported workflow actions.</p>
+            <ErpDocumentWorkspace
+                DocumentKind="Request for quotation"
+                Title="@(_opened.RfqNo is { Length: > 0 } ? _opened.RfqNo : $"RFQ #{_opened.Id}")"
+                DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Supplier"
+                Party="@FormatId(_opened.SupplierId)"
+                ReferenceLabel="Source order"
+                Reference="@FormatId(_opened.OrderId)"
+                Status="@(_opened.Status is { Length: > 0 } ? _opened.Status : "draft")"
+                ApprovalState="@(_opened.DueDate > 0 ? $"Due {FormatTime(_opened.DueDate)}" : "No due date")"
+                CompanyContext="Tenant / company"
+                Currency="@(_opened.CurrencyCode is { Length: > 0 } ? _opened.CurrencyCode : "AED")"
+                Subtotal="@_opened.AmountEst"
+                Total="@_opened.AmountEst"
+                BalanceDue="0"
+                Fields="@RfqWorkspaceFields"
+                Tabs="@RfqWorkspaceTabs"
+                HeaderActions="@RfqHeaderActions" />
+            <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path; supplier response, award, and unsupported workflow actions remain on the Classic twin. No line body is invented by this read model.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">description excerpt</p>
@@ -174,6 +154,54 @@
     private long _openedId;
     private ErpRfqDetail? _opened;
     private IReadOnlyList<ErpRfqDigest> _openedSiblings = [];
+
+    private IReadOnlyList<string> RfqWorkspaceTabs =>
+        ["General", "Supplier", "Delivery", "Lines", "Financial"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> RfqWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("RFQ id", _opened.Id.ToString(CultureInfo.InvariantCulture), "General"),
+            new("RFQ number", string.IsNullOrWhiteSpace(_opened.RfqNo) ? "—" : _opened.RfqNo, "General"),
+            new("Title", string.IsNullOrWhiteSpace(_opened.Title) ? "—" : _opened.Title, "General"),
+            new("Updated", FormatTime(_opened.TimeUpdated), "General"),
+            new("Supplier", FormatId(_opened.SupplierId), "Operational"),
+            new("Source order", FormatId(_opened.OrderId), "Operational"),
+            new("Due date", FormatTime(_opened.DueDate), "Delivery"),
+            new("Description", _opened.DescriptionLen > 0 ? $"{_opened.DescriptionLen.ToString(CultureInfo.InvariantCulture)} chars" : "None", "Financial")
+        ];
+
+    private RenderFragment? RfqHeaderActions => _isAdmin && _opened is not null
+        ? @<div>
+            <strong>RFQ lifecycle</strong>
+            <form method="post" action="/erp/ajax/save-rfq">
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="id" value="@_opened.Id" />
+                <label>Supplier <input type="number" name="supplier_id" min="0" value="@_opened.SupplierId" /></label>
+                <label>Title <input type="text" name="title" required maxlength="255" value="@_opened.Title" /></label>
+                <label>Estimate <input type="text" name="amount_est" value="@_opened.AmountEst.ToString("0.00", CultureInfo.InvariantCulture)" /></label>
+                <label>Status
+                    <select name="status">
+                        @foreach (var status in RfqStatuses)
+                        {
+                            <option value="@status" selected="@string.Equals(status, _opened.Status, StringComparison.OrdinalIgnoreCase)">@status</option>
+                        }
+                    </select>
+                </label>
+                <label>Due <input type="date" name="due_date" value="@FormatDateInput(_opened.DueDate)" /></label>
+                <label>Order <input type="number" name="order_id" min="0" value="@_opened.OrderId" /></label>
+                <label>Description <input type="text" name="description" maxlength="4000" value="@_opened.DescriptionExcerpt" /></label>
+                <button type="submit" name="confirmWrites" value="false" class="btn btn-xs btn-default">Validate</button>
+                <button type="submit" name="confirmWrites" value="true" class="btn btn-xs btn-primary">Save RFQ</button>
+            </form>
+        </div>
+        : null;
+
+    private static readonly string[] RfqStatuses = ["draft", "sent", "quoted", "accepted", "rejected", "cancelled"];
+
+    private static string FormatId(long id) => id > 0
+        ? id.ToString(CultureInfo.InvariantCulture)
+        : "—";
 
     private string OpenedCaption => _opened is null
         ? ""
