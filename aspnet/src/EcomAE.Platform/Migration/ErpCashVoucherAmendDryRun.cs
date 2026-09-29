@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP ERP <c>cash_voucher_amend</c> (reference/note only).
-/// Never executes UPDATE. PHP <c>ajax_erp.php</c> remains authoritative.
+/// Validation envelope for the live ASP.NET cash-voucher amendment writer.
 /// </summary>
 public interface IErpCashVoucherAmendDryRun
 {
@@ -30,7 +29,7 @@ public sealed class ErpCashVoucherAmendDryRun : IErpCashVoucherAmendDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET cash_voucher_amend is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET cash-voucher amendment writer.",
                 request);
         }
 
@@ -59,7 +58,7 @@ public sealed class ErpCashVoucherAmendDryRun : IErpCashVoucherAmendDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET cash_voucher_amend is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET cash-voucher amendment writer.",
                 request);
         }
 
@@ -94,7 +93,7 @@ public sealed class ErpCashVoucherAmendDryRun : IErpCashVoucherAmendDryRun
                 Writes: 0,
                 WritesBlocked: true,
                 CutoverAllowed: false,
-                PhpAuthoritative: true,
+                PhpAuthoritative: false,
                 ValidationCode: "no_change",
                 WouldWrite: false,
                 EntryId: entry.Id,
@@ -113,7 +112,7 @@ public sealed class ErpCashVoucherAmendDryRun : IErpCashVoucherAmendDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             EntryId: entry.Id,
@@ -123,7 +122,7 @@ public sealed class ErpCashVoucherAmendDryRun : IErpCashVoucherAmendDryRun
             IntendedReference: nextRef,
             IntendedNote: nextNote,
             SimulatedSql: "UPDATE `epc_erp_cash_bank_entries` SET `reference` = @reference, `note` = @note WHERE `id` = @entryId AND `active` = 1 (NOT executed)",
-            Detail: "Narrative-only amend would be valid; amount/direction/posting untouched. Write blocked until dual-sample + approval.",
+            Detail: "Narrative-only amend validated; no write was performed. Amount/direction/posting remain untouched.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=cash_voucher_amend");
     }
 
@@ -137,7 +136,7 @@ public sealed class ErpCashVoucherAmendDryRun : IErpCashVoucherAmendDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: validationCode,
             WouldWrite: false,
             EntryId: request.EntryId,

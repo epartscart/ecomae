@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP ERP <c>cash_voucher_void</c>.
-/// Simulates soft-void UPDATE only; GL reverse/settlement unwind stay PHP-authoritative.
+/// Validation envelope for the live ASP.NET cash-voucher void writer.
 /// </summary>
 public interface IErpCashVoucherVoidDryRun
 {
@@ -25,7 +24,7 @@ public sealed class ErpCashVoucherVoidDryRun : IErpCashVoucherVoidDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET cash_voucher_void is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET cash-voucher void writer.",
                 request);
         }
 
@@ -48,7 +47,7 @@ public sealed class ErpCashVoucherVoidDryRun : IErpCashVoucherVoidDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET cash_voucher_void is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET cash-voucher void writer.",
                 request);
         }
 
@@ -71,7 +70,7 @@ public sealed class ErpCashVoucherVoidDryRun : IErpCashVoucherVoidDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             EntryId: entry.Id,
@@ -83,13 +82,13 @@ public sealed class ErpCashVoucherVoidDryRun : IErpCashVoucherVoidDryRun
                 "UPDATE `epc_erp_cash_bank_entries` SET `active`=0, `voided_at`=@now, `void_reason`=@reason, `voided_by`=@admin, `reversal_journal_id`=@rev WHERE `id`=@id (NOT executed)",
                 "GL reverse journals + settlement unwind remain PHP-only in this dry-run slice"
             ],
-            Detail: "Entry found in active digest window; soft-void UPDATE simulated. GL reverse/settlements stay PHP until dual-sample.",
+            Detail: "Entry found in active digest window; soft-void validated and no write was performed.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=cash_voucher_void");
     }
 
     private static ErpCashVoucherVoidDryRunResult Refuse(
         string status, string code, string detail, ErpCashVoucherVoidRequest request) =>
-        new(status, 0, true, false, true, code, false, request.EntryId, null, null,
+        new(status, 0, true, false, false, code, false, request.EntryId, null, null,
             request.Reason, [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=cash_voucher_void");
 }
 
