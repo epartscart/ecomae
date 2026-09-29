@@ -208,6 +208,8 @@ public sealed class ErpNavigationCoverageTests
         Assert.False(ErpCapabilityCatalog.CanAction(tenant, "sales", "Delete"));
         Assert.True(ErpCapabilityCatalog.CanAction(delegatedDelete, "sales", "Delete"));
         Assert.True(ErpCapabilityCatalog.CanAction(super, "finance", "Reverse"));
+        Assert.False(ErpCapabilityCatalog.CanAction(tenant, "administration", "Approve"));
+        Assert.True(ErpCapabilityCatalog.CanAction(super, "administration", "Approve"));
     }
 
     private static string FindRepoRoot()
