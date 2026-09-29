@@ -3920,7 +3920,7 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
-    /// <summary>Opened sales quotation. notes is a short excerpt. Line bodies omitted. Convert/expiry stay Classic.</summary>
+    /// <summary>Opened sales quotation header. notes is a short excerpt; persisted lines are loaded separately. Convert/expiry stay Classic.</summary>
     public const string SelectErpSalesQuotationDetail = """
         SELECT `id`, IFNULL(`opportunity_id`,0) AS opportunity_id, IFNULL(`lead_id`,0) AS lead_id,
                IFNULL(`customer_user_id`,0) AS customer_user_id, IFNULL(`quote_number`,'') AS quote_number,
@@ -3933,6 +3933,15 @@ public static class LegacySurfaceDashboardSql
         FROM `epc_crm_quotes`
         WHERE `id` = @id
         LIMIT 1
+        """;
+
+    /// <summary>Persisted sales quotation lines for the opened workspace.</summary>
+    public const string SelectErpSalesQuotationLines = """
+        SELECT `id`, IFNULL(`description`,'') AS description, IFNULL(`qty`,0) AS qty,
+               IFNULL(`unit_price`,0) AS unit_price, IFNULL(`sort_order`,0) AS sort_order
+        FROM `epc_crm_quote_lines`
+        WHERE `quote_id` = @id
+        ORDER BY `sort_order`, `id`
         """;
 
     /// <summary>Other sales quotations with the same status. notes omitted.</summary>

@@ -8,6 +8,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@using EcomAE.Platform.Components.Shared.Desktop
 
 <PageTitle>Sales quotations · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -17,7 +18,7 @@
 
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
 
-    <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Save a CRM quote here. Open a row for lead/customer ids and the notes excerpt. Line bodies omitted. Accept, quote email, Convert and expiry stay on the Classic twin. This page does not invent a send." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Sales quotations" Subtitle="Save a CRM quote here with persisted line bodies, CRM context, notes excerpt, and financial totals. Accept, quote email, Convert and expiry stay on the Classic twin. This page does not invent a send." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Sales quotation stats">
@@ -35,60 +36,28 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Quote #</dt><dd>@(string.IsNullOrWhiteSpace(_opened.QuoteNumber) ? "—" : _opened.QuoteNumber)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_opened.Status) ? "—" : _opened.Status)</dd>
-                <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_opened.CurrencyCode) ? "—" : _opened.CurrencyCode)</dd>
-                <dt>Subtotal</dt><dd>@_opened.Subtotal.ToString("0.00", CultureInfo.InvariantCulture)</dd>
-                <dt>Opp</dt><dd>@(_opened.OpportunityId > 0 ? _opened.OpportunityId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Lead</dt><dd>@(_opened.LeadId > 0 ? _opened.LeadId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Customer</dt><dd>@(_opened.CustomerUserId > 0 ? _opened.CustomerUserId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Order</dt><dd>@(_opened.ShopOrderId > 0 ? _opened.ShopOrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Active</dt><dd>@(_opened.Active ? "yes" : "no")</dd>
-                <dt>Updated</dt><dd>@(_opened.TimeUpdated > 0 ? _opened.TimeUpdated.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-            </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Line bodies omitted. Accept and quote email stay Classic.</p>
-            @if (_isAdmin)
+            <ErpDocumentWorkspace
+                DocumentKind="Sales quotation"
+                Title="@(_opened.QuoteNumber is { Length: > 0 } ? _opened.QuoteNumber : $"Quote #{_opened.Id}")"
+                DocumentNumber="@_opened.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Customer"
+                Party="@FormatId(_opened.CustomerUserId)"
+                ReferenceLabel="Opportunity"
+                Reference="@FormatId(_opened.OpportunityId)"
+                Status="@(_opened.Status ?? "draft")"
+                ApprovalState="@(_opened.Active ? "Active" : "Inactive")"
+                CompanyContext="Tenant / company"
+                Currency="@(_opened.CurrencyCode is { Length: > 0 } ? _opened.CurrencyCode : "AED")"
+                Subtotal="@_opened.Subtotal"
+                Total="@_opened.Subtotal"
+                BalanceDue="0"
+                Fields="@QuotationWorkspaceFields"
+                Lines="@QuotationWorkspaceLines"
+                Tabs="@QuotationWorkspaceTabs"
+                HeaderActions="@QuotationHeaderActions" />
+            @if (_opened.Lines.Count == 0)
             {
-                <form method="post" action="/cp/crm/quotes/write" style="margin:1rem 0 0;display:flex;flex-wrap:wrap;gap:.45rem;align-items:end">
-                    <input type="hidden" name="confirmWrites" value="true" />
-                    <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-                    <input type="hidden" name="action" value="save_quote" />
-                    <input type="hidden" name="id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
-                    <label>Quote # <input type="text" name="quote_number" maxlength="32" value="@_opened.QuoteNumber" /></label>
-                    <label>Opp <input type="text" name="opportunity_id" inputmode="numeric" value="@_opened.OpportunityId.ToString(CultureInfo.InvariantCulture)" /></label>
-                    <label>Lead <input type="text" name="lead_id" inputmode="numeric" value="@_opened.LeadId.ToString(CultureInfo.InvariantCulture)" /></label>
-                    <label>Customer <input type="text" name="customer_user_id" inputmode="numeric" value="@_opened.CustomerUserId.ToString(CultureInfo.InvariantCulture)" /></label>
-                    <label>Status
-                        <select name="status">
-                            @foreach (var st in _statuses)
-                            {
-                                @if (string.Equals(st, _opened.Status, StringComparison.OrdinalIgnoreCase))
-                                {
-                                    <option value="@st" selected>@st</option>
-                                }
-                                else
-                                {
-                                    <option value="@st">@st</option>
-                                }
-                            }
-                        </select>
-                    </label>
-                    @if (_opened.NotesLen > _opened.NotesExcerpt.Length)
-                    {
-                        <p class="text-muted" style="flex-basis:100%;margin:0">Full notes stay on the Classic twin. Leave notes blank here to keep them.</p>
-                        <label>Notes <input type="text" name="notes" /></label>
-                    }
-                    else
-                    {
-                        <label>Notes <input type="text" name="notes" value="@_opened.NotesExcerpt" /></label>
-                    }
-                    <label>Line <input type="text" name="line_description" maxlength="512" /></label>
-                    <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="1" /></label>
-                    <label>Price <input type="text" name="line_unit_price" inputmode="decimal" value="0" /></label>
-                    <button type="submit" class="btn btn-primary btn-sm">Save quote</button>
-                </form>
+                <p class="text-muted" style="margin:.85rem 0 0">No persisted line bodies were returned for this quotation. Accept and quote email stay Classic.</p>
             }
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
@@ -223,6 +192,74 @@
     private ErpSalesQuotationDetail? _opened;
     private IReadOnlyList<ErpSalesQuotationDigest> _openedSiblings = [];
     private static readonly string[] _statuses = ["draft", "sent", "accepted", "rejected"];
+
+    private IReadOnlyList<string> QuotationWorkspaceTabs =>
+        ["General", "CRM context", "Notes", "Lines", "Financial"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> QuotationWorkspaceFields => _opened is null
+        ? []
+        : [
+            new("Quotation id", _opened.Id.ToString(CultureInfo.InvariantCulture), "General"),
+            new("Quote number", string.IsNullOrWhiteSpace(_opened.QuoteNumber) ? "—" : _opened.QuoteNumber, "General"),
+            new("Created", FormatTime(_opened.TimeCreated), "General"),
+            new("Updated", FormatTime(_opened.TimeUpdated), "General"),
+            new("Opportunity", FormatId(_opened.OpportunityId), "Operational"),
+            new("Lead", FormatId(_opened.LeadId), "Operational"),
+            new("Customer", FormatId(_opened.CustomerUserId), "Operational"),
+            new("Shop order", FormatId(_opened.ShopOrderId), "Operational"),
+            new("Active", _opened.Active ? "Yes" : "No", "Operational"),
+            new("Notes", _opened.NotesLen > 0 ? $"{_opened.NotesLen.ToString(CultureInfo.InvariantCulture)} chars" : "None", "Financial")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> QuotationWorkspaceLines => _opened?.Lines
+        .Select(line => new ErpDocumentWorkspaceLine(
+            $"Line {line.SortOrder.ToString(CultureInfo.InvariantCulture)}",
+            line.Description,
+            line.Quantity,
+            "ea",
+            "—",
+            "—",
+            line.UnitPrice,
+            0,
+            0,
+            line.Quantity * line.UnitPrice,
+            0,
+            $"Quote #{_opened.Id.ToString(CultureInfo.InvariantCulture)}"))
+        .ToList() ?? [];
+
+    private RenderFragment? QuotationHeaderActions => _isAdmin && _opened is not null
+        ? @<div>
+            <strong>Quotation lifecycle</strong>
+            <form method="post" action="/cp/crm/quotes/write">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                <input type="hidden" name="action" value="save_quote" />
+                <input type="hidden" name="id" value="@_opened.Id.ToString(CultureInfo.InvariantCulture)" />
+                <label>Quote # <input type="text" name="quote_number" maxlength="32" value="@_opened.QuoteNumber" /></label>
+                <label>Status
+                    <select name="status">
+                        @foreach (var st in _statuses)
+                        {
+                            <option value="@st" selected="@string.Equals(st, _opened.Status, StringComparison.OrdinalIgnoreCase)">@st</option>
+                        }
+                    </select>
+                </label>
+                <label>Line <input type="text" name="line_description" maxlength="512" /></label>
+                <label>Qty <input type="text" name="line_qty" inputmode="decimal" value="1" /></label>
+                <label>Price <input type="text" name="line_unit_price" inputmode="decimal" value="0" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save quote</button>
+            </form>
+            <span class="text-muted">Accept, quote email, conversion, and expiry remain Classic-owned.</span>
+        </div>
+        : null;
+
+    private static string FormatId(long id) => id > 0
+        ? id.ToString(CultureInfo.InvariantCulture)
+        : "—";
+
+    private static string FormatTime(long unixSeconds) => unixSeconds > 0
+        ? DateTimeOffset.FromUnixTimeSeconds(unixSeconds).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
+        : "—";
 
     private string OpenedCaption => _opened is null
         ? ""

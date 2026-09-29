@@ -3034,7 +3034,15 @@ public sealed record ErpSalesQuotationDetail(
     long TimeUpdated,
     bool Active,
     int NotesLen,
-    string NotesExcerpt);
+    string NotesExcerpt,
+    IReadOnlyList<ErpSalesQuotationLine> Lines);
+
+public sealed record ErpSalesQuotationLine(
+    long Id,
+    string Description,
+    decimal Quantity,
+    decimal UnitPrice,
+    int SortOrder);
 
 public sealed record ErpSalesQuotationDetailResult(
     ErpSalesQuotationDetail? Quotation,

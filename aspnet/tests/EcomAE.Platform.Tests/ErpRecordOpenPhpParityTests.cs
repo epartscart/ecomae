@@ -2647,7 +2647,7 @@ public sealed class ErpRecordOpenPhpParityTests
     }
 
     [Fact]
-    public void SalesQuotationsApp_OpenLoadsNotesExcerptAndKeepsErpChrome()
+    public void SalesQuotationsApp_OpenLoadsLinesAndNotesExcerptInSharedWorkspace()
     {
         var root = FindRepoRoot();
         var razor = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpSalesQuotationsApp.razor"));
@@ -2657,9 +2657,15 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("quote_id=", razor, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"quote_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", razor, StringComparison.Ordinal);
+        Assert.Contains("QuotationWorkspaceLines", razor, StringComparison.Ordinal);
+        Assert.Contains("QuotationHeaderActions", razor, StringComparison.Ordinal);
+        Assert.Contains("line.Quantity * line.UnitPrice", razor, StringComparison.Ordinal);
+        Assert.Contains("line.SortOrder", razor, StringComparison.Ordinal);
+        Assert.Contains("line.UnitPrice", razor, StringComparison.Ordinal);
         Assert.Contains("TimeUpdated", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Line bodies omitted", razor, StringComparison.Ordinal);
+        Assert.Contains("No persisted line bodies were returned", razor, StringComparison.Ordinal);
         Assert.Contains("Convert and expiry stay on the Classic twin", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);

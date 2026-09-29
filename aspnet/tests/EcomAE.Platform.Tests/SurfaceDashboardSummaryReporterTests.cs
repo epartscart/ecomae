@@ -913,6 +913,8 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpSalesQuotations, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`notes`,''), 280)", LegacySurfaceDashboardSql.SelectErpSalesQuotationDetail, StringComparison.Ordinal);
         Assert.Contains("`id` = @id", LegacySurfaceDashboardSql.SelectErpSalesQuotationDetail, StringComparison.Ordinal);
+        Assert.Contains("epc_crm_quote_lines", LegacySurfaceDashboardSql.SelectErpSalesQuotationLines, StringComparison.Ordinal);
+        Assert.Contains("`quote_id` = @id", LegacySurfaceDashboardSql.SelectErpSalesQuotationLines, StringComparison.Ordinal);
         Assert.DoesNotContain("`notes`", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpSalesQuotationStatusSiblings, StringComparison.Ordinal);
