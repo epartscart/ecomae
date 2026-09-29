@@ -748,6 +748,16 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                     cac + "PartyName",
                     new XElement(cbc + "Name", JsonText(json, prefix + "_name"))),
                 new XElement(
+                    cac + "PartyTaxScheme",
+                    new XElement(cbc + "CompanyID", JsonText(json, prefix + "_trn")),
+                    new XElement(
+                        cac + "TaxScheme",
+                        new XElement(cbc + "ID", "VAT"))),
+                new XElement(
+                    cac + "PartyLegalEntity",
+                    new XElement(cbc + "RegistrationName", JsonText(json, prefix + "_name")),
+                    new XElement(cbc + "CompanyID", JsonText(json, prefix + "_legal_reg_no"))),
+                new XElement(
                     cac + "PostalAddress",
                     new XElement(cbc + "StreetName", JsonText(json, prefix + "_address_line1")),
                     new XElement(cbc + "CityName", JsonText(json, prefix + "_city")),
