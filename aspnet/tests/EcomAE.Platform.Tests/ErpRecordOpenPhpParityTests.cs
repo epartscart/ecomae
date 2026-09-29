@@ -2747,7 +2747,13 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("RfqWorkspaceLines", razor, StringComparison.Ordinal);
         Assert.Contains("epc_scm_rfq_lines", File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs")), StringComparison.Ordinal);
         Assert.Contains("epc_scm_rfq_responses", File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs")), StringComparison.Ordinal);
+        var reporter = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs"));
+        Assert.Contains("OrderBy(response => response.UnitPrice)", reporter, StringComparison.Ordinal);
+        Assert.Contains("ThenBy(response => response.Id)", reporter, StringComparison.Ordinal);
+        Assert.Contains("LineTotal", reporter, StringComparison.Ordinal);
         Assert.Contains("SupplierRanking", razor, StringComparison.Ordinal);
+        Assert.Contains("BestQuotes", razor, StringComparison.Ordinal);
+        Assert.Contains("Best supplier per RFQ line", razor, StringComparison.Ordinal);
         Assert.Contains("comparison read-only", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);

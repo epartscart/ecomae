@@ -21679,10 +21679,25 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                     .OrderBy(item => item.TotalQuoted)
                     .ThenBy(item => item.SupplierId)
                     .ToArray();
+                var bestQuotes = responses
+                    .GroupBy(response => response.RfqLineId)
+                    .Select(group => group
+                        .OrderBy(response => response.UnitPrice)
+                        .ThenBy(response => response.Id)
+                        .Select(response => new ErpRfqBestQuoteDigest(
+                            response.RfqLineId,
+                            response.SupplierId,
+                            response.UnitPrice,
+                            response.LeadTimeDays,
+                            response.LineTotal))
+                        .First())
+                    .OrderBy(item => item.RfqLineId)
+                    .ToArray();
                 header = header with
                 {
                     Responses = responses,
-                    SupplierRanking = ranking
+                    SupplierRanking = ranking,
+                    BestQuotes = bestQuotes
                 };
             }
 
