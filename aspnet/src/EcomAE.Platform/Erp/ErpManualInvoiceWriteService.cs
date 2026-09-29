@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Text.Json;
+using System.Xml.Linq;
 
 namespace EcomAE.Platform.Erp;
 
@@ -111,6 +112,19 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var validationOk = validationErrors.Count == 0;
         var documentStatus = validationOk ? "validated" : "draft";
         var validationErrorsJson = JsonSerializer.Serialize(validationErrors);
+        var xmlContent = BuildInvoiceXml(
+            invoiceNumber,
+            issueDate,
+            dueDate,
+            currency,
+            request.PaymentMeansCode,
+            request.BankAccount,
+            sellerJson,
+            buyerJson,
+            lines,
+            subtotal,
+            totalVat,
+            totalIncl);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -119,7 +133,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`business_process`,`specification_id`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`rounding_amount`,`amount_due`,`tax_breakdown_json`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'',?,?,?,1)"),
+                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`business_process`,`specification_id`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`rounding_amount`,`amount_due`,`tax_breakdown_json`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,1)"),
                 cancellationToken,
                 Guid.NewGuid().ToString("D"),
                 invoiceNumber,
@@ -159,6 +173,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 documentStatus,
                 validationOk ? 1 : 0,
                 validationErrorsJson,
+                xmlContent,
                 now,
                 now,
                 request.AdminId).ConfigureAwait(false);
@@ -269,6 +284,19 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var validationOk = validationErrors.Count == 0;
         var documentStatus = validationOk ? "validated" : "draft";
         var validationErrorsJson = JsonSerializer.Serialize(validationErrors);
+        var xmlContent = BuildInvoiceXml(
+            invoiceNumber,
+            issueDate,
+            dueDate,
+            currency,
+            request.PaymentMeansCode,
+            request.BankAccount,
+            sellerJson,
+            buyerJson,
+            lines,
+            subtotal,
+            totalVat,
+            totalIncl);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -277,7 +305,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`issue_date`=?,`vat_point_date`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`business_process`=?,`specification_id`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`rounding_amount`=?,`amount_due`=?,`tax_breakdown_json`=?,`status`=?,`validation_ok`=?,`validation_errors_json`=?,`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
+                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`issue_date`=?,`vat_point_date`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`business_process`=?,`specification_id`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`rounding_amount`=?,`amount_due`=?,`tax_breakdown_json`=?,`status`=?,`validation_ok`=?,`validation_errors_json`=?,`xml_content`=?,`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
                 cancellationToken,
                 request.OrderId,
                 invoiceNumber,
@@ -314,6 +342,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 documentStatus,
                 validationOk ? 1 : 0,
                 validationErrorsJson,
+                xmlContent,
                 now,
                 request.Id).ConfigureAwait(false);
             if (changed == 0)
@@ -604,6 +633,123 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             errors.Add(label + " is required");
         }
     }
+
+    private static string BuildInvoiceXml(
+        string invoiceNumber,
+        long issueDate,
+        long dueDate,
+        string currency,
+        string? paymentMeansCode,
+        string? bankAccount,
+        string sellerJson,
+        string buyerJson,
+        IReadOnlyList<ErpManualInvoiceLineInput> lines,
+        decimal subtotal,
+        decimal totalVat,
+        decimal totalIncl)
+    {
+        var cbc = XNamespace.Get("urn:oasis:names:specification:ubl:schema:xsd:CommonBasicComponents-2");
+        var cac = XNamespace.Get("urn:oasis:names:specification:ubl:schema:xsd:CommonAggregateComponents-2");
+        var invoice = new XElement(
+            XNamespace.Get("urn:oasis:names:specification:ubl:schema:xsd:Invoice-2") + "Invoice",
+            new XAttribute(XNamespace.Xmlns + "cbc", cbc),
+            new XAttribute(XNamespace.Xmlns + "cac", cac),
+            new XElement(cbc + "CustomizationID", "urn:peppol:pint:billing-1@ae-1"),
+            new XElement(cbc + "ProfileID", "urn:peppol:bis:billing"),
+            new XElement(cbc + "ID", invoiceNumber),
+            new XElement(cbc + "IssueDate", IsoDate(issueDate)),
+            new XElement(cbc + "DueDate", IsoDate(dueDate)),
+            new XElement(cbc + "InvoiceTypeCode", "380"),
+            new XElement(cbc + "DocumentCurrencyCode", currency),
+            new XElement(cbc + "TaxCurrencyCode", "AED"),
+            BuildParty(cac, cbc, "AccountingSupplierParty", sellerJson, "seller"),
+            BuildParty(cac, cbc, "AccountingCustomerParty", buyerJson, "buyer"),
+            new XElement(
+                cac + "PaymentMeans",
+                new XElement(cbc + "PaymentMeansCode", paymentMeansCode ?? "30"),
+                string.IsNullOrWhiteSpace(bankAccount)
+                    ? null
+                    : new XElement(
+                        cac + "PayeeFinancialAccount",
+                        new XElement(cbc + "ID", bankAccount))),
+            new XElement(
+                cac + "TaxTotal",
+                new XElement(cbc + "TaxAmount", Amount(totalVat), new XAttribute("currencyID", currency))),
+            new XElement(
+                cac + "LegalMonetaryTotal",
+                new XElement(cbc + "LineExtensionAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
+                new XElement(cbc + "TaxExclusiveAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
+                new XElement(cbc + "TaxInclusiveAmount", Amount(totalIncl), new XAttribute("currencyID", currency)),
+                new XElement(cbc + "PayableAmount", Amount(totalIncl), new XAttribute("currencyID", currency))),
+            lines.Select((line, index) =>
+                new XElement(
+                    cac + "InvoiceLine",
+                    new XElement(cbc + "ID", index + 1),
+                    new XElement(cbc + "InvoicedQuantity", line.Quantity, new XAttribute("unitCode", "C62")),
+                    new XElement(cbc + "LineExtensionAmount", Amount(Round(line.Quantity * line.UnitPrice)), new XAttribute("currencyID", currency)),
+                    new XElement(
+                        cac + "Item",
+                        new XElement(cbc + "Name", line.ItemName),
+                        string.IsNullOrWhiteSpace(line.ItemDescription)
+                            ? null
+                            : new XElement(cbc + "Description", line.ItemDescription),
+                        new XElement(
+                            cac + "ClassifiedTaxCategory",
+                            new XElement(cbc + "ID", line.TaxRate > 0 ? "S" : "Z"),
+                            new XElement(cbc + "Percent", line.TaxRate))),
+                    new XElement(
+                        cac + "Price",
+                        new XElement(cbc + "PriceAmount", Amount(line.UnitPrice), new XAttribute("currencyID", currency)))))
+                .ToArray());
+
+        return new XDocument(new XDeclaration("1.0", "utf-8", "yes"), invoice).ToString(SaveOptions.DisableFormatting);
+    }
+
+    private static XElement BuildParty(
+        XNamespace cac,
+        XNamespace cbc,
+        string partyName,
+        string json,
+        string prefix)
+    {
+        return new XElement(
+            cac + partyName,
+            new XElement(
+                cac + "Party",
+                new XElement(cbc + "EndpointID", JsonText(json, prefix + "_peppol_endpoint"), new XAttribute("schemeID", "0235")),
+                new XElement(
+                    cac + "PartyName",
+                    new XElement(cbc + "Name", JsonText(json, prefix + "_name"))),
+                new XElement(
+                    cac + "PostalAddress",
+                    new XElement(cbc + "StreetName", JsonText(json, prefix + "_address_line1")),
+                    new XElement(cbc + "CityName", JsonText(json, prefix + "_city")),
+                    new XElement(cbc + "CountrySubentity", JsonText(json, prefix + "_emirate")),
+                    new XElement(
+                        cac + "Country",
+                        new XElement(cbc + "IdentificationCode", JsonText(json, prefix + "_country_code"))))));
+    }
+
+    private static string JsonText(string json, string key)
+    {
+        try
+        {
+            using var document = JsonDocument.Parse(json);
+            return document.RootElement.TryGetProperty(key, out var value)
+                ? value.GetString() ?? string.Empty
+                : string.Empty;
+        }
+        catch (JsonException)
+        {
+            return string.Empty;
+        }
+    }
+
+    private static string IsoDate(long timestamp)
+        => DateTimeOffset.FromUnixTimeSeconds(timestamp).UtcDateTime.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+
+    private static string Amount(decimal value)
+        => value.ToString("0.00", System.Globalization.CultureInfo.InvariantCulture);
 
     private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
