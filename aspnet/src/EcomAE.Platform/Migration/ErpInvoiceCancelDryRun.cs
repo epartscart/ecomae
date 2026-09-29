@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP ERP <c>invoice_cancel</c>.
-/// Simulates soft-cancel UPDATE on epc_einvoice_documents; credit-notes stay PHP.
+/// Validation envelope for the live ASP.NET invoice-cancel writer.
 /// </summary>
 public interface IErpInvoiceCancelDryRun
 {
@@ -25,7 +24,7 @@ public sealed class ErpInvoiceCancelDryRun : IErpInvoiceCancelDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET invoice_cancel is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET invoice-cancel writer.",
                 request);
         }
 
@@ -48,7 +47,7 @@ public sealed class ErpInvoiceCancelDryRun : IErpInvoiceCancelDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET invoice_cancel is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET invoice-cancel writer.",
                 request);
         }
 
@@ -91,7 +90,7 @@ public sealed class ErpInvoiceCancelDryRun : IErpInvoiceCancelDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             InvoiceId: invoice.Id,
@@ -104,13 +103,13 @@ public sealed class ErpInvoiceCancelDryRun : IErpInvoiceCancelDryRun
                 "UPDATE `epc_einvoice_documents` SET `status`='cancelled', `active`=0, `time_updated`=@now WHERE `id`=@id AND `status` NOT IN ('submitted','accepted','queued') (NOT executed)",
                 "Audit log cancel remains PHP-only in this dry-run slice"
             ],
-            Detail: "Invoice found in digest window and not submitted; cancel UPDATE simulated. Credit notes stay PHP until dual-sample.",
+            Detail: "Invoice found in digest window and not submitted; cancellation validated and no write was performed.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=invoice_cancel");
     }
 
     private static ErpInvoiceCancelDryRunResult Refuse(
         string status, string code, string detail, ErpInvoiceCancelRequest request) =>
-        new(status, 0, true, false, true, code, false, request.InvoiceId, null, null, null,
+        new(status, 0, true, false, false, code, false, request.InvoiceId, null, null, null,
             request.Reason, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=invoice_cancel");
 }
