@@ -788,6 +788,20 @@ public static class LegacySurfaceDashboardSql
         LIMIT 20
         """;
 
+    /// <summary>Recent supplier payments for the opened payables ledger.</summary>
+    public const string SelectErpSupplierPayments = """
+        SELECT e.`id`, e.`time`, e.`amount`, IFNULL(e.`reference`, '') AS reference,
+               IFNULL(e.`voucher_no`, '') AS voucher_no, IFNULL(e.`is_advance`, 0) AS is_advance,
+               IFNULL(e.`purchase_id`, 0) AS purchase_id,
+               (SELECT COUNT(*) FROM `epc_erp_settlement_allocations` a
+                WHERE a.`cash_entry_id` = e.`id` AND a.`active` = 1) AS allocation_count
+        FROM `epc_erp_cash_bank_entries` e
+        WHERE e.`active` = 1 AND e.`entry_type` = 'payment'
+          AND e.`counterparty_type` = 'supplier' AND e.`counterparty_id` = @id
+        ORDER BY e.`time` DESC, e.`id` DESC
+        LIMIT 20
+        """;
+
     public const string SelectErpPurchases = """
         SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
                p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`

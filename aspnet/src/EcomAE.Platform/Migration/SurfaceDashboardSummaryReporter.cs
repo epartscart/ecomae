@@ -1636,12 +1636,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     {
         if (id <= 0)
         {
-            return new(null, [], [], "n/a", "");
+            return new(null, [], [], [], "n/a", "");
         }
 
         if (!_connections.IsConfigured)
         {
-            return new(null, [], [], "migration", "TenantRegistry DB is not configured.");
+            return new(null, [], [], [], "migration", "TenantRegistry DB is not configured.");
         }
 
         try
@@ -1668,7 +1668,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             if (header is null)
             {
-                return new(null, [], [], "database", "Supplier not found.");
+                return new(null, [], [], [], "database", "Supplier not found.");
             }
 
             var siblings = new List<ErpSupplierDigest>();
@@ -1709,11 +1709,31 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, purchases, "database", string.Empty);
+            var payments = new List<ErpSupplierPaymentDigest>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierPayments;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    payments.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "time"),
+                        ReadDec(reader, "amount"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "voucher_no"),
+                        ReadI32(reader, "is_advance") != 0,
+                        ReadI64(reader, "purchase_id"),
+                        ReadI32(reader, "allocation_count")));
+                }
+            }
+
+            return new(header, siblings, purchases, payments, "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return new(null, [], [], "database-error", ex.Message);
+            return new(null, [], [], [], "database-error", ex.Message);
         }
     }
 

@@ -381,8 +381,19 @@ public sealed record ErpSupplierDetailResult(
     ErpSupplierDetail? Supplier,
     IReadOnlyList<ErpSupplierDigest> Siblings,
     IReadOnlyList<ErpPurchaseDigest> Purchases,
+    IReadOnlyList<ErpSupplierPaymentDigest> Payments,
     string Source,
     string Message);
+
+public sealed record ErpSupplierPaymentDigest(
+    long Id,
+    long TimeUnix,
+    decimal Amount,
+    string Reference,
+    string VoucherNumber,
+    bool IsAdvance,
+    long PurchaseId,
+    int AllocationCount);
 
 public sealed record ErpPurchaseDigest(
     long Id,
