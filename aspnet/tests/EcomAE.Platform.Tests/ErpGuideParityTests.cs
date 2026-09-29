@@ -84,6 +84,19 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void ApprovalAndAgendaPagesUseSharedWorkspaceForOpenedRecords()
+    {
+        var approvals = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpApprovalsApp.razor"));
+        var agenda = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpAgendaApp.razor"));
+        Assert.Contains("ErpDocumentWorkspace", approvals, StringComparison.Ordinal);
+        Assert.Contains("ApprovalWorkspaceFields", approvals, StringComparison.Ordinal);
+        Assert.Contains("item", approvals, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", agenda, StringComparison.Ordinal);
+        Assert.Contains("AgendaWorkspaceFields", agenda, StringComparison.Ordinal);
+        Assert.Contains("AgendaWorkspaceLines", agenda, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));

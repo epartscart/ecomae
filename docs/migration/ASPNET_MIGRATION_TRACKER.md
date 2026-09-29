@@ -347,7 +347,7 @@ Standing rules that apply to every item below:
       persistence and Super ERP administration remain pending. The policy now also exposes a
       complete 154-placement inspection projection with visible/hidden reason codes for future
       Super ERP review screens.
-- [~] B1 Home & workflow — ERP workflow tasks now open in the shared D365-style workspace with persisted task/assignment/process/audit fields and order linkage; dashboard, processflow, workflow automation, agenda, contacts, documents, knowledge base, AI assistant, and full PHP workflow action parity remain pending
+- [~] B1 Home & workflow — ERP workflow tasks, approval queue records, and agenda events now open in shared D365-style workspaces with persisted queue/event/task context; dashboard, processflow, workflow automation, contacts, documents, knowledge base, AI assistant, and full PHP workflow action parity remain pending
 - [~] B2 Order-to-Cash / Syncron-style OMS — sales orders, delivery notes, invoices, revenue, fulfilment, subscriptions, proposals,
       ASP.NET sales-order save/status/invoice/delete/cancel lifecycle is live; cancellation now uses the
       dedicated reversal-safe lifecycle endpoint with a required operator reason. Remaining fulfilment
