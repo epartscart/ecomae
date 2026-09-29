@@ -540,8 +540,47 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAmlSeedRulesRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxUaeTaxSaveCtAdjustments, HandleUaeTaxSaveCtAdjustmentsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxUaeTaxLegislationChecklistSet, HandleUaeTaxLegislationChecklistSetAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceSave, async (HttpContext context, ErpInvoiceSaveBody? body, ILegacySessionValidator validator, IErpInvoiceSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvoiceSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceSave, async (
+            HttpContext context,
+            ErpInvoiceSaveBody? body,
+            ILegacySessionValidator validator,
+            IErpInvoiceSaveDryRun dryRun,
+            EcomAE.Platform.Erp.IErpManualInvoiceWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required.");
+
+            body ??= new();
+            if (!body.ConfirmWrites)
+                return Results.Ok(dryRun.Evaluate(new ErpInvoiceSaveRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+
+            return await ExecuteErpWriteAsync(session, async () =>
+            {
+                var saved = await writes.SaveAsync(
+                    new EcomAE.Platform.Erp.ErpManualInvoiceWriteRequest(
+                        body.Id,
+                        body.UserId,
+                        body.InvoiceNumber,
+                        body.CurrencyCode,
+                        body.SellerJson,
+                        body.BuyerJson,
+                        body.LinesJson,
+                        body.PaymentTerms,
+                        body.DueDate,
+                        session.UserId),
+                    cancellationToken);
+                return ("Invoice saved as draft", new
+                {
+                    invoice_id = saved.InvoiceId,
+                    invoice_number = saved.InvoiceNumber,
+                    subtotal_ex_vat = saved.SubtotalExVat,
+                    total_vat = saved.TotalVat,
+                    total_incl_vat = saved.TotalInclVat
+                });
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceList, async (HttpContext context, ErpInvoiceListBody? body, ILegacySessionValidator validator, IErpInvoiceListDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpInvoiceListRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceFromOrder, async (HttpContext context, ErpInvoiceFromOrderBody? body, ILegacySessionValidator validator, IErpInvoiceFromOrderDryRun dryRun, CancellationToken cancellationToken) =>
@@ -21078,7 +21117,18 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpUaeTaxLegislationAskBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, string? Question = null);
     private sealed record ErpUaeTaxSaveCtAdjustmentsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpUaeTaxLegislationChecklistSetBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpInvoiceSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpInvoiceSaveBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        long UserId = 0,
+        string? InvoiceNumber = null,
+        string? CurrencyCode = null,
+        string? SellerJson = null,
+        string? BuyerJson = null,
+        string? LinesJson = null,
+        string? PaymentTerms = null,
+        string? DueDate = null);
     private sealed record ErpInvoiceListBody(bool ConfirmWrites = false);
     private sealed record ErpInvoiceFromOrderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
