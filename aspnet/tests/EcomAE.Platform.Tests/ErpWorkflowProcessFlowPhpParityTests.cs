@@ -143,6 +143,8 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
         Assert.Contains("Post supplier settlement", text, StringComparison.Ordinal);
         Assert.Contains("Recent supplier bills", text, StringComparison.Ordinal);
         Assert.Contains("Open bill", text, StringComparison.Ordinal);
+        Assert.Contains("Recent supplier payments", text, StringComparison.Ordinal);
+        Assert.Contains("Open payment", text, StringComparison.Ordinal);
         Assert.Contains("value=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes stay Classic-compatible", text, StringComparison.Ordinal);
