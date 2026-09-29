@@ -7,7 +7,6 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Components.Shared.Desktop
-@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -224,14 +223,16 @@
                 <input type="hidden" name="confirmWrites" value="true" />
                 <label>From <input class="form-control input-sm" type="date" name="date_from" required /></label>
                 <label>To <input class="form-control input-sm" type="date" name="date_to" required /></label>
-                @foreach (var field in ErpUaeTaxSaveCtAdjustmentsWriteService.Fields)
-                {
-                    <label>
-                        @FormatAdjustmentLabel(field.Key)
-                        <input class="form-control input-sm" name="@("ct_" + field.Key)" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" />
-                        <small class="text-muted">@((field.Direction == "add") ? "add-back" : "deduct")</small>
-                    </label>
-                }
+                <label>Non-deductible entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Fines / penalties <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Book depreciation excess <input class="form-control input-sm" name="ct_book_depreciation_excess" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Related-party adjustments <input class="form-control input-sm" name="ct_related_party_adjustments" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Other add-backs <input class="form-control input-sm" name="ct_other_add_backs" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
+                <label>Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Foreign branch exemption <input class="form-control input-sm" name="ct_foreign_branch_exemption" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Loss carryforward <input class="form-control input-sm" name="ct_loss_carryforward" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Qualifying donations <input class="form-control input-sm" name="ct_qualifying_donations" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label>Other deductions <input class="form-control input-sm" name="ct_other_deductions" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save CT adjustments</button>
             </form>
             <p class="text-muted" style="margin:0;">Adjustments are period-scoped and use the same add-back/deduction field set as the compliance write service.</p>
@@ -271,14 +272,6 @@
     private long _openedId;
     private CpUaeTaxItemDetail? _opened;
     private IReadOnlyList<CpUaeTaxItemDigest> _openedSiblings = [];
-
-    private static string FormatAdjustmentLabel(string key)
-        => string.Join(
-            " ",
-            key.Split('_', StringSplitOptions.RemoveEmptyEntries)
-                .Select(part => part.Length == 0
-                    ? part
-                    : char.ToUpperInvariant(part[0]) + part[1..]));
 
     private string OpenedCaption =>
         !string.IsNullOrWhiteSpace(_opened?.Title)
