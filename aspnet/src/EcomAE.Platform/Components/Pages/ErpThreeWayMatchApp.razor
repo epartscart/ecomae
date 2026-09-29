@@ -2,9 +2,11 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpThreeWayMatchDecisionReadService Decisions
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
@@ -47,6 +49,11 @@
                 <dt>Approved</dt><dd>@FormatTime(_opened.ApprovedAt)</dd>
                 <dt>Received</dt><dd>@FormatTime(_opened.ReceivedAt)</dd>
                 <dt>Match hint</dt><dd><span class="label @MatchHintClass(MatchHint(_opened.ReceiptCount, _opened.PurchaseId, _opened.PoTotal, _opened.InvoiceTotal))">@MatchHint(_opened.ReceiptCount, _opened.PurchaseId, _opened.PoTotal, _opened.InvoiceTotal)</span></dd>
+                <dt>Decision</dt><dd>@DecisionLabel(_openedDecision)</dd>
+                @if (_openedDecision is not null && !string.IsNullOrWhiteSpace(_openedDecision.ExceptionReason))
+                {
+                    <dt>Exception reason</dt><dd>@_openedDecision.ExceptionReason</dd>
+                }
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Use the match hint before approving supplier settlement; variance is calculated against the PO total.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
@@ -116,13 +123,14 @@
                     <th>Inv total</th>
                     <th>Receipts</th>
                     <th>Match hint</th>
+                    <th>Decision</th>
                     <th></th>
                 </tr>
             </thead>
             <tbody>
                 @if (_rows.Count == 0)
                 {
-                    <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                    <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                 }
                 else
                 {
@@ -136,6 +144,7 @@
                             <td>@row.InvoiceTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
                             <td>@(row.ReceiptCount > 0 ? row.ReceiptCount.ToString(CultureInfo.InvariantCulture) : "—")</td>
                             <td><span class="label @MatchHintClass(row.MatchHint)">@row.MatchHint</span></td>
+                            <td>@DecisionLabel(_decisions.GetValueOrDefault(row.PoId))</td>
                             <td><a class="btn btn-xs btn-primary" href="@ErpRecordOpen.Href(_listHref, "po_id", row.PoId)">Open</a></td>
                         </tr>
                     }
@@ -162,6 +171,8 @@
     private long _openedId;
     private ErpThreeWayMatchDetail? _opened;
     private IReadOnlyList<ErpThreeWayMatchDigest> _openedSiblings = [];
+    private IReadOnlyDictionary<long, ErpThreeWayMatchDecision> _decisions = new Dictionary<long, ErpThreeWayMatchDecision>();
+    private ErpThreeWayMatchDecision? _openedDecision;
 
     private string OpenedReturnHref => _openedId > 0
         ? _listHref + "?po_id=" + _openedId.ToString(CultureInfo.InvariantCulture)
@@ -192,11 +203,13 @@
         _rows = result.Rows;
         _source = result.Source;
         _message = result.Message;
+        _decisions = await Decisions.ListAsync(ctx.RequestAborted);
 
         if (_openedId > 0)
         {
             var detail = await Dashboards.BuildErpThreeWayMatchDetailAsync(_openedId, ctx.RequestAborted);
             _opened = detail.Match;
+            _openedDecision = await Decisions.GetAsync(_openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             if (_opened is not null)
             {
@@ -218,6 +231,15 @@
         if (unix <= 0) return "—";
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
     }
+
+    private static string DecisionLabel(ErpThreeWayMatchDecision? decision)
+        => decision is null
+            ? "Not decided"
+            : decision.Status.Equals("matched", StringComparison.OrdinalIgnoreCase)
+                ? "Accepted"
+                : decision.Status.Equals("exception", StringComparison.OrdinalIgnoreCase)
+                    ? "Exception"
+                    : decision.Status;
 
     private static string MatchHint(int receiptCount, long purchaseId, decimal poTotal, decimal invoiceTotal)
     {

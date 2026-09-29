@@ -1026,6 +1026,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutQuotationWriteService, 
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutProcurementLinkWriteService, EcomAE.Platform.Erp.ErpFitOutProcurementLinkWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutThreeWayMatchWriteService, EcomAE.Platform.Erp.ErpFitOutThreeWayMatchWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpThreeWayMatchWriteService, EcomAE.Platform.Erp.ErpThreeWayMatchWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpThreeWayMatchDecisionReadService, EcomAE.Platform.Erp.ErpThreeWayMatchDecisionReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutMaterialMovementWriteService, EcomAE.Platform.Erp.ErpFitOutMaterialMovementWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutDeliveryRecordWriteService, EcomAE.Platform.Erp.ErpFitOutDeliveryRecordWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutInvoiceBridgeWriteService, EcomAE.Platform.Erp.ErpFitOutInvoiceBridgeWriteService>();
