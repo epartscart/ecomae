@@ -21614,13 +21614,35 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture),
                         Convert.ToInt64(reader["time_updated"] is DBNull ? 0 : reader["time_updated"], CultureInfo.InvariantCulture),
                         Convert.ToInt32(reader["description_len"] is DBNull ? 0 : reader["description_len"], CultureInfo.InvariantCulture),
-                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty);
+                        Convert.ToString(reader["description_excerpt"] is DBNull ? string.Empty : reader["description_excerpt"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        []);
                 }
             }
 
             if (header is null)
             {
                 return new(null, [], "database", "RFQ not found.");
+            }
+
+            var lines = new List<ErpRfqLineDigest>();
+            if (await TenantTableExistsAsync(connection, "epc_scm_rfq_lines", cancellationToken).ConfigureAwait(false))
+            {
+                await using var lineCommand = connection.CreateCommand();
+                lineCommand.CommandText = LegacySurfaceDashboardSql.SelectErpScmRfqLines;
+                AddParameter(lineCommand, "@rfq_id", id);
+                await using var lineReader = await lineCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await lineReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lines.Add(new ErpRfqLineDigest(
+                        Convert.ToInt64(lineReader["id"] is DBNull ? 0 : lineReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(lineReader["item_id"] is DBNull ? 0 : lineReader["item_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(lineReader["description"] is DBNull ? string.Empty : lineReader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(lineReader["qty"] is DBNull ? 0m : lineReader["qty"], CultureInfo.InvariantCulture),
+                        Convert.ToString(lineReader["unit"] is DBNull ? "pcs" : lineReader["unit"], CultureInfo.InvariantCulture) ?? "pcs",
+                        Convert.ToDecimal(lineReader["target_price"] is DBNull ? 0m : lineReader["target_price"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(lineReader["sort_order"] is DBNull ? 0 : lineReader["sort_order"], CultureInfo.InvariantCulture)));
+                }
+                header = header with { Lines = lines };
             }
 
             var siblings = new List<ErpRfqDigest>();
@@ -21652,6 +21674,22 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         {
             return new(null, [], "database-error", ex.Message);
         }
+    }
+
+    private static async Task<bool> TenantTableExistsAsync(
+        DbConnection connection,
+        string table,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT COUNT(*)
+            FROM information_schema.tables
+            WHERE table_schema = DATABASE() AND table_name = @table
+            """;
+        AddParameter(command, "@table", table);
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return Convert.ToInt64(value ?? 0, CultureInfo.InvariantCulture) > 0;
     }
 
     public async Task<ErpThreeWayMatchListResult> ListErpThreeWayMatchAsync(int limit, CancellationToken cancellationToken = default)
