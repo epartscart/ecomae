@@ -3384,6 +3384,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("Awaiting receipt", razor, StringComparison.Ordinal);
         Assert.Contains("Awaiting invoice", razor, StringComparison.Ordinal);
         Assert.Contains("Variance", razor, StringComparison.Ordinal);
+        Assert.Contains("I confirm this decision is ready to be persisted", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\" value=\"true\" required", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
