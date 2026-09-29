@@ -19,6 +19,7 @@ public sealed record ErpManualInvoiceWriteRequest(
     string? LinesJson,
     string? PaymentTerms,
     string? DueDate,
+    string? IssueDate,
     long OrderId,
     decimal PaidAmount,
     string? TransactionTypeCode,
@@ -93,8 +94,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var totalIncl = Round(subtotal + totalVat);
         var paidAmount = Round(Math.Max(0, request.PaidAmount));
         var amountDue = Round(Math.Max(0, totalIncl - paidAmount));
-        var issueDate = now;
-        var dueDate = ParseDate(request.DueDate, now + 30 * 86400L);
+        var issueDate = ParseDate(request.IssueDate, now);
+        var dueDate = ParseDate(request.DueDate, issueDate + 30 * 86400L);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -220,7 +221,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         var totalIncl = Round(subtotal + totalVat);
         var paidAmount = Round(Math.Max(0, request.PaidAmount));
         var amountDue = Round(Math.Max(0, totalIncl - paidAmount));
-        var dueDate = ParseDate(request.DueDate, now + 30 * 86400L);
+        var issueDate = ParseDate(request.IssueDate, now);
+        var dueDate = ParseDate(request.DueDate, issueDate + 30 * 86400L);
 
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
@@ -229,11 +231,13 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`amount_due`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
+                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`issue_date`=?,`vat_point_date`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`amount_due`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
                 cancellationToken,
                 request.OrderId,
                 invoiceNumber,
                 request.UserId > 0 ? request.UserId : 0,
+                issueDate,
+                issueDate,
                 dueDate,
                 currency,
                 currency,
