@@ -753,9 +753,9 @@ public static class EcomAeRoutes
     public const string ErpCashEntriesVoid = "/erp/cash-entries/void";
     /// <summary>ERP cash_entry compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpCashEntriesCreate = "/erp/cash-entries/create";
-    /// <summary>Wave B dry-run for PHP receipt_voucher (writes=0; PHP authoritative).</summary>
+    /// <summary>ERP receipt_voucher compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpCashEntriesReceiptVoucher = "/erp/cash-entries/receipt-voucher";
-    /// <summary>Wave B dry-run for PHP payment_voucher (writes=0; PHP authoritative).</summary>
+    /// <summary>ERP payment_voucher compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpCashEntriesPaymentVoucher = "/erp/cash-entries/payment-voucher";
     /// <summary>Wave B dry-run for PHP create_supplier (writes=0).</summary>
     public const string ErpSuppliersCreate = "/erp/suppliers/create";

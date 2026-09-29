@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP ERP <c>payment_voucher</c> / <c>epc_erp_payment_voucher</c>.
-/// Never executes INSERT. PHP ajax_erp.php remains authoritative.
+/// Validation envelope for the live ASP.NET payment-voucher writer.
 /// </summary>
 public interface IErpPaymentVoucherDryRun
 {
@@ -17,7 +16,7 @@ public sealed class ErpPaymentVoucherDryRun : IErpPaymentVoucherDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET payment_voucher is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET payment-voucher writer.",
                 request);
         }
 
@@ -32,7 +31,7 @@ public sealed class ErpPaymentVoucherDryRun : IErpPaymentVoucherDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             SupplierId: request.SupplierId,
@@ -44,13 +43,13 @@ public sealed class ErpPaymentVoucherDryRun : IErpPaymentVoucherDryRun
                 "Settlement allocate / FIFO against open bills (NOT executed)",
                 "GL Dr AP / Cr Bank (NOT executed)"
             ],
-            Detail: "Payload shape validated; payment voucher INSERT + settlement blocked. Allocation edge cases stay PHP until dual-sample.",
+            Detail: "Payload shape validated; no write was performed.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=payment_voucher");
     }
 
     private static ErpPaymentVoucherDryRunResult Refuse(
         string status, string code, string detail, ErpPaymentVoucherRequest request) =>
-        new(status, 0, true, false, true, code, false, request.SupplierId, request.AccountId, request.Amount,
+        new(status, 0, true, false, false, code, false, request.SupplierId, request.AccountId, request.Amount,
             [], detail, "/CP/content/shop/finance/erp/ajax_erp.php?action=payment_voucher");
 }
 
