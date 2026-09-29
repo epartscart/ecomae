@@ -4558,7 +4558,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"ei_id\")", text, StringComparison.Ordinal);
         Assert.Contains("BuildCpEinvoiceDocumentDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No lines yet.", text, StringComparison.Ordinal);
+        Assert.Contains("ErpDocumentWorkspace", text, StringComparison.Ordinal);
+        Assert.Contains("EinvoiceWorkspaceFields", text, StringComparison.Ordinal);
+        Assert.Contains("EinvoiceWorkspaceLines", text, StringComparison.Ordinal);
         Assert.Contains("No events yet.", text, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);

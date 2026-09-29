@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -83,94 +84,27 @@
 
     @if (_openedDocument is not null)
     {
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">
-                    @(!string.IsNullOrWhiteSpace(_openedDocument.InvoiceNumber) ? _openedDocument.InvoiceNumber : ("E-invoice #" + _openedDocument.Id.ToString(CultureInfo.InvariantCulture)))
-                    <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedDocument.Status) ? _openedDocument.Status : "—")</span>
-                </div>
-                <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedDocument.DocCategory) ? _openedDocument.DocCategory : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedDocument.CurrencyCode) ? _openedDocument.CurrencyCode : "—")
-                        · Order @_openedDocument.OrderId.ToString(CultureInfo.InvariantCulture)
-                        · Buyer user @_openedDocument.UserId.ToString(CultureInfo.InvariantCulture)</p>
-                    <p>Ex VAT @_openedDocument.SubtotalExVat.ToString("0.00", CultureInfo.InvariantCulture)
-                        · VAT @_openedDocument.TotalVat.ToString("0.00", CultureInfo.InvariantCulture)
-                        · Incl VAT @_openedDocument.TotalInclVat.ToString("0.00", CultureInfo.InvariantCulture)
-                        · Due @_openedDocument.AmountDue.ToString("0.00", CultureInfo.InvariantCulture)</p>
-                    <p>Terms @(!string.IsNullOrWhiteSpace(_openedDocument.PaymentTerms) ? _openedDocument.PaymentTerms : "—")
-                        · Bank @(!string.IsNullOrWhiteSpace(_openedDocument.BankAccount) ? _openedDocument.BankAccount : "—")
-                        · ASP @(!string.IsNullOrWhiteSpace(_openedDocument.AspName) ? _openedDocument.AspName : "—")
-                        · FTA @(!string.IsNullOrWhiteSpace(_openedDocument.FtaReportStatus) ? _openedDocument.FtaReportStatus : "—")</p>
-                    <p>Valid @( _openedDocument.ValidationOk ? "yes" : "no" )
-                        · XML @_openedDocument.XmlBytes.ToString(CultureInfo.InvariantCulture) bytes</p>
-                    @if (!string.IsNullOrWhiteSpace(_openedDocument.ValidationErrorsJson))
-                    {
-                        <p>Validation @_openedDocument.ValidationErrorsJson</p>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_openedDocument.TaxBreakdownJson))
-                    {
-                        <p>Tax breakdown @_openedDocument.TaxBreakdownJson</p>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_openedDocument.SellerJson))
-                    {
-                        <p>Seller @_openedDocument.SellerJson</p>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_openedDocument.BuyerJson))
-                    {
-                        <p>Buyer @_openedDocument.BuyerJson</p>
-                    }
-                    @if (!string.IsNullOrWhiteSpace(_openedDocument.XmlPreview))
-                    {
-                        <p>XML preview @_openedDocument.XmlPreview</p>
-                    }
-                </div>
-            </div>
-        </div>
+        <ErpDocumentWorkspace
+            DocumentKind="E-invoice"
+            Title="@(!string.IsNullOrWhiteSpace(_openedDocument.InvoiceNumber) ? _openedDocument.InvoiceNumber : $"E-invoice #{_openedDocument.Id.ToString(CultureInfo.InvariantCulture)}")"
+            DocumentNumber="@_openedDocument.Id.ToString(CultureInfo.InvariantCulture)"
+            PartyLabel="Buyer"
+            Party="@($"User {_openedDocument.UserId.ToString(CultureInfo.InvariantCulture)}")"
+            ReferenceLabel="Source order"
+            Reference="@(_openedDocument.OrderId > 0 ? _openedDocument.OrderId.ToString(CultureInfo.InvariantCulture) : "—")"
+            Status="@(!string.IsNullOrWhiteSpace(_openedDocument.Status) ? _openedDocument.Status : "—")"
+            ApprovalState="@(_openedDocument.ValidationOk ? "Validated" : "Validation required")"
+            CompanyContext="Tenant / company"
+            Currency="@(!string.IsNullOrWhiteSpace(_openedDocument.CurrencyCode) ? _openedDocument.CurrencyCode : "—")"
+            Subtotal="@_openedDocument.SubtotalExVat"
+            Tax="@_openedDocument.TotalVat"
+            Total="@_openedDocument.TotalInclVat"
+            BalanceDue="@_openedDocument.AmountDue"
+            Fields="@EinvoiceWorkspaceFields"
+            Lines="@EinvoiceWorkspaceLines"
+            Tabs="@EinvoiceWorkspaceTabs" />
 
-        <div class="col-lg-12">
-            <div class="hpanel">
-                <div class="panel-heading hbuilt">Lines</div>
-                <div class="panel-body">
-                    <div class="table-responsive">
-                        <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
-                            <thead>
-                                <tr>
-                                    <th>Line</th>
-                                    <th>Item</th>
-                                    <th>Qty</th>
-                                    <th>Unit</th>
-                                    <th>Net</th>
-                                    <th>VAT</th>
-                                    <th>Gross</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @if (_openedLines.Count == 0)
-                                {
-                                    <tr><td colspan="7">No lines yet.</td></tr>
-                                }
-                                else
-                                {
-                                    @foreach (var row in _openedLines)
-                                    {
-                                        <tr>
-                                            <td>@row.LineNo.ToString(CultureInfo.InvariantCulture)</td>
-                                            <td>@(!string.IsNullOrWhiteSpace(row.ItemName) ? row.ItemName : "—")</td>
-                                            <td>@row.Quantity.ToString("0.0000", CultureInfo.InvariantCulture)</td>
-                                            <td>@row.UnitPrice.ToString("0.0000", CultureInfo.InvariantCulture)</td>
-                                            <td>@row.LineNet.ToString("0.00", CultureInfo.InvariantCulture)</td>
-                                            <td>@row.TaxAmount.ToString("0.00", CultureInfo.InvariantCulture)</td>
-                                            <td>@row.GrossAmount.ToString("0.00", CultureInfo.InvariantCulture)</td>
-                                        </tr>
-                                    }
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+        <p class="text-muted" style="margin:.85rem 0 0">Validation, tax, seller/buyer, XML, ASP, and FTA evidence remain visible in the workspace fields. Document creation, API-mode submission, credit notes, retries, and ASP polling remain Classic-owned.</p>
 
         <div class="col-lg-12">
             <div class="hpanel">
@@ -283,6 +217,54 @@
             ? ("E-invoice #" + _openedDocument.Id.ToString(CultureInfo.InvariantCulture))
             : _openedDocument.InvoiceNumber)
             + (string.IsNullOrWhiteSpace(_openedDocument.Status) ? "" : (" · " + _openedDocument.Status));
+
+    private IReadOnlyList<string> EinvoiceWorkspaceTabs =>
+        ["General", "Buyer", "Tax", "Validation", "Lines", "Events"];
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> EinvoiceWorkspaceFields => _openedDocument is null
+        ? []
+        : [
+            new("UUID", string.IsNullOrWhiteSpace(_openedDocument.Uuid) ? "—" : _openedDocument.Uuid, "General"),
+            new("Document category", string.IsNullOrWhiteSpace(_openedDocument.DocCategory) ? "—" : _openedDocument.DocCategory, "General"),
+            new("Issue date", FormatTime(_openedDocument.IssueDate), "General"),
+            new("Payment due", FormatTime(_openedDocument.PaymentDueDate), "Financial"),
+            new("Payment terms", string.IsNullOrWhiteSpace(_openedDocument.PaymentTerms) ? "—" : _openedDocument.PaymentTerms, "Financial"),
+            new("Bank account", string.IsNullOrWhiteSpace(_openedDocument.BankAccount) ? "—" : _openedDocument.BankAccount, "Financial"),
+            new("Subtotal ex VAT", _openedDocument.SubtotalExVat.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
+            new("VAT", _openedDocument.TotalVat.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
+            new("Paid", _openedDocument.PaidAmount.ToString("N2", CultureInfo.InvariantCulture), "Financial"),
+            new("Validation", _openedDocument.ValidationOk ? "Valid" : "Invalid", "Validation"),
+            new("Validation errors", string.IsNullOrWhiteSpace(_openedDocument.ValidationErrorsJson) ? "None" : _openedDocument.ValidationErrorsJson, "Validation"),
+            new("Tax breakdown", string.IsNullOrWhiteSpace(_openedDocument.TaxBreakdownJson) ? "—" : _openedDocument.TaxBreakdownJson, "Tax"),
+            new("Seller", string.IsNullOrWhiteSpace(_openedDocument.SellerJson) ? "—" : _openedDocument.SellerJson, "Operational"),
+            new("Buyer", string.IsNullOrWhiteSpace(_openedDocument.BuyerJson) ? "—" : _openedDocument.BuyerJson, "Operational"),
+            new("ASP", string.IsNullOrWhiteSpace(_openedDocument.AspName) ? "—" : _openedDocument.AspName, "Operational"),
+            new("ASP reference", string.IsNullOrWhiteSpace(_openedDocument.AspReference) ? "—" : _openedDocument.AspReference, "Operational"),
+            new("FTA report", string.IsNullOrWhiteSpace(_openedDocument.FtaReportStatus) ? "—" : _openedDocument.FtaReportStatus, "Tax"),
+            new("XML bytes", _openedDocument.XmlBytes.ToString(CultureInfo.InvariantCulture), "Validation"),
+            new("XML preview", string.IsNullOrWhiteSpace(_openedDocument.XmlPreview) ? "—" : _openedDocument.XmlPreview, "Validation")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> EinvoiceWorkspaceLines => _openedLines
+        .Select(row => new ErpDocumentWorkspaceLine(
+            row.LineNo.ToString(CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(row.ItemDescription) ? row.ItemName : row.ItemDescription,
+            row.Quantity,
+            "ea",
+            "—",
+            "—",
+            row.UnitPrice,
+            0,
+            row.TaxAmount,
+            row.Quantity,
+            row.GrossAmount,
+            $"E-invoice #{row.DocumentId.ToString(CultureInfo.InvariantCulture)}"))
+        .ToList();
+
+    private static string FormatTime(long unixSeconds) =>
+        unixSeconds <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(unixSeconds).ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
