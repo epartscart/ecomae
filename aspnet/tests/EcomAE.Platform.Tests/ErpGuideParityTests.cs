@@ -120,6 +120,9 @@ public sealed class ErpGuideParityTests
         var movements = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpStockMovementsApp.razor"));
         Assert.Contains("ErpDocumentWorkspace", warehouses, StringComparison.Ordinal);
         Assert.Contains("WarehouseWorkspaceFields", warehouses, StringComparison.Ordinal);
+        Assert.Contains("VirtualWorkspaceFields", warehouses, StringComparison.Ordinal);
+        Assert.Contains("VirtualWorkspaceLines", warehouses, StringComparison.Ordinal);
+        Assert.Contains("warehouse_id", warehouses, StringComparison.Ordinal);
         Assert.Contains("ErpDocumentWorkspace", movements, StringComparison.Ordinal);
         Assert.Contains("MovementWorkspaceLines", movements, StringComparison.Ordinal);
     }
