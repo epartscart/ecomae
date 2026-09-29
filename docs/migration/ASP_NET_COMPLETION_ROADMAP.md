@@ -87,6 +87,59 @@ Each process requires New/Edit/Delete/Void/Submit/Approve/Post where applicable,
 field validation, audit, permission denial, source-document links, and database
 corroboration.
 
+#### D365/F&O-style document workspaces: PO, PI, SO, and SI
+
+The attached PHP/D365 reference screenshots establish the target document
+experience for the next ERP tranche. The ASP.NET pages must become full
+document workspaces rather than list pages with a small opened-record summary.
+The shared document shell should provide:
+
+* a persistent ERP command bar with New, Edit, Delete, workflow/status actions,
+  posting/settlement actions, document navigation, and contextual menus;
+* a document header with number, title, customer or supplier, document date,
+  requested/confirmed delivery dates, currency, site/warehouse, owner,
+  status, document status, approval state, source/reference fields, and
+  company/tenant scope;
+* collapsible F&O-style sections/tabs for General, Setup, Address, Delivery,
+  Warehouse, Price and discount, Payment, Financial dimensions, References,
+  Notes, Attachments, and audit history;
+* a dense, horizontally scrollable lines grid with item/SKU, product name,
+  description, quantity, unit, site/warehouse, delivery date, unit price or
+  cost, discount, tax, line amount, inventory/availability, received or
+  delivered quantity, and source-document links;
+* line-level add/edit/delete, product lookup, dimensions, inventory
+  reservation/availability, tax recalculation, totals, validation messages,
+  and keyboard-friendly editing;
+* a totals/footer area for subtotal, discounts, charges, tax, rounding,
+  paid/settled amount, balance due, and document currency;
+* role-aware lifecycle actions with dry-run validation before confirmed writes,
+  explicit approval limits, audit entries, and safe disabled states when a
+  capability or document status does not permit an action.
+
+The four workspaces share the shell but retain document-specific semantics:
+
+1. **PO — Purchase Order:** supplier, buyer, procurement category, delivery
+   warehouse, requested/confirmed dates, RFQ/requisition source, receipt
+   quantities, three-way-match state, invoice linkage, and supplier settlement.
+2. **PI — Purchase Invoice:** supplier invoice number/date, supplier account,
+   PO/GRN links, tax registration, payment terms, due date, three-way-match
+   evidence, posting profile, approval/hold state, and AP settlement.
+3. **SO — Sales Order:** customer/account and contact, delivery address,
+   requested/confirmed ship dates, warehouse/fulfilment policy, reservation,
+   carrier/transport, payment terms, sales tax, discounts, project/reference
+   fields, delivery-note linkage, and invoice/collection state.
+4. **SI — Sales Invoice:** customer and billing address, originating SO and
+   delivery note, issue/due dates, tax/e-invoice authority state, payment
+   terms, currency, settlement history, credit-note/cancellation controls,
+   and AR balance/collection state.
+
+The implementation order is **shared document shell → SO/SI order-to-cash
+pair → PO/PI procure-to-pay pair → cross-document links and reports**. Each
+pair must be accepted against the PHP reference using the same tenant records
+and must pass field, line, action, permission, database, browser, responsive
+desktop/mobile, visual, and rollback evidence. Until that evidence is complete,
+these routes remain ASP.NET previews/shadows and PHP remains authoritative.
+
 ### Step 3 — Close storefront and remaining public surfaces (6–9 sessions)
 
 * Reproduce the PHP themes and asset loading on each industry host.
