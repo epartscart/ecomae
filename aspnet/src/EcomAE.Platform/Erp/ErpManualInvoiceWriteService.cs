@@ -74,9 +74,11 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        var sellerJson = await ResolveSellerJsonAsync(connection, request.SellerJson, cancellationToken).ConfigureAwait(false);
+        var buyerJson = await ResolveBuyerJsonAsync(connection, request.UserId, request.BuyerJson, cancellationToken).ConfigureAwait(false);
         if (request.Id > 0)
         {
-            return await UpdateAsync(connection, request, lines, cancellationToken).ConfigureAwait(false);
+            return await UpdateAsync(connection, request, lines, sellerJson, buyerJson, cancellationToken).ConfigureAwait(false);
         }
 
         var invoiceNumber = string.IsNullOrWhiteSpace(request.InvoiceNumber)
@@ -121,8 +123,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
                 Clip(request.PaymentTerms, 255),
                 Clip(request.BankAccount, 255),
-                request.SellerJson ?? "{}",
-                request.BuyerJson ?? "{}",
+                sellerJson,
+                buyerJson,
                 subtotal,
                 totalVat,
                 totalIncl,
@@ -183,6 +185,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         DbConnection connection,
         ErpManualInvoiceWriteRequest request,
         IReadOnlyList<ErpManualInvoiceLineInput> lines,
+        string sellerJson,
+        string buyerJson,
         CancellationToken cancellationToken)
     {
         var status = await ErpDb.StringAsync(
@@ -245,8 +249,8 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
                 Clip(request.PaymentTerms, 255),
                 Clip(request.BankAccount, 255),
-                request.SellerJson ?? "{}",
-                request.BuyerJson ?? "{}",
+                sellerJson,
+                buyerJson,
                 subtotal,
                 totalVat,
                 totalIncl,
@@ -312,6 +316,125 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
         }
     }
 
+    private static async Task<string> ResolveSellerJsonAsync(
+        DbConnection connection,
+        string? supplied,
+        CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(supplied))
+        {
+            return supplied;
+        }
+
+        var profile = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var (key, fallback) in new[]
+        {
+            ("seller_name", ""),
+            ("seller_trn", ""),
+            ("seller_tin", ""),
+            ("seller_legal_reg_no", ""),
+            ("seller_legal_reg_type", "TL"),
+            ("seller_authority_name", ""),
+            ("seller_address_line1", ""),
+            ("seller_city", ""),
+            ("seller_emirate", ""),
+            ("seller_country_code", "AE"),
+            ("seller_phone", ""),
+            ("seller_email", ""),
+            ("seller_bank_account", ""),
+        })
+        {
+            profile[key] = await SettingAsync(connection, key, fallback, cancellationToken).ConfigureAwait(false);
+        }
+
+        return JsonSerializer.Serialize(profile);
+    }
+
+    private static async Task<string> ResolveBuyerJsonAsync(
+        DbConnection connection,
+        long userId,
+        string? supplied,
+        CancellationToken cancellationToken)
+    {
+        if (!string.IsNullOrWhiteSpace(supplied))
+        {
+            return supplied;
+        }
+
+        var buyer = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["buyer_name"] = userId > 0 ? "Customer #" + userId : "Customer #0",
+            ["buyer_trn"] = "",
+            ["buyer_legal_reg_no"] = "",
+            ["buyer_legal_reg_type"] = "TL",
+            ["buyer_address_line1"] = "United Arab Emirates",
+            ["buyer_city"] = "Dubai",
+            ["buyer_emirate"] = "Dubai",
+            ["buyer_country_code"] = "AE",
+            ["buyer_email"] = "",
+            ["buyer_peppol_endpoint"] = "0235:9900000098",
+        };
+
+        if (userId > 0 && userId <= int.MaxValue)
+        {
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = ErpDb.Positional(
+                    "SELECT `buyer_name`, `trn`, `legal_reg_no`, `legal_reg_type`, `address_line1`, `city`, `emirate`, `country_code`, `email`, `peppol_endpoint`"
+                    + " FROM `epc_einvoice_buyer_profiles` WHERE `user_id` = ? LIMIT 1");
+                var parameter = command.CreateParameter();
+                parameter.ParameterName = "@p0";
+                parameter.Value = (int)userId;
+                command.Parameters.Add(parameter);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    buyer["buyer_name"] = Text(reader, 0) is { Length: > 0 } name ? name : buyer["buyer_name"];
+                    buyer["buyer_trn"] = Text(reader, 1);
+                    buyer["buyer_legal_reg_no"] = Text(reader, 2);
+                    buyer["buyer_legal_reg_type"] = Text(reader, 3) is { Length: > 0 } type ? type : "TL";
+                    buyer["buyer_address_line1"] = Text(reader, 4) is { Length: > 0 } address ? address : buyer["buyer_address_line1"];
+                    buyer["buyer_city"] = Text(reader, 5) is { Length: > 0 } city ? city : buyer["buyer_city"];
+                    buyer["buyer_emirate"] = Text(reader, 6) is { Length: > 0 } emirate ? emirate : buyer["buyer_emirate"];
+                    buyer["buyer_country_code"] = Text(reader, 7) is { Length: > 0 } country ? country.ToUpperInvariant() : "AE";
+                    buyer["buyer_email"] = Text(reader, 8);
+                    buyer["buyer_peppol_endpoint"] = Text(reader, 9) is { Length: > 0 } endpoint ? endpoint : buyer["buyer_peppol_endpoint"];
+                }
+            }
+            catch (DbException)
+            {
+            }
+        }
+
+        return JsonSerializer.Serialize(buyer);
+    }
+
+    private static async Task<string> SettingAsync(
+        DbConnection connection,
+        string key,
+        string fallback,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            var value = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `setting_value` FROM `epc_einvoice_settings` WHERE `setting_key` = ? LIMIT 1"),
+                cancellationToken,
+                key).ConfigureAwait(false);
+            return string.IsNullOrWhiteSpace(value) ? fallback : value.Trim();
+        }
+        catch (DbException)
+        {
+            return fallback;
+        }
+    }
+
+    private static string Text(DbDataReader reader, int ordinal)
+        => reader.IsDBNull(ordinal) ? string.Empty : Convert.ToString(reader.GetValue(ordinal), System.Globalization.CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+
     private static List<ErpManualInvoiceLineInput> ParseLines(string? json)
     {
         if (string.IsNullOrWhiteSpace(json))
@@ -358,7 +481,10 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 
     private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` (`id` int NOT NULL AUTO_INCREMENT, `uuid` char(36) NOT NULL, `invoice_number` varchar(64) NOT NULL, `order_id` int NOT NULL DEFAULT 0, `user_id` int NOT NULL DEFAULT 0, `doc_category` varchar(32) NOT NULL DEFAULT 'tax_invoice', `invoice_type_code` varchar(8) NOT NULL DEFAULT '380', `issue_date` int NOT NULL DEFAULT 0, `payment_due_date` int NOT NULL DEFAULT 0, `vat_point_date` int NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'AED', `vat_currency_code` varchar(8) NOT NULL DEFAULT 'AED', `payment_terms` varchar(255) DEFAULT NULL, `seller_json` mediumtext, `buyer_json` mediumtext, `subtotal_ex_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_incl_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `amount_due` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(32) NOT NULL DEFAULT 'draft', `validation_ok` tinyint NOT NULL DEFAULT 0, `validation_errors_json` text, `xml_content` mediumtext, `time_created` int NOT NULL DEFAULT 0, `time_updated` int NOT NULL DEFAULT 0, `admin_id` int NOT NULL DEFAULT 0, `active` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `x_uuid` (`uuid`), UNIQUE KEY `x_invoice_no` (`invoice_number`))", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` (`id` int NOT NULL AUTO_INCREMENT, `uuid` char(36) NOT NULL, `invoice_number` varchar(64) NOT NULL, `order_id` int NOT NULL DEFAULT 0, `user_id` int NOT NULL DEFAULT 0, `doc_category` varchar(32) NOT NULL DEFAULT 'tax_invoice', `invoice_type_code` varchar(8) NOT NULL DEFAULT '380', `issue_date` int NOT NULL DEFAULT 0, `payment_due_date` int NOT NULL DEFAULT 0, `vat_point_date` int NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'AED', `vat_currency_code` varchar(8) NOT NULL DEFAULT 'AED', `transaction_type_code` varchar(32) NOT NULL DEFAULT '00000000', `payment_means_code` varchar(16) NOT NULL DEFAULT '30', `payment_terms` varchar(255) DEFAULT NULL, `bank_account` varchar(255) DEFAULT NULL, `seller_json` mediumtext, `buyer_json` mediumtext, `subtotal_ex_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_incl_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `amount_due` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(32) NOT NULL DEFAULT 'draft', `validation_ok` tinyint NOT NULL DEFAULT 0, `validation_errors_json` text, `xml_content` mediumtext, `time_created` int NOT NULL DEFAULT 0, `time_updated` int NOT NULL DEFAULT 0, `admin_id` int NOT NULL DEFAULT 0, `active` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `x_uuid` (`uuid`), UNIQUE KEY `x_invoice_no` (`invoice_number`))", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `transaction_type_code` varchar(32) NOT NULL DEFAULT '00000000'", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `payment_means_code` varchar(16) NOT NULL DEFAULT '30'", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `bank_account` varchar(255) DEFAULT NULL", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_lines` (`id` int NOT NULL AUTO_INCREMENT, `document_id` int NOT NULL, `line_no` int NOT NULL DEFAULT 1, `item_name` varchar(255) NOT NULL, `item_type` varchar(4) NOT NULL DEFAULT 'G', `quantity` decimal(14,4) NOT NULL DEFAULT 0, `uom_code` varchar(16) NOT NULL DEFAULT 'C62', `unit_price` decimal(14,4) NOT NULL DEFAULT 0, `line_net` decimal(14,2) NOT NULL DEFAULT 0, `tax_category` varchar(8) NOT NULL DEFAULT 'S', `tax_rate` decimal(5,2) NOT NULL DEFAULT 5, `tax_amount` decimal(14,2) NOT NULL DEFAULT 0, `gross_amount` decimal(14,2) NOT NULL DEFAULT 0, `vat_line_aed` decimal(14,2) NOT NULL DEFAULT 0, `line_amount_aed` decimal(14,2) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doc` (`document_id`))", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_events` (`id` int NOT NULL AUTO_INCREMENT, `document_id` int NOT NULL, `event_type` varchar(32) NOT NULL, `status` varchar(32) NOT NULL DEFAULT 'info', `message` text, `payload_json` mediumtext, `time_created` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doc` (`document_id`,`time_created`))", cancellationToken);
     }

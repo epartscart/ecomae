@@ -33,6 +33,10 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("item_description", module, StringComparison.Ordinal);
         Assert.Contains("issue_date", service, StringComparison.Ordinal);
         Assert.Contains("IssueDate", module, StringComparison.Ordinal);
+        Assert.Contains("ResolveSellerJsonAsync", service, StringComparison.Ordinal);
+        Assert.Contains("ResolveBuyerJsonAsync", service, StringComparison.Ordinal);
+        Assert.Contains("epc_einvoice_buyer_profiles", service, StringComparison.Ordinal);
+        Assert.Contains("seller_bank_account", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
