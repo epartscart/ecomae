@@ -107,7 +107,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`amount_due`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'draft',0,'[]','',?,?,?,1)"),
+                    "INSERT INTO `epc_einvoice_documents` (`uuid`,`invoice_number`,`order_id`,`user_id`,`doc_category`,`invoice_type_code`,`issue_date`,`payment_due_date`,`vat_point_date`,`currency_code`,`vat_currency_code`,`transaction_type_code`,`payment_means_code`,`payment_terms`,`bank_account`,`business_process`,`specification_id`,`seller_json`,`buyer_json`,`subtotal_ex_vat`,`total_vat`,`total_incl_vat`,`paid_amount`,`rounding_amount`,`amount_due`,`tax_breakdown_json`,`status`,`validation_ok`,`validation_errors_json`,`xml_content`,`time_created`,`time_updated`,`admin_id`,`active`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'draft',0,'[]','',?,?,?,1)"),
                 cancellationToken,
                 Guid.NewGuid().ToString("D"),
                 invoiceNumber,
@@ -124,13 +124,26 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
                 Clip(request.PaymentTerms, 255),
                 Clip(request.BankAccount, 255),
+                "urn:peppol:bis:billing",
+                "urn:peppol:pint:billing-1@ae-1",
                 sellerJson,
                 buyerJson,
                 subtotal,
                 totalVat,
                 totalIncl,
                 paidAmount,
+                0m,
                 amountDue,
+                JsonSerializer.Serialize(new[]
+                {
+                    new
+                    {
+                        tax_category = lines[0].TaxRate > 0 ? "S" : "Z",
+                        taxable_amount = subtotal,
+                        tax_rate = lines[0].TaxRate,
+                        tax_amount = totalVat,
+                    },
+                }),
                 now,
                 now,
                 request.AdminId).ConfigureAwait(false);
@@ -237,7 +250,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`issue_date`=?,`vat_point_date`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`amount_due`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
+                    "UPDATE `epc_einvoice_documents` SET `order_id`=?,`invoice_number`=?,`user_id`=?,`issue_date`=?,`vat_point_date`=?,`payment_due_date`=?,`currency_code`=?,`vat_currency_code`=?,`transaction_type_code`=?,`payment_means_code`=?,`payment_terms`=?,`bank_account`=?,`business_process`=?,`specification_id`=?,`seller_json`=?,`buyer_json`=?,`subtotal_ex_vat`=?,`total_vat`=?,`total_incl_vat`=?,`paid_amount`=?,`rounding_amount`=?,`amount_due`=?,`tax_breakdown_json`=?,`status`='draft',`validation_ok`=0,`validation_errors_json`='[]',`time_updated`=? WHERE `id`=? AND `active`=1 AND `status` NOT IN ('submitted','accepted','queued')"),
                 cancellationToken,
                 request.OrderId,
                 invoiceNumber,
@@ -251,13 +264,26 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 Clip(request.PaymentMeansCode, 16) is { Length: > 0 } paymentMeans ? paymentMeans : "30",
                 Clip(request.PaymentTerms, 255),
                 Clip(request.BankAccount, 255),
+                "urn:peppol:bis:billing",
+                "urn:peppol:pint:billing-1@ae-1",
                 sellerJson,
                 buyerJson,
                 subtotal,
                 totalVat,
                 totalIncl,
                 paidAmount,
+                0m,
                 amountDue,
+                JsonSerializer.Serialize(new[]
+                {
+                    new
+                    {
+                        tax_category = lines[0].TaxRate > 0 ? "S" : "Z",
+                        taxable_amount = subtotal,
+                        tax_rate = lines[0].TaxRate,
+                        tax_amount = totalVat,
+                    },
+                }),
                 now,
                 request.Id).ConfigureAwait(false);
             if (changed == 0)
@@ -491,10 +517,14 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
 
     private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
-        await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` (`id` int NOT NULL AUTO_INCREMENT, `uuid` char(36) NOT NULL, `invoice_number` varchar(64) NOT NULL, `order_id` int NOT NULL DEFAULT 0, `user_id` int NOT NULL DEFAULT 0, `doc_category` varchar(32) NOT NULL DEFAULT 'tax_invoice', `invoice_type_code` varchar(8) NOT NULL DEFAULT '380', `issue_date` int NOT NULL DEFAULT 0, `payment_due_date` int NOT NULL DEFAULT 0, `vat_point_date` int NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'AED', `vat_currency_code` varchar(8) NOT NULL DEFAULT 'AED', `transaction_type_code` varchar(32) NOT NULL DEFAULT '00000000', `payment_means_code` varchar(16) NOT NULL DEFAULT '30', `payment_terms` varchar(255) DEFAULT NULL, `bank_account` varchar(255) DEFAULT NULL, `seller_json` mediumtext, `buyer_json` mediumtext, `subtotal_ex_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_incl_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `amount_due` decimal(14,2) NOT NULL DEFAULT 0, `status` varchar(32) NOT NULL DEFAULT 'draft', `validation_ok` tinyint NOT NULL DEFAULT 0, `validation_errors_json` text, `xml_content` mediumtext, `time_created` int NOT NULL DEFAULT 0, `time_updated` int NOT NULL DEFAULT 0, `admin_id` int NOT NULL DEFAULT 0, `active` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `x_uuid` (`uuid`), UNIQUE KEY `x_invoice_no` (`invoice_number`))", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` (`id` int NOT NULL AUTO_INCREMENT, `uuid` char(36) NOT NULL, `invoice_number` varchar(64) NOT NULL, `order_id` int NOT NULL DEFAULT 0, `user_id` int NOT NULL DEFAULT 0, `doc_category` varchar(32) NOT NULL DEFAULT 'tax_invoice', `invoice_type_code` varchar(8) NOT NULL DEFAULT '380', `issue_date` int NOT NULL DEFAULT 0, `payment_due_date` int NOT NULL DEFAULT 0, `vat_point_date` int NOT NULL DEFAULT 0, `currency_code` varchar(8) NOT NULL DEFAULT 'AED', `vat_currency_code` varchar(8) NOT NULL DEFAULT 'AED', `transaction_type_code` varchar(32) NOT NULL DEFAULT '00000000', `payment_means_code` varchar(16) NOT NULL DEFAULT '30', `payment_terms` varchar(255) DEFAULT NULL, `bank_account` varchar(255) DEFAULT NULL, `business_process` varchar(255) NOT NULL DEFAULT 'urn:peppol:bis:billing', `specification_id` varchar(255) NOT NULL DEFAULT 'urn:peppol:pint:billing-1@ae-1', `seller_json` mediumtext, `buyer_json` mediumtext, `subtotal_ex_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_vat` decimal(14,2) NOT NULL DEFAULT 0, `total_incl_vat` decimal(14,2) NOT NULL DEFAULT 0, `paid_amount` decimal(14,2) NOT NULL DEFAULT 0, `rounding_amount` decimal(14,2) NOT NULL DEFAULT 0, `amount_due` decimal(14,2) NOT NULL DEFAULT 0, `tax_breakdown_json` text, `status` varchar(32) NOT NULL DEFAULT 'draft', `validation_ok` tinyint NOT NULL DEFAULT 0, `validation_errors_json` text, `xml_content` mediumtext, `time_created` int NOT NULL DEFAULT 0, `time_updated` int NOT NULL DEFAULT 0, `admin_id` int NOT NULL DEFAULT 0, `active` tinyint NOT NULL DEFAULT 1, PRIMARY KEY (`id`), UNIQUE KEY `x_uuid` (`uuid`), UNIQUE KEY `x_invoice_no` (`invoice_number`))", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `transaction_type_code` varchar(32) NOT NULL DEFAULT '00000000'", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `payment_means_code` varchar(16) NOT NULL DEFAULT '30'", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `bank_account` varchar(255) DEFAULT NULL", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `business_process` varchar(255) NOT NULL DEFAULT 'urn:peppol:bis:billing'", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `specification_id` varchar(255) NOT NULL DEFAULT 'urn:peppol:pint:billing-1@ae-1'", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `rounding_amount` decimal(14,2) NOT NULL DEFAULT 0", cancellationToken);
+        await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_documents` ADD COLUMN `tax_breakdown_json` text", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_lines` (`id` int NOT NULL AUTO_INCREMENT, `document_id` int NOT NULL, `line_no` int NOT NULL DEFAULT 1, `item_name` varchar(255) NOT NULL, `item_description` text, `item_type` varchar(4) NOT NULL DEFAULT 'G', `quantity` decimal(14,4) NOT NULL DEFAULT 0, `uom_code` varchar(16) NOT NULL DEFAULT 'C62', `unit_price` decimal(14,4) NOT NULL DEFAULT 0, `line_net` decimal(14,2) NOT NULL DEFAULT 0, `tax_category` varchar(8) NOT NULL DEFAULT 'S', `tax_rate` decimal(5,2) NOT NULL DEFAULT 5, `tax_amount` decimal(14,2) NOT NULL DEFAULT 0, `gross_amount` decimal(14,2) NOT NULL DEFAULT 0, `vat_line_aed` decimal(14,2) NOT NULL DEFAULT 0, `line_amount_aed` decimal(14,2) NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doc` (`document_id`))", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "ALTER TABLE `epc_einvoice_lines` ADD COLUMN `item_description` text", cancellationToken);
         await ErpDb.TryExecuteAsync(connection, "CREATE TABLE IF NOT EXISTS `epc_einvoice_events` (`id` int NOT NULL AUTO_INCREMENT, `document_id` int NOT NULL, `event_type` varchar(32) NOT NULL, `status` varchar(32) NOT NULL DEFAULT 'info', `message` text, `payload_json` mediumtext, `time_created` int NOT NULL DEFAULT 0, PRIMARY KEY (`id`), KEY `x_doc` (`document_id`,`time_created`))", cancellationToken);
