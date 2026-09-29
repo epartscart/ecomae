@@ -113,6 +113,8 @@ public sealed class ErpModuleBodyParityTests
         Assert.Contains("ErpRecordOpen.OpenModuleHref", header, StringComparison.Ordinal);
         Assert.Contains("Classic twin", header, StringComparison.Ordinal);
         Assert.Contains("PhpReferenceOnlyHref", header, StringComparison.Ordinal);
+        Assert.Contains("epc-erp-page-context", header, StringComparison.Ordinal);
+        Assert.Contains("ContextItems", header, StringComparison.Ordinal);
         // Primary button must not use PhpReferenceOnlyHref
         var primaryIdx = header.IndexOf("btn-primary", StringComparison.Ordinal);
         var primaryBlock = header.Substring(primaryIdx, Math.Min(280, header.Length - primaryIdx));

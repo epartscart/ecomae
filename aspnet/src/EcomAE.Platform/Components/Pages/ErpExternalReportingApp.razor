@@ -46,7 +46,7 @@
 </HeadContent>
 
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="External Reporting" BreadcrumbArea="Tax" BreadcrumbTab="External Reporting">
-    <PhpErpModulePageHeader Title="External Reporting" Subtitle="@_subtitle" PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="External Reporting" Subtitle="@_subtitle" PhpTabHref="@_phpTab" ContextItems="@_headerContextItems" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
 
     <div class="epc-erp-section epc-ext-banner">
@@ -438,6 +438,7 @@
     private string _ifrsRefreshNote = "";
     private Dictionary<string, string> _printCtx = new();
     private ErpExternalReportingPack? _pack;
+    private IReadOnlyList<string> _headerContextItems = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -519,6 +520,8 @@
         {
             _actionResult = "Sign in for live data.";
         }
+
+        _headerContextItems = BuildHeaderContextItems();
 
         decimal sales = 0, purch = 0, outVat = 0, inVat = 0, rate = 5;
         var liveFigs = false;
@@ -633,6 +636,8 @@
                 ["theme"] = _built.Theme,
             };
         }
+
+        _headerContextItems = BuildHeaderContextItems();
     }
 
     private string Href(string? cat = null, string? rep = null, string? tool = null)
@@ -697,6 +702,25 @@
         "custom" => "Custom range…",
         _ => b,
     };
+
+    private IReadOnlyList<string> BuildHeaderContextItems()
+    {
+        var items = new List<string>
+        {
+            $"{_regName} ({_regCountry})",
+            _companyId > 0 ? _companyLabel : "All companies",
+            _report is not null ? _report.Name : "Statutory catalogue",
+            $"{_period.Label} · {_period.From:dd MMM yyyy} — {_period.To:dd MMM yyyy}",
+        };
+
+        if (_report is not null)
+        {
+            items.Add(_category?.Label ?? _report.Cat);
+            items.Add(_fetched ? "Live data built" : "Build from ERP data");
+        }
+
+        return items;
+    }
 
     private async Task<IReadOnlyList<ErpExternalReportingSourceDocument>> LoadAnnualSourceDocumentsAsync(
         DateTime from,
