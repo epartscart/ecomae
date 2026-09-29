@@ -7304,6 +7304,16 @@ public const string SelectCpOpsGuidesStats = """
         LIMIT 50
         """;
 
+    /// <summary>Optional PHP SCM RFQ request lines; the ASP.NET read path never creates this schema.</summary>
+    public const string SelectErpScmRfqLines = """
+        SELECT `id`, IFNULL(`item_id`,0) AS item_id, IFNULL(`description`,'') AS description,
+               IFNULL(`qty`,0) AS qty, IFNULL(`unit`,'pcs') AS unit,
+               IFNULL(`target_price`,0) AS target_price, IFNULL(`sort_order`,0) AS sort_order
+        FROM `epc_scm_rfq_lines`
+        WHERE `rfq_id` = @rfq_id
+        ORDER BY `sort_order`, `id`
+        """;
+
     /// <summary>ERP three-way match rows — PHP epc_erp_three_way_match_rows.</summary>
     public const string SelectErpThreeWayMatch = """
         SELECT po.`id` AS po_id, IFNULL(po.`po_no`,'') AS po_no, IFNULL(po.`status`,'') AS po_status,

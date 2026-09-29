@@ -19,7 +19,7 @@
         <PhpParityModuleBody ShowGhostScaffold="false" AppPath="/erp/purchase-orders-app" IsAdmin="_isAdmin" />
     }
 
-    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Open a purchase order for the notes excerpt and VAT. Barcode purchase create and sell write here. Save, approve, invoice, receive, and delete stay Classic.")" PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="@(_barcodePurchase ? "Barcode / Purchase Margin" : "Purchase Orders")" Subtitle="@(_barcodePurchase ? "In jewellery, the barcode is the purchase — cost, margin, and salesman at barcode level." : "Open a purchase order in the shared D365 workspace. Guarded save, approve, invoice, receive, and delete actions are available to authorized ERP users.")" PhpTabHref="@_phpTab" />
     <ErpOpenedRecordBanner Id="_openedId" Found="@OpenedFound" Caption="@OpenedCaption" ListHref="/erp/purchase-orders-app" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
     @if (!_barcodePurchase)
@@ -72,23 +72,6 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/purchase-orders-app">Close</a>
             </p>
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>PO id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>PO #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.PoNo) ? "—" : _openedDetail.PoNo)</dd>
-                <dt>Title</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Title) ? "—" : _openedDetail.Title)</dd>
-                <dt>Supplier</dt><dd>@_openedDetail.SupplierId.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Ex VAT</dt><dd>@_openedDetail.AmountExVat.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>VAT</dt><dd>@_openedDetail.VatAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Total</dt><dd>@_openedDetail.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Status) ? "—" : _openedDetail.Status)</dd>
-                <dt>Purchase</dt><dd>@(_openedDetail.PurchaseId > 0 ? _openedDetail.PurchaseId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Sales order</dt><dd>@(_openedDetail.OrderId > 0 ? _openedDetail.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Approved</dt><dd>@FormatTime(_openedDetail.ApprovedAt)</dd>
-                <dt>Received</dt><dd>@FormatTime(_openedDetail.ReceivedAt)</dd>
-                <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
-                <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
-            </dl>
             <ErpDocumentWorkspace
                 DocumentKind="Purchase order"
                 Title="@_openedDetail.Title"
@@ -107,7 +90,7 @@
                 Fields="@PurchaseOrderWorkspaceFields"
                 Lines="@PurchaseOrderWorkspaceLines"
                 HeaderActions="@PurchaseOrderHeaderActions" />
-            <p class="text-muted" style="margin:.85rem 0 0">Barcode purchase create and sell write here. Save, approve, invoice, receive, and delete stay Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">The workspace is backed by the persisted purchase-order read model. Barcode purchase schema-ensure remains Classic-owned; purchase-order lifecycle actions use the guarded ERP routes shown in the action pane and list.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>

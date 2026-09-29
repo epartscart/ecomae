@@ -6636,7 +6636,17 @@ public sealed record ErpRfqDetail(
     long TimeCreated,
     long TimeUpdated,
     int DescriptionLen,
-    string DescriptionExcerpt);
+    string DescriptionExcerpt,
+    IReadOnlyList<ErpRfqLineDigest> Lines);
+
+public sealed record ErpRfqLineDigest(
+    long Id,
+    long ItemId,
+    string Description,
+    decimal Qty,
+    string Unit,
+    decimal TargetPrice,
+    int SortOrder);
 
 public sealed record ErpRfqDetailResult(
     ErpRfqDetail? Rfq,

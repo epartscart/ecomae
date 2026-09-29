@@ -274,7 +274,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("action=\"/erp/purchases/void\"", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"purchaseId\"", razor, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("Classic-owned", razor, StringComparison.Ordinal);
         Assert.Contains("erp-purchase-orders.js", razor, StringComparison.Ordinal);
         Assert.Contains("EcomAeRoutes.ErpJewelleryBarcodePurchaseCreateForm", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
@@ -2744,7 +2744,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpDocumentWorkspace", razor, StringComparison.Ordinal);
         Assert.Contains("RfqWorkspaceFields", razor, StringComparison.Ordinal);
         Assert.Contains("RfqHeaderActions", razor, StringComparison.Ordinal);
-        Assert.Contains("No line body is invented", razor, StringComparison.Ordinal);
+        Assert.Contains("RfqWorkspaceLines", razor, StringComparison.Ordinal);
+        Assert.Contains("epc_scm_rfq_lines", File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs")), StringComparison.Ordinal);
+        Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);

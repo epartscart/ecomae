@@ -49,9 +49,10 @@
                 Total="@_opened.AmountEst"
                 BalanceDue="0"
                 Fields="@RfqWorkspaceFields"
+                Lines="@RfqWorkspaceLines"
                 Tabs="@RfqWorkspaceTabs"
                 HeaderActions="@RfqHeaderActions" />
-            <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path; supplier response, award, and unsupported workflow actions remain on the Classic twin. No line body is invented by this read model.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path. When PHP SCM lines exist, the workspace reads their persisted request quantities and target prices without creating or mutating the PHP-owned schema; supplier response comparison and award remain Classic-owned.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">description excerpt</p>
@@ -170,6 +171,22 @@
             new("Due date", FormatTime(_opened.DueDate), "Delivery"),
             new("Description", _opened.DescriptionLen > 0 ? $"{_opened.DescriptionLen.ToString(CultureInfo.InvariantCulture)} chars" : "None", "Financial")
         ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> RfqWorkspaceLines => (_opened?.Lines ?? [])
+        .Select(line => new ErpDocumentWorkspaceLine(
+            line.Id.ToString(CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(line.Description) ? $"Item {line.ItemId}" : line.Description,
+            line.Qty,
+            line.Unit,
+            "RFQ",
+            line.ItemId.ToString(CultureInfo.InvariantCulture),
+            line.TargetPrice,
+            0,
+            0,
+            line.Qty * line.TargetPrice,
+            0,
+            "Target price"))
+        .ToArray() ?? [];
 
     private RenderFragment? RfqHeaderActions => _isAdmin && _opened is not null
         ? @<div>
