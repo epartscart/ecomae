@@ -70,6 +70,21 @@ public sealed class WaveBPeriodSettlementDryRunTests
     }
 
     [Fact]
+    public void SupplierPaymentUsesLiveWriteEvidence()
+    {
+        var result = new ErpSupplierPaymentDryRun().Evaluate(new ErpSupplierPaymentRequest(12));
+        var row = SurfacePayloadContractCatalog.Functions.Single(item =>
+            item.AspNetRouteOrCapability == "/erp/ajax/supplier-payment");
+
+        Assert.Equal("dry-run-validated", result.Status);
+        Assert.False(result.PhpAuthoritative);
+        Assert.Contains("no write was performed", result.Detail, StringComparison.Ordinal);
+        Assert.Equal("write-live-gated", row.Status);
+        Assert.Contains("confirm_writes=true", row.Notes, StringComparison.Ordinal);
+        Assert.DoesNotContain("PHP authoritative", row.Notes, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void SupplierSettlementCatalogUsesLiveWriteGate()
     {
         var row = SurfacePayloadContractCatalog.Functions.Single(item =>

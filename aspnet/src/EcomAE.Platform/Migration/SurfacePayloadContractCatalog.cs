@@ -1972,7 +1972,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "bank_import dry-run", "/erp/ajax/bank-import", "write-dry-run-gated", "POST dry-run for PHP bank_import; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "bank_reconcile", "/erp/ajax/bank-reconcile", "write-live-gated", "POST PHP epc_erp_bank_reconcile_match ajax alias; confirmWrites=true writes ASP.NET; statement import and schema ensure stay PHP."),
         new("erp", "fx_post_revaluation dry-run", "/erp/ajax/fx-post-revaluation", "write-dry-run-gated", "POST dry-run for PHP fx_post_revaluation; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "supplier_payment dry-run", "/erp/ajax/supplier-payment", "write-dry-run-gated", "POST dry-run for PHP supplier_payment; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "supplier payment", "/erp/ajax/supplier-payment", "write-live-gated", "POST validates with confirm_writes=false (writes=0); confirm_writes=true posts the tenant-scoped supplier payment through the authenticated ASP.NET writer; tenant schema remains PHP-managed."),
         new("marketing", "platform overview Blazor", "/marketing/platform", "presentation-shell-scaffolded", "Overview scaffold of PHP /platform; area screenshots remain PHP until dual-sample."),
         new("marketing", "about Blazor", "/marketing/about", "presentation-shell-scaffolded", "About scaffold of PHP /platform/about; dual-sample before exact-route."),
         new("marketing", "FAQ overview Blazor", "/marketing/faq", "presentation-shell-scaffolded", "FAQ overview scaffold of PHP /platform/faq; full modules remain PHP until dual-sample."),
