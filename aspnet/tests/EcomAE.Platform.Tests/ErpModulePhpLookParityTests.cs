@@ -57,6 +57,17 @@ public sealed class ErpModulePhpLookParityTests
     }
 
     [Fact]
+    public void SharedChromeDefinesCorporateEnterprisePresentationBaseline()
+    {
+        var chrome = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Shared/PhpChromeStyles.razor"));
+
+        Assert.Contains("--epc-enterprise-navy", chrome, StringComparison.Ordinal);
+        Assert.Contains("linear-gradient(115deg, #0b1f3a", chrome, StringComparison.Ordinal);
+        Assert.Contains("box-shadow: 0 5px 18px", chrome, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ErpStylesheetOrder_LoadsParityAfterProfessional()
     {
         var list = LegacyPresentationAssets.ErpStylesheets.ToList();

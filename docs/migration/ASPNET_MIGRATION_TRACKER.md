@@ -48,6 +48,28 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Premium enterprise presentation gate
+
+Functional route coverage is not sufficient for ERP/CP completion. Every ASP.NET
+module must also pass a visual acceptance review against the PHP reference and
+the corporate enterprise standard:
+
+- consistent navy/blue enterprise shell, logo treatment, typography, spacing,
+  responsive behavior, breadcrumbs, and company/tenant context;
+- clear area navigation with active-state feedback and no empty or misleading
+  destinations;
+- page headers with status/context, action panes, primary/secondary action
+  hierarchy, validation feedback, and predictable save/cancel behavior;
+- data-dense but readable tables, filters, totals, badges, empty states, loading
+  states, error states, print/export affordances, and keyboard/focus states;
+- D365-style entry forms and QuickBooks-style guided workspaces must remain
+  consistent across finance, purchasing, sales, inventory, projects, jewellery,
+  HR, CP, BOS, tenant, and Super-CP surfaces.
+
+The gate is **not closed** by loading the shared stylesheet: each module still
+needs a side-by-side screenshot/interaction review on desktop and mobile, with
+PHP fallback retained until the release owner accepts the presentation match.
+
 ### How to read the percentages
 
 The repository currently has several intentionally separate meters:

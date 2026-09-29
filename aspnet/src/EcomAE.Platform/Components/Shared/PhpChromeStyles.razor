@@ -26,6 +26,148 @@
         font-family: var(--epc-php-font);
         font-size: var(--epc-php-font-size);
     }
+
+    .epc-cp-shell,
+    .epc-erp-cp-shell {
+        --epc-enterprise-navy: #0b1f3a;
+        --epc-enterprise-blue: #1769aa;
+        --epc-enterprise-cyan: #0ea5c7;
+        --epc-enterprise-ink: #15253d;
+        --epc-enterprise-muted: #61728a;
+        --epc-enterprise-line: #d9e2ec;
+        --epc-enterprise-surface: #ffffff;
+        --epc-enterprise-canvas: #f3f6fa;
+        background: var(--epc-enterprise-canvas);
+        color: var(--epc-enterprise-ink);
+    }
+
+    .epc-cp-shell .epc-cp-header-bar,
+    .epc-erp-cp-shell .epc-erp-topbar {
+        background: linear-gradient(115deg, #0b1f3a 0%, #123d68 68%, #1769aa 100%);
+        border-bottom: 0;
+        color: #fff;
+        box-shadow: 0 5px 18px rgba(11, 31, 58, .18);
+    }
+
+    .epc-cp-shell .epc-cp-header-bar a,
+    .epc-erp-cp-shell .epc-erp-topbar a,
+    .epc-erp-cp-shell .epc-erp-topbar__nav,
+    .epc-erp-cp-shell .epc-erp-topbar__user {
+        color: rgba(255, 255, 255, .9);
+    }
+
+    .epc-cp-shell .epc-cp-header-bar a:hover,
+    .epc-erp-cp-shell .epc-erp-topbar a:hover {
+        color: #fff;
+    }
+
+    .epc-cp-shell .epc-cp-topnav,
+    .epc-erp-cp-shell .epc-erp-topnav {
+        background: var(--epc-enterprise-surface);
+        border-bottom: 1px solid var(--epc-enterprise-line);
+        box-shadow: 0 3px 12px rgba(15, 35, 60, .08);
+    }
+
+    .epc-cp-shell .epc-cp-topnav-btn,
+    .epc-erp-cp-shell .epc-erp-topnav-btn {
+        min-height: 48px;
+        font-weight: 700;
+        letter-spacing: .01em;
+    }
+
+    .epc-cp-shell .epc-cp-main-pane,
+    .epc-erp-cp-shell .epc-erp-content {
+        background: var(--epc-enterprise-canvas);
+    }
+
+    .epc-cp-shell .epc-cp-content-inner,
+    .epc-erp-cp-shell .epc-erp-layout {
+        max-width: 1600px;
+    }
+
+    .epc-cp-shell .epc-cp-main-pane h1,
+    .epc-cp-shell .epc-cp-main-pane h2,
+    .epc-cp-shell .epc-cp-main-pane h3,
+    .epc-erp-cp-shell .epc-erp-content-title,
+    .epc-erp-cp-shell .epc-erp-page-title {
+        color: var(--epc-enterprise-ink);
+        letter-spacing: -.015em;
+    }
+
+    .epc-cp-shell .panel,
+    .epc-cp-shell .hpanel,
+    .epc-erp-cp-shell .epc-erp-section,
+    .epc-erp-cp-shell .epc-erp-section-card,
+    .epc-erp-cp-shell .epc-erp-table-wrap,
+    .epc-erp-cp-shell .epc-erp-kpi .kpi {
+        background: var(--epc-enterprise-surface);
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 10px;
+        box-shadow: 0 5px 18px rgba(15, 35, 60, .06);
+    }
+
+    .epc-cp-shell .panel-heading,
+    .epc-cp-shell .hpanel .panel-heading,
+    .epc-erp-cp-shell .epc-erp-section-title {
+        border-bottom-color: var(--epc-enterprise-line);
+        color: var(--epc-enterprise-ink);
+        font-weight: 750;
+    }
+
+    .epc-cp-shell input,
+    .epc-cp-shell select,
+    .epc-cp-shell textarea,
+    .epc-erp-cp-shell input,
+    .epc-erp-cp-shell select,
+    .epc-erp-cp-shell textarea {
+        min-height: 38px;
+        border: 1px solid #c8d4e2;
+        border-radius: 6px;
+        box-shadow: inset 0 1px 2px rgba(15, 35, 60, .04);
+    }
+
+    .epc-cp-shell input:focus,
+    .epc-cp-shell select:focus,
+    .epc-cp-shell textarea:focus,
+    .epc-erp-cp-shell input:focus,
+    .epc-erp-cp-shell select:focus,
+    .epc-erp-cp-shell textarea:focus {
+        border-color: var(--epc-enterprise-blue);
+        box-shadow: 0 0 0 3px rgba(23, 105, 170, .14);
+        outline: 0;
+    }
+
+    .epc-cp-shell .btn-primary,
+    .epc-erp-cp-shell .btn-primary,
+    .epc-erp-cp-shell .epc-erp-page-actions .btn {
+        background: linear-gradient(135deg, #1769aa, #0e83b5);
+        border-color: #125989;
+        box-shadow: 0 4px 10px rgba(23, 105, 170, .2);
+        font-weight: 700;
+    }
+
+    .epc-cp-shell .table > thead > tr > th,
+    .epc-erp-cp-shell .table > thead > tr > th {
+        background: #eef4f9;
+        border-bottom: 2px solid #c9d8e6;
+        color: #314762;
+        font-size: 11px;
+        letter-spacing: .04em;
+        text-transform: uppercase;
+    }
+
+    .epc-cp-shell .table > tbody > tr:hover,
+    .epc-erp-cp-shell .table > tbody > tr:hover {
+        background: #f5f9fc;
+    }
+
+    @@media (max-width: 768px) {
+        .epc-cp-shell .epc-cp-main-pane,
+        .epc-erp-cp-shell .epc-erp-content {
+            padding-left: .75rem;
+            padding-right: .75rem;
+        }
+    }
 </style>
 </HeadContent>
 <style>
