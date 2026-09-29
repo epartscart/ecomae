@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -107,17 +108,21 @@
                     <span class="label label-default pull-right">@(!string.IsNullOrWhiteSpace(_openedWork.Status) ? _openedWork.Status : "—")</span>
                 </div>
                 <div class="panel-body">
-                    <p>@(!string.IsNullOrWhiteSpace(_openedWork.WorkType) ? _openedWork.WorkType : "—")
-                        · @(!string.IsNullOrWhiteSpace(_openedWork.Item) ? _openedWork.Item : "—")
-                        · qty @_openedWork.Qty.ToString(CultureInfo.InvariantCulture)
-                        · ref @(!string.IsNullOrWhiteSpace(_openedWork.Reference) ? _openedWork.Reference : "—")
-                        · wave @_openedWork.WaveId.ToString(CultureInfo.InvariantCulture)
-                        · assigned @(!string.IsNullOrWhiteSpace(_openedWork.AssignedTo) ? _openedWork.AssignedTo : "—")</p>
-                    <p>From location @_openedWork.FromLocationId.ToString(CultureInfo.InvariantCulture)
-                        · to location @_openedWork.ToLocationId.ToString(CultureInfo.InvariantCulture)
-                        · LP @_openedWork.LpId.ToString(CultureInfo.InvariantCulture)
-                        · created @_openedWork.TimeCreated.ToString(CultureInfo.InvariantCulture)
-                        · updated @_openedWork.TimeUpdated.ToString(CultureInfo.InvariantCulture)</p>
+                    <ErpDocumentWorkspace
+                        DocumentKind="WMS work"
+                        Title="@OpenedCaption"
+                        DocumentNumber="@_openedWork.Id.ToString(CultureInfo.InvariantCulture)"
+                        PartyLabel="Assigned to"
+                        Party="@_openedWork.AssignedTo"
+                        ReferenceLabel="Reference"
+                        Reference="@_openedWork.Reference"
+                        Status="@_openedWork.Status"
+                        ApprovalState="@WmsWorkspaceState"
+                        CompanyContext="@(_openedWork.CompanyId > 0 ? _openedWork.CompanyId.ToString(CultureInfo.InvariantCulture) : "Tenant / company")"
+                        Currency="—"
+                        Fields="@WmsWorkspaceFields"
+                        Lines="@WmsWorkspaceLines"
+                        Tabs="@WmsWorkspaceTabs" />
                     @if (!string.Equals(_openedWork.Status, "closed", StringComparison.OrdinalIgnoreCase))
                     {
                         <form method="post" action="/erp/wms/work/complete" style="display:inline;margin:0">
@@ -250,6 +255,43 @@
     private CpWarehouseWmsWorkDetail? _openedWork;
     private IReadOnlyList<CpWarehouseWmsWorkDigest> _openedSiblings = [];
 
+    private IReadOnlyList<string> WmsWorkspaceTabs => ["General", "Movement", "Wave", "Audit"];
+
+    private string WmsWorkspaceState => _openedWork is null
+        ? "—"
+        : string.Equals(_openedWork.Status, "closed", StringComparison.OrdinalIgnoreCase)
+            ? "Completed"
+            : "Open work";
+
+    private IReadOnlyList<ErpDocumentWorkspaceField> WmsWorkspaceFields => _openedWork is null
+        ? []
+        : [
+            new("Work type", _openedWork.WorkType, "General"),
+            new("Item", _openedWork.Item, "General"),
+            new("Reference", _openedWork.Reference, "General"),
+            new("Status", _openedWork.Status, "General"),
+            new("From location", _openedWork.FromLocationId.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("To location", _openedWork.ToLocationId.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("License plate", _openedWork.LpId.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("Quantity", _openedWork.Qty.ToString(CultureInfo.InvariantCulture), "Movement"),
+            new("Wave", _openedWork.WaveId.ToString(CultureInfo.InvariantCulture), "Wave"),
+            new("Assigned to", _openedWork.AssignedTo, "Audit"),
+            new("Created", FormatTime(_openedWork.TimeCreated), "Audit"),
+            new("Updated", FormatTime(_openedWork.TimeUpdated), "Audit")
+        ];
+
+    private IReadOnlyList<ErpDocumentWorkspaceLine> WmsWorkspaceLines => _openedWork is null
+        ? []
+        : [new(
+            string.IsNullOrWhiteSpace(_openedWork.Item) ? $"WORK-{_openedWork.Id}" : _openedWork.Item,
+            string.IsNullOrWhiteSpace(_openedWork.WorkType) ? "Warehouse work" : _openedWork.WorkType,
+            _openedWork.Qty,
+            "units",
+            _openedWork.FromLocationId.ToString(CultureInfo.InvariantCulture),
+            _openedWork.ToLocationId.ToString(CultureInfo.InvariantCulture),
+            0, 0, 0, 0, 0,
+            string.IsNullOrWhiteSpace(_openedWork.Reference) ? "WMS work" : _openedWork.Reference)];
+
     private string OpenedCaption => _openedWork is null
         ? ""
         : (!string.IsNullOrWhiteSpace(_openedWork.Item)
@@ -261,6 +303,12 @@
     private string _openedReturnUrl => _openedId > 0
         ? (_listHref + "?work_id=" + _openedId.ToString(CultureInfo.InvariantCulture))
         : _listHref;
+
+    private static string FormatTime(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
 
     protected override async Task OnInitializedAsync()
     {

@@ -144,6 +144,16 @@ public sealed class ErpGuideParityTests
     }
 
     [Fact]
+    public void WarehouseWmsPageUsesSharedWorkspaceForOpenedWork()
+    {
+        var wms = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpWarehouseWmsApp.razor"));
+        Assert.Contains("ErpDocumentWorkspace", wms, StringComparison.Ordinal);
+        Assert.Contains("WmsWorkspaceFields", wms, StringComparison.Ordinal);
+        Assert.Contains("WmsWorkspaceLines", wms, StringComparison.Ordinal);
+        Assert.Contains("action=\"/erp/wms/work/complete\"", wms, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DashboardSummaryAppHasDashboardAppAlias()
     {
         var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpDashboardSummaryApp.razor"));
