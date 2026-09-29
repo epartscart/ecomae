@@ -37,6 +37,9 @@ public sealed class ErpManualInvoiceWriteServiceTests
         Assert.Contains("ResolveBuyerJsonAsync", service, StringComparison.Ordinal);
         Assert.Contains("epc_einvoice_buyer_profiles", service, StringComparison.Ordinal);
         Assert.Contains("seller_bank_account", service, StringComparison.Ordinal);
+        Assert.Contains("ePartsCart LLC", service, StringComparison.Ordinal);
+        Assert.Contains("seller_peppol_endpoint", service, StringComparison.Ordinal);
+        Assert.Contains("ALTER TABLE `epc_einvoice_lines` ADD COLUMN `item_description`", service, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
