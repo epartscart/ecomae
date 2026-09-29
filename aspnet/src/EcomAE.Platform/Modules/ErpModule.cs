@@ -13099,7 +13099,6 @@ public sealed class ErpModule : ISurfaceModule
             body = new(
                 LiveWriteFormBinder.Long(form, "purchaseOrderId", "purchase_order_id"),
                 LiveWriteFormBinder.Text(form, "decision"),
-                LiveWriteFormBinder.Dec(form, "toleranceAmount", "tolerance_amount"),
                 LiveWriteFormBinder.Text(form, "exceptionReason", "exception_reason"),
                 LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
         }
@@ -13120,7 +13119,6 @@ public sealed class ErpModule : ISurfaceModule
             new ErpThreeWayMatchDecisionRequest(
                 body.PurchaseOrderId,
                 body.Decision,
-                body.ToleranceAmount,
                 body.ExceptionReason,
                 session.UserId),
             cancellationToken);
@@ -20876,7 +20874,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpThreeWayMatchSaveBody(
         long PurchaseOrderId = 0,
         string Decision = "match",
-        decimal ToleranceAmount = 0,
         string? ExceptionReason = null,
         bool ConfirmWrites = false);
     private sealed record ErpFitOutMaterialMovementSaveBody(
