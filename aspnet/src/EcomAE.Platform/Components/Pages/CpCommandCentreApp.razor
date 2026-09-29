@@ -87,6 +87,51 @@ else
             </div>
         </div>
 
+        <section class="epc-infographic" aria-label="Control Panel commerce pulse">
+            <div class="epc-infographic__head">
+                <div>
+                    <div class="epc-infographic__eyebrow">Commerce operating map</div>
+                    <h3 class="epc-infographic__title">From traffic to fulfilment</h3>
+                    <p class="epc-infographic__sub">A visual command layer for the tenant’s daily commerce flow.</p>
+                </div>
+                <div class="epc-infographic__legend" aria-label="Infographic legend">
+                    <span><i></i> Live volume</span>
+                    <span class="is-alert"><i></i> Work queue</span>
+                    <span class="is-action"><i></i> Open module</span>
+                </div>
+            </div>
+            <div class="epc-infographic__rail">
+                <a class="epc-infographic__node epc-infographic__node--accent" href="/cp/orders">
+                    <div class="epc-infographic__node-label">Demand</div>
+                    <div class="epc-infographic__node-value">@_ordersWeek.ToString("N0")</div>
+                    <div class="epc-infographic__node-note">Orders received in the last 7 days</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_ordersWeek, Math.Max(_ordersWeek, _products))%"></span></div>
+                </a>
+                <a class="epc-infographic__node @(_openOrders > 0 ? "epc-infographic__node--warn" : "")" href="/cp/orders">
+                    <div class="epc-infographic__node-label">Fulfilment</div>
+                    <div class="epc-infographic__node-value">@_openOrders.ToString("N0")</div>
+                    <div class="epc-infographic__node-note">Open orders needing operator attention</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_openOrders, Math.Max(_openOrders, _ordersWeek))%"></span></div>
+                </a>
+                <a class="epc-infographic__node" href="/cp/price-lists-app">
+                    <div class="epc-infographic__node-label">Catalogue</div>
+                    <div class="epc-infographic__node-value">@_products.ToString("N0")</div>
+                    <div class="epc-infographic__node-note">Products available across warehouse lists</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_products, Math.Max(_products, _warehouseQty))%"></span></div>
+                </a>
+                <a class="epc-infographic__node @(_returnsOpen + _vinOpen > 0 ? "epc-infographic__node--warn" : "")" href="/cp/quote-requests-app">
+                    <div class="epc-infographic__node-label">Exceptions</div>
+                    <div class="epc-infographic__node-value">@((_returnsOpen + _vinOpen).ToString("N0"))</div>
+                    <div class="epc-infographic__node-note">Returns and VIN requests in the queue</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_returnsOpen + _vinOpen, Math.Max(_returnsOpen + _vinOpen, _openOrders))%"></span></div>
+                </a>
+            </div>
+            <div class="epc-infographic__foot">
+                <span><strong>@_industryLabel</strong> tenant pulse · @_currency</span>
+                <span>Each stage links directly to the operating module <i class="fa fa-arrow-right"></i></span>
+            </div>
+        </section>
+
         <div class="cp-dash-port">
             <div class="bd" style="padding-top:14px">
                 @* PHP content/shop/finance/epc_dash_shortcuts_ui.php — same .eds-* geometry, editor and actions. *@
@@ -581,6 +626,9 @@ else
     private string _chartLabelsJson => JsonSerializer.Serialize(_chartLabels);
 
     private string _chartDataJson => JsonSerializer.Serialize(_chartDays);
+
+    private static int PulseWidth(int value, int total)
+        => total <= 0 ? 8 : Math.Clamp((int)Math.Round(value * 100d / total), 8, 100);
     private bool _isAdmin;
     private bool _isSuperHost;
     private string _pageTitle = "Control Command Centre";

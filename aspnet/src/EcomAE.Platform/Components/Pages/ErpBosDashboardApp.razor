@@ -60,6 +60,51 @@
             </div>
         </div>
 
+        <section class="epc-infographic" aria-label="ERP operating pulse">
+            <div class="epc-infographic__head">
+                <div>
+                    <div class="epc-infographic__eyebrow">Executive operating map</div>
+                    <h3 class="epc-infographic__title">From signal to action</h3>
+                    <p class="epc-infographic__sub">A visual pulse for the decisions this role can take today.</p>
+                </div>
+                <div class="epc-infographic__legend" aria-label="Infographic legend">
+                    <span><i></i> Stable signal</span>
+                    <span class="is-alert"><i></i> Needs attention</span>
+                    <span class="is-action"><i></i> Open workspace</span>
+                </div>
+            </div>
+            <div class="epc-infographic__rail">
+                <a class="epc-infographic__node epc-infographic__node--accent" href="@WithCompany("/erp/sales-orders-app")">
+                    <div class="epc-infographic__node-label">Demand</div>
+                    <div class="epc-infographic__node-value">@_cur.ConfirmedSalesOrders.ToString("N0", CultureInfo.InvariantCulture)</div>
+                    <div class="epc-infographic__node-note">Confirmed orders ready for invoicing</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_cur.ConfirmedSalesOrders, _cur.ConfirmedSalesOrders + _cur.DraftSalesOrders)%"></span></div>
+                </a>
+                <a class="epc-infographic__node" href="@WithCompany("/erp/purchase-orders-app")">
+                    <div class="epc-infographic__node-label">Supply</div>
+                    <div class="epc-infographic__node-value">@_cur.OpenPurchaseOrders.ToString("N0", CultureInfo.InvariantCulture)</div>
+                    <div class="epc-infographic__node-note">Open purchase orders in the pipeline</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_cur.OpenPurchaseOrders, _cur.OpenPurchaseOrders + _cur.ConfirmedSalesOrders)%"></span></div>
+                </a>
+                <a class="epc-infographic__node @(_cur.LowStockItems > 0 ? "epc-infographic__node--warn" : "")" href="@WithCompany("/erp/inventory-stock-app")">
+                    <div class="epc-infographic__node-label">Inventory</div>
+                    <div class="epc-infographic__node-value">@_cur.LowStockItems.ToString("N0", CultureInfo.InvariantCulture)</div>
+                    <div class="epc-infographic__node-note">Items below safety stock threshold</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_cur.LowStockItems, _cur.LowStockItems + _cur.ProcessOpen)%"></span></div>
+                </a>
+                <a class="epc-infographic__node @(_cur.InvoicesDue > 0 ? "epc-infographic__node--warn" : "")" href="@WithCompany("/erp/aging-app")">
+                    <div class="epc-infographic__node-label">Cash conversion</div>
+                    <div class="epc-infographic__node-value">@_cur.InvoicesDue.ToString("N0", CultureInfo.InvariantCulture)</div>
+                    <div class="epc-infographic__node-note">Invoices with balance due</div>
+                    <div class="epc-infographic__bar"><span style="width:@PulseWidth(_cur.InvoicesDue, _cur.InvoicesDue + _cur.OpenPurchaseOrders)%"></span></div>
+                </a>
+            </div>
+            <div class="epc-infographic__foot">
+                <span><strong>@_profile.Label</strong> view · @_periodFrom → @_periodTo</span>
+                <span>Every card opens the underlying ERP workspace <i class="fa fa-arrow-right"></i></span>
+            </div>
+        </section>
+
         @if (_powerBi.Embed.Ok)
         {
             <section class="ns-port" aria-label="Embedded Power BI">
@@ -928,6 +973,9 @@
         _gaugeAngle = -90 + (_gaugeFrac * 180);
         _gaugeDash = (_gaugeFrac * 251.3).ToString("0.0", CultureInfo.InvariantCulture);
     }
+
+    private static int PulseWidth(int value, int total)
+        => total <= 0 ? 8 : Math.Clamp((int)Math.Round(value * 100d / total), 8, 100);
 
     private static ErpWorkspacePeriodKpis EmptyPeriod()
         => new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "open");

@@ -161,6 +161,255 @@
         background: #f5f9fc;
     }
 
+    .epc-infographic {
+        position: relative;
+        margin: 18px 0;
+        padding: 18px;
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 16px;
+        background:
+            radial-gradient(circle at 92% 8%, rgba(14, 165, 199, .16), transparent 32%),
+            linear-gradient(135deg, #ffffff 0%, #f5f9fd 100%);
+        box-shadow: 0 12px 30px rgba(15, 35, 60, .08);
+        overflow: hidden;
+    }
+
+    .epc-infographic__head {
+        display: flex;
+        align-items: flex-start;
+        justify-content: space-between;
+        gap: 16px;
+        margin-bottom: 16px;
+    }
+
+    .epc-infographic__eyebrow {
+        color: var(--epc-enterprise-blue);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .12em;
+        text-transform: uppercase;
+    }
+
+    .epc-infographic__title {
+        margin: 4px 0 3px;
+        color: var(--epc-enterprise-ink);
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .epc-infographic__sub {
+        margin: 0;
+        color: var(--epc-enterprise-muted);
+        font-size: 12px;
+    }
+
+    .epc-infographic__legend {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-end;
+        gap: 7px;
+        color: var(--epc-enterprise-muted);
+        font-size: 11px;
+    }
+
+    .epc-infographic__legend span {
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        padding: 5px 8px;
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 999px;
+        background: rgba(255, 255, 255, .78);
+    }
+
+    .epc-infographic__legend i {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--epc-enterprise-cyan);
+    }
+
+    .epc-infographic__legend .is-alert i { background: #d97706; }
+    .epc-infographic__legend .is-action i { background: #1769aa; }
+
+    .epc-infographic__rail {
+        display: grid;
+        grid-template-columns: repeat(4, minmax(0, 1fr));
+        gap: 10px;
+    }
+
+    .epc-infographic__node {
+        position: relative;
+        min-height: 112px;
+        padding: 13px;
+        border: 1px solid #d9e5ef;
+        border-radius: 12px;
+        background: rgba(255, 255, 255, .9);
+        box-shadow: 0 5px 14px rgba(15, 35, 60, .05);
+    }
+
+    .epc-infographic__node:not(:last-child)::after {
+        position: absolute;
+        top: 46px;
+        right: -14px;
+        z-index: 2;
+        color: #8aa2b8;
+        content: "→";
+        font-size: 18px;
+        font-weight: 800;
+    }
+
+    .epc-infographic__node--accent {
+        border-color: rgba(23, 105, 170, .35);
+        background: linear-gradient(145deg, #eef8fc, #ffffff);
+    }
+
+    .epc-infographic__node--warn {
+        border-color: rgba(217, 119, 6, .35);
+        background: linear-gradient(145deg, #fff8eb, #ffffff);
+    }
+
+    .epc-infographic__node-label {
+        color: var(--epc-enterprise-muted);
+        font-size: 10px;
+        font-weight: 800;
+        letter-spacing: .06em;
+        text-transform: uppercase;
+    }
+
+    .epc-infographic__node-value {
+        margin: 7px 0 3px;
+        color: var(--epc-enterprise-ink);
+        font-size: 23px;
+        font-weight: 850;
+        letter-spacing: -.03em;
+    }
+
+    .epc-infographic__node-note {
+        color: var(--epc-enterprise-muted);
+        font-size: 11px;
+        line-height: 1.35;
+    }
+
+    .epc-infographic__bar {
+        height: 5px;
+        margin-top: 10px;
+        overflow: hidden;
+        border-radius: 999px;
+        background: #e5edf4;
+    }
+
+    .epc-infographic__bar span {
+        display: block;
+        height: 100%;
+        min-width: 5px;
+        border-radius: inherit;
+        background: linear-gradient(90deg, #1769aa, #0ea5c7);
+    }
+
+    .epc-infographic__node--warn .epc-infographic__bar span {
+        background: linear-gradient(90deg, #d97706, #f59e0b);
+    }
+
+    .epc-infographic__foot {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 12px;
+        margin-top: 13px;
+        padding-top: 11px;
+        border-top: 1px dashed #cbd9e6;
+        color: var(--epc-enterprise-muted);
+        font-size: 11px;
+    }
+
+    .epc-infographic__foot strong { color: var(--epc-enterprise-ink); }
+
+    .epc-module-visual-frame {
+        display: grid;
+        grid-template-columns: auto minmax(0, 1fr) auto;
+        align-items: center;
+        gap: 13px;
+        margin: 0 0 14px;
+        padding: 11px 14px;
+        border: 1px solid var(--epc-enterprise-line);
+        border-radius: 12px;
+        background: linear-gradient(100deg, #ffffff, #f7fbfe);
+        box-shadow: 0 4px 14px rgba(15, 35, 60, .05);
+    }
+
+    .epc-module-visual-frame__icon {
+        display: grid;
+        width: 38px;
+        height: 38px;
+        place-items: center;
+        border-radius: 11px;
+        background: linear-gradient(145deg, #0b1f3a, #1769aa);
+        color: #fff;
+        box-shadow: 0 5px 12px rgba(23, 105, 170, .22);
+    }
+
+    .epc-module-visual-frame__eyebrow {
+        color: var(--epc-enterprise-blue);
+        font-size: 9px;
+        font-weight: 850;
+        letter-spacing: .13em;
+        text-transform: uppercase;
+    }
+
+    .epc-module-visual-frame__title {
+        margin: 2px 0 0;
+        color: var(--epc-enterprise-ink);
+        font-size: 14px;
+        font-weight: 800;
+    }
+
+    .epc-module-visual-frame__flow {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        color: var(--epc-enterprise-muted);
+        font-size: 10px;
+        font-weight: 750;
+        white-space: nowrap;
+    }
+
+    .epc-module-visual-frame__flow span {
+        padding: 5px 7px;
+        border-radius: 999px;
+        background: #eaf3f8;
+    }
+
+    .epc-module-visual-frame__flow span.is-current {
+        background: #d9f3f8;
+        color: #0b6f86;
+    }
+
+    .epc-module-visual-frame__scope {
+        color: var(--epc-enterprise-muted);
+        font-size: 10px;
+        text-align: right;
+    }
+
+    @@media (max-width: 700px) {
+        .epc-module-visual-frame { grid-template-columns: auto minmax(0, 1fr); }
+        .epc-module-visual-frame__flow,
+        .epc-module-visual-frame__scope { grid-column: 2; text-align: left; }
+    }
+
+    @@media (max-width: 900px) {
+        .epc-infographic__rail { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .epc-infographic__node:nth-child(2)::after { display: none; }
+    }
+
+    @@media (max-width: 560px) {
+        .epc-infographic { padding: 14px; }
+        .epc-infographic__head { display: block; }
+        .epc-infographic__legend { justify-content: flex-start; margin-top: 10px; }
+        .epc-infographic__rail { grid-template-columns: 1fr; }
+        .epc-infographic__node::after { display: none !important; }
+    }
+
     @@media (max-width: 768px) {
         .epc-cp-shell .epc-cp-main-pane,
         .epc-erp-cp-shell .epc-erp-content {
