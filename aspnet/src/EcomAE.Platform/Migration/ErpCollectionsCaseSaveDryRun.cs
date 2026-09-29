@@ -1,9 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>
-/// Dry-run envelope for PHP <c>epc_coll_case_save</c> when <c>confirmWrites</c> is omitted.
-/// Live INSERT/UPDATE is <c>IErpCollectionsCaseSaveWriteService</c>.
-/// </summary>
+/// <summary>Validation envelope for the live ASP.NET collections-case writer.</summary>
 public interface IErpCollectionsCaseSaveDryRun
 {
     ErpCollectionsCaseSaveDryRunResult Evaluate(ErpCollectionsCaseSaveRequest request);
@@ -19,7 +16,7 @@ public sealed class ErpCollectionsCaseSaveDryRun : IErpCollectionsCaseSaveDryRun
             return Refuse(
                 "dry-run-confirm-refused",
                 "confirm_writes_refused",
-                "confirm_writes refused on the dry-run path; POST confirmWrites=true to write on ASP.NET.",
+                "Use confirm_writes=true to execute the live ASP.NET collections-case writer.",
                 request);
         }
 
@@ -32,7 +29,7 @@ public sealed class ErpCollectionsCaseSaveDryRun : IErpCollectionsCaseSaveDryRun
             "dry-run-validated", 0, true, false, false, "ok", true,
             request.CustomerId, request.Id,
             ["INSERT/UPDATE `epc_coll_cases` (NOT executed)"],
-            "ErpCollectionsCaseSave payload validated; write blocked until confirmWrites=true.",
+            "ErpCollectionsCaseSave payload validated; no write was performed.",
             "content/shop/finance/epc_erp_collections.php");
     }
 
