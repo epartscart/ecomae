@@ -147,6 +147,19 @@ public sealed class ErpWorkflowProcessFlowPhpParityTests
     }
 
     [Fact]
+    public void PurchasesAppLinksSupplierBillToSettlementContract()
+    {
+        var text = File.ReadAllText(FindRepoFile(
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpPurchasesApp.razor"));
+
+        Assert.Contains("EcomAeRoutes.ErpSupplierSettlement", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"purchase_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"entry_kind\" value=\"settlement\"", text, StringComparison.Ordinal);
+        Assert.Contains("Settle bill", text, StringComparison.Ordinal);
+        Assert.Contains("Validate settlement", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void StatusLabel_MapsPhpBadgeClasses()
     {
         Assert.Equal("success", ErpPhpStatusLabel.Class("paid"));
