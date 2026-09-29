@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -83,6 +84,22 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="/erp/gl-journals-app">Close</a>
             </p>
+            <ErpFinanceVoucherWorkspace
+                DocumentKind="General journal"
+                Title="@(_openedDetail.JournalNo ?? $"Journal #{_openedDetail.Id}")"
+                Subtitle="General journal voucher with balanced debit and credit lines."
+                Status="@_openedDetail.Status"
+                Posted="@string.Equals(_openedDetail.Status, "posted", StringComparison.OrdinalIgnoreCase)"
+                CompanyContext="Tenant / company"
+                Currency="AED"
+                Tabs="@GeneralJournalTabs"
+                Fields="@GeneralJournalFields"
+                Lines="@GeneralJournalLines"
+                VoucherDebit="@_openedDetail.TotalDebit"
+                VoucherCredit="@_openedDetail.TotalCredit"
+                JournalDebit="@_openedDetail.TotalDebit"
+                JournalCredit="@_openedDetail.TotalCredit"
+                Actions="@GeneralJournalActions" />
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>Journal id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Journal #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.JournalNo) ? "—" : _openedDetail.JournalNo)</dd>
@@ -236,6 +253,53 @@
     private ErpGlJournalDigest? _openedJournal;
     private ErpGlJournalDetail? _openedDetail;
     private IReadOnlyList<ErpGlJournalDigest> _openedSiblings = [];
+
+    private IReadOnlyList<string> GeneralJournalTabs =>
+        ["List", "General", "Invoice", "Payment", "Payment fee", "Fixed assets", "Remittance", "History"];
+    private IReadOnlyList<ErpFinanceVoucherField> GeneralJournalFields => _openedDetail is null
+        ? []
+        : [
+            new("Journal number", _openedDetail.JournalNo, "General"),
+            new("Journal date", FormatTime(_openedDetail.JournalDate), "General"),
+            new("Reference", _openedDetail.Reference, "General"),
+            new("Description", _openedDetail.DescriptionExcerpt, "General"),
+            new("Source", _openedDetail.SourceType, "General"),
+            new("Voucher", _openedDetail.JournalNo, "Invoice"),
+            new("Approval", _openedDetail.Status, "Payment"),
+            new("Budget check", "Not performed", "Payment"),
+            new("Dimensions", "Company · site · department", "Fixed assets")
+        ];
+    private IReadOnlyList<ErpFinanceVoucherLine> GeneralJournalLines => _openedDetail is null
+        ? []
+        : _openedDetail.Lines.Select(line => new ErpFinanceVoucherLine(
+            FormatTime(_openedDetail.JournalDate),
+            _openedDetail.JournalNo,
+            "Tenant company",
+            "Ledger",
+            line.AccountCode,
+            line.AccountName,
+            line.LineNote,
+            line.Debit,
+            line.Credit,
+            "AED",
+            "Tenant company",
+            "Ledger",
+            "",
+            "—",
+            "Company / site / department")).ToList();
+    private IReadOnlyList<ErpFinanceVoucherAction> GeneralJournalActions =>
+    [
+        new("Save", "fa-save", "Save journal"),
+        new("New", "fa-plus", "Create a new general journal"),
+        new("Post", "fa-check-circle", "Post journal", _isAdmin),
+        new("Post in batch", "fa-tasks", "Post in batch"),
+        new("Validate", "fa-check", "Validate journal balance"),
+        new("Functions", "fa-cogs", "Journal functions"),
+        new("Fixed assets", "fa-building", "Fixed asset distribution"),
+        new("Inquiries", "fa-search", "View journal inquiries"),
+        new("Print", "fa-print", "Print journal"),
+        new("Options", "fa-cog", "Journal options")
+    ];
 
     private static long JournalDate => DateTimeOffset.UtcNow.ToUnixTimeSeconds();
     private static string JournalDateInput => DateTimeOffset.UtcNow.ToString("yyyy-MM-ddTHH:mm", CultureInfo.InvariantCulture);

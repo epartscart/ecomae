@@ -5,6 +5,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -170,6 +171,22 @@
                     </div>
                 </div>
             }
+            <ErpFinanceVoucherWorkspace
+                DocumentKind="@PaymentWorkspaceKind"
+                Title="@PaymentWorkspaceTitle"
+                Subtitle="Customer and vendor payment journals share one auditable voucher workspace."
+                Status="@(_openedDetail!.EntryType ?? "Draft")"
+                Posted="true"
+                CompanyContext="Tenant / company"
+                Currency="AED"
+                Tabs="@PaymentTabs"
+                Fields="@PaymentFields"
+                Lines="@PaymentLines"
+                VoucherDebit="@_openedDetail!.Amount"
+                VoucherCredit="@_openedDetail.Amount"
+                JournalDebit="@_openedDetail.Amount"
+                JournalCredit="@_openedDetail.Amount"
+                Actions="@PaymentActions" />
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>Entry id</dt><dd>@_openedDetail!.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>When</dt><dd>@FormatTime(_openedDetail!.TimeUnix)</dd>
@@ -295,6 +312,64 @@
     private ErpCashEntryDigest? _openedEntry;
     private ErpCashEntryDetail? _openedDetail;
     private IReadOnlyList<ErpCashEntryDigest> _openedSiblings = [];
+
+    private string PaymentWorkspaceKind => IsVendorPayment ? "Vendor payment journal" : "Customer payment journal";
+    private string PaymentWorkspaceTitle => string.IsNullOrWhiteSpace(_openedDetail?.Reference)
+        ? $"{PaymentWorkspaceKind} · voucher #{_openedId.ToString(CultureInfo.InvariantCulture)}"
+        : _openedDetail!.Reference;
+    private bool IsVendorPayment => string.Equals(_openedDetail?.CounterpartyType, "supplier", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(_openedDetail?.CounterpartyType, "vendor", StringComparison.OrdinalIgnoreCase)
+        || string.Equals(_openedDetail?.EntryType, "payment", StringComparison.OrdinalIgnoreCase);
+    private IReadOnlyList<string> PaymentTabs => IsVendorPayment
+        ? ["List", "General", "Payment", "Bank", "Settlement", "Tax", "History", "Posted checks"]
+        : ["List", "General", "Payment", "Bank", "Settlement", "Financial dimensions", "History", "Posted checks"];
+    private IReadOnlyList<ErpFinanceVoucherField> PaymentFields => _openedDetail is null
+        ? []
+        : [
+            new("Voucher", _openedDetail.Reference, "General"),
+            new("Date", FormatTime(_openedDetail.TimeUnix), "General"),
+            new("Account", _openedDetail.AccountName, "Bank"),
+            new("Account type", _openedDetail.AccountType, "Bank"),
+            new(IsVendorPayment ? "Vendor" : "Customer", _openedDetail.CounterpartyId > 0 ? $"#{_openedDetail.CounterpartyId}" : "—", "Payment"),
+            new("Invoice", _openedDetail.Allocations.Count > 0 ? $"Settlements ({_openedDetail.Allocations.Count})" : "—", "Payment"),
+            new("Reference", _openedDetail.Reference, "Payment"),
+            new("Entry type", _openedDetail.EntryType, "Payment"),
+            new("Order / purchase", _openedDetail.OrderId > 0 ? $"SO #{_openedDetail.OrderId}" : (_openedDetail.PurchaseId > 0 ? $"PI #{_openedDetail.PurchaseId}" : "—"), "Payment"),
+            new("Dimensions", "Company · site · department", "Financial dimensions")
+        ];
+    private IReadOnlyList<ErpFinanceVoucherLine> PaymentLines => _openedDetail is null
+        ? []
+        : [
+            new(
+                FormatTime(_openedDetail.TimeUnix),
+                _openedDetail.Reference,
+                "Tenant company",
+                _openedDetail.CounterpartyType,
+                _openedDetail.CounterpartyId > 0 ? $"#{_openedDetail.CounterpartyId}" : "—",
+                _openedDetail.CounterpartyType,
+                _openedDetail.EntryType,
+                _openedDetail.Direction == 1 ? _openedDetail.Amount : 0,
+                _openedDetail.Direction == 1 ? 0 : _openedDetail.Amount,
+                "AED",
+                "Tenant company",
+                _openedDetail.AccountType,
+                _openedDetail.AccountName,
+                _openedDetail.Allocations.Count > 0 ? string.Join(", ", _openedDetail.Allocations.Select(a => $"#{a.InvoiceId}")) : "—",
+                "Calculated",
+                "Company / site / department")
+        ];
+    private IReadOnlyList<ErpFinanceVoucherAction> PaymentActions =>
+    [
+        new("Save", "fa-save", "Save voucher header"),
+        new("New", "fa-plus", "Create a new payment journal"),
+        new("Enter payments", "fa-pencil", "Enter customer or vendor payment lines"),
+        new("Settle transactions", "fa-link", "Mark invoices for settlement"),
+        new("Validate", "fa-check", "Validate voucher and dimensions"),
+        new("Post", "fa-check-circle", "Post voucher", _isAdmin),
+        new("Approval", "fa-user-check", "Review approval state"),
+        new("Print", "fa-print", "Print voucher"),
+        new("Options", "fa-cog", "Voucher options")
+    ];
 
     private bool OpenedFound => _openedDetail is not null || _openedEntry is not null;
 

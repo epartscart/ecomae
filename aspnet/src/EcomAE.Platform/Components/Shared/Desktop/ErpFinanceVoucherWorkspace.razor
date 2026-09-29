@@ -1,0 +1,127 @@
+@using System.Globalization
+
+<section class="epc-finance-voucher" data-finance-voucher="@DocumentKind">
+    <div class="epc-finance-voucher__commandbar" aria-label="Voucher actions">
+        @foreach (var action in Actions)
+        {
+            <button type="button" class="btn btn-default btn-xs" disabled="@(!action.Enabled)" title="@action.Description">
+                <i class="fa @action.Icon" aria-hidden="true"></i> @action.Label
+            </button>
+        }
+    </div>
+    <div class="epc-finance-voucher__identity">
+        <div>
+            <div class="epc-finance-voucher__eyebrow">@DocumentKind · @Status</div>
+            <h3>@Title</h3>
+            <p>@Subtitle</p>
+        </div>
+        <div class="epc-finance-voucher__badges">
+            <span class="label label-info">@CompanyContext</span>
+            <span class="label @(Posted ? "label-success" : "label-warning")">@(Posted ? "Posted" : "Not posted")</span>
+            <span class="label label-default">@Currency</span>
+        </div>
+    </div>
+    <nav class="epc-finance-voucher__tabs" aria-label="Voucher sections">
+        @foreach (var tab in Tabs)
+        {
+            <a href="#@TabId(tab)" class="@(tab == ActiveTab ? "active" : null)">@tab</a>
+        }
+    </nav>
+    <div class="epc-finance-voucher__body">
+        <div class="epc-finance-voucher__fields">
+            @foreach (var group in Fields.GroupBy(f => f.Group))
+            {
+                <div class="epc-finance-voucher__field-group">
+                    <h4>@group.Key</h4>
+                    <dl>
+                        @foreach (var field in group)
+                        {
+                            <dt>@field.Label</dt>
+                            <dd>@(string.IsNullOrWhiteSpace(field.Value) ? "—" : field.Value)</dd>
+                        }
+                    </dl>
+                </div>
+            }
+        </div>
+        <div class="epc-finance-voucher__line-toolbar">
+            <strong>Lines</strong>
+            <span class="text-muted">@Lines.Count line(s) · settlement, dimensions, tax, voucher, and posting context</span>
+            <div>
+                <button type="button" class="btn btn-default btn-xs" disabled><i class="fa fa-plus"></i> New</button>
+                <button type="button" class="btn btn-default btn-xs" disabled><i class="fa fa-trash"></i> Delete</button>
+                <button type="button" class="btn btn-default btn-xs" disabled>Financial dimensions</button>
+                <button type="button" class="btn btn-default btn-xs" disabled>Sales tax</button>
+                <button type="button" class="btn btn-default btn-xs" disabled>Settlement</button>
+            </div>
+        </div>
+        <div class="epc-finance-voucher__grid-wrap">
+            <table class="table table-bordered table-condensed epc-finance-voucher__grid">
+                <thead>
+                    <tr>
+                        <th>Date</th><th>Voucher</th><th>Company</th><th>Account type</th><th>Account</th>
+                        <th>Account name</th><th>Description</th><th>Invoice</th><th>Offset company</th>
+                        <th>Offset account</th><th>Dimensions</th><th>Tax</th><th class="text-right">Debit</th>
+                        <th class="text-right">Credit</th><th>Currency</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Lines.Count == 0)
+                    {
+                        <tr><td colspan="15" class="text-muted">No voucher lines available for this record.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var line in Lines)
+                        {
+                            <tr>
+                                <td>@line.Date</td><td>@line.Voucher</td><td>@line.Company</td><td>@line.AccountType</td>
+                                <td>@line.Account</td><td>@line.AccountName</td><td>@line.Description</td><td>@line.Invoice</td>
+                                <td>@line.OffsetCompany</td><td>@line.OffsetAccount</td><td>@line.Dimensions</td><td>@line.Tax</td>
+                                <td class="text-right">@line.Debit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@line.Credit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@line.Currency</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="epc-finance-voucher__totals">
+            <div><span>Voucher debit</span><strong>@VoucherDebit.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+            <div><span>Voucher credit</span><strong>@VoucherCredit.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+            <div><span>Voucher balance</span><strong>@((VoucherDebit - VoucherCredit).ToString("N2", CultureInfo.InvariantCulture))</strong></div>
+            <div><span>Journal debit</span><strong>@JournalDebit.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+            <div><span>Journal credit</span><strong>@JournalCredit.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+            <div><span>Journal balance</span><strong>@((JournalDebit - JournalCredit).ToString("N2", CultureInfo.InvariantCulture))</strong></div>
+        </div>
+        <div class="epc-finance-voucher__footer">
+            <span><strong>Approval:</strong> @ApprovalState</span>
+            <span><strong>Budget check:</strong> @BudgetState</span>
+            <span><strong>Audit:</strong> @AuditState</span>
+        </div>
+    </div>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string DocumentKind { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string Subtitle { get; set; } = "D365-style voucher workspace";
+    [Parameter] public string Status { get; set; } = "Draft";
+    [Parameter] public bool Posted { get; set; }
+    [Parameter] public string CompanyContext { get; set; } = "Tenant / company";
+    [Parameter] public string Currency { get; set; } = "AED";
+    [Parameter] public string ActiveTab { get; set; } = "General";
+    [Parameter] public string ApprovalState { get; set; } = "Not submitted";
+    [Parameter] public string BudgetState { get; set; } = "Budget check not performed";
+    [Parameter] public string AuditState { get; set; } = "Audit trail retained";
+    [Parameter] public IReadOnlyList<string> Tabs { get; set; } = ["List", "General", "Payment", "Bank", "Tax", "Dimensions", "History"];
+    [Parameter] public IReadOnlyList<ErpFinanceVoucherField> Fields { get; set; } = [];
+    [Parameter] public IReadOnlyList<ErpFinanceVoucherLine> Lines { get; set; } = [];
+    [Parameter] public decimal VoucherDebit { get; set; }
+    [Parameter] public decimal VoucherCredit { get; set; }
+    [Parameter] public decimal JournalDebit { get; set; }
+    [Parameter] public decimal JournalCredit { get; set; }
+    [Parameter] public IReadOnlyList<ErpFinanceVoucherAction> Actions { get; set; } = [];
+
+    private static string TabId(string tab) => "finance-" + tab.Replace(" ", "-", StringComparison.Ordinal).ToLowerInvariant();
+}

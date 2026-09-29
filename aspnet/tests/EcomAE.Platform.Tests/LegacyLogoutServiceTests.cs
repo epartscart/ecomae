@@ -47,6 +47,25 @@ public sealed class LegacyLogoutServiceTests
         Assert.Contains("Log out", Read("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpCpDesktopChrome.razor"));
     }
 
+    [Fact]
+    public void DeploymentTemplatesOwnErpLogoutBeforePhpFallback()
+    {
+        foreach (var relative in new[]
+        {
+            "deploy/aspnet/nginx-presentation-app-shadow-example.conf",
+            "deploy/aspnet/nginx-classic-entry-aspnet-primary-shadow-example.conf",
+            "deploy/aspnet/nginx-classic-entry-industry-aspnet-primary-shadow-example.conf",
+            "deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf",
+            "deploy/aspnet/nginx-surface-entry-previews-example.conf"
+        })
+        {
+            var text = Read(relative);
+            Assert.Contains("location = /erp/logout", text, StringComparison.Ordinal);
+            Assert.Contains("127.0.0.1:5100", text, StringComparison.Ordinal);
+            Assert.Contains("erp-logout", text, StringComparison.OrdinalIgnoreCase);
+        }
+    }
+
     private static string Read(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
