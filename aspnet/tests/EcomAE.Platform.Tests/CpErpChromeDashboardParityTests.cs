@@ -129,6 +129,19 @@ public sealed class CpErpChromeDashboardParityTests
     }
 
     [Fact]
+    public void FitOutDashboardPresentsCompanyScopedProjectModules()
+    {
+        var src = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpBosDashboardApp.razor"));
+        Assert.Contains("data-epc-industry-pack=\"fitout_contracting\"", src);
+        Assert.Contains("Fit-out project modules", src);
+        Assert.Contains("FitOutHref(\"/erp/fitout/delivery-dashboard\")", src);
+        Assert.Contains("FitOutHref(\"/erp/fitout/finance-operations-report\")", src);
+        Assert.Contains("FitOutHref(\"/erp/fitout/approval-queue\")", src);
+        Assert.Contains("Every fit-out entry keeps the selected legal-entity scope", src);
+        Assert.Contains("private string FitOutHref", src);
+    }
+
+    [Fact]
     public void DesktopChromeCatalogStillDocumentsTopnavSelectors()
     {
         Assert.Contains(".epc-cp-topnav", LegacyDesktopChromeCatalog.RequiredStructuralSelectors("cp"));
