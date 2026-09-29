@@ -101,37 +101,7 @@
                 JournalCredit="@_openedDetail.TotalCredit"
                 Actions="@GeneralJournalActions"
                 HeaderActions="@GeneralJournalHeaderActions" />
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>Journal id</dt><dd>@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>Journal #</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.JournalNo) ? "—" : _openedDetail.JournalNo)</dd>
-                <dt>Date</dt><dd>@FormatTime(_openedDetail.JournalDate)</dd>
-                <dt>Source</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.SourceType) ? "—" : _openedDetail.SourceType)@(_openedDetail.SourceId > 0 ? (" #" + _openedDetail.SourceId.ToString(CultureInfo.InvariantCulture)) : "")</dd>
-                <dt>Reference</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Reference) ? "—" : _openedDetail.Reference)</dd>
-                <dt>Status</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.Status) ? "—" : _openedDetail.Status)</dd>
-                <dt>Debit</dt><dd>@_openedDetail.TotalDebit.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Credit</dt><dd>@_openedDetail.TotalCredit.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Balance</dt><dd>@((_openedDetail.TotalDebit - _openedDetail.TotalCredit).ToString("N2", CultureInfo.InvariantCulture))</dd>
-                <dt>Admin</dt><dd>@(_openedDetail.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
-            </dl>
-            @if (_openedDetail.Lines.Count > 0)
-            {
-                <p class="text-muted" style="margin:1rem 0 .4rem">Journal lines</p>
-                <table class="table table-bordered table-condensed table-epc epc-erp-table">
-                    <thead><tr><th>Account</th><th>Line note</th><th class="text-right">Debit</th><th class="text-right">Credit</th></tr></thead>
-                    <tbody>
-                        @foreach (var line in _openedDetail.Lines)
-                        {
-                            <tr>
-                                <td>@(string.IsNullOrWhiteSpace(line.AccountCode) ? $"#{line.CoaId}" : line.AccountCode)@(string.IsNullOrWhiteSpace(line.AccountName) ? "" : $" · {line.AccountName}")</td>
-                                <td>@(string.IsNullOrWhiteSpace(line.LineNote) ? "—" : line.LineNote)</td>
-                                <td class="text-right">@line.Debit.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td class="text-right">@line.Credit.ToString("N2", CultureInfo.InvariantCulture)</td>
-                            </tr>
-                        }
-                    </tbody>
-                </table>
-            }
+            <p class="text-muted" style="margin:.85rem 0 0">Journal identity, source, status, balanced debit/credit totals, and persisted lines are presented in the shared finance workspace.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">note excerpt</p>

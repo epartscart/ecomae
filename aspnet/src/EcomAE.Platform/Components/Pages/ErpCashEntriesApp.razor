@@ -166,22 +166,7 @@
                 JournalCredit="@_openedDetail.Amount"
                 Actions="@PaymentActions"
                 HeaderActions="@PaymentHeaderActions" />
-            <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
-                <dt>Entry id</dt><dd>@_openedDetail!.Id.ToString(CultureInfo.InvariantCulture)</dd>
-                <dt>When</dt><dd>@FormatTime(_openedDetail!.TimeUnix)</dd>
-                <dt>Account</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail!.AccountName) ? ("#" + _openedDetail.AccountId.ToString(CultureInfo.InvariantCulture)) : _openedDetail.AccountName)</dd>
-                <dt>Account type</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail!.AccountType) ? "—" : _openedDetail.AccountType)</dd>
-                <dt>Entry type</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail!.EntryType) ? "—" : _openedDetail.EntryType)</dd>
-                <dt>Direction</dt><dd>@FormatDirection(_openedDetail!.Direction)</dd>
-                <dt>Amount</dt><dd>@_openedDetail!.Amount.ToString("N2", CultureInfo.InvariantCulture)</dd>
-                <dt>Reference</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail!.Reference) ? "—" : _openedDetail.Reference)</dd>
-                <dt>Counterparty</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail!.CounterpartyType) ? "—" : _openedDetail.CounterpartyType)@(_openedDetail.CounterpartyId > 0 ? (" #" + _openedDetail.CounterpartyId.ToString(CultureInfo.InvariantCulture)) : "")</dd>
-                <dt>Order</dt><dd>@(_openedDetail!.OrderId > 0 ? _openedDetail.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Purchase</dt><dd>@(_openedDetail!.PurchaseId > 0 ? _openedDetail.PurchaseId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Transfer pair</dt><dd>@(_openedDetail!.TransferPairId > 0 ? _openedDetail.TransferPairId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-                <dt>Admin</dt><dd>@(_openedDetail!.AdminId > 0 ? _openedDetail.AdminId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
-            </dl>
-            <p class="text-muted" style="margin:.85rem 0 0">Note and reference remain visible in the ledger list for audit follow-up.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Voucher identity, account, counterparty, source links, dimensions, and debit/credit evidence are presented in the shared finance workspace. Note and reference remain visible in the ledger list for audit follow-up.</p>
             @if (_openedDetail.Allocations.Count > 0)
             {
                 <div style="margin-top:1rem;">
