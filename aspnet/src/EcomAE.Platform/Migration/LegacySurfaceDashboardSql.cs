@@ -777,6 +777,17 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    /// <summary>Recent purchase invoices for the opened supplier. note/VAT are hidden from the list.</summary>
+    public const string SelectErpSupplierPurchases = """
+        SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
+               p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`
+        FROM `epc_erp_purchases` p
+        INNER JOIN `epc_erp_suppliers` s ON s.`id` = p.`supplier_id`
+        WHERE p.`active` = 1 AND p.`supplier_id` = @id
+        ORDER BY p.`purchase_date` DESC, p.`id` DESC
+        LIMIT 20
+        """;
+
     public const string SelectErpPurchases = """
         SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
                p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`

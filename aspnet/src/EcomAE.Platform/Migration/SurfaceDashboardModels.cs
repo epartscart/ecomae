@@ -380,6 +380,7 @@ public sealed record ErpSupplierDetail(
 public sealed record ErpSupplierDetailResult(
     ErpSupplierDetail? Supplier,
     IReadOnlyList<ErpSupplierDigest> Siblings,
+    IReadOnlyList<ErpPurchaseDigest> Purchases,
     string Source,
     string Message);
 
