@@ -2,6 +2,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
@@ -71,6 +72,23 @@
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
                 <dt>Submitted</dt><dd>@FormatTime(_openedDetail.TimeSubmitted)</dd>
             </dl>
+            <ErpDocumentWorkspace
+                DocumentKind="@InvoiceWorkspaceKind"
+                Title="@InvoiceWorkspaceTitle"
+                DocumentNumber="@_openedDetail.InvoiceNumber"
+                PartyLabel="Customer / supplier"
+                Party="@InvoiceParty"
+                ReferenceLabel="Source order"
+                Reference="@(_openedDetail.OrderId > 0 ? _openedDetail.OrderId.ToString(CultureInfo.InvariantCulture) : "Not linked")"
+                Status="@_openedDetail.Status"
+                ApprovalState="@(_openedDetail.ValidationOk ? "Validated" : "Validation required")"
+                Currency="@(_openedDetail.CurrencyCode is { Length: > 0 } ? _openedDetail.CurrencyCode : "AED")"
+                Subtotal="@_openedDetail.SubtotalExVat"
+                Tax="@_openedDetail.TotalVat"
+                Total="@_openedDetail.TotalInclVat"
+                BalanceDue="@_openedDetail.AmountDue"
+                Fields="@InvoiceWorkspaceFields"
+                Lines="@InvoiceWorkspaceLines" />
             @if (_isAdmin && _openedDetail.Id > 0)
             {
                 <div style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:.85rem 0 0;padding:.65rem;border:1px solid #c5d4de;background:#fff">
@@ -178,6 +196,46 @@
     private string _source = "n/a";
     private string _message = "";
     private long _openedId;
+    private string InvoiceWorkspaceKind => _openedDetail?.DocCategory.Contains("purchase", StringComparison.OrdinalIgnoreCase) == true ? "Purchase invoice" : "Sales invoice";
+    private string InvoiceWorkspaceTitle => string.IsNullOrWhiteSpace(_openedDetail?.DocCategory) ? "Invoice workspace" : _openedDetail.DocCategory;
+    private string InvoiceParty => string.IsNullOrWhiteSpace(_openedDetail?.CustomerEmail)
+        ? (_openedDetail?.UserId > 0 ? "user " + _openedDetail.UserId.ToString(CultureInfo.InvariantCulture) : "—")
+        : _openedDetail.CustomerEmail;
+    private IReadOnlyList<ErpDocumentWorkspaceField> InvoiceWorkspaceFields =>
+        _openedDetail is null
+            ? []
+            :
+            [
+                new("Account", InvoiceParty),
+                new("Issue date", FormatTime(_openedDetail.IssueDate)),
+                new("Due date", FormatTime(_openedDetail.PaymentDueDate)),
+                new("Billing address", "Tenant customer address", "Address"),
+                new("Delivery note", _openedDetail.OrderId > 0 ? "Linked to source order" : "Not linked", "Delivery"),
+                new("Payment terms", string.IsNullOrWhiteSpace(_openedDetail.PaymentTermsExcerpt) ? "Tenant profile" : "Configured", "Financial"),
+                new("Tax authority", string.IsNullOrWhiteSpace(_openedDetail.FtaReportStatus) ? "Not submitted" : _openedDetail.FtaReportStatus, "Financial"),
+                new("Settlement", _openedDetail.PaidAmount > 0 ? "Partially / fully settled" : "Open", "Financial"),
+                new("Financial dimensions", "Company / site / department", "Dimensions"),
+                new("Credit note", "Available only after validation", "Operational")
+            ];
+    private IReadOnlyList<ErpDocumentWorkspaceLine> InvoiceWorkspaceLines =>
+        _openedDetail is null
+            ? []
+            :
+            [
+                new(
+                    string.IsNullOrWhiteSpace(_openedDetail.DocCategory) ? "INVOICE" : _openedDetail.DocCategory,
+                    "Document total",
+                    1,
+                    "document",
+                    "Default",
+                    "Default",
+                    _openedDetail.SubtotalExVat,
+                    0,
+                    _openedDetail.TotalVat,
+                    _openedDetail.SubtotalExVat,
+                    0,
+                    _openedDetail.OrderId > 0 ? "SO " + _openedDetail.OrderId.ToString(CultureInfo.InvariantCulture) : "")
+            ];
     private ErpInvoiceDigest? _openedInvoice;
     private ErpInvoiceDetail? _openedDetail;
     private IReadOnlyList<ErpInvoiceDigest> _openedSiblings = [];

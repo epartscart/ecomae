@@ -24,7 +24,8 @@
   NOT the fleet command page. Fleet lives at /erp/fleet-app (Super CP operator tool).
 *@
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Dashboard" BreadcrumbArea="Home" BreadcrumbTab="Dashboard">
-    <div class="ns-dash" data-dashboard-profile="@_profile.Key" data-epc-industry="@_industryCode">
+    <div class="ns-dash" data-dashboard-profile="@_profile.Key" data-epc-industry="@_industryCode"
+         data-erp-directory-count="@PhpModuleCatalog.ErpCategories.Count">
         <div class="ns-hero">
             <div class="ns-hero-panel">
                 <div class="ns-hero-kicker"><i class="fa @_profile.Icon"></i> @_profile.Label</div>

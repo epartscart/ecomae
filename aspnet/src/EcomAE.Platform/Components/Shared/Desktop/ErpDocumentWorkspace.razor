@@ -1,0 +1,134 @@
+@using System.Globalization
+
+<section class="epc-document-workspace" aria-label="@($"{DocumentKind} document workspace")">
+    <div class="epc-document-workspace__identity">
+        <div>
+            <div class="epc-document-workspace__eyebrow">@DocumentKind · @CompanyContext</div>
+            <h2>@Title <span class="epc-document-workspace__number">@DocumentNumber</span></h2>
+            <p>@PartyLabel <strong>@Party</strong> · @ReferenceLabel <strong>@Reference</strong></p>
+        </div>
+        <div class="epc-document-workspace__status">
+            <span class="epc-document-workspace__status-label">@Status</span>
+            <span class="epc-document-workspace__approval">@ApprovalState</span>
+        </div>
+    </div>
+
+    <nav class="epc-document-workspace__tabs" aria-label="Document sections">
+        @foreach (var tab in Tabs)
+        {
+            <a href="#@Anchor(tab)" class="epc-document-workspace__tab">@tab</a>
+        }
+    </nav>
+
+    <details id="general" open class="epc-document-workspace__section">
+        <summary>General and operational context</summary>
+        <div class="epc-document-workspace__fields">
+            @foreach (var field in Fields.Where(f => f.Group is "General" or "Operational"))
+            {
+                <div><span>@field.Label</span><strong>@field.Value</strong></div>
+            }
+        </div>
+    </details>
+
+    <details id="address" class="epc-document-workspace__section">
+        <summary>Address, delivery and warehouse</summary>
+        <div class="epc-document-workspace__fields">
+            @foreach (var field in Fields.Where(f => f.Group is "Address" or "Delivery"))
+            {
+                <div><span>@field.Label</span><strong>@field.Value</strong></div>
+            }
+        </div>
+    </details>
+
+    <details id="financial" class="epc-document-workspace__section">
+        <summary>Payment, tax and financial dimensions</summary>
+        <div class="epc-document-workspace__fields">
+            @foreach (var field in Fields.Where(f => f.Group is "Financial" or "Dimensions"))
+            {
+                <div><span>@field.Label</span><strong>@field.Value</strong></div>
+            }
+        </div>
+    </details>
+
+    <details id="lines" open class="epc-document-workspace__section">
+        <summary>Lines <span class="epc-document-workspace__count">@Lines.Count</span></summary>
+        <div class="epc-document-workspace__grid-wrap">
+            <table class="epc-document-workspace__grid">
+                <thead>
+                    <tr>
+                        <th>Item / SKU</th>
+                        <th>Description</th>
+                        <th>Qty</th>
+                        <th>Unit</th>
+                        <th>Site</th>
+                        <th>Warehouse</th>
+                        <th>Unit price</th>
+                        <th>Discount</th>
+                        <th>Tax</th>
+                        <th>Fulfilled</th>
+                        <th>Amount</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Lines.Count == 0)
+                    {
+                        <tr><td colspan="12" class="epc-document-workspace__empty">No lines have been returned for this document.</td></tr>
+                    }
+                    else
+                    {
+                        @foreach (var line in Lines)
+                        {
+                            <tr>
+                                <td><strong>@(string.IsNullOrWhiteSpace(line.ItemCode) ? "—" : line.ItemCode)</strong></td>
+                                <td>@line.Description</td>
+                                <td class="number">@line.Quantity.ToString("N3", CultureInfo.InvariantCulture)</td>
+                                <td>@line.Unit</td>
+                                <td>@line.Site</td>
+                                <td>@line.Warehouse</td>
+                                <td class="number">@line.UnitPrice.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td class="number">@line.Discount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="number">@line.Tax.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="number">@line.FulfilledQuantity.ToString("N3", CultureInfo.InvariantCulture)</td>
+                                <td class="number"><strong>@line.LineAmount.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
+                                <td>@(string.IsNullOrWhiteSpace(line.SourceReference) ? "—" : line.SourceReference)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+    </details>
+
+    <footer class="epc-document-workspace__totals">
+        <div><span>Subtotal</span><strong>@Subtotal.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+        <div><span>Discounts</span><strong>@Discount.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+        <div><span>Tax</span><strong>@Tax.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+        <div class="grand-total"><span>Total · @Currency</span><strong>@Total.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+        <div><span>Balance due</span><strong>@BalanceDue.ToString("N2", CultureInfo.InvariantCulture)</strong></div>
+    </footer>
+</section>
+
+@code {
+    [Parameter, EditorRequired] public string DocumentKind { get; set; } = "";
+    [Parameter, EditorRequired] public string Title { get; set; } = "";
+    [Parameter] public string DocumentNumber { get; set; } = "";
+    [Parameter] public string PartyLabel { get; set; } = "Account";
+    [Parameter] public string Party { get; set; } = "—";
+    [Parameter] public string ReferenceLabel { get; set; } = "Reference";
+    [Parameter] public string Reference { get; set; } = "—";
+    [Parameter] public string Status { get; set; } = "Draft";
+    [Parameter] public string ApprovalState { get; set; } = "Approval pending";
+    [Parameter] public string CompanyContext { get; set; } = "Tenant / company";
+    [Parameter] public string Currency { get; set; } = "AED";
+    [Parameter] public decimal Subtotal { get; set; }
+    [Parameter] public decimal Discount { get; set; }
+    [Parameter] public decimal Tax { get; set; }
+    [Parameter] public decimal Total { get; set; }
+    [Parameter] public decimal BalanceDue { get; set; }
+    [Parameter] public IReadOnlyList<ErpDocumentWorkspaceField> Fields { get; set; } = [];
+    [Parameter] public IReadOnlyList<ErpDocumentWorkspaceLine> Lines { get; set; } = [];
+    [Parameter] public IReadOnlyList<string> Tabs { get; set; } = ["General", "Address", "Delivery", "Lines", "Financial"];
+
+    private static string Anchor(string value) => value.ToLowerInvariant().Replace(' ', '-');
+}
