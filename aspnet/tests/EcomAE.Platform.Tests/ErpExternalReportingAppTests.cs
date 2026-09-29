@@ -66,6 +66,9 @@ public sealed class ErpExternalReportingAppTests
         Assert.Contains("RenderPack", razor, StringComparison.Ordinal);
         Assert.Contains("Download PDF", razor, StringComparison.Ordinal);
         Assert.Contains("Download Word", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-ext-action-group", razor, StringComparison.Ordinal);
+        Assert.Contains("epc-ext-action-group--period", razor, StringComparison.Ordinal);
+        Assert.Contains("Live build ready", razor, StringComparison.Ordinal);
         Assert.Contains("Download Excel (linked model)", razor, StringComparison.Ordinal);
         Assert.Contains("Download Excel (linked audit pack)", razor, StringComparison.Ordinal);
         Assert.Contains("ErpExternalReportingXlsx", razor, StringComparison.Ordinal);

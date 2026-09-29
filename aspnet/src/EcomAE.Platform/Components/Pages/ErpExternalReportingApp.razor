@@ -38,7 +38,14 @@
 .epc-ext-sum .v{font-size:16px;font-weight:700;color:#1d2740;}
 .epc-ext-steps{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;}
 .epc-ext-panel{flex:1;min-width:300px;border:1px solid #e2e6ee;border-radius:6px;padding:14px;}
-.epc-ext-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:14px;}
+.epc-ext-actions{display:flex;flex-wrap:wrap;gap:10px;align-items:stretch;margin-bottom:14px;padding:10px;background:#f8fbff;border:1px solid #d8e3ef;border-radius:10px;}
+.epc-ext-action-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:6px 8px;border-right:1px solid #d8e3ef;}
+.epc-ext-action-group:last-child{border-right:0;}
+.epc-ext-action-group__label{width:100%;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+.epc-ext-action-group--period{flex:1 1 360px;}
+.epc-ext-action-group--period form{display:flex;flex-wrap:wrap;gap:6px;align-items:center;}
+.epc-ext-action-status{align-self:center;color:#166534;font-size:12px;font-weight:700;}
+@@media (max-width:900px){.epc-ext-action-group{border-right:0;border-bottom:1px solid #d8e3ef;width:100%;}.epc-ext-action-group:last-child{border-bottom:0;}}
 .epc-ext-doc.is-audit{border-color:#e7c3c9;}
 .epc-ext-doc.is-audit .epc-ext-doc-head{border-bottom-color:#b3122a;}
 .epc-ext-sum>div{border-top:3px solid #2b6cb0;background:#fff;}
@@ -213,57 +220,73 @@
         </p>
         <div class="epc-erp-section" style="margin-bottom:14px;">
             <div class="epc-ext-actions">
-                <a class="btn btn-primary btn-sm" href="@ReportHref(fetch: true)" title="Re-fetch ERP data and rebuild this report"><i class="fa fa-refresh"></i> Fetch &amp; build</a>
-                <button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
-                <button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('@_docName');" title="Download this report as an editable Microsoft Word document (same layout, theme and tables)"><i class="fa fa-file-word-o"></i> Download Word</button>
-                @if (_report.Key is "fin__financial_model_forecast" or "fin__business_valuation_report")
-                {
-                    <a class="btn btn-success btn-sm" href="@XlsxHref("finmodel")" title="Download a linked Excel workbook — Assumptions / Calculations / Results with live formulas"><i class="fa fa-file-excel-o"></i> Download Excel (linked model)</a>
-                }
-                @if (_report.Key == "audit__external_audit_report")
-                {
-                    <a class="btn btn-success btn-sm" href="@XlsxHref("audit")" title="Download a linked Excel workbook — one sheet per element (Trial Balance, SOFP, P&amp;L &amp; OCI, Cash Flows, Changes in Equity, Notes) where every figure links back to the Trial Balance"><i class="fa fa-file-excel-o"></i> Download Excel (linked audit pack)</a>
-                }
-                <a class="btn btn-default btn-sm" href="@auth.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Official source — @auth.Name</a>
-                <a class="btn btn-default btn-sm" href="@auth.Format" target="_blank" rel="noopener noreferrer"><i class="fa fa-file-o"></i> Official format / filing portal</a>
-                @if (ifrs is not null)
-                {
-                    <a class="btn btn-default btn-sm" href="@ifrs.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-book"></i> @ifrs.Label</a>
-                }
-                <form method="get" action="@_self" class="form-inline" style="margin:0;display:inline-block;">
-                    @if (_companyId > 0) { <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" /> }
-                    <input type="hidden" name="cat" value="@def.Cat" />
-                    <input type="hidden" name="rep" value="@def.Key" />
-                    <input type="hidden" name="rep_country" value="@_prevCountry" />
-                    <input type="hidden" name="fetch" value="1" />
-                    <label style="font-size:12px;margin:0 6px;"><i class="fa fa-calendar"></i> Reporting period</label>
-                    <select name="basis" class="form-control input-sm" onchange="this.form.submit()">
-                        @foreach (var b in _periodBases)
-                        {
-                            <option value="@b" selected="@(b == _selBasis)">@BasisLabel(b)</option>
-                        }
-                    </select>
-                    @if (_selBasis == "custom")
+                <div class="epc-ext-action-group">
+                    <div class="epc-ext-action-group__label">Run</div>
+                    <a class="btn btn-primary btn-sm" href="@ReportHref(fetch: true)" title="Re-fetch ERP data and rebuild this report"><i class="fa fa-refresh"></i> Fetch &amp; build</a>
+                </div>
+                <div class="epc-ext-action-group">
+                    <div class="epc-ext-action-group__label">Export</div>
+                    <button type="button" class="btn btn-default btn-sm" onclick="epcExtPrint();"><i class="fa fa-file-pdf-o"></i> Download PDF</button>
+                    <button type="button" class="btn btn-default btn-sm" onclick="epcExtWord('@_docName');" title="Download this report as an editable Microsoft Word document (same layout, theme and tables)"><i class="fa fa-file-word-o"></i> Download Word</button>
+                    @if (_report.Key is "fin__financial_model_forecast" or "fin__business_valuation_report")
                     {
-                        <input type="date" name="pfrom" class="form-control input-sm" style="margin:0 4px;" value="@_period.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
-                        <input type="date" name="pto" class="form-control input-sm" style="margin:0 4px;" value="@_period.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                        <a class="btn btn-success btn-sm" href="@XlsxHref("finmodel")" title="Download a linked Excel workbook — Assumptions / Calculations / Results with live formulas"><i class="fa fa-file-excel-o"></i> Download Excel (linked model)</a>
                     }
-                    else
+                    @if (_report.Key == "audit__external_audit_report")
                     {
-                        <select name="period" class="form-control input-sm" style="margin-left:4px;" onchange="this.form.submit()">
-                            @foreach (var opt in _period.Options)
+                        <a class="btn btn-success btn-sm" href="@XlsxHref("audit")" title="Download a linked Excel workbook — one sheet per element (Trial Balance, SOFP, P&amp;L &amp; OCI, Cash Flows, Changes in Equity, Notes) where every figure links back to the Trial Balance"><i class="fa fa-file-excel-o"></i> Download Excel (linked audit pack)</a>
+                    }
+                </div>
+                <div class="epc-ext-action-group">
+                    <div class="epc-ext-action-group__label">Authority</div>
+                    <a class="btn btn-default btn-sm" href="@auth.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-university"></i> Source</a>
+                    <a class="btn btn-default btn-sm" href="@auth.Format" target="_blank" rel="noopener noreferrer"><i class="fa fa-file-o"></i> Filing format</a>
+                    @if (ifrs is not null)
+                    {
+                        <a class="btn btn-default btn-sm" href="@ifrs.Url" target="_blank" rel="noopener noreferrer"><i class="fa fa-book"></i> @ifrs.Label</a>
+                    }
+                </div>
+                <div class="epc-ext-action-group epc-ext-action-group--period">
+                    <div class="epc-ext-action-group__label">Reporting period</div>
+                    <form method="get" action="@_self" class="form-inline" style="margin:0;">
+                        @if (_companyId > 0) { <input type="hidden" name="company" value="@_companyId.ToString(CultureInfo.InvariantCulture)" /> }
+                        <input type="hidden" name="cat" value="@def.Cat" />
+                        <input type="hidden" name="rep" value="@def.Key" />
+                        <input type="hidden" name="rep_country" value="@_prevCountry" />
+                        <input type="hidden" name="fetch" value="1" />
+                        <label style="font-size:12px;margin:0;"> <i class="fa fa-calendar"></i> </label>
+                        <select name="basis" class="form-control input-sm" onchange="this.form.submit()">
+                            @foreach (var b in _periodBases)
                             {
-                                <option value="@opt.Token" selected="@(opt.Token == _period.Token)">@opt.Label</option>
+                                <option value="@b" selected="@(b == _selBasis)">@BasisLabel(b)</option>
                             }
                         </select>
-                    }
-                    <button type="submit" class="btn btn-success btn-sm" style="margin-left:6px;"><i class="fa fa-calculator"></i> Run / Recalculate</button>
-                </form>
+                        @if (_selBasis == "custom")
+                        {
+                            <input type="date" name="pfrom" class="form-control input-sm" value="@_period.From.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                            <input type="date" name="pto" class="form-control input-sm" value="@_period.To.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture)" />
+                        }
+                        else
+                        {
+                            <select name="period" class="form-control input-sm" onchange="this.form.submit()">
+                                @foreach (var opt in _period.Options)
+                                {
+                                    <option value="@opt.Token" selected="@(opt.Token == _period.Token)">@opt.Label</option>
+                                }
+                            </select>
+                        }
+                        <button type="submit" class="btn btn-success btn-sm"><i class="fa fa-calculator"></i> Run</button>
+                    </form>
+                </div>
                 @if (_fetched)
                 {
-                    <span class="text-success" style="margin-left:4px;"><i class="fa fa-check-circle"></i> Built from live ERP data — verify on the official source.@_ifrsRefreshNote</span>
+                    <span class="epc-ext-action-status"><i class="fa fa-check-circle"></i> Live build ready</span>
                 }
             </div>
+            @if (_fetched)
+            {
+                <div class="text-success" style="margin-top:8px;font-size:12px;"><i class="fa fa-check-circle"></i> Built from live ERP data — verify on the official source.@_ifrsRefreshNote</div>
+            }
             <div style="margin-top:8px;font-size:12px;" class="text-muted">
                 <strong>Governing law:</strong> @auth.Law
                 &nbsp;·&nbsp; <strong>Frequency:</strong> @ErpExternalReportingCatalog.Frequency(def.Cat)
