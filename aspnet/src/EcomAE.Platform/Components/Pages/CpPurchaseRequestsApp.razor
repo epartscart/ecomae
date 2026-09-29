@@ -5,13 +5,24 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Components.Shared.Desktop
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject NavigationManager Nav
 
 <PageTitle>Purchase requests · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
+
+    @if (_isErpRoute)
+    {
+        <PhpErpModulePageHeader
+            Title="Purchase requisitions"
+            Subtitle="Capture internal demand, route policy approval, and convert approved requests to purchase orders with persisted header and lines."
+            PhpTabHref="@_phpTab" />
+        <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
+    }
 
     <div class="col-lg-12">
         <div class="hpanel">
@@ -95,7 +106,32 @@
         </form>
     }
 
-    @if (_openedDetail is not null)
+    @if (_openedDetail is not null && _isErpRoute)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <ErpDocumentWorkspace
+                DocumentKind="Purchase requisition"
+                Title="@(_openedDetail.ReqNumber is { Length: > 0 } ? _openedDetail.ReqNumber : $"Requisition #{_openedDetail.Id}")"
+                DocumentNumber="@_openedDetail.Id.ToString(CultureInfo.InvariantCulture)"
+                PartyLabel="Requester"
+                Party="@_openedDetail.Requester"
+                ReferenceLabel="Business unit"
+                Reference="@_openedDetail.BusinessUnitId.ToString(CultureInfo.InvariantCulture)"
+                Status="@(_openedDetail.Status ?? "draft")"
+                ApprovalState="@(_openedDetail.RequiresApproval ? "Approval required" : "Within policy")"
+                CompanyContext="@($"Company {_openedDetail.CompanyId}")"
+                Currency="AED"
+                Subtotal="@_openedDetail.Total"
+                Total="@_openedDetail.Total"
+                BalanceDue="0"
+                Fields="@RequisitionWorkspaceFields"
+                Lines="@RequisitionWorkspaceLines"
+                Tabs="@RequisitionWorkspaceTabs" />
+            <p class="text-muted" style="margin:.85rem 0 0">The action pane above follows the PHP requisition lifecycle: draft → submit → policy approval → convert to PO. PHP remains the schema owner and fallback.</p>
+        </div>
+    }
+
+    @if (_openedDetail is not null && !_isErpRoute)
     {
         <div class="col-lg-12">
             <div class="hpanel">
@@ -240,6 +276,35 @@
     private IReadOnlyList<CpPurchaseRequestLineDigest> _openedLines = [];
     private string _listHref = "/cp/purchase-requests-app";
     private string _returnHref = "/cp/purchase-requests-app";
+    private bool _isErpRoute;
+    private IReadOnlyList<string> RequisitionWorkspaceTabs => ["General", "Lines", "Approval", "Procurement"];
+    private IReadOnlyList<ErpDocumentWorkspaceField> RequisitionWorkspaceFields => _openedDetail is null
+        ? []
+        : [
+            new("Requester", _openedDetail.Requester, "General"),
+            new("Business unit", _openedDetail.BusinessUnitId.ToString(CultureInfo.InvariantCulture), "General"),
+            new("Justification", string.IsNullOrWhiteSpace(_openedDetail.Justification) ? "—" : _openedDetail.Justification, "General"),
+            new("Requires approval", _openedDetail.RequiresApproval ? "Yes" : "No", "Approval"),
+            new("Decided by", string.IsNullOrWhiteSpace(_openedDetail.DecidedBy) ? "—" : _openedDetail.DecidedBy, "Approval"),
+            new("Decision note", string.IsNullOrWhiteSpace(_openedDetail.DecisionNote) ? "—" : _openedDetail.DecisionNote, "Approval"),
+            new("Purchase order", string.IsNullOrWhiteSpace(_openedDetail.PoRef) ? "Not converted" : _openedDetail.PoRef, "Procurement"),
+            new("Created", DateTimeOffset.FromUnixTimeSeconds(Math.Max(0, _openedDetail.TimeCreated)).ToString("u", CultureInfo.InvariantCulture), "Audit")
+        ];
+    private IReadOnlyList<ErpDocumentWorkspaceLine> RequisitionWorkspaceLines => _openedLines
+        .Select(line => new ErpDocumentWorkspaceLine(
+            line.Id.ToString(CultureInfo.InvariantCulture),
+            string.IsNullOrWhiteSpace(line.Description) ? line.ItemCode : line.Description,
+            line.Qty,
+            "requisition",
+            line.CategoryCode,
+            line.ItemCode,
+            line.UnitPrice,
+            0,
+            0,
+            line.LineTotal,
+            line.LineTotal,
+            string.IsNullOrWhiteSpace(line.PreferredVendor) ? "Vendor not assigned" : line.PreferredVendor))
+        .ToArray();
 
     private string OpenedCaption => _openedDetail is null
         ? ""
@@ -255,6 +320,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         var path = ctx.Request.Path.Value;
+        _isErpRoute = string.Equals(path, "/erp/purchase-requests-app", StringComparison.OrdinalIgnoreCase);
         _listHref = string.Equals(path, "/erp/purchase-requests-app", StringComparison.OrdinalIgnoreCase)
             ? "/erp/purchase-requests-app"
             : "/cp/purchase-requests-app";

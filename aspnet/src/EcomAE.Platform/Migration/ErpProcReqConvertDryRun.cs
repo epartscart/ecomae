@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>proc_req_convert</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Dry-run envelope for PHP <c>proc_req_convert</c>. Never UPDATE; the guarded live route owns confirmed writes.</summary>
 public interface IErpProcReqConvertDryRun { ErpProcReqConvertDryRunResult Evaluate(ErpProcReqConvertRequest request); }
 public sealed class ErpProcReqConvertDryRun : IErpProcReqConvertDryRun
 {
@@ -8,7 +8,7 @@ public sealed class ErpProcReqConvertDryRun : IErpProcReqConvertDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET proc_req_convert is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the guarded live proc_req_convert route; this dry-run evaluator never executes an UPDATE.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
         return new("dry-run-validated",0,true,false,true,"ok",true,request.Id,
