@@ -13,6 +13,23 @@
 
 <PageTitle>UAE Tax Compliance · Control Panel · eParts Cart</PageTitle>
 
+<HeadContent>
+    <style>
+        .epc-ct-workspace{margin-top:1rem;border:1px solid #d8e3ef;border-radius:12px;background:linear-gradient(180deg,#fff 0%,#f8fbff 100%);box-shadow:0 8px 20px rgba(15,23,42,.05);}
+        .epc-ct-workspace__head{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;padding:14px 16px;border-bottom:1px solid #d8e3ef;}
+        .epc-ct-workspace__title{margin:0;color:#1d2740;font-size:17px;font-weight:800;}
+        .epc-ct-workspace__sub{margin:4px 0 0;color:#64748b;font-size:12px;}
+        .epc-ct-workspace__context{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-start;}
+        .epc-ct-workspace__chip{display:inline-flex;align-items:center;padding:4px 9px;border:1px solid #cbd5e1;border-radius:999px;background:#fff;color:#1d4ed8;font-size:11px;font-weight:700;white-space:nowrap;}
+        .epc-ct-workspace__body{padding:14px 16px;}
+        .epc-ct-workspace__form{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:0;}
+        .epc-ct-workspace__field{display:flex;flex-direction:column;gap:4px;color:#334155;font-size:11px;font-weight:700;}
+        .epc-ct-workspace__field small{color:#64748b;font-size:10px;font-weight:500;}
+        .epc-ct-workspace__field input{min-width:110px;}
+        @@media (max-width:720px){.epc-ct-workspace__field{width:100%;}.epc-ct-workspace__field input{width:100%;}}
+    </style>
+</HeadContent>
+
 <TaxComplianceSurfaceChrome IsAdmin="_isAdmin">
 
     <div class="col-lg-12">
@@ -231,29 +248,39 @@
         </div>
     </div>
 
-<div class="hpanel" style="margin-top:1rem;">
-    <div class="panel-heading hbuilt">Corporate Tax adjustments</div>
-    <div class="panel-body">
-<form method="post" action="/erp/uae-tax/ct-adjustments/save" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:.5rem;">
+<section class="epc-ct-workspace" aria-labelledby="epc-ct-workspace-title">
+    <div class="epc-ct-workspace__head">
+        <div>
+            <h2 id="epc-ct-workspace-title" class="epc-ct-workspace__title">Corporate Tax adjustments</h2>
+            <p class="epc-ct-workspace__sub">Capture period-scoped add-backs and deductions before the CT calculation and filing workflow.</p>
+        </div>
+        <div class="epc-ct-workspace__context" aria-label="Corporate Tax context">
+            <span class="epc-ct-workspace__chip">UAE registered country</span>
+            <span class="epc-ct-workspace__chip">Period scoped</span>
+            <span class="epc-ct-workspace__chip">Administration approval</span>
+        </div>
+    </div>
+    <div class="epc-ct-workspace__body">
+        <form method="post" action="/erp/uae-tax/ct-adjustments/save" class="epc-ct-workspace__form">
                 <input type="hidden" name="returnUrl" value="@(_openedId > 0 ? _listHref + "?leg_id=" + _openedId.ToString(CultureInfo.InvariantCulture) : _listHref)" />
                 <input type="hidden" name="confirmWrites" value="true" />
-                <label>From <input class="form-control input-sm" type="date" name="date_from" required /></label>
-                <label>To <input class="form-control input-sm" type="date" name="date_to" required /></label>
-                <label>Non-deductible entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
-                <label>Fines / penalties <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
-                <label>Book depreciation excess <input class="form-control input-sm" name="ct_book_depreciation_excess" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
-                <label>Related-party adjustments <input class="form-control input-sm" name="ct_related_party_adjustments" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
-                <label>Other add-backs <input class="form-control input-sm" name="ct_other_add_backs" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">add-back</small></label>
-                <label>Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
-                <label>Foreign branch exemption <input class="form-control input-sm" name="ct_foreign_branch_exemption" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
-                <label>Loss carryforward <input class="form-control input-sm" name="ct_loss_carryforward" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
-                <label>Qualifying donations <input class="form-control input-sm" name="ct_qualifying_donations" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
-                <label>Other deductions <input class="form-control input-sm" name="ct_other_deductions" placeholder="0" inputmode="decimal" min="0" step="0.01" style="width:110px;" /><small class="text-muted">deduct</small></label>
+                <label class="epc-ct-workspace__field">From <input class="form-control input-sm" type="date" name="date_from" required /></label>
+                <label class="epc-ct-workspace__field">To <input class="form-control input-sm" type="date" name="date_to" required /></label>
+                <label class="epc-ct-workspace__field">Non-deductible entertainment <input class="form-control input-sm" name="ct_non_deductible_entertainment" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>add-back</small></label>
+                <label class="epc-ct-workspace__field">Fines / penalties <input class="form-control input-sm" name="ct_fines_penalties" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>add-back</small></label>
+                <label class="epc-ct-workspace__field">Book depreciation excess <input class="form-control input-sm" name="ct_book_depreciation_excess" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>add-back</small></label>
+                <label class="epc-ct-workspace__field">Related-party adjustments <input class="form-control input-sm" name="ct_related_party_adjustments" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>add-back</small></label>
+                <label class="epc-ct-workspace__field">Other add-backs <input class="form-control input-sm" name="ct_other_add_backs" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>add-back</small></label>
+                <label class="epc-ct-workspace__field">Exempt income <input class="form-control input-sm" name="ct_exempt_income" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>deduct</small></label>
+                <label class="epc-ct-workspace__field">Foreign branch exemption <input class="form-control input-sm" name="ct_foreign_branch_exemption" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>deduct</small></label>
+                <label class="epc-ct-workspace__field">Loss carryforward <input class="form-control input-sm" name="ct_loss_carryforward" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>deduct</small></label>
+                <label class="epc-ct-workspace__field">Qualifying donations <input class="form-control input-sm" name="ct_qualifying_donations" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>deduct</small></label>
+                <label class="epc-ct-workspace__field">Other deductions <input class="form-control input-sm" name="ct_other_deductions" placeholder="0" inputmode="decimal" min="0" step="0.01" /><small>deduct</small></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save CT adjustments</button>
-            </form>
-            <p class="text-muted" style="margin:0;">Adjustments are period-scoped and use the same add-back/deduction field set as the compliance write service.</p>
+        </form>
+        <p class="text-muted" style="margin:.8rem 0 0;">Adjustments are period-scoped and use the same add-back/deduction field set as the compliance write service.</p>
     </div>
-</div>
+</section>
 
 <ErpPhpCreateWell Title="Checklist step">
 <form method="post" action="/erp/uae-tax/legislation/checklist/set" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
