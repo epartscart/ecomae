@@ -521,3 +521,21 @@ The script checks out the final migration files from the source branch onto late
 - Added a Zero-PHP Production Cutover Roadmap that defines the path to ASP.NET Core serving 100% of production traffic and PHP being fully decommissioned.
 - Documented required phases for route inventory, implementation completion, data readiness, security readiness, performance/reliability/observability gates, staged rollout, and PHP decommission.
 - Added a short status report: migration scaffolding is complete, deployment automation is mostly ready, feature parity is still pending, and zero-PHP production remains blocked until every PHP route/job is replaced and verified live.
+
+
+## Fifty Second Milestone Included Here
+
+- Added `docs/migration/PHP_ASPNET_ERP_VISUAL_PARITY_AUDIT_2026-09-29.md` from
+  the owner-supplied PHP screenshot pack.
+- Reclassified ERP completion into separate route/catalog, contract/digest,
+  shared-shell, and interactive visual/functional gates.
+- Added a mandatory same-tenant browser comparison for module bodies,
+  report layouts, action panes, field density, statuses, validation states,
+  workflow/process views, and source-document detail.
+- Documented why the current ASP.NET presentation differs: migration began
+  with safe route/auth/contract scaffolding, shared chrome was delivered ahead
+  of module bodies, PHP fragments and data states were not all ported, and
+  production route ownership is still mixed.
+- Kept `/erp/`, legacy CP finance redirects, PHP/PHP-FPM fallback, and broad
+  PHP removal blocked until the evidence-based visual and structural gates
+  pass with human acceptance.
