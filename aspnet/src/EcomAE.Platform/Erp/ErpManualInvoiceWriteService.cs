@@ -701,7 +701,18 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                         new XElement(cbc + "ID", bankAccount))),
             new XElement(
                 cac + "TaxTotal",
-                new XElement(cbc + "TaxAmount", Amount(totalVat), new XAttribute("currencyID", currency))),
+                new XElement(cbc + "TaxAmount", Amount(totalVat), new XAttribute("currencyID", currency)),
+                new XElement(
+                    cac + "TaxSubtotal",
+                    new XElement(cbc + "TaxableAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
+                    new XElement(cbc + "TaxAmount", Amount(totalVat), new XAttribute("currencyID", currency)),
+                    new XElement(
+                        cac + "TaxCategory",
+                        new XElement(cbc + "ID", lines[0].TaxRate > 0 ? "S" : "Z"),
+                        new XElement(cbc + "Percent", lines[0].TaxRate),
+                        new XElement(
+                            cac + "TaxScheme",
+                            new XElement(cbc + "ID", "VAT"))))),
             new XElement(
                 cac + "LegalMonetaryTotal",
                 new XElement(cbc + "LineExtensionAmount", Amount(subtotal), new XAttribute("currencyID", currency)),
