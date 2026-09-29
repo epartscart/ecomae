@@ -6633,7 +6633,8 @@ public sealed record ErpThreeWayMatchDigest(
     string InvoiceNumber,
     decimal InvoiceTotal,
     string PurchaseStatus,
-    int ReceiptCount);
+    int ReceiptCount,
+    string MatchHint);
 
 public sealed record ErpThreeWayMatchListResult(
     IReadOnlyList<ErpThreeWayMatchDigest> Rows,

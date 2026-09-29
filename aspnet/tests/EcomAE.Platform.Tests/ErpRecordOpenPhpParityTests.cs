@@ -3336,7 +3336,11 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpRecordOpen.Href(_listHref, \"po_id\"", razor, StringComparison.Ordinal);
         Assert.Contains("NotesExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("Writes stay on the Classic twin", razor, StringComparison.Ordinal);
+        Assert.Contains("Use the match hint before approving supplier settlement", razor, StringComparison.Ordinal);
+        Assert.Contains("Matched", razor, StringComparison.Ordinal);
+        Assert.Contains("Awaiting receipt", razor, StringComparison.Ordinal);
+        Assert.Contains("Awaiting invoice", razor, StringComparison.Ordinal);
+        Assert.Contains("Variance", razor, StringComparison.Ordinal);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
