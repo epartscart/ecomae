@@ -291,6 +291,19 @@ else
                         <a href="/cp/login" style="margin-left:.35rem;font-weight:700;color:#c2410c;">Sign in</a>
                     </div>
                 }
+                <div class="epc-module-visual-frame" aria-label="Control Panel module presentation">
+                    <span class="epc-module-visual-frame__icon" aria-hidden="true"><i class="fa fa-th-large"></i></span>
+                    <div>
+                        <div class="epc-module-visual-frame__eyebrow">Enterprise control workspace</div>
+                        <div class="epc-module-visual-frame__title">@_crumbTitle</div>
+                    </div>
+                    <div class="epc-module-visual-frame__flow" aria-label="Module workflow">
+                        <span>Discover</span><i class="fa fa-angle-right"></i>
+                        <span class="is-current">Configure</span><i class="fa fa-angle-right"></i>
+                        <span>Measure</span>
+                    </div>
+                    <div class="epc-module-visual-frame__scope">@_brand.Label · @(_industryLabel ?? "Tenant workspace")</div>
+                </div>
                 <div class="row">
                     <!--epc-cp-main-begin-->
                     @ChildContent
