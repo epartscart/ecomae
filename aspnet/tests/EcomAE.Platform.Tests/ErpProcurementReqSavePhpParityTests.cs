@@ -41,7 +41,8 @@ public sealed class ErpProcurementReqSavePhpParityTests
         var catalog = SurfacePayloadContractCatalog.Functions;
         var write = catalog.First(item => item.AspNetRouteOrCapability.Contains("/erp/procurement/requisitions/save", StringComparison.Ordinal));
         Assert.Equal("write-live-gated", write.Status);
-        Assert.Contains("epc_proc_req_save", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("confirm_writes=false", write.Notes, StringComparison.Ordinal);
+        Assert.Contains("ASP.NET writer", write.Notes, StringComparison.Ordinal);
     }
 
     [Fact]
