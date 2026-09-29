@@ -1,8 +1,7 @@
 namespace EcomAE.Platform.Migration;
 
 /// <summary>
-/// Wave B dry-run for PHP <c>purchase_amend</c> (note/invoice_number; draft amount stays PHP).
-/// Never executes UPDATE. PHP remains authoritative.
+/// Validation envelope for the live ASP.NET purchase-amend writer.
 /// </summary>
 public interface IErpPurchaseAmendDryRun
 {
@@ -25,7 +24,7 @@ public sealed class ErpPurchaseAmendDryRun : IErpPurchaseAmendDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_amend is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET purchase-amend writer.",
                 request);
         }
 
@@ -48,7 +47,7 @@ public sealed class ErpPurchaseAmendDryRun : IErpPurchaseAmendDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_amend is not implemented; PHP ajax_erp.php remains authoritative.",
+                "Use confirm_writes=true to execute the live ASP.NET purchase-amend writer.",
                 request);
         }
 
@@ -81,7 +80,7 @@ public sealed class ErpPurchaseAmendDryRun : IErpPurchaseAmendDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             PurchaseId: row.Id,
@@ -104,13 +103,13 @@ public sealed class ErpPurchaseAmendDryRun : IErpPurchaseAmendDryRun
                 ],
             Detail: amountPath
                 ? "Draft purchase found; full amount amend + VAT recalc simulated."
-                : "Purchase found; narrative invoice_number/note amend simulated. Voided/inactive edge cases stay PHP.",
+                : "Purchase found; invoice_number/note amend validated and no write was performed. Voided/inactive edge cases remain rejected.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_amend");
     }
 
     private static ErpPurchaseAmendDryRunResult Refuse(
         string status, string code, string detail, ErpPurchaseAmendRequest request) =>
-        new(status, 0, true, false, true, code, false, request.PurchaseId, null,
+        new(status, 0, true, false, false, code, false, request.PurchaseId, null,
             request.InvoiceNumber, request.Note, request.AmountExVat, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=purchase_amend");
 }

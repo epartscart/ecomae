@@ -25,6 +25,7 @@ public sealed class ErpPurchaseVoidDryRunTests
             [Purchase(9)], new ErpPurchaseVoidRequest(9, "duplicate invoice"));
         Assert.Equal("dry-run-validated", r.Status);
         Assert.True(r.WouldWrite);
+        Assert.False(r.PhpAuthoritative);
         Assert.Equal(0, r.Writes);
         Assert.Contains(r.SimulatedSql, s => s.Contains("epc_erp_purchases", StringComparison.Ordinal));
         Assert.Contains(r.SimulatedSql, s => s.Contains("NOT executed", StringComparison.Ordinal));
