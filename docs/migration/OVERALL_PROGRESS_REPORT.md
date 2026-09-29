@@ -22,6 +22,42 @@
 
 Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not** “95% of UX cut over.”
 
+## Cross-surface audit checkpoint
+
+The next audit confirms that CP and frontend are not formally complete even
+though ASP.NET has a broad page inventory. The repository currently contains
+331 ASP.NET presentation pages, while the PHP reference still contains 609 CP
+module files and 188 files under the primary ERP module tree, plus
+the wider storefront, marketing, BOS, API, and worker surfaces. File and route
+counts are inventory evidence only; they do not prove that the ASP.NET page has
+the PHP table, field, action, validation, workflow, permission, report, or
+tenant-data behaviour.
+
+The honest cross-surface status is:
+
+- **CP:** broad ASP.NET twins exist, but the CP exit gate remains open for
+  generated-menu reconciliation, remaining digest/missing pages, single-item
+  workflows, write parity, presentation diffs, tenant/super-CP scope, and the
+  combined browser round.
+- **Frontend/storefront:** catalogue, account, cart, checkout, customer,
+  vendor, vehicle, industry, and payment routes exist as ASP.NET shadows, but
+  live product-host ownership remains PHP-primary until theme/assets,
+  search latency, callbacks, guest ordering, customer workflows, SEO, and
+  tenant-host dual samples pass.
+- **Marketing:** the ASP.NET marketing page family is substantial, but
+  `/marketing/app`, contact/demo forms, sitemap/SEO, brand-host probes, and
+  human same-to-same approval remain deployment gates.
+- **Tenant CP/ERP, demo, BOS, APIs, workers:** route and digest coverage is
+  ahead of production-operational parity. Isolation, country profiles,
+  provisioning, expiry, synchronization, retries, backups, restore, and
+  rollback evidence remain required.
+
+Therefore the current measured headline stays **20.4% weighted phase
+completion / 79.6% pending** in the tracker, while the separate shadow
+inventory remains approximately **98% presentation routes live** and
+**0% formally accepted interactive migration**. These figures must not be
+merged into a single completion percentage.
+
 ## Owner-supplied PHP ERP screenshot audit
 
 The owner supplied a 31-screenshot PHP reference pack on 2026-09-29 covering
