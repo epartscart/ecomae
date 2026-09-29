@@ -1,6 +1,6 @@
 # Overall progress report — PHP → ASP.NET Core
 
-**As of:** 2026-08-04 (target reframed: **100% ASP.NET / 0 PHP**; PHP-primary = parity gate only)
+**As of:** 2026-09-29 (target reframed: **100% ASP.NET / 0 PHP**; PHP-primary = parity gate only)
 **Locks:** `cutoverAllowed=false` · `readyForPhpRemoval=false` · interactive ASP.NET complete **0**
 **Path board:** `GET /migration/aspnet-zero-php-path` · `docs/migration/ASPNET_ZERO_PHP_PATH.md`
 
@@ -21,6 +21,32 @@
 | Zero-PHP end-state readiness | Phases 1–2 done; 3–4 in progress (marketing scaffolds + write dry-runs + write-dryrun dual-sample operator); 5–6 blocked | — | **~55%** honest (see path board) |
 
 Weighted Zero-PHP meter remains **95% / 5%** (decommission residual) — **not** “95% of UX cut over.”
+
+## Owner-supplied PHP ERP screenshot audit
+
+The owner supplied a 31-screenshot PHP reference pack on 2026-09-29 covering
+VAT/CT/e-invoice, external audit, document control, insurance, accounting and
+tenant setup, print design, automation, document formats, HR/payroll, order
+planning, PIM, customs/shipping, fixed assets, CRM, fulfilment, AR/AP, landed
+cost, and process flow. The pack confirms that the PHP ERP is a mature
+module-body and workflow system, not just a menu and shared shell.
+
+The detailed classification and remediation gates are in
+`docs/migration/PHP_ASPNET_ERP_VISUAL_PARITY_AUDIT_2026-09-29.md`. The honest
+interpretation is unchanged but now evidence-backed:
+
+- route/catalog and shell coverage are materially ahead of interactive module
+  parity;
+- module-specific fields, dense tables, report layouts, action panes,
+  validation/error states, workflow diagrams, and source-detail links remain
+  incomplete across the supplied areas;
+- production ERP ownership is still mixed: `/erp/login` is ASP.NET-primary,
+  while `/erp/` remains PHP-backed;
+- the legacy CP finance ERP URL redirects from PHP compatibility handling to
+  the ASP.NET CP, but that redirect does not prove the original ERP module is
+  ASP.NET-native;
+- no score or decommission meter should increase from route or screenshot
+  shell coverage alone.
 
 ## What is done
 
