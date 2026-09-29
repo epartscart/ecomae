@@ -16,6 +16,10 @@ public sealed class ErpBosVatRefundSavePhpParityTests
         Assert.Contains("/erp/ajax/bos-vat-refund-status", text, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", text, StringComparison.Ordinal);
         Assert.Contains("Save record", text, StringComparison.Ordinal);
+        Assert.Contains("ContextItems=\"@_headerContextItems\"", text, StringComparison.Ordinal);
+        Assert.Contains("epc-vat-actionbar", text, StringComparison.Ordinal);
+        Assert.Contains("epc-vat-position", text, StringComparison.Ordinal);
+        Assert.Contains("UAE registered country", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@bind", text, StringComparison.Ordinal);
         Assert.DoesNotContain("Open PHP reference", text, StringComparison.Ordinal);

@@ -10,10 +10,26 @@
 @inject NavigationManager Nav
 
 <PageTitle>VAT · ERP · eParts Cart</PageTitle>
+<HeadContent>
+    <style>
+        .epc-vat-actionbar{display:flex;flex-wrap:wrap;gap:10px;align-items:flex-end;margin:0 0 14px;padding:10px;background:#f8fbff;border:1px solid #d8e3ef;border-radius:10px;}
+        .epc-vat-actionbar__label{width:100%;color:#64748b;font-size:10px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;}
+        .epc-vat-actionbar form{display:flex;flex-wrap:wrap;gap:6px;align-items:flex-end;margin:0;padding:8px;border:1px solid #e2e8f0;border-radius:8px;background:#fff;}
+        .epc-vat-actionbar form label{margin:0;font-size:11px;font-weight:700;color:#334155;}
+        .epc-vat-actionbar form button{white-space:nowrap;}
+        .epc-vat-position{display:grid;gap:8px;margin:0 0 14px;padding:12px 14px;border:1px solid #d8e3ef;border-radius:10px;background:linear-gradient(90deg,#f8fbff 0%,#fff 100%);}
+        .epc-vat-position__head{display:flex;justify-content:space-between;gap:12px;color:#334155;font-size:12px;font-weight:700;}
+        .epc-vat-position__value{color:#1d4ed8;font-size:14px;}
+        .epc-vat-position__track{height:9px;overflow:hidden;border-radius:999px;background:#e2e8f0;}
+        .epc-vat-position__bar{height:100%;min-width:8px;border-radius:999px;background:linear-gradient(90deg,#2563eb,#0f766e);}
+        .epc-vat-position__note{color:#64748b;font-size:11px;}
+        @@media (max-width:720px){.epc-vat-actionbar form{width:100%;}.epc-vat-actionbar form label{flex:1 1 150px;}}
+    </style>
+</HeadContent>
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="VAT" BreadcrumbArea="Tax" BreadcrumbTab="@_tabLabel">
 
-    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" />
+    <PhpErpModulePageHeader Title="@_title" Subtitle="@_subtitle" ContextItems="@_headerContextItems" />
     <PhpErpD365ActionPane RefreshHref="@Nav.Uri" />
 
     @if (!string.IsNullOrWhiteSpace(_flashOk))
@@ -26,6 +42,8 @@
     }
     @if (_isAdmin)
     {
+        <div class="epc-vat-actionbar" aria-label="VAT operations">
+            <div class="epc-vat-actionbar__label">VAT operations</div>
         <form method="post" action="/erp/ajax/bos-vat-refund-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/vat-app?tab=vat_refund" />
@@ -73,6 +91,7 @@
                 <button type="submit">Validate tourist refund</button>
             </form>
         }
+        </div>
     }
 
     <p class="text-muted" style="margin:8px 0 12px;">
@@ -88,6 +107,16 @@
         <div class="kpi"><div class="lbl">Output VAT</div><div class="val">@_vat.OutputVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Input VAT</div><div class="val">@_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Net (@_netLabel)</div><div class="val">@_vat.NetVatPayable.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+    </div>
+    <div class="epc-vat-position" aria-label="VAT position">
+        <div class="epc-vat-position__head">
+            <span>VAT position</span>
+            <span class="epc-vat-position__value">@_netLabel · @_vat.NetVatPayable.ToString("N2", CultureInfo.InvariantCulture)</span>
+        </div>
+        <div class="epc-vat-position__track" role="img" aria-label="Relative VAT position indicator">
+            <div class="epc-vat-position__bar" style="width:@NetPositionWidth"></div>
+        </div>
+        <div class="epc-vat-position__note">Output VAT @_vat.OutputVat.ToString("N2", CultureInfo.InvariantCulture) versus input VAT @_vat.InputVat.ToString("N2", CultureInfo.InvariantCulture) for the current ERP period.</div>
     </div>
 
     <div class="epc-erp-table-wrap">
@@ -183,6 +212,17 @@
     private string _netLabel = "Payable";
     private string _flashOk = "";
     private string _flashErr = "";
+    private IReadOnlyList<string> _headerContextItems = [];
+    private string NetPositionWidth
+    {
+        get
+        {
+            var total = Math.Abs(_vat.OutputVat) + Math.Abs(_vat.InputVat);
+            if (total <= 0) return "0%";
+            var ratio = Math.Clamp(Math.Abs(_vat.NetVatPayable) / total * 100m, 8m, 100m);
+            return ratio.ToString("0.##", CultureInfo.InvariantCulture) + "%";
+        }
+    }
 
     protected override async Task OnInitializedAsync()
     {
@@ -222,6 +262,14 @@
         _netLabel = string.Equals(_vat.NetStatus, "recoverable_from_fta", StringComparison.OrdinalIgnoreCase)
             ? "Recoverable"
             : "Payable";
+        _headerContextItems =
+        [
+            "UAE registered country",
+            $"{FormatDate(_vat.DateFromUnix)} — {FormatDate(_vat.DateToUnix)}",
+            $"{_vat.VatRatePercent.ToString("0.##", CultureInfo.InvariantCulture)}% VAT",
+            _netLabel,
+            string.IsNullOrWhiteSpace(_source) ? "ERP data" : _source,
+        ];
 
         if (_showLegislation)
         {
