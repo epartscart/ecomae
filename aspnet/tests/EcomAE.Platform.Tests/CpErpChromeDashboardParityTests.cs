@@ -56,7 +56,7 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("Clients", src);
         Assert.DoesNotContain("Admin users", src);
         Assert.DoesNotContain("Portal tenants", src);
-        Assert.DoesNotContain("PhpHybridModuleDirectory", src);
+        Assert.Contains("PhpHybridModuleDirectory", src);
         Assert.Contains("epc-insights--cp", src);
         Assert.Contains("Unread VIN / parts requests", src);
         Assert.Contains("Open returns", src);
@@ -124,7 +124,7 @@ public sealed class CpErpChromeDashboardParityTests
         Assert.Contains("Industry intelligence", src);
         Assert.Contains("No supplier spend recorded yet.", src);
         Assert.Contains("No tasks tracked yet.", src);
-        Assert.DoesNotContain("PhpHybridModuleDirectory", src);
+        Assert.Contains("PhpHybridModuleDirectory", src);
         Assert.DoesNotContain("epc-erp-banner", src);
     }
 

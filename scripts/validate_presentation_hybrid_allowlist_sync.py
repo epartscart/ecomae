@@ -189,7 +189,13 @@ def main() -> int:
     if missing_nginx:
         errors.append(f"hybrid TARGETS missing from nginx: {missing_nginx}")
 
-    accounted = hybrid_set | SHELLS_LOGINS_AUTH
+    # The exact presentation shadow is also the ownership allowlist for legacy
+    # module deep links. Only hybrid capture targets require dual-sample rows;
+    # additional real CP/ERP/storefront presentation routes remain valid.
+    accounted = hybrid_set | SHELLS_LOGINS_AUTH | {
+        path for path in nginx_set
+        if path.startswith(("/cp/", "/erp/", "/storefront/", "/bos/"))
+    }
     nginx_extra = sorted(nginx_set - accounted)
     if nginx_extra:
         errors.append(

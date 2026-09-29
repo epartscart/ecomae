@@ -55,6 +55,25 @@ public static class ErpIndustryNav
             || code is "jw" or "jewellery";
     }
 
+    public static bool IsFitOutCompany(ErpCompanyDigest? company)
+    {
+        if (company is null)
+        {
+            return false;
+        }
+
+        var pack = (company.IndustryPack ?? string.Empty).Trim().ToLowerInvariant();
+        var code = (company.Code ?? string.Empty).Trim().ToLowerInvariant();
+        var name = (company.Name ?? string.Empty).Trim().ToLowerInvariant();
+        return pack.Contains("fitout", StringComparison.Ordinal)
+            || pack.Contains("fit-out", StringComparison.Ordinal)
+            || pack.Contains("construction", StringComparison.Ordinal)
+            || code.Contains("fit", StringComparison.Ordinal)
+            || name.Contains("fit-out", StringComparison.Ordinal)
+            || name.Contains("fitout", StringComparison.Ordinal)
+            || name.Contains("construction", StringComparison.Ordinal);
+    }
+
     public static bool IsJewelleryFromHostOrPack(string? industryCode, string? industryPack, ErpCompanyDigest? company)
     {
         if (IsJewelleryCompany(company))
@@ -286,6 +305,7 @@ public static class ErpIndustryNav
         [
             new ErpCompanyDigest(1, "MAIN", mainName, "AED", "AE", "", true),
             new ErpCompanyDigest(2, "JW", "Jewellery Division", "AED", "AE", "jewellery_diamond", true),
+            new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true),
         ];
     }
 

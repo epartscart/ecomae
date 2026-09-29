@@ -100,7 +100,7 @@ def write_doc(path: Path, doc: dict) -> None:
 
 def load_routes(path: Path) -> list[tuple[str, str]]:
     text = path.read_text(encoding="utf-8")
-    routes = parse_nginx(text)
+    routes = merge_routes([parse_nginx(text)])
     if not routes:
         raise SystemExit(f"FAIL: no exact location = routes in {path}")
     return routes

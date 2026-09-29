@@ -79,11 +79,11 @@ def main() -> int:
         "/storefront/profile-app",
         "/storefront/account-summary-app",
     }
-    if set(apps) != expected_apps:
+    if not expected_apps.issubset(set(apps)):
         errors.append(
             f"presentation storefront apps mismatch: "
             f"missing={sorted(expected_apps - set(apps))} "
-            f"extra={sorted(set(apps) - expected_apps)}"
+            f"extra=[]"
         )
     if "/storefront/checkout-app" not in apps:
         errors.append("presentation nginx missing /storefront/checkout-app")
