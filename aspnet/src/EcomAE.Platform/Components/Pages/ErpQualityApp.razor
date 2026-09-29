@@ -330,13 +330,18 @@
                     <div class="panel panel-default">
                         <div class="panel-heading"><strong>QO-@_selOrder.ToString(CultureInfo.InvariantCulture)</strong> — record inspection results</div>
                         <div class="panel-body">
-                            <p class="text-muted">Record results stay on ERP ajax (<code>qm_order_record</code>). Pick an order after plans exist.</p>
+                            <p class="text-muted">Record results against the PHP quality plan and evaluate the persisted verdict.</p>
+                            <form method="post" action="@EcomAeRoutes.ErpQualityOrderRecordForm">
+                                <input type="hidden" name="confirmWrites" value="true" />
+                                <input type="hidden" name="order_id" value="@_selOrder.ToString(CultureInfo.InvariantCulture)" />
+                                <label for="quality-values-json">Test values JSON</label>
+                                <textarea id="quality-values-json" name="values_json" rows="3" class="form-control" placeholder='{"12":{"value_num":10.5},"13":{"value_text":"pass"}}'></textarea>
                             <table class="table table-condensed table-epc">
                                 <thead><tr><th>Test</th><th>Numeric value</th><th>Text value</th><th>Eval</th><th>Recorded</th></tr></thead>
                                 <tbody>
                                     @if (_results.Count == 0)
                                     {
-                                        <tr><td colspan="5" class="text-muted">No persisted results yet. Record results on the Classic ERP ajax form.</td></tr>
+                                        <tr><td colspan="5" class="text-muted">No persisted results yet. Enter test values above and save to evaluate.</td></tr>
                                     }
                                     else
                                     {
@@ -353,6 +358,8 @@
                                     }
                                 </tbody>
                             </table>
+                            <button type="submit" class="btn btn-success btn-sm">Save results &amp; evaluate</button>
+                            </form>
                         </div>
                     </div>
                 }
