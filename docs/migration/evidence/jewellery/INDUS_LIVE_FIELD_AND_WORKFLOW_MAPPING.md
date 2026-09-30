@@ -263,3 +263,8 @@ gates; this policy does not broaden ordinary tenant access.
 read-only company-scoped projection behind the Jewellery staff gate.
 Advance settlement, receipt allocation, and finance posting remain
 PHP-authoritative.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
