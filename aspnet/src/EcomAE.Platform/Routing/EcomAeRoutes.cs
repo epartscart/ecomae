@@ -1024,6 +1024,10 @@ public static class EcomAeRoutes
     public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
     /// <summary>PHP epc_jewel_sale_list. Read-only company/type-scoped sale history.</summary>
     public const string ErpJewellerySaleHistory = "/erp/jewellery/sale-history";
+    /// <summary>PHP pending repair queue. Read-only company/operation-scoped projection.</summary>
+    public const string ErpJewelleryRepairPending = "/erp/jewellery/repair-pending";
+    /// <summary>PHP epc_jewel_repair_list. Read-only company/date/status-scoped history.</summary>
+    public const string ErpJewelleryRepairList = "/erp/jewellery/repair";
     /// <summary>PHP epc_jewel_design_get. Read-only company-scoped design detail.</summary>
     public const string ErpJewelleryDesignDetail = "/erp/jewellery/design-detail";
     /// <summary>PHP epc_jewel_repair_list. Read-only company/date/status-scoped repair history.</summary>
@@ -1065,6 +1069,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryBarcodePurchaseCreateForm = "/erp/jewellery/barcode-purchase-create";
     /// <summary>PHP epc_barcode_purchase_sell. <c>confirmWrites=true</c> marks <c>epc_barcode_purchases</c> sold.</summary>
     public const string ErpJewelleryBarcodePurchaseSellForm = "/erp/jewellery/barcode-purchase-sell";
+    /// <summary>PHP epc_barcode_purchase_lookup. Read-only company-scoped barcode detail.</summary>
+    public const string ErpJewelleryBarcodePurchaseLookup = "/erp/jewellery/barcode-purchase-lookup";
     /// <summary>PHP epc_tourist_refund_create. <c>confirmWrites=true</c> inserts <c>epc_tourist_refund_invoices</c>.</summary>
     public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
     /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
@@ -1099,14 +1105,24 @@ public static class EcomAeRoutes
     public const string ErpVirtualWarehouseTransferForm = "/erp/virtual-warehouses/transfer";
     /// <summary>PHP jw_metal_stock_save. <c>confirmWrites=true</c> upserts <c>epc_jewel_metal_stock</c>.</summary>
     public const string ErpJewelleryMetalStockSaveForm = "/erp/jewellery/metal-stock-save";
+    /// <summary>PHP epc_jewel_sales_analysis. Read-only company-scoped sales analysis.</summary>
+    public const string ErpJewellerySalesAnalysis = "/erp/jewellery/sales-analysis";
+    /// <summary>PHP epc_jewel_metal_stock_balance. Read-only company-scoped metal balance.</summary>
+    public const string ErpJewelleryMetalStockBalance = "/erp/jewellery/metal-stock-balance";
     /// <summary>PHP jw_purchase_fixing_save / jw_sales_fixing_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_fixing</c>.</summary>
     public const string ErpJewelleryFixingSaveForm = "/erp/jewellery/fixing-save";
+    /// <summary>PHP epc_jewel_fixing_list. Read-only company-scoped fixing history.</summary>
+    public const string ErpJewelleryFixingList = "/erp/jewellery/fixing";
     /// <summary>PHP jw_voucher_save and purchase/sale aliases. <c>confirmWrites=true</c> inserts <c>epc_jewel_voucher</c>.</summary>
     public const string ErpJewelleryVoucherSaveForm = "/erp/jewellery/voucher-save";
     /// <summary>PHP jw_petty_cash_save. <c>confirmWrites=true</c> inserts PCV into <c>epc_jewel_voucher</c>.</summary>
     public const string ErpJewelleryPettyCashSaveForm = "/erp/jewellery/petty-cash-save";
     /// <summary>PHP jw_tourist_vat_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_tourist_vat_refund</c>.</summary>
     public const string ErpJewelleryTouristVatSaveForm = "/erp/jewellery/tourist-vat-save";
+    /// <summary>PHP epc_jewel_petty_cash_list. Read-only company/date-scoped history.</summary>
+    public const string ErpJewelleryPettyCashList = "/erp/jewellery/petty-cash";
+    /// <summary>PHP epc_jewel_tourist_vat_list. Read-only company/date-scoped history.</summary>
+    public const string ErpJewelleryTouristVatList = "/erp/jewellery/tourist-vat";
     /// <summary>PHP jw_repair_save / jw_repair_receipt_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair</c>.</summary>
     public const string ErpJewelleryRepairReceiptSaveForm = "/erp/jewellery/repair-receipt-save";
     /// <summary>PHP jw_repair_transfer_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_transfer</c>.</summary>
@@ -1117,6 +1133,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryRepairDeliverySaveForm = "/erp/jewellery/repair-delivery-save";
     /// <summary>PHP jw_stock_verification_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_stock_verification</c>.</summary>
     public const string ErpJewelleryStockVerifySaveForm = "/erp/jewellery/stock-verify-save";
+    /// <summary>PHP epc_jewel_sv_list. Read-only company-scoped stock verification history.</summary>
+    public const string ErpJewelleryStockVerificationList = "/erp/jewellery/stock-verification";
     /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
     public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
     /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>
