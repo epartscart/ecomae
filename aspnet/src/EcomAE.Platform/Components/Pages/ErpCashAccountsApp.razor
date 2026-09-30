@@ -203,7 +203,7 @@
                 <tbody>
                     @if (_forecasts.Count == 0)
                     {
-                        <tr><td colspan="3">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No cash-flow forecasts yet." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="3">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No forecasts yet." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
                     }
                     else
                     {
@@ -235,7 +235,7 @@
                 <tbody>
                     @if (_forecastLines.Count == 0)
                     {
-                        <tr><td colspan="6">No forecast lines on the selected forecast.</td></tr>
+                        <tr><td colspan="6">No forecast lines.</td></tr>
                     }
                     else
                     {
