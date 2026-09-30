@@ -143,6 +143,56 @@
     font-weight: 750;
 }
 
+.epc-cp-shell .form-control,
+.epc-cp-shell .form-select,
+.epc-erp-cp-shell .form-control,
+.epc-erp-cp-shell .form-select {
+    min-height: 2.15rem;
+    border-color: var(--epc-ui-line);
+    border-radius: .4rem;
+    box-shadow: none;
+}
+
+.epc-cp-shell .form-control:focus,
+.epc-cp-shell .form-select:focus,
+.epc-erp-cp-shell .form-control:focus,
+.epc-erp-cp-shell .form-select:focus {
+    border-color: var(--epc-ui-info);
+    box-shadow: 0 0 0 .16rem rgba(14, 131, 181, .18);
+}
+
+.epc-cp-shell .btn:focus-visible,
+.epc-erp-cp-shell .btn:focus-visible,
+.epc-cp-shell a:focus-visible,
+.epc-erp-cp-shell a:focus-visible {
+    outline: 2px solid var(--epc-ui-info);
+    outline-offset: 2px;
+}
+
+.epc-cp-shell .nav-tabs,
+.epc-erp-cp-shell .nav-tabs {
+    gap: .2rem;
+    border-bottom-color: var(--epc-ui-line);
+}
+
+.epc-cp-shell .nav-tabs > li > a,
+.epc-erp-cp-shell .nav-tabs > li > a {
+    border: 0;
+    border-bottom: 3px solid transparent;
+    border-radius: .35rem .35rem 0 0;
+    color: var(--epc-ui-muted);
+    font-weight: 700;
+}
+
+.epc-cp-shell .nav-tabs > li > a:hover,
+.epc-erp-cp-shell .nav-tabs > li > a:hover,
+.epc-cp-shell .nav-tabs > li.active > a,
+.epc-erp-cp-shell .nav-tabs > li.active > a {
+    border-color: var(--epc-ui-primary);
+    background: rgba(23, 105, 170, .06);
+    color: var(--epc-ui-primary);
+}
+
 .epc-ui-status {
     display: inline-flex;
     align-items: center;
