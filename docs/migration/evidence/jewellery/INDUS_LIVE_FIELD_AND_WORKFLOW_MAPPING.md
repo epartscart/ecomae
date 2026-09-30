@@ -206,6 +206,12 @@ tag number, barcode, and stock code across the observed `epc_jw_tags` and
 and weight/price fields only; it does not claim stock reservation, deduction,
 sale allocation, or tag-level movement reconstruction.
 
+The guarded tag-sale endpoint now consumes only an `in_stock` tag and applies
+the selected company scope when supplied, so an already sold tag or a tag from
+another company cannot be consumed through this path. This is a narrow
+availability/transition guard, not a claim of complete retail stock,
+tender, invoice, or movement-posting parity.
+
 The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level
 transfers, report filters, and live MariaDB corroboration. These stay PHP

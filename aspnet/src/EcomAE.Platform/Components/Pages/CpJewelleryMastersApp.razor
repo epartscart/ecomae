@@ -430,6 +430,10 @@
             <form method="post" action="@EcomAeRoutes.ErpJewelleryTagSellForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                 <input type="hidden" name="confirmWrites" value="true" />
                 <input type="hidden" name="returnUrl" value="@ReturnHref" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
                 <label>Tag id <input class="form-control input-sm" name="tag_id" type="number" min="1" required /></label>
                 <label>Invoice id <input class="form-control input-sm" name="invoice_id" type="number" min="0" value="0" /></label>
                 <label>Salesman id <input class="form-control input-sm" name="salesman_id" type="number" min="0" value="0" /></label>

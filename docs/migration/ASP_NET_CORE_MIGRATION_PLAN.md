@@ -114,7 +114,9 @@ an additive presentation/binding change and does not claim stock deduction or
 posting parity. The Jewellery retail workspace also exposes a tenant-scoped,
 read-only tag/barcode/stock-code lookup across the observed legacy registries;
 it returns identity and weight/price readback only and does not claim stock
-reservation or deduction. The newly added stock-balance projection is read-only,
+reservation or complete deduction. The guarded tag-sale path now requires an
+`in_stock` tag and applies the selected company scope when supplied; this is
+only a narrow availability/transition guard. The newly added stock-balance projection is read-only,
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.

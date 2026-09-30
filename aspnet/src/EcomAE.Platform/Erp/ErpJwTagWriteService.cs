@@ -43,6 +43,7 @@ public sealed record ErpJwTagCreateRequest(
 
 public sealed record ErpJwTagSellRequest(
     long TagId = 0,
+    int CompanyId = 0,
     int InvoiceId = 0,
     int SalesmanId = 0);
 
@@ -228,16 +229,18 @@ public sealed class ErpJwTagWriteService : IErpJwTagWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "UPDATE `epc_jw_tags` SET `status` = 'sold', `sold_invoice_id` = ?, `sold_date` = CURDATE(), `salesman_id` = ?, `time_updated` = ? WHERE `id` = ?"),
+                    "UPDATE `epc_jw_tags` SET `status` = 'sold', `sold_invoice_id` = ?, `sold_date` = CURDATE(), `salesman_id` = ?, `time_updated` = ? WHERE `id` = ? AND `status` = 'in_stock' AND (? = 0 OR `company_id` = ?)"),
                 cancellationToken,
                 invoiceId,
                 salesmanId,
                 now,
-                request.TagId).ConfigureAwait(false);
+                request.TagId,
+                Math.Max(0, request.CompanyId),
+                Math.Max(0, request.CompanyId)).ConfigureAwait(false);
             if (updated <= 0)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ErpSimpleWriteResult.Fail("invalid", "Tag is missing.");
+                return ErpSimpleWriteResult.Fail("invalid", "Tag is missing, unavailable, or outside the selected company.");
             }
 
             if (hasHistory)

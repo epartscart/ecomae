@@ -7432,6 +7432,7 @@ public sealed class ErpModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwTagSellBody>(context, cancellationToken)
                        ?? new();
             var tagId = body.TagId;
+            var companyId = body.CompanyId;
             var invoiceId = body.InvoiceId;
             var salesmanId = body.SalesmanId;
             var confirm = body.ConfirmWrites;
@@ -7439,6 +7440,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 tagId = LiveWriteFormBinder.Long(form, "tagId", "tag_id", "id");
+                companyId = LiveWriteFormBinder.Int(form, "company", "company_id");
                 invoiceId = LiveWriteFormBinder.Int(form, "invoiceId", "invoice_id", "sold_invoice_id");
                 salesmanId = LiveWriteFormBinder.Int(form, "salesmanId", "salesman_id");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
@@ -7457,7 +7459,7 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             var written = await writes.SellAsync(
-                new ErpJwTagSellRequest(tagId, invoiceId, salesmanId),
+                new ErpJwTagSellRequest(tagId, companyId, invoiceId, salesmanId),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -22401,6 +22403,7 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpJwTagSellBody(
         long TagId = 0,
+        int CompanyId = 0,
         int InvoiceId = 0,
         int SalesmanId = 0,
         bool ConfirmWrites = false);
