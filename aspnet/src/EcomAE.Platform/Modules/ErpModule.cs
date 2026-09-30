@@ -7810,12 +7810,14 @@ public sealed class ErpModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwFixUnfixSettleBody>(context, cancellationToken)
                        ?? new();
             var id = body.Id;
+            var companyId = body.CompanyId;
             var settleRate = body.SettleRate;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 id = LiveWriteFormBinder.Long(form, "id", "purchaseId", "purchase_id");
+                companyId = LiveWriteFormBinder.Int(form, "company", "company_id");
                 settleRate = LiveWriteFormBinder.Dec(form, "settleRate", "settle_rate");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
@@ -7832,7 +7834,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Results.Ok(result.ToPayload(SessionPayload(session)));
             }
 
-            var written = await writes.SettleAsync(new ErpJwFixUnfixSettleRequest(id, settleRate), cancellationToken);
+            var written = await writes.SettleAsync(new ErpJwFixUnfixSettleRequest(id, companyId, settleRate), cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
                 ok = written.Succeeded,
@@ -22456,6 +22458,7 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpJwFixUnfixSettleBody(
         long Id = 0,
+        int CompanyId = 0,
         decimal SettleRate = 0,
         bool ConfirmWrites = false);
     private sealed record ErpJwBarcodePurchaseCreateBody(
