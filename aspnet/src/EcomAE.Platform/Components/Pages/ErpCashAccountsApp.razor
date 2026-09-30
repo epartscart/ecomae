@@ -5,10 +5,12 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Cash &amp; Bank · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -303,6 +305,7 @@
                 <dt>Office</dt><dd>@(_openedDetail.OfficeId > 0 ? _openedDetail.OfficeId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Office cash, petty cash, and forecast write here. Writes stay Classic for account create.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.BankNameExcerpt))
             {
@@ -449,6 +452,7 @@
     private ErpCashAccountDigest? _openedAccount;
     private ErpCashAccountDetail? _openedDetail;
     private IReadOnlyList<ErpCashAccountDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedAccount is not null;
 
@@ -542,6 +546,10 @@
             var detail = await Dashboards.BuildErpCashAccountDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Account;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync(
+                "cash_account",
+                _openedId,
+                ctx.RequestAborted);
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _accountsMessage = detail.Message;

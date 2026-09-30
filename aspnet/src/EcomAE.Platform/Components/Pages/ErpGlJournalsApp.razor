@@ -6,10 +6,12 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>General Ledger · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -101,6 +103,7 @@
                 JournalCredit="@_openedDetail.TotalCredit"
                 Actions="@GeneralJournalActions"
                 HeaderActions="@GeneralJournalHeaderActions" />
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Journal identity, source, status, balanced debit/credit totals, and persisted lines are presented in the shared finance workspace.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.DescriptionExcerpt))
             {
@@ -212,6 +215,7 @@
     private ErpGlJournalDigest? _openedJournal;
     private ErpGlJournalDetail? _openedDetail;
     private IReadOnlyList<ErpGlJournalDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
 
     private IReadOnlyList<string> GeneralJournalTabs =>
         ["List", "General", "Invoice", "Payment", "Payment fee", "Fixed assets", "Remittance", "History"];
@@ -325,6 +329,10 @@
             var detail = await Dashboards.BuildErpGlJournalDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Journal;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync(
+                "gl_entry",
+                _openedId,
+                ctx.RequestAborted);
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;
