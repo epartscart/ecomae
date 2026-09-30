@@ -439,6 +439,18 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryStockVerificationReadback_IsCompanyScopedAndReadOnly()
+    {
+        var service = ReadSource("ErpJwStockVerificationReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("WHERE `company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryStockVerificationList", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryStockVerificationListAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Stock verification history is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

@@ -10190,6 +10190,9 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryStockVerificationList,
+            HandleJewelleryStockVerificationListAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -12615,6 +12618,37 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewelleryStockVerificationListAsync(
+        HttpContext context,
+        int companyId,
+        int limit,
+        ILegacySessionValidator validator,
+        IErpJwStockVerificationReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_stock_verification",
+                "Admin ERP capability required for jewellery stock verification.");
+        }
+
+        var result = await read.ReadAsync(companyId, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Stock verification history is read-only and company-scoped."
+        });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(
