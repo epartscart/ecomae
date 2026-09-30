@@ -463,6 +463,31 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ErpResourceListingsAndCpAccessoryListingsRemainDistinctContracts()
+    {
+        var root = FindRepoRoot();
+        var phpListing = File.ReadAllText(Path.Combine(
+            root,
+            "cp/content/shop/finance/erp/erp_tabs_listing.php"));
+        var accessoriesService = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Cp/CpAccessoriesListService.cs"));
+        var accessoriesPage = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages/CpAccessoriesApp.razor"));
+
+        Assert.Contains("epc_erp_pm_listings_list", phpListing, StringComparison.Ordinal);
+        var phpAjax = File.ReadAllText(Path.Combine(
+            root,
+            "cp/content/shop/finance/erp/ajax_erp.php"));
+        Assert.Contains("epc_erp_dim_save_from_post", phpAjax, StringComparison.Ordinal);
+        Assert.Contains("'listing'", phpAjax, StringComparison.Ordinal);
+        Assert.Contains("epc_acc_listings", accessoriesService, StringComparison.Ordinal);
+        Assert.Contains("ICpAccessoriesListService", accessoriesPage, StringComparison.Ordinal);
+        Assert.DoesNotContain("DimensionLinks.LoadAsync", accessoriesPage, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
