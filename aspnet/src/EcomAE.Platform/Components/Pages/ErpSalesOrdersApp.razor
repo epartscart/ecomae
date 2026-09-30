@@ -5,10 +5,12 @@
 @using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Sales Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -206,6 +208,7 @@
                 Fields="@SalesOrderWorkspaceFields"
                 Lines="@SalesOrderWorkspaceLines"
                 HeaderActions="@SalesOrderHeaderActions" />
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Settlement, confirmation, invoicing, deletion, and edit-lock actions are guarded by the ERP write endpoints; PHP remains the behavioral reference.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
@@ -421,6 +424,7 @@
     private string _subtitle = "Sales orders with line totals.";
     private string _view = "sales_orders";
     private bool _isAdmin;
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private IReadOnlyList<ErpSalesOrderDigest> _orders = [];
     private IReadOnlyList<ErpInventoryItemPickerDigest> _items = [];
     private ErpSubscriptionsSummary _subs = new(0, 0, 0, 0, 0, "n/a", "");
@@ -540,6 +544,7 @@
         {
             var detail = await Dashboards.BuildErpSalesOrderDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Order;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("sales_order", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
