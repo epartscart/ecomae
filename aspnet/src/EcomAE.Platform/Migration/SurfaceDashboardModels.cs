@@ -2064,6 +2064,23 @@ public sealed record CpJewelleryRetailDigestResult(
     string Source,
     string Message);
 
+public sealed record CpJewelleryTagLookupRow(
+    long Id,
+    string TagNo,
+    string Barcode,
+    string Description,
+    string Status,
+    decimal GrossWeight,
+    decimal NetWeight,
+    decimal SellPrice,
+    string SourceTable);
+
+public sealed record CpJewelleryTagLookupResult(
+    IReadOnlyList<CpJewelleryTagLookupRow> Rows,
+    string Query,
+    string Source,
+    string Message);
+
 public sealed record CpJewelleryVoucherDetail(
     long Id,
     string VocType,

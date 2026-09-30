@@ -2654,6 +2654,33 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    public const string SelectCpJewelleryTagLookup = """
+        SELECT `id`, IFNULL(`tag_no`,'') AS tag_no, IFNULL(`barcode`,'') AS barcode,
+               IFNULL(`description`,'') AS description, IFNULL(`status`,'') AS status,
+               IFNULL(`gross_weight`,0) AS gross_weight, IFNULL(`net_weight`,0) AS net_weight,
+               IFNULL(`sell_price`,0) AS sell_price, 'epc_jw_tags' AS source_table
+        FROM `epc_jw_tags`
+        WHERE (@companyId = 0 OR `company_id` = @companyId)
+          AND (`tag_no` LIKE CONCAT('%', @query, '%')
+               OR `barcode` LIKE CONCAT('%', @query, '%')
+               OR `description` LIKE CONCAT('%', @query, '%'))
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
+    public const string SelectCpJewelleryBarcodeLookup = """
+        SELECT `id`, '' AS tag_no, IFNULL(`barcode`,'') AS barcode,
+               IFNULL(`stock_code`,'') AS description, '' AS status,
+               IFNULL(`gross_wt`,0) AS gross_weight, IFNULL(`net_wt`,0) AS net_weight,
+               IFNULL(`tag_price`,0) AS sell_price, 'epc_jewel_barcode' AS source_table
+        FROM `epc_jewel_barcode`
+        WHERE (@companyId = 0 OR `company_id` = @companyId)
+          AND (`barcode` LIKE CONCAT('%', @query, '%')
+               OR `stock_code` LIKE CONCAT('%', @query, '%'))
+        ORDER BY `id` DESC
+        LIMIT @limit
+        """;
+
     /// <summary>Opened jewellery retail voucher. narration is a short excerpt. PII/remarks omitted.</summary>
     public const string SelectCpJewelleryVoucherDetail = """
         SELECT `id`, IFNULL(`voc_type`,'') AS voc_type, IFNULL(`voc_date`,'') AS voc_date,

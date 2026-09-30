@@ -299,6 +299,20 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void JewelleryRetailPage_ExposesTenantScopedTagBarcodeLookup()
+    {
+        var page = ReadApp("CpJewelleryRetailApp.razor");
+        var sql = ReadPlatformSource("Migration/LegacySurfaceDashboardSql.cs");
+        var reporter = ReadPlatformSource("Migration/SurfaceDashboardSummaryReporter.cs");
+        Assert.Contains("name=\"lookup\"", page, StringComparison.Ordinal);
+        Assert.Contains("LookupCpJewelleryTagsAsync", page, StringComparison.Ordinal);
+        Assert.Contains("SelectCpJewelleryTagLookup", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectCpJewelleryBarcodeLookup", sql, StringComparison.Ordinal);
+        Assert.Contains("@companyId = 0 OR `company_id` = @companyId", sql, StringComparison.Ordinal);
+        Assert.Contains("rows.Take(safeLimit)", reporter, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void JewelleryFormRoutes_AreDedicatedHtmlPosts()
     {
         Assert.Equal("/erp/jewellery/repair-create", EcomAeRoutes.ErpJewelleryRepairCreateForm);

@@ -28,6 +28,52 @@
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.RetailTabs" />
 
+    @if (_isAdmin)
+    {
+        <div class="epc-erp-empty" style="display:block;margin:12px 0;padding:10px;border:1px solid #c5d4de;background:#f8fafc;">
+            <form method="get" action="@_appPath" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin:0;">
+                <input type="hidden" name="tab" value="@_tab" />
+                @if (_company > 0)
+                {
+                    <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
+                }
+                <label>Tag / barcode / stock code
+                    <input class="form-control input-sm" name="lookup" value="@_lookupQuery" maxlength="100" />
+                </label>
+                <button type="submit" class="btn btn-default btn-sm">Find item</button>
+            </form>
+            @if (_lookupQuery.Length > 0)
+            {
+                <p class="text-muted" style="margin:.6rem 0 .35rem">@_lookupMessage</p>
+                @if (_lookupRows.Count > 0)
+                {
+                    <div class="epc-erp-table-wrap">
+                        <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                            <thead>
+                                <tr><th>Source</th><th>Tag</th><th>Barcode</th><th>Description / stock</th><th>Status</th><th>Gross wt</th><th>Net wt</th><th>Sell price</th></tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var item in _lookupRows)
+                                {
+                                    <tr>
+                                        <td>@item.SourceTable</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.TagNo) ? "—" : item.TagNo)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.Barcode) ? "—" : item.Barcode)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.Description) ? "—" : item.Description)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(item.Status) ? "—" : item.Status)</td>
+                                        <td>@item.GrossWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                        <td>@item.NetWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                        <td>@item.SellPrice.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                }
+            }
+        </div>
+    }
+
     @if (_opened is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
@@ -361,6 +407,9 @@
     private long _openedId;
     private CpJewelleryVoucherDetail? _opened;
     private IReadOnlyList<CpJewelleryVoucherDigest> _openedSiblings = [];
+    private IReadOnlyList<CpJewelleryTagLookupRow> _lookupRows = [];
+    private string _lookupQuery = "";
+    private string _lookupMessage = "";
     private bool _showVouchers;
 
     private sealed record SaleRow(long Id, string No, string InvNo, string InvDate, string Customer, string Net, string Status);
@@ -403,6 +452,7 @@
         _tab = ErpJewelleryModuleChrome.NormalizeTab(ctx.Request.Query["tab"].ToString(), ErpJewelleryModuleChrome.RetailTabs, "jw_retail_sales");
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
+        _lookupQuery = ctx.Request.Query["lookup"].ToString().Trim();
         _spec = ErpJewelleryModuleChrome.RetailSpec(_tab);
         _tabBase = ErpJewelleryModuleChrome.AppHref(_appPath, _company);
         _returnHere = ErpJewelleryModuleChrome.AppHref(_appPath, _company, ("tab", _tab));
@@ -419,6 +469,18 @@
         _summary = result.Summary;
         _source = result.Source;
         _message = result.Message;
+        if (_lookupQuery.Length > 0)
+        {
+            var lookup = await Dashboards.LookupCpJewelleryTagsAsync(_lookupQuery, 50, _company, ctx.RequestAborted);
+            _lookupRows = lookup.Rows;
+            _lookupMessage = lookup.Rows.Count == 0
+                ? "No tag, barcode, or stock-code match found."
+                : lookup.Rows.Count.ToString(CultureInfo.InvariantCulture) + " item match(es) found.";
+            if (!string.IsNullOrWhiteSpace(lookup.Message))
+            {
+                _lookupMessage = lookup.Message;
+            }
+        }
         _showVouchers = _tab is "jw_retail_sales" or "jewellery" or "retail_commerce" or "jw_metal_sales" or "jw_sales_return";
         _display = _showVouchers
             ? result.Vouchers.Select((v, i) => new SaleRow(
