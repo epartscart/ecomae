@@ -211,6 +211,10 @@ the selected company scope when supplied, so an already sold tag or a tag from
 another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
+The ASP.NET stock-availability readback now returns only `in_stock` rows from
+`epc_jw_tags`, optionally filtered by company and tag number/barcode. It is
+operator evidence for available tagged inventory and deliberately does not
+reserve, deduct, allocate tender, or post finance.
 
 The guarded fix/unfix settlement path now allows only an open `unfix` purchase,
 requires the selected company scope when supplied, and records one settlement
@@ -226,6 +230,9 @@ acceptance remain open.
 Project-scoped fit-out approval evidence now combines the pending approval
 queue with decision audit history; this remains read-only machine evidence and
 does not replace human approval sign-off.
+The fit-out workspace also exposes estimate/BOQ detail readback with component
+rates and derived totals for machine verification; it remains read-only
+evidence and does not claim production acceptance.
 
 The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level
