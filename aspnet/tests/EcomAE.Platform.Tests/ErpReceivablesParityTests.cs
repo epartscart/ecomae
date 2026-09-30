@@ -22,6 +22,19 @@ public sealed class ErpReceivablesParityTests
     }
 
     [Fact]
+    public void PeriodCloseCatalogRecordsLiveGuardedLifecycle()
+    {
+        var catalog = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet", "src", "EcomAE.Platform", "Migration", "SurfacePayloadContractCatalog.cs"));
+        var page = ReadApp("ErpPeriodCloseApp.razor");
+
+        Assert.Contains("live-period-lifecycle", catalog, StringComparison.Ordinal);
+        Assert.Contains("period_id", page, StringComparison.Ordinal);
+        Assert.Contains("set-lock", page, StringComparison.Ordinal);
+        Assert.Contains("soft-close", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void OnPremisesAppWiresLicenseDigest()
     {
         var text = ReadApp("ErpOnPremisesApp.razor");
