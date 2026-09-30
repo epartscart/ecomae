@@ -439,6 +439,18 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryMetalStockBalance_IsCompanyScopedAndReadOnly()
+    {
+        var service = ReadSource("ErpJwMetalStockBalanceReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("WHERE `company_id`=? AND `stock_qty` > 0", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryMetalStockBalance", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryMetalStockBalanceAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Metal stock balance is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

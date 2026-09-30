@@ -120,6 +120,10 @@ only a narrow availability/transition guard. The newly added stock-balance proje
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
+The metal-stock balance projection now mirrors the PHP aggregate by company,
+metal, and karat, including positive stock quantity filtering; mutation,
+movement reconstruction, and valuation reconciliation remain outside this
+read-only tranche.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
