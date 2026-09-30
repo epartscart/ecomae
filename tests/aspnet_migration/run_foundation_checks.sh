@@ -638,6 +638,7 @@ check 'PHP decommission readiness blocks removal' contains "$ROOT/docs/migration
 
 check 'final gate checklist script exists' test -x "$ROOT/scripts/run_zero_php_final_gate_checklist.sh"
 check 'CloudPanel final-gate capture script exists' test -x "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh"
+check 'final-gate capture prefers active production checkout' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'CANDIDATES=("${ECOMAE_REPO:-}" /root/ecomae /opt/ecomae-aspnet-source /opt/ecomae)'
 check 'deploy packs decommission evidence into release' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'Packed decommission evidence'
 check 'deploy copies public probe evidence directory' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'docs/migration/evidence/decommission'
 check 'deploy packs price lookup gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-price-lookup-shadow-example.conf'
