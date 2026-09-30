@@ -2078,7 +2078,26 @@ public sealed record CpJewelleryVoucherDetail(
     decimal VatAmount,
     decimal TotalWithVat,
     int NarrationLen,
-    string NarrationExcerpt);
+    string NarrationExcerpt)
+{
+    public IReadOnlyList<CpJewelleryVoucherLine> LineItems { get; init; } = [];
+}
+
+public sealed record CpJewelleryVoucherLine(
+    long Id,
+    int LineNo,
+    string StockCode,
+    string Division,
+    string Description,
+    int Pcs,
+    decimal GrossWeight,
+    decimal Purity,
+    decimal PureWeight,
+    decimal MetalAmount,
+    decimal MakingAmount,
+    decimal StoneAmount,
+    decimal DiscountAmount,
+    decimal TotalAmount);
 
 public sealed record CpJewelleryVoucherDetailResult(
     CpJewelleryVoucherDetail? Voucher,

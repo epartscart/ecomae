@@ -152,3 +152,46 @@ Before declaring a mapping complete, obtain read-only evidence for:
 Until these items are evidenced, use the PHP implementation and schema as the
 behavioral authority, keep ASP.NET routes guarded/shadowed, and retain PHP as
 fallback.
+
+## Screenshot-driven transaction tranche
+
+The supplied screenshot set is now treated as an acceptance baseline for the
+transaction screens. The first functional tranche extends the ASP.NET voucher
+save path beyond a header-only write:
+
+| Screenshot family | PHP evidence | ASP.NET status |
+| --- | --- | --- |
+| Retail / metal sales / sales return | `epc_jewel_voucher` + `epc_jewel_voucher_lines`; `jw_*_save` aliases | Header and one-line entry now bind through the guarded voucher endpoint; PHP-owned fallback remains |
+| Metal / diamond purchase and purchase window | Voucher registry plus shared voucher lines | Shared line contract persists stock code, division, description, pieces, weights, purity, metal/making/stone/discount amounts |
+| POS advance / petty cash / journal voucher | `ADV`/`PCV`/`JVL` registry and voucher header | Voucher header path remains guarded; detailed receipt/accounting posting stays open |
+| Purchase / sales fixing | `epc_jewel_fixing` and fixing aliases | Existing fixing endpoint remains separate; purchase/sales voucher forms expose the shared line contract |
+
+Line valuation follows the PHP-observed calculation shape when derived values
+are not supplied: pure weight is gross weight multiplied by purity, making
+amount is gross weight multiplied by making rate, metal amount is pure weight
+multiplied by metal rate, and total amount includes metal, making, stone, and
+discount values. This is **Observed/Inferred PHP parity**, not a claim that
+all INDUS posting and inventory triggers have been independently verified.
+
+The remaining screenshot acceptance gates are explicit: multi-line browser
+entry, tag/barcode lookup, stock availability and deduction, receipt/tender
+allocation, VAT/TRN rules, fixing settlement effects, repair item-level
+transfers, report filters, and live MariaDB corroboration. These stay PHP
+authoritative until schema and transaction traces are verified.
+
+## Shared ERP versus industry-specific access boundary
+
+The ASP.NET surface treats finance, purchasing, sales, inventory, tax,
+approvals, and other general ERP workspaces as shared capabilities. Jewellery
+and fit-out/construction workspaces are separate industry packs:
+
+| Surface | Required industry context | Enforcement |
+| --- | --- | --- |
+| Jewellery CP/ERP routes | `jewellery` / `jewelry` host or industry pack | Navigation filtering plus request middleware |
+| Fit-out project accounting and `/erp/fitout/*` routes | `fitout`, `fit_out`, `construction`, or `construction_contracting` host or industry pack | Request middleware |
+| Shared ERP routes | No industry-specific pack | Remain available subject to normal tenant, RBAC, and module-pack rules |
+
+Direct URL and form requests are denied before Blazor route rendering when the
+tenant context does not satisfy the required industry pack. Super-ERP
+diagnostic surfaces remain governed by their existing privileged host/session
+gates; this policy does not broaden ordinary tenant access.

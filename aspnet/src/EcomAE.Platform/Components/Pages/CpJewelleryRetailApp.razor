@@ -57,6 +57,51 @@
             {
                 <p class="text-muted" style="margin:.85rem 0 0">No narration excerpt yet.</p>
             }
+            @if (_opened.LineItems.Count > 0)
+            {
+                <h4>Voucher lines</h4>
+                <div class="epc-erp-table-wrap">
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead>
+                            <tr>
+                                <th>Line</th>
+                                <th>Stock code</th>
+                                <th>Description</th>
+                                <th>Division</th>
+                                <th>Pcs</th>
+                                <th>Gross wt</th>
+                                <th>Purity</th>
+                                <th>Pure wt</th>
+                                <th>Metal</th>
+                                <th>Making</th>
+                                <th>Stone</th>
+                                <th>Discount</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var line in _opened.LineItems)
+                            {
+                                <tr>
+                                    <td>@line.LineNo</td>
+                                    <td>@line.StockCode</td>
+                                    <td>@line.Description</td>
+                                    <td>@line.Division</td>
+                                    <td>@line.Pcs</td>
+                                    <td>@line.GrossWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.Purity.ToString("N6", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.PureWeight.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.MetalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.MakingAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.StoneAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.DiscountAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@line.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
             @if (_openedSiblings.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
@@ -101,9 +146,35 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
+                <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
+                <label>Voucher date <input class="form-control input-sm" name="voc_date" type="date" /></label>
                 <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
-                <label>Party / salesman <input class="form-control input-sm" name="code" /></label>
+                <label>Customer code <input class="form-control input-sm" name="party_code" /></label>
+                <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
+                <label>Salesman <input class="form-control input-sm" name="salesman" /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="5" /></label>
+                <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
+                <label>Line stock code <input class="form-control input-sm" name="line_stock_code" required /></label>
+                <label>Line description <input class="form-control input-sm" name="line_description" required /></label>
+                <label>Division
+                    <select class="form-control input-sm" name="line_division">
+                        <option value="G">Gold</option>
+                        <option value="D">Diamond</option>
+                        <option value="S">Silver</option>
+                        <option value="P">Pearl</option>
+                    </select>
+                </label>
+                <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
+                <label>Metal rate <input class="form-control input-sm" name="line_metal_rate" type="number" step="0.00001" value="0" /></label>
+                <label>Making rate <input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Stone amount <input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></label>
+                <label>Discount <input class="form-control input-sm" name="line_disc_amount" type="number" step="0.01" value="0" /></label>
                 <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                <label>VAT <input class="form-control input-sm" name="vat_amount" type="number" step="0.01" value="0" /></label>
+                <label>Gross total <input class="form-control input-sm" name="gross_total" type="number" step="0.01" value="0" /></label>
+                <label>Narration <input class="form-control input-sm" name="narration" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save voucher</button>
             </form>
         </ErpPhpCreateWell>

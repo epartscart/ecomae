@@ -1210,6 +1210,9 @@ app.UseMiddleware<EcomaeMarketingSnapshotMiddleware>();
 // Legacy stub→PHP /en redirect. Skipped when PreferAspNetStorefrontApps (product ASP.NET primary).
 app.UseMiddleware<StorefrontStubToPhpRedirectMiddleware>();
 app.UseMiddleware<TenantResolutionMiddleware>();
+// Shared ERP remains available to every tenant; industry-specific workspaces are gated
+// by host/company industry before Blazor can render or accept their forms.
+app.UseMiddleware<IndustrySpecificRouteGateMiddleware>();
 // Bind 3s first-paint wall clock before session + Blazor (stops Cloudflare 524 hangs).
 app.UseMiddleware<SurfaceFirstPaintMiddleware>();
 // lifeos.ecomae.com bare / or mis-routed /marketing/app → redirect /lifeos (short-circuit).

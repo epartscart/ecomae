@@ -40,6 +40,30 @@ public sealed record ErpJwDiamondSaveRequest(
     decimal Price1Pct = 0,
     decimal Price1Fc = 0,
     decimal Price1Lc = 0,
+    string? Price2Code = null,
+    decimal Price2Pct = 0,
+    decimal Price2Fc = 0,
+    decimal Price2Lc = 0,
+    decimal LandedCost = 0,
+    decimal ForeignCost = 0,
+    decimal CostDifference = 0,
+    string? CertificateNo = null,
+    string? CertificateDate = null,
+    string? CertificateBy = null,
+    string? CertificateNo1 = null,
+    string? CertificateDate1 = null,
+    int NoOfCertificates = 0,
+    decimal SettingCharge = 0,
+    decimal PolishingCharge = 0,
+    decimal RhodiumCharge = 0,
+    decimal LabourCharge = 0,
+    decimal MiscCharge = 0,
+    bool ExcludeGstMetal = false,
+    decimal PureWt = 0,
+    bool TrnOnMargin = false,
+    bool UaeTrnItem = false,
+    string? CustSku = null,
+    string? AgeingDate = null,
     bool Promotional = false);
 
 public sealed class ErpJwDiamondWriteService : IErpJwDiamondWriteService
@@ -94,7 +118,7 @@ public sealed class ErpJwDiamondWriteService : IErpJwDiamondWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_diamond_master` (`company_id`,`item_code`,`description`,`design`,`rfid`,`category`,`sub_category`,`type`,`brand`,`color`,`clarity`,`fluorescence`,`style`,`set_ref`,`country`,`vendor`,`vendor_ref`,`currency`,`currency_rate`,`cost_centre`,`cost_amount`,`item_gr_wt`,`price1_code`,`price1_pct`,`price1_fc`,`price1_lc`,`promotional`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `design` = VALUES(`design`), `category` = VALUES(`category`), `color` = VALUES(`color`), `clarity` = VALUES(`clarity`), `cost_amount` = VALUES(`cost_amount`), `item_gr_wt` = VALUES(`item_gr_wt`)"),
+                "INSERT INTO `epc_jewel_diamond_master` (`company_id`,`item_code`,`description`,`design`,`rfid`,`category`,`sub_category`,`type`,`brand`,`color`,`clarity`,`fluorescence`,`style`,`set_ref`,`country`,`vendor`,`vendor_ref`,`currency`,`currency_rate`,`cost_centre`,`cost_amount`,`item_gr_wt`,`price1_code`,`price1_pct`,`price1_fc`,`price1_lc`,`price2_code`,`price2_pct`,`price2_fc`,`price2_lc`,`landed_cost`,`foreign_cost`,`cost_difference`,`certificate_no`,`certificate_date`,`certificate_by`,`certificate_no_1`,`certificate_date_1`,`no_of_certificates`,`setting_charge`,`polishing_charge`,`rhodium_charge`,`labour_charge`,`misc_charge`,`exclude_gst_metal`,`pure_wt`,`trn_on_margin`,`uae_trn_item`,`cust_sku`,`ageing_date`,`promotional`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `design` = VALUES(`design`), `rfid` = VALUES(`rfid`), `category` = VALUES(`category`), `sub_category` = VALUES(`sub_category`), `type` = VALUES(`type`), `brand` = VALUES(`brand`), `color` = VALUES(`color`), `clarity` = VALUES(`clarity`), `fluorescence` = VALUES(`fluorescence`), `style` = VALUES(`style`), `set_ref` = VALUES(`set_ref`), `country` = VALUES(`country`), `vendor` = VALUES(`vendor`), `vendor_ref` = VALUES(`vendor_ref`), `currency` = VALUES(`currency`), `currency_rate` = VALUES(`currency_rate`), `cost_centre` = VALUES(`cost_centre`), `cost_amount` = VALUES(`cost_amount`), `item_gr_wt` = VALUES(`item_gr_wt`), `price1_code` = VALUES(`price1_code`), `price1_pct` = VALUES(`price1_pct`), `price1_fc` = VALUES(`price1_fc`), `price1_lc` = VALUES(`price1_lc`), `price2_code` = VALUES(`price2_code`), `price2_pct` = VALUES(`price2_pct`), `price2_fc` = VALUES(`price2_fc`), `price2_lc` = VALUES(`price2_lc`), `landed_cost` = VALUES(`landed_cost`), `foreign_cost` = VALUES(`foreign_cost`), `cost_difference` = VALUES(`cost_difference`), `certificate_no` = VALUES(`certificate_no`), `certificate_date` = VALUES(`certificate_date`), `certificate_by` = VALUES(`certificate_by`), `certificate_no_1` = VALUES(`certificate_no_1`), `certificate_date_1` = VALUES(`certificate_date_1`), `no_of_certificates` = VALUES(`no_of_certificates`), `setting_charge` = VALUES(`setting_charge`), `polishing_charge` = VALUES(`polishing_charge`), `rhodium_charge` = VALUES(`rhodium_charge`), `labour_charge` = VALUES(`labour_charge`), `misc_charge` = VALUES(`misc_charge`), `exclude_gst_metal` = VALUES(`exclude_gst_metal`), `pure_wt` = VALUES(`pure_wt`), `trn_on_margin` = VALUES(`trn_on_margin`), `uae_trn_item` = VALUES(`uae_trn_item`), `cust_sku` = VALUES(`cust_sku`), `ageing_date` = VALUES(`ageing_date`), `promotional` = VALUES(`promotional`)"),
             cancellationToken,
             companyId,
             code,
@@ -122,6 +146,30 @@ public sealed class ErpJwDiamondWriteService : IErpJwDiamondWriteService
             RoundNonNeg(request.Price1Pct, 2),
             RoundNonNeg(request.Price1Fc, 2),
             RoundNonNeg(request.Price1Lc, 2),
+            Clip((request.Price2Code ?? string.Empty).Trim(), 5) is { Length: > 0 } price2Code ? price2Code : "GEN",
+            RoundNonNeg(request.Price2Pct, 2),
+            RoundNonNeg(request.Price2Fc, 2),
+            RoundNonNeg(request.Price2Lc, 2),
+            RoundNonNeg(request.LandedCost, 2),
+            RoundNonNeg(request.ForeignCost, 2),
+            RoundNonNeg(request.CostDifference, 2),
+            Clip((request.CertificateNo ?? string.Empty).Trim(), 40),
+            NormalizeDate(request.CertificateDate),
+            Clip((request.CertificateBy ?? string.Empty).Trim(), 40),
+            Clip((request.CertificateNo1 ?? string.Empty).Trim(), 40),
+            NormalizeDate(request.CertificateDate1),
+            Math.Max(request.NoOfCertificates, 0),
+            RoundNonNeg(request.SettingCharge, 2),
+            RoundNonNeg(request.PolishingCharge, 2),
+            RoundNonNeg(request.RhodiumCharge, 2),
+            RoundNonNeg(request.LabourCharge, 2),
+            RoundNonNeg(request.MiscCharge, 2),
+            request.ExcludeGstMetal ? 1 : 0,
+            RoundNonNeg(request.PureWt, 4),
+            request.TrnOnMargin ? 1 : 0,
+            request.UaeTrnItem ? 1 : 0,
+            Clip((request.CustSku ?? string.Empty).Trim(), 30),
+            NormalizeDate(request.AgeingDate),
             request.Promotional ? 1 : 0).ConfigureAwait(false);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
@@ -160,4 +208,7 @@ public sealed class ErpJwDiamondWriteService : IErpJwDiamondWriteService
 
     private static string Clip(string value, int maxLen)
         => value.Length <= maxLen ? value : value[..maxLen];
+
+    private static object NormalizeDate(string? value)
+        => DateOnly.TryParse(value, out var date) ? date.ToDateTime(TimeOnly.MinValue) : DBNull.Value;
 }

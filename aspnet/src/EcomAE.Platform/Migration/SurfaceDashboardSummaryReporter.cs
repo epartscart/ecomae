@@ -9109,6 +9109,39 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 return new(null, [], "database", "Voucher not found.");
             }
 
+            var lineItems = new List<CpJewelleryVoucherLine>();
+            try
+            {
+                await using var lineCommand = connection.CreateCommand();
+                lineCommand.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryVoucherLines;
+                AddParameter(lineCommand, "@voucherId", id);
+                await using var lineReader = await lineCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await lineReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    lineItems.Add(new CpJewelleryVoucherLine(
+                        Convert.ToInt64(lineReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(lineReader["line_no"] is DBNull ? 0 : lineReader["line_no"], CultureInfo.InvariantCulture),
+                        Convert.ToString(lineReader["stock_code"] is DBNull ? string.Empty : lineReader["stock_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(lineReader["division"] is DBNull ? string.Empty : lineReader["division"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToString(lineReader["description"] is DBNull ? string.Empty : lineReader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt32(lineReader["pcs"] is DBNull ? 0 : lineReader["pcs"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["gr_wt"] is DBNull ? 0 : lineReader["gr_wt"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["purity"] is DBNull ? 0 : lineReader["purity"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["pure_wt"] is DBNull ? 0 : lineReader["pure_wt"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["metal_amount"] is DBNull ? 0 : lineReader["metal_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["mkg_amount"] is DBNull ? 0 : lineReader["mkg_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["stone_amount"] is DBNull ? 0 : lineReader["stone_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["disc_amount"] is DBNull ? 0 : lineReader["disc_amount"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(lineReader["total_amount"] is DBNull ? 0 : lineReader["total_amount"], CultureInfo.InvariantCulture)));
+                }
+            }
+            catch (DbException)
+            {
+                // Older PHP tenants may not have the optional line table yet.
+            }
+
+            header = header with { LineItems = lineItems };
+
             var siblings = new List<CpJewelleryVoucherDigest>();
             await using (var cmd = connection.CreateCommand())
             {

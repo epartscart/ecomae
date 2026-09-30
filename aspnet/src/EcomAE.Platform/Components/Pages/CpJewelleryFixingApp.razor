@@ -108,9 +108,32 @@
                 {
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
+                <label>Branch <input class="form-control input-sm" name="branch" value="HO" maxlength="10" /></label>
+                <label>Voucher date <input class="form-control input-sm" name="voc_date" type="date" /></label>
                 <label>Party Code <input class="form-control input-sm" name="party_code" /></label>
                 <label>Party Name <input class="form-control input-sm" name="party_name" required /></label>
+                <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="5" /></label>
+                <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
+                <label>Stock code <input class="form-control input-sm" name="line_stock_code" required /></label>
+                <label>Description <input class="form-control input-sm" name="line_description" required /></label>
+                <label>Division
+                    <select class="form-control input-sm" name="line_division">
+                        <option value="G">Gold</option>
+                        <option value="D">Diamond</option>
+                        <option value="S">Silver</option>
+                        <option value="P">Pearl</option>
+                    </select>
+                </label>
+                <label>Pcs <input class="form-control input-sm" name="line_pcs" type="number" min="0" value="1" /></label>
+                <label>Gross wt <input class="form-control input-sm" name="line_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Purity <input class="form-control input-sm" name="line_purity" type="number" step="0.000001" value="0.917" /></label>
+                <label>Metal rate <input class="form-control input-sm" name="line_metal_rate" type="number" step="0.00001" value="0" /></label>
+                <label>Making rate <input class="form-control input-sm" name="line_mkg_rate" type="number" step="0.0001" value="0" /></label>
+                <label>Stone amount <input class="form-control input-sm" name="line_stone_amount" type="number" step="0.01" value="0" /></label>
+                <label>Discount <input class="form-control input-sm" name="line_disc_amount" type="number" step="0.01" value="0" /></label>
                 <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
+                <label>VAT <input class="form-control input-sm" name="vat_amount" type="number" step="0.01" value="0" /></label>
+                <label>Gross total <input class="form-control input-sm" name="gross_total" type="number" step="0.01" value="0" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save voucher</button>
             </form>
         </ErpPhpCreateWell>

@@ -2664,6 +2664,18 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    public const string SelectCpJewelleryVoucherLines = """
+        SELECT `id`, IFNULL(`line_no`,0) AS line_no, IFNULL(`stock_code`,'') AS stock_code,
+               IFNULL(`division`,'') AS division, IFNULL(`description`,'') AS description,
+               IFNULL(`pcs`,0) AS pcs, IFNULL(`gr_wt`,0) AS gr_wt, IFNULL(`purity`,0) AS purity,
+               IFNULL(`pure_wt`,0) AS pure_wt, IFNULL(`metal_amount`,0) AS metal_amount,
+               IFNULL(`mkg_amount`,0) AS mkg_amount, IFNULL(`stone_amount`,0) AS stone_amount,
+               IFNULL(`disc_amount`,0) AS disc_amount, IFNULL(`total_amount`,0) AS total_amount
+        FROM `epc_jewel_voucher_lines`
+        WHERE `voucher_id` = @voucherId
+        ORDER BY `line_no`, `id`
+        """;
+
     /// <summary>
     /// PHP <c>prices_manager.php</c> — Docpart supplier lists (<c>shop_docpart_prices</c>),
     /// not <c>epc_pl_lists</c> commerce profiles.
