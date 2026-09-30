@@ -269,14 +269,54 @@
                     <input type="hidden" name="company" value="@_company.ToString(CultureInfo.InvariantCulture)" />
                 }
                 <label>Item code <input class="form-control input-sm" name="item_code" required placeholder="DIA-001" maxlength="20" /></label>
+                <label>RFID <input class="form-control input-sm" name="rfid" maxlength="30" /></label>
                 <label>Description <input class="form-control input-sm" name="description" placeholder="Round brilliant" /></label>
                 <label>Design <input class="form-control input-sm" name="design" /></label>
                 <label>Category <input class="form-control input-sm" name="category" /></label>
+                <label>Sub category <input class="form-control input-sm" name="sub_category" /></label>
+                <label>Type <input class="form-control input-sm" name="type" /></label>
+                <label>Brand <input class="form-control input-sm" name="brand" /></label>
                 <label>Color <input class="form-control input-sm" name="color" placeholder="G" /></label>
                 <label>Clarity <input class="form-control input-sm" name="clarity" placeholder="VS1" /></label>
+                <label>Fluorescence <input class="form-control input-sm" name="fluorescence" /></label>
+                <label>Style <input class="form-control input-sm" name="style" /></label>
+                <label>Set ref <input class="form-control input-sm" name="set_ref" /></label>
+                <label>Country <input class="form-control input-sm" name="country" value="UAE" /></label>
+                <label>Vendor <input class="form-control input-sm" name="vendor" /></label>
+                <label>Vendor ref <input class="form-control input-sm" name="vendor_ref" /></label>
                 <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.00001" value="1" /></label>
+                <label>Cost centre <input class="form-control input-sm" name="cost_centre" /></label>
                 <label>Cost <input class="form-control input-sm" name="cost_amount" type="number" step="0.01" value="0" /></label>
                 <label>Gross wt <input class="form-control input-sm" name="item_gr_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Pure wt <input class="form-control input-sm" name="pure_wt" type="number" step="0.0001" value="0" /></label>
+                <label>Cust SKU <input class="form-control input-sm" name="cust_sku" /></label>
+                <label>Ageing date <input class="form-control input-sm" name="ageing_date" type="date" /></label>
+                <label>Certificate no <input class="form-control input-sm" name="certificate_no" /></label>
+                <label>Certificate date <input class="form-control input-sm" name="certificate_date" type="date" /></label>
+                <label>Certificate by <input class="form-control input-sm" name="certificate_by" /></label>
+                <label>Certificate no 1 <input class="form-control input-sm" name="certificate_no_1" /></label>
+                <label>Certificate date 1 <input class="form-control input-sm" name="certificate_date_1" type="date" /></label>
+                <label>No. of certificates <input class="form-control input-sm" name="no_of_certificates" type="number" min="0" value="0" /></label>
+                <label>Setting charge <input class="form-control input-sm" name="setting_charge" type="number" step="0.01" value="0" /></label>
+                <label>Polishing charge <input class="form-control input-sm" name="polishing_charge" type="number" step="0.01" value="0" /></label>
+                <label>Rhodium charge <input class="form-control input-sm" name="rhodium_charge" type="number" step="0.01" value="0" /></label>
+                <label>Labour charge <input class="form-control input-sm" name="labour_charge" type="number" step="0.01" value="0" /></label>
+                <label>Misc charge <input class="form-control input-sm" name="misc_charge" type="number" step="0.01" value="0" /></label>
+                <label>Landed cost <input class="form-control input-sm" name="landed_cost" type="number" step="0.01" value="0" /></label>
+                <label>Foreign cost <input class="form-control input-sm" name="foreign_cost" type="number" step="0.01" value="0" /></label>
+                <label>Cost difference <input class="form-control input-sm" name="cost_difference" type="number" step="0.01" value="0" /></label>
+                <label>Price 1 code <input class="form-control input-sm" name="price1_code" value="TAG" /></label>
+                <label>Price 1 % <input class="form-control input-sm" name="price1_pct" type="number" step="0.01" value="0" /></label>
+                <label>Price 1 FC <input class="form-control input-sm" name="price1_fc" type="number" step="0.01" value="0" /></label>
+                <label>Price 1 LC <input class="form-control input-sm" name="price1_lc" type="number" step="0.01" value="0" /></label>
+                <label>Price 2 code <input class="form-control input-sm" name="price2_code" value="GEN" /></label>
+                <label>Price 2 % <input class="form-control input-sm" name="price2_pct" type="number" step="0.01" value="0" /></label>
+                <label>Price 2 FC <input class="form-control input-sm" name="price2_fc" type="number" step="0.01" value="0" /></label>
+                <label>Price 2 LC <input class="form-control input-sm" name="price2_lc" type="number" step="0.01" value="0" /></label>
+                <label><input type="checkbox" name="exclude_gst_metal" value="1" /> Exclude GST metal</label>
+                <label><input type="checkbox" name="trn_on_margin" value="1" /> TRN on margin</label>
+                <label><input type="checkbox" name="uae_trn_item" value="1" /> UAE TRN item</label>
                 <button type="submit" class="btn btn-primary btn-sm">Save diamond</button>
             </form>
         </ErpPhpCreateWell>
@@ -314,11 +354,25 @@
                 <label>Pearl code <input class="form-control input-sm" name="code" required placeholder="PRL-001" maxlength="20" /></label>
                 <label>Description <input class="form-control input-sm" name="description" placeholder="Akoya" /></label>
                 <label>Nature <input class="form-control input-sm" name="nature" value="Cultured" /></label>
+                <label>Design <input class="form-control input-sm" name="design" /></label>
                 <label>Type <input class="form-control input-sm" name="type" /></label>
+                <label>Cost centre <input class="form-control input-sm" name="cost_centre" /></label>
+                <label>Category <input class="form-control input-sm" name="category" /></label>
+                <label>Sub category <input class="form-control input-sm" name="sub_category" /></label>
+                <label>Color <input class="form-control input-sm" name="color" /></label>
                 <label>Size <input class="form-control input-sm" name="size" /></label>
+                <label>Shape <input class="form-control input-sm" name="shape" /></label>
+                <label>Grade <input class="form-control input-sm" name="grade" /></label>
+                <label>Luster <input class="form-control input-sm" name="luster" /></label>
+                <label>Brand <input class="form-control input-sm" name="brand" /></label>
                 <label>Country <input class="form-control input-sm" name="country" /></label>
                 <label>Currency <input class="form-control input-sm" name="currency" value="AED" style="width:70px;" /></label>
+                <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.00001" value="1" /></label>
                 <label>Cost <input class="form-control input-sm" name="cost_amount" type="number" step="0.01" value="0" /></label>
+                <label>Price 1 code <input class="form-control input-sm" name="price1_code" value="GEN" /></label>
+                <label>Price 1 % <input class="form-control input-sm" name="price1_pct" type="number" step="0.01" value="0" /></label>
+                <label>Price 1 FC <input class="form-control input-sm" name="price1_fc" type="number" step="0.01" value="0" /></label>
+                <label>Price 1 LC <input class="form-control input-sm" name="price1_lc" type="number" step="0.01" value="0" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save pearl</button>
             </form>
         </ErpPhpCreateWell>
@@ -340,7 +394,12 @@
                 <label>Clarity <input class="form-control input-sm" name="clarity" value="VS" /></label>
                 <label>Size <input class="form-control input-sm" name="size" /></label>
                 <label>Color <input class="form-control input-sm" name="color" /></label>
+                <label>Finish / treatment <input class="form-control input-sm" name="finish" value="None" /></label>
                 <label>Origin <input class="form-control input-sm" name="origin" /></label>
+                <label>Certificate no <input class="form-control input-sm" name="certificate_no" /></label>
+                <label>Vendor <input class="form-control input-sm" name="vendor" /></label>
+                <label>Cost centre <input class="form-control input-sm" name="cost_centre" value="CSTN" /></label>
+                <label>Grade <input class="form-control input-sm" name="grade" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save color stone</button>
             </form>
         </ErpPhpCreateWell>
