@@ -200,8 +200,13 @@ multiplied by metal rate, and total amount includes metal, making, stone, and
 discount values. This is **Observed/Inferred PHP parity**, not a claim that
 all INDUS posting and inventory triggers have been independently verified.
 
-The remaining screenshot acceptance gates are explicit: tag/barcode lookup,
-stock availability and deduction, receipt/tender
+The ASP.NET retail workspace now provides a tenant-scoped read-only lookup for
+tag number, barcode, and stock code across the observed `epc_jw_tags` and
+`epc_jewel_barcode` registries. It intentionally returns descriptive identity
+and weight/price fields only; it does not claim stock reservation, deduction,
+sale allocation, or tag-level movement reconstruction.
+
+The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level
 transfers, report filters, and live MariaDB corroboration. These stay PHP
 authoritative until schema and transaction traces are verified.

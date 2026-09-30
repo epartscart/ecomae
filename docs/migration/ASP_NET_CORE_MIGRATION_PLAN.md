@@ -111,7 +111,10 @@ traceability, tag/barcode identity, stock verification, repair movement, and
 retail/return surfaces. Jewellery voucher browser entry now binds up to three
 repeated line rows into the existing PHP-compatible line collection; this is
 an additive presentation/binding change and does not claim stock deduction or
-posting parity. The newly added stock-balance projection is read-only,
+posting parity. The Jewellery retail workspace also exposes a tenant-scoped,
+read-only tag/barcode/stock-code lookup across the observed legacy registries;
+it returns identity and weight/price readback only and does not claim stock
+reservation or deduction. The newly added stock-balance projection is read-only,
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.

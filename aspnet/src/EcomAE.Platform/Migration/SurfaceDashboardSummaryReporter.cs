@@ -9114,6 +9114,90 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpJewelleryTagLookupResult> LookupCpJewelleryTagsAsync(
+        string query,
+        int limit,
+        long companyId = 0,
+        CancellationToken cancellationToken = default)
+    {
+        var normalized = (query ?? string.Empty).Trim();
+        var safeLimit = Math.Clamp(limit, 1, 100);
+        if (normalized.Length == 0)
+        {
+            return new([], normalized, "validation", "Enter a tag, barcode, or stock code.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new([], normalized, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpJewelleryTagLookupRow>();
+            await ReadLookupRowsAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectCpJewelleryTagLookup,
+                normalized,
+                safeLimit,
+                companyId,
+                rows,
+                cancellationToken).ConfigureAwait(false);
+            await ReadLookupRowsAsync(
+                connection,
+                LegacySurfaceDashboardSql.SelectCpJewelleryBarcodeLookup,
+                normalized,
+                safeLimit,
+                companyId,
+                rows,
+                cancellationToken).ConfigureAwait(false);
+
+            return new(rows.Take(safeLimit).ToArray(), normalized, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], normalized, "database-error", ex.Message);
+        }
+    }
+
+    private static async Task ReadLookupRowsAsync(
+        DbConnection connection,
+        string sql,
+        string query,
+        int limit,
+        long companyId,
+        List<CpJewelleryTagLookupRow> rows,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            AddParameter(command, "@query", query);
+            AddParameter(command, "@limit", limit);
+            AddParameter(command, "@companyId", Math.Max(0, companyId));
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                rows.Add(new CpJewelleryTagLookupRow(
+                    Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["tag_no"] is DBNull ? string.Empty : reader["tag_no"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["barcode"] is DBNull ? string.Empty : reader["barcode"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["description"] is DBNull ? string.Empty : reader["description"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["status"] is DBNull ? string.Empty : reader["status"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToDecimal(reader["gross_weight"] is DBNull ? 0 : reader["gross_weight"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["net_weight"] is DBNull ? 0 : reader["net_weight"], CultureInfo.InvariantCulture),
+                    Convert.ToDecimal(reader["sell_price"] is DBNull ? 0 : reader["sell_price"], CultureInfo.InvariantCulture),
+                    Convert.ToString(reader["source_table"] is DBNull ? string.Empty : reader["source_table"], CultureInfo.InvariantCulture) ?? string.Empty));
+            }
+        }
+        catch
+        {
+            // Tenants may provision either legacy tag or barcode tables.
+        }
+    }
+
     public async Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default)
     {
         if (id <= 0)

@@ -250,6 +250,7 @@ public interface ISurfaceDashboardSummaryReporter
 
     /// <summary>Read-only jewellery retail KPIs + vouchers (PII/cost omitted).</summary>
     Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default);
+    Task<CpJewelleryTagLookupResult> LookupCpJewelleryTagsAsync(string query, int limit, long companyId = 0, CancellationToken cancellationToken = default);
 
     /// <summary>Opened jewellery retail voucher (Open key <c>voc_id</c>) plus same-status siblings. narration is a short excerpt. PII omitted.</summary>
     Task<CpJewelleryVoucherDetailResult> BuildCpJewelleryVoucherDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default);
