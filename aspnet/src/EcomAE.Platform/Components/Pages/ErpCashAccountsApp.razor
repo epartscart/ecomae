@@ -124,7 +124,7 @@
                         @foreach (var f in _floats)
                         {
                             <tr>
-                                <td><strong>@f.Name</strong></td>
+                                <td><strong><a href="@PettyCashOpenHref(f.Id)">@f.Name</a></strong></td>
                                 <td class="text-right">@f.FloatAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(f.AccountName) ? (f.AccountId > 0 ? $"#{f.AccountId}" : "—") : f.AccountName)</td>
                                 <td class="text-right">@f.AccountBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
@@ -135,6 +135,13 @@
                 </tbody>
             </table>
         </div>
+        @if (_openedPettyCash is not null)
+        {
+            <div class="epc-erp-table-wrap" style="margin-top:12px">
+                <strong>Opened petty cash · @_openedPettyCash.Name</strong>
+                <ErpDimensionLinksPanel Links="_openedPettyCashDimensionLinks" />
+            </div>
+        }
     }
     else if (_view == "cash_forecast")
     {
@@ -453,6 +460,9 @@
     private ErpCashAccountDetail? _openedDetail;
     private IReadOnlyList<ErpCashAccountDigest> _openedSiblings = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
+    private long _openedPettyCashId;
+    private ErpPettyCashDigest? _openedPettyCash;
+    private IReadOnlyList<ErpDimensionLink> _openedPettyCashDimensionLinks = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedAccount is not null;
 
@@ -475,6 +485,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "account_id");
+        _openedPettyCashId = ErpRecordOpen.ReadId(ctx.Request, "petty_cash_id");
         _forecastId = ErpRecordOpen.ReadId(ctx.Request, "fc");
 
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
@@ -517,6 +528,16 @@
             _floats = floats.Floats;
             _accountsSource = floats.Source;
             _accountsMessage = floats.Message;
+            _openedPettyCash = _openedPettyCashId > 0
+                ? _floats.FirstOrDefault(f => f.Id == _openedPettyCashId)
+                : null;
+            if (_openedPettyCash is not null)
+            {
+                _openedPettyCashDimensionLinks = await DimensionLinks.LoadAsync(
+                    "petty_cash",
+                    _openedPettyCashId,
+                    ctx.RequestAborted);
+            }
             return;
         }
 
@@ -572,4 +593,8 @@
     }
 
     private static string FormatDirection(int direction) => direction == 1 ? "in" : "out";
+
+    private static string PettyCashOpenHref(long id) =>
+        "/erp/cash-accounts-app?tab=petty_cash&petty_cash_id="
+        + id.ToString(CultureInfo.InvariantCulture);
 }

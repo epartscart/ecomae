@@ -2,12 +2,14 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Expense Reports · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -44,6 +46,7 @@
                 <dt>Cash entry</dt><dd>@(_opened.CashEntryId > 0 ? _opened.CashEntryId.ToString(CultureInfo.InvariantCulture) : "—")</dd>
                 <dt>Updated</dt><dd>@FormatTime(_opened.TimeUpdated)</dd>
             </dl>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Save stays on the Classic twin.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
@@ -145,6 +148,7 @@
     private long _openedId;
     private ErpExpenseReportDetail? _opened;
     private IReadOnlyList<ErpExpenseReportDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
 
     private string OpenedCaption => _opened is null
         ? ""
@@ -182,6 +186,10 @@
             var detail = await Dashboards.BuildErpExpenseReportDetailAsync(_openedId, ctx.RequestAborted);
             _opened = detail.Report;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync(
+                "expense_report",
+                _openedId,
+                ctx.RequestAborted);
             if (_opened is not null)
             {
                 var openedList = _reports.FirstOrDefault(r => r.Id == _openedId);
