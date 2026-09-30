@@ -370,6 +370,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutExecutiveDashboard, HandleFitOutExecutiveDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalQueue, HandleFitOutApprovalQueueAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutOperationsReport, HandleFitOutOperationsReportAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutEstimateRevisionComparison, HandleFitOutEstimateRevisionComparisonAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutFinanceOperationsReport, HandleFitOutFinanceOperationsReportAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutLeadHandoffSave, HandleFitOutLeadHandoffSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpRetailAssortmentsSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
@@ -14174,6 +14175,34 @@ public sealed class ErpModule : ISurfaceModule
             evidence = result,
             session = SessionPayload(session),
             note = "Machine evidence only; human acceptance and production validation remain required."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutEstimateRevisionComparisonAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutEstimateRevisionReadService comparison,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out estimate comparison.");
+        }
+
+        var result = await comparison.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            comparison = result,
+            session = SessionPayload(session),
+            note = "Tenant-isolated estimate and BOQ revision readback; human approval and live production corroboration remain required."
         });
     }
 

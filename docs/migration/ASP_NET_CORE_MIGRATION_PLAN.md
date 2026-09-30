@@ -123,6 +123,10 @@ reconciliation PHP-authoritative until evidenced.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
+Fit-out now exposes a tenant-isolated estimate/BOQ revision comparison readback
+by project, including revision metadata, BOQ counts, cost/selling totals, and
+adjacent-revision deltas. This is machine evidence for P1-04, not human
+approval or live-tenant corroboration.
 
 After the Jewellery and fit-out implementation tracks are complete, run a
 guarded functional rehearsal with isolated dummy tenant/company data before

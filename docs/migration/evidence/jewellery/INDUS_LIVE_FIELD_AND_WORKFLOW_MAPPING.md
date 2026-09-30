@@ -218,6 +218,12 @@ transition plus its settlement row. This closes repeat-settlement and
 cross-company consumption on the observed path; full finance posting and
 reconciliation remain unverified.
 
+The fit-out acceptance surface now includes a project-scoped estimate/BOQ
+revision comparison readback with cost, selling, line-count, status, and
+adjacent-revision delta evidence. It remains a read-only evidence surface;
+approval sign-off, live tenant-database corroboration, and full scenario
+acceptance remain open.
+
 The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level
 transfers, report filters, and live MariaDB corroboration. These stay PHP

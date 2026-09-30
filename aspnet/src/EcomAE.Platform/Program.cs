@@ -1053,6 +1053,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutLeadHandoffWriteService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutExecutiveDashboardReadService, EcomAE.Platform.Erp.ErpFitOutExecutiveDashboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutApprovalQueueReadService, EcomAE.Platform.Erp.ErpFitOutApprovalQueueReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutOperationsReportReadService, EcomAE.Platform.Erp.ErpFitOutOperationsReportReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateRevisionReadService, EcomAE.Platform.Erp.ErpFitOutEstimateRevisionReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutFinanceOperationsReportReadService, EcomAE.Platform.Erp.ErpFitOutFinanceOperationsReportReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
