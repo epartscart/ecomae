@@ -73,7 +73,6 @@ public sealed record TenantInstallManifestRequest(
     string? TenantKey = null,
     string? CloudBaseUrl = null,
     string? PackageVersion = null,
-    string? EnrollmentRequestId = null,
     DateTimeOffset? ExpiresAt = null);
 
 /// <summary>
@@ -123,7 +122,7 @@ public static class TenantInstallationControlPlane
             throw new ArgumentException("Use Fail to record a failed installation.", nameof(nextStage));
         }
 
-        if (!IsAllowedTransition(state.Stage, nextStage))
+        if (!IsAllowedTransition(state.DeploymentKind, state.Stage, nextStage))
         {
             throw new InvalidOperationException(
                 $"Installation cannot transition from {state.Stage} to {nextStage}.");
@@ -171,12 +170,10 @@ public static class TenantInstallationControlPlane
         string tenantKey,
         string cloudBaseUrl,
         string packageVersion,
-        string enrollmentRequestId,
         DateTimeOffset expiresAt)
     {
         var normalizedCloudBaseUrl = NormalizeHttpsUrl(cloudBaseUrl, nameof(cloudBaseUrl));
         var normalizedTenantKey = NormalizeTenantKey(tenantKey);
-        var normalizedRequestId = NormalizeOpaqueId(enrollmentRequestId, nameof(enrollmentRequestId));
         if (string.IsNullOrWhiteSpace(packageVersion))
         {
             throw new ArgumentException("A package version is required.", nameof(packageVersion));
@@ -192,7 +189,7 @@ public static class TenantInstallationControlPlane
             normalizedTenantKey,
             normalizedCloudBaseUrl,
             normalizedCloudBaseUrl + "/api/v1/tenant-installations/enroll",
-            normalizedRequestId,
+            CreateEnrollmentRequestId(),
             packageVersion.Trim(),
             expiresAt);
     }
@@ -208,6 +205,15 @@ public static class TenantInstallationControlPlane
             || string.IsNullOrWhiteSpace(envelope.PayloadHash))
         {
             return new(false, "invalid-envelope", "Required synchronization fields are missing.");
+        }
+
+        try
+        {
+            NormalizeTenantKey(envelope.TenantKey);
+        }
+        catch (ArgumentException)
+        {
+            return new(false, "invalid-tenant-key", "Synchronization tenant key is not valid.");
         }
 
         if (!string.Equals(envelope.Direction, "cloud-to-onpremises", StringComparison.Ordinal)
@@ -239,7 +245,7 @@ public static class TenantInstallationControlPlane
 
         var normalized = tenantKey.Trim().ToLowerInvariant();
         if (normalized.Length > 80
-            || normalized.Any(c => !(char.IsLetterOrDigit(c) || c is '-' or '_' or '.')))
+            || normalized.Any(c => !IsSiteKeyCharacter(c)))
         {
             throw new ArgumentException("Tenant key contains unsupported characters.", nameof(tenantKey));
         }
@@ -247,12 +253,22 @@ public static class TenantInstallationControlPlane
         return normalized;
     }
 
-    private static bool IsAllowedTransition(TenantInstallationStage current, TenantInstallationStage next)
+    private static bool IsSiteKeyCharacter(char value)
+        => value is >= 'a' and <= 'z'
+            or >= '0' and <= '9'
+            or '-' or '_' or '.';
+
+    private static bool IsAllowedTransition(
+        TenantDeploymentKind deploymentKind,
+        TenantInstallationStage current,
+        TenantInstallationStage next)
     {
         return (current, next) switch
         {
             (TenantInstallationStage.Requested, TenantInstallationStage.ProvisioningCloudTenant) => true,
             (TenantInstallationStage.ProvisioningCloudTenant, TenantInstallationStage.PackageReady) => true,
+            (TenantInstallationStage.ProvisioningCloudTenant, TenantInstallationStage.Synchronizing)
+                when deploymentKind == TenantDeploymentKind.Cloud => true,
             (TenantInstallationStage.PackageReady, TenantInstallationStage.AwaitingLocalExecution) => true,
             (TenantInstallationStage.AwaitingLocalExecution, TenantInstallationStage.EnrollingInstallation) => true,
             (TenantInstallationStage.EnrollingInstallation, TenantInstallationStage.Synchronizing) => true,
@@ -288,14 +304,13 @@ public static class TenantInstallationControlPlane
         return uri.ToString().TrimEnd('/');
     }
 
-    private static string NormalizeOpaqueId(string value, string parameterName)
+    private static string CreateEnrollmentRequestId()
     {
-        if (string.IsNullOrWhiteSpace(value) || value.Length > 160)
-        {
-            throw new ArgumentException("An opaque enrollment request id is required.", parameterName);
-        }
-
-        return value.Trim();
+        var bytes = RandomNumberGenerator.GetBytes(24);
+        return "enr_" + Convert.ToBase64String(bytes)
+            .Replace("+", "-", StringComparison.Ordinal)
+            .Replace("/", "_", StringComparison.Ordinal)
+            .TrimEnd('=');
     }
 
     private static bool IsSha256(string value)

@@ -15020,6 +15020,14 @@ public sealed class ControlPanelModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
+            var tenantSiteKey = context.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+                ? tenant.SiteKey
+                : null;
+            siteKey = CpDesignTokensWriteService.ResolveSiteKey(
+                siteKey,
+                SuperCpHostGate.IsAllowed(context),
+                tenantSiteKey);
+
             var key = (action ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(key))
             {

@@ -24,6 +24,10 @@ Every tenant starts in the cloud control plane:
 7. `Ready` — the cloud can display the deployment kind, installation identity,
    heartbeat, and last synchronization timestamps.
 
+Cloud tenants skip the on-premises package, local execution, and enrollment
+stages: after `ProvisioningCloudTenant`, their first synchronization moves
+directly to `Synchronizing`.
+
 The progress percentages are part of the contract: 0, 20, 40, 50, 70, 85, and
 100. Failed installations return to 0% with a stable failure code and operator
 message; credentials must never be placed in that message.
@@ -41,15 +45,14 @@ The generated manifest contains only:
 - tenant key;
 - cloud HTTPS base URL;
 - enrollment endpoint;
-- one-time enrollment request id;
+- server-generated enrollment request id;
 - package version;
 - expiry timestamp;
 - deployment kind.
 
 It must not contain a database password, cloud API secret, reusable bearer token,
-or private signing key. The enrollment request id is single-use and expires. The
-cloud service must store only a hash after issuance and return the raw value only
-in the authorized download response.
+or private signing key. The generated request id is opaque and expires; durable
+single-use redemption remains pending until the persistence slice is implemented.
 
 ## Persistent cloud link
 

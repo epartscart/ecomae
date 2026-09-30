@@ -12,17 +12,17 @@
 
 @if (ShowGhostScaffold)
 {
-    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="@_chrome.Title KPIs" style="margin-bottom:10px;">
+    <div class="epc-ui-kpi-grid" aria-label="@_chrome.Title KPIs">
         @foreach (var kpi in _chrome.KpiLabels)
         {
-            <div class="kpi"><div class="lbl">@kpi</div><div class="val">0</div></div>
+            <div class="epc-ui-kpi"><span class="epc-ui-kpi__label">@kpi</span><strong class="epc-ui-kpi__value">0</strong></div>
         }
     </div>
 
     @foreach (var chromeSection in _chrome.Sections)
     {
-        <div class="epc-erp-section">
-            <h4>@chromeSection.Title</h4>
+        <section class="epc-ui-section">
+            <h4 class="epc-ui-section__title">@chromeSection.Title</h4>
             @if (!string.IsNullOrWhiteSpace(chromeSection.Intro))
             {
                 <p class="text-muted">@chromeSection.Intro</p>
@@ -30,7 +30,8 @@
             @if (chromeSection.Fields.Count > 0 && IsAdmin)
             {
                 <ErpPhpCreateWell Title="@("New " + chromeSection.Title)">
-                    <form method="post" action="@EcomAeRoutes.ErpParityModuleSaveForm" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
+                    <form class="epc-ui-toolbar" method="post" action="@EcomAeRoutes.ErpParityModuleSaveForm">
+                        <div class="epc-ui-toolbar__filters">
                         <input type="hidden" name="returnUrl" value="@_returnHere" />
                         <input type="hidden" name="action" value="@(_tab + "_save")" />
                         @foreach (var field in chromeSection.Fields)
@@ -51,7 +52,10 @@
                                 }
                             </label>
                         }
+                        </div>
+                        <div class="epc-ui-toolbar__actions">
                         <button type="submit" class="btn btn-primary btn-sm">Save</button>
+                        </div>
                     </form>
                 </ErpPhpCreateWell>
             }
@@ -70,7 +74,7 @@
                     </tbody>
                 </table>
             </div>
-        </div>
+        </section>
     }
 }
 

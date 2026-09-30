@@ -778,6 +778,46 @@ effects remain separately gated.
   presentation preferences; backend business rules and security remain owned
   by the platform.
 
+## Formal Visual Parity and UI Modernization Gate Added Here
+
+The owner-supplied **ASP.NET CORE MIGRATION — VISUAL PARITY & UI MODERNIZATION
+REQUIREMENT** is a formal migration gate. Functional parity alone is not
+migration completion. Every migrated screen must separately evidence functional,
+field, action, permission, workflow, report, layout, visual, UX, responsive,
+performance, and PHP-reference screenshot parity.
+
+- PHP remains the current visual and behavioural reference until formal
+  acceptance. For each important screen, capture PHP and ASP.NET Core at the
+  same resolution, tenant, user, record, and filters; compare side-by-side;
+  correct; and repeat.
+- The durable matrix is
+  `docs/migration/evidence/VISUAL_PARITY_MATRIX.md`. A screen without screenshot
+  evidence is explicitly classified **FUNCTIONALLY MIGRATED — VISUAL PARITY
+  PENDING**, never accepted from route or file counts.
+- The root-cause audit must cover generic Bootstrap styling, information
+  density, typography, spacing, controls, tables/grids, icons, badges, panels,
+  navigation, hover/focus/loading states, responsive behaviour, dashboards,
+  live drill-down context, and performance.
+- A single reusable ERP/CP design system is mandatory. It provides dense
+  operational grids, sticky headers, filters/toolbars, KPI and alert cards,
+  semantic status badges, progress indicators, structured sections, responsive
+  behaviour, reduced-motion handling, and D365-style transaction workspace
+  primitives. Page-local CSS is not an acceptance substitute.
+- PHP presentation that is already strong must be preserved or improved; PHP
+  limitations may be modernized only without removing familiar functionality.
+  Tenant-controlled labels, colours, field visibility/order, layouts, branding,
+  and density remain allowlisted settings; routes, permissions, business rules,
+  auditability, and lifecycle semantics remain platform-owned.
+- Visual acceptance must include responsive desktop/tablet/mobile evidence,
+  report/print/export checks, drill-down checks, accessibility checks, and
+  browser performance measurements. Animation remains subtle and
+  `prefers-reduced-motion` aware.
+
+The first reusable CSS foundation for this gate is now loaded by both CP and
+ERP presentation shells. It deliberately improves density, table navigation,
+semantic statuses, KPI composition, responsive toolbars, and reduced-motion
+behaviour without claiming that any individual screen has passed the matrix.
+“Continue as per plan” remains a permanent migration-record instruction.
 ## Sixty First Milestone Included Here
 
 - Added read-only Jewellery repair detail readback matching PHP
@@ -786,3 +826,76 @@ effects remain separately gated.
 - Kept the detail projection bounded by explicit company and repair identity
   predicates and documented it as read-only; repair transfer, workshop
   receive, delivery, and settlement writes remain outside this tranche.
+ 
+## Sixty Second Milestone Included Here
+
+- Ran the first isolated local MariaDB dummy-data rehearsal for Jewellery and
+  fit-out using the authenticated ASP.NET Core routes and PHP-compatible
+  session bridge; no production tenant data was used.
+- Verified fit-out project progress readback for project `9001` from the
+  seeded project, task, and timesheet rows. The returned database-backed
+  summary matched the fixture contract: 15 hours, 1,600 actual cost, 8,400
+  cost variance, 2,800 billable value, 11,700 recognized revenue, 16,400
+  margin, and 65% completion.
+- Verified Jewellery stock availability and repair-receipt history readback
+  for company `2`, including database source metadata and the seeded tag and
+  repair rows. Repair history correctly required a date range.
+- Verified guarded Jewellery tag sale dry-run (`writes=0`,
+  `writesBlocked=true`, `phpAuthoritative=true`) and one explicitly confirmed
+  local dummy sale with database status readback from `in_stock` to `sold`.
+- Verified a cross-company confirmed tag-sale attempt was rejected without
+  mutation; the local fixture remained owned by company `1` and `in_stock`.
+- Corrected the industry route gate so slash-based `/erp/jewellery/...`
+  routes are protected as Jewellery-specific routes. Common/general-company
+  access now returns the expected 404 gate response, while company `2`
+  Jewellery and company `3` fit-out requests remain accessible.
+- This is local dummy-data evidence only. Live production MariaDB, real-user
+  UAT, performance, recovery, final cutover, and untested write workflows
+  remain formally unverified; PHP fallback and PHP-owned schema authority
+  remain in force.
+
+
+## Sixty Third Milestone Included Here
+
+- Rehearsed the detailed fit-out BOQ readback against local dummy estimate
+  `9801` for project `9001`, using two seeded component-rate lines.
+- The authenticated route returned database-backed estimate metadata, two
+  ordered lines, total cost `3,900.00`, and selling amount `4,387.50`.
+- Removed the temporary estimate and BOQ rows after readback. This remains
+  local throwaway evidence only; production tenant-database, approval,
+  procurement, billing, and human acceptance gates remain open.
+
+## Sixty Fourth Milestone Included Here
+
+- Continued as per plan by enforcing tenant scope on organization
+  presentation-token writes: tenant CP requests now use the resolved
+  tenant `site_key`, while explicit site selection remains available only
+  on Super CP hosts.
+- Added regression coverage for tenant-versus-Super-CP site-key resolution.
+  Allowlisted presentation settings remain PHP-owned and guarded; backend
+  contracts, authorization, routes, and CSS cutover boundaries remain
+  platform-controlled.
+- The phrase “Continue as per plan” is a permanent migration-record
+  instruction and must remain preserved in future evidence updates.
+
+## Sixty Fifth Milestone Included Here
+
+- Continued as per plan by hardening the tenant-installation manifest
+  contract: enrollment request IDs are now generated by the control plane
+  with cryptographically random opaque values instead of being caller
+  chosen.
+- The BOS manifest endpoint rejects caller-supplied enrollment IDs and
+  preserves the existing Super-CP gate, HTTPS validation, expiry validation,
+  credential-free payload, PHP fallback, and `cutoverAllowed=false` boundary.
+- Durable registration, redemption, heartbeat, synchronization, and
+  production installation acceptance remain separate open gates.
+
+- Tenant installation keys now use the same ASCII site-key alphabet as the
+  tenant registry (`a-z`, `0-9`, `-`, `_`, `.`), preventing Unicode keys
+  from bypassing host and registry normalization.
+- Cloud installation state transitions now skip package/local-execution stages
+  and move from cloud provisioning to synchronization before reaching `Ready`;
+  on-premises installations retain the package and local enrollment path.
+- Synchronization-envelope validation now applies the same tenant-key alphabet
+  before accepting an envelope shape; tenant scope, replay, conflict, and
+  authorization checks remain future persistence/transport gates.

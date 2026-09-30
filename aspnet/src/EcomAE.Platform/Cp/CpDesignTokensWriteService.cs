@@ -57,6 +57,9 @@ public sealed class CpDesignTokensWriteService : ICpDesignTokensWriteService
     public static string NormalizeSiteKey(string? raw)
         => SiteKeySafe.Replace((raw ?? string.Empty).Trim().ToLowerInvariant(), string.Empty);
 
+    public static string ResolveSiteKey(string? posted, bool superCpHost, string? tenantSiteKey)
+        => NormalizeSiteKey(superCpHost ? posted : tenantSiteKey);
+
     public static string NormalizeSettingKey(string? raw)
     {
         var key = (raw ?? string.Empty).Trim().ToLowerInvariant();

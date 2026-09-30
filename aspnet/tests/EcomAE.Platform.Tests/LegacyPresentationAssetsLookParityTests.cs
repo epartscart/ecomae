@@ -50,4 +50,15 @@ public sealed class LegacyPresentationAssetsLookParityTests
             LegacyPresentationAssets.ErpStylesheets,
             href => href.Contains("erp_dashboard_premium", StringComparison.OrdinalIgnoreCase));
     }
+
+    [Fact]
+    public void SharedEnterpriseDesignSystemIsLoadedByCpAndErp()
+    {
+        Assert.Contains(
+            LegacyPresentationAssets.ControlPanelStylesheets,
+            href => href.Contains("epc-enterprise-design-system.css", StringComparison.OrdinalIgnoreCase));
+        Assert.Contains(
+            LegacyPresentationAssets.ErpStylesheets,
+            href => href.Contains("epc-enterprise-design-system.css", StringComparison.OrdinalIgnoreCase));
+    }
 }
