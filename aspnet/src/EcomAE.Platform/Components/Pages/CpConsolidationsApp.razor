@@ -52,7 +52,21 @@
         <form method="post" action="/erp/consolidations/figures/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
-            <label>Entity code <input type="text" name="entity_code" required placeholder="SUB1" value="@(_openedEntity is not null ? _openedEntity.Code : "")" /></label>
+            @if (_rows.Count == 0)
+            {
+                <label>Entity code <input type="text" name="entity_code" required placeholder="SUB1" value="@(_openedEntity is not null ? _openedEntity.Code : "")" /></label>
+            }
+            else
+            {
+                <label>Entity
+                    <select name="entity_code" required style="min-width:10rem">
+                        @foreach (var entity in _rows)
+                        {
+                            <option value="@entity.Code" selected="@IsEntitySelected(entity.Code)">@entity.Code · @entity.Name</option>
+                        }
+                    </select>
+                </label>
+            }
             <label>Revenue <input type="number" name="revenue" step="0.01" style="width:7rem" /></label>
             <label>Expenses <input type="number" name="expenses" step="0.01" style="width:7rem" /></label>
             <label>Assets <input type="number" name="assets" step="0.01" style="width:7rem" /></label>
@@ -75,9 +89,38 @@
         <form method="post" action="/erp/consolidations/ic/save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/cp/consolidations-app" />
-            <label>From <input type="text" name="from_entity" required placeholder="HOME" value="@(_openedEntity is not null ? _openedEntity.Code : "")" /></label>
-            <label>To <input type="text" name="to_entity" required placeholder="SUB1" /></label>
-            <label>Type <input type="text" name="txn_type" value="sale" style="width:6rem" /></label>
+            @if (_rows.Count == 0)
+            {
+                <label>From <input type="text" name="from_entity" required placeholder="HOME" value="@(_openedEntity is not null ? _openedEntity.Code : "")" /></label>
+                <label>To <input type="text" name="to_entity" required placeholder="SUB1" /></label>
+            }
+            else
+            {
+                <label>From
+                    <select name="from_entity" required style="min-width:10rem">
+                        @foreach (var entity in _rows)
+                        {
+                            <option value="@entity.Code" selected="@IsEntitySelected(entity.Code)">@entity.Code · @entity.Name</option>
+                        }
+                    </select>
+                </label>
+                <label>To
+                    <select name="to_entity" required style="min-width:10rem">
+                        @foreach (var entity in _rows)
+                        {
+                            <option value="@entity.Code">@entity.Code · @entity.Name</option>
+                        }
+                    </select>
+                </label>
+            }
+            <label>Type
+                <select name="txn_type" style="width:7rem">
+                    <option value="sale">sale</option>
+                    <option value="purchase">purchase</option>
+                    <option value="service">service</option>
+                    <option value="loan">loan</option>
+                </select>
+            </label>
             <label>Amount <input type="number" name="amount" step="0.01" min="0.01" required style="width:7rem" /></label>
             <label>Date <input type="date" name="txn_date" /></label>
             <label>Ref <input type="text" name="ref" /></label>
@@ -235,6 +278,10 @@
     private CpConsolidationsEntityDigest? _openedEntity;
     private CpConsolidationsFigureDigest? _openedFigure;
     private IReadOnlyList<CpConsolidationsIcDigest> _openedIc = [];
+
+    private bool IsEntitySelected(string code)
+        => _openedEntity is not null
+            && string.Equals(_openedEntity.Code, code, StringComparison.OrdinalIgnoreCase);
 
     private string OpenedCaption => _openedEntity is null
         ? ""
