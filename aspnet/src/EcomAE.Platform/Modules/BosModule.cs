@@ -59,16 +59,6 @@ public sealed class BosModule : ISurfaceModule
                 });
             }
 
-            if (!string.IsNullOrWhiteSpace(body.EnrollmentRequestId))
-            {
-                return Results.BadRequest(new
-                {
-                    ok = false,
-                    validation_code = "enrollment_request_id_server_issued",
-                    message = "Enrollment request IDs are issued by the control plane."
-                });
-            }
-
             try
             {
                 var manifest = TenantInstallationControlPlane.CreateManifest(

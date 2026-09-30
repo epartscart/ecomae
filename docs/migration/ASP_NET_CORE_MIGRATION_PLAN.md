@@ -852,3 +852,6 @@ effects remain separately gated.
 - Tenant installation keys now use the same ASCII site-key alphabet as the
   tenant registry (`a-z`, `0-9`, `-`, `_`, `.`), preventing Unicode keys
   from bypassing host and registry normalization.
+- Cloud installation state transitions now skip package/local-execution stages
+  and move from cloud provisioning to synchronization before reaching `Ready`;
+  on-premises installations retain the package and local enrollment path.

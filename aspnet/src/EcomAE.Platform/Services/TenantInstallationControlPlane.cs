@@ -73,7 +73,6 @@ public sealed record TenantInstallManifestRequest(
     string? TenantKey = null,
     string? CloudBaseUrl = null,
     string? PackageVersion = null,
-    string? EnrollmentRequestId = null,
     DateTimeOffset? ExpiresAt = null);
 
 /// <summary>
@@ -123,7 +122,7 @@ public static class TenantInstallationControlPlane
             throw new ArgumentException("Use Fail to record a failed installation.", nameof(nextStage));
         }
 
-        if (!IsAllowedTransition(state.Stage, nextStage))
+        if (!IsAllowedTransition(state.DeploymentKind, state.Stage, nextStage))
         {
             throw new InvalidOperationException(
                 $"Installation cannot transition from {state.Stage} to {nextStage}.");
@@ -250,12 +249,17 @@ public static class TenantInstallationControlPlane
             or >= '0' and <= '9'
             or '-' or '_' or '.';
 
-    private static bool IsAllowedTransition(TenantInstallationStage current, TenantInstallationStage next)
+    private static bool IsAllowedTransition(
+        TenantDeploymentKind deploymentKind,
+        TenantInstallationStage current,
+        TenantInstallationStage next)
     {
         return (current, next) switch
         {
             (TenantInstallationStage.Requested, TenantInstallationStage.ProvisioningCloudTenant) => true,
             (TenantInstallationStage.ProvisioningCloudTenant, TenantInstallationStage.PackageReady) => true,
+            (TenantInstallationStage.ProvisioningCloudTenant, TenantInstallationStage.Synchronizing)
+                when deploymentKind == TenantDeploymentKind.Cloud => true,
             (TenantInstallationStage.PackageReady, TenantInstallationStage.AwaitingLocalExecution) => true,
             (TenantInstallationStage.AwaitingLocalExecution, TenantInstallationStage.EnrollingInstallation) => true,
             (TenantInstallationStage.EnrollingInstallation, TenantInstallationStage.Synchronizing) => true,

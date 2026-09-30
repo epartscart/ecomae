@@ -90,6 +90,29 @@ public sealed class TenantInstallationControlPlaneTests
     }
 
     [Fact]
+    public void Cloud_installation_can_reach_ready_without_local_package_execution()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var state = TenantInstallationControlPlane.Start("tenant-a", TenantDeploymentKind.Cloud, now);
+
+        state = TenantInstallationControlPlane.Advance(
+            state,
+            TenantInstallationStage.ProvisioningCloudTenant,
+            now.AddMinutes(1));
+        state = TenantInstallationControlPlane.Advance(
+            state,
+            TenantInstallationStage.Synchronizing,
+            now.AddMinutes(2));
+        state = TenantInstallationControlPlane.Advance(
+            state,
+            TenantInstallationStage.Ready,
+            now.AddMinutes(3));
+
+        Assert.Equal(TenantInstallationStage.Ready, state.Stage);
+        Assert.Equal(100, state.Percent);
+    }
+
+    [Fact]
     public void Sync_envelope_requires_tenant_scope_direction_and_sha256_hash()
     {
         var valid = new TenantSyncEnvelope(
