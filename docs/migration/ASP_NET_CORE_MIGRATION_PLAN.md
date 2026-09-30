@@ -634,10 +634,21 @@ The script checks out the final migration files from the source branch onto late
 - Added read-only Jewellery journal history for PHP voucher types `JVG` and
   `JVA`, with company scope, bounded results, and truthful fallback metadata.
 
+## Sixty First Milestone Included Here
+
+- Added read-only Jewellery design detail readback for the PHP design header,
+  metal lines, and stone lines, preserving company scope and line ordering.
+
 ## Sixty Second Milestone Included Here
 
 - Added read-only Jewellery repair-receipt history matching PHP
   `epc_jewel_repair_list` date, status, company, limit, and ordering behavior.
+- Added project-scoped fit-out progress readback for
+  `progress_claim`, `client_progress_claim`, and `weighted_progress` records,
+  with bounded ordering and optional record-type filtering.
+- Kept the fit-out projection read-only and limited to the existing
+  `ecomae_fitout_delivery_records` contract; approvals, billing, settlement,
+  and human acceptance remain separate gates.
 
 
 ## Global ERP UI/UX Standard Added Here
