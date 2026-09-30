@@ -620,3 +620,8 @@ The script checks out the final migration files from the source branch onto late
 - Fit-out P1-04 remains `partial` until readback, revision comparison,
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
+
+## Fifty Eighth Milestone Included Here
+
+- Added read-only Jewellery journal history for PHP voucher types `JVG` and
+  `JVA`, with company scope, bounded results, and truthful fallback metadata.
