@@ -134,116 +134,155 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         var vat = RoundNonNeg(request.VatAmount, 2);
         var roundOff = RoundNonNeg(request.RoundOff, 2);
         var gross = RoundNonNeg(request.GrossTotal, 2);
+        var pricedLineTotal = lines
+            .Where(line => !string.IsNullOrWhiteSpace(line.StockCode) || !string.IsNullOrWhiteSpace(line.Description))
+            .Sum(CalculateLineTotal);
+        if (net == 0 && pricedLineTotal > 0)
+        {
+            net = pricedLineTotal;
+        }
+
         if (gross == 0)
         {
             gross = RoundNonNeg(net + vat + roundOff, 2);
         }
 
         var totalWithVat = RoundNonNeg(net + vat, 2);
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
 
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
-            cancellationToken,
-            companyId,
-            branch,
-            vocType,
-            vocDate,
-            vocNo,
-            partyCode,
-            partyName,
-            currency,
-            currRate,
-            customerName,
-            salesman,
-            suppInv,
-            crDays,
-            narration,
-            narration,
-            net,
-            vat,
-            roundOff,
-            net,
-            gross,
-            totalWithVat,
-            net,
-            "draft").ConfigureAwait(false);
-
-        var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
-        if (id <= 0)
+        try
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Failed");
-        }
-
-        var lineNo = 1;
-        foreach (var line in lines)
-        {
-            var stockCode = Clip((line.StockCode ?? string.Empty).Trim(), 20);
-            var description = Clip((line.Description ?? string.Empty).Trim(), 120);
-            if (stockCode.Length == 0 && description.Length == 0)
-            {
-                continue;
-            }
-
-            var division = Clip((line.Division ?? string.Empty).Trim().ToUpperInvariant(), 2);
-            if (division.Length == 0)
-            {
-                division = "G";
-            }
-
-            var grossWeight = RoundNonNeg(line.GrossWeight, 4);
-            var purity = RoundNonNeg(line.Purity, 6);
-            var pureWeight = line.PureWeight > 0
-                ? RoundNonNeg(line.PureWeight, 4)
-                : RoundNonNeg(grossWeight * purity, 4);
-            var makingAmount = line.MakingAmount > 0
-                ? RoundNonNeg(line.MakingAmount, 2)
-                : RoundNonNeg(line.MakingRate * grossWeight, 2);
-            var metalAmount = line.MetalAmount > 0
-                ? RoundNonNeg(line.MetalAmount, 2)
-                : RoundNonNeg(pureWeight * line.MetalRate, 2);
-            var totalAmount = line.TotalAmount > 0
-                ? RoundNonNeg(line.TotalAmount, 2)
-                : RoundNonNeg(metalAmount + makingAmount + line.StoneAmount - line.DiscountAmount, 2);
-            var lineTotalWithVat = line.TotalWithVat > 0
-                ? RoundNonNeg(line.TotalWithVat, 2)
-                : totalAmount;
-            var netAmount = line.NetAmount > 0
-                ? RoundNonNeg(line.NetAmount, 2)
-                : totalAmount;
-
             await ErpDb.ExecuteAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`division`,`description`,`pcs`,`qty`,`gr_wt`,`purity`,`pure_wt`,`mkg_rate`,`mkg_amount`,`metal_rate`,`metal_amount`,`stone_amount`,`wastage_pct`,`wastage_qty`,`disc_amount`,`total_amount`,`total_with_vat`,`net_amount`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                    "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
                 cancellationToken,
-                id,
-                lineNo++,
-                stockCode,
-                division,
-                description,
-                Math.Max(0, line.Pcs),
-                RoundNonNeg(line.Qty, 4),
-                grossWeight,
-                purity,
-                pureWeight,
-                RoundNonNeg(line.MakingRate, 4),
-                makingAmount,
-                RoundNonNeg(line.MetalRate, 5),
-                metalAmount,
-                RoundNonNeg(line.StoneAmount, 2),
-                RoundNonNeg(line.WastagePercent, 4),
-                RoundNonNeg(line.WastageQuantity, 4),
-                RoundNonNeg(line.DiscountAmount, 2),
-                totalAmount,
-                lineTotalWithVat,
-                netAmount).ConfigureAwait(false);
-        }
+                companyId,
+                branch,
+                vocType,
+                vocDate,
+                vocNo,
+                partyCode,
+                partyName,
+                currency,
+                currRate,
+                customerName,
+                salesman,
+                suppInv,
+                crDays,
+                narration,
+                narration,
+                net,
+                vat,
+                roundOff,
+                net,
+                gross,
+                totalWithVat,
+                net,
+                "draft").ConfigureAwait(false);
 
-        return ErpSimpleWriteResult.Ok(vocType + " voucher saved", id);
+            var id = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+            if (id <= 0)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("invalid", "Failed");
+            }
+
+            var lineNo = 1;
+            foreach (var line in lines)
+            {
+                var stockCode = Clip((line.StockCode ?? string.Empty).Trim(), 20);
+                var description = Clip((line.Description ?? string.Empty).Trim(), 120);
+                if (stockCode.Length == 0 && description.Length == 0)
+                {
+                    continue;
+                }
+
+                var division = Clip((line.Division ?? string.Empty).Trim().ToUpperInvariant(), 2);
+                if (division.Length == 0)
+                {
+                    division = "G";
+                }
+
+                var grossWeight = RoundNonNeg(line.GrossWeight, 4);
+                var purity = RoundNonNeg(line.Purity, 6);
+                var pureWeight = line.PureWeight > 0
+                    ? RoundNonNeg(line.PureWeight, 4)
+                    : RoundNonNeg(grossWeight * purity, 4);
+                var makingAmount = line.MakingAmount > 0
+                    ? RoundNonNeg(line.MakingAmount, 2)
+                    : RoundNonNeg(line.MakingRate * grossWeight, 2);
+                var metalAmount = line.MetalAmount > 0
+                    ? RoundNonNeg(line.MetalAmount, 2)
+                    : RoundNonNeg(pureWeight * line.MetalRate, 2);
+                var totalAmount = line.TotalAmount > 0
+                    ? RoundNonNeg(line.TotalAmount, 2)
+                    : RoundNonNeg(metalAmount + makingAmount + line.StoneAmount - line.DiscountAmount, 2);
+                var lineTotalWithVat = line.TotalWithVat > 0
+                    ? RoundNonNeg(line.TotalWithVat, 2)
+                    : totalAmount;
+                var netAmount = line.NetAmount > 0
+                    ? RoundNonNeg(line.NetAmount, 2)
+                    : totalAmount;
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`division`,`description`,`pcs`,`qty`,`gr_wt`,`purity`,`pure_wt`,`mkg_rate`,`mkg_amount`,`metal_rate`,`metal_amount`,`stone_amount`,`wastage_pct`,`wastage_qty`,`disc_amount`,`total_amount`,`total_with_vat`,`net_amount`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                    cancellationToken,
+                    id,
+                    lineNo++,
+                    stockCode,
+                    division,
+                    description,
+                    Math.Max(0, line.Pcs),
+                    RoundNonNeg(line.Qty, 4),
+                    grossWeight,
+                    purity,
+                    pureWeight,
+                    RoundNonNeg(line.MakingRate, 4),
+                    makingAmount,
+                    RoundNonNeg(line.MetalRate, 5),
+                    metalAmount,
+                    RoundNonNeg(line.StoneAmount, 2),
+                    RoundNonNeg(line.WastagePercent, 4),
+                    RoundNonNeg(line.WastageQuantity, 4),
+                    RoundNonNeg(line.DiscountAmount, 2),
+                    totalAmount,
+                    lineTotalWithVat,
+                    netAmount).ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok(vocType + " voucher saved", id);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+    }
+
+    private static decimal CalculateLineTotal(ErpJwVoucherLineSaveRequest line)
+    {
+        var grossWeight = RoundNonNeg(line.GrossWeight, 4);
+        var purity = RoundNonNeg(line.Purity, 6);
+        var pureWeight = line.PureWeight > 0
+            ? RoundNonNeg(line.PureWeight, 4)
+            : RoundNonNeg(grossWeight * purity, 4);
+        var makingAmount = line.MakingAmount > 0
+            ? RoundNonNeg(line.MakingAmount, 2)
+            : RoundNonNeg(line.MakingRate * grossWeight, 2);
+        var metalAmount = line.MetalAmount > 0
+            ? RoundNonNeg(line.MetalAmount, 2)
+            : RoundNonNeg(pureWeight * line.MetalRate, 2);
+        return line.NetAmount > 0
+            ? RoundNonNeg(line.NetAmount, 2)
+            : line.TotalAmount > 0
+                ? RoundNonNeg(line.TotalAmount, 2)
+                : RoundNonNeg(metalAmount + makingAmount + line.StoneAmount - line.DiscountAmount, 2);
     }
 
     public static string NormalizeVocType(string? vocType, string? action)

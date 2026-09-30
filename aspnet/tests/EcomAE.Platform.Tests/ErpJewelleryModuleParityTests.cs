@@ -135,6 +135,21 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void JewelleryWriteServicesKeepSqlAndWriteEnvelopeSafe()
+    {
+        var diamond = ReadSource("ErpJwDiamondWriteService.cs");
+        var values = diamond.Split("VALUES (", 2, StringSplitOptions.None)[1]
+            .Split(") ON DUPLICATE", 2, StringSplitOptions.None)[0];
+        Assert.Equal(51, values.Count(value => value == '?'));
+
+        var voucher = ReadSource("ErpJwVoucherWriteService.cs");
+        Assert.Contains("BeginTransactionAsync", voucher, StringComparison.Ordinal);
+        Assert.Contains("transaction,", voucher, StringComparison.Ordinal);
+        Assert.Contains("pricedLineTotal", voucher, StringComparison.Ordinal);
+        Assert.Contains("if (net == 0 && pricedLineTotal > 0)", voucher, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void FixingRetailStockApps_HonorTabAndCreateForms()
     {
         var fixing = ReadApp("CpJewelleryFixingApp.razor");

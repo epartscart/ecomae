@@ -1,10 +1,14 @@
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 
 namespace EcomAE.Platform.Middleware;
 
-public sealed class IndustrySpecificRouteGateMiddleware(RequestDelegate next)
+public sealed class IndustrySpecificRouteGateMiddleware(
+    RequestDelegate next,
+    ISurfaceDashboardSummaryReporter dashboards)
 {
     private readonly RequestDelegate _next = next;
+    private readonly ISurfaceDashboardSummaryReporter _dashboards = dashboards;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -17,7 +21,8 @@ public sealed class IndustrySpecificRouteGateMiddleware(RequestDelegate next)
         }
 
         var hostIndustry = ErpHostContext.Resolve(context.Request.Host.Host).IndustryCode;
-        var allowed = IndustrySpecificRoutePolicy.Allows(requiredIndustry, hostIndustry);
+        var company = await ResolveActiveCompanyAsync(context);
+        var allowed = IndustrySpecificRoutePolicy.Allows(requiredIndustry, hostIndustry, company);
         if (allowed)
         {
             await _next(context);
@@ -26,6 +31,25 @@ public sealed class IndustrySpecificRouteGateMiddleware(RequestDelegate next)
 
         context.Response.StatusCode = StatusCodes.Status404NotFound;
         await context.Response.WriteAsync("The requested industry module is not enabled for this tenant.");
+    }
+
+    private async Task<ErpCompanyDigest?> ResolveActiveCompanyAsync(HttpContext context)
+    {
+        var requested = ErpHostContext.ActiveCompanyIdFromQuery(context.Request);
+        if (requested is not > 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            var companies = await _dashboards.BuildErpCompaniesDigestAsync(50, context.RequestAborted);
+            return companies.Companies.FirstOrDefault(company => company.Id == requested.Value);
+        }
+        catch
+        {
+            return null;
+        }
     }
 }
 
@@ -50,15 +74,26 @@ public static class IndustrySpecificRoutePolicy
     }
 
     public static bool Allows(string requiredIndustry, string? hostIndustry)
+        => Allows(requiredIndustry, hostIndustry, null);
+
+    public static bool Allows(
+        string requiredIndustry,
+        string? hostIndustry,
+        ErpCompanyDigest? company)
     {
         if (requiredIndustry.Equals("jewellery", StringComparison.OrdinalIgnoreCase))
         {
-            return hostIndustry is "jewellery" or "jewelry";
+            return hostIndustry is "jewellery" or "jewelry"
+                || ErpIndustryNav.IsJewelleryCompany(company);
         }
 
         if (requiredIndustry.Equals("fitout", StringComparison.OrdinalIgnoreCase))
         {
-            return hostIndustry is "fitout" or "fit_out" or "construction" or "construction_contracting";
+            return hostIndustry is "fitout"
+                or "fit_out"
+                or "construction"
+                or "construction_contracting"
+                || ErpIndustryNav.IsFitOutCompany(company);
         }
 
         return false;
