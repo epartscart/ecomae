@@ -132,30 +132,56 @@
                 <div class="row">
                     <div class="col-sm-4">
                         <strong>Purchase orders</strong>
-                        <ul>
+                        <table class="table table-condensed table-bordered table-epc epc-erp-table">
+                            <thead><tr><th>PO</th><th class="text-right">Total</th><th>Status</th><th>Approved</th><th>Received</th><th class="text-right">Lead (d)</th></tr></thead>
+                            <tbody>
                             @foreach (var row in _portalDetail.PurchaseOrders)
                             {
-                                <li>@row.PurchaseNo · @row.Status · @row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture) · @FormatDate(row.ReceivedAt > 0 ? row.ReceivedAt : row.ApprovedAt)</li>
+                                <tr>
+                                    <td>@row.PurchaseNo</td>
+                                    <td class="text-right">@row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@row.Status</td>
+                                    <td>@FormatDate(row.ApprovedAt)</td>
+                                    <td>@FormatDate(row.ReceivedAt)</td>
+                                    <td class="text-right">@FormatLeadDays(row.ApprovedAt, row.ReceivedAt)</td>
+                                </tr>
                             }
-                        </ul>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="col-sm-4">
                         <strong>RFQs</strong>
-                        <ul>
+                        <table class="table table-condensed table-bordered table-epc epc-erp-table">
+                            <thead><tr><th>RFQ</th><th class="text-right">Est.</th><th>Status</th><th>Due</th></tr></thead>
+                            <tbody>
                             @foreach (var row in _portalDetail.Rfqs)
                             {
-                                <li>@row.RfqNo · @row.Status · @row.AmountEstimate.ToString("N2", CultureInfo.InvariantCulture)</li>
+                                <tr>
+                                    <td>@row.RfqNo</td>
+                                    <td class="text-right">@row.AmountEstimate.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@row.Status</td>
+                                    <td>@FormatDate(row.DueDate)</td>
+                                </tr>
                             }
-                        </ul>
+                            </tbody>
+                        </table>
                     </div>
                     <div class="col-sm-4">
                         <strong>Payable bills</strong>
-                        <ul>
+                        <table class="table table-condensed table-bordered table-epc epc-erp-table">
+                            <thead><tr><th>Invoice</th><th class="text-right">Total</th><th>Status</th><th>Date</th></tr></thead>
+                            <tbody>
                             @foreach (var row in _portalDetail.Bills)
                             {
-                                <li>@row.InvoiceNumber · @row.Status · @row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</li>
+                                <tr>
+                                    <td>@row.InvoiceNumber</td>
+                                    <td class="text-right">@row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td>@row.Status</td>
+                                    <td>@FormatDate(row.PurchaseDate)</td>
+                                </tr>
                             }
-                        </ul>
+                            </tbody>
+                        </table>
                     </div>
                 </div>
             </div>
@@ -371,6 +397,12 @@
     {
         if (unix <= 0) return "—";
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatLeadDays(long approvedAt, long receivedAt)
+    {
+        if (approvedAt <= 0 || receivedAt <= 0 || receivedAt < approvedAt) return "—";
+        return ((decimal)(receivedAt - approvedAt) / 86400m).ToString("0.0", CultureInfo.InvariantCulture);
     }
 
     private static string SupplierPortalHref(long supplierId)
