@@ -188,7 +188,7 @@ save path beyond a header-only write:
 
 | Screenshot family | PHP evidence | ASP.NET status |
 | --- | --- | --- |
-| Retail / metal sales / sales return | `epc_jewel_voucher` + `epc_jewel_voucher_lines`; `jw_*_save` aliases | Header and one-line entry now bind through the guarded voucher endpoint; PHP-owned fallback remains |
+| Retail / metal sales / sales return | `epc_jewel_voucher` + `epc_jewel_voucher_lines`; `jw_*_save` aliases | Header and repeated multi-line browser entry now bind through the guarded voucher endpoint; PHP-owned fallback remains |
 | Metal / diamond purchase and purchase window | Voucher registry plus shared voucher lines | Shared line contract persists stock code, division, description, pieces, weights, purity, metal/making/stone/discount amounts |
 | POS advance / petty cash / journal voucher | `ADV`/`PCV`/`JVL` registry and voucher header | Voucher header path remains guarded; detailed receipt/accounting posting stays open |
 | Purchase / sales fixing | `epc_jewel_fixing` and fixing aliases | Existing fixing endpoint remains separate; purchase/sales voucher forms expose the shared line contract |
@@ -200,8 +200,8 @@ multiplied by metal rate, and total amount includes metal, making, stone, and
 discount values. This is **Observed/Inferred PHP parity**, not a claim that
 all INDUS posting and inventory triggers have been independently verified.
 
-The remaining screenshot acceptance gates are explicit: multi-line browser
-entry, tag/barcode lookup, stock availability and deduction, receipt/tender
+The remaining screenshot acceptance gates are explicit: tag/barcode lookup,
+stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level
 transfers, report filters, and live MariaDB corroboration. These stay PHP
 authoritative until schema and transaction traces are verified.

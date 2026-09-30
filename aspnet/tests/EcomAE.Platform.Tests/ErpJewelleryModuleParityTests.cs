@@ -285,6 +285,20 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void JewelleryVoucherForm_BindsRepeatedLineFields()
+    {
+        var module = ReadApp("CpJewelleryRetailApp.razor");
+        var handler = ReadPlatformSource("Modules/ErpModule.cs");
+        var binder = ReadPlatformSource("Migration/LiveWriteFormBinder.cs");
+        Assert.Contains("Additional voucher lines", module, StringComparison.Ordinal);
+        Assert.Contains("name=\"line_stock_code\"", module, StringComparison.Ordinal);
+        Assert.Contains("form[\"line_stock_code\"].Count", handler, StringComparison.Ordinal);
+        Assert.Contains("Enumerable.Range(0, lineCount)", handler, StringComparison.Ordinal);
+        Assert.Contains("TextAt", binder, StringComparison.Ordinal);
+        Assert.Contains("DecAt", binder, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void JewelleryFormRoutes_AreDedicatedHtmlPosts()
     {
         Assert.Equal("/erp/jewellery/repair-create", EcomAeRoutes.ErpJewelleryRepairCreateForm);
@@ -368,6 +382,14 @@ public sealed class ErpJewelleryModuleParityTests
     {
         var root = FindRepoRoot();
         var path = Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Erp", fileName);
+        Assert.True(File.Exists(path), path);
+        return File.ReadAllText(path);
+    }
+
+    private static string ReadPlatformSource(string fileName)
+    {
+        var root = FindRepoRoot();
+        var path = Path.Combine(root, "aspnet", "src", "EcomAE.Platform", fileName);
         Assert.True(File.Exists(path), path);
         return File.ReadAllText(path);
     }

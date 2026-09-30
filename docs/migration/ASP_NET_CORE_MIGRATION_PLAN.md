@@ -108,7 +108,10 @@ silently promoted to implemented behavior:
 The next verified build slices prioritize observed capabilities: positive metal
 stock balance by company/metal/karat, purchase/fixing and voucher line
 traceability, tag/barcode identity, stock verification, repair movement, and
-retail/return surfaces. The newly added stock-balance projection is read-only,
+retail/return surfaces. Jewellery voucher browser entry now binds up to three
+repeated line rows into the existing PHP-compatible line collection; this is
+an additive presentation/binding change and does not claim stock deduction or
+posting parity. The newly added stock-balance projection is read-only,
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
