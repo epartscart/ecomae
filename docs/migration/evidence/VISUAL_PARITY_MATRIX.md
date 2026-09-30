@@ -40,6 +40,15 @@ not page-specific copies. Current primitives include:
 
 ## Root-cause audit register
 
+### Current repository baseline
+
+The first static audit of the ASP.NET presentation tree found 331 page
+components, 169 page files still containing legacy Bootstrap table class
+patterns, 66 page files already using the shared `epc-erp-table-wrap`, and 22
+components consuming `ErpDocumentWorkspace`. This is a baseline for prioritising
+shared migration work, not an acceptance percentage: rendered PHP comparison is
+still required.
+
 | Root cause to audit | Evidence method | Current classification |
 |---|---|---|
 | Generic Bootstrap or page-local styling | stylesheet and rendered DOM audit | open |
