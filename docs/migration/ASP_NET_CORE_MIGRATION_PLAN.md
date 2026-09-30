@@ -83,6 +83,43 @@ must not be treated as a verified database dictionary: proposed entity names,
 foreign keys, formulas, lifecycle states, and permissions require read-only
 schema or approved transaction evidence before implementation is marked complete.
 
+### Additional Jewellery build blueprint (2026)
+
+`INDUS_Jewellery_ERP_Devin_AI_Build_Blueprint.docx` is now part of the
+authoritative planning set for the Jewellery tranche. It expands the target
+business chain to:
+
+`MASTER DATA → PURCHASE → MATERIAL STOCK → MANUFACTURE → TAGGED JEWELLERY → TRANSFER/VERIFICATION → SALE/RETURN → GL & REPORTING`
+
+The blueprint's requirements are tracked by evidence state rather than being
+silently promoted to implemented behavior:
+
+- **OBSERVED**: screenshot/document fields and workflows that must retain
+  PHP-compatible request and presentation parity.
+- **INFERRED**: relationships or calculations suggested by repeated workflow
+  use; implementation waits for sample data or approved business evidence.
+- **PROPOSED**: replacement architecture such as immutable movements,
+  component-level costing, outbox events, durable jobs, and explicit posting
+  states; these require product approval and do not redefine the PHP schema.
+- **OPEN**: unknown formulas, table relationships, tag grain, tax/GL rules,
+  ownership, reversal behavior, and report definitions; these remain discovery
+  items and must not be invented.
+
+The next verified build slices prioritize observed capabilities: positive metal
+stock balance by company/metal/karat, purchase/fixing and voucher line
+traceability, tag/barcode identity, stock verification, repair movement, and
+retail/return surfaces. The newly added stock-balance projection is read-only,
+uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
+movement reconstruction, as-of-date filtering, branch scope, and valuation
+reconciliation PHP-authoritative until evidenced.
+
+Jewellery is not complete until the blueprint gates G1–G10 are evidenced:
+domain identity and relationships, approved calculations, reconstructable
+inventory, balanced finance, reconciliation, security/maker-checker/audit,
+performance, recovery/idempotency, business UAT, and cutover/rollback. The
+ASP.NET module therefore remains a guarded PHP-compatible shadow for any gate
+that lacks schema, transaction, database, or human acceptance evidence.
+
 ## Migration Rules
 
 1. Keep PHP running until ASP.NET Core has tested parity for the route being cut over.
@@ -539,3 +576,18 @@ The script checks out the final migration files from the source branch onto late
 - Kept `/erp/`, legacy CP finance redirects, PHP/PHP-FPM fallback, and broad
   PHP removal blocked until the evidence-based visual and structural gates
   pass with human acceptance.
+
+
+## Fifty Third Milestone Included Here
+
+- Advanced the fit-out estimate/BOQ tranche with first-class material, labour,
+  subcontract, equipment, and overhead component rates on each BOQ line.
+- Persisted calculated total cost, selling rate, and selling amount using the
+  estimate's guarded markup percentage, while retaining the existing
+  single-rate input as a backwards-compatible fallback by cost type.
+- Kept the fit-out design additive and tenant-scoped; this is a new
+  fit-out-owned projection rather than a claim about an existing PHP
+  `epc_erp_project_accounting` column or formula.
+- Fit-out P1-04 remains `partial` until readback, revision comparison,
+  approval evidence, live tenant-database corroboration, and the full
+  32-step scenario acceptance gate are complete.

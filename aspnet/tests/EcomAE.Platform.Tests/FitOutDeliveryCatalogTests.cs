@@ -126,6 +126,15 @@ public sealed class FitOutDeliveryCatalogTests
         Assert.Equal("EST", ErpVoucherNumberService.NormalizeType("est"));
         Assert.Equal("QUO", ErpVoucherNumberService.NormalizeType("quo"));
         Assert.Contains("ecomae_fitout_lead_handoffs", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutLeadHandoffWriteService.cs")), StringComparison.Ordinal);
+        var estimateService = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpFitOutEstimateWriteService.cs"));
+        Assert.Contains("material_rate", estimateService, StringComparison.Ordinal);
+        Assert.Contains("labour_rate", estimateService, StringComparison.Ordinal);
+        Assert.Contains("subcontract_rate", estimateService, StringComparison.Ordinal);
+        Assert.Contains("equipment_rate", estimateService, StringComparison.Ordinal);
+        Assert.Contains("overhead_rate", estimateService, StringComparison.Ordinal);
+        Assert.Contains("total_cost", estimateService, StringComparison.Ordinal);
+        Assert.Contains("selling_amount", estimateService, StringComparison.Ordinal);
+        Assert.Contains("ReadMarkupAsync", estimateService, StringComparison.Ordinal);
         Assert.Contains("equipment_usage", deliveryService, StringComparison.Ordinal);
         Assert.Contains("timesheet", deliveryService, StringComparison.Ordinal);
         Assert.Contains("subcontract_payment_certificate", deliveryService, StringComparison.Ordinal);

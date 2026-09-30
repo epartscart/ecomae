@@ -31,7 +31,12 @@ public sealed record ErpFitOutBoqLineSaveRequest(
     decimal Quantity = 0,
     string? Unit = null,
     decimal UnitRate = 0,
-    int SortOrder = 0);
+    int SortOrder = 0,
+    decimal MaterialRate = 0,
+    decimal LabourRate = 0,
+    decimal SubcontractRate = 0,
+    decimal EquipmentRate = 0,
+    decimal OverheadRate = 0);
 
 public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteService
 {
@@ -121,6 +126,27 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
         var quantity = decimal.Round(Math.Max(0, request.Quantity), 4, MidpointRounding.AwayFromZero);
         var rate = decimal.Round(Math.Max(0, request.UnitRate), 4, MidpointRounding.AwayFromZero);
+        var materialRate = decimal.Round(Math.Max(0, request.MaterialRate), 4, MidpointRounding.AwayFromZero);
+        var labourRate = decimal.Round(Math.Max(0, request.LabourRate), 4, MidpointRounding.AwayFromZero);
+        var subcontractRate = decimal.Round(Math.Max(0, request.SubcontractRate), 4, MidpointRounding.AwayFromZero);
+        var equipmentRate = decimal.Round(Math.Max(0, request.EquipmentRate), 4, MidpointRounding.AwayFromZero);
+        var overheadRate = decimal.Round(Math.Max(0, request.OverheadRate), 4, MidpointRounding.AwayFromZero);
+        if (materialRate + labourRate + subcontractRate + equipmentRate + overheadRate == 0)
+        {
+            (materialRate, labourRate, subcontractRate, equipmentRate, overheadRate) = costType switch
+            {
+                "labour" => (0m, rate, 0m, 0m, 0m),
+                "subcontract" => (0m, 0m, rate, 0m, 0m),
+                "equipment" => (0m, 0m, 0m, rate, 0m),
+                "overhead" => (0m, 0m, 0m, 0m, rate),
+                _ => (rate, 0m, 0m, 0m, 0m)
+            };
+        }
+        var componentRate = decimal.Round(materialRate + labourRate + subcontractRate + equipmentRate + overheadRate, 4, MidpointRounding.AwayFromZero);
+        var estimateMarkup = await ReadMarkupAsync(connection, request.EstimateId, cancellationToken).ConfigureAwait(false);
+        var totalCost = decimal.Round(componentRate * quantity, 4, MidpointRounding.AwayFromZero);
+        var sellingRate = decimal.Round(componentRate * (1 + estimateMarkup / 100m), 4, MidpointRounding.AwayFromZero);
+        var sellingAmount = decimal.Round(sellingRate * quantity, 4, MidpointRounding.AwayFromZero);
         var sortOrder = Math.Max(0, request.SortOrder);
 
         if (request.Id > 0)
@@ -129,9 +155,9 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
                 connection,
                 null,
                 ErpDb.Positional(
-                    "UPDATE `ecomae_fitout_boq_lines` SET `estimate_id`=?, `section`=?, `description`=?, `cost_type`=?, `quantity`=?, `unit`=?, `unit_rate`=?, `sort_order`=? WHERE `id`=?"),
+                    "UPDATE `ecomae_fitout_boq_lines` SET `estimate_id`=?, `section`=?, `description`=?, `cost_type`=?, `quantity`=?, `unit`=?, `unit_rate`=?, `material_rate`=?, `labour_rate`=?, `subcontract_rate`=?, `equipment_rate`=?, `overhead_rate`=?, `total_cost`=?, `selling_rate`=?, `selling_amount`=?, `sort_order`=? WHERE `id`=?"),
                 cancellationToken,
-                request.EstimateId, section, description, costType, quantity, unit, rate, sortOrder, request.Id).ConfigureAwait(false);
+                request.EstimateId, section, description, costType, quantity, unit, componentRate, materialRate, labourRate, subcontractRate, equipmentRate, overheadRate, totalCost, sellingRate, sellingAmount, sortOrder, request.Id).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok("BOQ line saved", request.Id);
         }
 
@@ -139,9 +165,9 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `ecomae_fitout_boq_lines` (`estimate_id`,`section`,`description`,`cost_type`,`quantity`,`unit`,`unit_rate`,`sort_order`) VALUES (?,?,?,?,?,?,?,?)"),
+                "INSERT INTO `ecomae_fitout_boq_lines` (`estimate_id`,`section`,`description`,`cost_type`,`quantity`,`unit`,`unit_rate`,`material_rate`,`labour_rate`,`subcontract_rate`,`equipment_rate`,`overhead_rate`,`total_cost`,`selling_rate`,`selling_amount`,`sort_order`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
             cancellationToken,
-            request.EstimateId, section, description, costType, quantity, unit, rate, sortOrder).ConfigureAwait(false);
+            request.EstimateId, section, description, costType, quantity, unit, componentRate, materialRate, labourRate, subcontractRate, equipmentRate, overheadRate, totalCost, sellingRate, sellingAmount, sortOrder).ConfigureAwait(false);
         var inserted = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("BOQ line saved", inserted);
     }
@@ -181,12 +207,48 @@ public sealed class ErpFitOutEstimateWriteService : IErpFitOutEstimateWriteServi
                 `quantity` decimal(16,4) NOT NULL DEFAULT 0,
                 `unit` varchar(24) NOT NULL,
                 `unit_rate` decimal(16,4) NOT NULL DEFAULT 0,
+                `material_rate` decimal(16,4) NOT NULL DEFAULT 0,
+                `labour_rate` decimal(16,4) NOT NULL DEFAULT 0,
+                `subcontract_rate` decimal(16,4) NOT NULL DEFAULT 0,
+                `equipment_rate` decimal(16,4) NOT NULL DEFAULT 0,
+                `overhead_rate` decimal(16,4) NOT NULL DEFAULT 0,
+                `total_cost` decimal(16,4) NOT NULL DEFAULT 0,
+                `selling_rate` decimal(16,4) NOT NULL DEFAULT 0,
+                `selling_amount` decimal(16,4) NOT NULL DEFAULT 0,
                 `sort_order` int NOT NULL DEFAULT 0,
                 PRIMARY KEY (`id`),
                 KEY `ix_ecomae_fitout_boq_estimate` (`estimate_id`)
             ) ENGINE=InnoDB
             """,
             cancellationToken).ConfigureAwait(false);
+        foreach (var column in new[]
+        {
+            "material_rate", "labour_rate", "subcontract_rate", "equipment_rate",
+            "overhead_rate", "total_cost", "selling_rate", "selling_amount"
+        })
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                $"ALTER TABLE `ecomae_fitout_boq_lines` ADD COLUMN IF NOT EXISTS `{column}` decimal(16,4) NOT NULL DEFAULT 0",
+                cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task<decimal> ReadMarkupAsync(
+        DbConnection connection,
+        long estimateId,
+        CancellationToken cancellationToken)
+    {
+        var value = await ErpDb.ScalarAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `markup_percent` FROM `ecomae_fitout_estimates` WHERE `id`=? LIMIT 1"),
+            cancellationToken,
+            estimateId).ConfigureAwait(false);
+        return value is null or DBNull
+            ? 0
+            : decimal.Round(Math.Max(0, Convert.ToDecimal(value, System.Globalization.CultureInfo.InvariantCulture)), 4, MidpointRounding.AwayFromZero);
     }
 
     private static string NormalizeStatus(string? value)

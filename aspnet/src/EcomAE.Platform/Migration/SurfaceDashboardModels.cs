@@ -4883,6 +4883,23 @@ public sealed record CpJewelleryStockVerificationDetailResult(
     IReadOnlyList<CpJewelleryStockVerificationRowDigest> Siblings,
     string Source,
     string Message);
+
+public sealed record CpJewelleryStockBalanceRowDigest(
+    string Metal,
+    string Karat,
+    decimal StockPcs,
+    decimal StockGms,
+    decimal StockValue);
+
+public sealed record CpJewelleryStockBalanceDigestResult(
+    IReadOnlyList<CpJewelleryStockBalanceRowDigest> Rows,
+    decimal TotalPcs,
+    decimal TotalGms,
+    decimal TotalValue,
+    int Count,
+    string Source,
+    string Message);
+
 public sealed record CpTaxExternalReportingSummary(
     int RuleCount,
     int ActiveCount,

@@ -494,6 +494,9 @@ public interface ISurfaceDashboardSummaryReporter
     /// <summary>Opened jewellery stock verification (Open key <c>verify_id</c>) plus same-status siblings. remarks is a short excerpt.</summary>
     Task<CpJewelleryStockVerificationDetailResult> BuildCpJewelleryStockVerificationDetailAsync(long id, long companyId = 0, CancellationToken cancellationToken = default);
 
+    /// <summary>Read-only PHP jewellery metal-stock balance grouped by metal and karat.</summary>
+    Task<CpJewelleryStockBalanceDigestResult> BuildCpJewelleryStockBalanceDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default);
+
     /// <summary>Read-only bank statement lines for reconciliation.</summary>
     Task<ErpBankReconciliationDigestResult> BuildErpBankReconciliationDigestAsync(int limit, CancellationToken cancellationToken = default);
 
