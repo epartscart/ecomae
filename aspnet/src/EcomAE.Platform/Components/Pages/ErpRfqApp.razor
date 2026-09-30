@@ -11,6 +11,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionCatalogReadService DimensionCatalog
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>RFQs · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -55,6 +56,7 @@
                 Tabs="@RfqWorkspaceTabs"
                 HeaderActions="@RfqHeaderActions" />
             <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path. When PHP SCM lines exist, the workspace reads their persisted request quantities and target prices without creating or mutating the PHP-owned schema.</p>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             @if (_isAdmin && _opened.Lines.Count > 0)
             {
                 <form method="post" action="/erp/ajax/save-rfq-response" class="epc-erp-form" style="margin-top:1rem">
@@ -296,6 +298,7 @@
     private bool _isAdmin;
     private IReadOnlyList<ErpRfqDigest> _rfqs = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -416,6 +419,7 @@
             var detail = await Dashboards.BuildErpRfqDetailAsync(_openedId, ctx.RequestAborted);
             _opened = detail.Rfq;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("rfq", _openedId, ctx.RequestAborted);
             if (_opened is not null)
             {
                 var openedList = _rfqs.FirstOrDefault(r => r.Id == _openedId);
