@@ -2852,6 +2852,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpD365ActionPane", razor, StringComparison.Ordinal);
+        Assert.Contains("SEPA / local payment batch stub", razor, StringComparison.Ordinal);
+        Assert.Contains("Bank file export is a stub", razor, StringComparison.Ordinal);
+        Assert.Contains("No payment batches. Create a draft SEPA batch below.", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
         Assert.Contains("PhpParityModuleBody", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
