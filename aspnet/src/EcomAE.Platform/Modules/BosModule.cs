@@ -26,6 +26,69 @@ public sealed class BosModule : ISurfaceModule
     {
         endpoints.MapGet(EcomAeRoutes.BosParity, (IBosParityReporter reporter) => Results.Ok(reporter.BuildReport()));
 
+        endpoints.MapPost(EcomAeRoutes.BosTenantInstallationManifest, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/bos/login?returnUrl=/bos/tenants-app",
+                    "Admin BOS capability required for tenant installation manifests.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<TenantInstallManifestRequest>(
+                           context,
+                           cancellationToken)
+                       ?? new TenantInstallManifestRequest();
+            if (body.ExpiresAt is null)
+            {
+                return Results.BadRequest(new
+                {
+                    ok = false,
+                    validation_code = "expires_at_required",
+                    message = "An expiring manifest is required."
+                });
+            }
+
+            try
+            {
+                var manifest = TenantInstallationControlPlane.CreateManifest(
+                    body.TenantKey ?? string.Empty,
+                    body.CloudBaseUrl ?? string.Empty,
+                    body.PackageVersion ?? string.Empty,
+                    body.EnrollmentRequestId ?? string.Empty,
+                    body.ExpiresAt.Value);
+
+                return Results.Ok(new
+                {
+                    ok = true,
+                    manifest,
+                    writes = 0,
+                    cutoverAllowed = false,
+                    phpAuthoritative = true,
+                    note = "Manifest generation is contract-only in this tranche; tenant persistence, enrollment redemption, and synchronization remain separately guarded."
+                });
+            }
+            catch (ArgumentException exception)
+            {
+                return Results.BadRequest(new
+                {
+                    ok = false,
+                    validation_code = "invalid_manifest_request",
+                    message = exception.Message
+                });
+            }
+        }).DisableAntiforgery();
+
         endpoints.MapGet(EcomAeRoutes.BosFleetSummary, async (
             HttpContext context,
             ILegacySessionValidator validator,

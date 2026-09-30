@@ -1,0 +1,10 @@
+{
+  "manifestVersion": "1",
+  "tenantKey": "tenant-example",
+  "cloudBaseUrl": "https://control.ecomae.com",
+  "enrollmentUrl": "https://control.ecomae.com/api/v1/tenant-installations/enroll",
+  "enrollmentRequestId": "issued-on-download-and-single-use",
+  "packageVersion": "2026.09.1",
+  "expiresAt": "2026-10-01T00:00:00+00:00",
+  "deploymentKind": "on-premises"
+}
