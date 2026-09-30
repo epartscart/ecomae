@@ -479,6 +479,20 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Repair receipt history is read-only and company-scoped.", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void FitOutProgressReadback_PreservesProjectScopedProgressRecords()
+    {
+        var service = ReadPlatformSource("Erp/ErpFitOutProgressReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("WHERE `project_id`=? AND `record_type` IN", service, StringComparison.Ordinal);
+        Assert.Contains("'progress_claim','client_progress_claim','weighted_progress'", service, StringComparison.Ordinal);
+        Assert.Contains("ORDER BY `event_date` DESC, `id` DESC", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutProgress", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutProgressAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Fit-out progress readback is project-scoped and read-only.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();
