@@ -136,6 +136,14 @@
         <div class="kpi"><div class="lbl">Session</div><div class="val">@(_isAdmin ? "live" : "guest")</div></div>
     </div>
 
+    @if (_openedCustomerId > 0)
+    {
+        <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <strong>Customer dimensions · @_openedCustomerId.ToString(CultureInfo.InvariantCulture)</strong>
+            <ErpDimensionLinksPanel Links="_openedCustomerDimensionLinks" />
+        </div>
+    }
+
     @if (_opened is not null)
     {
         <div class="epc-erp-table-wrap" style="margin-bottom:12px">
@@ -267,8 +275,10 @@
     private string _flashOk = "";
     private string _flashErr = "";
     private long _openedId;
+    private long _openedCustomerId;
     private ErpContactDetail? _opened;
     private IReadOnlyList<ErpContactDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpDimensionLink> _openedCustomerDimensionLinks = [];
 
     private string OpenedCaption => _opened is null
         ? ""
@@ -297,6 +307,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "contact_id");
+        _openedCustomerId = ErpRecordOpen.ReadId(ctx.Request, "customer_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -310,6 +321,13 @@
         _source = result.Source;
         _message = result.Message;
         _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
+        if (_openedCustomerId > 0)
+        {
+            _openedCustomerDimensionLinks = await DimensionLinks.LoadAsync(
+                "customer",
+                _openedCustomerId,
+                ctx.RequestAborted);
+        }
 
         if (_openedId > 0)
         {
