@@ -1458,6 +1458,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(meIc.Succeeded);
         Assert.Equal("invalid", meIc.Code);
 
+        var meSameEntity = await new ErpMultiEntityWriteService(new ConfiguredNeverOpened())
+            .RecordIntercompanyAsync(9, "a", "a", 10, "x");
+        Assert.False(meSameEntity.Succeeded);
+        Assert.Equal("invalid", meSameEntity.Code);
+
         var meDb = await new ErpMultiEntityWriteService(new UnconfiguredConnections())
             .EliminateAsync(9);
         Assert.False(meDb.Succeeded);

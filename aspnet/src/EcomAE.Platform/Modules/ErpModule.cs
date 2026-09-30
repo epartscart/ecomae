@@ -404,6 +404,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpBankInstrumentStatus, HandleCftInstrumentStatusAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpDocExpirySave, HandleDocxSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpFinAllocSave, HandleFinAllocSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpCostCenterWrite, HandleCostCenterWriteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpDocExpiryDelete, HandleDocxDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
@@ -19298,6 +19299,78 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleCostCenterWriteAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCostCenterWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fin-advanced-app", "Admin ERP capability required for cost-centre write.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCostCenterWriteBody>(context, cancellationToken) ?? new();
+        var action = body.Action;
+        var id = body.Id;
+        var code = body.Code;
+        var name = body.Name;
+        var branchId = body.BranchId;
+        var runLabel = body.RunLabel;
+        var sourceCost = body.SourceCost;
+        var weights = body.Weights;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            action = LiveWriteFormBinder.Text(form, "action");
+            id = LiveWriteFormBinder.Long(form, "id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            name = LiveWriteFormBinder.Text(form, "name");
+            branchId = LiveWriteFormBinder.Long(form, "branch_id", "branchId");
+            runLabel = LiveWriteFormBinder.Text(form, "run_label", "runLabel");
+            sourceCost = LiveWriteFormBinder.Dec(form, "source_cost", "sourceCost");
+            weights = LiveWriteFormBinder.Text(form, "weights");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var key = (action ?? string.Empty).Trim().ToLowerInvariant();
+        var wouldWrite = key is "save_center" or "save-centre" or "save_cost_center" or "post_allocation";
+        if (!confirm)
+        {
+            return Results.Ok(new
+            {
+                ok = true,
+                writes = 0,
+                wouldWrite,
+                writesBlocked = true,
+                phpAuthoritative = false,
+                cutoverAllowed = false,
+                validation_code = wouldWrite ? "dry_run" : "unknown_action",
+                message = wouldWrite
+                    ? "Dry-run. Set confirmWrites=true to write the cost-centre operation."
+                    : "Unknown cost-centre action.",
+                session = SessionPayload(session),
+            });
+        }
+
+        var written = key switch
+        {
+            "save_center" or "save-centre" or "save_cost_center" =>
+                await writes.SaveCenterAsync(id, code, name, branchId, cancellationToken),
+            "post_allocation" =>
+                await writes.PostAllocationAsync(runLabel, sourceCost, ErpCostCenterWriteService.ParseWeights(weights), cancellationToken),
+            _ => ErpSimpleWriteResult.Fail("invalid", "Unknown cost-centre action. save_center / post_allocation are supported."),
+        };
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fin-advanced-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleDocxDeleteAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -22567,6 +22640,16 @@ public sealed class ErpModule : ISurfaceModule
         int QtyReturned = 0,
         decimal Revenue = 0,
         bool ConfirmWrites = false);
+    private sealed record ErpCostCenterWriteBody(
+        string? Action = null,
+        bool ConfirmWrites = false,
+        long Id = 0,
+        string? Code = null,
+        string? Name = null,
+        long BranchId = 0,
+        string? RunLabel = null,
+        decimal SourceCost = 0,
+        string? Weights = null);
     private sealed record ErpMultiEntityWriteBody(
         string? Action = null,
         bool ConfirmWrites = false,

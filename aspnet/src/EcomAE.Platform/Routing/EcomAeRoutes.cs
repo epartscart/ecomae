@@ -2893,6 +2893,8 @@ public static class EcomAeRoutes
     public const string ErpDocExpirySave = "/erp/doc-expiry/save";
     /// <summary>HTML form POST for PHP <c>fin_alloc_save</c>. <c>confirmWrites=true</c> writes via <c>IErpFinAllocSaveWriteService</c>.</summary>
     public const string ErpFinAllocSave = "/erp/fin/alloc/save";
+    /// <summary>HTML form POST for PHP cost-centre master and allocation operations.</summary>
+    public const string ErpCostCenterWrite = "/erp/fin/cost-centers/write";
     /// <summary>HTML form POST for PHP <c>docx_delete</c>. <c>confirmWrites=true</c> writes via <c>IErpDocxDeleteWriteService</c>.</summary>
     public const string ErpDocExpiryDelete = "/erp/doc-expiry/delete";
     /// <summary>HTML form POST for PHP <c>tenant_config_save</c>. <c>confirmWrites=true</c> writes via <c>IErpTenantConfigSaveWriteService</c>.</summary>

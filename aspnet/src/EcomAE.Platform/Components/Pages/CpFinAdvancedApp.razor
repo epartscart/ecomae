@@ -21,7 +21,7 @@
             </div>
             <div class="panel-body">
                 <p>@CpPhpModuleCopy.PurposeFor("/cp/fin-advanced-app")</p>
-                <p>Open a period for company allocation rules, FY accruals, and FX runs. Alloc run, accrual save, and FX revalue stay on the Classic twin.</p>
+                <p>Open a period for company allocation rules, cost-centre allocations, FY accruals, and FX runs. Accrual save and FX revalue stay on the Classic twin.</p>
             </div>
         </div>
     </div>
@@ -71,6 +71,29 @@
                 <button type="submit" class="btn btn-primary btn-sm">Save rule</button>
             </form>
 </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Cost-centre master">
+            <form method="post" action="/erp/fin/cost-centers/write" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="action" value="save_center" />
+                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Code <input class="form-control input-sm" name="code" required maxlength="30" style="width:110px;" /></label>
+                <label>Name <input class="form-control input-sm" name="name" maxlength="160" style="width:180px;" /></label>
+                <label>Branch id <input class="form-control input-sm" type="number" name="branch_id" min="0" value="0" style="width:90px;" /></label>
+                <button type="submit" class="btn btn-primary btn-sm">Save cost centre</button>
+            </form>
+        </ErpPhpCreateWell>
+        <ErpPhpCreateWell Title="Post shared-cost allocation">
+            <form method="post" action="/erp/fin/cost-centers/write" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
+                <input type="hidden" name="action" value="post_allocation" />
+                <input type="hidden" name="returnUrl" value="@_listHref" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <label>Run label <input class="form-control input-sm" name="run_label" required maxlength="80" style="width:150px;" /></label>
+                <label>Source cost <input class="form-control input-sm" type="number" step="0.01" name="source_cost" required style="width:110px;" /></label>
+                <label>Centre weights <textarea class="form-control input-sm" name="weights" rows="2" required placeholder="12|2&#10;15|1" style="width:160px;"></textarea></label>
+                <button type="submit" class="btn btn-primary btn-sm">Post allocation</button>
+            </form>
+            <small class="text-muted">One line per cost-centre id and driver weight. Rounding residuals go to the largest weight so the run reconciles exactly.</small>
+        </ErpPhpCreateWell>
     }
 
     @if (_openedPeriod is not null)

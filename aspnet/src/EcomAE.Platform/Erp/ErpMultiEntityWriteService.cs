@@ -206,6 +206,11 @@ public sealed class ErpMultiEntityWriteService : IErpMultiEntityWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Inter-company amount cannot be zero.");
         }
 
+        if (string.Equals(from, to, StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Inter-company source and destination must differ.");
+        }
+
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
@@ -215,6 +220,12 @@ public sealed class ErpMultiEntityWriteService : IErpMultiEntityWriteService
         if (!await GroupExistsAsync(connection, groupId, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Entity group not found.");
+        }
+
+        if (!await MemberExistsAsync(connection, groupId, from, cancellationToken).ConfigureAwait(false)
+            || !await MemberExistsAsync(connection, groupId, to, cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Both inter-company entities must belong to the selected group.");
         }
 
         await ErpDb.ExecuteAsync(
@@ -266,6 +277,22 @@ public sealed class ErpMultiEntityWriteService : IErpMultiEntityWriteService
             ErpDb.Positional("SELECT `id` FROM `epc_entity_groups` WHERE `id` = ?"),
             cancellationToken,
             groupId);
+        return id > 0;
+    }
+
+    private static async Task<bool> MemberExistsAsync(
+        System.Data.Common.DbConnection connection,
+        long groupId,
+        string siteKey,
+        CancellationToken cancellationToken)
+    {
+        var id = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `id` FROM `epc_entity_members` WHERE `group_id` = ? AND `site_key` = ?"),
+            cancellationToken,
+            groupId,
+            siteKey).ConfigureAwait(false);
         return id > 0;
     }
 
