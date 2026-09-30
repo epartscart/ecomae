@@ -171,12 +171,10 @@ public static class TenantInstallationControlPlane
         string tenantKey,
         string cloudBaseUrl,
         string packageVersion,
-        string enrollmentRequestId,
         DateTimeOffset expiresAt)
     {
         var normalizedCloudBaseUrl = NormalizeHttpsUrl(cloudBaseUrl, nameof(cloudBaseUrl));
         var normalizedTenantKey = NormalizeTenantKey(tenantKey);
-        var normalizedRequestId = NormalizeOpaqueId(enrollmentRequestId, nameof(enrollmentRequestId));
         if (string.IsNullOrWhiteSpace(packageVersion))
         {
             throw new ArgumentException("A package version is required.", nameof(packageVersion));
@@ -192,7 +190,7 @@ public static class TenantInstallationControlPlane
             normalizedTenantKey,
             normalizedCloudBaseUrl,
             normalizedCloudBaseUrl + "/api/v1/tenant-installations/enroll",
-            normalizedRequestId,
+            CreateEnrollmentRequestId(),
             packageVersion.Trim(),
             expiresAt);
     }
@@ -288,14 +286,13 @@ public static class TenantInstallationControlPlane
         return uri.ToString().TrimEnd('/');
     }
 
-    private static string NormalizeOpaqueId(string value, string parameterName)
+    private static string CreateEnrollmentRequestId()
     {
-        if (string.IsNullOrWhiteSpace(value) || value.Length > 160)
-        {
-            throw new ArgumentException("An opaque enrollment request id is required.", parameterName);
-        }
-
-        return value.Trim();
+        var bytes = RandomNumberGenerator.GetBytes(24);
+        return "enr_" + Convert.ToBase64String(bytes)
+            .Replace("+", "-", StringComparison.Ordinal)
+            .Replace("/", "_", StringComparison.Ordinal)
+            .TrimEnd('=');
     }
 
     private static bool IsSha256(string value)

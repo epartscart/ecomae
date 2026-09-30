@@ -79,11 +79,12 @@ public sealed class TenantInstallationControlPlaneTests
             "tenant-a",
             "https://control.ecomae.com",
             "2026.09.1",
-            "request-123",
             DateTimeOffset.UtcNow.AddHours(2));
 
         Assert.Equal("https://control.ecomae.com/api/v1/tenant-installations/enroll", manifest.EnrollmentUrl);
         Assert.Equal("on-premises", manifest.DeploymentKind);
+        Assert.StartsWith("enr_", manifest.EnrollmentRequestId, StringComparison.Ordinal);
+        Assert.NotEqual("request-123", manifest.EnrollmentRequestId);
         Assert.DoesNotContain("password", manifest.EnrollmentUrl, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("db_", manifest.EnrollmentUrl, StringComparison.OrdinalIgnoreCase);
     }
