@@ -188,14 +188,19 @@
                 </form>
             </ErpPhpCreateWell>
         }
-        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash forecast KPIs">
-            <div class="kpi"><div class="lbl">Forecasts</div><div class="val">@_forecast.ForecastCount.ToString(CultureInfo.InvariantCulture)</div></div>
-            <div class="kpi"><div class="lbl">Opening</div><div class="val">@_forecast.Opening.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-            <div class="kpi"><div class="lbl">Total in</div><div class="val">@_forecast.TotalIn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-            <div class="kpi"><div class="lbl">Total out</div><div class="val">@_forecast.TotalOut.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-            <div class="kpi"><div class="lbl">Closing</div><div class="val">@_forecast.Closing.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-            <div class="kpi"><div class="lbl">Min balance</div><div class="val">@_forecast.MinBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
-        </div>
+        @if (_forecastId > 0 && _selectedForecast is not null)
+        {
+            <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash forecast KPIs">
+                <div class="kpi"><div class="lbl">Forecasts</div><div class="val">@_forecast.ForecastCount.ToString(CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Opening</div><div class="val">@_forecast.Opening.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Total in</div><div class="val">@_forecast.TotalIn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Total out</div><div class="val">@_forecast.TotalOut.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Closing</div><div class="val">@_forecast.Closing.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                <div class="kpi"><div class="lbl">Min balance</div><div class="val">@_forecast.MinBalance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            </div>
+        }
+        @if (_forecastId <= 0)
+        {
         <h2 style="font-size:16px;">Forecasts</h2>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -229,6 +234,9 @@
                 </tbody>
             </table>
         </div>
+        }
+        @if (_forecastId > 0 && _selectedForecast is not null)
+        {
         <h2 style="font-size:16px;margin-top:16px;">Projection lines</h2>
         <div class="epc-erp-table-wrap">
             <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
@@ -270,6 +278,7 @@
                 </tbody>
             </table>
         </div>
+        }
     }
     else
     {
