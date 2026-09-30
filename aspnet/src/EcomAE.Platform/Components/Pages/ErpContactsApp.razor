@@ -10,6 +10,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionCatalogReadService DimensionCatalog
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Contacts · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -152,6 +153,7 @@
                 <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
                 <dt>Updated</dt><dd>@FormatTime(_opened.TimeUpdated)</dd>
             </dl>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Email/phone omitted. Customer master and address-book writes stay here.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
@@ -252,6 +254,7 @@
     private bool _isAdmin;
     private IReadOnlyList<ErpContactDigest> _contacts = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -306,6 +309,7 @@
         {
             var detail = await Dashboards.BuildErpContactDetailAsync(_openedId, ctx.RequestAborted);
             _opened = detail.Contact;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("contact", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             if (_opened is not null)
             {

@@ -273,7 +273,9 @@ public sealed class ErpPhpReadTwinTests
             "ErpPaymentBatchesApp.razor",
             "ErpPurchaseOrdersApp.razor",
             "ErpSalesOrdersApp.razor",
-            "ErpInvoicesApp.razor"
+            "ErpInvoicesApp.razor",
+            "ErpContactsApp.razor",
+            "ErpSuppliersApp.razor"
         })
         {
             var page = File.ReadAllText(Path.Combine(
