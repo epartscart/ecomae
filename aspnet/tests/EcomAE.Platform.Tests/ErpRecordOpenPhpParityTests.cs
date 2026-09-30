@@ -313,7 +313,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("action=\"/erp/invoices/cancel\"", razor, StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/invoices/delete\"", razor, StringComparison.Ordinal);
-        Assert.Contains("Sales-order conversion, cancellation, and draft deletion are guarded here", razor, StringComparison.Ordinal);
+        Assert.Contains("Sales-order conversion, cancellation, draft deletion, and guarded credit-note draft persistence are available here", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);
