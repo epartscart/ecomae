@@ -449,6 +449,21 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void PurchaseOrderWorkspaceUsesPhpPurchaseDimensionContract()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpPurchaseOrdersApp.razor"));
+
+        Assert.Contains("DimensionLinks.LoadAsync", page, StringComparison.Ordinal);
+        Assert.Contains("\"purchase\"", page, StringComparison.Ordinal);
+        Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("\"purchase_order\"", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

@@ -407,7 +407,7 @@
         {
             var detail = await Dashboards.BuildErpPurchaseOrderDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Order;
-            _openedDimensionLinks = await DimensionLinks.LoadAsync("purchase_order", _openedId, ctx.RequestAborted);
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("purchase", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
