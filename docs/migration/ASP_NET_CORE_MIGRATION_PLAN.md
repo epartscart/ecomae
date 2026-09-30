@@ -620,3 +620,14 @@ The script checks out the final migration files from the source branch onto late
 - Fit-out P1-04 remains `partial` until readback, revision comparison,
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
+
+## Fifty Fourth Milestone Included Here
+
+- Added a read-only Jewellery pending-repair projection over the PHP-owned
+  repair header and item tables.
+- Kept the projection company-scoped, restricted to received/in-progress
+  jobs, optionally filtered by division and branch, and protected by the
+  existing Jewellery staff gate.
+- This is evidence-backed queue/readback coverage only; workshop receipt,
+  delivery, repair-sale, stock deduction, and finance effects remain outside
+  the claim until their PHP traces are corroborated.
