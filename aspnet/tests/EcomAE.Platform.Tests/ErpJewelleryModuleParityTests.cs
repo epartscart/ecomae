@@ -439,6 +439,18 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryStockAvailability_IsInStockAndCompanyScoped()
+    {
+        var service = ReadSource("ErpJwStockAvailabilityReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("`status`='in_stock'", service, StringComparison.Ordinal);
+        Assert.Contains("`company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryStockAvailability", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryStockAvailabilityAsync", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

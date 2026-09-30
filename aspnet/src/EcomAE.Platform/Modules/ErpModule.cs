@@ -7476,6 +7476,7 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryStockAvailability, HandleJewelleryStockAvailabilityAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryGoldSchemeCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -14668,6 +14669,36 @@ public sealed class ErpModule : ISurfaceModule
             source = result.Source,
             message = result.Message,
             session = SessionPayload(session)
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryStockAvailabilityAsync(
+        HttpContext context,
+        int companyId,
+        string? q,
+        ILegacySessionValidator validator,
+        IErpJwStockAvailabilityReadService availability,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-masters-app?tab=jewellery_tag",
+                "Admin ERP capability required for jewellery stock availability.");
+        }
+
+        var result = await availability.ReadAsync(companyId, q, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            companyId = Math.Max(0, companyId),
+            q = q?.Trim() ?? string.Empty,
+            availability = result,
+            session = SessionPayload(session),
+            note = "Only in-stock Jewellery tags are returned; company scope is applied when supplied."
         });
     }
 

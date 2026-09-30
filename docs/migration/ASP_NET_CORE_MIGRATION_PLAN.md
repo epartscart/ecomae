@@ -120,6 +120,10 @@ only a narrow availability/transition guard. The newly added stock-balance proje
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
+The Jewellery stock-availability readback now also exposes only `in_stock`
+tag rows, with optional company and tag/barcode filtering, so operators can
+verify available tagged inventory without treating the readback as a
+reservation, deduction, tender allocation, or posting implementation.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
