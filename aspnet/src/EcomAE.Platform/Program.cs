@@ -491,6 +491,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCashWriteService, EcomAE.Plat
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlLedgerWriteService, EcomAE.Platform.Erp.ErpGlLedgerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocLifecycleWriteService, EcomAE.Platform.Erp.ErpDocLifecycleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesInvoiceWriteService, EcomAE.Platform.Erp.ErpSalesInvoiceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEinvoiceCreditNoteWriteService, EcomAE.Platform.Erp.ErpEinvoiceCreditNoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseOrderWriteService, EcomAE.Platform.Erp.ErpPurchaseOrderWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRfqAwardWriteService, EcomAE.Platform.Erp.ErpRfqAwardWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseInvoiceWriteService, EcomAE.Platform.Erp.ErpPurchaseInvoiceWriteService>();

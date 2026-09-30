@@ -5993,8 +5993,68 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreditNote, async (HttpContext context, ErpEinvoiceCreditNoteBody? body, ILegacySessionValidator validator, IErpEinvoiceCreditNoteDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceCreditNoteRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreditNote, async (
+            HttpContext context,
+            ErpEinvoiceCreditNoteBody? body,
+            ILegacySessionValidator validator,
+            IErpEinvoiceCreditNoteDryRun dryRun,
+            EcomAE.Platform.Erp.IErpEinvoiceCreditNoteWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            var request = body
+                ?? await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceCreditNoteBody>(context, cancellationToken)
+                ?? new();
+            var originalDocumentId = request.OriginalDocumentId;
+            var reason = request.Reason;
+            var confirm = request.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                originalDocumentId = LiveWriteFormBinder.Long(form, "document_id", "documentId", "originalDocumentId", "original_document_id");
+                reason = LiveWriteFormBinder.Text(form, "reason");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(
+                    new ErpEinvoiceCreditNoteRequest(originalDocumentId, reason, false))
+                    .ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.CreateAsync(
+                new EcomAE.Platform.Erp.ErpEinvoiceCreditNoteWriteRequest(
+                    originalDocumentId,
+                    reason,
+                    session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/cp/einvoice-documents-app",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    id = written.Id,
+                    credit_note_number = written.CreditNoteNumber,
+                    subtotal = written.SubtotalExVat,
+                    vat = written.TotalVat,
+                    total = written.TotalInclVat,
+                    lines = written.Lines,
+                    phpAuthoritative = false,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    session = SessionPayload(session),
+                });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoicePollAsp, async (HttpContext context, ErpEinvoicePollAspBody? body, ILegacySessionValidator validator, IErpEinvoicePollAspDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpEinvoicePollAspRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapGet(EcomAeRoutes.ErpTaxExternalReporting, async (
@@ -21034,7 +21094,10 @@ public sealed class ErpModule : ISurfaceModule
         string? EinvoiceEnabled = null,
         bool ConfirmWrites = false);
     private sealed record ErpEinvoiceSubmitBody(long Id = 0, bool ConfirmWrites = false);
-    private sealed record ErpEinvoiceCreditNoteBody(bool ConfirmWrites = false);
+    private sealed record ErpEinvoiceCreditNoteBody(
+        long OriginalDocumentId = 0,
+        string? Reason = null,
+        bool ConfirmWrites = false);
     private sealed record ErpEinvoicePollAspBody(bool ConfirmWrites = false);
     private sealed record ErpExternalReportingFetchBody(string? Action = "fetch", string? ReportKey = null, bool ConfirmWrites = false);
     private sealed record ErpOrderFulfillmentBootstrapBody(bool ConfirmWrites = false);
