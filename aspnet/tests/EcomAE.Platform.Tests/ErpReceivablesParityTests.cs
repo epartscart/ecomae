@@ -50,6 +50,25 @@ public sealed class ErpReceivablesParityTests
     }
 
     [Fact]
+    public void ContactsCatalogRecordsLiveMasterDataWrites()
+    {
+        var catalog = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet", "src", "EcomAE.Platform", "Migration", "SurfacePayloadContractCatalog.cs"));
+        var page = ReadApp("ErpContactsApp.razor");
+        var module = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet", "src", "EcomAE.Platform", "Modules", "ErpModule.cs"));
+
+        Assert.Contains("live-contact-master", catalog, StringComparison.Ordinal);
+        Assert.Contains("/erp/customers/master-save", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/contacts/parties/save", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/contacts/addresses/save", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/contacts/party-contacts/save", page, StringComparison.Ordinal);
+        Assert.Contains("ErpContactsPartiesSave", module, StringComparison.Ordinal);
+        Assert.Contains("ErpContactsAddressesSave", module, StringComparison.Ordinal);
+        Assert.Contains("ErpContactsPartyContactsSave", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void OnPremisesAppWiresLicenseDigest()
     {
         var text = ReadApp("ErpOnPremisesApp.razor");
