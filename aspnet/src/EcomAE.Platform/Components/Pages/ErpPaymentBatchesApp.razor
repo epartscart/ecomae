@@ -77,7 +77,7 @@
                 <dt>Updated</dt><dd>@(_opened.TimeUpdated > 0 ? _opened.TimeUpdated.ToString(CultureInfo.InvariantCulture) : "—")</dd>
             </dl>
             <p class="text-muted" style="margin:.85rem 0 0">Bank-file export remains a separate pending workflow; this form creates the PHP-compatible draft batch.</p>
-            <p class="text-muted">Save stays on the Classic twin until payment-batch parity is closed.</p>
+            <p class="text-muted">Draft-batch creation is guarded here; PHP remains the fallback and bank-export owner.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
