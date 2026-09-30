@@ -9399,6 +9399,7 @@ public sealed class ErpModule : ISurfaceModule
             var vatAmount = body.VatAmount;
             var roundOff = body.RoundOff;
             var grossTotal = body.GrossTotal;
+            var lines = body.Lines;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -9422,6 +9423,39 @@ public sealed class ErpModule : ISurfaceModule
                 vatAmount = LiveWriteFormBinder.Dec(form, "vat_amount", "vatAmount");
                 roundOff = LiveWriteFormBinder.Dec(form, "round_off", "rnd_off_amount", "roundOff");
                 grossTotal = LiveWriteFormBinder.Dec(form, "gross_total", "grossTotal");
+                var lineStockCode = LiveWriteFormBinder.Text(form, "line_stock_code", "stock_code");
+                var lineDescription = LiveWriteFormBinder.Text(form, "line_description", "description");
+                var lineDivision = LiveWriteFormBinder.Text(form, "line_division", "division");
+                var linePcs = LiveWriteFormBinder.Int(form, "line_pcs", "pcs");
+                var lineQty = LiveWriteFormBinder.Dec(form, "line_qty", "qty");
+                var lineGrossWeight = LiveWriteFormBinder.Dec(form, "line_gr_wt", "gr_wt", "gross_wt");
+                var linePurity = LiveWriteFormBinder.Dec(form, "line_purity", "purity");
+                var lineMakingRate = LiveWriteFormBinder.Dec(form, "line_mkg_rate", "mkg_rate");
+                var lineMakingAmount = LiveWriteFormBinder.Dec(form, "line_mkg_amount", "mkg_amount");
+                var lineMetalRate = LiveWriteFormBinder.Dec(form, "line_metal_rate", "metal_rate");
+                var lineMetalAmount = LiveWriteFormBinder.Dec(form, "line_metal_amount", "metal_amount");
+                var lineStoneAmount = LiveWriteFormBinder.Dec(form, "line_stone_amount", "stone_amount");
+                var lineDiscountAmount = LiveWriteFormBinder.Dec(form, "line_disc_amount", "disc_amount");
+                if (!string.IsNullOrWhiteSpace(lineStockCode) || !string.IsNullOrWhiteSpace(lineDescription))
+                {
+                    lines =
+                    [
+                        new ErpJwVoucherLineSaveRequest(
+                            StockCode: lineStockCode,
+                            Division: lineDivision,
+                            Description: lineDescription,
+                            Pcs: linePcs,
+                            Qty: lineQty,
+                            GrossWeight: lineGrossWeight,
+                            Purity: linePurity,
+                            MakingRate: lineMakingRate,
+                            MakingAmount: lineMakingAmount,
+                            MetalRate: lineMetalRate,
+                            MetalAmount: lineMetalAmount,
+                            StoneAmount: lineStoneAmount,
+                            DiscountAmount: lineDiscountAmount)
+                    ];
+                }
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
@@ -9465,7 +9499,8 @@ public sealed class ErpModule : ISurfaceModule
                     NetAmount: netAmount,
                     VatAmount: vatAmount,
                     RoundOff: roundOff,
-                    GrossTotal: grossTotal),
+                    GrossTotal: grossTotal,
+                    Lines: lines),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -22204,6 +22239,7 @@ public sealed class ErpModule : ISurfaceModule
         decimal VatAmount = 0,
         decimal RoundOff = 0,
         decimal GrossTotal = 0,
+        IReadOnlyList<ErpJwVoucherLineSaveRequest>? Lines = null,
         bool ConfirmWrites = false);
     private sealed record ErpJwFixingSaveBody(
         int CompanyId = 0,

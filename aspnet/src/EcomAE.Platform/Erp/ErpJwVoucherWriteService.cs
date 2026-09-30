@@ -14,6 +14,27 @@ public interface IErpJwVoucherWriteService
         CancellationToken cancellationToken = default);
 }
 
+public sealed record ErpJwVoucherLineSaveRequest(
+    string? StockCode = null,
+    string? Division = null,
+    string? Description = null,
+    int Pcs = 0,
+    decimal Qty = 0,
+    decimal GrossWeight = 0,
+    decimal Purity = 0,
+    decimal PureWeight = 0,
+    decimal MakingRate = 0,
+    decimal MakingAmount = 0,
+    decimal MetalRate = 0,
+    decimal MetalAmount = 0,
+    decimal StoneAmount = 0,
+    decimal WastagePercent = 0,
+    decimal WastageQuantity = 0,
+    decimal DiscountAmount = 0,
+    decimal TotalAmount = 0,
+    decimal TotalWithVat = 0,
+    decimal NetAmount = 0);
+
 public sealed record ErpJwVoucherSaveRequest(
     int CompanyId = 0,
     string? Action = null,
@@ -33,7 +54,8 @@ public sealed record ErpJwVoucherSaveRequest(
     decimal NetAmount = 0,
     decimal VatAmount = 0,
     decimal RoundOff = 0,
-    decimal GrossTotal = 0);
+    decimal GrossTotal = 0,
+    IReadOnlyList<ErpJwVoucherLineSaveRequest>? Lines = null);
 
 public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 {
@@ -64,6 +86,12 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         if (!await TableExistsAsync(connection, "epc_jewel_voucher", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery voucher tables are not provisioned");
+        }
+
+        var lines = request.Lines ?? [];
+        if (lines.Count > 0 && !await TableExistsAsync(connection, "epc_jewel_voucher_lines", cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Jewellery voucher line tables are not provisioned");
         }
 
         var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
@@ -147,6 +175,72 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         if (id <= 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Failed");
+        }
+
+        var lineNo = 1;
+        foreach (var line in lines)
+        {
+            var stockCode = Clip((line.StockCode ?? string.Empty).Trim(), 20);
+            var description = Clip((line.Description ?? string.Empty).Trim(), 120);
+            if (stockCode.Length == 0 && description.Length == 0)
+            {
+                continue;
+            }
+
+            var division = Clip((line.Division ?? string.Empty).Trim().ToUpperInvariant(), 2);
+            if (division.Length == 0)
+            {
+                division = "G";
+            }
+
+            var grossWeight = RoundNonNeg(line.GrossWeight, 4);
+            var purity = RoundNonNeg(line.Purity, 6);
+            var pureWeight = line.PureWeight > 0
+                ? RoundNonNeg(line.PureWeight, 4)
+                : RoundNonNeg(grossWeight * purity, 4);
+            var makingAmount = line.MakingAmount > 0
+                ? RoundNonNeg(line.MakingAmount, 2)
+                : RoundNonNeg(line.MakingRate * grossWeight, 2);
+            var metalAmount = line.MetalAmount > 0
+                ? RoundNonNeg(line.MetalAmount, 2)
+                : RoundNonNeg(pureWeight * line.MetalRate, 2);
+            var totalAmount = line.TotalAmount > 0
+                ? RoundNonNeg(line.TotalAmount, 2)
+                : RoundNonNeg(metalAmount + makingAmount + line.StoneAmount - line.DiscountAmount, 2);
+            var lineTotalWithVat = line.TotalWithVat > 0
+                ? RoundNonNeg(line.TotalWithVat, 2)
+                : totalAmount;
+            var netAmount = line.NetAmount > 0
+                ? RoundNonNeg(line.NetAmount, 2)
+                : totalAmount;
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`division`,`description`,`pcs`,`qty`,`gr_wt`,`purity`,`pure_wt`,`mkg_rate`,`mkg_amount`,`metal_rate`,`metal_amount`,`stone_amount`,`wastage_pct`,`wastage_qty`,`disc_amount`,`total_amount`,`total_with_vat`,`net_amount`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                cancellationToken,
+                id,
+                lineNo++,
+                stockCode,
+                division,
+                description,
+                Math.Max(0, line.Pcs),
+                RoundNonNeg(line.Qty, 4),
+                grossWeight,
+                purity,
+                pureWeight,
+                RoundNonNeg(line.MakingRate, 4),
+                makingAmount,
+                RoundNonNeg(line.MetalRate, 5),
+                metalAmount,
+                RoundNonNeg(line.StoneAmount, 2),
+                RoundNonNeg(line.WastagePercent, 4),
+                RoundNonNeg(line.WastageQuantity, 4),
+                RoundNonNeg(line.DiscountAmount, 2),
+                totalAmount,
+                lineTotalWithVat,
+                netAmount).ConfigureAwait(false);
         }
 
         return ErpSimpleWriteResult.Ok(vocType + " voucher saved", id);

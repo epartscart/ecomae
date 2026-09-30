@@ -1,3 +1,4 @@
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Presentation;
 using Xunit;
 
@@ -139,5 +140,37 @@ public sealed class ErpNavMatrixTests
         Assert.Contains(rows, row => row.PlacementId == "overview/dashboard"
             && row.Visible
             && row.Detail.Contains("AE", StringComparison.Ordinal));
+    }
+
+    [Theory]
+    [InlineData("/erp/jewellery-retail-app", "jewellery")]
+    [InlineData("/cp/jewellery-masters-app", "jewellery")]
+    [InlineData("/erp/project-accounting-app", "fitout")]
+    [InlineData("/erp/fitout/project-pnl", "fitout")]
+    public void IndustrySpecificRoutesDeclareTheirRequiredPack(string path, string industry)
+    {
+        Assert.Equal(industry, IndustrySpecificRoutePolicy.RequiredIndustry(path));
+    }
+
+    [Fact]
+    public void SharedErpRoutesRemainUnrestricted()
+    {
+        Assert.Null(IndustrySpecificRoutePolicy.RequiredIndustry("/erp/finance-vouchers-app"));
+        Assert.Null(IndustrySpecificRoutePolicy.RequiredIndustry("/erp/inventory-app"));
+    }
+
+    [Theory]
+    [InlineData("jewellery", true)]
+    [InlineData("jewelry", true)]
+    [InlineData("construction", true)]
+    [InlineData("fitout", true)]
+    [InlineData("auto_parts", false)]
+    public void IndustrySpecificRoutesRequireMatchingHostPack(
+        string hostIndustry,
+        bool expected)
+    {
+        var allowed = IndustrySpecificRoutePolicy.Allows("jewellery", hostIndustry)
+            || IndustrySpecificRoutePolicy.Allows("fitout", hostIndustry);
+        Assert.Equal(expected, allowed);
     }
 }
