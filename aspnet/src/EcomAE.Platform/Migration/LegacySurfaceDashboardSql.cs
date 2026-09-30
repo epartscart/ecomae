@@ -7115,17 +7115,17 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
-    public const string CountCpDesignTokensTokenCount = "SELECT COUNT(*) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'";
-    public const string CountCpDesignTokensTenantCount = "SELECT COUNT(DISTINCT IFNULL(`site_key`,'')) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'";
+    public const string CountCpDesignTokensTokenCount = "SELECT COUNT(*) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key`='white_label_login'";
+    public const string CountCpDesignTokensTenantCount = "SELECT COUNT(DISTINCT IFNULL(`site_key`,'')) FROM `epc_settings` WHERE `setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key`='white_label_login'";
     public const string CountCpDesignTokensWhiteLabelCount = "SELECT COUNT(*) FROM `epc_settings` WHERE `setting_key`='white_label_login' AND IFNULL(`setting_value`,'') NOT IN ('','0','false')";
-    public const string CountCpDesignTokensUpdatedRecentCount = "SELECT COUNT(*) FROM `epc_settings` WHERE (`setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login') AND `updated_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
+    public const string CountCpDesignTokensUpdatedRecentCount = "SELECT COUNT(*) FROM `epc_settings` WHERE (`setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key`='white_label_login') AND `updated_at` >= DATE_SUB(NOW(), INTERVAL 30 DAY)";
 
     /// <summary>Wave 22 design-tokens rows — setting_value (colors/URLs); ASP.NET also tolerates missing site_key via resilient KPIs.</summary>
     public const string SelectCpDesignTokensRows = """
         SELECT IFNULL(`site_key`,'') AS site_key, IFNULL(`setting_key`,'') AS setting_key,
         IFNULL(CAST(`updated_at` AS CHAR),'') AS updated_at
         FROM `epc_settings`
-        WHERE `setting_key` LIKE 'brand_%' OR `setting_key`='white_label_login'
+        WHERE `setting_key` LIKE 'brand_%' OR `setting_key` LIKE 'ui_%' OR `setting_key`='white_label_login'
         ORDER BY `updated_at` DESC, `site_key` ASC, `setting_key` ASC
         LIMIT @limit
         """;

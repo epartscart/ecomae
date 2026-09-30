@@ -181,3 +181,82 @@ The fastest safe path is **CP evidence → ERP business processes → storefront
 operations → three acceptance rounds**. PHP/PHP-FPM must remain available and
 authoritative until the final gate; the current 20.4% weighted completion
 headline therefore remains unchanged by route or presentation-only slices.
+
+## Owner-requested ERP/CP professional presentation and tenant customization
+
+The roadmap must retain the following product requirements from the owner
+request and must not treat them as optional visual polish:
+
+### Shared professional visual system
+
+* ERP and CP must present as one coherent professional enterprise product:
+  aligned grids, consistent spacing, readable hierarchy, responsive desktop and
+  mobile layouts, clear empty/loading/error states, and accessible focus and
+  contrast behavior.
+* Use a controlled multi-colour infographic vocabulary to distinguish healthy,
+  active, pending, warning, blocked, financial, inventory, customer, supplier,
+  compliance, and industry-specific states. Colours must reinforce labels and
+  never be the sole status signal.
+* Executive dashboards must use scannable KPI cards, process-flow visuals,
+  severity badges, trend/target context, and action links rather than
+  unstructured tables alone.
+* CP and ERP shells must retain PHP-compatible route, tenant, permission,
+  fallback, and same-to-same acceptance boundaries while adopting the shared
+  ASP.NET presentation components.
+
+### D365/F&O-style ERP workspaces and forms
+
+* Core ERP entry forms must use a reusable D365/F&O-style document shell:
+  command bar/action pane, document identity and status, contextual company and
+  industry chips, grouped header fields, dense editable lines, totals/footer,
+  validation summary, workflow/status area, audit/source links, and guarded
+  action states.
+* Shared document UX applies to general ERP tenants and to PO, PI, SO, SI,
+  RFQ, delivery, finance voucher, inventory, and reporting workspaces.
+* Jewellery, fit-out, and other industry-specific controls remain gated by the
+  trusted tenant/company industry context; presentation customization must not
+  expose an industry workflow to an ineligible tenant.
+* Every live action remains dry-run first and requires the existing
+  `confirmWrites=true` boundary. The PHP schema and lifecycle remain
+  authoritative until the relevant acceptance evidence passes.
+
+### Tenant-controlled organization and presentation settings
+
+Add a tenant-scoped Organization/Administration Settings module with:
+
+* organization identity, legal entities, branches, locations, fiscal/calendar
+  defaults, currency, tax/e-invoice defaults, numbering, document defaults,
+  approval limits, roles/capabilities, notifications, integrations, audit and
+  retention settings, backup/synchronization status, and industry-pack visibility;
+* allowlisted tenant-editable labels, terminology, help text, brand colours,
+  logos, fonts, density, radius, dashboard accent, status palette, navigation
+  naming, document header/footer, and print/email presentation settings;
+* field visibility, required/optional state, ordering, grouping, and layout
+  profiles per eligible workspace, with drag-and-drop editing where supported;
+* preview, draft, publish, version history, rollback, import/export, and
+  reset-to-professional-defaults flows;
+* tenant users may change approved presentation metadata through the settings
+  UI, while platform-owned backend contracts, route policy, authorization,
+  validation, SQL, audit, and industry gates remain controlled by ASP.NET;
+* strict allowlists and validation prevent arbitrary HTML/CSS/script injection,
+  unsafe route changes, cross-tenant reads/writes, and changes to protected
+  fields or lifecycle semantics;
+* settings must be tenant/company scoped, auditable, cache-safe, and compatible
+  with on-premises synchronization and cloud policy control.
+
+### Required delivery and acceptance gates
+
+1. Define shared design tokens and reusable infographic, KPI, action-pane,
+   document-header, form-section, line-grid, status, and settings components.
+2. Establish the Organization Settings contract and PHP-compatible persistence
+   boundary, beginning with safe presentation tokens and workspace profiles.
+3. Apply the system to the ERP executive dashboard and representative PO/PI/SO/SI
+   forms before expanding to every module.
+4. Verify general ERP tenants retain common modules while industry-specific
+   presentation and controls remain gated.
+5. Test tenant isolation, RBAC, dry-run/live-write behavior, audit history,
+   browser responsiveness, visual comparison against the supplied infographic
+   baseline, and rollback/reset behavior.
+6. Do not count presentation customization as formal migration acceptance until
+   the same tenant data passes PHP-vs-ASP.NET field/action/workflow/database and
+   production rollback evidence.

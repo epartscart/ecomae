@@ -37,6 +37,14 @@ public sealed class CpDesignTokensWriteService : ICpDesignTokensWriteService
         "brand_sidebar_bg",
         "brand_header_bg",
         "white_label_login",
+        "ui_accent",
+        "ui_density",
+        "ui_radius",
+        "ui_dashboard_style",
+        "ui_form_layout",
+        "ui_nav_label_mode",
+        "ui_show_help",
+        "ui_show_status_legend",
     ];
 
     private readonly IErpWriteConnectionFactory _connections;
@@ -87,6 +95,31 @@ public sealed class CpDesignTokensWriteService : ICpDesignTokensWriteService
         {
             var flag = value is "1" or "true" or "on" or "yes";
             value = flag ? "1" : "0";
+        }
+        else if (settingKey is "ui_show_help" or "ui_show_status_legend")
+        {
+            var flag = value is "1" or "true" or "on" or "yes";
+            value = flag ? "1" : "0";
+        }
+        else if (settingKey == "ui_density")
+        {
+            value = value is "comfortable" or "compact" ? value : "comfortable";
+        }
+        else if (settingKey == "ui_radius")
+        {
+            value = value is "sharp" or "soft" or "rounded" ? value : "soft";
+        }
+        else if (settingKey == "ui_dashboard_style")
+        {
+            value = value is "executive" or "operations" or "minimal" ? value : "executive";
+        }
+        else if (settingKey == "ui_form_layout")
+        {
+            value = value is "d365" or "two_column" or "single_column" ? value : "d365";
+        }
+        else if (settingKey == "ui_nav_label_mode")
+        {
+            value = value is "full" or "short" or "adaptive" ? value : "adaptive";
         }
 
         try

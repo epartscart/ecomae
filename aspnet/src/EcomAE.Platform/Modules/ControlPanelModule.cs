@@ -14987,7 +14987,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 source = result.Source,
                 message = result.Message,
                 session = SessionPayload(session),
-                note = "Read-only epc_settings (brand_*) KPIs + tokens. setting_value omitted from the list. save POST /cp/design-tokens/write when confirmWrites=true. CSS emit stay Classic."
+                note = "Read-only epc_settings (brand_* and ui_* organization presentation settings) KPIs + tokens. setting_value omitted from the list. save POST /cp/design-tokens/write when confirmWrites=true. CSS emit stay Classic."
             });
         });
 

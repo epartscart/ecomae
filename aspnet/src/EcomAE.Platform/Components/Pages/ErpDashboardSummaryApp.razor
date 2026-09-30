@@ -13,13 +13,15 @@
 <PhpChromeStyles Surface="erp" />
 <HeadContent>
 <style>
-.epc-exec-kpis{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:18px;}
-.epc-exec-kpi{flex:1 1 18%;min-width:170px;background:#fff;border:1px solid #e3e8ee;border-left-width:4px;border-radius:6px;padding:12px 14px;}
+.epc-exec-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:18px;}
+.epc-exec-kpi{min-width:0;background:linear-gradient(145deg,#fff,#f7fbfe);border:1px solid #d9e2ec;border-top:4px solid var(--tile-color,#1769aa);border-radius:12px;padding:14px 16px;box-shadow:0 8px 20px rgba(15,35,60,.07);}
 .epc-exec-kpi .lbl{font-size:11px;text-transform:uppercase;letter-spacing:.04em;color:#8a97a8;}
 .epc-exec-kpi .val{font-size:22px;font-weight:700;margin-top:3px;}
 .epc-exec-kpi .hint{font-size:11px;color:#9aa6b5;margin-top:2px;}
 .epc-exec-kpi a{color:inherit;text-decoration:none;}
 .epc-eds-sec{margin:14px 0 6px;font-size:13px;font-weight:700;color:#243746;}
+@@media (max-width:1100px){.epc-exec-kpis{grid-template-columns:repeat(2,minmax(0,1fr));}}
+@@media (max-width:640px){.epc-exec-kpis{grid-template-columns:1fr;}}
 </style>
 </HeadContent>
 
@@ -27,7 +29,18 @@
 
     <PhpErpModulePageHeader Title="Executive dashboard" Subtitle="Cross-module executive cockpit — headline KPIs, working capital, approval queue and planning alerts." />
 
-    <div class="epc-exec-kpis" aria-label="Executive KPIs">
+    <div class="epc-infographic" aria-label="Executive KPI infographic">
+        <div class="epc-infographic__head">
+            <div>
+                <div class="epc-infographic__eyebrow">ERP executive cockpit</div>
+                <h2 class="epc-infographic__title">Finance, fulfilment, and control at a glance</h2>
+                <p class="epc-infographic__sub">Colour-coded work queues with direct actions and tenant-safe context.</p>
+            </div>
+            <div class="epc-infographic__legend">
+                <span><i></i>Healthy</span><span class="is-alert"><i></i>Attention</span><span class="is-action"><i></i>Action</span>
+            </div>
+        </div>
+        <div class="epc-exec-kpis" aria-label="Executive KPIs">
         @ExecTile("Cash position", _s.CashPosition.ToString("N2", CultureInfo.InvariantCulture), "/erp/cash-accounts-app", "#2bb3c0", "Cash &amp; bank")
         @ExecTile("Receivables", _s.Receivables.ToString("N2", CultureInfo.InvariantCulture), "/erp/receivables-app", Health(_s.Receivables, warnAbove: false), "Open AR")
         @ExecTile("Payables", _s.Payables.ToString("N2", CultureInfo.InvariantCulture), "/erp/payables-app", Health(_s.Payables, warnAbove: true), "Open AP")
@@ -36,6 +49,7 @@
         @ExecTile("Orders", _s.OrdersCount.ToString(CultureInfo.InvariantCulture), "/erp/sales-orders-app", "#2563eb", "Sales orders")
         @ExecTile("VAT net payable", _s.VatNetPayable.ToString("N2", CultureInfo.InvariantCulture), "/erp/vat-app", Health(_s.VatNetPayable, warnAbove: true), "Current return")
         @ExecTile("Period status", _s.PeriodStatus, "/erp/period-close-app", string.Equals(_s.PeriodStatus, "open", StringComparison.OrdinalIgnoreCase) ? "#0a7d33" : "#c98a00", "Fiscal period")
+        </div>
     </div>
 
     <h5 class="epc-eds-sec"><i class="fa fa-sitemap"></i> Process flow</h5>
@@ -124,7 +138,7 @@
 
     private RenderFragment ExecTile(string label, string value, string href, string color, string hint) => __builder =>
     {
-        <div class="epc-exec-kpi" style="border-left-color:@color;">
+        <div class="epc-exec-kpi" style="--tile-color:@color;">
             <a href="@href">
                 <div class="lbl">@label</div>
                 <div class="val" style="color:@color;">@value</div>

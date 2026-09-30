@@ -9,7 +9,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 
-<PageTitle>Design tokens · Control Panel · eParts Cart</PageTitle>
+<PageTitle>Organization presentation settings · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
 
 <PhpCpDesktopChrome IsAdmin="_isAdmin">
@@ -17,11 +17,11 @@
     <div class="col-lg-12">
         <div class="hpanel">
             <div class="panel-heading hbuilt">
-                Design tokens
+                Organization presentation settings
                 <a class="btn btn-xs btn-default pull-right" href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref(_phpTab)">Classic twin</a>
             </div>
             <div class="panel-body">
-                <p>White-label tokens from tenant tables. Save an allowlisted brand token here. CSS emit stays on the Classic twin. This page does not invent a send.</p>
+                <p>Tenant-controlled presentation settings for ERP and CP. Branding, dashboard style, form layout, density, labels, and status guidance are allowlisted; backend contracts, permissions, routes, and lifecycle behavior remain platform-controlled. CSS emit stays Classic until the formal presentation cutover gate.</p>
             </div>
         </div>
     </div>
@@ -40,7 +40,7 @@
     {
         <div class="col-lg-12">
             <div class="hpanel">
-                <div class="panel-heading hbuilt">Save token</div>
+                <div class="panel-heading hbuilt">Save organization setting</div>
                 <div class="panel-body">
                     <form method="post" action="/cp/design-tokens/write" class="well">
                         <input type="hidden" name="confirmWrites" value="true" />
@@ -55,7 +55,7 @@
                             <select class="form-control" name="setting_key">
                                 @foreach (var key in CpDesignTokensWriteService.AllowedKeys)
                                 {
-                                    <option value="@key">@key</option>
+                            <option value="@key">@SettingLabel(key)</option>
                                 }
                             </select>
                         </div>
@@ -65,7 +65,7 @@
                         </div>
                         <button type="submit" class="btn btn-default">Save token</button>
                     </form>
-                    <p class="help-block" style="margin:.75rem 0 0">CSS emit stay Classic.</p>
+                    <p class="help-block" style="margin:.75rem 0 0">Changes are scoped to the selected tenant site key and use the existing guarded write boundary. Unsupported HTML, CSS, scripts, route changes, and protected workflow semantics are rejected.</p>
                 </div>
             </div>
         </div>
@@ -75,7 +75,7 @@
         <div class="hpanel">
             <div class="panel-heading hbuilt">Tokens</div>
             <div class="panel-body">
-                <p class="help-block">@_summary.TokenCount.ToString(CultureInfo.InvariantCulture) tokens · @_summary.TenantCount.ToString(CultureInfo.InvariantCulture) tenants · @_summary.WhiteLabelCount.ToString(CultureInfo.InvariantCulture) white-label · @_summary.UpdatedRecentCount.ToString(CultureInfo.InvariantCulture) updated 30d.</p>
+                <p class="help-block">@_summary.TokenCount.ToString(CultureInfo.InvariantCulture) settings · @_summary.TenantCount.ToString(CultureInfo.InvariantCulture) tenants · @_summary.WhiteLabelCount.ToString(CultureInfo.InvariantCulture) white-label · @_summary.UpdatedRecentCount.ToString(CultureInfo.InvariantCulture) updated 30d.</p>
                 <div class="table-responsive">
                     <table cellpadding="1" cellspacing="1" class="table table-condensed table-striped">
                         <thead>
@@ -116,6 +116,18 @@
     private IReadOnlyList<CpDesignTokensRowDigest> _rows = [];
     private string _flashOk = "";
     private string _flashErr = "";
+
+    private static string SettingLabel(string key) => key switch
+    {
+        "ui_dashboard_style" => "Dashboard style",
+        "ui_form_layout" => "Entry-form layout",
+        "ui_density" => "Workspace density",
+        "ui_radius" => "Card radius",
+        "ui_nav_label_mode" => "Navigation labels",
+        "ui_show_help" => "Show contextual help",
+        "ui_show_status_legend" => "Show status legend",
+        _ => key.Replace('_', ' '),
+    };
 
     protected override async Task OnInitializedAsync()
     {
