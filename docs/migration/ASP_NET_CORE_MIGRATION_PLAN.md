@@ -147,6 +147,9 @@ reservation, deduction, tender allocation, or posting implementation.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
+The Jewellery fixing-history projection now mirrors the PHP company and
+`fix_type` list helper with bounded readback; settlement posting and
+unfix-finance reconciliation remain separately gated.
 The Jewellery stock-verification history now has a read-only company-scoped
 projection matching the PHP `epc_jewel_sv_list` helper; adjustment posting and
 line-level variance persistence remain unverified.

@@ -1105,6 +1105,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryMetalStockBalance = "/erp/jewellery/metal-stock-balance";
     /// <summary>PHP jw_purchase_fixing_save / jw_sales_fixing_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_fixing</c>.</summary>
     public const string ErpJewelleryFixingSaveForm = "/erp/jewellery/fixing-save";
+    /// <summary>PHP epc_jewel_fixing_list. Read-only company-scoped fixing history.</summary>
+    public const string ErpJewelleryFixingList = "/erp/jewellery/fixing";
     /// <summary>PHP jw_voucher_save and purchase/sale aliases. <c>confirmWrites=true</c> inserts <c>epc_jewel_voucher</c>.</summary>
     public const string ErpJewelleryVoucherSaveForm = "/erp/jewellery/voucher-save";
     /// <summary>PHP jw_petty_cash_save. <c>confirmWrites=true</c> inserts PCV into <c>epc_jewel_voucher</c>.</summary>

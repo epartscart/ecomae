@@ -9323,6 +9323,9 @@ public sealed class ErpModule : ISurfaceModule
                 });
         }).DisableAntiforgery();
         endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryFixingList,
+            HandleJewelleryFixingListAsync);
+        endpoints.MapGet(
             EcomAeRoutes.ErpJewellerySalesAnalysis,
             HandleJewellerySalesAnalysisAsync);
         endpoints.MapGet(
@@ -12634,6 +12637,39 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewelleryFixingListAsync(
+        HttpContext context,
+        int companyId,
+        string? fixType,
+        int limit,
+        ILegacySessionValidator validator,
+        IErpJwFixingReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=jw_purchase_fixing",
+                "Admin ERP capability required for jewellery fixing history.");
+        }
+
+        var result = await read.ReadAsync(companyId, fixType, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            fixType,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Fixing history is read-only and company-scoped."
+        });
     }
 
     private static async Task<IResult> HandleJewellerySalesAnalysisAsync(
