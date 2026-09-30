@@ -658,6 +658,12 @@ and finance reconciliation remain separately gated.
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+## Fifty Ninth Milestone Included Here
+
+- Added read-only Jewellery purchase history for PHP metal (`MMP`/`MLP`) and
+  diamond (`DMP`/`DLP`) voucher families, with company scope and bounded
+  results.
+
 ## Fifty Eighth Milestone Included Here
 
 - Added read-only Jewellery journal history for PHP voucher types `JVG` and
