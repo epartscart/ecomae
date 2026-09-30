@@ -777,7 +777,6 @@ effects remain separately gated.
   for labels, colours, field visibility/order, layouts, branding, and other
   presentation preferences; backend business rules and security remain owned
   by the platform.
-
 ## Sixty First Milestone Included Here
 
 - Added read-only Jewellery repair detail readback matching PHP
@@ -786,3 +785,30 @@ effects remain separately gated.
 - Kept the detail projection bounded by explicit company and repair identity
   predicates and documented it as read-only; repair transfer, workshop
   receive, delivery, and settlement writes remain outside this tranche.
+ 
+## Sixty Second Milestone Included Here
+
+- Ran the first isolated local MariaDB dummy-data rehearsal for Jewellery and
+  fit-out using the authenticated ASP.NET Core routes and PHP-compatible
+  session bridge; no production tenant data was used.
+- Verified fit-out project progress readback for project `9001` from the
+  seeded project, task, and timesheet rows. The returned database-backed
+  summary matched the fixture contract: 15 hours, 1,600 actual cost, 8,400
+  cost variance, 2,800 billable value, 11,700 recognized revenue, 16,400
+  margin, and 65% completion.
+- Verified Jewellery stock availability and repair-receipt history readback
+  for company `2`, including database source metadata and the seeded tag and
+  repair rows. Repair history correctly required a date range.
+- Verified guarded Jewellery tag sale dry-run (`writes=0`,
+  `writesBlocked=true`, `phpAuthoritative=true`) and one explicitly confirmed
+  local dummy sale with database status readback from `in_stock` to `sold`.
+- Verified a cross-company confirmed tag-sale attempt was rejected without
+  mutation; the local fixture remained owned by company `1` and `in_stock`.
+- Corrected the industry route gate so slash-based `/erp/jewellery/...`
+  routes are protected as Jewellery-specific routes. Common/general-company
+  access now returns the expected 404 gate response, while company `2`
+  Jewellery and company `3` fit-out requests remain accessible.
+- This is local dummy-data evidence only. Live production MariaDB, real-user
+  UAT, performance, recovery, final cutover, and untested write workflows
+  remain formally unverified; PHP fallback and PHP-owned schema authority
+  remain in force.
