@@ -259,6 +259,28 @@
     background: linear-gradient(90deg, var(--epc-ui-primary), var(--epc-ui-info));
 }
 
+.epc-ui-empty {
+    padding: 1rem;
+    border: 1px dashed var(--epc-ui-line);
+    border-radius: var(--epc-ui-radius);
+    background: linear-gradient(180deg, #fff, #f8fafc);
+    color: var(--epc-ui-muted);
+    text-align: center;
+}
+
+.epc-ui-skeleton {
+    min-height: 1rem;
+    border-radius: .3rem;
+    background: linear-gradient(90deg, #e8edf2 25%, #f6f8fa 37%, #e8edf2 63%);
+    background-size: 400% 100%;
+    animation: epc-ui-skeleton 1.4s ease infinite;
+}
+
+@keyframes epc-ui-skeleton {
+    0% { background-position: 100% 0; }
+    100% { background-position: 0 0; }
+}
+
 @media (prefers-reduced-motion: reduce) {
     .epc-cp-shell *,
     .epc-erp-cp-shell * {
