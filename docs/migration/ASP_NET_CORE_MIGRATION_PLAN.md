@@ -823,3 +823,16 @@ effects remain separately gated.
 - Removed the temporary estimate and BOQ rows after readback. This remains
   local throwaway evidence only; production tenant-database, approval,
   procurement, billing, and human acceptance gates remain open.
+
+## Sixty Fourth Milestone Included Here
+
+- Continued as per plan by enforcing tenant scope on organization
+  presentation-token writes: tenant CP requests now use the resolved
+  tenant `site_key`, while explicit site selection remains available only
+  on Super CP hosts.
+- Added regression coverage for tenant-versus-Super-CP site-key resolution.
+  Allowlisted presentation settings remain PHP-owned and guarded; backend
+  contracts, authorization, routes, and CSS cutover boundaries remain
+  platform-controlled.
+- The phrase “Continue as per plan” is a permanent migration-record
+  instruction and must remain preserved in future evidence updates.

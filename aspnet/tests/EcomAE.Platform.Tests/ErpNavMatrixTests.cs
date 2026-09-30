@@ -1,6 +1,7 @@
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
+using EcomAE.Platform.Cp;
 using Xunit;
 
 namespace EcomAE.Platform.Tests;
@@ -152,6 +153,17 @@ public sealed class ErpNavMatrixTests
     public void IndustrySpecificRoutesDeclareTheirRequiredPack(string path, string industry)
     {
         Assert.Equal(industry, IndustrySpecificRoutePolicy.RequiredIndustry(path));
+    }
+
+    [Fact]
+    public void Tenant_design_token_writes_use_resolved_tenant_scope()
+    {
+        Assert.Equal("tenant-a", CpDesignTokensWriteService.ResolveSiteKey(
+            "tenant-b", superCpHost: false, tenantSiteKey: "Tenant-A"));
+        Assert.Equal("tenant-b", CpDesignTokensWriteService.ResolveSiteKey(
+            "Tenant-B", superCpHost: true, tenantSiteKey: "tenant-a"));
+        Assert.Equal(string.Empty, CpDesignTokensWriteService.ResolveSiteKey(
+            "tenant-b", superCpHost: false, tenantSiteKey: "!!!"));
     }
 
     [Fact]
