@@ -78,7 +78,24 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Enroll customer", text, StringComparison.Ordinal);
         Assert.Contains("ErpJewelleryGoldSchemePayForm", text, StringComparison.Ordinal);
         Assert.Contains("Pay instalment", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"rfid\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"certificate_no_1\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"setting_charge\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"price2_fc\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"exclude_gst_metal\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"luster\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"finish\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"certificate_no\"", text, StringComparison.Ordinal);
         Assert.Contains(ErpJewelleryModuleChrome.KaratColumns, c => c.Contains("Purity", StringComparison.Ordinal));
+        Assert.Equal(
+            ["No.", "Item Code", "RFID", "Design", "Description", "Color", "Clarity", "Gr.Wt", "Cost", "Price 1"],
+            ErpJewelleryModuleChrome.MasterSpec("jw_diamond").Columns);
+        Assert.Equal(
+            ["No.", "Item Code", "Description", "Type", "Shape", "Color", "Size", "Grade", "Cost"],
+            ErpJewelleryModuleChrome.MasterSpec("jw_pearl").Columns);
+        Assert.Equal(
+            ["No.", "Item Code", "Description", "Stone Type", "Shape", "Color", "Carat", "Cost"],
+            ErpJewelleryModuleChrome.MasterSpec("jw_color_stone").Columns);
         Assert.DoesNotContain("295.50", text, StringComparison.Ordinal);
         Assert.DoesNotContain("2,458", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);

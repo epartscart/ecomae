@@ -120,6 +120,17 @@ sales, repair, finance, and compliance subsets. The remaining INDUS workflows
 stay explicit acceptance gates rather than being marked complete from menu
 presence alone.
 
+## Confirmed PHP master-form parity tranche
+
+The ASP.NET Jewellery master workspace now presents the PHP-evidenced field
+surface for diamond, pearl, and color-stone masters, including classification,
+vendor, certificate, measurement, charge, pricing, and compliance inputs where
+those fields are present in the PHP forms. The list headers also follow the
+corresponding PHP master grids. This is presentation and request-surface parity;
+it does not claim that fields omitted by the PHP save functions are persisted,
+nor does it close the INDUS schema, posting, formula, or transaction-lineage
+validation gates.
+
 ## Required validation backlog
 
 Before declaring a mapping complete, obtain read-only evidence for:
