@@ -727,7 +727,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ErpOpenedRecordBanner", text, StringComparison.Ordinal);
         Assert.Contains("ReadId(ctx.Request, \"queue_id\")", text, StringComparison.Ordinal);
         Assert.Contains("BuildCpCollectionsDunningDetailAsync", text, StringComparison.Ordinal);
-        Assert.Contains("No log yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No activities yet.", text, StringComparison.Ordinal);
+        Assert.Contains("No cases. Open one for any overdue customer.", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
