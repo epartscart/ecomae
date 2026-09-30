@@ -90,7 +90,7 @@
                 Fields="@InvoiceWorkspaceFields"
                 Lines="@InvoiceWorkspaceLines"
                 HeaderActions="@InvoiceHeaderActions" />
-            <p class="text-muted" style="margin:.85rem 0 0">Sales-order conversion, cancellation, and draft deletion are guarded here; settlement, export, and credit-note actions retain their PHP-authoritative acceptance boundary.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Sales-order conversion, cancellation, draft deletion, and guarded credit-note draft persistence are available here; settlement, export, and downstream tax-service processing continue through the configured workflow.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.PaymentTermsExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">payment-terms excerpt</p>

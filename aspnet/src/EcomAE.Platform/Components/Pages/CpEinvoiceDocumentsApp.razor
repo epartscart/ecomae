@@ -79,7 +79,7 @@
             <label><input type="checkbox" name="force" value="1" /> Force refetch</label>
             <button type="submit">Fetch FTA e-invoicing legislation</button>
         </form>
-        <div class="epc-ei-note">Seller / buyer / ASP profile saves and manual ASP-portal submission are live here. Document creation, API-mode submission, credit notes, retries, and ASP polling remain Classic. FTA fetch writes PINT-AE / Peppol instruments into the UAE tax legislation library.</div>
+        <div class="epc-ei-note">Seller / buyer / ASP profile saves and guarded credit-note draft persistence are available here. Document generation, validation, API submission, retries, and polling continue through the configured tax-service workflow. FTA fetch writes PINT-AE / Peppol instruments into the UAE tax legislation library.</div>
     }
 
     @if (_openedDocument is not null)
@@ -104,7 +104,7 @@
             Lines="@EinvoiceWorkspaceLines"
             Tabs="@EinvoiceWorkspaceTabs" />
 
-        <p class="text-muted" style="margin:.85rem 0 0">Validation, tax, seller/buyer, XML, ASP, and FTA evidence remain visible in the workspace fields. Document creation, API-mode submission, credit notes, retries, and ASP polling remain Classic-owned.</p>
+        <p class="text-muted" style="margin:.85rem 0 0">Validation, tax, seller/buyer, XML, external-service, and FTA evidence remain visible in the workspace fields. Credit-note draft persistence is guarded here; downstream generation, submission, retries, and polling continue through the configured tax-service workflow.</p>
 
         <div class="col-lg-12">
             <div class="hpanel">
