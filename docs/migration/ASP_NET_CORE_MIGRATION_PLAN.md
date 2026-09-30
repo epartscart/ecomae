@@ -120,6 +120,10 @@ only a narrow availability/transition guard. The newly added stock-balance proje
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
+The Jewellery sales-analysis projection now mirrors the PHP date-range
+aggregate for `RIN`, `MSL`, and `RSL` vouchers, with date, salesman, and
+division grouping options; UI-only filters not supported by the PHP helper
+remain outside this read-only tranche.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.

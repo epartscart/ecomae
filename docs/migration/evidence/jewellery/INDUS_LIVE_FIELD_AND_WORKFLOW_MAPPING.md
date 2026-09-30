@@ -124,6 +124,9 @@ The PHP Jewellery tranche currently prioritizes the master, purchase, stock,
 sales, repair, finance, and compliance subsets. The remaining INDUS workflows
 stay explicit acceptance gates rather than being marked complete from menu
 presence alone.
+The sales-analysis readback now mirrors the PHP company/date-range aggregate
+for the observed retail voucher types and supports the PHP grouping choices;
+it does not claim posting, export, or unsupported UI-filter parity.
 
 ## Confirmed PHP master-form parity tranche
 
