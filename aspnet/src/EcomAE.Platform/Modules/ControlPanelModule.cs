@@ -329,6 +329,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
+            if (context.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+                && !string.IsNullOrWhiteSpace(tenant.SiteKey))
+            {
+                siteKey = tenant.SiteKey;
+            }
+
             if (!confirm)
             {
                 return Results.Ok(new
