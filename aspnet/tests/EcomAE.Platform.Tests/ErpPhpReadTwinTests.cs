@@ -403,6 +403,37 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ExpenseReportWorkspaceReadsPersistedDimensions()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpExpenseReportsApp.razor"));
+
+        Assert.Contains("IErpDimensionLinkReadService", page, StringComparison.Ordinal);
+        Assert.Contains("DimensionLinks.LoadAsync", page, StringComparison.Ordinal);
+        Assert.Contains("\"expense_report\"", page, StringComparison.Ordinal);
+        Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PettyCashWorkspaceReadsPersistedDimensions()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpCashAccountsApp.razor"));
+
+        Assert.Contains("IErpDimensionLinkReadService", page, StringComparison.Ordinal);
+        Assert.Contains("DimensionLinks.LoadAsync", page, StringComparison.Ordinal);
+        Assert.Contains("\"petty_cash\"", page, StringComparison.Ordinal);
+        Assert.Contains("petty_cash_id", page, StringComparison.Ordinal);
+        Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
