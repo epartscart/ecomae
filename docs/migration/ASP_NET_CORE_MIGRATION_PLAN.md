@@ -855,3 +855,6 @@ effects remain separately gated.
 - Cloud installation state transitions now skip package/local-execution stages
   and move from cloud provisioning to synchronization before reaching `Ready`;
   on-premises installations retain the package and local enrollment path.
+- Synchronization-envelope validation now applies the same tenant-key alphabet
+  before accepting an envelope shape; tenant scope, replay, conflict, and
+  authorization checks remain future persistence/transport gates.

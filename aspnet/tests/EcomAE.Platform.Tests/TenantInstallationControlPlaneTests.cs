@@ -159,4 +159,24 @@ public sealed class TenantInstallationControlPlaneTests
             TenantInstallationControlPlane.Start("тенант", TenantDeploymentKind.Cloud, DateTimeOffset.UtcNow));
         Assert.Equal("tenant_a", TenantInstallationControlPlane.NormalizeTenantKey("Tenant_A"));
     }
+
+    [Fact]
+    public void Sync_envelope_rejects_unicode_tenant_keys()
+    {
+        var invalid = new TenantSyncEnvelope(
+            "env-1",
+            "тenant-a",
+            "installation-1",
+            "customer",
+            "42",
+            1,
+            "onpremises-to-cloud",
+            TenantInstallationControlPlane.Sha256Hex("{}"),
+            DateTimeOffset.UtcNow);
+
+        var result = TenantInstallationControlPlane.ValidateSyncEnvelope(invalid);
+
+        Assert.False(result.Accepted);
+        Assert.Equal("invalid-tenant-key", result.Code);
+    }
 }

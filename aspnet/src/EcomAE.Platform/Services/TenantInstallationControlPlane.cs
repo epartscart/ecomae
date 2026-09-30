@@ -207,6 +207,15 @@ public static class TenantInstallationControlPlane
             return new(false, "invalid-envelope", "Required synchronization fields are missing.");
         }
 
+        try
+        {
+            NormalizeTenantKey(envelope.TenantKey);
+        }
+        catch (ArgumentException)
+        {
+            return new(false, "invalid-tenant-key", "Synchronization tenant key is not valid.");
+        }
+
         if (!string.Equals(envelope.Direction, "cloud-to-onpremises", StringComparison.Ordinal)
             && !string.Equals(envelope.Direction, "onpremises-to-cloud", StringComparison.Ordinal))
         {
