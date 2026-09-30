@@ -658,6 +658,14 @@ and finance reconciliation remain separately gated.
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+## Fifty Sixth Milestone Included Here
+
+- Added `/erp/jewellery/advance-history`, preserving the PHP
+  `epc_jewel_advance_list` (`PAD`/`PAR`) readback as a bounded,
+  company-scoped, read-only projection.
+- Advance settlement, receipt allocation, and finance posting remain outside
+  the parity claim.
+
 ## Fifty Fifth Milestone Included Here
 
 - Added a read-only Jewellery sale-history projection matching the PHP
