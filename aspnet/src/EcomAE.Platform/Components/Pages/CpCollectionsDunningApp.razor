@@ -231,7 +231,7 @@
                             <tbody>
                                 @if (_openedLog.Count == 0)
                                 {
-                                    <tr><td colspan="4">No log yet.</td></tr>
+                                    <tr><td colspan="4">No activities yet.</td></tr>
                                 }
                                 else
                                 {
@@ -277,7 +277,7 @@
                         <tbody>
                             @if (_rows.Count == 0)
                             {
-                                <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No records yet." : _message) : "Sign in with a staff session for live rows.")</td></tr>
+                                <tr><td colspan="9">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No cases. Open one for any overdue customer." : _message) : "Sign in with a staff session for live rows.")</td></tr>
                             }
                             else
                             {
