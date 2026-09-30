@@ -358,6 +358,21 @@ public sealed class ErpPhpReadTwinTests
         Assert.DoesNotContain("name=\"dim.legal_entity\"", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CashEntryWorkspaceReadsPersistedDimensions()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpCashEntriesApp.razor"));
+
+        Assert.Contains("IErpDimensionLinkReadService", page, StringComparison.Ordinal);
+        Assert.Contains("DimensionLinks.LoadAsync", page, StringComparison.Ordinal);
+        Assert.Contains("\"cash_entry\"", page, StringComparison.Ordinal);
+        Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

@@ -6,10 +6,12 @@
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Components.Shared.Desktop
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Cash Entries · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -166,6 +168,7 @@
                 JournalCredit="@_openedDetail.Amount"
                 Actions="@PaymentActions"
                 HeaderActions="@PaymentHeaderActions" />
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Voucher identity, account, counterparty, source links, dimensions, and debit/credit evidence are presented in the shared finance workspace. Note and reference remain visible in the ledger list for audit follow-up.</p>
             @if (_openedDetail.Allocations.Count > 0)
             {
@@ -265,6 +268,7 @@
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=banking&tab=cash_bank";
     private bool _isAdmin;
     private IReadOnlyList<ErpCashEntryDigest> _entries = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private int _inCount;
     private int _outCount;
     private decimal _net;
@@ -407,6 +411,10 @@
             var detail = await Dashboards.BuildErpCashEntryDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Entry;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync(
+                "cash_entry",
+                _openedId,
+                ctx.RequestAborted);
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;
