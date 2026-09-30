@@ -3,7 +3,9 @@
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
+@using EcomAE.Platform.Middleware
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -38,7 +40,7 @@
         <form method="post" action="/cp/credit-limits/set" style="margin:0 0 1rem;padding:.85rem .9rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;display:flex;gap:.55rem;flex-wrap:wrap;align-items:end">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <label>Site <input name="siteKey" value="epartscart" required style="display:block;margin-top:.25rem" /></label>
+            <label>Site <input name="siteKey" value="@_siteKey" required style="display:block;margin-top:.25rem" /></label>
             <label>Customer id <input type="number" name="customerId" min="1" required style="display:block;margin-top:.25rem;width:7rem" /></label>
             <label>Limit <input type="number" name="limit" min="0" step="0.01" required style="display:block;margin-top:.25rem;width:7rem" /></label>
             <label>Currency <input name="currency" value="AED" maxlength="8" style="display:block;margin-top:.25rem;width:5rem" /></label>
@@ -56,7 +58,7 @@
         <form method="post" action="/cp/credit-limits/set" style="margin:0 0 1rem;padding:.85rem .9rem;background:#fff;border:1px solid #e2e8f0;border-radius:.55rem;display:flex;gap:.55rem;flex-wrap:wrap;align-items:end">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@ReturnHref" />
-            <label>Site <input name="siteKey" value="epartscart" required style="display:block;margin-top:.25rem" /></label>
+            <label>Site <input name="siteKey" value="@_siteKey" required style="display:block;margin-top:.25rem" /></label>
             <label>Customer id <input type="number" name="customerId" min="1" required style="display:block;margin-top:.25rem;width:7rem" /></label>
             <label>Limit <input type="number" name="limit" min="0" step="0.01" required style="display:block;margin-top:.25rem;width:7rem" /></label>
             <label>Currency <input name="currency" value="AED" maxlength="8" style="display:block;margin-top:.25rem;width:5rem" /></label>
@@ -228,6 +230,7 @@
     private string _message = "";
     private string _flash = "";
     private bool _flashOk;
+    private string _siteKey = "";
     private string _listHref = "/cp/credit-limits-app";
     private long _openedId;
     private CpCreditLimitsDetail? _opened;
@@ -247,6 +250,12 @@
     {
         var ctx = Http.HttpContext;
         if (ctx is null) return;
+
+        if (ctx.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant
+            && !string.IsNullOrWhiteSpace(tenant.SiteKey))
+        {
+            _siteKey = tenant.SiteKey;
+        }
 
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "credit_id");
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
