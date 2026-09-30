@@ -658,6 +658,12 @@ and finance reconciliation remain separately gated.
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+## Sixtieth Milestone Included Here
+
+- Added read-only Jewellery design and diamond master list projections with
+  PHP-aligned table selection, company scope, pagination bounds, and fallback
+  metadata.
+
 ## Fifty Ninth Milestone Included Here
 
 - Added read-only Jewellery purchase history for PHP metal (`MMP`/`MLP`) and

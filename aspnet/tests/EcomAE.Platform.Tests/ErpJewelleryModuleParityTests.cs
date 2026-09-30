@@ -683,6 +683,19 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Purchase history is read-only and company-scoped.", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void JewelleryDesignDiamondReadback_IsCompanyScopedAndBounded()
+    {
+        var service = ReadSource("ErpJwDesignDiamondReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("epc_jewel_diamond_master", service, StringComparison.Ordinal);
+        Assert.Contains("epc_jewel_design", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryDesignDiamond", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryDesignDiamondAsync", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();
