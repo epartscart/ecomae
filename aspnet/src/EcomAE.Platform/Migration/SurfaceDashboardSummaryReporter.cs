@@ -23436,6 +23436,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                         Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
                         ReadStr(reader, "name"),
                         Convert.ToDecimal(reader["opening_balance"] is DBNull ? 0m : reader["opening_balance"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(reader["closing_balance"] is DBNull ? 0m : reader["closing_balance"], CultureInfo.InvariantCulture),
                         ReadStr(reader, "currency"),
                         ReadStr(reader, "notes"),
                         Convert.ToInt64(reader["time_created"] is DBNull ? 0 : reader["time_created"], CultureInfo.InvariantCulture)));

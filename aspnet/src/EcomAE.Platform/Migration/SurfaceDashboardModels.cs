@@ -7291,6 +7291,7 @@ public sealed record ErpCashForecastDigest(
     long Id,
     string Name,
     decimal OpeningBalance,
+    decimal ClosingBalance,
     string Currency,
     string Notes,
     long TimeCreated);
