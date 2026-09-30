@@ -211,6 +211,9 @@ the selected company scope when supplied, so an already sold tag or a tag from
 another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
+The barcode-purchase detail lookup now reads the PHP-owned purchase row by
+company and barcode and returns the observed cost, margin, selling-price, and
+status fields without mutating stock.
 The barcode-purchase sale path similarly consumes only an `available` row and
 requires the selected company scope on both lookup and update, preventing
 repeat or cross-company consumption on the observed path. Invoice, tender,

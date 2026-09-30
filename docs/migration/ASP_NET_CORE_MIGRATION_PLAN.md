@@ -131,6 +131,9 @@ reservation, deduction, tender allocation, or posting implementation.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
+The barcode-purchase detail readback now mirrors the PHP barcode lookup as a
+read-only, company-scoped projection of purchase, cost, margin, selling-price,
+and status fields; it does not mutate inventory or claim posting parity.
 Fit-out now exposes a tenant-isolated estimate/BOQ revision comparison readback
 by project, including revision metadata, BOQ counts, cost/selling totals, and
 adjacent-revision deltas. This is machine evidence for P1-04, not human

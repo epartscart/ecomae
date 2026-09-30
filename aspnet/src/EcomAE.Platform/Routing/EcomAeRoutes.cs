@@ -1063,6 +1063,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryBarcodePurchaseCreateForm = "/erp/jewellery/barcode-purchase-create";
     /// <summary>PHP epc_barcode_purchase_sell. <c>confirmWrites=true</c> marks <c>epc_barcode_purchases</c> sold.</summary>
     public const string ErpJewelleryBarcodePurchaseSellForm = "/erp/jewellery/barcode-purchase-sell";
+    /// <summary>PHP epc_barcode_purchase_lookup. Read-only company-scoped barcode detail.</summary>
+    public const string ErpJewelleryBarcodePurchaseLookup = "/erp/jewellery/barcode-purchase-lookup";
     /// <summary>PHP epc_tourist_refund_create. <c>confirmWrites=true</c> inserts <c>epc_tourist_refund_invoices</c>.</summary>
     public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
     /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
