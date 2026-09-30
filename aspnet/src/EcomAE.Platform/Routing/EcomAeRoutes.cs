@@ -2240,6 +2240,8 @@ public static class EcomAeRoutes
     public const string BosDesignTokensSave = "/bos/design-tokens/save";
     /// <summary>Live PHP ajax_epc_bos.php tenant_config set. confirmWrites=true UPSERTs epc_tenant_config + history. Super-CP only.</summary>
     public const string BosTenantConfigSet = "/bos/tenant-config/set";
+    /// <summary>Generate an expiring on-premises enrollment manifest; no database credentials or remote command is returned.</summary>
+    public const string BosTenantInstallationManifest = "/bos/tenant-installations/manifest";
     /// <summary>Live PHP ajax_epc_bos.php ai_classification review. confirmWrites=true UPDATEs epc_ai_classifications. Super-CP only.</summary>
     public const string BosAiClassReview = "/bos/ai-class/review";
     /// <summary>Live PHP ajax_epc_bos.php mfa_policy save. confirmWrites=true UPSERTs epc_mfa_policy. Super-CP only.</summary>
