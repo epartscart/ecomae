@@ -696,6 +696,21 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("HandleJewelleryDesignDiamondAsync", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void JewelleryRepairDetail_PreservesPhpHeaderAndOrderedItems()
+    {
+        var service = ReadSource("ErpJwRepairDetailReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("FROM `epc_jewel_repair`", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("FROM `epc_jewel_repair_items`", service, StringComparison.Ordinal);
+        Assert.Contains("ORDER BY `line_no`", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryRepairDetail", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryRepairDetailAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Repair detail is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

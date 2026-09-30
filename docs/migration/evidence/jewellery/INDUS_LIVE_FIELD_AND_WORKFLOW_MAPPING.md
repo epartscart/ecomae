@@ -353,6 +353,10 @@ and does not claim production, valuation, or downstream voucher parity.
 `epc_jewel_repair_list` with company/date/status scope and bounded readback.
 It remains read-only and does not claim repair-item mutation, transfer,
 workshop-receive, delivery, or settlement parity.
+`/erp/jewellery/repair-detail` now projects PHP `epc_jewel_repair_get` with a
+company-scoped repair header and ordered `epc_jewel_repair_items` lines. It
+remains read-only; the contradictory PHP transfer/workshop/delivery write
+field evidence is not promoted into an ASP.NET write claim.
 
 Fit-out now exposes `/erp/fitout/progress` as a bounded, project-scoped
 read-only projection of progress claims and weighted-progress records from the
