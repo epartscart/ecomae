@@ -206,7 +206,7 @@
                 Fields="@SalesOrderWorkspaceFields"
                 Lines="@SalesOrderWorkspaceLines"
                 HeaderActions="@SalesOrderHeaderActions" />
-            <p class="text-muted" style="margin:.85rem 0 0">Settlement and edit-lock write here. Confirm, invoice, and delete stay Classic.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">Settlement, confirmation, invoicing, deletion, and edit-lock actions are guarded by the ERP write endpoints; PHP remains the behavioral reference.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">notes excerpt</p>
@@ -510,7 +510,7 @@
         _title = _view == "subscriptions" ? "Subscriptions" : "Sales Orders";
         _subtitle = _view == "subscriptions"
             ? "Save a subscription, generate a cycle invoice, or set status here."
-            : "Open a sales order for the notes excerpt, title, and VAT. Settlement and edit-lock write here. Confirm, invoice, and delete stay Classic.";
+            : "Open a sales order for the notes excerpt, title, VAT, and guarded order-to-cash actions.";
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);

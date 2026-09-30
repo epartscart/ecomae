@@ -212,7 +212,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
             new ErpCustomerSettlementInput
             {
                 UserId = order.CustomerUserId,
-                Amount = ErpTaxAmountCalculator.Round2(order.TotalAmount > 0m ? order.TotalAmount : totalIncl),
+                Amount = totalIncl,
                 Income = true,
                 EntryKind = "adjustment",
                 Reference = invoiceNumber,

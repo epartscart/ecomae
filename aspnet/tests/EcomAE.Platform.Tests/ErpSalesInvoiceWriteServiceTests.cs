@@ -143,4 +143,27 @@ public sealed class ErpSalesInvoiceWriteServiceTests
         => Assert.Contains(
             "At least one invoice line is required",
             ErpSalesInvoiceWriteService.ValidateTaxInvoice("SI-1", Seller(), Buyer(), [], 0m));
+
+    [Fact]
+    public void ConversionSettlesTheComputedInvoiceTotal()
+    {
+        var root = FindRepoRoot();
+        var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpSalesInvoiceWriteService.cs"));
+
+        Assert.Contains(
+            "Amount = totalIncl",
+            service,
+            StringComparison.Ordinal);
+    }
+
+    private static string FindRepoRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "aspnet", "EcomAE.AspNetCore.sln")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new DirectoryNotFoundException("Repository root not found.");
+    }
 }
