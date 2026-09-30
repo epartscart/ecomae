@@ -259,3 +259,17 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
+
+`/erp/jewellery/design-detail` now projects the PHP design header and its
+metal/stone component lines by company and design code. It remains read-only
+and does not claim production, valuation, or downstream voucher parity.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
+
+Fit-out now exposes `/erp/fitout/progress` as a bounded, project-scoped
+read-only projection of progress claims and weighted-progress records from the
+existing delivery-record contract. This is machine evidence only and does not
+replace approval, billing, settlement, or human acceptance.
