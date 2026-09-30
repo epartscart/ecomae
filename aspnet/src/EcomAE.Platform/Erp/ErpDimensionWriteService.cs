@@ -58,6 +58,16 @@ public sealed class ErpDimensionWriteService : IErpDimensionWriteService
         }
 
         var specs = await LoadSpecsAsync(connection, cancellationToken).ConfigureAwait(false);
+        var allowed = specs.ToDictionary(
+            pair => pair.Key,
+            pair => (IReadOnlySet<long>)pair.Value.Select(option => option.Id).Where(id => id > 0).ToHashSet(),
+            StringComparer.OrdinalIgnoreCase);
+        var selectionValidation = ValidateSelectionMap(dim, allowed);
+        if (selectionValidation is not null)
+        {
+            return selectionValidation;
+        }
+
         await ErpDb.ExecuteAsync(
             connection,
             null,
@@ -73,15 +83,12 @@ public sealed class ErpDimensionWriteService : IErpDimensionWriteService
             foreach (var pair in dim)
             {
                 var key = (pair.Key ?? string.Empty).Trim();
-                if (pair.Value <= 0 || !specs.TryGetValue(key, out var spec))
-                {
-                    continue;
-                }
+                var spec = specs[key];
 
                 var option = spec.FirstOrDefault(o => o.Id == pair.Value);
-                if (option is null || (option.Code.Length == 0 && option.Label.Length == 0))
+                if (option is null)
                 {
-                    continue;
+                    return ErpSimpleWriteResult.Fail("invalid", "Selected financial dimension value is not active.");
                 }
 
                 await ErpDb.ExecuteAsync(
@@ -105,6 +112,32 @@ public sealed class ErpDimensionWriteService : IErpDimensionWriteService
         }
 
         return ErpSimpleWriteResult.Ok("Dimensions saved (" + saved.ToString(CultureInfo.InvariantCulture) + ")", saved);
+    }
+
+    public static ErpSimpleWriteResult? ValidateSelectionMap(
+        IReadOnlyDictionary<string, long>? selections,
+        IReadOnlyDictionary<string, IReadOnlySet<long>> allowed)
+    {
+        if (selections is null)
+        {
+            return null;
+        }
+
+        foreach (var pair in selections)
+        {
+            var key = (pair.Key ?? string.Empty).Trim();
+            if (key.Length == 0 || pair.Value <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Financial dimension selections must identify a positive value.");
+            }
+
+            if (!allowed.TryGetValue(key, out var values) || !values.Contains(pair.Value))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Selected financial dimension value is not active.");
+            }
+        }
+
+        return null;
     }
 
     public static IReadOnlyDictionary<string, long> ParseDimMap(IFormCollection form)

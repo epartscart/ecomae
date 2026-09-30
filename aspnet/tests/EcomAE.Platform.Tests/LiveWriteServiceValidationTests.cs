@@ -10,6 +10,30 @@ namespace EcomAE.Platform.Tests;
 
 public sealed class LiveWriteServiceValidationTests
 {
+    [Fact]
+    public void Financial_dimension_selection_rejects_unknown_or_non_positive_values()
+    {
+        var allowed = new Dictionary<string, IReadOnlySet<long>>(StringComparer.OrdinalIgnoreCase)
+        {
+            ["business_unit"] = new HashSet<long> { 7 },
+            ["dim12"] = new HashSet<long> { 21, 22 },
+        };
+
+        var missing = ErpDimensionWriteService.ValidateSelectionMap(
+            new Dictionary<string, long> { ["business_unit"] = 0 },
+            allowed);
+        var inactive = ErpDimensionWriteService.ValidateSelectionMap(
+            new Dictionary<string, long> { ["dim12"] = 99 },
+            allowed);
+        var valid = ErpDimensionWriteService.ValidateSelectionMap(
+            new Dictionary<string, long> { ["business_unit"] = 7, ["dim12"] = 21 },
+            allowed);
+
+        Assert.Equal("invalid", missing?.Code);
+        Assert.Equal("invalid", inactive?.Code);
+        Assert.Null(valid);
+    }
+
     private sealed class UnconfiguredConnections : IErpWriteConnectionFactory
     {
         public bool IsConfigured => false;
