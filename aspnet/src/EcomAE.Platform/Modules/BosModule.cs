@@ -65,7 +65,6 @@ public sealed class BosModule : ISurfaceModule
                     body.TenantKey ?? string.Empty,
                     body.CloudBaseUrl ?? string.Empty,
                     body.PackageVersion ?? string.Empty,
-                    body.EnrollmentRequestId ?? string.Empty,
                     body.ExpiresAt.Value);
 
                 return Results.Ok(new

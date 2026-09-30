@@ -79,13 +79,44 @@ public sealed class TenantInstallationControlPlaneTests
             "tenant-a",
             "https://control.ecomae.com",
             "2026.09.1",
-            "request-123",
             DateTimeOffset.UtcNow.AddHours(2));
 
         Assert.Equal("https://control.ecomae.com/api/v1/tenant-installations/enroll", manifest.EnrollmentUrl);
         Assert.Equal("on-premises", manifest.DeploymentKind);
+        Assert.NotEqual("request-123", manifest.EnrollmentRequestId);
+        Assert.Equal(48, manifest.EnrollmentRequestId.Length);
         Assert.DoesNotContain("password", manifest.EnrollmentUrl, StringComparison.OrdinalIgnoreCase);
         Assert.DoesNotContain("db_", manifest.EnrollmentUrl, StringComparison.OrdinalIgnoreCase);
+    }
+
+    [Fact]
+    public void Cloud_installation_can_reach_ready_without_local_execution()
+    {
+        var now = DateTimeOffset.UtcNow;
+        var state = TenantInstallationControlPlane.Start("tenant-a", TenantDeploymentKind.Cloud, now);
+
+        state = TenantInstallationControlPlane.Advance(
+            state,
+            TenantInstallationStage.ProvisioningCloudTenant,
+            now.AddMinutes(1));
+        state = TenantInstallationControlPlane.Advance(
+            state,
+            TenantInstallationStage.Synchronizing,
+            now.AddMinutes(2));
+        state = TenantInstallationControlPlane.Advance(
+            state,
+            TenantInstallationStage.Ready,
+            now.AddMinutes(3));
+
+        Assert.Equal(TenantInstallationStage.Ready, state.Stage);
+        Assert.Equal(100, state.Percent);
+    }
+
+    [Fact]
+    public void Tenant_keys_reject_unicode_letters()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            TenantInstallationControlPlane.NormalizeTenantKey("ténant-a"));
     }
 
     [Fact]
