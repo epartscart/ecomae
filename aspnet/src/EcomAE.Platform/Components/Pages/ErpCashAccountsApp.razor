@@ -145,7 +145,7 @@
             {
                 <div class="epc-erp-table-wrap" style="margin-bottom:12px">
                     <strong>@_selectedForecast.Name</strong>
-                    <span class="text-muted"> · @(string.IsNullOrWhiteSpace(_selectedForecast.Currency) ? "—" : _selectedForecast.Currency)</span>
+                    <span class="text-muted"> · @_selectedForecast.Currency</span>
                     @if (!string.IsNullOrWhiteSpace(_selectedForecast.Notes))
                     {
                         <p class="text-muted" style="margin:.35rem 0 0">@_selectedForecast.Notes</p>
@@ -225,7 +225,7 @@
                             <tr>
                                 <td><strong><a href="/erp/cash-accounts-app?tab=cash_forecast&fc=@f.Id.ToString(CultureInfo.InvariantCulture)">@f.Name</a></strong></td>
                                 <td class="text-right">@f.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td>@(string.IsNullOrWhiteSpace(f.Currency) ? "—" : f.Currency)</td>
+                                <td>@f.Currency</td>
                                 <td class="text-right @(f.ClosingBalance < 0 ? "text-danger" : string.Empty)">@f.ClosingBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td><a class="btn btn-xs btn-default" href="/erp/cash-accounts-app?tab=cash_forecast&amp;fc=@f.Id.ToString(CultureInfo.InvariantCulture)">Open</a></td>
                             </tr>
@@ -267,8 +267,8 @@
                             var outflow = string.Equals(line.Direction, "out", StringComparison.OrdinalIgnoreCase) ? line.Amount : 0m;
                             <tr>
                                 <td>@(string.IsNullOrWhiteSpace(line.DueDate) ? "—" : line.DueDate)</td>
-                                <td>@(string.IsNullOrWhiteSpace(line.Category) ? "—" : line.Category)</td>
-                                <td>@(string.IsNullOrWhiteSpace(line.Source) ? "—" : line.Source)</td>
+                                <td>@line.Category</td>
+                                <td>@line.Source</td>
                                 <td class="text-right">@(inflow == 0m ? "—" : inflow.ToString("N2", CultureInfo.InvariantCulture))</td>
                                 <td class="text-right">@(outflow == 0m ? "—" : outflow.ToString("N2", CultureInfo.InvariantCulture))</td>
                                 <td class="text-right">@line.RunningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
