@@ -45,6 +45,7 @@ public sealed record ErpJwBarcodePurchaseCreateRequest(
 
 public sealed record ErpJwBarcodePurchaseSellRequest(
     long Id = 0,
+    int CompanyId = 0,
     int CustomerId = 0,
     int InvoiceId = 0);
 
@@ -194,35 +195,40 @@ public sealed class ErpJwBarcodePurchaseWriteService : IErpJwBarcodePurchaseWrit
             return ErpSimpleWriteResult.Fail("invalid", "Barcode purchase tables are not provisioned");
         }
 
+        var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
         var status = await ErpDb.StringAsync(
             connection,
             null,
-            ErpDb.Positional("SELECT `status` FROM `epc_barcode_purchases` WHERE `id` = ? LIMIT 1"),
+            ErpDb.Positional("SELECT `status` FROM `epc_barcode_purchases` WHERE `id` = ? AND (? = 0 OR `company_id` = ?) LIMIT 1"),
             cancellationToken,
-            request.Id).ConfigureAwait(false);
+            request.Id,
+            companyId,
+            companyId).ConfigureAwait(false);
         if (string.IsNullOrEmpty(status))
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Purchase is missing.");
+            return ErpSimpleWriteResult.Fail("invalid", "Barcode purchase is missing or outside the selected company.");
         }
 
-        if (string.Equals(status, "sold", StringComparison.OrdinalIgnoreCase))
+        if (!string.Equals(status, "available", StringComparison.OrdinalIgnoreCase))
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Purchase is already sold.");
+            return ErpSimpleWriteResult.Fail("invalid", "Barcode purchase is unavailable.");
         }
 
         var updated = await ErpDb.ExecuteAsync(
             connection,
             null,
             ErpDb.Positional(
-                "UPDATE `epc_barcode_purchases` SET `status` = 'sold', `sold_to_customer_id` = ?, `sold_invoice_id` = ?, `time_updated` = ? WHERE `id` = ?"),
+                "UPDATE `epc_barcode_purchases` SET `status` = 'sold', `sold_to_customer_id` = ?, `sold_invoice_id` = ?, `time_updated` = ? WHERE `id` = ? AND `status` = 'available' AND (? = 0 OR `company_id` = ?)"),
             cancellationToken,
             request.CustomerId < 0 ? 0 : request.CustomerId,
             request.InvoiceId < 0 ? 0 : request.InvoiceId,
             UnixNow(),
-            request.Id).ConfigureAwait(false);
+            request.Id,
+            companyId,
+            companyId).ConfigureAwait(false);
         if (updated <= 0)
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Purchase is missing.");
+            return ErpSimpleWriteResult.Fail("invalid", "Barcode purchase is unavailable or outside the selected company.");
         }
 
         return ErpSimpleWriteResult.Ok("Barcode purchase sold", request.Id);

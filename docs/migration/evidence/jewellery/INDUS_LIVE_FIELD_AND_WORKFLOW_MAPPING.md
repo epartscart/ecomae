@@ -124,6 +124,18 @@ The PHP Jewellery tranche currently prioritizes the master, purchase, stock,
 sales, repair, finance, and compliance subsets. The remaining INDUS workflows
 stay explicit acceptance gates rather than being marked complete from menu
 presence alone.
+The fixing-history readback now mirrors the PHP company-scoped `fix_type`
+projection with bounded header fields; it does not claim settlement posting
+or unfix-finance reconciliation parity.
+The sales-analysis readback now mirrors the PHP company/date-range aggregate
+for the observed retail voucher types and supports the PHP grouping choices;
+it does not claim posting, export, or unsupported UI-filter parity.
+The metal-stock balance readback now mirrors the PHP company-scoped aggregate
+of positive stock by metal and karat, including pieces, grams, and value; it
+does not claim movement or posting parity.
+The stock-verification history readback now mirrors the PHP company-scoped
+`epc_jewel_sv_list` projection; adjustment posting and line-level variance
+persistence remain unverified.
 
 ## Confirmed PHP master-form parity tranche
 
@@ -211,6 +223,13 @@ the selected company scope when supplied, so an already sold tag or a tag from
 another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
+The barcode-purchase detail lookup now reads the PHP-owned purchase row by
+company and barcode and returns the observed cost, margin, selling-price, and
+status fields without mutating stock.
+The barcode-purchase sale path similarly consumes only an `available` row and
+requires the selected company scope on both lookup and update, preventing
+repeat or cross-company consumption on the observed path. Invoice, tender,
+finance, and immutable movement effects remain unverified.
 The ASP.NET stock-availability readback now returns only `in_stock` rows from
 `epc_jw_tags`, optionally filtered by company and tag number/barcode. It is
 operator evidence for available tagged inventory and deliberately does not
