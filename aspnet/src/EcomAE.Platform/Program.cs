@@ -720,6 +720,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAftersalesRmaWriteService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAftersalesWarrantyWriteService, EcomAE.Platform.Erp.ErpAftersalesWarrantyWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAftersalesJobWriteService, EcomAE.Platform.Erp.ErpAftersalesJobWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairWriteService, EcomAE.Platform.Erp.ErpJwRepairWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwJournalHistoryReadService, EcomAE.Platform.Erp.ErpJwJournalHistoryReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwStoneMasterReadService, EcomAE.Platform.Erp.ErpJwStoneMasterReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwAdvanceHistoryReadService, EcomAE.Platform.Erp.ErpJwAdvanceHistoryReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwSaleHistoryReadService, EcomAE.Platform.Erp.ErpJwSaleHistoryReadService>();

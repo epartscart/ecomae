@@ -658,6 +658,11 @@ and finance reconciliation remain separately gated.
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+## Fifty Eighth Milestone Included Here
+
+- Added read-only Jewellery journal history for PHP voucher types `JVG` and
+  `JVA`, with company scope, bounded results, and truthful fallback metadata.
+
 ## Fifty Seventh Milestone Included Here
 
 - Added a read-only Jewellery pearl and colour-stone master projection over

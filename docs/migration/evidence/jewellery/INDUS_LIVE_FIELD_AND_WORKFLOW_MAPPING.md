@@ -275,6 +275,13 @@ tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
 
+## Journal history readback
+
+`/erp/jewellery/journal-history` projects PHP `epc_jewel_journal_list`
+against `epc_jewel_voucher` using the observed `JVG`/`JVA` voucher types,
+company predicate, descending voucher date, and bounded result count. It is
+read-only and does not claim journal posting or finance reconciliation parity.
+
 ## Pearl and colour-stone master readback
 
 `/erp/jewellery/stone-master` exposes the PHP pearl and colour-stone master
