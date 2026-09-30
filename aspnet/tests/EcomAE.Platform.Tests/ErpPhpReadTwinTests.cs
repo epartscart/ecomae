@@ -266,7 +266,15 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("epc_erp_dim_links", service, StringComparison.Ordinal);
         Assert.Contains("IErpDimensionLinkReadService", service, StringComparison.Ordinal);
 
-        foreach (var pageName in new[] { "ErpRfqApp.razor", "ErpDeliveryNotesApp.razor", "ErpPaymentBatchesApp.razor" })
+        foreach (var pageName in new[]
+        {
+            "ErpRfqApp.razor",
+            "ErpDeliveryNotesApp.razor",
+            "ErpPaymentBatchesApp.razor",
+            "ErpPurchaseOrdersApp.razor",
+            "ErpSalesOrdersApp.razor",
+            "ErpInvoicesApp.razor"
+        })
         {
             var page = File.ReadAllText(Path.Combine(
                 root,

@@ -6,10 +6,12 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Purchase Orders · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -90,6 +92,7 @@
                 Fields="@PurchaseOrderWorkspaceFields"
                 Lines="@PurchaseOrderWorkspaceLines"
                 HeaderActions="@PurchaseOrderHeaderActions" />
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">The workspace is backed by the persisted purchase-order read model. Barcode purchase schema-ensure remains Classic-owned; purchase-order lifecycle actions use the guarded ERP routes shown in the action pane and list.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.NotesExcerpt))
             {
@@ -305,6 +308,7 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=purchasing&tab=purchase_orders";
     private bool _isAdmin;
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private bool _barcodePurchase;
     private string _ok = "";
     private string _err = "";
@@ -403,6 +407,7 @@
         {
             var detail = await Dashboards.BuildErpPurchaseOrderDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Order;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("purchase_order", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {

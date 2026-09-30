@@ -5,10 +5,12 @@
 @using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Invoices · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -72,6 +74,7 @@
                 <dt>Updated</dt><dd>@FormatTime(_openedDetail.TimeUpdated)</dd>
                 <dt>Submitted</dt><dd>@FormatTime(_openedDetail.TimeSubmitted)</dd>
             </dl>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <ErpDocumentWorkspace
                 DocumentKind="@InvoiceWorkspaceKind"
                 Title="@InvoiceWorkspaceTitle"
@@ -171,6 +174,7 @@
 @code {
     private const string _phpTab = "/ERP/?epc_erp_shell=1&area=sales&tab=invoices";
     private bool _isAdmin;
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private IReadOnlyList<ErpInvoiceDigest> _invoices = [];
     private IReadOnlyList<ErpInvoiceDigest> _visible = [];
     private int _open;
@@ -291,6 +295,7 @@
         {
             var detail = await Dashboards.BuildErpInvoiceDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Invoice;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("invoice", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
