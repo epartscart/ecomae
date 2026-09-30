@@ -69,6 +69,27 @@ public sealed class ErpReceivablesParityTests
     }
 
     [Fact]
+    public void WithholdingCatalogRecordsLiveTaxLifecycle()
+    {
+        var catalog = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet", "src", "EcomAE.Platform", "Migration", "SurfacePayloadContractCatalog.cs"));
+        var page = ReadApp("ErpWithholdingApp.razor");
+        var module = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet", "src", "EcomAE.Platform", "Modules", "ErpModule.cs"));
+
+        Assert.Contains("live-withholding-lifecycle", catalog, StringComparison.Ordinal);
+        Assert.Contains("txn_id", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/withholding/codes/save", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/withholding/txns/record", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/withholding/txns/certificate", page, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/wht-settle", page, StringComparison.Ordinal);
+        Assert.Contains("ErpWithholdingCodesSave", module, StringComparison.Ordinal);
+        Assert.Contains("ErpWithholdingTxnsRecord", module, StringComparison.Ordinal);
+        Assert.Contains("ErpWithholdingTxnsCertificate", module, StringComparison.Ordinal);
+        Assert.Contains("ErpAjaxWhtSettle", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void OnPremisesAppWiresLicenseDigest()
     {
         var text = ReadApp("ErpOnPremisesApp.razor");
