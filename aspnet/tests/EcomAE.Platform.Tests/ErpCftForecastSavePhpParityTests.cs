@@ -16,6 +16,8 @@ public sealed class ErpCftForecastSavePhpParityTests
         Assert.Contains("Create forecast", text, StringComparison.Ordinal);
         Assert.Contains("tab=cash_forecast&amp;fc=", text, StringComparison.Ordinal);
         Assert.Contains("No forecast lines.", text, StringComparison.Ordinal);
+        Assert.Contains("@if (_forecastId <= 0)", text, StringComparison.Ordinal);
+        Assert.Contains("@if (_forecastId > 0 && _selectedForecast is not null)", text, StringComparison.Ordinal);
         Assert.Contains("forecasts.FirstOrDefault(f => f.Id == forecastId.Value)", File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Migration/SurfaceDashboardSummaryReporter.cs")), StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
