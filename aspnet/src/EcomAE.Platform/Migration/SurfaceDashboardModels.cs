@@ -6639,7 +6639,10 @@ public sealed record ErpRfqDetail(
     string DescriptionExcerpt,
     IReadOnlyList<ErpRfqLineDigest> Lines,
     IReadOnlyList<ErpRfqResponseDigest>? Responses = null,
-    IReadOnlyList<ErpRfqSupplierRanking>? SupplierRanking = null);
+    IReadOnlyList<ErpRfqSupplierRanking>? SupplierRanking = null,
+    IReadOnlyList<ErpRfqBestQuoteDigest>? BestQuotes = null,
+    long RecommendedSupplierId = 0,
+    ErpRfqAwardPreviewDigest? AwardPreview = null);
 
 public sealed record ErpRfqLineDigest(
     long Id,
@@ -6663,6 +6666,27 @@ public sealed record ErpRfqResponseDigest(
 public sealed record ErpRfqSupplierRanking(
     long SupplierId,
     decimal TotalQuoted);
+
+public sealed record ErpRfqBestQuoteDigest(
+    long RfqLineId,
+    long SupplierId,
+    decimal UnitPrice,
+    int LeadTimeDays,
+    decimal LineTotal);
+
+public sealed record ErpRfqAwardPreviewDigest(
+    long SupplierId,
+    decimal TotalEx,
+    int QuotedLineCount,
+    int RfqLineCount,
+    IReadOnlyList<ErpRfqAwardLineDigest> Lines);
+
+public sealed record ErpRfqAwardLineDigest(
+    long RfqLineId,
+    string Description,
+    decimal Qty,
+    decimal UnitPrice,
+    decimal LineTotal);
 
 public sealed record ErpRfqDetailResult(
     ErpRfqDetail? Rfq,

@@ -52,9 +52,46 @@
                 Lines="@RfqWorkspaceLines"
                 Tabs="@RfqWorkspaceTabs"
                 HeaderActions="@RfqHeaderActions" />
-            <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path. When PHP SCM lines exist, the workspace reads their persisted request quantities and target prices without creating or mutating the PHP-owned schema; supplier response comparison and award remain Classic-owned.</p>
+            <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path. When PHP SCM lines exist, the workspace reads their persisted request quantities and target prices without creating or mutating the PHP-owned schema.</p>
+            @if (_isAdmin && _opened.Lines.Count > 0)
+            {
+                <form method="post" action="/erp/ajax/save-rfq-response" class="epc-erp-form" style="margin-top:1rem">
+                    <input type="hidden" name="rfq_id" value="@_opened.Id" />
+                    <div class="epc-form-grid">
+                        <label>RFQ line
+                            <select name="rfq_line_id" required>
+                                @foreach (var line in _opened.Lines)
+                                {
+                                    <option value="@line.Id">@line.Description (@line.Qty.ToString("N2", CultureInfo.InvariantCulture))</option>
+                                }
+                            </select>
+                        </label>
+                        <label>Supplier ID<input type="number" name="supplier_id" min="1" required /></label>
+                        <label>Unit price<input type="number" name="unit_price" min="0" step="0.0001" required /></label>
+                        <label>Lead time days<input type="number" name="lead_time_days" min="0" value="0" required /></label>
+                        <label>Notes<input name="notes" maxlength="1000" /></label>
+                    </div>
+                    <label style="display:flex;align-items:flex-start;gap:.45rem;margin-top:.75rem">
+                        <input type="checkbox" name="confirmWrites" value="true" required />
+                        <span>I confirm this supplier response is ready to be persisted in the PHP SCM response table.</span>
+                    </label>
+                    <div class="epc-button-row" style="margin-top:.75rem">
+                        <button class="btn btn-primary" type="submit">Save supplier response</button>
+                    </div>
+                </form>
+            }
             @if (_opened.Responses is { Count: > 0 })
             {
+                <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQ comparison recommendation" style="margin-top:1rem">
+                    <div class="kpi">
+                        <div class="lbl">PHP comparison recommendation</div>
+                        <div class="val">@(_opened.RecommendedSupplierId > 0 ? $"Supplier {_opened.RecommendedSupplierId.ToString(CultureInfo.InvariantCulture)}" : "No recommendation")</div>
+                    </div>
+                    <div class="kpi">
+                        <div class="lbl">Award state</div>
+                        <div class="val">Classic-owned</div>
+                    </div>
+                </div>
                 <p class="text-muted" style="margin:1rem 0 .4rem">Persisted supplier responses (comparison read-only)</p>
                 <table class="table table-bordered table-condensed table-epc epc-erp-table">
                     <thead><tr><th>Line</th><th>Supplier</th><th class="text-right">Unit price</th><th class="text-right">Line total</th><th class="text-right">Lead days</th><th>Notes</th></tr></thead>
@@ -91,7 +128,60 @@
                         </tbody>
                     </table>
                 }
-                <p class="text-muted">Comparison is read-only here; response writes and award-to-PO remain Classic-owned until their guarded PHP-schema services are implemented.</p>
+                @if (_opened.BestQuotes is { Count: > 0 })
+                {
+                    <p class="text-muted" style="margin:1rem 0 .4rem">Best supplier per RFQ line</p>
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Line</th><th>Supplier</th><th class="text-right">Unit price</th><th class="text-right">Line total</th><th class="text-right">Lead days</th></tr></thead>
+                        <tbody>
+                            @foreach (var quote in _opened.BestQuotes)
+                            {
+                                var line = _opened.Lines.FirstOrDefault(item => item.Id == quote.RfqLineId);
+                                <tr>
+                                    <td>@(line is null ? $"Line {quote.RfqLineId.ToString(CultureInfo.InvariantCulture)}" : line.Description)</td>
+                                    <td>@quote.SupplierId.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@quote.UnitPrice.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@quote.LineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@quote.LeadTimeDays.ToString(CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                @if (_opened.AwardPreview is { } awardPreview)
+                {
+                    <p class="text-muted" style="margin:1rem 0 .4rem">Read-only draft PO preview for recommended supplier</p>
+                    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="RFQ draft purchase order preview">
+                        <div class="kpi">
+                            <div class="lbl">Supplier</div>
+                            <div class="val">@awardPreview.SupplierId.ToString(CultureInfo.InvariantCulture)</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="lbl">Quoted lines</div>
+                            <div class="val">@($"{awardPreview.QuotedLineCount.ToString(CultureInfo.InvariantCulture)} / {awardPreview.RfqLineCount.ToString(CultureInfo.InvariantCulture)}")</div>
+                        </div>
+                        <div class="kpi">
+                            <div class="lbl">Preview total ex VAT</div>
+                            <div class="val">@awardPreview.TotalEx.ToString("N2", CultureInfo.InvariantCulture)</div>
+                        </div>
+                    </div>
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Line</th><th class="text-right">Qty</th><th class="text-right">Unit cost ex VAT</th><th class="text-right">Line ex VAT</th></tr></thead>
+                        <tbody>
+                            @foreach (var line in awardPreview.Lines)
+                            {
+                                <tr>
+                                    <td>@line.Description</td>
+                                    <td class="text-right">@line.Qty.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@line.UnitPrice.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@line.LineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                    <p class="text-muted">This preview uses only persisted responses; it does not create a purchase order or award the RFQ. Award remains Classic-owned.</p>
+                }
+                <p class="text-muted">Supplier responses now use the guarded PHP-schema insert above; comparison remains read-only here and award-to-PO remains Classic-owned.</p>
             }
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {

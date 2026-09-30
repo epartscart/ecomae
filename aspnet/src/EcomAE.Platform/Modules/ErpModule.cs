@@ -741,6 +741,75 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveRfqResponse, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpRfqResponseWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return Unauthorized("Admin ERP capability required.");
+            }
+
+            ErpSaveRfqResponseBody body;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new(
+                    LiveWriteFormBinder.Long(form, "rfq_id", "rfqId"),
+                    LiveWriteFormBinder.Long(form, "rfq_line_id", "rfqLineId"),
+                    LiveWriteFormBinder.Long(form, "supplier_id", "supplierId"),
+                    LiveWriteFormBinder.Dec(form, "unit_price", "unitPrice"),
+                    LiveWriteFormBinder.Int(form, "lead_time_days", "leadTimeDays"),
+                    LiveWriteFormBinder.Text(form, "notes"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+            }
+            else
+            {
+                body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSaveRfqResponseBody>(
+                    context,
+                    cancellationToken) ?? new();
+            }
+
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(new
+                {
+                    ok = true,
+                    dryRun = true,
+                    writes = 0,
+                    message = "Explicit confirmation is required before saving a supplier response.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AddAsync(
+                new ErpRfqResponseWriteRequest(
+                    body.RfqId,
+                    body.RfqLineId,
+                    body.SupplierId,
+                    body.UnitPrice,
+                    body.LeadTimeDays,
+                    body.Notes,
+                    session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                LiveWriteFormBinder.ReturnUrl(context, "/erp/rfq-app"),
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    id = written.Id,
+                    message = written.Message,
+                    phpAuthoritative = false,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDeliveryNoteCreate, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -21796,6 +21865,14 @@ public sealed class ErpModule : ISurfaceModule
         string? ExecutionDate = null,
         string? Notes = null,
         Dictionary<string, long>? Dim = null);
+    private sealed record ErpSaveRfqResponseBody(
+        long RfqId = 0,
+        long RfqLineId = 0,
+        long SupplierId = 0,
+        decimal UnitPrice = 0m,
+        int LeadTimeDays = 0,
+        string? Notes = null,
+        bool ConfirmWrites = false);
     private sealed record ErpPettyCashSaveBody(
         long Id = 0,
         string? Code = null,

@@ -80,10 +80,13 @@
                 <div class="epc-form-grid">
                     <label>Exception reason<input name="exceptionReason" maxlength="500" placeholder="Required for variance exceptions" /></label>
                 </div>
+                <label style="display:flex;align-items:flex-start;gap:.45rem;margin-top:.75rem">
+                    <input type="checkbox" name="confirmWrites" value="true" required />
+                    <span>I confirm this decision is ready to be persisted against the purchase order.</span>
+                </label>
                 <div class="epc-button-row" style="margin-top:.75rem">
                     <button class="btn btn-primary" type="submit" name="decision" value="match">Accept match</button>
                     <button class="btn btn-warning" type="submit" name="decision" value="exception">Route exception</button>
-                    <input type="hidden" name="confirmWrites" value="true" />
                 </div>
             </form>
             @if (_openedSiblings.Count > 0)
