@@ -639,6 +639,10 @@ The script checks out the final migration files from the source branch onto late
   PHP removal blocked until the evidence-based visual and structural gates
   pass with human acceptance.
 
+Jewellery petty-cash and tourist-VAT history projections now mirror the PHP
+company/date-range list helpers as read-only views; posting, refund validation,
+and finance reconciliation remain separately gated.
+
 
 ## Fifty Third Milestone Included Here
 

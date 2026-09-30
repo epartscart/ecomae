@@ -9707,6 +9707,8 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryPettyCashList, HandleJewelleryPettyCashListAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryTouristVatList, HandleJewelleryTouristVatListAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryTouristVatSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12637,6 +12639,54 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewelleryPettyCashListAsync(
+        HttpContext context, int companyId, string? from, string? to,
+        ILegacySessionValidator validator, IErpJwFinanceHistoryReadService read,
+        CancellationToken cancellationToken)
+        => await HandleJewelleryFinanceHistoryAsync(
+            context, companyId, from, to, validator, cancellationToken,
+            () => read.ReadPettyCashAsync(companyId, from ?? string.Empty, to ?? string.Empty, cancellationToken),
+            "petty cash history").ConfigureAwait(false);
+
+    private static async Task<IResult> HandleJewelleryTouristVatListAsync(
+        HttpContext context, int companyId, string? from, string? to,
+        ILegacySessionValidator validator, IErpJwFinanceHistoryReadService read,
+        CancellationToken cancellationToken)
+        => await HandleJewelleryFinanceHistoryAsync(
+            context, companyId, from, to, validator, cancellationToken,
+            () => read.ReadTouristVatAsync(companyId, from ?? string.Empty, to ?? string.Empty, cancellationToken),
+            "tourist VAT history").ConfigureAwait(false);
+
+    private static async Task<IResult> HandleJewelleryFinanceHistoryAsync(
+        HttpContext context, int companyId, string? from, string? to,
+        ILegacySessionValidator validator, CancellationToken cancellationToken,
+        Func<Task<ErpJwFinanceHistoryResult>> read, string label)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/shop/finance/erp?area=finance",
+                "Admin ERP capability required for jewellery " + label + ".");
+        }
+
+        var result = await read().ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            from,
+            to,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = label + " is read-only and company-scoped."
+        });
     }
 
     private static async Task<IResult> HandleJewelleryFixingListAsync(

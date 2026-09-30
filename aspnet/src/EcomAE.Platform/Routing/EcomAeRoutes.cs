@@ -1113,6 +1113,10 @@ public static class EcomAeRoutes
     public const string ErpJewelleryPettyCashSaveForm = "/erp/jewellery/petty-cash-save";
     /// <summary>PHP jw_tourist_vat_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_tourist_vat_refund</c>.</summary>
     public const string ErpJewelleryTouristVatSaveForm = "/erp/jewellery/tourist-vat-save";
+    /// <summary>PHP epc_jewel_petty_cash_list. Read-only company/date-scoped history.</summary>
+    public const string ErpJewelleryPettyCashList = "/erp/jewellery/petty-cash";
+    /// <summary>PHP epc_jewel_tourist_vat_list. Read-only company/date-scoped history.</summary>
+    public const string ErpJewelleryTouristVatList = "/erp/jewellery/tourist-vat";
     /// <summary>PHP jw_repair_save / jw_repair_receipt_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair</c>.</summary>
     public const string ErpJewelleryRepairReceiptSaveForm = "/erp/jewellery/repair-receipt-save";
     /// <summary>PHP jw_repair_transfer_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_repair_transfer</c>.</summary>

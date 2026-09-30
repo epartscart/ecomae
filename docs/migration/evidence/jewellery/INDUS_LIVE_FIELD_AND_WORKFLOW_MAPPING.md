@@ -275,6 +275,10 @@ tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
 
+Petty-cash and tourist-VAT history readbacks mirror the observed PHP
+company/date-range projections; they do not claim posting, refund validation,
+or reconciliation parity.
+
 `/erp/jewellery/design-detail` now projects the PHP design header and its
 metal/stone component lines by company and design code. It remains read-only
 and does not claim production, valuation, or downstream voucher parity.
