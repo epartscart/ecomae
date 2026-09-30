@@ -8,8 +8,8 @@
             <p>@PartyLabel <strong>@Party</strong> · @ReferenceLabel <strong>@Reference</strong></p>
         </div>
         <div class="epc-document-workspace__status">
-            <span class="epc-document-workspace__status-label">@Status</span>
-            <span class="epc-document-workspace__approval">@ApprovalState</span>
+            <span class="epc-document-workspace__status-label @StatusClass(Status)">@Status</span>
+            <span class="epc-document-workspace__approval @StatusClass(ApprovalState)">@ApprovalState</span>
         </div>
     </div>
 
@@ -147,4 +147,35 @@
     [Parameter] public RenderFragment? HeaderActions { get; set; }
 
     private static string Anchor(string value) => value.ToLowerInvariant().Replace(' ', '-');
+
+    private static string StatusClass(string value)
+    {
+        var normalized = value.Trim().ToLowerInvariant();
+        if (normalized.Contains("reject", StringComparison.Ordinal)
+            || normalized.Contains("cancel", StringComparison.Ordinal)
+            || normalized.Contains("fail", StringComparison.Ordinal)
+            || normalized.Contains("overdue", StringComparison.Ordinal))
+        {
+            return "is-critical";
+        }
+
+        if (normalized.Contains("pending", StringComparison.Ordinal)
+            || normalized.Contains("await", StringComparison.Ordinal)
+            || normalized.Contains("review", StringComparison.Ordinal)
+            || normalized.Contains("hold", StringComparison.Ordinal))
+        {
+            return "is-warning";
+        }
+
+        if (normalized.Contains("posted", StringComparison.Ordinal)
+            || normalized.Contains("approved", StringComparison.Ordinal)
+            || normalized.Contains("paid", StringComparison.Ordinal)
+            || normalized.Contains("complete", StringComparison.Ordinal)
+            || normalized.Contains("ready", StringComparison.Ordinal))
+        {
+            return "is-positive";
+        }
+
+        return "is-neutral";
+    }
 }
