@@ -259,3 +259,8 @@ gates; this policy does not broaden ordinary tenant access.
 Petty-cash and tourist-VAT history readbacks mirror the observed PHP
 company/date-range projections; they do not claim posting, refund validation,
 or reconciliation parity.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
