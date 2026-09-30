@@ -629,6 +629,11 @@ The script checks out the final migration files from the source branch onto late
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+## Sixty First Milestone Included Here
+
+- Added read-only Jewellery design detail readback for the PHP design header,
+  metal lines, and stone lines, preserving company scope and line ordering.
+
 ## Sixty Second Milestone Included Here
 
 - Added read-only Jewellery repair-receipt history matching PHP
