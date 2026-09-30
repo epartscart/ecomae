@@ -5,10 +5,12 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpMultiEntityPreferenceReadService Preferences
 
 <PageTitle>Multi-entity · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -78,12 +80,19 @@
             <input type="hidden" name="returnUrl" value="/erp/multi-entity-app" />
             <label style="margin-right:8px">Cross-tenant mode
                 <select name="enabled">
-                    <option value="1">enabled</option>
-                    <option value="0" selected>disabled</option>
+                    <option value="1" selected="@_crossTenantEnabled">enabled</option>
+                    <option value="0" selected="@(!_crossTenantEnabled)">disabled</option>
                 </select>
             </label>
             <button type="submit" class="btn btn-sm btn-primary">Save preference</button>
         </form>
+        <p class="text-muted" style="margin:-6px 0 12px 2px;font-size:12px">
+            Current value: @(_crossTenantEnabled ? "enabled" : "disabled") · source: @_preferenceSource
+            @if (!string.IsNullOrWhiteSpace(_preferenceMessage))
+            {
+                <span> · @_preferenceMessage</span>
+            }
+        </p>
     }
 
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Multi-entity KPIs">
@@ -300,6 +309,9 @@
     private string _message = "";
     private string _flash = "";
     private bool _flashOk;
+    private bool _crossTenantEnabled;
+    private string _preferenceSource = "n/a";
+    private string _preferenceMessage = "";
     private long _openedGroupId;
     private long _openedIcId;
     private ErpEntityGroupDetail? _openedGroup;
@@ -361,6 +373,11 @@
         _pendingIc = result.PendingIcCount;
         _source = result.Source;
         _message = result.Message;
+
+        var preference = await Preferences.LoadAsync(ctx.RequestAborted);
+        _crossTenantEnabled = preference.Enabled;
+        _preferenceSource = preference.Source;
+        _preferenceMessage = preference.Message;
 
         if (_openedGroupId > 0)
         {
