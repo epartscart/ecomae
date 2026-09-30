@@ -848,3 +848,7 @@ effects remain separately gated.
   credential-free payload, PHP fallback, and `cutoverAllowed=false` boundary.
 - Durable registration, redemption, heartbeat, synchronization, and
   production installation acceptance remain separate open gates.
+
+- Tenant installation keys now use the same ASCII site-key alphabet as the
+  tenant registry (`a-z`, `0-9`, `-`, `_`, `.`), preventing Unicode keys
+  from bypassing host and registry normalization.

@@ -128,4 +128,12 @@ public sealed class TenantInstallationControlPlaneTests
         Assert.False(result.Accepted);
         Assert.Equal("invalid-direction", result.Code);
     }
+
+    [Fact]
+    public void Tenant_key_uses_ascii_site_key_alphabet()
+    {
+        Assert.Throws<ArgumentException>(() =>
+            TenantInstallationControlPlane.Start("тенант", TenantDeploymentKind.Cloud, DateTimeOffset.UtcNow));
+        Assert.Equal("tenant_a", TenantInstallationControlPlane.NormalizeTenantKey("Tenant_A"));
+    }
 }

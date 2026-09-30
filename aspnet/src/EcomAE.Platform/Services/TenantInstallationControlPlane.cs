@@ -237,13 +237,18 @@ public static class TenantInstallationControlPlane
 
         var normalized = tenantKey.Trim().ToLowerInvariant();
         if (normalized.Length > 80
-            || normalized.Any(c => !(char.IsLetterOrDigit(c) || c is '-' or '_' or '.')))
+            || normalized.Any(c => !IsSiteKeyCharacter(c)))
         {
             throw new ArgumentException("Tenant key contains unsupported characters.", nameof(tenantKey));
         }
 
         return normalized;
     }
+
+    private static bool IsSiteKeyCharacter(char value)
+        => value is >= 'a' and <= 'z'
+            or >= '0' and <= '9'
+            or '-' or '_' or '.';
 
     private static bool IsAllowedTransition(TenantInstallationStage current, TenantInstallationStage next)
     {
