@@ -130,6 +130,19 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void FitOutEstimateRevisionComparison_IsRegisteredAndProjectScoped()
+    {
+        var service = ReadPlatformSource("Erp/ErpFitOutEstimateRevisionReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("ErpProjectAccountingApp.razor");
+        Assert.Contains("WHERE e.`project_id` = ?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutEstimateRevisionComparison", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutEstimateRevisionComparisonAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Compare estimate revisions JSON", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MastersApp_DoesNotShowPhpDemoGoldRates()
     {
         var text = ReadApp("CpJewelleryMastersApp.razor");
