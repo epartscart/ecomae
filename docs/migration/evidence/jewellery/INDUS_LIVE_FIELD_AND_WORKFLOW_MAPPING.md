@@ -268,3 +268,8 @@ available or the read fails.
 
 This projection does not claim repair transfer, workshop receive, workshop
 delivery, repair-sale posting, stock deduction, or finance parity.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
