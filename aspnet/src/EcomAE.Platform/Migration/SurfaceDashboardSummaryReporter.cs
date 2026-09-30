@@ -9003,6 +9003,58 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpCompanyDigest?> BuildErpCompanyDigestAsync(long companyId, CancellationToken cancellationToken = default)
+    {
+        if (companyId <= 0 || !_connections.IsConfigured)
+        {
+            return null;
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var industryPack = string.Empty;
+            try
+            {
+                await using var pack = connection.CreateCommand();
+                ErpFirstPaint.ApplyIfErp(pack);
+                pack.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyIndustryPackById;
+                AddParameter(pack, "@companyId", companyId);
+                await using var packReader = await pack.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (await packReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    industryPack = Convert.ToString(packReader["industry_pack"] is DBNull ? string.Empty : packReader["industry_pack"], CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+            }
+            catch
+            {
+                // Table may be absent on lean tenants.
+            }
+
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectErpCompanyById;
+            AddParameter(command, "@id", companyId);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            return new ErpCompanyDigest(
+                Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                Convert.ToString(reader["code"] is DBNull ? string.Empty : reader["code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["currency_code"] is DBNull ? string.Empty : reader["currency_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                Convert.ToString(reader["country_code"] is DBNull ? string.Empty : reader["country_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                industryPack,
+                Convert.ToInt32(reader["active"] is DBNull ? 1 : reader["active"], CultureInfo.InvariantCulture) != 0);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
     public async Task<CpJewelleryRetailDigestResult> BuildCpJewelleryRetailDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

@@ -146,7 +146,23 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("BeginTransactionAsync", voucher, StringComparison.Ordinal);
         Assert.Contains("transaction,", voucher, StringComparison.Ordinal);
         Assert.Contains("pricedLineTotal", voucher, StringComparison.Ordinal);
-        Assert.Contains("if (net == 0 && pricedLineTotal > 0)", voucher, StringComparison.Ordinal);
+        Assert.Contains("if (net == 0)", voucher, StringComparison.Ordinal);
+        Assert.Contains("if (pricedLineTotal > 0)", voucher, StringComparison.Ordinal);
+        Assert.Contains("var pricedLineTotal = lines", voucher, StringComparison.Ordinal);
+        Assert.Contains("if (net == 0)\n        {\n            var pricedLineTotal", voucher, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void IndustryCompanyLookupUsesACompanyBoundIndustryPackQuery()
+    {
+        var root = FindRepoRoot();
+        var sql = File.ReadAllText(Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Migration", "LegacySurfaceDashboardSql.cs"));
+        var reporter = File.ReadAllText(Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Migration", "SurfaceDashboardSummaryReporter.cs"));
+
+        Assert.Contains("SelectErpCompanyIndustryPackById", sql, StringComparison.Ordinal);
+        Assert.Contains("`company_id` = @companyId", sql, StringComparison.Ordinal);
+        Assert.Contains("LegacySurfaceDashboardSql.SelectErpCompanyIndustryPackById", reporter, StringComparison.Ordinal);
+        Assert.DoesNotContain(".Replace(\"SELECT `company_id`", reporter, StringComparison.Ordinal);
     }
 
     [Fact]

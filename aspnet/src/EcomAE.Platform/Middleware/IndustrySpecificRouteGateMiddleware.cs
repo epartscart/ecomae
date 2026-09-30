@@ -43,8 +43,7 @@ public sealed class IndustrySpecificRouteGateMiddleware(
 
         try
         {
-            var companies = await _dashboards.BuildErpCompaniesDigestAsync(50, context.RequestAborted);
-            return companies.Companies.FirstOrDefault(company => company.Id == requested.Value);
+            return await _dashboards.BuildErpCompanyDigestAsync(requested.Value, context.RequestAborted);
         }
         catch
         {

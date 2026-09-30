@@ -2606,11 +2606,30 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    public const string SelectErpCompanyById = """
+        SELECT `id`,
+               IFNULL(`code`,'') AS code,
+               IFNULL(`name`,'') AS name,
+               IFNULL(`currency_code`,'') AS currency_code,
+               IFNULL(`country_code`,'') AS country_code,
+               IFNULL(`active`,1) AS active
+        FROM `epc_erp_pm_legal_entities`
+        WHERE `id` = @id AND IFNULL(`active`,1) = 1
+        LIMIT 1
+        """;
+
     /// <summary>Per-company industry_pack overrides (PHP <c>epc_org_company_settings</c>).</summary>
     public const string SelectErpCompanyIndustryPacks = """
         SELECT `company_id`, IFNULL(`setting_value`,'') AS industry_pack
         FROM `epc_org_company_settings`
         WHERE `setting_key` = 'industry_pack'
+        """;
+
+    public const string SelectErpCompanyIndustryPackById = """
+        SELECT IFNULL(`setting_value`,'') AS industry_pack
+        FROM `epc_org_company_settings`
+        WHERE `setting_key` = 'industry_pack' AND `company_id` = @companyId
+        LIMIT 1
         """;
 
     /// <summary>Jewellery retail KPIs — omits mobile/email/tel/passport/remarks/narration/customer PII/cost.</summary>

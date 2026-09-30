@@ -134,12 +134,15 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         var vat = RoundNonNeg(request.VatAmount, 2);
         var roundOff = RoundNonNeg(request.RoundOff, 2);
         var gross = RoundNonNeg(request.GrossTotal, 2);
-        var pricedLineTotal = lines
-            .Where(line => !string.IsNullOrWhiteSpace(line.StockCode) || !string.IsNullOrWhiteSpace(line.Description))
-            .Sum(CalculateLineTotal);
-        if (net == 0 && pricedLineTotal > 0)
+        if (net == 0)
         {
-            net = pricedLineTotal;
+            var pricedLineTotal = lines
+                .Where(line => !string.IsNullOrWhiteSpace(line.StockCode) || !string.IsNullOrWhiteSpace(line.Description))
+                .Sum(CalculateLineTotal);
+            if (pricedLineTotal > 0)
+            {
+                net = pricedLineTotal;
+            }
         }
 
         if (gross == 0)
