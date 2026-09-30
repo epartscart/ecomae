@@ -3,6 +3,7 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Components.Shared.Desktop
@@ -10,6 +11,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpMultiEntityMemberReadService Members
 
 <PageTitle>Inventory forecast · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -30,7 +32,21 @@
         <form method="post" action="/erp/inventory-forecast/recompute" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label style="margin-right:8px">Site <input name="siteKey" value="@_defaultSite" required style="width:9rem" /></label>
+            @if (_memberOptions.Count == 0)
+            {
+                <label style="margin-right:8px">Site <input name="siteKey" value="@_defaultSite" required style="width:9rem" /></label>
+            }
+            else
+            {
+                <label style="margin-right:8px">Site
+                    <select name="siteKey" required style="min-width:9rem">
+                        @foreach (var member in _memberOptions)
+                        {
+                            <option value="@member.SiteKey">@member.SiteKey@(string.IsNullOrWhiteSpace(member.Name) ? "" : " · " + member.Name)</option>
+                        }
+                    </select>
+                </label>
+            }
             <label style="margin-right:8px">SKU <input name="sku" required style="width:9rem" /></label>
             <label style="margin-right:8px">Stock <input type="number" name="currentStock" value="0" min="0" style="width:5rem" /></label>
             <label style="margin-right:8px">Name <input name="productName" style="width:10rem" /></label>
@@ -40,7 +56,21 @@
         <form method="post" action="/erp/inventory-forecast/demand" class="form-inline" style="margin:0 0 12px;padding:10px;border:1px solid #c5d4de;background:#fff">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-            <label style="margin-right:8px">Site <input name="siteKey" value="@_defaultSite" required style="width:9rem" /></label>
+            @if (_memberOptions.Count == 0)
+            {
+                <label style="margin-right:8px">Site <input name="siteKey" value="@_defaultSite" required style="width:9rem" /></label>
+            }
+            else
+            {
+                <label style="margin-right:8px">Site
+                    <select name="siteKey" required style="min-width:9rem">
+                        @foreach (var member in _memberOptions)
+                        {
+                            <option value="@member.SiteKey">@member.SiteKey@(string.IsNullOrWhiteSpace(member.Name) ? "" : " · " + member.Name)</option>
+                        }
+                    </select>
+                </label>
+            }
             <label style="margin-right:8px">SKU <input name="sku" required style="width:9rem" /></label>
             <label style="margin-right:8px">Period <input type="date" name="period" required style="width:9rem" /></label>
             <label style="margin-right:8px">Sold <input type="number" name="qtySold" min="0" value="0" style="width:5rem" /></label>
@@ -183,6 +213,7 @@
     private string _flash = "";
     private bool _flashOk;
     private string _defaultSite = "epartscart";
+    private IReadOnlyList<ErpMultiEntityMemberOption> _memberOptions = [];
     private long _openedId;
     private ErpInventoryForecastDetail? _opened;
     private IReadOnlyList<ErpInventoryForecastDigest> _openedSiblings = [];
@@ -256,6 +287,7 @@
         _stockout = result.StockoutCount;
         _source = result.Source;
         _message = result.Message;
+        _memberOptions = await Members.LoadAsync(ctx.RequestAborted);
 
         if (_openedId > 0)
         {
@@ -272,4 +304,5 @@
             }
         }
     }
+
 }
