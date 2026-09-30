@@ -4,10 +4,12 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Suppliers · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -223,6 +225,7 @@
                 <dt>Currency</dt><dd>@(string.IsNullOrWhiteSpace(_openedDetail.CurrencyCode) ? "—" : _openedDetail.CurrencyCode)</dd>
                 <dt>Created</dt><dd>@FormatTime(_openedDetail.TimeCreated)</dd>
             </dl>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Email, phone, and bank details stay omitted. Writes stay Classic.</p>
             @if (!string.IsNullOrWhiteSpace(_openedDetail.TrnExcerpt))
             {
@@ -314,6 +317,7 @@
     private long _openedId;
     private ErpSupplierDigest? _openedSupplier;
     private ErpSupplierDetail? _openedDetail;
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private IReadOnlyList<ErpSupplierDigest> _openedSiblings = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedSupplier is not null;
@@ -389,6 +393,7 @@
         {
             var detail = await Dashboards.BuildErpSupplierDetailAsync(_openedId, ctx.RequestAborted);
             _openedDetail = detail.Supplier;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("vendor", _openedId, ctx.RequestAborted);
             _openedSiblings = detail.Siblings;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
