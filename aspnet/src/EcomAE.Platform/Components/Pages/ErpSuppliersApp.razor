@@ -133,12 +133,17 @@
                     <div class="col-sm-4">
                         <strong>Purchase orders</strong>
                         <table class="table table-condensed table-bordered table-epc epc-erp-table">
-                            <thead><tr><th>PO</th><th class="text-right">Total</th><th>Status</th><th>Approved</th><th>Received</th><th class="text-right">Lead (d)</th></tr></thead>
+                            <thead><tr><th>PO</th><th>Title</th><th class="text-right">Total</th><th>Status</th><th>Approved</th><th>Received</th><th class="text-right">Lead (d)</th></tr></thead>
                             <tbody>
+                            @if (_portalDetail.PurchaseOrders.Count == 0)
+                            {
+                                <tr><td colspan="7" class="text-muted">No purchase orders.</td></tr>
+                            }
                             @foreach (var row in _portalDetail.PurchaseOrders)
                             {
                                 <tr>
                                     <td>@row.PurchaseNo</td>
+                                    <td>@row.Title</td>
                                     <td class="text-right">@row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</td>
                                     <td>@row.Status</td>
                                     <td>@FormatDate(row.ApprovedAt)</td>
@@ -152,12 +157,17 @@
                     <div class="col-sm-4">
                         <strong>RFQs</strong>
                         <table class="table table-condensed table-bordered table-epc epc-erp-table">
-                            <thead><tr><th>RFQ</th><th class="text-right">Est.</th><th>Status</th><th>Due</th></tr></thead>
+                            <thead><tr><th>RFQ</th><th>Title</th><th class="text-right">Est.</th><th>Status</th><th>Due</th></tr></thead>
                             <tbody>
+                            @if (_portalDetail.Rfqs.Count == 0)
+                            {
+                                <tr><td colspan="5" class="text-muted">No RFQs.</td></tr>
+                            }
                             @foreach (var row in _portalDetail.Rfqs)
                             {
                                 <tr>
                                     <td>@row.RfqNo</td>
+                                    <td>@row.Title</td>
                                     <td class="text-right">@row.AmountEstimate.ToString("N2", CultureInfo.InvariantCulture)</td>
                                     <td>@row.Status</td>
                                     <td>@FormatDate(row.DueDate)</td>
@@ -171,6 +181,10 @@
                         <table class="table table-condensed table-bordered table-epc epc-erp-table">
                             <thead><tr><th>Invoice</th><th class="text-right">Total</th><th>Status</th><th>Date</th></tr></thead>
                             <tbody>
+                            @if (_portalDetail.Bills.Count == 0)
+                            {
+                                <tr><td colspan="4" class="text-muted">No payable bills.</td></tr>
+                            }
                             @foreach (var row in _portalDetail.Bills)
                             {
                                 <tr>
