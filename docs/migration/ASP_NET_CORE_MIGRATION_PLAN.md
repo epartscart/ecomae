@@ -28,6 +28,43 @@ The first migration slice adds an ASP.NET Core foundation under `aspnet/` withou
 | Public APIs | ASP.NET Core Web API |
 | PHP cron/setup scripts | Worker services/jobs |
 
+## D365 F&O organizational and financial structure
+
+The PHP reference includes a substantially richer ERP accounting model than
+tenant and company labels alone. ASP.NET Core must preserve this model as a
+first-class, tenant-isolated domain aligned to the D365 F&O structure:
+
+1. **Tenant and legal entity** — the tenant is the installation/security
+   boundary; one tenant may contain multiple active legal entities/companies.
+   Company context must be explicit, authorized, audit-recorded, and never
+   inferred from an untrusted document payload.
+2. **Organization hierarchy** — legal entity, business unit, department,
+   branch/location, and cost centre must be represented with effective dates,
+   active/inactive state, ownership, and permitted parent relationships.
+3. **Financial dimensions** — dimension definitions and values must support
+   required/optional status, legal-entity scope, defaulting rules, validation,
+   display order, inactive-value handling, and document/line-level overrides.
+   Dimension combinations must remain traceable on journals, vouchers,
+   invoices, orders, inventory, projects, budgets, and tax reports.
+4. **Intercompany** — transactions between legal entities must preserve
+   originating and destination entities, due-to/due-from accounts, currency
+   and exchange-rate policy, tax treatment, workflow status, source-document
+   links, elimination status, and balanced posting/audit evidence.
+5. **Posting and reporting** — chart of accounts, fiscal calendars, periods,
+   budgets, dimensions, legal-entity context, and intercompany eliminations
+   must feed a consistent ledger/reporting model; period close and
+   authorization rules remain platform-owned.
+
+The PHP schema and live reference workflows remain authoritative during the
+bridge period. ASP.NET implementations must first prove read parity and
+tenant/company isolation, then guarded write parity, with fixture-backed
+cross-entity tests and production shadow evidence. No surface is considered
+complete merely because it exposes a company picker or a free-form
+`dimension` field. The formal acceptance gates are: same-data PHP comparison,
+permission/RBAC checks, cross-legal-entity isolation, dimension defaulting and
+validation, balanced intercompany posting/elimination, audit/readback,
+report/export parity, rollback evidence, and visual/UX parity.
+
 ## Jewellery industry pack (PHP-referenced migration tranche)
 
 Jewellery is a first-class tenant-country/industry pack, not a storefront theme
