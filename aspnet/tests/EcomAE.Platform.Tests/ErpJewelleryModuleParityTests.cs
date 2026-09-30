@@ -439,6 +439,16 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryBarcodePurchaseSell_IsAvailableAndCompanyScoped()
+    {
+        var service = ReadSource("ErpJwBarcodePurchaseWriteService.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("`status` = 'available'", service, StringComparison.Ordinal);
+        Assert.Contains("(? = 0 OR `company_id` = ?)", service, StringComparison.Ordinal);
+        Assert.Contains("new ErpJwBarcodePurchaseSellRequest(id, companyId, customerId, invoiceId)", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

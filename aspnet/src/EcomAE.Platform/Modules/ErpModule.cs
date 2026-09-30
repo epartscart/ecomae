@@ -7993,6 +7993,7 @@ public sealed class ErpModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwBarcodePurchaseSellBody>(context, cancellationToken)
                        ?? new();
             var id = body.Id;
+            var companyId = body.CompanyId;
             var customerId = body.CustomerId;
             var invoiceId = body.InvoiceId;
             var confirm = body.ConfirmWrites;
@@ -8000,6 +8001,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 id = LiveWriteFormBinder.Long(form, "id", "purchaseId", "purchase_id");
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
                 customerId = LiveWriteFormBinder.Int(form, "customerId", "customer_id");
                 invoiceId = LiveWriteFormBinder.Int(form, "invoiceId", "invoice_id");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
@@ -8017,7 +8019,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Results.Ok(result.ToPayload(SessionPayload(session)));
             }
 
-            var written = await writes.SellAsync(new ErpJwBarcodePurchaseSellRequest(id, customerId, invoiceId), cancellationToken);
+            var written = await writes.SellAsync(new ErpJwBarcodePurchaseSellRequest(id, companyId, customerId, invoiceId), cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
                 ok = written.Succeeded,
@@ -22547,6 +22549,7 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpJwBarcodePurchaseSellBody(
         long Id = 0,
+        int CompanyId = 0,
         int CustomerId = 0,
         int InvoiceId = 0,
         bool ConfirmWrites = false);

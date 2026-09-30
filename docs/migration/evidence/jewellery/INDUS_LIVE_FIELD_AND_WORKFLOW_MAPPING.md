@@ -211,6 +211,10 @@ the selected company scope when supplied, so an already sold tag or a tag from
 another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
+The barcode-purchase sale path similarly consumes only an `available` row and
+requires the selected company scope on both lookup and update, preventing
+repeat or cross-company consumption on the observed path. Invoice, tender,
+finance, and immutable movement effects remain unverified.
 
 The guarded fix/unfix settlement path now allows only an open `unfix` purchase,
 requires the selected company scope when supplied, and records one settlement

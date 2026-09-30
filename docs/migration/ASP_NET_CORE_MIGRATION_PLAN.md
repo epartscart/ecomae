@@ -120,6 +120,10 @@ only a narrow availability/transition guard. The newly added stock-balance proje
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
+The barcode-purchase sale path now requires the provisioned row to remain
+`available` and applies the selected company scope to both read and atomic
+update predicates; it does not claim invoice/tender posting or movement
+lineage parity.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
