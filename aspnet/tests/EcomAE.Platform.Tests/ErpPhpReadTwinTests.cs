@@ -450,7 +450,7 @@ public sealed class ErpPhpReadTwinTests
     }
 
     [Fact]
-    public void PurchaseOrderWorkspaceUsesPhpPurchaseDimensionContract()
+    public void PurchaseOrderWorkspaceUsesPhpPurchaseOrderDimensionContract()
     {
         var root = FindRepoRoot();
         var page = File.ReadAllText(Path.Combine(
@@ -459,9 +459,8 @@ public sealed class ErpPhpReadTwinTests
             "ErpPurchaseOrdersApp.razor"));
 
         Assert.Contains("DimensionLinks.LoadAsync", page, StringComparison.Ordinal);
-        Assert.Contains("\"purchase\"", page, StringComparison.Ordinal);
+        Assert.Contains("\"purchase_order\"", page, StringComparison.Ordinal);
         Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
-        Assert.DoesNotContain("\"purchase_order\"", page, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
