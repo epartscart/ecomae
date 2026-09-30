@@ -211,6 +211,10 @@ the selected company scope when supplied, so an already sold tag or a tag from
 another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
+The barcode-purchase sale path similarly consumes only an `available` row and
+requires the selected company scope on both lookup and update, preventing
+repeat or cross-company consumption on the observed path. Invoice, tender,
+finance, and immutable movement effects remain unverified.
 The ASP.NET stock-availability readback now returns only `in_stock` rows from
 `epc_jw_tags`, optionally filtered by company and tag number/barcode. It is
 operator evidence for available tagged inventory and deliberately does not
