@@ -2761,6 +2761,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("AwardPreview", razor, StringComparison.Ordinal);
         Assert.Contains("draft PO preview", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("comparison read-only", razor, StringComparison.OrdinalIgnoreCase);
+        Assert.Contains("/erp/ajax/save-rfq-response", razor, StringComparison.Ordinal);
+        Assert.Contains("I confirm this supplier response is ready to be persisted", razor, StringComparison.Ordinal);
+        Assert.Contains("name=\"confirmWrites\" value=\"true\" required", razor, StringComparison.Ordinal);
         Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
