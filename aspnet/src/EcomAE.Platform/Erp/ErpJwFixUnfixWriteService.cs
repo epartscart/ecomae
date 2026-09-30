@@ -38,6 +38,7 @@ public sealed record ErpJwFixUnfixCreateRequest(
 
 public sealed record ErpJwFixUnfixSettleRequest(
     long Id = 0,
+    int CompanyId = 0,
     decimal SettleRate = 0);
 
 public sealed class ErpJwFixUnfixWriteService : IErpJwFixUnfixWriteService
@@ -165,6 +166,32 @@ public sealed class ErpJwFixUnfixWriteService : IErpJwFixUnfixWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Not an unfix purchase");
         }
 
+        var status = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `status` FROM `epc_fix_unfix_purchases` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            request.Id).ConfigureAwait(false);
+        if (!string.Equals(status, "open", StringComparison.OrdinalIgnoreCase))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Unfix purchase is already settled.");
+        }
+
+        var companyId = Math.Max(0, request.CompanyId);
+        if (companyId > 0)
+        {
+            var rowCompanyId = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `company_id` FROM `epc_fix_unfix_purchases` WHERE `id` = ? LIMIT 1"),
+                cancellationToken,
+                request.Id).ConfigureAwait(false);
+            if (rowCompanyId != companyId)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Purchase is outside the selected company.");
+            }
+        }
+
         var estimated = await ErpDb.DecimalAsync(
             connection,
             null,
@@ -188,11 +215,13 @@ public sealed class ErpJwFixUnfixWriteService : IErpJwFixUnfixWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "UPDATE `epc_fix_unfix_purchases` SET `unfix_settle_rate` = ?, `unfix_settle_date` = CURDATE(), `status` = 'settled', `time_updated` = ? WHERE `id` = ?"),
+                    "UPDATE `epc_fix_unfix_purchases` SET `unfix_settle_rate` = ?, `unfix_settle_date` = CURDATE(), `status` = 'settled', `time_updated` = ? WHERE `id` = ? AND `structure_type` = 'unfix' AND `status` = 'open' AND (? = 0 OR `company_id` = ?)"),
                 cancellationToken,
                 settleRate,
                 now,
-                request.Id).ConfigureAwait(false);
+                request.Id,
+                companyId,
+                companyId).ConfigureAwait(false);
             if (updated <= 0)
             {
                 await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);

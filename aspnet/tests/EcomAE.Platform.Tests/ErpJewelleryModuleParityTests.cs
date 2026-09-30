@@ -116,6 +116,20 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void FixUnfixSettlement_IsCompanyScopedAndSingleUse()
+    {
+        var service = ReadSource("ErpJwFixUnfixWriteService.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("CpJewelleryFixingApp.razor");
+        Assert.Contains("status` = 'open'", service, StringComparison.Ordinal);
+        Assert.Contains("structure_type` = 'unfix'", service, StringComparison.Ordinal);
+        Assert.Contains("company_id` = ?", service, StringComparison.Ordinal);
+        Assert.Contains("CompanyId", service, StringComparison.Ordinal);
+        Assert.Contains("companyId = LiveWriteFormBinder.Int(form", module, StringComparison.Ordinal);
+        Assert.Contains("name=\"company\"", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MastersApp_DoesNotShowPhpDemoGoldRates()
     {
         var text = ReadApp("CpJewelleryMastersApp.razor");

@@ -212,6 +212,12 @@ another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
 
+The guarded fix/unfix settlement path now allows only an open `unfix` purchase,
+requires the selected company scope when supplied, and records one settlement
+transition plus its settlement row. This closes repeat-settlement and
+cross-company consumption on the observed path; full finance posting and
+reconciliation remain unverified.
+
 The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level
 transfers, report filters, and live MariaDB corroboration. These stay PHP
