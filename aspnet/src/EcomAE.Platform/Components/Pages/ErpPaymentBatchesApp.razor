@@ -46,20 +46,26 @@
             <label>Lines <input type="number" name="line_count" min="0" value="1" style="width:5rem" /></label>
             <label>Execution date <input type="date" name="execution_date" /></label>
             <label>Notes <input type="text" name="notes" maxlength="1000" /></label>
-            <label>Business unit <input type="number" name="dim.business_unit" min="0" style="width:7rem" /></label>
-            <label>Legal entity <input type="number" name="dim.legal_entity" min="0" style="width:7rem" /></label>
-            <label>Class unit <input type="number" name="dim.class_unit" min="0" style="width:7rem" /></label>
-            @foreach (var dimension in _dimensionCatalog)
+            @if (_dimensionCatalog.Count == 0)
             {
-                <label>@dimension.Label
-                    <select name="dim[@dimension.Key]" style="min-width:10rem">
-                        <option value="0" selected="@IsDimensionSelected(dimension.Key, 0)">— none —</option>
-                        @foreach (var option in dimension.Options)
-                        {
-                            <option value="@option.Id" selected="@IsDimensionSelected(dimension.Key, option.Id)">@option.Code · @option.Name</option>
-                        }
-                    </select>
-                </label>
+                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:7rem" /></label>
+                <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:7rem" /></label>
+                <label>Class unit <input type="number" name="dim[class_unit]" min="0" style="width:7rem" /></label>
+            }
+            else
+            {
+                @foreach (var dimension in _dimensionCatalog)
+                {
+                    <label>@dimension.Label
+                        <select name="dim[@dimension.Key]" style="min-width:10rem">
+                            <option value="0" selected="@IsDimensionSelected(dimension.Key, 0)">— none —</option>
+                            @foreach (var option in dimension.Options)
+                            {
+                                <option value="@option.Id" selected="@IsDimensionSelected(dimension.Key, option.Id)">@option.Code · @option.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
             }
             <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Create draft batch</button>

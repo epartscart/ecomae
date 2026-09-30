@@ -325,6 +325,23 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void PaymentBatchDimensionEditorUsesCatalogForFixedDimensions()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpPaymentBatchesApp.razor"));
+
+        Assert.Contains("IErpDimensionCatalogReadService", page, StringComparison.Ordinal);
+        Assert.Contains("name=\"dim[@dimension.Key]\"", page, StringComparison.Ordinal);
+        Assert.Contains("name=\"dim[business_unit]\"", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"dim.business_unit\"", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"dim.legal_entity\"", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"dim.class_unit\"", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
