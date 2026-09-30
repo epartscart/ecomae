@@ -19,6 +19,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 OUT="${ECOMAE_DIGEST_SAMPLES_DIR:-$ROOT/docs/migration/evidence/surface-parity/samples}"
 ASPNET_BASE="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:5100}"
+ASPNET_HOST_HEADER="${ECOMAE_ASPNET_HOST_HEADER:-www.ecomae.com}"
 PHP_BASE="${ECOMAE_PHP_DIGEST_BASE_URL:-}"
 ADMIN_COOKIE="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
 CUSTOMER_COOKIE="${ECOMAE_CUSTOMER_COOKIE_HEADER:-}"
@@ -197,8 +198,13 @@ capture() {
     printf 'FAIL %s %s missing cookie (storefront needs ECOMAE_CUSTOMER_COOKIE_HEADER)\n' "$label" "$path" >&2
     return 1
   fi
+  local host_args=()
+  if [[ "$label" == "aspnet" && -n "$ASPNET_HOST_HEADER" ]]; then
+    host_args+=(-H "Host: $ASPNET_HOST_HEADER")
+  fi
   code="$(curl -sS -m 30 \
     -H "Cookie: $cookie" \
+    "${host_args[@]}" \
     -H 'Accept: application/json' \
     -A 'Mozilla/5.0 EcomAE-digest-dual-sample' \
     -o "$out" -w '%{http_code}' \

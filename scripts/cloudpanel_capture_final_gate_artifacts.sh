@@ -6,10 +6,12 @@ set -euo pipefail
 ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
 ASPNET_BASE="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:5100}"
+ASPNET_HOST_HEADER="${ECOMAE_ASPNET_HOST_HEADER:-www.ecomae.com}"
 CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
 
 printf '== CloudPanel final-gate artifact capture ==\n'
 printf 'ASP.NET base: %s\n' "$ASPNET_BASE"
+printf 'ASP.NET Host header: %s\n' "$ASPNET_HOST_HEADER"
 printf 'This script never removes PHP-FPM/cron/rewrites.\n'
 
 find_repo() {
@@ -256,6 +258,7 @@ PY
     export RUN_SURFACE_DIGEST_SMOKE=1
     export ECOMAE_REQUIRE_AUTHENTICATED_DIGEST_200=1
     export ECOMAE_ASPNET_BASE_URL="$ASPNET_BASE"
+    export ECOMAE_ASPNET_HOST_HEADER="$ASPNET_HOST_HEADER"
     export ECOMAE_SMOKE_OUT_DIR="$SMOKE_DIR"
     if bash tests/live_smoke/run_surface_digest_exact_route_smoke.sh; then
       smoke_surfaces=1

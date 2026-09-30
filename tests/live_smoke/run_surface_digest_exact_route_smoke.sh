@@ -9,6 +9,7 @@ fi
 : "${ECOMAE_ASPNET_BASE_URL:?ECOMAE_ASPNET_BASE_URL is required}"
 COOKIE_JAR="${ECOMAE_ADMIN_COOKIE_JAR:-}"
 COOKIE_HEADER="${ECOMAE_ADMIN_COOKIE_HEADER:-}"
+ASPNET_HOST_HEADER="${ECOMAE_ASPNET_HOST_HEADER:-www.ecomae.com}"
 OUT_DIR="${ECOMAE_SMOKE_OUT_DIR:-/tmp}"
 OUT_FILE="${OUT_DIR}/ecomae-aspnet-surface-digests.json"
 # Default: digest routes must return authenticated HTTP 200 (401 no longer counts as pass).
@@ -21,6 +22,9 @@ if [[ -z "$COOKIE_JAR" && -z "$COOKIE_HEADER" ]]; then
 fi
 
 auth_args=()
+if [[ -n "$ASPNET_HOST_HEADER" ]]; then
+  auth_args+=(-H "Host: ${ASPNET_HOST_HEADER}")
+fi
 if [[ -n "$COOKIE_JAR" ]]; then
   auth_args+=(-b "$COOKIE_JAR")
 else
