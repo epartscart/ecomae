@@ -4,9 +4,11 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject IErpDimensionCatalogReadService DimensionCatalog
 
 <PageTitle>Inventory Stock · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -111,9 +113,27 @@
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
             <label>Entity type <input type="text" name="entityType" value="inventory_item" required /></label>
             <label>Entity id <input type="number" name="entityId" min="1" required style="width:6rem" /></label>
-            <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
-            <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
-            <label>Class <input type="number" name="dim[class_unit]" min="0" style="width:6rem" /></label>
+            @if (_dimensionCatalog.Count == 0)
+            {
+                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+                <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
+                <label>Class <input type="number" name="dim[class_unit]" min="0" style="width:6rem" /></label>
+            }
+            else
+            {
+                @foreach (var dimension in _dimensionCatalog)
+                {
+                    <label>@dimension.Label
+                        <select name="dim[@dimension.Key]" style="min-width:10rem">
+                            <option value="0">— none —</option>
+                            @foreach (var option in dimension.Options)
+                            {
+                                <option value="@option.Id">@option.Code · @option.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
+            }
             <button type="submit" class="btn btn-sm btn-primary">Save dimensions</button>
         </form>
     }
@@ -229,6 +249,7 @@
     private ErpInventoryStockSummaryResult _summary = new(0, 0m, 0m, 0, 0, "migration", string.Empty);
     private IReadOnlyList<ErpInventoryStockDigest> _stock = [];
     private IReadOnlyList<ErpInventoryLowStockDigest> _lowStock = [];
+    private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
 
     protected override async Task OnInitializedAsync()
     {
@@ -249,5 +270,6 @@
         _stock = result.Stock;
         _lowStock = result.LowStock;
         _message = result.Message;
+        _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
     }
 }
