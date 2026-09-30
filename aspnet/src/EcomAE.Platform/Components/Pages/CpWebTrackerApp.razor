@@ -611,9 +611,9 @@
 @code {
     private bool _isAdmin;
     private bool _isSuper;
-    private CpWebTrackerFilterQuery _filters = new("epartscart", "", "", "", "", "", "", "", "", "", false);
+    private CpWebTrackerFilterQuery _filters = new("", "", "", "", "", "", "", "", "", "", false);
     private CpWebTrackerDashboardResult _dash = EmptyDashResult();
-    private IReadOnlyList<string> _siteOptions = ["_all", "ecomae", "epartscart"];
+    private IReadOnlyList<string> _siteOptions = [];
     private CpWebTrackerSessionDetailResult? _session;
 
     protected override async Task OnInitializedAsync()
@@ -818,9 +818,9 @@
 
     private static CpWebTrackerDashboardResult EmptyDashResult()
     {
-        var filters = new CpWebTrackerFilterQuery("epartscart", "", "", "", "", "", "", "", "", "", false);
+        var filters = new CpWebTrackerFilterQuery("", "", "", "", "", "", "", "", "", "", false);
         return new(
-            false, "epartscart", 0, 0, false, "none",
+            false, "", 0, 0, false, "none",
             new CpWebTrackerDashSummary(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0),
             [], [], [], [], [], [], [], [], [],
             new CpWebTrackerFacets([], [], []),
