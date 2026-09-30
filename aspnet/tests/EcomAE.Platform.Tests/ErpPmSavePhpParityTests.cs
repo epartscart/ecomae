@@ -16,6 +16,9 @@ public sealed class ErpPmSavePhpParityTests
         Assert.Contains("name=\"legal_entity_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"parent_id\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"dimension_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("Organization and financial-dimension masters", text, StringComparison.Ordinal);
+        Assert.Contains("Legal entity", text, StringComparison.Ordinal);
+        Assert.Contains("Dimension value", text, StringComparison.Ordinal);
         Assert.Contains("Save platform master", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes=0", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
@@ -27,6 +30,7 @@ public sealed class ErpPmSavePhpParityTests
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("IErpPmSaveWriteService", text, StringComparison.Ordinal);
+        Assert.Contains("IErpOrganizationMasterReadService", text, StringComparison.Ordinal);
     }
 
     [Fact]

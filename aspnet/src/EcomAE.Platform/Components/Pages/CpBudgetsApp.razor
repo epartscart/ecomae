@@ -6,9 +6,11 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Routing
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject IErpOrganizationMasterReadService OrganizationMasters
 
 <PageTitle>Budgets · Control Panel · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="cp" />
@@ -35,6 +37,42 @@
         <div class="kpi"><div class="lbl">Active</div><div class="val">@_summary.ActiveBudgets.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Lines</div><div class="val">@_summary.BudgetLineCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">Opened lines</div><div class="val">@_openedLines.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+    </div>
+
+    <div class="col-lg-12">
+        <div class="hpanel">
+            <div class="panel-heading hbuilt">Organization and financial-dimension masters</div>
+            <div class="panel-body">
+                <p class="text-muted">PHP-owned legal entities, business units, dimensions, and dimension values are read back here so hierarchy setup is visible before posting or budgeting.</p>
+                <div class="table-responsive">
+                    <table class="table table-condensed table-striped table-bordered table-epc epc-erp-table">
+                        <thead><tr><th>Type</th><th>Id</th><th>Code</th><th>Name</th><th>Legal entity</th><th>Parent</th><th>Dimension</th><th>Status</th></tr></thead>
+                        <tbody>
+                            @if (_organizationRows.Count == 0)
+                            {
+                                <tr><td colspan="8">No organizational masters are provisioned.</td></tr>
+                            }
+                            else
+                            {
+                                @foreach (var row in _organizationRows)
+                                {
+                                    <tr>
+                                        <td>@row.Type</td>
+                                        <td>@row.Value.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(row.Value.Code) ? "—" : row.Value.Code)</td>
+                                        <td>@(string.IsNullOrWhiteSpace(row.Value.Name) ? "—" : row.Value.Name)</td>
+                                        <td>@(row.Value.LegalEntityId > 0 ? row.Value.LegalEntityId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td>@(row.Value.ParentId > 0 ? row.Value.ParentId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td>@(row.Value.DimensionId > 0 ? row.Value.DimensionId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                        <td>@(row.Value.Active ? "Active" : "Inactive")</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
     </div>
 
     @if (_openedBudget is not null)
@@ -373,6 +411,7 @@
     private bool _isAdmin;
     private CpBudgetsSummary _summary = new(0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<CpBudgetDigest> _budgets = [];
+    private IReadOnlyList<(string Type, ErpOrganizationMasterRow Value)> _organizationRows = [];
     private string _source = "n/a";
     private string _message = "";
     private string _listHref = "/cp/budgets-app";
@@ -412,6 +451,13 @@
         _budgets = result.Budgets;
         _source = result.Source;
         _message = result.Message;
+
+        var masters = await OrganizationMasters.LoadAsync(100, ctx.RequestAborted);
+        _organizationRows = masters.LegalEntities.Select(r => ("Legal entity", r))
+            .Concat(masters.BusinessUnits.Select(r => ("Business unit", r)))
+            .Concat(masters.Dimensions.Select(r => ("Dimension", r)))
+            .Concat(masters.DimensionValues.Select(r => ("Dimension value", r)))
+            .ToList();
 
         if (_openedId > 0)
         {
