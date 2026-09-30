@@ -551,6 +551,19 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Metal stock balance is read-only and company-scoped.", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void JewellerySalesAnalysis_IsCompanyScopedAndReadOnly()
+    {
+        var service = ReadSource("ErpJwSalesAnalysisReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("v.`company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("v.`voc_type` IN ('RIN','MSL','RSL')", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewellerySalesAnalysis", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewellerySalesAnalysisAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Sales analysis is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

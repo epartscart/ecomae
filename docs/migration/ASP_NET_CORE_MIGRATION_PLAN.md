@@ -120,6 +120,14 @@ only a narrow availability/transition guard. The newly added stock-balance proje
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
+The Jewellery sales-analysis projection now mirrors the PHP date-range
+aggregate for `RIN`, `MSL`, and `RSL` vouchers, with date, salesman, and
+division grouping options; UI-only filters not supported by the PHP helper
+remain outside this read-only tranche.
+The Jewellery stock-availability readback now also exposes only `in_stock`
+tag rows, with optional company and tag/barcode filtering, so operators can
+verify available tagged inventory without treating the readback as a
+reservation, deduction, tender allocation, or posting implementation.
 The metal-stock balance projection now mirrors the PHP aggregate by company,
 metal, and karat, including positive stock quantity filtering; mutation,
 movement reconstruction, and valuation reconciliation remain outside this

@@ -9323,6 +9323,9 @@ public sealed class ErpModule : ISurfaceModule
                 });
         }).DisableAntiforgery();
         endpoints.MapGet(
+            EcomAeRoutes.ErpJewellerySalesAnalysis,
+            HandleJewellerySalesAnalysisAsync);
+        endpoints.MapGet(
             EcomAeRoutes.ErpJewelleryMetalStockBalance,
             HandleJewelleryMetalStockBalanceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryFixingSaveForm, async (
@@ -12631,6 +12634,43 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewellerySalesAnalysisAsync(
+        HttpContext context,
+        int companyId,
+        string? from,
+        string? to,
+        string? groupBy,
+        ILegacySessionValidator validator,
+        IErpJwSalesAnalysisReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=jw_sales_analysis",
+                "Admin ERP capability required for jewellery sales analysis.");
+        }
+
+        var result = await read.ReadAsync(companyId, from ?? string.Empty, to ?? string.Empty, groupBy, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            from,
+            to,
+            groupBy = groupBy ?? "date",
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Sales analysis is read-only and company-scoped."
+        });
     }
 
     private static async Task<IResult> HandleJewelleryMetalStockBalanceAsync(
