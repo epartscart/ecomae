@@ -124,6 +124,10 @@ The barcode-purchase sale path now requires the provisioned row to remain
 `available` and applies the selected company scope to both read and atomic
 update predicates; it does not claim invoice/tender posting or movement
 lineage parity.
+The Jewellery stock-availability readback now also exposes only `in_stock`
+tag rows, with optional company and tag/barcode filtering, so operators can
+verify available tagged inventory without treating the readback as a
+reservation, deduction, tender allocation, or posting implementation.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
@@ -135,6 +139,10 @@ The same fit-out evidence surface now reads project-scoped pending approval
 records together with approval decision audit history. This records machine
 approval evidence without treating it as human sign-off or production
 acceptance.
+Fit-out also exposes read-only estimate and BOQ detail readback, including
+component rates, derived cost/selling values, line ordering, and estimate
+metadata. This closes a readback gap while leaving human approval, live
+database corroboration, and full scenario acceptance open.
 
 After the Jewellery and fit-out implementation tracks are complete, run a
 guarded functional rehearsal with isolated dummy tenant/company data before

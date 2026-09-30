@@ -215,6 +215,10 @@ The barcode-purchase sale path similarly consumes only an `available` row and
 requires the selected company scope on both lookup and update, preventing
 repeat or cross-company consumption on the observed path. Invoice, tender,
 finance, and immutable movement effects remain unverified.
+The ASP.NET stock-availability readback now returns only `in_stock` rows from
+`epc_jw_tags`, optionally filtered by company and tag number/barcode. It is
+operator evidence for available tagged inventory and deliberately does not
+reserve, deduct, allocate tender, or post finance.
 
 The guarded fix/unfix settlement path now allows only an open `unfix` purchase,
 requires the selected company scope when supplied, and records one settlement
@@ -230,6 +234,9 @@ acceptance remain open.
 Project-scoped fit-out approval evidence now combines the pending approval
 queue with decision audit history; this remains read-only machine evidence and
 does not replace human approval sign-off.
+The fit-out workspace also exposes estimate/BOQ detail readback with component
+rates and derived totals for machine verification; it remains read-only
+evidence and does not claim production acceptance.
 
 The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level

@@ -158,6 +158,21 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void FitOutBoqReadback_IsEstimateScopedAndExposesComponentRates()
+    {
+        var service = ReadPlatformSource("Erp/ErpFitOutBoqReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("ErpProjectAccountingApp.razor");
+        Assert.Contains("WHERE `estimate_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("material_rate", service, StringComparison.Ordinal);
+        Assert.Contains("selling_amount", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutBoqRead", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutBoqReadAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Open estimate / BOQ JSON", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MastersApp_DoesNotShowPhpDemoGoldRates()
     {
         var text = ReadApp("CpJewelleryMastersApp.razor");
@@ -447,6 +462,18 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("`status` = 'available'", service, StringComparison.Ordinal);
         Assert.Contains("(? = 0 OR `company_id` = ?)", service, StringComparison.Ordinal);
         Assert.Contains("new ErpJwBarcodePurchaseSellRequest(id, companyId, customerId, invoiceId)", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JewelleryStockAvailability_IsInStockAndCompanyScoped()
+    {
+        var service = ReadSource("ErpJwStockAvailabilityReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("`status`='in_stock'", service, StringComparison.Ordinal);
+        Assert.Contains("`company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryStockAvailability", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryStockAvailabilityAsync", module, StringComparison.Ordinal);
     }
 
     private static string ReadApp(string fileName)
