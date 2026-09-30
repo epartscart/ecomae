@@ -777,6 +777,47 @@ effects remain separately gated.
   for labels, colours, field visibility/order, layouts, branding, and other
   presentation preferences; backend business rules and security remain owned
   by the platform.
+
+## Formal Visual Parity and UI Modernization Gate Added Here
+
+The owner-supplied **ASP.NET CORE MIGRATION — VISUAL PARITY & UI MODERNIZATION
+REQUIREMENT** is a formal migration gate. Functional parity alone is not
+migration completion. Every migrated screen must separately evidence functional,
+field, action, permission, workflow, report, layout, visual, UX, responsive,
+performance, and PHP-reference screenshot parity.
+
+- PHP remains the current visual and behavioural reference until formal
+  acceptance. For each important screen, capture PHP and ASP.NET Core at the
+  same resolution, tenant, user, record, and filters; compare side-by-side;
+  correct; and repeat.
+- The durable matrix is
+  `docs/migration/evidence/VISUAL_PARITY_MATRIX.md`. A screen without screenshot
+  evidence is explicitly classified **FUNCTIONALLY MIGRATED — VISUAL PARITY
+  PENDING**, never accepted from route or file counts.
+- The root-cause audit must cover generic Bootstrap styling, information
+  density, typography, spacing, controls, tables/grids, icons, badges, panels,
+  navigation, hover/focus/loading states, responsive behaviour, dashboards,
+  live drill-down context, and performance.
+- A single reusable ERP/CP design system is mandatory. It provides dense
+  operational grids, sticky headers, filters/toolbars, KPI and alert cards,
+  semantic status badges, progress indicators, structured sections, responsive
+  behaviour, reduced-motion handling, and D365-style transaction workspace
+  primitives. Page-local CSS is not an acceptance substitute.
+- PHP presentation that is already strong must be preserved or improved; PHP
+  limitations may be modernized only without removing familiar functionality.
+  Tenant-controlled labels, colours, field visibility/order, layouts, branding,
+  and density remain allowlisted settings; routes, permissions, business rules,
+  auditability, and lifecycle semantics remain platform-owned.
+- Visual acceptance must include responsive desktop/tablet/mobile evidence,
+  report/print/export checks, drill-down checks, accessibility checks, and
+  browser performance measurements. Animation remains subtle and
+  `prefers-reduced-motion` aware.
+
+The first reusable CSS foundation for this gate is now loaded by both CP and
+ERP presentation shells. It deliberately improves density, table navigation,
+semantic statuses, KPI composition, responsive toolbars, and reduced-motion
+behaviour without claiming that any individual screen has passed the matrix.
+“Continue as per plan” remains a permanent migration-record instruction.
 ## Sixty First Milestone Included Here
 
 - Added read-only Jewellery repair detail readback matching PHP
