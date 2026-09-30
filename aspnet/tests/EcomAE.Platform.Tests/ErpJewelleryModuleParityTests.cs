@@ -439,6 +439,20 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryPurchaseHistory_PreservesPhpMetalAndDiamondCodes()
+    {
+        var service = ReadSource("ErpJwPurchaseHistoryReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("\"DIAMOND\" => (\"DMP\", \"DLP\")", service, StringComparison.Ordinal);
+        Assert.Contains("_ => (\"MMP\", \"MLP\")", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN (?,?)", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryPurchaseHistory", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryPurchaseHistoryAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Purchase history is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

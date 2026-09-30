@@ -248,3 +248,10 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
+
+## Purchase history readback
+
+`/erp/jewellery/purchase-history` projects PHP `epc_jewel_purchase_list`
+against `epc_jewel_voucher`, preserving the observed metal and diamond voucher
+families with company scope and bounded readback. It remains read-only and
+does not claim purchase posting, stock receipt, valuation, or finance parity.

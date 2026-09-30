@@ -6211,6 +6211,7 @@ public sealed class ErpModule : ISurfaceModule
             var result = dryRun.Evaluate(new ErpInvCreateItemRequest(0, code, false));
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryPurchaseHistory, HandleJewelleryPurchaseHistoryAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12615,6 +12616,28 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewelleryPurchaseHistoryAsync(
+        HttpContext context, int companyId, string? type, int limit,
+        ILegacySessionValidator validator, IErpJwPurchaseHistoryReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            return LiveWriteFormBinder.LoginRedirect(context,
+                "/erp/login?returnUrl=/cp/jewellery-purchasing-app",
+                "Admin ERP capability required for jewellery purchase history.");
+        var result = await read.ReadAsync(companyId, type ?? "METAL", limit, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp", companyId, type, limit, rows = result.Rows,
+            source = result.Source, message = result.Message,
+            session = SessionPayload(session),
+            note = "Purchase history is read-only and company-scoped."
+        });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(
