@@ -89,6 +89,29 @@ public sealed class ErpSalesOrderWriteServiceTests
         => Assert.Equal(["draft", "confirmed", "invoiced", "cancelled"], ErpSalesOrderWriteService.AllowedStatuses);
 
     [Fact]
+    public void EditingAnOrderPersistsItsContactId()
+    {
+        var root = FindRepoRoot();
+        var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpSalesOrderWriteService.cs"));
+
+        Assert.Contains(
+            "SET `customer_user_id`=?, `contact_id`=?, `title`=?",
+            service,
+            StringComparison.Ordinal);
+    }
+
+    private static string FindRepoRoot()
+    {
+        var directory = new DirectoryInfo(AppContext.BaseDirectory);
+        while (directory is not null && !File.Exists(Path.Combine(directory.FullName, "aspnet", "EcomAE.AspNetCore.sln")))
+        {
+            directory = directory.Parent;
+        }
+
+        return directory?.FullName ?? throw new DirectoryNotFoundException("Repository root not found.");
+    }
+
+    [Fact]
     public void VoucherNumbersRenderLikePhp()
     {
         Assert.Equal("SO", ErpVoucherNumberService.NormalizeType("so_2"));

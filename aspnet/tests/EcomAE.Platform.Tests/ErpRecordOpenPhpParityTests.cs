@@ -245,7 +245,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-status siblings", text, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("action=\"/erp/sales-orders/cancel\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"salesOrderId\"", text, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", text, StringComparison.Ordinal);
+        Assert.Contains("PHP remains the behavioral reference", text, StringComparison.Ordinal);
         Assert.Contains("/erp/orders/settlement", text, StringComparison.Ordinal);
         Assert.Contains("erp-sales-orders.js", text, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", text, StringComparison.Ordinal);
@@ -313,7 +313,7 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("action=\"/erp/invoices/cancel\"", razor, StringComparison.Ordinal);
         Assert.Contains("action=\"/erp/invoices/delete\"", razor, StringComparison.Ordinal);
-        Assert.Contains("Creation, settlement, export, and credit-note lifecycle remain pending", razor, StringComparison.Ordinal);
+        Assert.Contains("Sales-order conversion, cancellation, and draft deletion are guarded here", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);
         Assert.Contains("table-epc", razor, StringComparison.Ordinal);

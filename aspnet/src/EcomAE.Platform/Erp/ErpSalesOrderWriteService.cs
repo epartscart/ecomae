@@ -128,10 +128,11 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
                     connection,
                     transaction,
                     ErpDb.Positional(
-                        "UPDATE `epc_erp_sales_orders` SET `customer_user_id`=?, `title`=?, `amount_ex_vat`=?, `vat_amount`=?,"
+                        "UPDATE `epc_erp_sales_orders` SET `customer_user_id`=?, `contact_id`=?, `title`=?, `amount_ex_vat`=?, `vat_amount`=?,"
                         + " `total_amount`=?, `status`=?, `notes`=?, `time_updated`=? WHERE `id`=?"),
                     cancellationToken,
                     input.CustomerUserId,
+                    input.ContactId,
                     Clip(title, 255),
                     tax.AmountExVat,
                     tax.VatAmount,
