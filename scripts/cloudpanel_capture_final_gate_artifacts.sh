@@ -7,7 +7,7 @@ ECOMAE_ASPNET_ENV_DIR="${ECOMAE_ASPNET_ENV_DIR:-/etc/ecomae-aspnet}"
 ENV_FILE="${ECOMAE_ASPNET_ENV_DIR}/platform.env"
 ASPNET_BASE="${ECOMAE_ASPNET_BASE_URL:-http://127.0.0.1:5100}"
 ASPNET_HOST_HEADER="${ECOMAE_ASPNET_HOST_HEADER:-www.ecomae.com}"
-CANDIDATES=("${ECOMAE_REPO:-}" /opt/ecomae-aspnet-source /root/ecomae /opt/ecomae)
+CANDIDATES=("${ECOMAE_REPO:-}" /root/ecomae /opt/ecomae-aspnet-source /opt/ecomae)
 
 printf '== CloudPanel final-gate artifact capture ==\n'
 printf 'ASP.NET base: %s\n' "$ASPNET_BASE"
