@@ -639,6 +639,10 @@ check 'PHP decommission readiness blocks removal' contains "$ROOT/docs/migration
 check 'final gate checklist script exists' test -x "$ROOT/scripts/run_zero_php_final_gate_checklist.sh"
 check 'CloudPanel final-gate capture script exists' test -x "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh"
 check 'final-gate capture prefers active production checkout' contains "$ROOT/scripts/cloudpanel_capture_final_gate_artifacts.sh" 'CANDIDATES=("${ECOMAE_REPO:-}" /root/ecomae /opt/ecomae-aspnet-source /opt/ecomae)'
+check 'migration plan records D365 legal entities' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'Tenant and legal entity'
+check 'migration plan records D365 business units and cost centres' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'business unit, department,'
+check 'migration plan records D365 financial dimensions' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'Financial dimensions'
+check 'migration plan records D365 intercompany controls' contains "$ROOT/docs/migration/ASP_NET_CORE_MIGRATION_PLAN.md" 'Intercompany'
 check 'deploy packs decommission evidence into release' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'Packed decommission evidence'
 check 'deploy copies public probe evidence directory' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'docs/migration/evidence/decommission'
 check 'deploy packs price lookup gate shadow' contains "$ROOT/scripts/deploy_aspnet_foundation.sh" 'nginx-price-lookup-shadow-example.conf'
