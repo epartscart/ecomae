@@ -102,7 +102,7 @@ public sealed class ErpJwColorStoneWriteService : IErpJwColorStoneWriteService
             connection,
             null,
             ErpDb.Positional(
-                "INSERT INTO `epc_jewel_color_stone_master` (`company_id`,`code`,`description`,`category`,`shape`,`clarity`,`size`,`color`,`finish`,`country`,`certificate_no`,`vendor`,`cost_centre`,`grade`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `category` = VALUES(`category`), `shape` = VALUES(`shape`), `clarity` = VALUES(`clarity`), `size` = VALUES(`size`), `color` = VALUES(`color`), `finish` = VALUES(`finish`), `country` = VALUES(`country`), `certificate_no` = VALUES(`certificate_no`)"),
+                "INSERT INTO `epc_jewel_color_stone_master` (`company_id`,`code`,`description`,`category`,`shape`,`clarity`,`size`,`color`,`finish`,`country`,`certificate_no`,`vendor`,`cost_centre`,`grade`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON DUPLICATE KEY UPDATE `description` = VALUES(`description`), `category` = VALUES(`category`), `shape` = VALUES(`shape`), `clarity` = VALUES(`clarity`), `size` = VALUES(`size`), `color` = VALUES(`color`), `finish` = VALUES(`finish`), `country` = VALUES(`country`), `certificate_no` = VALUES(`certificate_no`), `vendor` = VALUES(`vendor`), `cost_centre` = VALUES(`cost_centre`), `grade` = VALUES(`grade`)"),
             cancellationToken,
             companyId,
             code,

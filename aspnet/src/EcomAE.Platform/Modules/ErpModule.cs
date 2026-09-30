@@ -6629,6 +6629,30 @@ public sealed class ErpModule : ISurfaceModule
             var price1Pct = body.Price1Pct;
             var price1Fc = body.Price1Fc;
             var price1Lc = body.Price1Lc;
+            var price2Code = body.Price2Code;
+            var price2Pct = body.Price2Pct;
+            var price2Fc = body.Price2Fc;
+            var price2Lc = body.Price2Lc;
+            var landedCost = body.LandedCost;
+            var foreignCost = body.ForeignCost;
+            var costDifference = body.CostDifference;
+            var certificateNo = body.CertificateNo;
+            var certificateDate = body.CertificateDate;
+            var certificateBy = body.CertificateBy;
+            var certificateNo1 = body.CertificateNo1;
+            var certificateDate1 = body.CertificateDate1;
+            var noOfCertificates = body.NoOfCertificates;
+            var settingCharge = body.SettingCharge;
+            var polishingCharge = body.PolishingCharge;
+            var rhodiumCharge = body.RhodiumCharge;
+            var labourCharge = body.LabourCharge;
+            var miscCharge = body.MiscCharge;
+            var excludeGstMetal = body.ExcludeGstMetal;
+            var pureWt = body.PureWt;
+            var trnOnMargin = body.TrnOnMargin;
+            var uaeTrnItem = body.UaeTrnItem;
+            var custSku = body.CustSku;
+            var ageingDate = body.AgeingDate;
             var promotional = body.Promotional;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
@@ -6665,6 +6689,30 @@ public sealed class ErpModule : ISurfaceModule
                 price1Pct = LiveWriteFormBinder.Dec(form, "price1Pct", "price1_pct");
                 price1Fc = LiveWriteFormBinder.Dec(form, "price1Fc", "price1_fc");
                 price1Lc = LiveWriteFormBinder.Dec(form, "price1Lc", "price1_lc");
+                price2Code = LiveWriteFormBinder.Text(form, "price2Code", "price2_code");
+                price2Pct = LiveWriteFormBinder.Dec(form, "price2Pct", "price2_pct");
+                price2Fc = LiveWriteFormBinder.Dec(form, "price2Fc", "price2_fc");
+                price2Lc = LiveWriteFormBinder.Dec(form, "price2Lc", "price2_lc");
+                landedCost = LiveWriteFormBinder.Dec(form, "landedCost", "landed_cost");
+                foreignCost = LiveWriteFormBinder.Dec(form, "foreignCost", "foreign_cost");
+                costDifference = LiveWriteFormBinder.Dec(form, "costDifference", "cost_difference");
+                certificateNo = LiveWriteFormBinder.Text(form, "certificateNo", "certificate_no");
+                certificateDate = LiveWriteFormBinder.Text(form, "certificateDate", "certificate_date");
+                certificateBy = LiveWriteFormBinder.Text(form, "certificateBy", "certificate_by");
+                certificateNo1 = LiveWriteFormBinder.Text(form, "certificateNo1", "certificate_no_1");
+                certificateDate1 = LiveWriteFormBinder.Text(form, "certificateDate1", "certificate_date_1");
+                noOfCertificates = LiveWriteFormBinder.Int(form, "noOfCertificates", "no_of_certificates");
+                settingCharge = LiveWriteFormBinder.Dec(form, "settingCharge", "setting_charge");
+                polishingCharge = LiveWriteFormBinder.Dec(form, "polishingCharge", "polishing_charge");
+                rhodiumCharge = LiveWriteFormBinder.Dec(form, "rhodiumCharge", "rhodium_charge");
+                labourCharge = LiveWriteFormBinder.Dec(form, "labourCharge", "labour_charge");
+                miscCharge = LiveWriteFormBinder.Dec(form, "miscCharge", "misc_charge");
+                excludeGstMetal = LiveWriteFormBinder.Flag(form, "excludeGstMetal", "exclude_gst_metal");
+                pureWt = LiveWriteFormBinder.Dec(form, "pureWt", "pure_wt");
+                trnOnMargin = LiveWriteFormBinder.Flag(form, "trnOnMargin", "trn_on_margin");
+                uaeTrnItem = LiveWriteFormBinder.Flag(form, "uaeTrnItem", "uae_trn_item");
+                custSku = LiveWriteFormBinder.Text(form, "custSku", "cust_sku");
+                ageingDate = LiveWriteFormBinder.Text(form, "ageingDate", "ageing_date");
                 promotional = LiveWriteFormBinder.Flag(form, "promotional");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
@@ -6711,6 +6759,30 @@ public sealed class ErpModule : ISurfaceModule
                     price1Pct,
                     price1Fc,
                     price1Lc,
+                    price2Code,
+                    price2Pct,
+                    price2Fc,
+                    price2Lc,
+                    landedCost,
+                    foreignCost,
+                    costDifference,
+                    certificateNo,
+                    certificateDate,
+                    certificateBy,
+                    certificateNo1,
+                    certificateDate1,
+                    noOfCertificates,
+                    settingCharge,
+                    polishingCharge,
+                    rhodiumCharge,
+                    labourCharge,
+                    miscCharge,
+                    excludeGstMetal,
+                    pureWt,
+                    trnOnMargin,
+                    uaeTrnItem,
+                    custSku,
+                    ageingDate,
                     promotional),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
@@ -22554,6 +22626,30 @@ public sealed class ErpModule : ISurfaceModule
         decimal Price1Pct = 0,
         decimal Price1Fc = 0,
         decimal Price1Lc = 0,
+        string? Price2Code = null,
+        decimal Price2Pct = 0,
+        decimal Price2Fc = 0,
+        decimal Price2Lc = 0,
+        decimal LandedCost = 0,
+        decimal ForeignCost = 0,
+        decimal CostDifference = 0,
+        string? CertificateNo = null,
+        string? CertificateDate = null,
+        string? CertificateBy = null,
+        string? CertificateNo1 = null,
+        string? CertificateDate1 = null,
+        int NoOfCertificates = 0,
+        decimal SettingCharge = 0,
+        decimal PolishingCharge = 0,
+        decimal RhodiumCharge = 0,
+        decimal LabourCharge = 0,
+        decimal MiscCharge = 0,
+        bool ExcludeGstMetal = false,
+        decimal PureWt = 0,
+        bool TrnOnMargin = false,
+        bool UaeTrnItem = false,
+        string? CustSku = null,
+        string? AgeingDate = null,
         bool Promotional = false,
         bool ConfirmWrites = false);
     private sealed record ErpJwCurrencySaveBody(

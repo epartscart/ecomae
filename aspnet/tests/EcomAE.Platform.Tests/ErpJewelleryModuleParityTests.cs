@@ -112,6 +112,29 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void MasterWritesPersistExpandedDiamondFieldsAndExistingMasterEdits()
+    {
+        var diamond = ReadSource("ErpJwDiamondWriteService.cs");
+        Assert.Contains("Price2Code", diamond, StringComparison.Ordinal);
+        Assert.Contains("certificate_no", diamond, StringComparison.Ordinal);
+        Assert.Contains("setting_charge", diamond, StringComparison.Ordinal);
+        Assert.Contains("pure_wt", diamond, StringComparison.Ordinal);
+        Assert.Contains("exclude_gst_metal", diamond, StringComparison.Ordinal);
+        Assert.Contains("cust_sku", diamond, StringComparison.Ordinal);
+        Assert.Contains("ageing_date", diamond, StringComparison.Ordinal);
+
+        var pearl = ReadSource("ErpJwPearlWriteService.cs");
+        Assert.Contains("`shape` = VALUES(`shape`)", pearl, StringComparison.Ordinal);
+        Assert.Contains("`luster` = VALUES(`luster`)", pearl, StringComparison.Ordinal);
+        Assert.Contains("`price1_lc` = VALUES(`price1_lc`)", pearl, StringComparison.Ordinal);
+
+        var colorStone = ReadSource("ErpJwColorStoneWriteService.cs");
+        Assert.Contains("`vendor` = VALUES(`vendor`)", colorStone, StringComparison.Ordinal);
+        Assert.Contains("`cost_centre` = VALUES(`cost_centre`)", colorStone, StringComparison.Ordinal);
+        Assert.Contains("`grade` = VALUES(`grade`)", colorStone, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void FixingRetailStockApps_HonorTabAndCreateForms()
     {
         var fixing = ReadApp("CpJewelleryFixingApp.razor");
@@ -292,6 +315,14 @@ public sealed class ErpJewelleryModuleParityTests
     {
         var root = FindRepoRoot();
         var path = Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Components", "Pages", fileName);
+        Assert.True(File.Exists(path), path);
+        return File.ReadAllText(path);
+    }
+
+    private static string ReadSource(string fileName)
+    {
+        var root = FindRepoRoot();
+        var path = Path.Combine(root, "aspnet", "src", "EcomAE.Platform", "Erp", fileName);
         Assert.True(File.Exists(path), path);
         return File.ReadAllText(path);
     }
