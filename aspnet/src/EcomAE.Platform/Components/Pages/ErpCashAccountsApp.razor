@@ -191,7 +191,6 @@
         @if (_forecastId > 0 && _selectedForecast is not null)
         {
             <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash forecast KPIs">
-                <div class="kpi"><div class="lbl">Forecasts</div><div class="val">@_forecast.ForecastCount.ToString(CultureInfo.InvariantCulture)</div></div>
                 <div class="kpi"><div class="lbl">Opening</div><div class="val">@_forecast.Opening.ToString("N2", CultureInfo.InvariantCulture)</div></div>
                 <div class="kpi"><div class="lbl">Total in</div><div class="val">@_forecast.TotalIn.ToString("N2", CultureInfo.InvariantCulture)</div></div>
                 <div class="kpi"><div class="lbl">Total out</div><div class="val">@_forecast.TotalOut.ToString("N2", CultureInfo.InvariantCulture)</div></div>
