@@ -9,6 +9,7 @@
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject IErpDimensionCatalogReadService DimensionCatalog
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Inventory Stock · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -111,8 +112,8 @@
         <form method="post" action="/erp/ajax/dim-save" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="/erp/inventory-stock-app" />
-            <label>Entity type <input type="text" name="entityType" value="inventory_item" required /></label>
-            <label>Entity id <input type="number" name="entityId" min="1" required style="width:6rem" /></label>
+            <label>Entity type <input type="text" name="entityType" value="@_dimensionEntityType" required /></label>
+            <label>Entity id <input type="number" name="entityId" value="@(_dimensionEntityId > 0 ? _dimensionEntityId.ToString(CultureInfo.InvariantCulture) : string.Empty)" min="1" required style="width:6rem" /></label>
             @if (_dimensionCatalog.Count == 0)
             {
                 <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
@@ -128,7 +129,7 @@
                             <option value="0">— none —</option>
                             @foreach (var option in dimension.Options)
                             {
-                                <option value="@option.Id">@option.Code · @option.Name</option>
+                                <option value="@option.Id" selected="@IsDimensionSelected(dimension.Key, option.Id)">@option.Code · @option.Name</option>
                             }
                         </select>
                     </label>
@@ -136,6 +137,10 @@
             }
             <button type="submit" class="btn btn-sm btn-primary">Save dimensions</button>
         </form>
+        @if (_dimensionEntityId > 0)
+        {
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
+        }
     }
 
 
@@ -250,6 +255,9 @@
     private IReadOnlyList<ErpInventoryStockDigest> _stock = [];
     private IReadOnlyList<ErpInventoryLowStockDigest> _lowStock = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
+    private string _dimensionEntityType = "inventory_item";
+    private long _dimensionEntityId;
 
     protected override async Task OnInitializedAsync()
     {
@@ -258,6 +266,16 @@
 
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
+        _dimensionEntityType = (ctx.Request.Query["dimension_entity_type"].ToString() ?? "inventory_item").Trim();
+        if (string.IsNullOrWhiteSpace(_dimensionEntityType))
+        {
+            _dimensionEntityType = "inventory_item";
+        }
+        long.TryParse(
+            ctx.Request.Query["dimension_entity_id"].ToString(),
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out _dimensionEntityId);
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = PhpParityDumpCatalog.HasStaffAccess(session);
         if (!_isAdmin)
@@ -271,5 +289,17 @@
         _lowStock = result.LowStock;
         _message = result.Message;
         _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
+        if (_dimensionEntityId > 0)
+        {
+            _openedDimensionLinks = await DimensionLinks.LoadAsync(
+                _dimensionEntityType,
+                _dimensionEntityId,
+                ctx.RequestAborted);
+        }
     }
+
+    private bool IsDimensionSelected(string key, long valueId)
+        => _openedDimensionLinks.Any(link =>
+            string.Equals(link.Key, key, StringComparison.OrdinalIgnoreCase) &&
+            link.ValueId == valueId);
 }
