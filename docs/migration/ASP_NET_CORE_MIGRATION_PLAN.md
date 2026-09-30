@@ -812,3 +812,14 @@ effects remain separately gated.
   UAT, performance, recovery, final cutover, and untested write workflows
   remain formally unverified; PHP fallback and PHP-owned schema authority
   remain in force.
+
+
+## Sixty Third Milestone Included Here
+
+- Rehearsed the detailed fit-out BOQ readback against local dummy estimate
+  `9801` for project `9001`, using two seeded component-rate lines.
+- The authenticated route returned database-backed estimate metadata, two
+  ordered lines, total cost `3,900.00`, and selling amount `4,387.50`.
+- Removed the temporary estimate and BOQ rows after readback. This remains
+  local throwaway evidence only; production tenant-database, approval,
+  procurement, billing, and human acceptance gates remain open.
