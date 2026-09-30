@@ -259,3 +259,8 @@ gates; this policy does not broaden ordinary tenant access.
 `/erp/jewellery/design-detail` now projects the PHP design header and its
 metal/stone component lines by company and design code. It remains read-only
 and does not claim production, valuation, or downstream voucher parity.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.

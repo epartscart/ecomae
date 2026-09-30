@@ -721,6 +721,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAftersalesWarrantyWriteServic
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAftersalesJobWriteService, EcomAE.Platform.Erp.ErpAftersalesJobWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairWriteService, EcomAE.Platform.Erp.ErpJwRepairWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwDesignDetailReadService, EcomAE.Platform.Erp.ErpJwDesignDetailReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRepairReceiptHistoryReadService, EcomAE.Platform.Erp.ErpJwRepairReceiptHistoryReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwKaratWriteService, EcomAE.Platform.Erp.ErpJwKaratWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwRateTypeWriteService, EcomAE.Platform.Erp.ErpJwRateTypeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwCurrencyWriteService, EcomAE.Platform.Erp.ErpJwCurrencyWriteService>();
