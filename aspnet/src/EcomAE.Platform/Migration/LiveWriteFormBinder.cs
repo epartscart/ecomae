@@ -161,6 +161,32 @@ public static class LiveWriteFormBinder
         return string.Empty;
     }
 
+    public static string TextAt(IFormCollection form, string name, int index)
+    {
+        if (index < 0 || index >= form[name].Count)
+        {
+            return string.Empty;
+        }
+
+        return form[name].ElementAtOrDefault(index)?.Trim() ?? string.Empty;
+    }
+
+    public static decimal DecAt(IFormCollection form, string name, int index)
+    {
+        var raw = TextAt(form, name, index);
+        return decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : 0;
+    }
+
+    public static int IntAt(IFormCollection form, string name, int index)
+    {
+        var raw = TextAt(form, name, index);
+        return int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : 0;
+    }
+
     public static IReadOnlyList<long> Longs(IFormCollection form, params string[] names)
     {
         var ids = new List<long>();

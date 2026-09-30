@@ -9483,38 +9483,41 @@ public sealed class ErpModule : ISurfaceModule
                 vatAmount = LiveWriteFormBinder.Dec(form, "vat_amount", "vatAmount");
                 roundOff = LiveWriteFormBinder.Dec(form, "round_off", "rnd_off_amount", "roundOff");
                 grossTotal = LiveWriteFormBinder.Dec(form, "gross_total", "grossTotal");
-                var lineStockCode = LiveWriteFormBinder.Text(form, "line_stock_code", "stock_code");
-                var lineDescription = LiveWriteFormBinder.Text(form, "line_description", "description");
-                var lineDivision = LiveWriteFormBinder.Text(form, "line_division", "division");
-                var linePcs = LiveWriteFormBinder.Int(form, "line_pcs", "pcs");
-                var lineQty = LiveWriteFormBinder.Dec(form, "line_qty", "qty");
-                var lineGrossWeight = LiveWriteFormBinder.Dec(form, "line_gr_wt", "gr_wt", "gross_wt");
-                var linePurity = LiveWriteFormBinder.Dec(form, "line_purity", "purity");
-                var lineMakingRate = LiveWriteFormBinder.Dec(form, "line_mkg_rate", "mkg_rate");
-                var lineMakingAmount = LiveWriteFormBinder.Dec(form, "line_mkg_amount", "mkg_amount");
-                var lineMetalRate = LiveWriteFormBinder.Dec(form, "line_metal_rate", "metal_rate");
-                var lineMetalAmount = LiveWriteFormBinder.Dec(form, "line_metal_amount", "metal_amount");
-                var lineStoneAmount = LiveWriteFormBinder.Dec(form, "line_stone_amount", "stone_amount");
-                var lineDiscountAmount = LiveWriteFormBinder.Dec(form, "line_disc_amount", "disc_amount");
-                if (!string.IsNullOrWhiteSpace(lineStockCode) || !string.IsNullOrWhiteSpace(lineDescription))
+                var lineCount = new[]
                 {
-                    lines =
-                    [
-                        new ErpJwVoucherLineSaveRequest(
-                            StockCode: lineStockCode,
-                            Division: lineDivision,
-                            Description: lineDescription,
-                            Pcs: linePcs,
-                            Qty: lineQty,
-                            GrossWeight: lineGrossWeight,
-                            Purity: linePurity,
-                            MakingRate: lineMakingRate,
-                            MakingAmount: lineMakingAmount,
-                            MetalRate: lineMetalRate,
-                            MetalAmount: lineMetalAmount,
-                            StoneAmount: lineStoneAmount,
-                            DiscountAmount: lineDiscountAmount)
-                    ];
+                    form["line_stock_code"].Count,
+                    form["line_description"].Count,
+                    form["line_division"].Count,
+                    form["line_pcs"].Count,
+                    form["line_qty"].Count,
+                    form["line_gr_wt"].Count,
+                    form["line_purity"].Count,
+                    form["line_mkg_rate"].Count,
+                    form["line_mkg_amount"].Count,
+                    form["line_metal_rate"].Count,
+                    form["line_metal_amount"].Count,
+                    form["line_stone_amount"].Count,
+                    form["line_disc_amount"].Count
+                }.Max();
+                if (lineCount > 0)
+                {
+                    lines = Enumerable.Range(0, lineCount)
+                        .Select(index => new ErpJwVoucherLineSaveRequest(
+                            StockCode: LiveWriteFormBinder.TextAt(form, "line_stock_code", index),
+                            Division: LiveWriteFormBinder.TextAt(form, "line_division", index),
+                            Description: LiveWriteFormBinder.TextAt(form, "line_description", index),
+                            Pcs: LiveWriteFormBinder.IntAt(form, "line_pcs", index),
+                            Qty: LiveWriteFormBinder.DecAt(form, "line_qty", index),
+                            GrossWeight: LiveWriteFormBinder.DecAt(form, "line_gr_wt", index),
+                            Purity: LiveWriteFormBinder.DecAt(form, "line_purity", index),
+                            MakingRate: LiveWriteFormBinder.DecAt(form, "line_mkg_rate", index),
+                            MakingAmount: LiveWriteFormBinder.DecAt(form, "line_mkg_amount", index),
+                            MetalRate: LiveWriteFormBinder.DecAt(form, "line_metal_rate", index),
+                            MetalAmount: LiveWriteFormBinder.DecAt(form, "line_metal_amount", index),
+                            StoneAmount: LiveWriteFormBinder.DecAt(form, "line_stone_amount", index),
+                            DiscountAmount: LiveWriteFormBinder.DecAt(form, "line_disc_amount", index)))
+                        .Where(line => !string.IsNullOrWhiteSpace(line.StockCode) || !string.IsNullOrWhiteSpace(line.Description))
+                        .ToArray();
                 }
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
