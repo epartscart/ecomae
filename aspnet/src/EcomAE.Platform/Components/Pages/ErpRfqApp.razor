@@ -299,6 +299,8 @@
     private IReadOnlyList<ErpRfqDigest> _rfqs = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
+    private bool IsDimensionSelected(string key, long valueId)
+        => _openedDimensionLinks.Any(link => string.Equals(link.Key, key, StringComparison.OrdinalIgnoreCase) && link.ValueId == valueId);
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -362,10 +364,10 @@
                 {
                     <label>@dimension.Label
                         <select name="dim[@dimension.Key]" style="min-width:10rem">
-                            <option value="0">— none —</option>
+                            <option value="0" selected="@IsDimensionSelected(dimension.Key, 0)">— none —</option>
                             @foreach (var option in dimension.Options)
                             {
-                                <option value="@option.Id">@option.Code · @option.Name</option>
+                                <option value="@option.Id" selected="@IsDimensionSelected(dimension.Key, option.Id)">@option.Code · @option.Name</option>
                             }
                         </select>
                     </label>
