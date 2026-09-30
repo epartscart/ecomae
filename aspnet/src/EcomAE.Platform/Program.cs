@@ -717,6 +717,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryMovementWriteService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDimensionWriteService, EcomAE.Platform.Erp.ErpDimensionWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrganizationMasterReadService, EcomAE.Platform.Erp.ErpOrganizationMasterReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityPreferenceReadService, EcomAE.Platform.Erp.ErpMultiEntityPreferenceReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMultiEntityMemberReadService, EcomAE.Platform.Erp.ErpMultiEntityMemberReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDimensionCatalogReadService, EcomAE.Platform.Erp.ErpDimensionCatalogReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDimensionLinkReadService, EcomAE.Platform.Erp.ErpDimensionLinkReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCustomerMasterWriteService, EcomAE.Platform.Erp.ErpCustomerMasterWriteService>();
