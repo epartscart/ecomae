@@ -11,6 +11,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpMultiEntityPreferenceReadService Preferences
+@inject IErpMultiEntityMemberReadService Members
 
 <PageTitle>Multi-entity · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -44,7 +45,22 @@
             <input type="hidden" name="returnUrl" value="/erp/multi-entity-app" />
             <input type="hidden" name="action" value="add_member" />
             <label style="margin-right:8px">Group id <input type="number" name="groupId" min="1" required style="width:5rem" /></label>
-            <label style="margin-right:8px">Site <input name="siteKey" required maxlength="64" style="width:8rem" /></label>
+            @if (_memberOptions.Count == 0)
+            {
+                <label style="margin-right:8px">Site <input name="siteKey" required maxlength="64" style="width:8rem" /></label>
+            }
+            else
+            {
+                <label style="margin-right:8px">Site
+                    <select name="siteKey" required style="min-width:9rem">
+                        <option value="">— select site —</option>
+                        @foreach (var member in _memberOptions)
+                        {
+                            <option value="@member.SiteKey">@member.SiteKey@(string.IsNullOrWhiteSpace(member.Name) ? "" : " · " + member.Name)</option>
+                        }
+                    </select>
+                </label>
+            }
             <label style="margin-right:8px">Name <input name="entityName" maxlength="128" style="width:9rem" /></label>
             <label style="margin-right:8px">Own % <input type="number" name="ownershipPct" value="100" min="0.01" max="100" step="0.01" style="width:5rem" /></label>
             <label style="margin-right:8px">Method
@@ -62,8 +78,32 @@
             <input type="hidden" name="returnUrl" value="/erp/multi-entity-app" />
             <input type="hidden" name="action" value="record_intercompany" />
             <label style="margin-right:8px">Group id <input type="number" name="groupId" min="1" required style="width:5rem" /></label>
-            <label style="margin-right:8px">From <input name="fromSiteKey" required maxlength="64" style="width:8rem" /></label>
-            <label style="margin-right:8px">To <input name="toSiteKey" required maxlength="64" style="width:8rem" /></label>
+            @if (_memberOptions.Count == 0)
+            {
+                <label style="margin-right:8px">From <input name="fromSiteKey" required maxlength="64" style="width:8rem" /></label>
+                <label style="margin-right:8px">To <input name="toSiteKey" required maxlength="64" style="width:8rem" /></label>
+            }
+            else
+            {
+                <label style="margin-right:8px">From
+                    <select name="fromSiteKey" required style="min-width:9rem">
+                        <option value="">— select source —</option>
+                        @foreach (var member in _memberOptions)
+                        {
+                            <option value="@member.SiteKey">@member.SiteKey@(string.IsNullOrWhiteSpace(member.Name) ? "" : " · " + member.Name)</option>
+                        }
+                    </select>
+                </label>
+                <label style="margin-right:8px">To
+                    <select name="toSiteKey" required style="min-width:9rem">
+                        <option value="">— select destination —</option>
+                        @foreach (var member in _memberOptions)
+                        {
+                            <option value="@member.SiteKey">@member.SiteKey@(string.IsNullOrWhiteSpace(member.Name) ? "" : " · " + member.Name)</option>
+                        }
+                    </select>
+                </label>
+            }
             <label style="margin-right:8px">Amount <input type="number" name="amount" min="0.01" step="0.01" required style="width:6rem" /></label>
             <label style="margin-right:8px">Note <input name="description" maxlength="255" style="width:10rem" /></label>
             <button type="submit" class="btn btn-sm btn-default">Record IC</button>
@@ -307,6 +347,7 @@
     private int _pendingIc;
     private string _source = "n/a";
     private string _message = "";
+    private IReadOnlyList<ErpMultiEntityMemberOption> _memberOptions = [];
     private string _flash = "";
     private bool _flashOk;
     private bool _crossTenantEnabled;
@@ -373,6 +414,7 @@
         _pendingIc = result.PendingIcCount;
         _source = result.Source;
         _message = result.Message;
+        _memberOptions = await Members.LoadAsync(ctx.RequestAborted);
 
         var preference = await Preferences.LoadAsync(ctx.RequestAborted);
         _crossTenantEnabled = preference.Enabled;
