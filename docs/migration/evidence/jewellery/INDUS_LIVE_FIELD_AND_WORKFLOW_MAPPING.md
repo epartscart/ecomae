@@ -262,3 +262,8 @@ gates; this policy does not broaden ordinary tenant access.
 against `epc_jewel_voucher` using the observed `JVG`/`JVA` voucher types,
 company predicate, descending voucher date, and bounded result count. It is
 read-only and does not claim journal posting or finance reconciliation parity.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
