@@ -226,6 +226,9 @@ acceptance remain open.
 Project-scoped fit-out approval evidence now combines the pending approval
 queue with decision audit history; this remains read-only machine evidence and
 does not replace human approval sign-off.
+The fit-out workspace also exposes estimate/BOQ detail readback with component
+rates and derived totals for machine verification; it remains read-only
+evidence and does not claim production acceptance.
 
 The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level
