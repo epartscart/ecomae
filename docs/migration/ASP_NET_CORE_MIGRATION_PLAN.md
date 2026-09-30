@@ -119,6 +119,16 @@ uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
 
+After the Jewellery and fit-out implementation tracks are complete, run a
+guarded functional rehearsal with isolated dummy tenant/company data before
+making any acceptance claim. The rehearsal must cover Jewellery purchase,
+tagged inventory, barcode/tag lookup, sale, return, fixing, stock verification,
+and finance flows, plus fit-out BOQ/estimate, quotation/contract, procurement,
+delivery, subcontract, progress claim, settlement, and project P&L flows.
+Record request/response evidence, database readback, tenant isolation, dry-run
+behavior, and rollback/fallback outcomes; dummy data is not production or live
+MariaDB corroboration.
+
 Jewellery is not complete until the blueprint gates G1–G10 are evidenced:
 domain identity and relationships, approved calculations, reconstructable
 inventory, balanced finance, reconciliation, security/maker-checker/audit,
