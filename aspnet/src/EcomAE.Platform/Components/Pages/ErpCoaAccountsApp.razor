@@ -2,12 +2,14 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Chart of Accounts · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -44,6 +46,7 @@
                 <dt>Active</dt><dd>@(_opened.Active ? "yes" : "no")</dd>
                 <dt>Created</dt><dd>@FormatTime(_opened.TimeCreated)</dd>
             </dl>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">Writes stay on the Classic twin.</p>
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
@@ -146,6 +149,7 @@
     private long _openedId;
     private ErpCoaAccountDetail? _opened;
     private IReadOnlyList<ErpCoaAccountDigest> _openedSiblings = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
 
     private string OpenedCaption => _opened is null
         ? ""
@@ -184,6 +188,10 @@
             var detail = await Dashboards.BuildErpCoaAccountDetailAsync(_openedId, ctx.RequestAborted);
             _opened = detail.Account;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync(
+                "coa_account",
+                _openedId,
+                ctx.RequestAborted);
             if (_opened is not null)
             {
                 var openedList = _accounts.FirstOrDefault(r => r.Id == _openedId);
