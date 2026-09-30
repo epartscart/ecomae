@@ -52,19 +52,25 @@
             <label>TRN <input type="text" name="trn" maxlength="64" /></label>
             <label>City <input type="text" name="city" maxlength="128" /></label>
             <label>Country <input type="text" name="country_code" maxlength="8" placeholder="AE" /></label>
-            <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
-            <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
-            @foreach (var dimension in _dimensionCatalog)
+            @if (_dimensionCatalog.Count == 0)
             {
-                <label>@dimension.Label
-                    <select name="dim[@dimension.Key]" style="min-width:10rem">
-                        <option value="0">— none —</option>
-                        @foreach (var option in dimension.Options)
-                        {
-                            <option value="@option.Id">@option.Code · @option.Name</option>
-                        }
-                    </select>
-                </label>
+                <label>Business unit <input type="number" name="dim[business_unit]" min="0" style="width:6rem" /></label>
+                <label>Legal entity <input type="number" name="dim[legal_entity]" min="0" style="width:6rem" /></label>
+            }
+            else
+            {
+                @foreach (var dimension in _dimensionCatalog)
+                {
+                    <label>@dimension.Label
+                        <select name="dim[@dimension.Key]" style="min-width:10rem">
+                            <option value="0">— none —</option>
+                            @foreach (var option in dimension.Options)
+                            {
+                                <option value="@option.Id">@option.Code · @option.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
             }
             <label><input type="checkbox" name="on_hold" value="1" /> On credit hold</label>
             <label><input type="checkbox" name="tax_exempt" value="1" /> Tax exempt</label>
