@@ -20,6 +20,8 @@ public sealed class CpDesignTokensWriteTests
         Assert.Equal("brand_primary", CpDesignTokensWriteService.NormalizeSettingKey(" Brand_Primary "));
         Assert.Equal("", CpDesignTokensWriteService.NormalizeSettingKey("smtp_password"));
         Assert.Contains("white_label_login", CpDesignTokensWriteService.AllowedKeys);
+        Assert.Contains("ui_form_layout", CpDesignTokensWriteService.AllowedKeys);
+        Assert.Contains("ui_dashboard_style", CpDesignTokensWriteService.AllowedKeys);
     }
 
     [Fact]
@@ -31,9 +33,9 @@ public sealed class CpDesignTokensWriteTests
         Assert.Contains("name=\"confirmWrites\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"true\"", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"save\"", razor, StringComparison.Ordinal);
-        Assert.Contains("does not invent a send", razor, StringComparison.Ordinal);
+        Assert.Contains("backend contracts, permissions, routes", razor, StringComparison.Ordinal);
         Assert.Contains("Classic twin", razor, StringComparison.Ordinal);
-        Assert.Contains("stay Classic", razor, StringComparison.Ordinal);
+        Assert.Contains("stays Classic", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onsubmit:preventDefault", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
