@@ -439,6 +439,21 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryFinanceHistory_IsCompanyAndDateScoped()
+    {
+        var service = ReadSource("ErpJwFinanceHistoryReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("FROM `epc_jewel_petty_cash`", service, StringComparison.Ordinal);
+        Assert.Contains("FROM `epc_jewel_tourist_vat_refund`", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_date` BETWEEN ? AND ?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryPettyCashList", routes, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryTouristVatList", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryPettyCashListAsync", module, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryTouristVatListAsync", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();
