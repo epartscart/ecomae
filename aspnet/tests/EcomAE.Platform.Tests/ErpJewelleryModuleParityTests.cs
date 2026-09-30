@@ -439,6 +439,18 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryDesignDetail_PreservesPhpHeaderAndLineReadback()
+    {
+        var service = ReadSource("ErpJwDesignDetailReadService.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("epc_jewel_design_metals", service, StringComparison.Ordinal);
+        Assert.Contains("epc_jewel_design_stones", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `design_code`=?", service, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryDesignDetailAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Design detail is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

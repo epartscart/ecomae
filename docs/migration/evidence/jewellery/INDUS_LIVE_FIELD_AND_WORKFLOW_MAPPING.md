@@ -248,3 +248,7 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
+
+`/erp/jewellery/design-detail` now projects the PHP design header and its
+metal/stone component lines by company and design code. It remains read-only
+and does not claim production, valuation, or downstream voucher parity.
