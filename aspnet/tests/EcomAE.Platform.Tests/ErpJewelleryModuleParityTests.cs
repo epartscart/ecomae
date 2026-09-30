@@ -478,6 +478,19 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("HandleJewelleryStockAvailabilityAsync", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void JewelleryRepairReceiptHistory_PreservesPhpDateAndStatusScope()
+    {
+        var service = ReadSource("ErpJwRepairReceiptHistoryReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("epc_jewel_repair", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_date` BETWEEN ? AND ?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryRepairReceiptHistory", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryRepairReceiptHistoryAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Repair receipt history is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

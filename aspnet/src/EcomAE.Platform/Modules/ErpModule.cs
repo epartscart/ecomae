@@ -6212,6 +6212,7 @@ public sealed class ErpModule : ISurfaceModule
             var result = dryRun.Evaluate(new ErpInvCreateItemRequest(0, code, false));
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairReceiptHistory, HandleJewelleryRepairReceiptHistoryAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12652,6 +12653,28 @@ public sealed class ErpModule : ISurfaceModule
             purchase = result,
             session = SessionPayload(session),
             note = "Barcode purchase detail is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryRepairReceiptHistoryAsync(
+        HttpContext context, int companyId, string? from, string? to, string? status, int limit,
+        ILegacySessionValidator validator, IErpJwRepairReceiptHistoryReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            return LiveWriteFormBinder.LoginRedirect(context,
+                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "Admin ERP capability required for jewellery repair history.");
+        var result = await read.ReadAsync(companyId, from ?? string.Empty, to ?? string.Empty,
+            status ?? string.Empty, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp", companyId, from, to, status, limit, rows = result.Rows,
+            source = result.Source, message = result.Message,
+            session = SessionPayload(session),
+            note = "Repair receipt history is read-only and company-scoped."
         });
     }
 
