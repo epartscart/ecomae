@@ -177,7 +177,7 @@
                                 <form method="post" action="/erp/inventory-forecast/recompute" style="margin:4px 0 0">
                                     <input type="hidden" name="confirmWrites" value="true" />
                                     <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
-                                    <input type="hidden" name="siteKey" value="@_defaultSite" />
+                                    <input type="hidden" name="siteKey" value="@(string.IsNullOrWhiteSpace(row.SiteKey) ? _defaultSite : row.SiteKey)" />
                                     <input type="hidden" name="sku" value="@row.Sku" />
                                     <input type="hidden" name="currentStock" value="@row.CurrentStock.ToString(CultureInfo.InvariantCulture)" />
                                     <input type="hidden" name="productName" value="@row.ProductName" />

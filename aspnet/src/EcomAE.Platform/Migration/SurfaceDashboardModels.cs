@@ -7797,6 +7797,7 @@ public sealed record ErpOrderPipelineLogDetailResult(
 /// <summary>PHP <c>epc_inventory_forecast</c>.</summary>
 public sealed record ErpInventoryForecastDigest(
     long Id,
+    string SiteKey,
     string Sku,
     string ProductName,
     int CurrentStock,
