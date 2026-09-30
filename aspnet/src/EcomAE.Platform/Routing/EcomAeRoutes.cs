@@ -2785,6 +2785,8 @@ public static class EcomAeRoutes
         "/erp/fitout/executive-dashboard";
     public const string ErpFitOutApprovalQueue =
         "/erp/fitout/approval-queue";
+    public const string ErpFitOutApprovalEvidence =
+        "/erp/fitout/approval-evidence";
     public const string ErpFitOutOperationsReport =
         "/erp/fitout/operations-report";
     public const string ErpFitOutEstimateRevisionComparison =

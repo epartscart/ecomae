@@ -143,6 +143,21 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void FitOutApprovalEvidence_IsProjectScopedAndUsesQueueAndAudit()
+    {
+        var service = ReadPlatformSource("Erp/ErpFitOutApprovalEvidenceReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("ErpProjectAccountingApp.razor");
+        Assert.Contains("ReadAsync(projectId, cancellationToken)", service, StringComparison.Ordinal);
+        Assert.Contains("IErpFitOutApprovalQueueReadService", service, StringComparison.Ordinal);
+        Assert.Contains("IErpFitOutApprovalAuditReadService", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutApprovalEvidence", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutApprovalEvidenceAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Open approval evidence JSON", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MastersApp_DoesNotShowPhpDemoGoldRates()
     {
         var text = ReadApp("CpJewelleryMastersApp.razor");

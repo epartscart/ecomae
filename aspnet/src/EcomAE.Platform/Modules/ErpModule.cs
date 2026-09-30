@@ -369,6 +369,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRecoverySummary, HandleFitOutRecoverySummaryAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutExecutiveDashboard, HandleFitOutExecutiveDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalQueue, HandleFitOutApprovalQueueAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalEvidence, HandleFitOutApprovalEvidenceAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutOperationsReport, HandleFitOutOperationsReportAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutEstimateRevisionComparison, HandleFitOutEstimateRevisionComparisonAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutFinanceOperationsReport, HandleFitOutFinanceOperationsReportAsync);
@@ -14203,6 +14204,34 @@ public sealed class ErpModule : ISurfaceModule
             comparison = result,
             session = SessionPayload(session),
             note = "Tenant-isolated estimate and BOQ revision readback; human approval and live production corroboration remain required."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutApprovalEvidenceAsync(
+        HttpContext context,
+        long projectId,
+        ILegacySessionValidator validator,
+        IErpFitOutApprovalEvidenceReadService evidence,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out approval evidence.");
+        }
+
+        var result = await evidence.ReadAsync(projectId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source != "database-error",
+            surface = "erp",
+            projectId,
+            evidence = result,
+            session = SessionPayload(session),
+            note = "Project-scoped approval queue and decision audit evidence; human approval sign-off and production validation remain required."
         });
     }
 
