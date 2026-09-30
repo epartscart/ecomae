@@ -810,6 +810,63 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAwardRfq, async (
+            HttpContext context,
+            ErpAwardRfqBody? body,
+            ILegacySessionValidator validator,
+            EcomAE.Platform.Erp.IErpRfqAwardWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/rfq-app", "Admin ERP capability required.");
+            }
+
+            body ??= new();
+            if (!body.ConfirmWrites)
+            {
+                return Results.Ok(new
+                {
+                    ok = false,
+                    status = "dry_run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = false,
+                    message = "Dry run only. Confirm the RFQ award to create a draft purchase order.",
+                    rfq_id = body.RfqId,
+                    supplier_id = body.SupplierId,
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.AwardAsync(
+                new EcomAE.Platform.Erp.ErpRfqAwardWriteRequest(
+                    body.RfqId,
+                    body.SupplierId,
+                    session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/rfq-app?rfq_id=" + body.RfqId.ToString(CultureInfo.InvariantCulture),
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    status = written.Code,
+                    writes = written.Writes,
+                    phpAuthoritative = false,
+                    rfq_id = body.RfqId,
+                    supplier_id = body.SupplierId,
+                    po_id = written.PurchaseOrderId,
+                    po_no = written.PurchaseOrderNumber,
+                    total_ex_vat = written.TotalExVat,
+                    lines = written.Lines,
+                    message = written.Message,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDeliveryNoteCreate, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -21872,6 +21929,10 @@ public sealed class ErpModule : ISurfaceModule
         decimal UnitPrice = 0m,
         int LeadTimeDays = 0,
         string? Notes = null,
+        bool ConfirmWrites = false);
+    private sealed record ErpAwardRfqBody(
+        long RfqId = 0,
+        long SupplierId = 0,
         bool ConfirmWrites = false);
     private sealed record ErpPettyCashSaveBody(
         long Id = 0,

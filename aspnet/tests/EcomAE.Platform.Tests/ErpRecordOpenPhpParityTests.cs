@@ -2764,6 +2764,13 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("/erp/ajax/save-rfq-response", razor, StringComparison.Ordinal);
         Assert.Contains("I confirm this supplier response is ready to be persisted", razor, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\" value=\"true\" required", razor, StringComparison.Ordinal);
+        Assert.Contains("/erp/ajax/award-rfq", razor, StringComparison.Ordinal);
+        Assert.Contains("Award RFQ and create draft PO", razor, StringComparison.Ordinal);
+        Assert.Contains("complete quoted-line coverage", razor, StringComparison.Ordinal);
+        var awardService = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpRfqAwardWriteService.cs"));
+        Assert.Contains("epc_scm_rfq_responses", awardService, StringComparison.Ordinal);
+        Assert.Contains("IErpPurchaseOrderWriteService", awardService, StringComparison.Ordinal);
+        Assert.Contains("status`='awarded'", awardService, StringComparison.Ordinal);
         Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
