@@ -8963,7 +8963,7 @@ public const string SelectCpOpsGuidesStats = """
         """;
 
     public const string SelectErpProductInfoItems = """
-        SELECT `id`, IFNULL(`sku`,'') AS sku,
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`sku`,'') AS sku,
                IFNULL(`name`,'') AS name,
                IFNULL(`product_id`,0) AS product_id,
                IFNULL(`item_type`,'standard') AS item_type,
@@ -9002,7 +9002,7 @@ public const string SelectCpOpsGuidesStats = """
 
     /// <summary>Opened item master (Open key <c>pm_item_id</c>). track_expiry is hidden from the list. notes/barcode omitted.</summary>
     public const string SelectErpProductInfoItemDetail = """
-        SELECT `id`, IFNULL(`sku`,'') AS sku,
+        SELECT `id`, IFNULL(`site_key`,'') AS site_key, IFNULL(`sku`,'') AS sku,
                IFNULL(`name`,'') AS name,
                IFNULL(`product_id`,0) AS product_id,
                IFNULL(`item_type`,'standard') AS item_type,

@@ -27032,6 +27032,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 rows.Add(new ErpInventoryForecastDigest(
                     Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                    ReadStr(reader, "site_key"),
                     ReadStr(reader, "sku"),
                     ReadStr(reader, "product_name"),
                     Convert.ToInt32(reader["current_stock"] is DBNull ? 0 : reader["current_stock"], CultureInfo.InvariantCulture),
@@ -27119,6 +27120,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 {
                     siblings.Add(new ErpInventoryForecastDigest(
                         Convert.ToInt64(reader["id"], CultureInfo.InvariantCulture),
+                        ReadStr(reader, "site_key"),
                         ReadStr(reader, "sku"),
                         ReadStr(reader, "product_name"),
                         Convert.ToInt32(reader["current_stock"] is DBNull ? 0 : reader["current_stock"], CultureInfo.InvariantCulture),
