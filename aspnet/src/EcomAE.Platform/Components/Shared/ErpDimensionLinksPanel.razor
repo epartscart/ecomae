@@ -1,0 +1,41 @@
+@using EcomAE.Platform.Erp
+
+@if (Links.Count > 0)
+{
+    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Financial dimension readback" style="margin-top:1rem">
+        <div class="kpi">
+            <div class="lbl">Persisted dimensions</div>
+            <div class="val">@Links.Count</div>
+        </div>
+    </div>
+    <div class="epc-erp-table-wrap" style="margin-top:.5rem">
+        <table class="table table-condensed table-bordered table-epc epc-erp-table">
+            <thead><tr><th>Dimension</th><th>Code</th><th>Value</th><th>Saved</th></tr></thead>
+            <tbody>
+                @foreach (var link in Links)
+                {
+                    <tr>
+                        <td>@link.Key</td>
+                        <td>@(string.IsNullOrWhiteSpace(link.ValueCode) ? "—" : link.ValueCode)</td>
+                        <td>@(string.IsNullOrWhiteSpace(link.ValueLabel) ? "—" : link.ValueLabel)</td>
+                        <td>@FormatTime(link.TimeCreated)</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <p class="text-muted" style="margin:.85rem 0 0">No persisted financial dimensions for this record.</p>
+}
+
+@code {
+    [Parameter]
+    public IReadOnlyList<ErpDimensionLink> Links { get; set; } = [];
+
+    private static string FormatTime(long unix)
+        => unix <= 0
+            ? "—"
+            : DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", System.Globalization.CultureInfo.InvariantCulture);
+}

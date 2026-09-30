@@ -256,6 +256,28 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("confirmWrites", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void DocumentWorkspacesReadBackPersistedFinancialDimensions()
+    {
+        var root = FindRepoRoot();
+        var service = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Erp/ErpDimensionLinkReadService.cs"));
+        Assert.Contains("epc_erp_dim_links", service, StringComparison.Ordinal);
+        Assert.Contains("IErpDimensionLinkReadService", service, StringComparison.Ordinal);
+
+        foreach (var pageName in new[] { "ErpRfqApp.razor", "ErpDeliveryNotesApp.razor", "ErpPaymentBatchesApp.razor" })
+        {
+            var page = File.ReadAllText(Path.Combine(
+                root,
+                "aspnet/src/EcomAE.Platform/Components/Pages",
+                pageName));
+            Assert.Contains("IErpDimensionLinkReadService", page, StringComparison.Ordinal);
+            Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
+            Assert.Contains("DimensionLinks.LoadAsync", page, StringComparison.Ordinal);
+        }
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

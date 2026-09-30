@@ -11,6 +11,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionCatalogReadService DimensionCatalog
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Delivery Notes · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -51,6 +52,7 @@
                 Tabs="@DeliveryWorkspaceTabs"
                 HeaderActions="@DeliveryHeaderActions" />
             <p class="text-muted" style="margin:.85rem 0 0">This delivery-note read model exposes shipment header and tracking data; no line body is invented. The guarded document route remains available when a PDF has been generated.</p>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <p class="text-muted" style="margin:.85rem 0 0">
                 @if (!string.IsNullOrWhiteSpace(_opened.PdfPath))
                 {
@@ -163,6 +165,7 @@
     private bool _isAdmin;
     private IReadOnlyList<ErpDeliveryNoteDigest> _notes = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -253,6 +256,7 @@
             var detail = await Dashboards.BuildErpDeliveryNoteDetailAsync(_openedId, ctx.RequestAborted);
             _opened = detail.Note;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("delivery_note", _openedId, ctx.RequestAborted);
             if (_opened is not null)
             {
                 var openedList = _notes.FirstOrDefault(r => r.Id == _openedId);

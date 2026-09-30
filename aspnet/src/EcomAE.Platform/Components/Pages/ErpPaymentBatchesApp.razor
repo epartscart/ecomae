@@ -10,6 +10,7 @@
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
 @inject IErpDimensionCatalogReadService DimensionCatalog
+@inject IErpDimensionLinkReadService DimensionLinks
 
 <PageTitle>Payment Batches · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -79,6 +80,7 @@
                 <a class="btn btn-xs btn-default" href="@OpenedReturnHref">This row</a>
                 <a class="btn btn-xs btn-default" href="@_listHref">Close</a>
             </p>
+            <ErpDimensionLinksPanel Links="_openedDimensionLinks" />
             <dl style="display:grid;grid-template-columns:8rem 1fr;gap:.35rem .75rem;margin:0;font-size:.9rem;">
                 <dt>ID</dt><dd>@_opened.Id.ToString(CultureInfo.InvariantCulture)</dd>
                 <dt>Batch #</dt><dd>@(string.IsNullOrWhiteSpace(_opened.BatchNo) ? "—" : _opened.BatchNo)</dd>
@@ -190,6 +192,7 @@
     private IReadOnlyList<ErpPaymentBatchDigest> _batches = [];
     private IReadOnlyList<ErpCashAccountDigest> _accounts = [];
     private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
+    private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -233,6 +236,7 @@
             var detail = await Dashboards.BuildErpPaymentBatchDetailAsync(_openedId, ctx.RequestAborted);
             _opened = detail.Batch;
             _openedSiblings = detail.Siblings;
+            _openedDimensionLinks = await DimensionLinks.LoadAsync("payment_batch", _openedId, ctx.RequestAborted);
             if (_opened is not null)
             {
                 var openedList = _batches.FirstOrDefault(r => r.Id == _openedId);
