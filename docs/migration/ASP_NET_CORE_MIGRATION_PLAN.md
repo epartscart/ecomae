@@ -164,6 +164,18 @@ The same fit-out evidence surface now reads project-scoped pending approval
 records together with approval decision audit history. This records machine
 approval evidence without treating it as human sign-off or production
 acceptance.
+Fit-out also exposes read-only estimate and BOQ detail readback, including
+component rates, derived cost/selling values, line ordering, and estimate
+metadata. This closes a readback gap while leaving human approval, live
+database corroboration, and full scenario acceptance open.
+Fit-out project progress now also exposes the PHP project header, task
+milestones, bounded timesheets, and a calculated cost/billable/progress summary
+through a project-scoped read-only route. The projection does not claim
+project write, billing, recognition, or human acceptance parity.
+Fit-out also exposes read-only estimate and BOQ detail readback, including
+component rates, derived cost/selling values, line ordering, and estimate
+metadata. This closes a readback gap while leaving human approval, live
+database corroboration, and full scenario acceptance open.
 
 After the Jewellery and fit-out implementation tracks are complete, run a
 guarded functional rehearsal with isolated dummy tenant/company data before
