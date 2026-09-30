@@ -620,3 +620,12 @@ The script checks out the final migration files from the source branch onto late
 - Fit-out P1-04 remains `partial` until readback, revision comparison,
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
+
+## Fifty Fifth Milestone Included Here
+
+- Added a read-only Jewellery sale-history projection matching the PHP
+  `epc_jewel_sale_list` type map for retail, metal, and return vouchers.
+- Kept the projection company-scoped, bounded to 1–200 rows, and protected by
+  the Jewellery staff gate.
+- Sale-history readback does not claim tender allocation, stock deduction,
+  VAT settlement, receipt posting, or return reconciliation parity.

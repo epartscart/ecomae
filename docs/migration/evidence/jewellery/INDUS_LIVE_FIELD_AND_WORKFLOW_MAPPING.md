@@ -248,3 +248,16 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
+
+## Sale history readback
+
+The ASP.NET Jewellery surface now exposes
+`/erp/jewellery/sale-history`, a read-only company-scoped projection over
+`epc_jewel_voucher`. The PHP type map is preserved: `RETAIL` reads `RSI` and
+`RSC`, `METAL` reads `MSI` and `MSC`, and `RETURN` reads `SRN` and `SRC`.
+Results are bounded and return stable voucher, customer, salesperson, amount,
+status, and authorization fields with migration/database-error metadata.
+
+This is history readback only; tender allocation, stock deduction, VAT
+settlement, receipt posting, and return reconciliation remain PHP-authoritative
+until their transaction traces are verified.
