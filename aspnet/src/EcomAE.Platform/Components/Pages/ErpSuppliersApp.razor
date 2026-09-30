@@ -43,14 +43,17 @@
                         <th class="text-right">POs</th>
                         <th class="text-right">Spend</th>
                         <th class="text-right">On-time</th>
+                        <th class="text-right">Avg lead</th>
+                        <th class="text-right">RFQ resp.</th>
                         <th class="text-right">RFQ win</th>
+                        <th class="text-right">RFQs</th>
                         <th class="text-right">Payable</th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (_cards.Count == 0)
                     {
-                        <tr><td colspan="8">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No supplier scorecards yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="11">@(_isAdmin ? (string.IsNullOrWhiteSpace(_message) ? "No supplier scorecards yet." : _message) : "Sign in with ERP capability for live rows.")</td></tr>
                     }
                     else
                     {
@@ -66,8 +69,11 @@
                                 <td class="text-right">@c.Score.ToString("0.0", CultureInfo.InvariantCulture)</td>
                                 <td class="text-right">@c.PoCount.ToString(CultureInfo.InvariantCulture)</td>
                                 <td class="text-right">@c.Spend.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td class="text-right">@(c.OntimePct is { } ot ? ot.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</td>
+                                <td class="text-right">@(c.OntimePct.HasValue ? c.OntimePct.Value.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</td>
+                                <td class="text-right">@c.AvgLeadDays.ToString("0.0", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@(c.ResponsePct is { } rp ? rp.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</td>
                                 <td class="text-right">@(c.WinPct is { } w ? w.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</td>
+                                <td class="text-right">@c.RfqCount.ToString(CultureInfo.InvariantCulture)</td>
                                 <td class="text-right">@c.Balance.ToString("N2", CultureInfo.InvariantCulture)</td>
                             </tr>
                         }
@@ -82,6 +88,25 @@
                     <strong>@(_portalDetail.Card?.Name ?? $"Supplier #{_portalSupplierId}")</strong>
                     <a class="btn btn-xs btn-default" href="/erp/suppliers-app?tab=supplier_portal">Close</a>
                 </p>
+                @if (_portalDetail.Card is { } portalCard)
+                {
+                    <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Supplier performance detail">
+                        <div class="kpi"><div class="lbl">Performance score</div><div class="val">@portalCard.Score.ToString("0.0", CultureInfo.InvariantCulture) / 100</div></div>
+                        <div class="kpi"><div class="lbl">On-time delivery</div><div class="val">@(portalCard.OntimePct.HasValue ? portalCard.OntimePct.Value.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</div></div>
+                        <div class="kpi"><div class="lbl">Purchase orders</div><div class="val">@portalCard.PoCount.ToString(CultureInfo.InvariantCulture)</div></div>
+                        <div class="kpi"><div class="lbl">Open payable</div><div class="val">@portalCard.Balance.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+                    </div>
+                    <table class="table table-condensed table-bordered table-epc epc-erp-table" style="margin:.75rem 0 1rem">
+                        <thead><tr><th colspan="2">Score breakdown</th></tr></thead>
+                        <tbody>
+                            <tr><th>On-time delivery</th><td class="text-right">@(portalCard.OntimePct.HasValue ? portalCard.OntimePct.Value.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</td></tr>
+                            <tr><th>Avg delivery lead time</th><td class="text-right">@portalCard.AvgLeadDays.ToString("0.0", CultureInfo.InvariantCulture) days</td></tr>
+                            <tr><th>RFQ response rate</th><td class="text-right">@(portalCard.ResponsePct is { } rp ? rp.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</td></tr>
+                            <tr><th>RFQ win rate</th><td class="text-right">@(portalCard.WinPct is { } wp ? wp.ToString("0.0", CultureInfo.InvariantCulture) + "%" : "—")</td></tr>
+                            <tr><th>RFQs received</th><td class="text-right">@portalCard.RfqCount.ToString(CultureInfo.InvariantCulture)</td></tr>
+                        </tbody>
+                    </table>
+                }
                 <p class="text-muted">Recent purchase orders, RFQs, and payable bills.</p>
                 <div class="row">
                     <div class="col-sm-4">
@@ -89,7 +114,7 @@
                         <ul>
                             @foreach (var row in _portalDetail.PurchaseOrders)
                             {
-                                <li>@row.PurchaseNo · @row.Status · @row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture)</li>
+                                <li>@row.PurchaseNo · @row.Status · @row.TotalAmount.ToString("N2", CultureInfo.InvariantCulture) · @FormatDate(row.ReceivedAt > 0 ? row.ReceivedAt : row.ApprovedAt)</li>
                             }
                         </ul>
                     </div>
@@ -319,6 +344,12 @@
     {
         if (unix <= 0) return "—";
         return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
+    }
+
+    private static string FormatDate(long unix)
+    {
+        if (unix <= 0) return "—";
+        return DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
     }
 
     private static string SupplierPortalHref(long supplierId)
