@@ -367,6 +367,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProgress, HandleFitOutProgressAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectProgress, HandleFitOutProjectProgressAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRecoverySummary, HandleFitOutRecoverySummaryAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutExecutiveDashboard, HandleFitOutExecutiveDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalQueue, HandleFitOutApprovalQueueAsync);
@@ -14439,6 +14440,41 @@ public sealed class ErpModule : ISurfaceModule
             message = digest.Message,
             session = SessionPayload(session),
             note = "Read-only project P&L projection from tenant-isolated budget, transaction, and recognition ledgers."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutProjectProgressAsync(
+        HttpContext context,
+        long projectId,
+        int limit,
+        ILegacySessionValidator validator,
+        IErpProjectProgressReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out project progress.");
+        }
+
+        var result = await read.ReadAsync(projectId, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error" and not "not-found",
+            surface = "erp",
+            projectId,
+            limit,
+            project = result.Project,
+            tasks = result.Tasks,
+            timesheets = result.Timesheets,
+            summary = result.Summary,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Fit-out project progress is project-scoped and read-only over PHP project, task, and timesheet records."
         });
     }
 

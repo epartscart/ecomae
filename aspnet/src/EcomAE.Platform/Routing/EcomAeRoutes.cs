@@ -2783,6 +2783,9 @@ public static class EcomAeRoutes
     /// <summary>Read-only progress-claim and weighted-progress records for a fit-out project.</summary>
     public const string ErpFitOutProgress =
         "/erp/fitout/progress";
+    /// <summary>Read-only PHP project header, tasks, timesheets, and progress summary.</summary>
+    public const string ErpFitOutProjectProgress =
+        "/erp/fitout/project-progress";
     public const string ErpFitOutRecoverySummary =
         "/erp/fitout/recovery-summary";
     public const string ErpFitOutLeadHandoffSave =

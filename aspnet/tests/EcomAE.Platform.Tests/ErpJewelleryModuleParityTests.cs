@@ -493,6 +493,21 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Fit-out progress readback is project-scoped and read-only.", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void FitOutProjectProgressReadback_PreservesPhpProjectTasksAndTimesheets()
+    {
+        var service = ReadPlatformSource("Erp/ErpProjectProgressReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("FROM `epc_prj_projects`", service, StringComparison.Ordinal);
+        Assert.Contains("FROM `epc_prj_tasks`", service, StringComparison.Ordinal);
+        Assert.Contains("FROM `epc_prj_timesheets`", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE t.`project_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutProjectProgress", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutProjectProgressAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Fit-out project progress is project-scoped and read-only", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();
