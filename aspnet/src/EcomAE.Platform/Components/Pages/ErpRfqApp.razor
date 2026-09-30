@@ -53,6 +53,46 @@
                 Tabs="@RfqWorkspaceTabs"
                 HeaderActions="@RfqHeaderActions" />
             <p class="text-muted" style="margin:.85rem 0 0">RFQ saves use the guarded PHP-compatible live write path. When PHP SCM lines exist, the workspace reads their persisted request quantities and target prices without creating or mutating the PHP-owned schema; supplier response comparison and award remain Classic-owned.</p>
+            @if (_opened.Responses is { Count: > 0 })
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Persisted supplier responses (comparison read-only)</p>
+                <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Line</th><th>Supplier</th><th class="text-right">Unit price</th><th class="text-right">Line total</th><th class="text-right">Lead days</th><th>Notes</th></tr></thead>
+                    <tbody>
+                        @foreach (var response in _opened.Responses)
+                        {
+                            <tr>
+                                <td>@response.Description</td>
+                                <td>@response.SupplierId.ToString(CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@response.UnitPrice.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@response.LineTotal.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@response.LeadTimeDays.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(response.Notes) ? "—" : response.Notes)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                @if (_opened.SupplierRanking is { Count: > 0 })
+                {
+                    <p class="text-muted" style="margin:1rem 0 .4rem">Supplier ranking by quoted value</p>
+                    <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                        <thead><tr><th>Rank</th><th>Supplier</th><th class="text-right">Quoted total</th></tr></thead>
+                        <tbody>
+                            @{ var rank = 0; }
+                            @foreach (var supplier in _opened.SupplierRanking)
+                            {
+                                rank++;
+                                <tr>
+                                    <td>@rank.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@supplier.SupplierId.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td class="text-right">@supplier.TotalQuoted.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+                <p class="text-muted">Comparison is read-only here; response writes and award-to-PO remain Classic-owned until their guarded PHP-schema services are implemented.</p>
+            }
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {
                 <p class="text-muted" style="margin:.85rem 0 .35rem">description excerpt</p>

@@ -7314,6 +7314,17 @@ public const string SelectCpOpsGuidesStats = """
         ORDER BY `sort_order`, `id`
         """;
 
+    public const string SelectErpScmRfqResponses = """
+        SELECT `id`, IFNULL(`rfq_line_id`,0) AS rfq_line_id,
+               IFNULL(`supplier_id`,0) AS supplier_id,
+               IFNULL(`unit_price`,0) AS unit_price,
+               IFNULL(`lead_time_days`,0) AS lead_time_days,
+               IFNULL(`notes`,'') AS notes
+        FROM `epc_scm_rfq_responses`
+        WHERE `rfq_id` = @rfq_id
+        ORDER BY `rfq_line_id`, `unit_price`, `id`
+        """;
+
     /// <summary>ERP three-way match rows — PHP epc_erp_three_way_match_rows.</summary>
     public const string SelectErpThreeWayMatch = """
         SELECT po.`id` AS po_id, IFNULL(po.`po_no`,'') AS po_no, IFNULL(po.`status`,'') AS po_status,

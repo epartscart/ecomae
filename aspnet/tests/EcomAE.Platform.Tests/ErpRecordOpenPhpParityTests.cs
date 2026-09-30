@@ -2746,6 +2746,9 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("RfqHeaderActions", razor, StringComparison.Ordinal);
         Assert.Contains("RfqWorkspaceLines", razor, StringComparison.Ordinal);
         Assert.Contains("epc_scm_rfq_lines", File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs")), StringComparison.Ordinal);
+        Assert.Contains("epc_scm_rfq_responses", File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs")), StringComparison.Ordinal);
+        Assert.Contains("SupplierRanking", razor, StringComparison.Ordinal);
+        Assert.Contains("comparison read-only", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("When PHP SCM lines exist", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
         Assert.Contains("ShowGhostScaffold=\"false\"", razor, StringComparison.Ordinal);
