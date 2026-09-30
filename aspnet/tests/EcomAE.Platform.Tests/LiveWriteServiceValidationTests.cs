@@ -34,6 +34,14 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Null(valid);
     }
 
+    [Fact]
+    public async Task Financial_dimension_catalog_does_not_open_unconfigured_tenant_database()
+    {
+        var catalog = await new ErpDimensionCatalogReadService(new UnconfiguredConnections()).LoadAsync();
+
+        Assert.Empty(catalog);
+    }
+
     private sealed class UnconfiguredConnections : IErpWriteConnectionFactory
     {
         public bool IsConfigured => false;
