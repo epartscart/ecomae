@@ -479,6 +479,67 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void FitOutBoqReadback_IsEstimateScopedAndExposesComponentRates()
+    {
+        var service = ReadPlatformSource("Erp/ErpFitOutBoqReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("ErpProjectAccountingApp.razor");
+        Assert.Contains("WHERE `estimate_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("material_rate", service, StringComparison.Ordinal);
+        Assert.Contains("selling_amount", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutBoqRead", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutBoqReadAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Open estimate / BOQ JSON", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JewelleryBarcodePurchaseSell_IsAvailableAndCompanyScoped()
+    {
+        var service = ReadSource("ErpJwBarcodePurchaseWriteService.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("`status` = 'available'", service, StringComparison.Ordinal);
+        Assert.Contains("(? = 0 OR `company_id` = ?)", service, StringComparison.Ordinal);
+        Assert.Contains("new ErpJwBarcodePurchaseSellRequest(id, companyId, customerId, invoiceId)", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JewelleryStockAvailability_IsInStockAndCompanyScoped()
+    {
+        var service = ReadSource("ErpJwStockAvailabilityReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("`status`='in_stock'", service, StringComparison.Ordinal);
+        Assert.Contains("`company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryStockAvailability", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryStockAvailabilityAsync", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JewelleryBarcodePurchaseLookup_IsCompanyScopedAndReadOnly()
+    {
+        var service = ReadSource("ErpJwBarcodePurchaseLookupReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("WHERE `company_id`=? AND `barcode`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryBarcodePurchaseLookup", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryBarcodePurchaseLookupAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Barcode purchase detail is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JewelleryStockVerificationReadback_IsCompanyScopedAndReadOnly()
+    {
+        var service = ReadSource("ErpJwStockVerificationReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("WHERE `company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryStockVerificationList", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryStockVerificationListAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Stock verification history is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void JewelleryMetalStockBalance_IsCompanyScopedAndReadOnly()
     {
         var service = ReadSource("ErpJwMetalStockBalanceReadService.cs");

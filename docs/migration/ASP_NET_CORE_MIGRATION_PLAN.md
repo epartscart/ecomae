@@ -124,9 +124,27 @@ The metal-stock balance projection now mirrors the PHP aggregate by company,
 metal, and karat, including positive stock quantity filtering; mutation,
 movement reconstruction, and valuation reconciliation remain outside this
 read-only tranche.
+The Jewellery stock-availability readback now also exposes only `in_stock`
+tag rows, with optional company and tag/barcode filtering, so operators can
+verify available tagged inventory without treating the readback as a
+reservation, deduction, tender allocation, or posting implementation.
+The barcode-purchase sale path now requires the provisioned row to remain
+`available` and applies the selected company scope to both read and atomic
+update predicates; it does not claim invoice/tender posting or movement
+lineage parity.
+The Jewellery stock-availability readback now also exposes only `in_stock`
+tag rows, with optional company and tag/barcode filtering, so operators can
+verify available tagged inventory without treating the readback as a
+reservation, deduction, tender allocation, or posting implementation.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
+The Jewellery stock-verification history now has a read-only company-scoped
+projection matching the PHP `epc_jewel_sv_list` helper; adjustment posting and
+line-level variance persistence remain unverified.
+The barcode-purchase detail readback now mirrors the PHP barcode lookup as a
+read-only, company-scoped projection of purchase, cost, margin, selling-price,
+and status fields; it does not mutate inventory or claim posting parity.
 Fit-out now exposes a tenant-isolated estimate/BOQ revision comparison readback
 by project, including revision metadata, BOQ counts, cost/selling totals, and
 adjacent-revision deltas. This is machine evidence for P1-04, not human

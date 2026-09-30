@@ -1063,6 +1063,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryBarcodePurchaseCreateForm = "/erp/jewellery/barcode-purchase-create";
     /// <summary>PHP epc_barcode_purchase_sell. <c>confirmWrites=true</c> marks <c>epc_barcode_purchases</c> sold.</summary>
     public const string ErpJewelleryBarcodePurchaseSellForm = "/erp/jewellery/barcode-purchase-sell";
+    /// <summary>PHP epc_barcode_purchase_lookup. Read-only company-scoped barcode detail.</summary>
+    public const string ErpJewelleryBarcodePurchaseLookup = "/erp/jewellery/barcode-purchase-lookup";
     /// <summary>PHP epc_tourist_refund_create. <c>confirmWrites=true</c> inserts <c>epc_tourist_refund_invoices</c>.</summary>
     public const string ErpTouristRefundCreateForm = "/erp/tourist-refund/create";
     /// <summary>PHP epc_tourist_refund_validate. <c>confirmWrites=true</c> marks a pending barcode validated.</summary>
@@ -1117,6 +1119,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryRepairDeliverySaveForm = "/erp/jewellery/repair-delivery-save";
     /// <summary>PHP jw_stock_verification_save. <c>confirmWrites=true</c> inserts <c>epc_jewel_stock_verification</c>.</summary>
     public const string ErpJewelleryStockVerifySaveForm = "/erp/jewellery/stock-verify-save";
+    /// <summary>PHP epc_jewel_sv_list. Read-only company-scoped stock verification history.</summary>
+    public const string ErpJewelleryStockVerificationList = "/erp/jewellery/stock-verification";
     /// <summary>HTML form POST for PHP <c>jw_karat_seed</c> / <c>jw_seed_sample_data</c> dry-run.</summary>
     public const string ErpJewelleryKaratSeedForm = "/erp/jewellery/karat-seed";
     /// <summary>HTML form POST for other jewellery module saves (fixing / retail / stock).</summary>
