@@ -1044,6 +1044,7 @@ public static class EcomAeRoutes
     public const string ErpJewelleryTagCreateForm = "/erp/jewellery/tag-create";
     /// <summary>PHP epc_jw_tag_sell. <c>confirmWrites=true</c> marks <c>epc_jw_tags</c> sold.</summary>
     public const string ErpJewelleryTagSellForm = "/erp/jewellery/tag-sell";
+    public const string ErpJewelleryStockAvailability = "/erp/jewellery/stock-availability";
     /// <summary>PHP epc_gold_scheme_create. <c>confirmWrites=true</c> inserts <c>epc_gold_schemes</c>.</summary>
     public const string ErpJewelleryGoldSchemeCreateForm = "/erp/jewellery/gold-scheme-create";
     /// <summary>PHP epc_gold_scheme_enroll. <c>confirmWrites=true</c> inserts <c>epc_gold_scheme_enrollments</c>.</summary>
@@ -2793,6 +2794,8 @@ public static class EcomAeRoutes
         "/erp/fitout/operations-report";
     public const string ErpFitOutEstimateRevisionComparison =
         "/erp/fitout/estimates/revision-comparison";
+    public const string ErpFitOutBoqRead =
+        "/erp/fitout/estimates/boq";
     public const string ErpFitOutFinanceOperationsReport =
         "/erp/fitout/finance-operations-report";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>
