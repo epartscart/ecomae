@@ -248,3 +248,6 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
+
+Repair history readback mirrors the observed PHP company/date/status projection;
+it does not claim item-level transfer, workshop, delivery, or repair-sale parity.

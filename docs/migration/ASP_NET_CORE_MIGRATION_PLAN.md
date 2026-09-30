@@ -620,3 +620,7 @@ The script checks out the final migration files from the source branch onto late
 - Fit-out P1-04 remains `partial` until readback, revision comparison,
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
+
+Jewellery repair history now mirrors the PHP company/date/status list helper
+with bounded readback; item-level transfer, workshop, delivery, and repair-sale
+effects remain separately gated.
