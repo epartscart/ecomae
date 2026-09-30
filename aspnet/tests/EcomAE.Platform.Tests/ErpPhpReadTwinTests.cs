@@ -210,6 +210,8 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("SaveAsync(\"rfq\"", module, StringComparison.Ordinal);
         Assert.Contains("confirmWrites", page, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/save-rfq", page, StringComparison.Ordinal);
+        Assert.Contains("IErpDimensionCatalogReadService", page, StringComparison.Ordinal);
+        Assert.Contains("dim[@dimension.Key]", page, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -237,6 +239,21 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("IErpDeliveryNoteWriteService writes", module, StringComparison.Ordinal);
         Assert.Contains("mark_shipped", page, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/delivery-note-create", page, StringComparison.Ordinal);
+        Assert.Contains("IErpDimensionCatalogReadService", page, StringComparison.Ordinal);
+        Assert.Contains("dim[@dimension.Key]", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void PaymentBatchUsesTheActiveFinancialDimensionCatalog()
+    {
+        var page = File.ReadAllText(Path.Combine(
+            FindRepoRoot(),
+            "aspnet/src/EcomAE.Platform/Components/Pages/ErpPaymentBatchesApp.razor"));
+
+        Assert.Contains("IErpDimensionCatalogReadService", page, StringComparison.Ordinal);
+        Assert.Contains("DimensionCatalog.LoadAsync", page, StringComparison.Ordinal);
+        Assert.Contains("dim[@dimension.Key]", page, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", page, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()
