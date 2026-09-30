@@ -439,6 +439,18 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryFixingHistory_IsCompanyScopedAndReadOnly()
+    {
+        var service = ReadSource("ErpJwFixingReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("WHERE `company_id`=? AND (? = '' OR `fix_type`=?)", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryFixingList", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryFixingListAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Fixing history is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

@@ -124,6 +124,9 @@ The PHP Jewellery tranche currently prioritizes the master, purchase, stock,
 sales, repair, finance, and compliance subsets. The remaining INDUS workflows
 stay explicit acceptance gates rather than being marked complete from menu
 presence alone.
+The fixing-history readback now mirrors the PHP company-scoped `fix_type`
+projection with bounded header fields; it does not claim settlement posting
+or unfix-finance reconciliation parity.
 
 ## Confirmed PHP master-form parity tranche
 

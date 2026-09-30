@@ -123,6 +123,9 @@ reconciliation PHP-authoritative until evidenced.
 The guarded fix/unfix settlement path also requires an open `unfix` purchase
 and applies the selected company scope when supplied; it does not claim full
 fixing finance posting or reconciliation parity.
+The Jewellery fixing-history projection now mirrors the PHP company and
+`fix_type` list helper with bounded readback; settlement posting and
+unfix-finance reconciliation remain separately gated.
 Fit-out now exposes a tenant-isolated estimate/BOQ revision comparison readback
 by project, including revision metadata, BOQ counts, cost/selling totals, and
 adjacent-revision deltas. This is machine evidence for P1-04, not human
