@@ -179,9 +179,23 @@
                             }
                         </tbody>
                     </table>
-                    <p class="text-muted">This preview uses only persisted responses; it does not create a purchase order or award the RFQ. Award remains Classic-owned.</p>
+                    <p class="text-muted">This preview uses only persisted responses. Awarding creates a draft purchase order through the existing ERP PO writer, then records the award on the existing PHP SCM RFQ row.</p>
+                    @if (_isAdmin && awardPreview.QuotedLineCount == awardPreview.RfqLineCount && !string.Equals(_opened.Status, "awarded", StringComparison.OrdinalIgnoreCase))
+                    {
+                        <form method="post" action="/erp/ajax/award-rfq" class="epc-erp-form" style="margin-top:1rem">
+                            <input type="hidden" name="rfq_id" value="@_opened.Id" />
+                            <input type="hidden" name="supplier_id" value="@awardPreview.SupplierId" />
+                            <label style="display:flex;align-items:flex-start;gap:.45rem">
+                                <input type="checkbox" name="confirmWrites" value="true" required />
+                                <span>I confirm this supplier selection and authorize creation of a draft purchase order.</span>
+                            </label>
+                            <div class="epc-button-row" style="margin-top:.75rem">
+                                <button class="btn btn-primary" type="submit">Award RFQ and create draft PO</button>
+                            </div>
+                        </form>
+                    }
                 }
-                <p class="text-muted">Supplier responses now use the guarded PHP-schema insert above; comparison remains read-only here and award-to-PO remains Classic-owned.</p>
+                <p class="text-muted">Supplier responses use the guarded PHP-schema insert above. Awarding is guarded and requires complete quoted-line coverage plus explicit confirmation.</p>
             }
             @if (!string.IsNullOrWhiteSpace(_opened.DescriptionExcerpt))
             {

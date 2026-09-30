@@ -1733,6 +1733,8 @@ public static class EcomAeRoutes
     public const string ErpAjaxSaveRfq = "/erp/ajax/save-rfq";
     /// <summary>Guarded PHP SCM <c>epc_scm_rfq_add_response</c> insert; requires explicit confirmation.</summary>
     public const string ErpAjaxSaveRfqResponse = "/erp/ajax/save-rfq-response";
+    /// <summary>Guarded PHP SCM RFQ award-to-draft-PO handoff; requires explicit confirmation.</summary>
+    public const string ErpAjaxAwardRfq = "/erp/ajax/award-rfq";
     /// <summary>Wave B dry-run for PHP delivery_note_create (writes=0).</summary>
     public const string ErpAjaxDeliveryNoteCreate = "/erp/ajax/delivery-note-create";
     /// <summary>Wave B dry-run for PHP save_contact (writes=0).</summary>
