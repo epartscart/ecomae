@@ -669,3 +669,12 @@ The script checks out the final migration files from the source branch onto late
   for labels, colours, field visibility/order, layouts, branding, and other
   presentation preferences; backend business rules and security remain owned
   by the platform.
+
+## Sixty First Milestone Included Here
+
+- Added read-only Jewellery repair detail readback matching PHP
+  `epc_jewel_repair_get`: company-scoped repair header plus ordered
+  `epc_jewel_repair_items` lines.
+- Kept the detail projection bounded by explicit company and repair identity
+  predicates and documented it as read-only; repair transfer, workshop
+  receive, delivery, and settlement writes remain outside this tranche.

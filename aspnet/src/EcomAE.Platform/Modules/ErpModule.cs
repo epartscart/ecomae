@@ -6213,6 +6213,7 @@ public sealed class ErpModule : ISurfaceModule
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairReceiptHistory, HandleJewelleryRepairReceiptHistoryAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairDetail, HandleJewelleryRepairDetailAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12639,6 +12640,27 @@ public sealed class ErpModule : ISurfaceModule
             source = result.Source, message = result.Message,
             session = SessionPayload(session),
             note = "Repair receipt history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryRepairDetailAsync(
+        HttpContext context, int companyId, long repairId,
+        ILegacySessionValidator validator, IErpJwRepairDetailReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            return LiveWriteFormBinder.LoginRedirect(context,
+                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "Admin ERP capability required for jewellery repair detail.");
+        var result = await read.ReadAsync(companyId, repairId, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp", companyId, repairId, repair = result.Repair,
+            source = result.Source, message = result.Message,
+            session = SessionPayload(session),
+            note = "Repair detail is read-only and company-scoped."
         });
     }
 

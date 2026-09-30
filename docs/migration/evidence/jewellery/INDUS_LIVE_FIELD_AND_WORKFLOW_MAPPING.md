@@ -260,3 +260,7 @@ gates; this policy does not broaden ordinary tenant access.
 `epc_jewel_repair_list` with company/date/status scope and bounded readback.
 It remains read-only and does not claim repair-item mutation, transfer,
 workshop-receive, delivery, or settlement parity.
+`/erp/jewellery/repair-detail` now projects PHP `epc_jewel_repair_get` with a
+company-scoped repair header and ordered `epc_jewel_repair_items` lines. It
+remains read-only; the contradictory PHP transfer/workshop/delivery write
+field evidence is not promoted into an ASP.NET write claim.
