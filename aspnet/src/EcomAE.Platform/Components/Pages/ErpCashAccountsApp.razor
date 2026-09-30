@@ -165,6 +165,23 @@
     }
     else if (_view == "cash_forecast")
     {
+        @if (_forecastId > 0)
+        {
+            <p style="margin:0 0 .6rem">
+                <a href="/erp/cash-accounts-app?tab=cash_forecast">&laquo; Back to forecasts</a>
+            </p>
+            @if (_selectedForecast is not null)
+            {
+                <div class="epc-erp-table-wrap" style="margin-bottom:12px">
+                    <strong>@_selectedForecast.Name</strong>
+                    <span class="text-muted"> · @(string.IsNullOrWhiteSpace(_selectedForecast.Currency) ? "—" : _selectedForecast.Currency)</span>
+                    @if (!string.IsNullOrWhiteSpace(_selectedForecast.Notes))
+                    {
+                        <p class="text-muted" style="margin:.35rem 0 0">@_selectedForecast.Notes</p>
+                    }
+                </div>
+            }
+        }
         <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Cash forecast KPIs">
             <div class="kpi"><div class="lbl">Forecasts</div><div class="val">@_forecast.ForecastCount.ToString(CultureInfo.InvariantCulture)</div></div>
             <div class="kpi"><div class="lbl">Opening</div><div class="val">@_forecast.Opening.ToString("N2", CultureInfo.InvariantCulture)</div></div>
@@ -193,7 +210,7 @@
                         @foreach (var f in _forecasts)
                         {
                             <tr>
-                                <td><strong>@f.Name</strong></td>
+                                <td><strong><a href="/erp/cash-accounts-app?tab=cash_forecast&fc=@f.Id.ToString(CultureInfo.InvariantCulture)">@f.Name</a></strong></td>
                                 <td class="text-right">@f.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(f.Currency) ? "—" : f.Currency)</td>
                             </tr>
@@ -396,6 +413,8 @@
     private ErpCashForecastSummary _forecast = new(0, 0, 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<ErpCashForecastDigest> _forecasts = [];
     private IReadOnlyList<ErpCashForecastLineDigest> _forecastLines = [];
+    private long _forecastId;
+    private ErpCashForecastDigest? _selectedForecast;
     private decimal _totalBalance;
     private int _limit = 100;
     private string _accountsSource = "n/a";
@@ -430,6 +449,7 @@
         _flashOk = ctx.Request.Query["ok"].ToString() ?? "";
         _flashErr = ctx.Request.Query["err"].ToString() ?? "";
         _openedId = ErpRecordOpen.ReadId(ctx.Request, "account_id");
+        _forecastId = ErpRecordOpen.ReadId(ctx.Request, "fc");
 
         var tab = (ctx.Request.Query["tab"].ToString() ?? "").Trim().ToLowerInvariant();
         _view = tab is "petty_cash" or "jw_petty_cash" ? "petty_cash"
@@ -476,10 +496,11 @@
 
         if (_view == "cash_forecast")
         {
-            var fc = await Dashboards.BuildErpCashForecastDigestAsync(_limit, forecastId: null, ctx.RequestAborted);
+            var fc = await Dashboards.BuildErpCashForecastDigestAsync(_limit, _forecastId > 0 ? _forecastId : null, ctx.RequestAborted);
             _forecast = fc.Summary;
             _forecasts = fc.Forecasts;
             _forecastLines = fc.Lines;
+            _selectedForecast = _forecastId > 0 ? _forecasts.FirstOrDefault(f => f.Id == _forecastId) : null;
             _accountsSource = fc.Source;
             _accountsMessage = fc.Message;
             return;

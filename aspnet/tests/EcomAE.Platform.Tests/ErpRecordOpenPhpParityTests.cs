@@ -382,6 +382,12 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ReadId(ctx.Request, \"account_id\")", razor, StringComparison.Ordinal);
         Assert.Contains("account_id=", razor, StringComparison.Ordinal);
         Assert.Contains("ErpRecordOpen.Href(\"/erp/cash-accounts-app\", \"account_id\"", razor, StringComparison.Ordinal);
+        Assert.Contains("ReadId(ctx.Request, \"fc\")", razor, StringComparison.Ordinal);
+        Assert.Contains("tab=cash_forecast&fc=", razor, StringComparison.Ordinal);
+        Assert.Contains("forecast_id", razor, StringComparison.Ordinal);
+        Assert.Contains("Back to forecasts", razor, StringComparison.Ordinal);
+        Assert.Contains("_selectedForecast", razor, StringComparison.Ordinal);
+        Assert.Contains("BuildErpCashForecastDigestAsync", razor, StringComparison.Ordinal);
         Assert.Contains("BankNameExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("OfficeId", razor, StringComparison.Ordinal);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
