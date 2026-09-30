@@ -6,6 +6,7 @@ The first control-plane contract is documented in
 `docs/tenant-installation-control-plane.md`. A generated manifest follows
 `Install.Manifest.example.json`; it contains an expiring enrollment request id,
 not database credentials or a reusable cloud secret.
+The step-by-step operator procedure is in `docs/tenant-installation-guide.md`.
 
 | Concern | Today (PHP) | ASP.NET track |
 | --- | --- | --- |

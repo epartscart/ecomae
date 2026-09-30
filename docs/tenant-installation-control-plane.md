@@ -4,6 +4,9 @@ This is the first implementation tranche for guided cloud and on-premises tenant
 installation. It establishes the contract; it does not claim that database
 replication, remote command execution, or production cutover is complete.
 
+For the operator-facing procedure, see
+`docs/tenant-installation-guide.md`.
+
 ## Installation flow
 
 Every tenant starts in the cloud control plane:
