@@ -729,6 +729,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwPearlWriteService, EcomAE.P
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwColorStoneWriteService, EcomAE.Platform.Erp.ErpJwColorStoneWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwBarcodeWriteService, EcomAE.Platform.Erp.ErpJwBarcodeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwTagWriteService, EcomAE.Platform.Erp.ErpJwTagWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwStockAvailabilityReadService, EcomAE.Platform.Erp.ErpJwStockAvailabilityReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwGoldSchemeWriteService, EcomAE.Platform.Erp.ErpJwGoldSchemeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixUnfixWriteService, EcomAE.Platform.Erp.ErpJwFixUnfixWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwBarcodePurchaseWriteService, EcomAE.Platform.Erp.ErpJwBarcodePurchaseWriteService>();
@@ -1056,6 +1057,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutApprovalQueueReadServic
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutApprovalEvidenceReadService, EcomAE.Platform.Erp.ErpFitOutApprovalEvidenceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutOperationsReportReadService, EcomAE.Platform.Erp.ErpFitOutOperationsReportReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateRevisionReadService, EcomAE.Platform.Erp.ErpFitOutEstimateRevisionReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutBoqReadService, EcomAE.Platform.Erp.ErpFitOutBoqReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutFinanceOperationsReportReadService, EcomAE.Platform.Erp.ErpFitOutFinanceOperationsReportReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocDeleteWriteService, EcomAE.Platform.Erp.ErpInsDocDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyWriteService, EcomAE.Platform.Erp.ErpFyWriteService>();
