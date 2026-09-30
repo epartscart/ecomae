@@ -105,6 +105,8 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("RFQ response rate", supplierPortal, StringComparison.Ordinal);
         Assert.Contains("RFQs received", supplierPortal, StringComparison.Ordinal);
         Assert.Contains("Score breakdown", supplierPortal, StringComparison.Ordinal);
+        Assert.Contains("contactCard.Email", supplierPortal, StringComparison.Ordinal);
+        Assert.Contains("c.Received", supplierPortal, StringComparison.Ordinal);
         Assert.Equal("/erp/supplier-portal/{supplierId:long}", EcomAeRoutes.ErpSupplierPortalDetail);
         Assert.Contains("BuildErpVirtualWarehouseDigestAsync", File.ReadAllText(Path.Combine(pages, "ErpWarehousesApp.razor")), StringComparison.Ordinal);
         Assert.Contains("ListErpStaffAsync", File.ReadAllText(Path.Combine(pages, "ErpStaffApp.razor")), StringComparison.Ordinal);
