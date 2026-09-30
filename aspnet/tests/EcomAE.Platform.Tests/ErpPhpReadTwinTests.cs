@@ -286,6 +286,26 @@ public sealed class ErpPhpReadTwinTests
         }
     }
 
+    [Fact]
+    public void FinancialDimensionEditorsPrefillPersistedSelections()
+    {
+        var root = FindRepoRoot();
+        foreach (var pageName in new[]
+        {
+            "ErpRfqApp.razor",
+            "ErpDeliveryNotesApp.razor",
+            "ErpPaymentBatchesApp.razor"
+        })
+        {
+            var page = File.ReadAllText(Path.Combine(
+                root,
+                "aspnet/src/EcomAE.Platform/Components/Pages",
+                pageName));
+            Assert.Contains("IsDimensionSelected", page, StringComparison.Ordinal);
+            Assert.Contains("selected=\"@IsDimensionSelected", page, StringComparison.Ordinal);
+        }
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
