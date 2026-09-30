@@ -35,6 +35,21 @@ public sealed class ErpReceivablesParityTests
     }
 
     [Fact]
+    public void AgendaCatalogRecordsLiveEventPersistence()
+    {
+        var catalog = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet", "src", "EcomAE.Platform", "Migration", "SurfacePayloadContractCatalog.cs"));
+        var page = ReadApp("ErpAgendaApp.razor");
+        var module = File.ReadAllText(Path.Combine(FindRepoRoot(),
+            "aspnet", "src", "EcomAE.Platform", "Modules", "ErpModule.cs"));
+
+        Assert.Contains("live-event-lifecycle", catalog, StringComparison.Ordinal);
+        Assert.Contains("ErpAgendaEventsSave", module, StringComparison.Ordinal);
+        Assert.Contains("confirmWrites", page, StringComparison.Ordinal);
+        Assert.Contains("BuildErpAgendaEventDetailAsync", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void OnPremisesAppWiresLicenseDigest()
     {
         var text = ReadApp("ErpOnPremisesApp.razor");
