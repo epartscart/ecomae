@@ -1,4 +1,5 @@
 using EcomAE.Platform.Middleware;
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using Xunit;
 
@@ -172,5 +173,32 @@ public sealed class ErpNavMatrixTests
         var allowed = IndustrySpecificRoutePolicy.Allows("jewellery", hostIndustry)
             || IndustrySpecificRoutePolicy.Allows("fitout", hostIndustry);
         Assert.Equal(expected, allowed);
+    }
+
+    [Fact]
+    public void SharedHostAllowsTrustedJewelleryCompanyPack()
+    {
+        var company = new ErpCompanyDigest(2, "JW", "Jewellery Division", "AED", "AE", "jewellery_diamond", true);
+
+        Assert.True(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", company));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", null));
+    }
+
+    [Fact]
+    public void SharedHostAllowsTrustedFitOutCompanyPack()
+    {
+        var company = new ErpCompanyDigest(3, "FITOUT", "Fit-out Company", "AED", "AE", "fitout_contracting", true);
+
+        Assert.True(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", company));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", null));
+    }
+
+    [Fact]
+    public void NonMatchingCompanyCannotGrantIndustryRoute()
+    {
+        var company = new ErpCompanyDigest(1, "MAIN", "Main Company", "AED", "AE", "auto_parts", true);
+
+        Assert.False(IndustrySpecificRoutePolicy.Allows("jewellery", "auto_parts", company));
+        Assert.False(IndustrySpecificRoutePolicy.Allows("fitout", "auto_parts", company));
     }
 }
