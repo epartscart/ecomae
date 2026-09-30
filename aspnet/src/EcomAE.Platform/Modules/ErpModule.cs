@@ -8030,6 +8030,9 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryBarcodePurchaseLookup,
+            HandleJewelleryBarcodePurchaseLookupAsync);
         endpoints.MapPost(EcomAeRoutes.ErpSlaCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12615,6 +12618,39 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewelleryBarcodePurchaseLookupAsync(
+        HttpContext context,
+        int companyId,
+        string? barcode,
+        ILegacySessionValidator validator,
+        IErpJwBarcodePurchaseLookupReadService lookup,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/purchase-orders-app?tab=barcode_purchase",
+                "Admin ERP capability required for jewellery barcode lookup.");
+        }
+
+        var result = await lookup
+            .ReadAsync(companyId, barcode ?? string.Empty, cancellationToken)
+            .ConfigureAwait(false);
+
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            barcode = barcode?.Trim() ?? string.Empty,
+            purchase = result,
+            session = SessionPayload(session),
+            note = "Barcode purchase detail is read-only and company-scoped."
+        });
     }
 
     private static IResult Unauthorized(string message) => Results.Json(

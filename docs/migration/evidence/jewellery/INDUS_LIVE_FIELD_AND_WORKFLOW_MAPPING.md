@@ -211,6 +211,9 @@ the selected company scope when supplied, so an already sold tag or a tag from
 another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
+The barcode-purchase detail lookup now reads the PHP-owned purchase row by
+company and barcode and returns the observed cost, margin, selling-price, and
+status fields without mutating stock.
 
 The guarded fix/unfix settlement path now allows only an open `unfix` purchase,
 requires the selected company scope when supplied, and records one settlement
