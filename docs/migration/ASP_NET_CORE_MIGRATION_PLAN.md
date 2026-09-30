@@ -120,6 +120,10 @@ only a narrow availability/transition guard. The newly added stock-balance proje
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
+The barcode-purchase sale path now requires the provisioned row to remain
+`available` and applies the selected company scope to both read and atomic
+update predicates; it does not claim invoice/tender posting or movement
+lineage parity.
 The Jewellery stock-availability readback now also exposes only `in_stock`
 tag rows, with optional company and tag/barcode filtering, so operators can
 verify available tagged inventory without treating the readback as a
