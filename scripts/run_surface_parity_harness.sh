@@ -9,6 +9,10 @@ SAMPLES="$OUT_DIR/samples"
 REPORT="$OUT_DIR/harness-report.json"
 BASE_URL="${ECOMAE_PUBLIC_BASE_URL:-https://www.ecomae.com}"
 ASPNET_BASE="${ECOMAE_ASPNET_BASE_URL:-}"
+ASPNET_HOST_HEADER="${ECOMAE_ASPNET_HOST_HEADER:-}"
+if [[ -z "$ASPNET_HOST_HEADER" && "$ASPNET_BASE" =~ ^https?://(127\.0\.0\.1|localhost)(:|/) ]]; then
+  ASPNET_HOST_HEADER="www.ecomae.com"
+fi
 mkdir -p "$SAMPLES" "$OUT_DIR"
 
 pass=0
@@ -124,6 +128,9 @@ done
 # Optional authenticated dual-sample capture against ASP.NET loopback/base
 if [[ -n "$ASPNET_BASE" && ( -n "${ECOMAE_ADMIN_COOKIE_HEADER:-}" || -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ) ]]; then
   auth_args=()
+  if [[ -n "$ASPNET_HOST_HEADER" ]]; then
+    auth_args+=(-H "Host: ${ASPNET_HOST_HEADER}")
+  fi
   if [[ -n "${ECOMAE_ADMIN_COOKIE_JAR:-}" ]]; then
     auth_args+=(-b "$ECOMAE_ADMIN_COOKIE_JAR")
   else
