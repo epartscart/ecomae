@@ -6213,6 +6213,7 @@ public sealed class ErpModule : ISurfaceModule
             var result = dryRun.Evaluate(new ErpInvCreateItemRequest(0, code, false));
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairPending, HandleJewelleryRepairPendingAsync);
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairList, HandleJewelleryRepairListAsync);
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryDesignDetail, HandleJewelleryDesignDetailAsync);
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairReceiptHistory, HandleJewelleryRepairReceiptHistoryAsync);
@@ -12640,6 +12641,40 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewelleryRepairPendingAsync(
+        HttpContext context,
+        int companyId,
+        string? division,
+        string? branch,
+        ILegacySessionValidator validator,
+        IErpJwRepairPendingReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "Admin ERP capability required for jewellery pending repairs.");
+        }
+
+        var result = await read.ReadAsync(companyId, division, branch, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            division,
+            branch,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Pending repair jobs are read-only and company-scoped."
+        });
     }
 
     private static async Task<IResult> HandleJewelleryRepairListAsync(

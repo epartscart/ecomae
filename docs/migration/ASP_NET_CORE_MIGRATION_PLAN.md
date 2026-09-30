@@ -658,6 +658,17 @@ and finance reconciliation remain separately gated.
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+## Fifty Fourth Milestone Included Here
+
+- Added a read-only Jewellery pending-repair projection over the PHP-owned
+  repair header and item tables.
+- Kept the projection company-scoped, restricted to received/in-progress
+  jobs, optionally filtered by division and branch, and protected by the
+  existing Jewellery staff gate.
+- This is evidence-backed queue/readback coverage only; workshop receipt,
+  delivery, repair-sale, stock deduction, and finance effects remain outside
+  the claim until their PHP traces are corroborated.
+
 Jewellery repair history now mirrors the PHP company/date/status list helper
 with bounded readback; item-level transfer, workshop, delivery, and repair-sale
 effects remain separately gated.

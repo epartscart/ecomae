@@ -275,6 +275,19 @@ tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
 
+## Pending repair queue readback
+
+The ASP.NET Jewellery surface now exposes a read-only pending-repair projection
+at `/erp/jewellery/repair-pending`. It reads PHP-owned repair headers and item
+rows for the selected company, limits the queue to `received` and `in_progress`
+repair statuses, and supports optional division and branch filters. The route
+uses the existing Jewellery staff authorization and returns `migration` or
+`database-error` metadata when the authoritative tenant database is not
+available or the read fails.
+
+This projection does not claim repair transfer, workshop receive, workshop
+delivery, repair-sale posting, stock deduction, or finance parity.
+
 Repair history readback mirrors the observed PHP company/date/status projection;
 it does not claim item-level transfer, workshop, delivery, or repair-sale parity.
 
