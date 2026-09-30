@@ -388,6 +388,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("Back to forecasts", razor, StringComparison.Ordinal);
         Assert.Contains("_selectedForecast", razor, StringComparison.Ordinal);
         Assert.Contains("BuildErpCashForecastDigestAsync", razor, StringComparison.Ordinal);
+        Assert.Contains("No forecasts yet.", razor, StringComparison.Ordinal);
+        Assert.Contains("No forecast lines.", razor, StringComparison.Ordinal);
         Assert.Contains("BankNameExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("OfficeId", razor, StringComparison.Ordinal);
         Assert.Contains("same-type siblings", razor, StringComparison.OrdinalIgnoreCase);
