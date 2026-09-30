@@ -89,6 +89,49 @@
 
     <ErpPhpViewTabs QueryName="tab" Active="@_tab" BaseHref="@_tabBase" Tabs="@ErpJewelleryModuleChrome.StockTabs" />
 
+    @if (_tab == "jw_stock_balance")
+    {
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Jewellery stock balance totals">
+            <div class="kpi"><div class="lbl">Items</div><div class="val">@_balance.Count.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Stock pcs</div><div class="val">@_balance.TotalPcs.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Stock wt (g)</div><div class="val">@_balance.TotalGms.ToString("N4", CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Stock value</div><div class="val">@_balance.TotalValue.ToString("N2", CultureInfo.InvariantCulture)</div></div>
+        </div>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-bordered table-condensed table-epc epc-erp-table">
+                <thead>
+                    <tr><th>No.</th><th>Metal</th><th>Karat</th><th>Stock pcs</th><th>Stock wt (g)</th><th>Stock value</th></tr>
+                </thead>
+                <tbody>
+                    @if (_balance.Rows.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-muted">No positive stock balance rows yet.</td></tr>
+                    }
+                    else
+                    {
+                        var index = 0;
+                        foreach (var row in _balance.Rows)
+                        {
+                            index++;
+                            <tr>
+                                <td>@index.ToString(CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Metal) ? "—" : row.Metal)</td>
+                                <td>@(string.IsNullOrWhiteSpace(row.Karat) ? "—" : row.Karat)</td>
+                                <td>@row.StockPcs.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@row.StockGms.ToString("N4", CultureInfo.InvariantCulture)</td>
+                                <td>@row.StockValue.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
+                Source: @_balance.Source. This is the legacy metal-stock balance projection grouped by metal and karat; movement, as-of-date, branch, and valuation reconciliation remain on the legacy workflow until separately accepted.
+            @if (!string.IsNullOrWhiteSpace(_balance.Message)) { <span> @_balance.Message</span> }
+        </div>
+    }
+
     @if (_isAdmin && _tab == "jw_stock_verification")
     {
         <ErpPhpCreateWell Title="New Count">
@@ -206,6 +249,7 @@
     private string _returnHere = "/cp/jewellery-stock-verification-app?tab=jw_stock_verification";
     private ErpJewelleryModuleChrome.TabSpec _spec = ErpJewelleryModuleChrome.StockSpec("jw_stock_verification");
     private CpJewelleryStockVerificationSummary _summary = new(0, 0, 0, 0, "n/a", "");
+    private CpJewelleryStockBalanceDigestResult _balance = new([], 0, 0, 0, 0, "n/a", "");
     private IReadOnlyList<StockRow> _display = [];
     private string _source = "n/a";
     private string _message = "";
@@ -258,6 +302,10 @@
         _summary = result.Summary;
         _source = result.Source;
         _message = result.Message;
+        if (_tab == "jw_stock_balance")
+        {
+            _balance = await Dashboards.BuildCpJewelleryStockBalanceDigestAsync(200, _company, ctx.RequestAborted);
+        }
         _display = result.Verifications.Select(r => new StockRow(
             r.Id,
             string.IsNullOrWhiteSpace(r.Branch) ? "—" : r.Branch,

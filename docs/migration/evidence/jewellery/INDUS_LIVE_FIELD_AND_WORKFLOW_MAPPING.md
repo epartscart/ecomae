@@ -11,6 +11,11 @@ for confirmed legacy behavior and use this document to retain the observed
 INDUS field vocabulary, workflow inventory, proposed target mappings, and
 validation backlog.
 
+The additional `INDUS_Jewellery_ERP_Devin_AI_Build_Blueprint.docx` is also
+included in this evidence record. It defines the target chain, engineering
+principles, and G1–G10 acceptance gates, but it does not replace PHP as the
+legacy behavior or schema authority.
+
 ## Evidence rules
 
 - **Observed**: a menu, label, field, tab, or transaction value was visible.
@@ -152,6 +157,28 @@ Before declaring a mapping complete, obtain read-only evidence for:
 Until these items are evidenced, use the PHP implementation and schema as the
 behavioral authority, keep ASP.NET routes guarded/shadowed, and retain PHP as
 fallback.
+
+## Additional blueprint acceptance gates
+
+The blueprint adds the following explicit readiness gates to this backlog:
+
+| Gate | Evidence required | Current status |
+| --- | --- | --- |
+| G1 Domain | Confirm identities, code scopes, precision, and relationships | Open |
+| G2 Calculations | Approve purity, pure-weight, rate, making, stone, tax, and rounding rules | Open |
+| G3 Inventory | Reconstruct stock by branch/location/tag as of a date | Partial; PHP balance projection added |
+| G4 Finance | Produce balanced, reproducible operational postings | Open |
+| G5 Reconciliation | Reconcile pieces, weights, value, AR/AP, and trial balance | Open |
+| G6 Security | Test RBAC, maker-checker, audit, exports, and overrides | Partial; route/company gates covered |
+| G7 Performance | Meet POS, stock enquiry, and report SLAs | Open |
+| G8 Recovery | Test restore, retry/idempotency, failed posting, and DR | Open |
+| G9 UAT | Sign purchase, manufacture, transfer, verification, POS, return, melting, and finance scenarios | Open |
+| G10 Cutover | Complete rehearsal, rollback, opening balances, and freeze sign-off | Open |
+
+The ASP.NET stock-balance slice intentionally implements only the observed PHP
+projection: positive `epc_jewel_metal_stock` rows grouped by company, metal,
+and karat, with pieces, grams, and value totals. It does not claim a new
+immutable ledger or invent an as-of-date formula.
 
 ## Screenshot-driven transaction tranche
 

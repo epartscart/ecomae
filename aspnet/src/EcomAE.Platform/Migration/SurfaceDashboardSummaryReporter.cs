@@ -16767,6 +16767,50 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         command.Parameters.Add(parameter);
     }
 
+    public async Task<CpJewelleryStockBalanceDigestResult> BuildCpJewelleryStockBalanceDigestAsync(int limit, long companyId = 0, CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 500);
+        if (!_connections.IsConfigured)
+        {
+            return new([], 0, 0, 0, 0, "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            await using var command = connection.CreateCommand();
+            command.CommandText = LegacySurfaceDashboardSql.SelectCpJewelleryStockBalanceRows;
+            AddParameter(command, "@companyId", Math.Max(0, companyId));
+            AddParameter(command, "@limit", safeLimit);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            var rows = new List<CpJewelleryStockBalanceRowDigest>();
+            decimal totalPcs = 0;
+            decimal totalGms = 0;
+            decimal totalValue = 0;
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var stockPcs = Convert.ToDecimal(reader["stock_pcs"] is DBNull ? 0 : reader["stock_pcs"], CultureInfo.InvariantCulture);
+                var stockGms = Convert.ToDecimal(reader["stock_gms"] is DBNull ? 0 : reader["stock_gms"], CultureInfo.InvariantCulture);
+                var stockValue = Convert.ToDecimal(reader["stock_value"] is DBNull ? 0 : reader["stock_value"], CultureInfo.InvariantCulture);
+                rows.Add(new CpJewelleryStockBalanceRowDigest(
+                    Convert.ToString(reader["metal"] is DBNull ? string.Empty : reader["metal"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["karat"] is DBNull ? string.Empty : reader["karat"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    stockPcs,
+                    stockGms,
+                    stockValue));
+                totalPcs += stockPcs;
+                totalGms += stockGms;
+                totalValue += stockValue;
+            }
+
+            return new(rows, totalPcs, totalGms, totalValue, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new([], 0, 0, 0, 0, "database-error", ex.Message);
+        }
+    }
+
     public async Task<CpTaxExternalReportingDigestResult> BuildCpTaxExternalReportingDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

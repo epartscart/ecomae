@@ -13203,6 +13203,11 @@ public sealed class ErpModule : ISurfaceModule
         var unit = body.Unit;
         var unitRate = body.UnitRate;
         var sortOrder = body.SortOrder;
+        var materialRate = body.MaterialRate;
+        var labourRate = body.LabourRate;
+        var subcontractRate = body.SubcontractRate;
+        var equipmentRate = body.EquipmentRate;
+        var overheadRate = body.OverheadRate;
         var confirm = body.ConfirmWrites;
         if (context.Request.HasFormContentType)
         {
@@ -13216,6 +13221,11 @@ public sealed class ErpModule : ISurfaceModule
             unit = LiveWriteFormBinder.Text(form, "unit");
             unitRate = LiveWriteFormBinder.Dec(form, "unitRate", "unit_rate");
             sortOrder = (int)LiveWriteFormBinder.Long(form, "sortOrder", "sort_order");
+            materialRate = LiveWriteFormBinder.Dec(form, "materialRate", "material_rate");
+            labourRate = LiveWriteFormBinder.Dec(form, "labourRate", "labour_rate");
+            subcontractRate = LiveWriteFormBinder.Dec(form, "subcontractRate", "subcontract_rate");
+            equipmentRate = LiveWriteFormBinder.Dec(form, "equipmentRate", "equipment_rate");
+            overheadRate = LiveWriteFormBinder.Dec(form, "overheadRate", "overhead_rate");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
@@ -13225,7 +13235,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.SaveLineAsync(
-            new ErpFitOutBoqLineSaveRequest(id, estimateId, section, description, costType, quantity, unit, unitRate, sortOrder),
+            new ErpFitOutBoqLineSaveRequest(id, estimateId, section, description, costType, quantity, unit, unitRate, sortOrder, materialRate, labourRate, subcontractRate, equipmentRate, overheadRate),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
@@ -21443,6 +21453,11 @@ public sealed class ErpModule : ISurfaceModule
         string? Unit = null,
         decimal UnitRate = 0,
         int SortOrder = 0,
+        decimal MaterialRate = 0,
+        decimal LabourRate = 0,
+        decimal SubcontractRate = 0,
+        decimal EquipmentRate = 0,
+        decimal OverheadRate = 0,
         bool ConfirmWrites = false);
     private sealed record ErpFitOutContractTermsSaveBody(
         long ContractId = 0,

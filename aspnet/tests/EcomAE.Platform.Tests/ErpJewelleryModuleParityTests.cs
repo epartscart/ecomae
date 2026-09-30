@@ -271,6 +271,20 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void JewelleryStockBalance_UsesPhpPositiveMetalKaratProjection()
+    {
+        Assert.Contains("epc_jewel_metal_stock", LegacySurfaceDashboardSql.SelectCpJewelleryStockBalanceRows, StringComparison.Ordinal);
+        Assert.Contains("stock_qty", LegacySurfaceDashboardSql.SelectCpJewelleryStockBalanceRows, StringComparison.Ordinal);
+        Assert.Contains("GROUP BY `metal`, `karat`", LegacySurfaceDashboardSql.SelectCpJewelleryStockBalanceRows, StringComparison.Ordinal);
+        Assert.Contains("company_id", LegacySurfaceDashboardSql.SelectCpJewelleryStockBalanceRows, StringComparison.Ordinal);
+
+        var page = ReadApp("CpJewelleryStockVerificationApp.razor");
+        Assert.Contains("jw_stock_balance", page, StringComparison.Ordinal);
+        Assert.Contains("BuildCpJewelleryStockBalanceDigestAsync", page, StringComparison.Ordinal);
+        Assert.Contains("movement, as-of-date, branch, and valuation reconciliation remain on the legacy workflow until separately accepted", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void JewelleryFormRoutes_AreDedicatedHtmlPosts()
     {
         Assert.Equal("/erp/jewellery/repair-create", EcomAeRoutes.ErpJewelleryRepairCreateForm);

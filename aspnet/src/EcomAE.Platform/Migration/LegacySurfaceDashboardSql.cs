@@ -5734,6 +5734,21 @@ public static class LegacySurfaceDashboardSql
         LIMIT 50
         """;
 
+    /// <summary>PHP epc_jewel_metal_stock_balance: positive stock grouped by metal and karat.</summary>
+    public const string SelectCpJewelleryStockBalanceRows = """
+        SELECT IFNULL(`metal`,'') AS metal,
+               IFNULL(`karat`,'') AS karat,
+               SUM(IFNULL(`stock_pcs`,0)) AS stock_pcs,
+               SUM(IFNULL(`stock_gms`,0)) AS stock_gms,
+               SUM(IFNULL(`stock_value`,0)) AS stock_value
+        FROM `epc_jewel_metal_stock`
+        WHERE (`company_id` = @companyId)
+          AND IFNULL(`stock_qty`,0) > 0
+        GROUP BY `metal`, `karat`
+        ORDER BY `metal`, `karat`
+        LIMIT @limit
+        """;
+
 
 
     /// <summary>Tax external reporting KPIs from epc_cmp_rules + staging/audit (CREATE TABLE unused cluster).</summary>
