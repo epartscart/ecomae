@@ -2791,6 +2791,8 @@ public static class EcomAeRoutes
         "/erp/fitout/operations-report";
     public const string ErpFitOutEstimateRevisionComparison =
         "/erp/fitout/estimates/revision-comparison";
+    public const string ErpFitOutBoqRead =
+        "/erp/fitout/estimates/boq";
     public const string ErpFitOutFinanceOperationsReport =
         "/erp/fitout/finance-operations-report";
     /// <summary>Wave B dry-run for PHP rtl_assortment_set (writes=0).</summary>

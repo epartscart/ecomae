@@ -158,6 +158,21 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void FitOutBoqReadback_IsEstimateScopedAndExposesComponentRates()
+    {
+        var service = ReadPlatformSource("Erp/ErpFitOutBoqReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("ErpProjectAccountingApp.razor");
+        Assert.Contains("WHERE `estimate_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("material_rate", service, StringComparison.Ordinal);
+        Assert.Contains("selling_amount", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutBoqRead", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutBoqReadAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Open estimate / BOQ JSON", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MastersApp_DoesNotShowPhpDemoGoldRates()
     {
         var text = ReadApp("CpJewelleryMastersApp.razor");
