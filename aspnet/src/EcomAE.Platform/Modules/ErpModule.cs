@@ -366,6 +366,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpFitOutProjectPnl, HandleFitOutProjectPnlAsync);
         endpoints.MapPost(EcomAeRoutes.ErpFitOutEstimateCsv, HandleFitOutEstimateCsvAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpFitOutDeliveryDashboard, HandleFitOutDeliveryDashboardAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpFitOutProgress, HandleFitOutProgressAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutRecoverySummary, HandleFitOutRecoverySummaryAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutExecutiveDashboard, HandleFitOutExecutiveDashboardAsync);
         endpoints.MapGet(EcomAeRoutes.ErpFitOutApprovalQueue, HandleFitOutApprovalQueueAsync);
@@ -14541,6 +14542,29 @@ public sealed class ErpModule : ISurfaceModule
             message = result.Message,
             session = SessionPayload(session),
             note = "Tenant-isolated delivery counts, amounts, statuses, and completion summaries."
+        });
+    }
+
+    private static async Task<IResult> HandleFitOutProgressAsync(
+        HttpContext context, long projectId, string? recordType, int limit,
+        ILegacySessionValidator validator, IErpFitOutProgressReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/project-accounting-app",
+                "Admin ERP capability required for fit-out progress readback.");
+        var result = await read.ReadAsync(projectId, recordType ?? string.Empty, limit, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp", projectId, recordType, limit, rows = result.Rows,
+            source = result.Source, message = result.Message,
+            session = SessionPayload(session),
+            note = "Fit-out progress readback is project-scoped and read-only."
         });
     }
 
