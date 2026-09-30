@@ -103,6 +103,19 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void TagSell_IsCompanyScopedAndOnlyConsumesInStockTags()
+    {
+        var service = ReadSource("ErpJwTagWriteService.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("CpJewelleryMastersApp.razor");
+        Assert.Contains("AND `status` = 'in_stock'", service, StringComparison.Ordinal);
+        Assert.Contains("company_id` = ?", service, StringComparison.Ordinal);
+        Assert.Contains("CompanyId", service, StringComparison.Ordinal);
+        Assert.Contains("companyId = LiveWriteFormBinder.Int(form", module, StringComparison.Ordinal);
+        Assert.Contains("name=\"company\"", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void MastersApp_DoesNotShowPhpDemoGoldRates()
     {
         var text = ReadApp("CpJewelleryMastersApp.razor");
