@@ -13,6 +13,7 @@ public sealed class ErpCftLineAddPhpParityTests
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"forecast_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Add forecast line", text, StringComparison.Ordinal);
+        Assert.Contains("tab=cash_forecast&amp;fc=", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
     }

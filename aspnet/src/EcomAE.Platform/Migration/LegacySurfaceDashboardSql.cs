@@ -7909,10 +7909,17 @@ public const string SelectCpOpsGuidesStats = """
     public const string SelectErpCashForecasts = """
         SELECT `id`, IFNULL(`name`,'') AS name,
                IFNULL(`opening_balance`,0) AS opening_balance,
+               IFNULL(`opening_balance`,0) + IFNULL((
+                   SELECT SUM(CASE WHEN IFNULL(l.`direction`,'in') = 'out'
+                                   THEN -IFNULL(l.`amount`,0)
+                                   ELSE IFNULL(l.`amount`,0) END)
+                   FROM `epc_cft_line` l
+                   WHERE l.`forecast_id` = f.`id`
+               ),0) AS closing_balance,
                IFNULL(`currency`,'') AS currency,
                IFNULL(`notes`,'') AS notes,
                IFNULL(`time_created`,0) AS time_created
-        FROM `epc_cft_forecast`
+        FROM `epc_cft_forecast` f
         ORDER BY `id` DESC
         LIMIT @limit
         """;

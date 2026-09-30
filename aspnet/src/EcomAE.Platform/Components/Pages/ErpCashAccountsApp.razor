@@ -204,12 +204,14 @@
                         <th>Name</th>
                         <th class="text-right">Opening</th>
                         <th>Currency</th>
+                        <th class="text-right">Closing</th>
+                        <th></th>
                     </tr>
                 </thead>
                 <tbody>
                     @if (_forecasts.Count == 0)
                     {
-                        <tr><td colspan="3">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No forecasts yet." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
+                        <tr><td colspan="5">@(_isAdmin ? (string.IsNullOrWhiteSpace(_accountsMessage) ? "No forecasts yet." : _accountsMessage) : "Sign in with ERP capability for live rows.")</td></tr>
                     }
                     else
                     {
@@ -219,6 +221,8 @@
                                 <td><strong><a href="/erp/cash-accounts-app?tab=cash_forecast&fc=@f.Id.ToString(CultureInfo.InvariantCulture)">@f.Name</a></strong></td>
                                 <td class="text-right">@f.OpeningBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
                                 <td>@(string.IsNullOrWhiteSpace(f.Currency) ? "—" : f.Currency)</td>
+                                <td class="text-right @(f.ClosingBalance < 0 ? "text-danger" : string.Empty)">@f.ClosingBalance.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td><a class="btn btn-xs btn-default" href="/erp/cash-accounts-app?tab=cash_forecast&amp;fc=@f.Id.ToString(CultureInfo.InvariantCulture)">Open</a></td>
                             </tr>
                         }
                     }
@@ -239,6 +243,10 @@
                     </tr>
                 </thead>
                 <tbody>
+                    <tr class="active">
+                        <td colspan="5"><strong>Opening balance</strong></td>
+                        <td class="text-right"><strong>@_forecast.Opening.ToString("N2", CultureInfo.InvariantCulture)</strong></td>
+                    </tr>
                     @if (_forecastLines.Count == 0)
                     {
                         <tr><td colspan="6">No forecast lines.</td></tr>
