@@ -258,3 +258,8 @@ gates; this policy does not broaden ordinary tenant access.
 
 Repair history readback mirrors the observed PHP company/date/status projection;
 it does not claim item-level transfer, workshop, delivery, or repair-sale parity.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
