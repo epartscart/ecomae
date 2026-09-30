@@ -308,6 +308,23 @@ public sealed class ErpPhpReadTwinTests
         }
     }
 
+    [Fact]
+    public void InventoryDimensionEditorSupportsPersistedEntityReadback()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpInventoryStockApp.razor"));
+
+        Assert.Contains("IErpDimensionLinkReadService", page, StringComparison.Ordinal);
+        Assert.Contains("DimensionLinks.LoadAsync", page, StringComparison.Ordinal);
+        Assert.Contains("dimension_entity_type", page, StringComparison.Ordinal);
+        Assert.Contains("dimension_entity_id", page, StringComparison.Ordinal);
+        Assert.Contains("IsDimensionSelected", page, StringComparison.Ordinal);
+        Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
