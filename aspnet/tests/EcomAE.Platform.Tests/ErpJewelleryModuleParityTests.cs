@@ -439,6 +439,19 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Equal("confirm_writes_refused", refused.ValidationCode);
     }
 
+    [Fact]
+    public void JewelleryStoneMaster_IsCompanyScopedAndSupportsPhpMasterTables()
+    {
+        var service = ReadSource("ErpJwStoneMasterReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("epc_jewel_pearl_master", service, StringComparison.Ordinal);
+        Assert.Contains("epc_jewel_color_stone_master", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=?", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryStoneMaster", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryStoneMasterAsync", module, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();

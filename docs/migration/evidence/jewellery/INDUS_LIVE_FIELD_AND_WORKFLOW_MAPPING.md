@@ -248,3 +248,11 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
+
+## Pearl and colour-stone master readback
+
+`/erp/jewellery/stone-master` exposes the PHP pearl and colour-stone master
+lists as a bounded, read-only company-scoped projection. The route selects
+only the requested PHP-owned master table (`PEARL` or `COLOR_STONE`) and
+uses the existing Jewellery staff gate. Missing tenant-database configuration
+and database failures remain explicit in the response source metadata.
