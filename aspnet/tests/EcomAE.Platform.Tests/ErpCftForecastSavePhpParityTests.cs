@@ -12,7 +12,8 @@ public sealed class ErpCftForecastSavePhpParityTests
         Assert.Contains("ErpCashForecastSave", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"name\"", text, StringComparison.Ordinal);
-        Assert.Contains("New forecast", text, StringComparison.Ordinal);
+        Assert.Contains("Opening balance", text, StringComparison.Ordinal);
+        Assert.Contains("Create forecast", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
     }
