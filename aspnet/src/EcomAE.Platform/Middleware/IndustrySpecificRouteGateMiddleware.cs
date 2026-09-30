@@ -57,7 +57,8 @@ public static class IndustrySpecificRoutePolicy
     public static string? RequiredIndustry(string path)
     {
         if (path.StartsWith("/cp/jewellery-", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/erp/jewellery-", StringComparison.OrdinalIgnoreCase))
+            || path.StartsWith("/erp/jewellery-", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/erp/jewellery/", StringComparison.OrdinalIgnoreCase))
         {
             return "jewellery";
         }
