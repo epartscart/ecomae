@@ -33,6 +33,10 @@
                 <input type="number" name="projectId" min="1" placeholder="Project id" required style="width:7rem" />
                 <button type="submit" class="btn btn-default">Compare estimate revisions JSON</button>
             </form>
+            <form method="get" action="@FitOutHref("/erp/fitout/approval-evidence")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
+                <input type="number" name="projectId" min="1" placeholder="Project id" required style="width:7rem" />
+                <button type="submit" class="btn btn-default">Open approval evidence JSON</button>
+            </form>
             <a class="btn btn-default" href="@FitOutHref("/erp/fitout/finance-operations-report")" style="margin-left:.5rem">Open finance/operations report JSON</a>
             <form method="get" action="@FitOutHref("/erp/fitout/project-pnl")" style="display:inline-flex;gap:.4rem;align-items:center;margin-left:.5rem">
                 <label>Project id <input type="number" name="projectId" min="1" style="width:6rem" /></label>

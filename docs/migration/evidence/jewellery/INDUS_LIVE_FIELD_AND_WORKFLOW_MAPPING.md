@@ -223,6 +223,9 @@ revision comparison readback with cost, selling, line-count, status, and
 adjacent-revision delta evidence. It remains a read-only evidence surface;
 approval sign-off, live tenant-database corroboration, and full scenario
 acceptance remain open.
+Project-scoped fit-out approval evidence now combines the pending approval
+queue with decision audit history; this remains read-only machine evidence and
+does not replace human approval sign-off.
 
 The remaining screenshot acceptance gates are explicit: stock availability and deduction, receipt/tender
 allocation, VAT/TRN rules, fixing settlement effects, repair item-level

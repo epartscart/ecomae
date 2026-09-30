@@ -127,6 +127,10 @@ Fit-out now exposes a tenant-isolated estimate/BOQ revision comparison readback
 by project, including revision metadata, BOQ counts, cost/selling totals, and
 adjacent-revision deltas. This is machine evidence for P1-04, not human
 approval or live-tenant corroboration.
+The same fit-out evidence surface now reads project-scoped pending approval
+records together with approval decision audit history. This records machine
+approval evidence without treating it as human sign-off or production
+acceptance.
 
 After the Jewellery and fit-out implementation tracks are complete, run a
 guarded functional rehearsal with isolated dummy tenant/company data before
