@@ -658,6 +658,13 @@ and finance reconciliation remain separately gated.
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+## Fifty Seventh Milestone Included Here
+
+- Added a read-only Jewellery pearl and colour-stone master projection over
+  the PHP-owned master tables.
+- Kept the projection company-scoped, bounded, Jewellery-gated, and explicit
+  about migration/database-error fallback.
+
 ## Fifty Sixth Milestone Included Here
 
 - Added `/erp/jewellery/advance-history`, preserving the PHP
