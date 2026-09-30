@@ -1747,7 +1747,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "tenant config save", "/erp/tenant-config/save", "write-live-gated", "POST PHP tenant_config_save / epc_erp_adv_set_setting; confirmWrites=true writes ASP.NET; schema ensure stays PHP."),
         new("erp", "print designer save", "/erp/print-designer/save", "write-live-gated", "POST PHP epc_erp_print_template_save; confirmWrites=true writes ASP.NET; render and schema ensure stay PHP."),
         new("erp", "uae tax legislation checklist set", "/erp/uae-tax/legislation/checklist/set", "write-live-gated", "POST PHP epc_uae_tax_legislation_checklist_set_status; confirmWrites=true writes ASP.NET; PDF excerpt, KB seed, and schema ensure stay PHP."),
-        new("erp", "pm save", "/erp/pm/save", "write-live-gated", "POST PHP epc_erp_pm_save; confirmWrites=true writes ASP.NET; toggle/budget/listing/cheque/schema stay PHP."),
+        new("erp", "pm save", "/erp/pm/save", "write-live-gated", "POST PHP epc_erp_pm_save; confirmWrites=true writes ASP.NET; organizational masters enforce code/name and active legal-entity/dimension hierarchy checks; toggle/budget/listing/cheque/schema stay PHP."),
         new("erp", "pm budget save", "/erp/pm/budgets/save", "write-live-gated", "POST PHP epc_erp_pm_budget_save; confirmWrites=true writes ASP.NET; lines/listing/cheque/toggle/schema stay PHP."),
         new("erp", "pm budget line save", "/erp/pm/budget-lines/add", "write-live-gated", "POST PHP epc_erp_pm_budget_line_save; confirmWrites=true writes ASP.NET; header/listing/cheque/toggle/schema stay PHP."),
         new("erp", "pm toggle", "/erp/pm/toggle", "write-live-gated", "POST PHP epc_erp_pm_toggle; confirmWrites=true writes ASP.NET; save/budget/listing/cheque/schema stay PHP."),

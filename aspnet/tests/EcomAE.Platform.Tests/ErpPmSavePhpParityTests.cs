@@ -13,6 +13,9 @@ public sealed class ErpPmSavePhpParityTests
         Assert.Contains("/erp/pm/save", text, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", text, StringComparison.Ordinal);
         Assert.Contains("name=\"pm_table\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"legal_entity_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"parent_id\"", text, StringComparison.Ordinal);
+        Assert.Contains("name=\"dimension_id\"", text, StringComparison.Ordinal);
         Assert.Contains("Save platform master", text, StringComparison.Ordinal);
         Assert.DoesNotContain("writes=0", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
@@ -33,6 +36,7 @@ public sealed class ErpPmSavePhpParityTests
             item.AspNetRouteOrCapability == "/erp/pm/save");
         Assert.Equal("write-live-gated", row.Status);
         Assert.Contains("epc_erp_pm_save", row.Notes, StringComparison.Ordinal);
+        Assert.Contains("hierarchy checks", row.Notes, StringComparison.Ordinal);
         Assert.DoesNotContain("PHP remains authoritative", row.Notes, StringComparison.Ordinal);
         Assert.Equal("write-live-gated", SurfacePayloadContractCatalog.Functions.First(item =>
             item.AspNetRouteOrCapability == "/erp/ajax/pm-save").Status);
@@ -63,6 +67,39 @@ public sealed class ErpPmSavePhpParityTests
         Assert.Equal(
             new[] { "code", "name", "symbology", "pattern", "note" },
             ErpPmSaveWriteService.Registry["epc_erp_pm_barcode_formats"]);
+    }
+
+    [Fact]
+    public void Organizational_master_validation_requires_code_and_name_for_new_rows()
+    {
+        var missingCode = ErpPmSaveWriteService.ValidateMasterFields(
+            "epc_erp_pm_dimensions",
+            0,
+            new Dictionary<string, string> { ["name"] = "Department" });
+        var blankName = ErpPmSaveWriteService.ValidateMasterFields(
+            "epc_erp_pm_dimensions",
+            0,
+            new Dictionary<string, string> { ["code"] = "DEPT", ["name"] = " " });
+
+        Assert.Equal("invalid", missingCode?.Code);
+        Assert.Equal("invalid", blankName?.Code);
+    }
+
+    [Fact]
+    public void Dimension_value_validation_requires_a_positive_parent_dimension()
+    {
+        var result = ErpPmSaveWriteService.ValidateMasterFields(
+            "epc_erp_pm_dimension_values",
+            0,
+            new Dictionary<string, string>
+            {
+                ["code"] = "FIN",
+                ["name"] = "Finance",
+                ["dimension_id"] = "0",
+            });
+
+        Assert.Equal("invalid", result?.Code);
+        Assert.Contains("parent dimension", result?.Message, StringComparison.OrdinalIgnoreCase);
     }
 
     [Fact]

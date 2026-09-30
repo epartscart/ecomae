@@ -64,6 +64,12 @@ public sealed class ErpPmSaveWriteService : IErpPmSaveWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Nothing to save");
         }
 
+        var fieldValidation = ValidateMasterFields(table, request.Id, fields);
+        if (fieldValidation is not null)
+        {
+            return fieldValidation;
+        }
+
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
@@ -73,6 +79,31 @@ public sealed class ErpPmSaveWriteService : IErpPmSaveWriteService
         if (!await ColumnExistsAsync(connection, table, "code", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Master table is not provisioned");
+        }
+
+        if (request.Id > 0)
+        {
+            var existing = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `" + table + "` WHERE `id` = ?"),
+                cancellationToken,
+                request.Id).ConfigureAwait(false);
+            if (existing != request.Id)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Master record was not found.");
+            }
+        }
+
+        var relationshipValidation = await ValidateRelationshipsAsync(
+            connection,
+            table,
+            request.Id,
+            fields,
+            cancellationToken).ConfigureAwait(false);
+        if (relationshipValidation is not null)
+        {
+            return relationshipValidation;
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
@@ -113,6 +144,45 @@ public sealed class ErpPmSaveWriteService : IErpPmSaveWriteService
         }
 
         return ErpSimpleWriteResult.Ok("Saved", id);
+    }
+
+    public static ErpSimpleWriteResult? ValidateMasterFields(
+        string table,
+        long id,
+        IReadOnlyDictionary<string, string> fields)
+    {
+        if (table is not ("epc_erp_pm_dimensions"
+            or "epc_erp_pm_dimension_values"
+            or "epc_erp_pm_legal_entities"
+            or "epc_erp_pm_business_units"))
+        {
+            return null;
+        }
+
+        if (fields.TryGetValue("code", out var code) && string.IsNullOrWhiteSpace(code))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A master code is required.");
+        }
+
+        if (fields.TryGetValue("name", out var name) && string.IsNullOrWhiteSpace(name))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A master name is required.");
+        }
+
+        if (id <= 0 && (!fields.ContainsKey("code") || !fields.ContainsKey("name")))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "New organizational masters require code and name.");
+        }
+
+        if (table == "epc_erp_pm_dimension_values"
+            && fields.TryGetValue("dimension_id", out var dimensionId)
+            && (!long.TryParse(dimensionId, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedDimensionId)
+                || parsedDimensionId <= 0))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "A valid parent dimension is required.");
+        }
+
+        return null;
     }
 
     public static Dictionary<string, string> CollectAllowed(string table, IReadOnlyDictionary<string, string>? incoming)
@@ -257,6 +327,85 @@ public sealed class ErpPmSaveWriteService : IErpPmSaveWriteService
         return true;
     }
 
+    private static async Task<ErpSimpleWriteResult?> ValidateRelationshipsAsync(
+        DbConnection connection,
+        string table,
+        long id,
+        IReadOnlyDictionary<string, string> fields,
+        CancellationToken cancellationToken)
+    {
+        if (table == "epc_erp_pm_dimension_values"
+            && fields.TryGetValue("dimension_id", out var dimensionIdText)
+            && long.TryParse(dimensionIdText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var dimensionId))
+        {
+            if (!await TableExistsAsync(connection, "epc_erp_pm_dimensions", cancellationToken).ConfigureAwait(false))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Dimension master is not provisioned.");
+            }
+
+            var activeDimension = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_dimensions` WHERE `id` = ? AND `active` = 1"),
+                cancellationToken,
+                dimensionId).ConfigureAwait(false);
+            if (activeDimension != dimensionId)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Dimension values must belong to an active dimension.");
+            }
+        }
+
+        if (table == "epc_erp_pm_business_units"
+            && fields.TryGetValue("legal_entity_id", out var legalEntityText)
+            && long.TryParse(legalEntityText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var legalEntityId)
+            && legalEntityId > 0)
+        {
+            if (!await TableExistsAsync(connection, "epc_erp_pm_legal_entities", cancellationToken).ConfigureAwait(false))
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Legal-entity master is not provisioned.");
+            }
+
+            var activeLegalEntity = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `id` = ? AND `active` = 1"),
+                cancellationToken,
+                legalEntityId).ConfigureAwait(false);
+            if (activeLegalEntity != legalEntityId)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "Business units must belong to an active legal entity.");
+            }
+
+            if (fields.TryGetValue("parent_id", out var parentText)
+                && long.TryParse(parentText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parentId)
+                && parentId > 0)
+            {
+                if (parentId == id)
+                {
+                    return ErpSimpleWriteResult.Fail("invalid", "A business unit cannot be its own parent.");
+                }
+
+                if (!await TableExistsAsync(connection, "epc_erp_pm_business_units", cancellationToken).ConfigureAwait(false))
+                {
+                    return ErpSimpleWriteResult.Fail("invalid", "Business-unit master is not provisioned.");
+                }
+
+                var parentLegalEntity = await ErpDb.LongAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT `legal_entity_id` FROM `epc_erp_pm_business_units` WHERE `id` = ? AND `active` = 1"),
+                    cancellationToken,
+                    parentId).ConfigureAwait(false);
+                if (parentLegalEntity != legalEntityId)
+                {
+                    return ErpSimpleWriteResult.Fail("invalid", "Business-unit parents must use the same legal entity.");
+                }
+            }
+        }
+
+        return null;
+    }
+
     private static string ToCamel(string snake)
     {
         var parts = snake.Split('_', StringSplitOptions.RemoveEmptyEntries);
@@ -288,6 +437,20 @@ public sealed class ErpPmSaveWriteService : IErpPmSaveWriteService
             cancellationToken,
             table,
             column).ConfigureAwait(false);
+        return n > 0;
+    }
+
+    private static async Task<bool> TableExistsAsync(
+        DbConnection connection,
+        string table,
+        CancellationToken cancellationToken)
+    {
+        var n = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
+            cancellationToken,
+            table).ConfigureAwait(false);
         return n > 0;
     }
 }
