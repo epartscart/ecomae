@@ -342,6 +342,22 @@ public sealed class ErpPhpReadTwinTests
         Assert.DoesNotContain("name=\"dim.class_unit\"", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ContactMasterDimensionEditorUsesCatalogForFixedDimensions()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpContactsApp.razor"));
+
+        Assert.Contains("IErpDimensionCatalogReadService", page, StringComparison.Ordinal);
+        Assert.Contains("name=\"dim[@dimension.Key]\"", page, StringComparison.Ordinal);
+        Assert.Contains("name=\"dim[business_unit]\"", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"dim.business_unit\"", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"dim.legal_entity\"", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
