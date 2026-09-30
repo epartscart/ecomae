@@ -262,3 +262,8 @@ gates; this policy does not broaden ordinary tenant access.
 with explicit company scope, bounded `limit`/`offset`, and the existing
 Jewellery staff gate. It remains read-only and does not claim design-detail
 line, pricing-write, or downstream production parity.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
