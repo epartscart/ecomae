@@ -620,11 +620,3 @@ The script checks out the final migration files from the source branch onto late
 - Fit-out P1-04 remains `partial` until readback, revision comparison,
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
-
-## Fifty Sixth Milestone Included Here
-
-- Added `/erp/jewellery/advance-history`, preserving the PHP
-  `epc_jewel_advance_list` (`PAD`/`PAR`) readback as a bounded,
-  company-scoped, read-only projection.
-- Advance settlement, receipt allocation, and finance posting remain outside
-  the parity claim.

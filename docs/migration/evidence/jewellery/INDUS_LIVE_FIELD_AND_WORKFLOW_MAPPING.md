@@ -248,11 +248,3 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
-
-## Advance history readback
-
-`/erp/jewellery/advance-history` preserves the PHP
-`epc_jewel_advance_list` voucher map (`PAD` and `PAR`) as a bounded,
-read-only company-scoped projection behind the Jewellery staff gate.
-Advance settlement, receipt allocation, and finance posting remain
-PHP-authoritative.
