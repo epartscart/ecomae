@@ -9322,6 +9322,9 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryMetalStockBalance,
+            HandleJewelleryMetalStockBalanceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryFixingSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -12628,6 +12631,38 @@ public sealed class ErpModule : ISurfaceModule
 
         // /erp (+ aliases) owned by Blazor ErpBosDashboardApp — do not MapGet shell aliases
         // (AmbiguousMatch + admin login wall vs ASP.NET-primary guest browse).
+    }
+
+    private static async Task<IResult> HandleJewelleryMetalStockBalanceAsync(
+        HttpContext context,
+        int companyId,
+        string? metal,
+        ILegacySessionValidator validator,
+        IErpJwMetalStockBalanceReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_metal_stock",
+                "Admin ERP capability required for jewellery metal stock balance.");
+        }
+
+        var result = await read.ReadAsync(companyId, metal, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            metal,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Metal stock balance is read-only and company-scoped."
+        });
     }
 
     private static async Task<IResult> HandleJewelleryStockVerificationListAsync(

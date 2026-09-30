@@ -124,6 +124,9 @@ The PHP Jewellery tranche currently prioritizes the master, purchase, stock,
 sales, repair, finance, and compliance subsets. The remaining INDUS workflows
 stay explicit acceptance gates rather than being marked complete from menu
 presence alone.
+The metal-stock balance readback now mirrors the PHP company-scoped aggregate
+of positive stock by metal and karat, including pieces, grams, and value; it
+does not claim movement or posting parity.
 The stock-verification history readback now mirrors the PHP company-scoped
 `epc_jewel_sv_list` projection; adjustment posting and line-level variance
 persistence remain unverified.
