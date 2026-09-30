@@ -658,6 +658,10 @@ and finance reconciliation remain separately gated.
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
 
+Jewellery repair history now mirrors the PHP company/date/status list helper
+with bounded readback; item-level transfer, workshop, delivery, and repair-sale
+effects remain separately gated.
+
 ## Sixty First Milestone Included Here
 
 - Added read-only Jewellery design detail readback for the PHP design header,

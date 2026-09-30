@@ -1022,6 +1022,8 @@ public static class EcomAeRoutes
     public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
     /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
     public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
+    /// <summary>PHP epc_jewel_repair_list. Read-only company/date/status-scoped history.</summary>
+    public const string ErpJewelleryRepairList = "/erp/jewellery/repair";
     /// <summary>PHP epc_jewel_design_get. Read-only company-scoped design detail.</summary>
     public const string ErpJewelleryDesignDetail = "/erp/jewellery/design-detail";
     /// <summary>PHP epc_jewel_repair_list. Read-only company/date/status-scoped repair history.</summary>
