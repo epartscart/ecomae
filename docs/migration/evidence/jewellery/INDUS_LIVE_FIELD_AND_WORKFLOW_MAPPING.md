@@ -124,6 +124,18 @@ The PHP Jewellery tranche currently prioritizes the master, purchase, stock,
 sales, repair, finance, and compliance subsets. The remaining INDUS workflows
 stay explicit acceptance gates rather than being marked complete from menu
 presence alone.
+The fixing-history readback now mirrors the PHP company-scoped `fix_type`
+projection with bounded header fields; it does not claim settlement posting
+or unfix-finance reconciliation parity.
+The sales-analysis readback now mirrors the PHP company/date-range aggregate
+for the observed retail voucher types and supports the PHP grouping choices;
+it does not claim posting, export, or unsupported UI-filter parity.
+The metal-stock balance readback now mirrors the PHP company-scoped aggregate
+of positive stock by metal and karat, including pieces, grams, and value; it
+does not claim movement or posting parity.
+The stock-verification history readback now mirrors the PHP company-scoped
+`epc_jewel_sv_list` projection; adjustment posting and line-level variance
+persistence remain unverified.
 
 ## Confirmed PHP master-form parity tranche
 
@@ -211,6 +223,13 @@ the selected company scope when supplied, so an already sold tag or a tag from
 another company cannot be consumed through this path. This is a narrow
 availability/transition guard, not a claim of complete retail stock,
 tender, invoice, or movement-posting parity.
+The barcode-purchase detail lookup now reads the PHP-owned purchase row by
+company and barcode and returns the observed cost, margin, selling-price, and
+status fields without mutating stock.
+The barcode-purchase sale path similarly consumes only an `available` row and
+requires the selected company scope on both lookup and update, preventing
+repeat or cross-company consumption on the observed path. Invoice, tender,
+finance, and immutable movement effects remain unverified.
 The ASP.NET stock-availability readback now returns only `in_stock` rows from
 `epc_jw_tags`, optionally filtered by company and tag number/barcode. It is
 operator evidence for available tagged inventory and deliberately does not
@@ -262,6 +281,62 @@ gates; this policy does not broaden ordinary tenant access.
 against `epc_jewel_voucher`, preserving the observed metal and diamond voucher
 families with company scope and bounded readback. It remains read-only and
 does not claim purchase posting, stock receipt, valuation, or finance parity.
+
+## Journal history readback
+
+`/erp/jewellery/journal-history` projects PHP `epc_jewel_journal_list`
+against `epc_jewel_voucher` using the observed `JVG`/`JVA` voucher types,
+company predicate, descending voucher date, and bounded result count. It is
+read-only and does not claim journal posting or finance reconciliation parity.
+
+## Pearl and colour-stone master readback
+
+`/erp/jewellery/stone-master` exposes the PHP pearl and colour-stone master
+lists as a bounded, read-only company-scoped projection. The route selects
+only the requested PHP-owned master table (`PEARL` or `COLOR_STONE`) and
+uses the existing Jewellery staff gate. Missing tenant-database configuration
+and database failures remain explicit in the response source metadata.
+
+## Advance history readback
+
+`/erp/jewellery/advance-history` preserves the PHP
+`epc_jewel_advance_list` voucher map (`PAD` and `PAR`) as a bounded,
+read-only company-scoped projection behind the Jewellery staff gate.
+Advance settlement, receipt allocation, and finance posting remain
+PHP-authoritative.
+
+## Sale history readback
+
+The ASP.NET Jewellery surface now exposes
+`/erp/jewellery/sale-history`, a read-only company-scoped projection over
+`epc_jewel_voucher`. The PHP type map is preserved: `RETAIL` reads `RSI` and
+`RSC`, `METAL` reads `MSI` and `MSC`, and `RETURN` reads `SRN` and `SRC`.
+Results are bounded and return stable voucher, customer, salesperson, amount,
+status, and authorization fields with migration/database-error metadata.
+
+This is history readback only; tender allocation, stock deduction, VAT
+settlement, receipt posting, and return reconciliation remain PHP-authoritative
+until their transaction traces are verified.
+
+## Pending repair queue readback
+
+The ASP.NET Jewellery surface now exposes a read-only pending-repair projection
+at `/erp/jewellery/repair-pending`. It reads PHP-owned repair headers and item
+rows for the selected company, limits the queue to `received` and `in_progress`
+repair statuses, and supports optional division and branch filters. The route
+uses the existing Jewellery staff authorization and returns `migration` or
+`database-error` metadata when the authoritative tenant database is not
+available or the read fails.
+
+This projection does not claim repair transfer, workshop receive, workshop
+delivery, repair-sale posting, stock deduction, or finance parity.
+
+Repair history readback mirrors the observed PHP company/date/status projection;
+it does not claim item-level transfer, workshop, delivery, or repair-sale parity.
+
+Petty-cash and tourist-VAT history readbacks mirror the observed PHP
+company/date-range projections; they do not claim posting, refund validation,
+or reconciliation parity.
 
 `/erp/jewellery/design-detail` now projects the PHP design header and its
 metal/stone component lines by company and design code. It remains read-only

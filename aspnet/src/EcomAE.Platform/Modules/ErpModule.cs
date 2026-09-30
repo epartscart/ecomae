@@ -6214,6 +6214,12 @@ public sealed class ErpModule : ISurfaceModule
             return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
         }).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryPurchaseHistory, HandleJewelleryPurchaseHistoryAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryJournalHistory, HandleJewelleryJournalHistoryAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryStoneMaster, HandleJewelleryStoneMasterAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryAdvanceHistory, HandleJewelleryAdvanceHistoryAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewellerySaleHistory, HandleJewellerySaleHistoryAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairPending, HandleJewelleryRepairPendingAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairList, HandleJewelleryRepairListAsync);
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryDesignDetail, HandleJewelleryDesignDetailAsync);
         endpoints.MapGet(EcomAeRoutes.ErpJewelleryRepairReceiptHistory, HandleJewelleryRepairReceiptHistoryAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryRepairCreateForm, async (
@@ -7999,6 +8005,7 @@ public sealed class ErpModule : ISurfaceModule
             var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpJwBarcodePurchaseSellBody>(context, cancellationToken)
                        ?? new();
             var id = body.Id;
+            var companyId = body.CompanyId;
             var customerId = body.CustomerId;
             var invoiceId = body.InvoiceId;
             var confirm = body.ConfirmWrites;
@@ -8006,6 +8013,7 @@ public sealed class ErpModule : ISurfaceModule
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 id = LiveWriteFormBinder.Long(form, "id", "purchaseId", "purchase_id");
+                companyId = LiveWriteFormBinder.Int(form, "companyId", "company_id", "company");
                 customerId = LiveWriteFormBinder.Int(form, "customerId", "customer_id");
                 invoiceId = LiveWriteFormBinder.Int(form, "invoiceId", "invoice_id");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
@@ -8023,7 +8031,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Results.Ok(result.ToPayload(SessionPayload(session)));
             }
 
-            var written = await writes.SellAsync(new ErpJwBarcodePurchaseSellRequest(id, customerId, invoiceId), cancellationToken);
+            var written = await writes.SellAsync(new ErpJwBarcodePurchaseSellRequest(id, companyId, customerId, invoiceId), cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
                 ok = written.Succeeded,
@@ -8036,6 +8044,9 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryBarcodePurchaseLookup,
+            HandleJewelleryBarcodePurchaseLookupAsync);
         endpoints.MapPost(EcomAeRoutes.ErpSlaCreateForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9318,6 +9329,15 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryFixingList,
+            HandleJewelleryFixingListAsync);
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewellerySalesAnalysis,
+            HandleJewellerySalesAnalysisAsync);
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryMetalStockBalance,
+            HandleJewelleryMetalStockBalanceAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryFixingSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -9694,6 +9714,8 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryPettyCashList, HandleJewelleryPettyCashListAsync);
+        endpoints.MapGet(EcomAeRoutes.ErpJewelleryTouristVatList, HandleJewelleryTouristVatListAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryTouristVatSaveForm, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -10196,6 +10218,9 @@ public sealed class ErpModule : ISurfaceModule
                 session = SessionPayload(session)
             });
         }).DisableAntiforgery();
+        endpoints.MapGet(
+            EcomAeRoutes.ErpJewelleryStockVerificationList,
+            HandleJewelleryStockVerificationListAsync);
         endpoints.MapPost(EcomAeRoutes.ErpJewelleryKaratSeedForm, async (HttpContext context, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -12642,6 +12667,392 @@ public sealed class ErpModule : ISurfaceModule
             source = result.Source, message = result.Message,
             session = SessionPayload(session),
             note = "Purchase history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryJournalHistoryAsync(
+        HttpContext context, int companyId, int limit,
+        ILegacySessionValidator validator, IErpJwJournalHistoryReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            return LiveWriteFormBinder.LoginRedirect(context,
+                "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_journal",
+                "Admin ERP capability required for jewellery journal history.");
+        var result = await read.ReadAsync(companyId, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp", companyId, limit, rows = result.Rows,
+            source = result.Source, message = result.Message,
+            session = SessionPayload(session),
+            note = "Journal history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryStoneMasterAsync(
+        HttpContext context, int companyId, string? kind, int limit,
+        ILegacySessionValidator validator, IErpJwStoneMasterReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            return LiveWriteFormBinder.LoginRedirect(context,
+                "/erp/login?returnUrl=/cp/jewellery-masters-app",
+                "Admin ERP capability required for jewellery stone master history.");
+        var result = await read.ReadAsync(companyId, kind ?? string.Empty, limit, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp", companyId, kind, limit, rows = result.Rows,
+            source = result.Source, message = result.Message,
+            session = SessionPayload(session),
+            note = "Stone master readback is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryAdvanceHistoryAsync(
+        HttpContext context, int companyId, int limit,
+        ILegacySessionValidator validator, IErpJwAdvanceHistoryReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            return LiveWriteFormBinder.LoginRedirect(context,
+                "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_advances",
+                "Admin ERP capability required for jewellery advance history.");
+        var result = await read.ReadAsync(companyId, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp", companyId, limit, rows = result.Rows,
+            source = result.Source, message = result.Message,
+            session = SessionPayload(session),
+            note = "Advance history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewellerySaleHistoryAsync(
+        HttpContext context,
+        int companyId,
+        string? type,
+        int limit,
+        ILegacySessionValidator validator,
+        IErpJwSaleHistoryReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-retail-app?tab=jw_retail_sales",
+                "Admin ERP capability required for jewellery sale history.");
+        }
+
+        var result = await read.ReadAsync(companyId, type ?? "RETAIL", limit, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            type = type ?? "RETAIL",
+            limit,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Sale history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryRepairPendingAsync(
+        HttpContext context,
+        int companyId,
+        string? division,
+        string? branch,
+        ILegacySessionValidator validator,
+        IErpJwRepairPendingReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "Admin ERP capability required for jewellery pending repairs.");
+        }
+
+        var result = await read.ReadAsync(companyId, division, branch, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            division,
+            branch,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Pending repair jobs are read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryRepairListAsync(
+        HttpContext context,
+        int companyId,
+        string? from,
+        string? to,
+        string? status,
+        int limit,
+        ILegacySessionValidator validator,
+        IErpJwRepairReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-repairs-app",
+                "Admin ERP capability required for jewellery repair history.");
+        }
+
+        var result = await read.ReadAsync(
+            companyId, from ?? string.Empty, to ?? string.Empty, status, limit, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            from,
+            to,
+            status,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Repair history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryPettyCashListAsync(
+        HttpContext context, int companyId, string? from, string? to,
+        ILegacySessionValidator validator, IErpJwFinanceHistoryReadService read,
+        CancellationToken cancellationToken)
+        => await HandleJewelleryFinanceHistoryAsync(
+            context, companyId, from, to, validator, cancellationToken,
+            () => read.ReadPettyCashAsync(companyId, from ?? string.Empty, to ?? string.Empty, cancellationToken),
+            "petty cash history").ConfigureAwait(false);
+
+    private static async Task<IResult> HandleJewelleryTouristVatListAsync(
+        HttpContext context, int companyId, string? from, string? to,
+        ILegacySessionValidator validator, IErpJwFinanceHistoryReadService read,
+        CancellationToken cancellationToken)
+        => await HandleJewelleryFinanceHistoryAsync(
+            context, companyId, from, to, validator, cancellationToken,
+            () => read.ReadTouristVatAsync(companyId, from ?? string.Empty, to ?? string.Empty, cancellationToken),
+            "tourist VAT history").ConfigureAwait(false);
+
+    private static async Task<IResult> HandleJewelleryFinanceHistoryAsync(
+        HttpContext context, int companyId, string? from, string? to,
+        ILegacySessionValidator validator, CancellationToken cancellationToken,
+        Func<Task<ErpJwFinanceHistoryResult>> read, string label)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/shop/finance/erp?area=finance",
+                "Admin ERP capability required for jewellery " + label + ".");
+        }
+
+        var result = await read().ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            from,
+            to,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = label + " is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryFixingListAsync(
+        HttpContext context,
+        int companyId,
+        string? fixType,
+        int limit,
+        ILegacySessionValidator validator,
+        IErpJwFixingReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-fixing-app?tab=jw_purchase_fixing",
+                "Admin ERP capability required for jewellery fixing history.");
+        }
+
+        var result = await read.ReadAsync(companyId, fixType, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            fixType,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Fixing history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewellerySalesAnalysisAsync(
+        HttpContext context,
+        int companyId,
+        string? from,
+        string? to,
+        string? groupBy,
+        ILegacySessionValidator validator,
+        IErpJwSalesAnalysisReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/jewellery-retail-app?tab=jw_sales_analysis",
+                "Admin ERP capability required for jewellery sales analysis.");
+        }
+
+        var result = await read.ReadAsync(companyId, from ?? string.Empty, to ?? string.Empty, groupBy, cancellationToken)
+            .ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            from,
+            to,
+            groupBy = groupBy ?? "date",
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Sales analysis is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryMetalStockBalanceAsync(
+        HttpContext context,
+        int companyId,
+        string? metal,
+        ILegacySessionValidator validator,
+        IErpJwMetalStockBalanceReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_metal_stock",
+                "Admin ERP capability required for jewellery metal stock balance.");
+        }
+
+        var result = await read.ReadAsync(companyId, metal, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            metal,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Metal stock balance is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryStockVerificationListAsync(
+        HttpContext context,
+        int companyId,
+        int limit,
+        ILegacySessionValidator validator,
+        IErpJwStockVerificationReadService read,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/cp/jewellery-stock-verification-app?tab=jw_stock_verification",
+                "Admin ERP capability required for jewellery stock verification.");
+        }
+
+        var result = await read.ReadAsync(companyId, limit, cancellationToken).ConfigureAwait(false);
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            rows = result.Rows,
+            source = result.Source,
+            message = result.Message,
+            session = SessionPayload(session),
+            note = "Stock verification history is read-only and company-scoped."
+        });
+    }
+
+    private static async Task<IResult> HandleJewelleryBarcodePurchaseLookupAsync(
+        HttpContext context,
+        int companyId,
+        string? barcode,
+        ILegacySessionValidator validator,
+        IErpJwBarcodePurchaseLookupReadService lookup,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+        {
+            return LiveWriteFormBinder.LoginRedirect(
+                context,
+                "/erp/login?returnUrl=/erp/purchase-orders-app?tab=barcode_purchase",
+                "Admin ERP capability required for jewellery barcode lookup.");
+        }
+
+        var result = await lookup
+            .ReadAsync(companyId, barcode ?? string.Empty, cancellationToken)
+            .ConfigureAwait(false);
+
+        return Results.Ok(new
+        {
+            ok = result.Source is not "invalid" and not "database-error",
+            surface = "erp",
+            companyId,
+            barcode = barcode?.Trim() ?? string.Empty,
+            purchase = result,
+            session = SessionPayload(session),
+            note = "Barcode purchase detail is read-only and company-scoped."
         });
     }
 
@@ -22700,6 +23111,7 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpJwBarcodePurchaseSellBody(
         long Id = 0,
+        int CompanyId = 0,
         int CustomerId = 0,
         int InvoiceId = 0,
         bool ConfirmWrites = false);
