@@ -248,3 +248,10 @@ Direct URL and form requests are denied before Blazor route rendering when the
 tenant context does not satisfy the required industry pack. Super-ERP
 diagnostic surfaces remain governed by their existing privileged host/session
 gates; this policy does not broaden ordinary tenant access.
+
+## Design and diamond master readback
+
+`/erp/jewellery/design-diamond` projects PHP design and diamond list helpers
+with explicit company scope, bounded `limit`/`offset`, and the existing
+Jewellery staff gate. It remains read-only and does not claim design-detail
+line, pricing-write, or downstream production parity.

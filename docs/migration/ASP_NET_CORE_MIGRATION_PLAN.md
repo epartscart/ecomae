@@ -620,3 +620,9 @@ The script checks out the final migration files from the source branch onto late
 - Fit-out P1-04 remains `partial` until readback, revision comparison,
   approval evidence, live tenant-database corroboration, and the full
   32-step scenario acceptance gate are complete.
+
+## Sixtieth Milestone Included Here
+
+- Added read-only Jewellery design and diamond master list projections with
+  PHP-aligned table selection, company scope, pagination bounds, and fallback
+  metadata.
