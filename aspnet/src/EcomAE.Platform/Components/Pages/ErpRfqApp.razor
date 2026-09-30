@@ -5,10 +5,12 @@
 @using EcomAE.Platform.Components.Shared.Desktop
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionCatalogReadService DimensionCatalog
 
 <PageTitle>RFQs · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -293,6 +295,7 @@
     private const string _listHref = "/erp/rfq-app";
     private bool _isAdmin;
     private IReadOnlyList<ErpRfqDigest> _rfqs = [];
+    private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -352,6 +355,18 @@
                 <label>Due <input type="date" name="due_date" value="@FormatDateInput(_opened.DueDate)" /></label>
                 <label>Order <input type="number" name="order_id" min="0" value="@_opened.OrderId" /></label>
                 <label>Description <input type="text" name="description" maxlength="4000" value="@_opened.DescriptionExcerpt" /></label>
+                @foreach (var dimension in _dimensionCatalog)
+                {
+                    <label>@dimension.Label
+                        <select name="dim[@dimension.Key]" style="min-width:10rem">
+                            <option value="0">— none —</option>
+                            @foreach (var option in dimension.Options)
+                            {
+                                <option value="@option.Id">@option.Code · @option.Name</option>
+                            }
+                        </select>
+                    </label>
+                }
                 <button type="submit" name="confirmWrites" value="false" class="btn btn-xs btn-default">Validate</button>
                 <button type="submit" name="confirmWrites" value="true" class="btn btn-xs btn-primary">Save RFQ</button>
             </form>
@@ -394,6 +409,7 @@
         _rfqs = result.Rfqs;
         _source = result.Source;
         _message = result.Message;
+        _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
 
         if (_openedId > 0)
         {

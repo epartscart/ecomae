@@ -4,10 +4,12 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Erp
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject IErpDimensionCatalogReadService DimensionCatalog
 
 <PageTitle>Payment Batches · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -46,6 +48,18 @@
             <label>Business unit <input type="number" name="dim.business_unit" min="0" style="width:7rem" /></label>
             <label>Legal entity <input type="number" name="dim.legal_entity" min="0" style="width:7rem" /></label>
             <label>Class unit <input type="number" name="dim.class_unit" min="0" style="width:7rem" /></label>
+            @foreach (var dimension in _dimensionCatalog)
+            {
+                <label>@dimension.Label
+                    <select name="dim[@dimension.Key]" style="min-width:10rem">
+                        <option value="0">— none —</option>
+                        @foreach (var option in dimension.Options)
+                        {
+                            <option value="@option.Id">@option.Code · @option.Name</option>
+                        }
+                    </select>
+                </label>
+            }
             <button type="submit" name="confirmWrites" value="false" class="btn btn-sm btn-default">Validate</button>
             <button type="submit" name="confirmWrites" value="true" class="btn btn-sm btn-primary">Create draft batch</button>
         </form>
@@ -175,6 +189,7 @@
     private bool _isAdmin;
     private IReadOnlyList<ErpPaymentBatchDigest> _batches = [];
     private IReadOnlyList<ErpCashAccountDigest> _accounts = [];
+    private IReadOnlyList<ErpDimensionCatalog> _dimensionCatalog = [];
     private int _limit = 100;
     private string _source = "n/a";
     private string _message = "";
@@ -211,6 +226,7 @@
         _source = result.Source;
         _message = result.Message;
         _accounts = (await Dashboards.ListErpCashAccountsAsync(500, ctx.RequestAborted)).Accounts;
+        _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
 
         if (_openedId > 0)
         {

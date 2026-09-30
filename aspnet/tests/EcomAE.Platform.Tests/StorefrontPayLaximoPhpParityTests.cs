@@ -267,6 +267,8 @@ public sealed class StorefrontPayLaximoPhpParityTests
         var contacts = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpContactsApp.razor"));
         Assert.Contains("action=\"/erp/customers/master-save\"", contacts, StringComparison.Ordinal);
         Assert.Contains("Save customer master", contacts, StringComparison.Ordinal);
+        Assert.Contains("IErpDimensionCatalogReadService", contacts, StringComparison.Ordinal);
+        Assert.Contains("dim[@dimension.Key]", contacts, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", contacts, StringComparison.Ordinal);
         var receivables = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/ErpReceivablesApp.razor"));
         Assert.Contains("action=\"/erp/customers/master-save\"", receivables, StringComparison.Ordinal);
