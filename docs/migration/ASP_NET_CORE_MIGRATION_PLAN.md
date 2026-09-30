@@ -634,3 +634,44 @@ The script checks out the final migration files from the source branch onto late
 - Added read-only Jewellery purchase history for PHP metal (`MMP`/`MLP`) and
   diamond (`DMP`/`DLP`) voucher families, with company scope and bounded
   results.
+
+## Sixty Second Milestone Included Here
+
+- Added read-only Jewellery repair-receipt history matching PHP
+  `epc_jewel_repair_list` date, status, company, limit, and ordering behavior.
+
+
+## Global ERP UI/UX Standard Added Here
+
+- Adopt the owner-supplied `UI_design.txt` as the mandatory presentation
+  standard for every current and future ASP.NET Core ERP and CP module.
+- Build one reusable enterprise design system for typography, semantic colour
+  tokens, spacing, responsive grids, cards, buttons, inputs, tables, tabs,
+  modals, drawers, tooltips, status badges, KPI cards, charts, alerts, empty
+  states, loading states, icons, breadcrumbs, navigation, and light/dark
+  themes; do not independently style each page.
+- Give every major module a visual landing page with KPI hierarchy, trends,
+  comparisons, exceptions, alerts, and detailed transactions, while keeping
+  charts connected to live aggregated backend data and drill-down source
+  records.
+- Redesign transaction forms as structured D365-style workspaces with visual
+  headers, logical cards/tabs/sections, inline validation, searchable
+  selectors, status context, sticky actions, approval history, audit context,
+  and clickable workflow stages.
+- Apply the required visual standards to reports, inventory, Customer 360,
+  Item 360, Supplier 360, executive dashboards, print/PDF layouts, and
+  responsive desktop/tablet/mobile experiences.
+- Use visual status semantics consistently (positive, warning, critical,
+  informational, inactive) with labels/icons in addition to colour; respect
+  reduced-motion accessibility and keep animations subtle.
+- Preserve the priority order: data accuracy, business rules, security,
+  transaction integrity, auditability, performance, usability, visual
+  presentation, then animation. Visual work must not replace functionality.
+- Add visual parity acceptance evidence to every migrated screen: PHP
+  behaviour and data comparison, permissions, responsive layout,
+  accessibility, performance, drill-down, print/export, and screenshot
+  review before the screen is considered complete.
+- Keep tenant organization settings as the controlled customization boundary
+  for labels, colours, field visibility/order, layouts, branding, and other
+  presentation preferences; backend business rules and security remain owned
+  by the platform.
