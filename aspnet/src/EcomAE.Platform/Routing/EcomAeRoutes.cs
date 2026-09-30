@@ -1024,6 +1024,8 @@ public static class EcomAeRoutes
     public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
     /// <summary>PHP epc_jewel_sale_list. Read-only company/type-scoped sale history.</summary>
     public const string ErpJewellerySaleHistory = "/erp/jewellery/sale-history";
+    /// <summary>PHP epc_jewel_design_get. Read-only company-scoped design detail.</summary>
+    public const string ErpJewelleryDesignDetail = "/erp/jewellery/design-detail";
     /// <summary>PHP epc_jewel_repair_list. Read-only company/date/status-scoped repair history.</summary>
     public const string ErpJewelleryRepairReceiptHistory = "/erp/jewellery/repair-receipt-history";
     /// <summary>HTML form POST for PHP <c>jw_repair_update_status</c>. <c>confirmWrites=true</c> writes via <c>IErpJwRepairWriteService</c>.</summary>
@@ -2782,6 +2784,9 @@ public static class EcomAeRoutes
         "/erp/fitout/estimates/csv";
     public const string ErpFitOutDeliveryDashboard =
         "/erp/fitout/delivery-dashboard";
+    /// <summary>Read-only progress-claim and weighted-progress records for a fit-out project.</summary>
+    public const string ErpFitOutProgress =
+        "/erp/fitout/progress";
     public const string ErpFitOutRecoverySummary =
         "/erp/fitout/recovery-summary";
     public const string ErpFitOutLeadHandoffSave =

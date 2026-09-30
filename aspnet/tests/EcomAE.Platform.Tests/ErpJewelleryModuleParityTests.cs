@@ -440,16 +440,15 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
-    public void JewellerySaleHistory_IsCompanyAndTypeScoped()
+    public void JewelleryDesignDetail_PreservesPhpHeaderAndLineReadback()
     {
-        var service = ReadSource("ErpJwSaleHistoryReadService.cs");
-        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var service = ReadSource("ErpJwDesignDetailReadService.cs");
         var module = ReadPlatformSource("Modules/ErpModule.cs");
-        Assert.Contains("FROM `epc_jewel_voucher`", service, StringComparison.Ordinal);
-        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN (?,?)", service, StringComparison.Ordinal);
-        Assert.Contains("ErpJewellerySaleHistory", routes, StringComparison.Ordinal);
-        Assert.Contains("HandleJewellerySaleHistoryAsync", module, StringComparison.Ordinal);
-        Assert.Contains("Sale history is read-only and company-scoped.", module, StringComparison.Ordinal);
+        Assert.Contains("epc_jewel_design_metals", service, StringComparison.Ordinal);
+        Assert.Contains("epc_jewel_design_stones", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `design_code`=?", service, StringComparison.Ordinal);
+        Assert.Contains("HandleJewelleryDesignDetailAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Design detail is read-only and company-scoped.", module, StringComparison.Ordinal);
     }
 
     [Fact]
@@ -463,6 +462,33 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("ErpJewelleryRepairReceiptHistory", routes, StringComparison.Ordinal);
         Assert.Contains("HandleJewelleryRepairReceiptHistoryAsync", module, StringComparison.Ordinal);
         Assert.Contains("Repair receipt history is read-only and company-scoped.", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void FitOutProgressReadback_PreservesProjectScopedProgressRecords()
+    {
+        var service = ReadPlatformSource("Erp/ErpFitOutProgressReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("WHERE `project_id`=? AND `record_type` IN", service, StringComparison.Ordinal);
+        Assert.Contains("'progress_claim','client_progress_claim','weighted_progress'", service, StringComparison.Ordinal);
+        Assert.Contains("ORDER BY `event_date` DESC, `id` DESC", service, StringComparison.Ordinal);
+        Assert.Contains("ErpFitOutProgress", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleFitOutProgressAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Fit-out progress readback is project-scoped and read-only.", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void JewellerySaleHistory_IsCompanyAndTypeScoped()
+    {
+        var service = ReadSource("ErpJwSaleHistoryReadService.cs");
+        var routes = ReadPlatformSource("Routing/EcomAeRoutes.cs");
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        Assert.Contains("FROM `epc_jewel_voucher`", service, StringComparison.Ordinal);
+        Assert.Contains("WHERE `company_id`=? AND `voc_type` IN (?,?)", service, StringComparison.Ordinal);
+        Assert.Contains("ErpJewellerySaleHistory", routes, StringComparison.Ordinal);
+        Assert.Contains("HandleJewellerySaleHistoryAsync", module, StringComparison.Ordinal);
+        Assert.Contains("Sale history is read-only and company-scoped.", module, StringComparison.Ordinal);
     }
 
     private static string ReadApp(string fileName)
