@@ -23444,7 +23444,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             var selected = forecastId is > 0
-                ? forecasts.FirstOrDefault(f => f.Id == forecastId.Value) ?? forecasts.FirstOrDefault()
+                ? forecasts.FirstOrDefault(f => f.Id == forecastId.Value)
                 : forecasts.FirstOrDefault();
             var lines = new List<ErpCashForecastLineDigest>();
             var opening = selected?.OpeningBalance ?? 0m;

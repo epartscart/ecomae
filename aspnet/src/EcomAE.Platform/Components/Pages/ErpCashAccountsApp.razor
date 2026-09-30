@@ -153,7 +153,7 @@
                 </div>
             }
         }
-        @if (_forecastId > 0)
+        @if (_selectedForecast is not null)
         {
             <ErpPhpCreateWell Title="Add forecast line">
                 <form method="post" action="/erp/cash-forecast/lines/add" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
@@ -174,7 +174,7 @@
                 </form>
             </ErpPhpCreateWell>
         }
-        else
+        else if (_forecastId <= 0)
         {
             <ErpPhpCreateWell Title="New forecast">
                 <form method="post" action="@EcomAeRoutes.ErpCashForecastSave" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;margin-bottom:1rem;">
