@@ -120,6 +120,26 @@ only a narrow availability/transition guard. The newly added stock-balance proje
 uses the PHP `epc_jewel_metal_stock_balance` contract, and explicitly leaves
 movement reconstruction, as-of-date filtering, branch scope, and valuation
 reconciliation PHP-authoritative until evidenced.
+The Jewellery sales-analysis projection now mirrors the PHP date-range
+aggregate for `RIN`, `MSL`, and `RSL` vouchers, with date, salesman, and
+division grouping options; UI-only filters not supported by the PHP helper
+remain outside this read-only tranche.
+The Jewellery stock-availability readback now also exposes only `in_stock`
+tag rows, with optional company and tag/barcode filtering, so operators can
+verify available tagged inventory without treating the readback as a
+reservation, deduction, tender allocation, or posting implementation.
+The metal-stock balance projection now mirrors the PHP aggregate by company,
+metal, and karat, including positive stock quantity filtering; mutation,
+movement reconstruction, and valuation reconciliation remain outside this
+read-only tranche.
+The Jewellery stock-availability readback now also exposes only `in_stock`
+tag rows, with optional company and tag/barcode filtering, so operators can
+verify available tagged inventory without treating the readback as a
+reservation, deduction, tender allocation, or posting implementation.
+The barcode-purchase sale path now requires the provisioned row to remain
+`available` and applies the selected company scope to both read and atomic
+update predicates; it does not claim invoice/tender posting or movement
+lineage parity.
 The Jewellery stock-availability readback now also exposes only `in_stock`
 tag rows, with optional company and tag/barcode filtering, so operators can
 verify available tagged inventory without treating the readback as a
@@ -130,6 +150,12 @@ fixing finance posting or reconciliation parity.
 The Jewellery fixing-history projection now mirrors the PHP company and
 `fix_type` list helper with bounded readback; settlement posting and
 unfix-finance reconciliation remain separately gated.
+The Jewellery stock-verification history now has a read-only company-scoped
+projection matching the PHP `epc_jewel_sv_list` helper; adjustment posting and
+line-level variance persistence remain unverified.
+The barcode-purchase detail readback now mirrors the PHP barcode lookup as a
+read-only, company-scoped projection of purchase, cost, margin, selling-price,
+and status fields; it does not mutate inventory or claim posting parity.
 Fit-out now exposes a tenant-isolated estimate/BOQ revision comparison readback
 by project, including revision metadata, BOQ counts, cost/selling totals, and
 adjacent-revision deltas. This is machine evidence for P1-04, not human
@@ -138,10 +164,6 @@ The same fit-out evidence surface now reads project-scoped pending approval
 records together with approval decision audit history. This records machine
 approval evidence without treating it as human sign-off or production
 acceptance.
-Fit-out also exposes read-only estimate and BOQ detail readback, including
-component rates, derived cost/selling values, line ordering, and estimate
-metadata. This closes a readback gap while leaving human approval, live
-database corroboration, and full scenario acceptance open.
 
 After the Jewellery and fit-out implementation tracks are complete, run a
 guarded functional rehearsal with isolated dummy tenant/company data before

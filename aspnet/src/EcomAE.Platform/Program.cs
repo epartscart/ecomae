@@ -735,6 +735,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwStockAvailabilityReadServic
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwGoldSchemeWriteService, EcomAE.Platform.Erp.ErpJwGoldSchemeWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixUnfixWriteService, EcomAE.Platform.Erp.ErpJwFixUnfixWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwBarcodePurchaseWriteService, EcomAE.Platform.Erp.ErpJwBarcodePurchaseWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwStockVerificationReadService, EcomAE.Platform.Erp.ErpJwStockVerificationReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwBarcodePurchaseLookupReadService, EcomAE.Platform.Erp.ErpJwBarcodePurchaseLookupReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTouristRefundWriteService, EcomAE.Platform.Erp.ErpTouristRefundWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRfidRegisterWriteService, EcomAE.Platform.Erp.ErpRfidRegisterWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRfidScanWriteService, EcomAE.Platform.Erp.ErpRfidScanWriteService>();
@@ -748,6 +750,8 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpReportSchedulerWriteService, 
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpVirtualWarehouseWriteService, EcomAE.Platform.Erp.ErpVirtualWarehouseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwMetalStockWriteService, EcomAE.Platform.Erp.ErpJwMetalStockWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixingReadService, EcomAE.Platform.Erp.ErpJwFixingReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwSalesAnalysisReadService, EcomAE.Platform.Erp.ErpJwSalesAnalysisReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwMetalStockBalanceReadService, EcomAE.Platform.Erp.ErpJwMetalStockBalanceReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwFixingWriteService, EcomAE.Platform.Erp.ErpJwFixingWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwVoucherWriteService, EcomAE.Platform.Erp.ErpJwVoucherWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpJwPettyCashWriteService, EcomAE.Platform.Erp.ErpJwPettyCashWriteService>();
