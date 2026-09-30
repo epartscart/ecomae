@@ -504,6 +504,21 @@ public sealed class ErpPhpReadTwinTests
         Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void CustomerDimensionReadbackUsesExplicitCustomerContext()
+    {
+        var root = FindRepoRoot();
+        var page = File.ReadAllText(Path.Combine(
+            root,
+            "aspnet/src/EcomAE.Platform/Components/Pages",
+            "ErpContactsApp.razor"));
+
+        Assert.Contains("customer_id", page, StringComparison.Ordinal);
+        Assert.Contains("\"customer\"", page, StringComparison.Ordinal);
+        Assert.Contains("_openedCustomerDimensionLinks", page, StringComparison.Ordinal);
+        Assert.Contains("ErpDimensionLinksPanel", page, StringComparison.Ordinal);
+    }
+
     private static string FindRepoRoot()
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
