@@ -268,3 +268,8 @@ status, and authorization fields with migration/database-error metadata.
 This is history readback only; tender allocation, stock deduction, VAT
 settlement, receipt posting, and return reconciliation remain PHP-authoritative
 until their transaction traces are verified.
+
+`/erp/jewellery/repair-receipt-history` now projects PHP
+`epc_jewel_repair_list` with company/date/status scope and bounded readback.
+It remains read-only and does not claim repair-item mutation, transfer,
+workshop-receive, delivery, or settlement parity.
