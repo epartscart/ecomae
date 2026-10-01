@@ -6064,21 +6064,26 @@ public sealed class ErpModule : ISurfaceModule
         });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreditNote, async (
             HttpContext context,
-            ErpEinvoiceCreditNoteBody? body,
             ILegacySessionValidator validator,
             IErpEinvoiceCreditNoteDryRun dryRun,
             EcomAE.Platform.Erp.IErpEinvoiceCreditNoteWriteService writes,
             CancellationToken cancellationToken) =>
         {
+            ErpEinvoiceCreditNoteBody? body = null;
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
                 return Unauthorized("Admin ERP capability required.");
             }
 
-            var request = body
-                ?? await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceCreditNoteBody>(context, cancellationToken)
-                ?? new();
+            if (!context.Request.HasFormContentType)
+            {
+                body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpEinvoiceCreditNoteBody>(
+                    context,
+                    cancellationToken);
+            }
+
+            var request = body ?? new();
             var originalDocumentId = request.OriginalDocumentId;
             var reason = request.Reason;
             var confirm = request.ConfirmWrites;

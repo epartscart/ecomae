@@ -105,6 +105,16 @@
             Tabs="@EinvoiceWorkspaceTabs" />
 
         <p class="text-muted" style="margin:.85rem 0 0">Validation, tax, seller/buyer, XML, external-service, and FTA evidence remain visible in the workspace fields. Credit-note draft persistence is guarded here; downstream generation, submission, retries, and polling continue through the configured tax-service workflow.</p>
+        @if (_isAdmin)
+        {
+            <form method="post" action="/erp/ajax/einvoice-credit-note" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
+                <input type="hidden" name="document_id" value="@_openedDocument.Id.ToString(CultureInfo.InvariantCulture)" />
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="returnUrl" value="@_returnHref" />
+                <label>Reason <input type="text" name="reason" maxlength="255" placeholder="Correction or return" /></label>
+                <button type="submit" class="btn btn-warning btn-xs">Create credit-note draft</button>
+            </form>
+        }
 
         <div class="col-lg-12">
             <div class="hpanel">
