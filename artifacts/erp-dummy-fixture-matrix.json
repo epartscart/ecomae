@@ -5,8 +5,29 @@
     {
       "id": "B1",
       "area": "workflow",
-      "status": "missing-fixture",
-      "fixtureGroups": ["workflow", "approval", "agenda"]
+      "status": "partial",
+      "fixtureGroups": ["workflow", "approval", "agenda"],
+      "verified": [
+        "workflow-browser-create",
+        "workflow-status-browser-update",
+        "workflow-sql-readback",
+        "agenda-browser-parity",
+        "tagged-cleanup"
+      ],
+      "missing": [
+        "agenda-confirmed-write-and-readback",
+        "approval-queue-decision-and-denial",
+        "workflow-invalid-input-browser-denial",
+        "workflow-duplicate-retry-denial",
+        "audit-readback",
+        "tenant-isolation",
+        "full-recovery-and-rollback"
+      ],
+      "recovery": {
+        "status": "partial",
+        "verified": ["tagged-workflow-row-cleanup"],
+        "missing": ["production-backup-restore", "ownership-rollback"]
+      }
     },
     {
       "id": "B2",

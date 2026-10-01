@@ -1,0 +1,77 @@
+{
+  "scope": "throwaway-local-mariadb",
+  "tenant": "ecomae",
+  "liveTenantWrites": false,
+  "phpFallbackRequired": true,
+  "status": "partial",
+  "schemaAuthority": "php-owned",
+  "verified": [
+    {
+      "scenario": "workflow-browser-create",
+      "result": "pass",
+      "route": "/erp/workflow-app",
+      "evidence": [
+        "Authenticated browser rendered the workflow board with ERP company context.",
+        "Tagged dummy workflow task was created through the guarded confirmWrites=true form.",
+        "The persisted row rendered in the browser with department, step, priority, pending status, and due date."
+      ]
+    },
+    {
+      "scenario": "workflow-status-browser-update",
+      "result": "pass",
+      "route": "/erp/workflow/status",
+      "evidence": [
+        "The browser Done action returned Workflow task updated.",
+        "The same tagged task rendered with status done after the redirect."
+      ]
+    },
+    {
+      "scenario": "workflow-sql-readback",
+      "result": "pass",
+      "evidence": [
+        "epc_erp_workflow_tasks readback matched the tagged title, workflow step, normal priority, and done status.",
+        "completed_at was populated after the status transition."
+      ]
+    },
+    {
+      "scenario": "agenda-browser-parity",
+      "result": "pass",
+      "route": "/erp/agenda-app",
+      "evidence": [
+        "Authenticated browser rendered the Agenda workspace, database digest source, session state, empty state, and add-event surface."
+      ]
+    },
+    {
+      "scenario": "tagged-cleanup",
+      "result": "pass",
+      "evidence": [
+        "Tagged workflow row was deleted from the throwaway database.",
+        "A follow-up SQL count confirmed zero tagged workflow rows.",
+        "No tagged agenda row remained."
+      ]
+    }
+  ],
+  "missing": [
+    "agenda-confirmed-write-and-readback",
+    "approval-queue-decision-and-denial",
+    "workflow-invalid-input-browser-denial",
+    "workflow-duplicate-retry-denial",
+    "audit-readback",
+    "tenant-isolation",
+    "full-recovery-and-rollback"
+  ],
+  "recovery": {
+    "status": "partial",
+    "verified": [
+      "tagged-workflow-row-cleanup"
+    ],
+    "missing": [
+      "production-backup-restore",
+      "ownership-rollback"
+    ]
+  },
+  "acceptance": {
+    "erpComplete": false,
+    "tenantPromotionAllowed": false
+  }
+}
