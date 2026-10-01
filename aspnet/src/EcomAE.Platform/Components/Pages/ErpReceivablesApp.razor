@@ -70,6 +70,44 @@
         </form>
     }
 
+    @if (_openedRow is not null)
+    {
+        <section class="epc-erp-table-wrap" style="margin-bottom:12px">
+            <p style="margin:0 0 .5rem"><strong>Customer statement</strong>
+                <a class="btn btn-xs btn-default" href="/erp/receivables-app">Close</a>
+            </p>
+            <dl style="display:grid;grid-template-columns:10rem 1fr;gap:.35rem .75rem;margin:0 0 .85rem;font-size:.9rem;">
+                <dt>Customer</dt><dd>@(string.IsNullOrWhiteSpace(_openedRow.Email) ? $"#{_openedRow.UserId}" : _openedRow.Email)</dd>
+                <dt>Ledger balance</dt><dd>@_openedRow.Balance.ToString("N2", CultureInfo.InvariantCulture)</dd>
+                <dt>Open order due</dt><dd>@_openedRow.OrderReceivableDue.ToString("N2", CultureInfo.InvariantCulture)</dd>
+            </dl>
+            @if (_openedEntries.Count == 0)
+            {
+                <p class="text-muted" style="margin:0">No active PHP ledger entries found.</p>
+            }
+            else
+            {
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Time</th><th>Direction</th><th>Amount</th><th>Operation</th><th>Order</th><th>Office</th></tr></thead>
+                    <tbody>
+                        @foreach (var entry in _openedEntries)
+                        {
+                            <tr>
+                                <td>@FormatTime(entry.TimeUnix)</td>
+                                <td>@(entry.IsIncome ? "Credit" : "Debit")</td>
+                                <td class="text-right">@entry.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td>@(string.IsNullOrWhiteSpace(entry.OperationCode) ? "—" : entry.OperationCode)</td>
+                                <td>@(entry.OrderId > 0 ? entry.OrderId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                <td>@(entry.OfficeId > 0 ? entry.OfficeId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+            <p class="text-muted" style="margin:.7rem 0 0">Source: PHP <code>shop_users_accounting</code>; inactive rows are excluded.</p>
+        </section>
+    }
+
     <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Receivables KPIs">
         <div class="kpi"><div class="lbl">Customers shown</div><div class="val">@_summary.CustomerCount.ToString(CultureInfo.InvariantCulture)</div></div>
         <div class="kpi"><div class="lbl">With open balance</div><div class="val">@_summary.WithOpenBalance.ToString(CultureInfo.InvariantCulture)</div></div>
@@ -129,6 +167,7 @@
     private string _flashErr = "";
     private long _openedId;
     private ErpReceivableDigest? _openedRow;
+    private IReadOnlyList<ErpReceivableLedgerEntry> _openedEntries = [];
     private string OpenedCaption => _openedRow is null
         ? ""
         : (string.IsNullOrWhiteSpace(_openedRow.Email) ? $"Customer #{_openedRow.UserId}" : _openedRow.Email);
@@ -157,5 +196,17 @@
             _rows = new[] { _openedRow }.Concat(_rows.Where(r => r.UserId != _openedId)).ToList();
         }
         _message = result.Message;
+        if (_openedRow is not null)
+        {
+            var detail = await Dashboards.BuildErpReceivableDetailAsync(_openedId, ctx.RequestAborted);
+            _openedEntries = detail.Entries;
+            if (!string.IsNullOrWhiteSpace(detail.Message))
+            {
+                _message = detail.Message;
+            }
+        }
     }
+
+    private static string FormatTime(long unix)
+        => unix <= 0 ? "—" : DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture);
 }

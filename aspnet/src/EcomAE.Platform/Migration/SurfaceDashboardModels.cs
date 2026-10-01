@@ -1256,6 +1256,21 @@ public sealed record ErpReceivablesDigestResult(
     string Source,
     string Message);
 
+public sealed record ErpReceivableLedgerEntry(
+    long Id,
+    long TimeUnix,
+    bool IsIncome,
+    decimal Amount,
+    string OperationCode,
+    long OrderId,
+    long OfficeId);
+
+public sealed record ErpReceivableDetailResult(
+    ErpReceivableDigest? Customer,
+    IReadOnlyList<ErpReceivableLedgerEntry> Entries,
+    string Source,
+    string Message);
+
 public sealed record CpCurrencyDigest(
     int Id,
     string IsoCode,
