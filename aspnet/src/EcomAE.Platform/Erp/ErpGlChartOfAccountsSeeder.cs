@@ -49,6 +49,11 @@ public static class ErpGlChartOfAccountsSeeder
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP chart of accounts'",
             cancellationToken).ConfigureAwait(false);
 
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_cash_bank_accounts` ADD `coa_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+
         try
         {
             var count = await ErpDb.LongAsync(
