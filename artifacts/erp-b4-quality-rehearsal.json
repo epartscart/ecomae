@@ -85,16 +85,43 @@
       ]
     },
     {
+      "scenario": "quality-ncr-update-dry-run-and-confirmed-write",
+      "result": "pass",
+      "route": "/erp/ajax/qm-ncr-update",
+      "evidence": [
+        "A tagged PHP-schema-backed NCR fixture was created in the throwaway database after SHOW CREATE TABLE verification.",
+        "confirmWrites=false returned dry-run-validated with writes=0, writesBlocked=true, and phpAuthoritative=false.",
+        "confirmWrites=true updated status, disposition, and corrective_action with writes=1; SQL readback corroborated the persisted values."
+      ]
+    },
+    {
+      "scenario": "quality-ncr-invalid-status-denial",
+      "result": "pass",
+      "route": "/erp/ajax/qm-ncr-update",
+      "evidence": [
+        "confirmWrites=true with status=bogus returned Invalid status with writes=0 and no row mutation."
+      ]
+    },
+    {
+      "scenario": "quality-ncr-browser-readback",
+      "result": "pass",
+      "route": "/erp/quality-app?qv=ncr",
+      "evidence": [
+        "Authenticated Chrome readback rendered the tagged NCR row with severity major, disposition rework, and status investigate.",
+        "The page identified the live source as qm_ncr_update and explicitly preserved Classic ownership for NCR creation."
+      ]
+    },
+    {
       "scenario": "quality-tagged-cleanup",
       "result": "pass",
       "evidence": [
-        "Tagged quality result, order, test, plan, and NCR rows were removed from the throwaway database after evidence capture.",
+        "Tagged quality result, order, test, plan, and NCR rows, including the NCR update fixture, were removed from the throwaway database after evidence capture.",
         "SQL verification returned zero remaining tagged quality rows."
       ]
     }
   ],
   "unverified": [
-    "quality-ncr-confirmed-write",
+    "quality-ncr-create-confirmed-write",
     "quality-order-confirmed-create-route",
     "quality-audit-log-readback",
     "quality-tenant-isolation",
