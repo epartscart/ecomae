@@ -42,11 +42,22 @@ not included in this evidence.
    registry's `phpAuthoritative: true` result only proves that the broad
    registry gate still blocks all catalog writes. These are separate acceptance
    layers and must not be conflated.
-4. **Audit evidence is incomplete.** The local write did not create
-   `epc_erp_audit_log`, so audit-readback is **unverified**, not passed.
-5. **This is not ERP completion evidence.** Registry coverage and one successful
+4. **Audit readback passed for the seeded PHP-compatible fixture.** After the
+   throwaway database was seeded with the PHP `epc_erp_audit_log` schema, the
+   confirmed sales-order write produced a `sales_order_save` audit row with the
+   matching voucher detail. The dummy sales order, audit row, and sequence row
+   were removed after verification.
+5. **The fixture matrix remains incomplete.** The current database has enough
+   fixtures for the sales-order evidence point and partial D365 organization
+   coverage, but B1, B3, B4, B6, B7, B8, Jewellery, and fit-out still require
+   module-specific fixtures before their workflows can be classified.
+6. **This is not ERP completion evidence.** Registry coverage and one successful
    local write do not prove PHP functional parity, browser parity, tenant
    isolation, recovery, UAT, production readiness, or tenant promotion.
+
+The machine-readable fixture status is recorded in
+`artifacts/erp-dummy-fixture-matrix.json`; the audit corroboration is recorded
+in `artifacts/so-audit-write.json`.
 
 ## Live-tenant migration gate
 
