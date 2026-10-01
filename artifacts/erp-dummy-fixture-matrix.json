@@ -140,9 +140,9 @@
       "id": "B5",
       "area": "record-to-report",
       "status": "partial",
-      "fixtureGroups": ["legal_entity", "business_unit", "dimension", "cost_centre", "intercompany", "chart_of_accounts", "gl_journal", "voucher_sequence", "audit_log"],
-      "verified": ["manual-journal-dry-run-empty-lines", "manual-journal-dry-run-unbalanced", "manual-journal-dry-run-missing-coa", "manual-journal-balanced-confirmed-write", "manual-journal-header-readback", "manual-journal-line-readback", "manual-journal-sequence-readback", "manual-journal-audit-readback", "manual-journal-browser-form-readback", "manual-journal-invalid-form-zero-writes", "manual-journal-reversal-readback", "manual-journal-reversal-audit-readback", "manual-journal-duplicate-retry-observed-allowed", "manual-journal-tagged-cleanup-zero-rows"],
-      "missing": ["budget", "period_close", "consolidation", "manual-journal-closed-period-denial", "manual-journal-idempotency-contract"]
+      "fixtureGroups": ["legal_entity", "business_unit", "dimension", "cost_centre", "intercompany", "chart_of_accounts", "gl_journal", "voucher_sequence", "audit_log", "budget_plan", "budget_line", "budget_position", "fiscal_period", "period_close_log"],
+      "verified": ["manual-journal-dry-run-empty-lines", "manual-journal-dry-run-unbalanced", "manual-journal-dry-run-missing-coa", "manual-journal-balanced-confirmed-write", "manual-journal-header-readback", "manual-journal-line-readback", "manual-journal-sequence-readback", "manual-journal-audit-readback", "manual-journal-browser-form-readback", "manual-journal-invalid-form-zero-writes", "manual-journal-reversal-readback", "manual-journal-reversal-audit-readback", "manual-journal-duplicate-retry-observed-allowed", "manual-journal-tagged-cleanup-zero-rows", "budget-plan-dry-run-zero-writes", "budget-plan-confirmed-write-readback", "budget-line-confirmed-write-readback", "budget-position-confirmed-write-readback", "budget-stage-draft-review-approved-published", "budget-published-total-readback", "budget-published-stage-retry-denial", "period-soft-close-invalid-format-zero-writes", "period-soft-close-dry-run-zero-writes", "period-soft-close-confirmed-readback", "period-soft-close-log-readback", "period-soft-close-duplicate-retry-denial", "budget-period-tagged-cleanup-zero-rows"],
+      "missing": ["consolidation", "manual-journal-closed-period-denial", "manual-journal-idempotency-contract"]
     },
     {
       "id": "B6",
