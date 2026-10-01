@@ -107,7 +107,12 @@
         "duplicate-warehouse-denial",
         "duplicate-item-denial",
         "movement-retry-observed-allowed",
-        "tagged-inventory-cleanup"
+        "tagged-inventory-cleanup",
+        "wms-location-receive-putaway-lifecycle",
+        "wms-wave-pick-lifecycle",
+        "wms-browser-readback",
+        "wms-validation-and-retry",
+        "wms-tagged-cleanup"
       ],
       "verified": [
         "quality-plan-dry-run",
@@ -119,7 +124,7 @@
         "quality-plan-upsert-retry-observed-allowed",
         "quality-tagged-cleanup"
       ],
-      "missing": ["wms-fixture", "planning-fixture", "inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-ncr-confirmed-write", "quality-order-confirmed-create-route", "quality-audit-log-readback", "quality-tenant-isolation", "quality-production-recovery-and-rollback"]
+      "missing": ["planning-fixture", "inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-ncr-confirmed-write", "quality-order-confirmed-create-route", "quality-audit-log-readback", "quality-tenant-isolation", "quality-production-recovery-and-rollback", "wms-audit-log-readback", "wms-tenant-isolation", "wms-production-recovery-and-rollback"]
     },
     {
       "id": "B5",
