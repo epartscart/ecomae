@@ -26,14 +26,15 @@
         "po-status-approval",
         "po-to-invoice",
         "supplier-payment",
+        "requisition-save-line-submit-convert",
+        "requisition-invalid-decision-denial",
+        "rfq-save",
         "sql-readback",
         "audit-readback",
         "voucher-sequence-readback",
         "duplicate-conversion-denial"
       ],
       "missing": [
-        "requisition",
-        "rfq",
         "rfq-supplier-comparison",
         "receipt-route",
         "tenant-isolation",

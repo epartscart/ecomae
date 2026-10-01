@@ -11,13 +11,13 @@ public sealed class ErpProcReqConvertDryRun : IErpProcReqConvertDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the guarded live proc_req_convert route; this dry-run evaluator never executes an UPDATE.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id,
+        return new("dry-run-validated",0,true,false,false,"ok",true,request.Id,
             ["ajax_erp.php?action=proc_req_convert id=@id (NOT executed)"],
             "ERP proc_req_convert payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=proc_req_convert");
     }
     private static ErpProcReqConvertDryRunResult Refuse(string s,string c,string d,ErpProcReqConvertRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=proc_req_convert");
+        new(s,0,true,false,false,c,false,r.Id,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=proc_req_convert");
 }
 public sealed record ErpProcReqConvertRequest(long Id, bool ConfirmWrites = false);
 public sealed record ErpProcReqConvertDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
