@@ -158,6 +158,7 @@ public sealed class CpSocialMediaHubPhpParityTests
     {
         Assert.Equal("platform", CpSocialHubWriteService.ResolveSiteKey(null, superCpHost: true, "cp.ecomae.com"));
         Assert.Equal("indus", CpSocialHubWriteService.ResolveSiteKey("Indus", superCpHost: true, "cp.ecomae.com"));
+        Assert.Equal("indus-ae", CpSocialHubWriteService.ResolveSiteKey("other", superCpHost: false, "www.indus.ae"));
         Assert.Equal("indus-ae", CpSocialHubWriteService.ResolveSiteKey(null, superCpHost: false, "www.indus.ae"));
     }
 

@@ -17,7 +17,7 @@ public sealed class CpSocialHubWriteTests
     public void Site_key_title_and_platform_match_php()
     {
         Assert.Equal("platform", CpSocialHubWriteService.ResolveSiteKey("", true, "www.ecomae.com"));
-        Assert.Equal("epartscart", CpSocialHubWriteService.ResolveSiteKey(" ePartsCart! ", false, "other.host"));
+        Assert.Equal("other-host", CpSocialHubWriteService.ResolveSiteKey(" ePartsCart! ", false, "other.host"));
         Assert.Equal("epartscart-com", CpSocialHubWriteService.ResolveSiteKey("", false, "www.epartscart.com:443"));
         Assert.Equal("instagram", CpSocialHubWriteService.NormalizePlatform(" Instagram! "));
         Assert.Equal("Untitled draft", CpSocialHubWriteService.NormalizeTitle(""));
@@ -60,6 +60,8 @@ public sealed class CpSocialHubWriteTests
         Assert.Contains("ICpSocialHubWriteService", program, StringComparison.Ordinal);
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpSocialHubWriteService", module, StringComparison.Ordinal);
+        Assert.Contains("var isSuper = SuperCpHostGate.IsAllowed(context)", module, StringComparison.Ordinal);
+        Assert.Contains("siteKey = CpSocialHubWriteService.ResolveSiteKey(null, false, context.Request.Host.Host)", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpSocialHubWriteService.cs"));
         Assert.Contains("epc_social_save_draft", service, StringComparison.Ordinal);
