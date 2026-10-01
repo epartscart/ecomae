@@ -1,4 +1,5 @@
 @using System.Globalization
+@inject NavigationManager Navigation
 
 <section class="epc-document-workspace" aria-label="@($"{DocumentKind} document workspace")">
     <div class="epc-document-workspace__identity">
@@ -31,7 +32,7 @@
     <nav class="epc-document-workspace__tabs" aria-label="Document sections">
         @foreach (var tab in Tabs)
         {
-            <a href="#@Anchor(tab)" class="epc-document-workspace__tab">@tab</a>
+            <a href="@TabHref(tab)" class="epc-document-workspace__tab">@tab</a>
         }
     </nav>
 
@@ -64,6 +65,19 @@
             }
         </div>
     </details>
+
+    @foreach (var group in CustomGroups)
+    {
+        <details id="@Anchor(group)" open class="epc-document-workspace__section">
+            <summary>@group</summary>
+            <div class="epc-document-workspace__fields">
+                @foreach (var field in Fields.Where(f => string.Equals(f.Group, group, StringComparison.Ordinal)))
+                {
+                    <div><span>@field.Label</span><strong>@(string.IsNullOrWhiteSpace(field.Value) ? "—" : field.Value)</strong></div>
+                }
+            </div>
+        </details>
+    }
 
     <details id="lines" open class="epc-document-workspace__section">
         <summary>Lines <span class="epc-document-workspace__count">@Lines.Count</span></summary>
@@ -146,7 +160,36 @@
     [Parameter] public IReadOnlyList<string> Tabs { get; set; } = ["General", "Address", "Delivery", "Lines", "Financial"];
     [Parameter] public RenderFragment? HeaderActions { get; set; }
 
-    private static string Anchor(string value) => value.ToLowerInvariant().Replace(' ', '-');
+    private static readonly string[] BuiltInGroups = ["General", "Operational", "Address", "Delivery", "Financial", "Dimensions"];
+
+    private IReadOnlyList<string> CustomGroups => Fields
+        .Select(f => f.Group)
+        .Where(g => !string.IsNullOrWhiteSpace(g) && !BuiltInGroups.Contains(g, StringComparer.Ordinal))
+        .Distinct(StringComparer.Ordinal)
+        .ToList();
+
+    private static string Anchor(string value) => value.Trim().ToLowerInvariant().Replace(' ', '-');
+
+    private static string SectionId(string tab) => tab.Trim() switch
+    {
+        "General" or "Operational" => "general",
+        "Address" or "Delivery" => "address",
+        "Financial" or "Dimensions" => "financial",
+        "Lines" => "lines",
+        var other => Anchor(other),
+    };
+
+    private string TabHref(string tab)
+    {
+        var relative = Navigation.ToBaseRelativePath(Navigation.Uri);
+        var hash = relative.IndexOf('#');
+        if (hash >= 0)
+        {
+            relative = relative[..hash];
+        }
+
+        return "/" + relative + "#" + SectionId(tab);
+    }
 
     private static string StatusClass(string value)
     {
