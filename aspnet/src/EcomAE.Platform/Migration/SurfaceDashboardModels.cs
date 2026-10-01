@@ -383,6 +383,7 @@ public sealed record ErpSupplierDetailResult(
     IReadOnlyList<ErpPurchaseDigest> Purchases,
     IReadOnlyList<ErpSupplierPaymentDigest> Payments,
     IReadOnlyList<ErpSupplierLedgerEntry> Ledger,
+    IReadOnlyList<ErpSupplierStatementLine> Statement,
     string Source,
     string Message);
 
@@ -406,6 +407,16 @@ public sealed record ErpSupplierLedgerEntry(
     long OrderId,
     string Reference,
     string EntryKind);
+
+public sealed record ErpSupplierStatementLine(
+    long TimeUnix,
+    string VoucherType,
+    string VoucherNumber,
+    string Description,
+    decimal Debit,
+    decimal Credit,
+    string Source,
+    long SourceId);
 
 public sealed record ErpPurchaseDigest(
     long Id,

@@ -818,6 +818,56 @@ public static class LegacySurfaceDashboardSql
         LIMIT 100
         """;
 
+    /// <summary>PHP supplier statement purchase orders in the default two-year window.</summary>
+    public const string SelectErpSupplierStatementPurchaseOrders = """
+        SELECT `id`, IFNULL(`po_no`, '') AS voucher_no, IFNULL(`time_created`, 0) AS time_unix,
+               IFNULL(`title`, '') AS description, IFNULL(`total_amount`, 0) AS amount,
+               IFNULL(`status`, '') AS status
+        FROM `epc_erp_purchase_orders`
+        WHERE `supplier_id` = @id AND `purchase_id` = 0
+          AND `time_created` >= @from AND `time_created` <= @to
+        ORDER BY `time_created` DESC
+        """;
+
+    /// <summary>PHP supplier statement purchase invoices in the default two-year window.</summary>
+    public const string SelectErpSupplierStatementPurchaseInvoices = """
+        SELECT p.`id`, IFNULL(p.`voucher_no`, '') AS voucher_no,
+               IFNULL(p.`purchase_date`, 0) AS time_unix,
+               IFNULL(p.`total_amount`, 0) AS amount,
+               IFNULL(p.`status`, '') AS status,
+               IFNULL(p.`invoice_number`, '') AS invoice_number
+        FROM `epc_erp_purchases` p
+        WHERE p.`supplier_id` = @id AND p.`active` = 1
+          AND p.`purchase_date` >= @from AND p.`purchase_date` <= @to
+        ORDER BY p.`purchase_date` DESC
+        """;
+
+    /// <summary>PHP supplier statement payment vouchers and advances in the default two-year window.</summary>
+    public const string SelectErpSupplierStatementPayments = """
+        SELECT `id`, IFNULL(`voucher_no`, '') AS voucher_no,
+               IFNULL(`time`, 0) AS time_unix, IFNULL(`amount`, 0) AS amount,
+               IFNULL(`reference`, '') AS reference, IFNULL(`note`, '') AS note,
+               IFNULL(`is_advance`, 0) AS is_advance
+        FROM `epc_erp_cash_bank_entries`
+        WHERE `active` = 1 AND `counterparty_type` = 'supplier'
+          AND `counterparty_id` = @id AND `entry_type` = 'payment'
+          AND `time` >= @from AND `time` <= @to
+        ORDER BY `time` DESC
+        """;
+
+    /// <summary>PHP supplier statement adjustments excluding invoice/payment rows.</summary>
+    public const string SelectErpSupplierStatementAdjustments = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix,
+               IFNULL(`is_credit`, 0) AS is_credit, IFNULL(`amount`, 0) AS amount,
+               IFNULL(`reference`, '') AS reference, IFNULL(`note`, '') AS note,
+               IFNULL(`entry_kind`, '') AS entry_kind
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1 AND `cash_entry_id` = 0
+          AND (`entry_kind` IS NULL OR `entry_kind` NOT IN ('invoice', 'payment'))
+          AND `purchase_id` = 0 AND `time` >= @from AND `time` <= @to
+        ORDER BY `time` DESC
+        """;
+
     public const string SelectErpPurchases = """
         SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
                p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`
