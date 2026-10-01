@@ -1,0 +1,103 @@
+{
+  "module": "B4",
+  "area": "quality",
+  "tenant": "throwaway-local-mariadb",
+  "liveTenantWrites": false,
+  "phpSchemaAuthority": true,
+  "scenarios": [
+    {
+      "scenario": "quality-schema-provisioning",
+      "result": "pass",
+      "tables": [
+        "epc_qm_plan",
+        "epc_qm_test",
+        "epc_qm_order",
+        "epc_qm_result",
+        "epc_qm_ncr"
+      ],
+      "evidence": [
+        "Schema was inspected against content/shop/finance/epc_erp_quality.php before provisioning.",
+        "Only the PHP-owned quality tables required for the isolated rehearsal were provisioned in the throwaway database."
+      ]
+    },
+    {
+      "scenario": "quality-plan-dry-run",
+      "result": "pass",
+      "route": "/erp/ajax/qm-plan-save",
+      "evidence": [
+        "confirmWrites=false returned dry-run-validated with writes=0 and writesBlocked=true.",
+        "The simulated upsert was not executed."
+      ]
+    },
+    {
+      "scenario": "quality-plan-create-and-readback",
+      "result": "pass",
+      "route": "/erp/ajax/qm-plan-save",
+      "evidence": [
+        "Tagged plan B4-QM-20261001 was created with endpoint id 1.",
+        "SQL readback corroborated company_id 1, code, name, and active state."
+      ]
+    },
+    {
+      "scenario": "quality-test-dry-run-and-create",
+      "result": "pass",
+      "route": "/erp/ajax/qm-test-add",
+      "evidence": [
+        "confirmWrites=false returned dry-run-validated with writes=0 and writesBlocked=true.",
+        "Tagged quantitative temperature and qualitative visual tests were created with endpoint ids 1 and 2.",
+        "SQL readback corroborated bounds, expected value, test type, and plan linkage."
+      ]
+    },
+    {
+      "scenario": "quality-order-fixture-and-browser-readback",
+      "result": "pass",
+      "route": "/erp/quality-app?qv=orders",
+      "evidence": [
+        "The order-create route remains PHP-authoritative and dry-run-only; the tagged order fixture was inserted using the inspected PHP schema contract in the throwaway database.",
+        "Confirmed result recording completed the tagged order with a pass verdict and two persisted result rows.",
+        "Authenticated browser readback showed Test plans 1, Quality orders 1, Passed 1, Failed 0, Open NCRs 0, and the tagged order reference."
+      ]
+    },
+    {
+      "scenario": "quality-result-validation-and-retry",
+      "result": "pass",
+      "route": "/erp/quality/order-record",
+      "evidence": [
+        "A quantitative value inside the configured range and qualitative value matching expected pass produced a pass verdict.",
+        "A retry with an out-of-range quantitative value and non-matching qualitative value was accepted and replaced prior results with a fail verdict; this is observed-allowed replacement behavior.",
+        "The order was restored to a passing result before cleanup."
+      ]
+    },
+    {
+      "scenario": "quality-invalid-test-denial",
+      "result": "pass",
+      "route": "/erp/ajax/qm-test-add",
+      "evidence": [
+        "confirmWrites=true with testType bogus returned Invalid test type with writes=0."
+      ]
+    },
+    {
+      "scenario": "quality-plan-upsert-retry",
+      "result": "observed-allowed",
+      "route": "/erp/ajax/qm-plan-save",
+      "evidence": [
+        "Repeating the same company_id and code returned the existing plan id and updated the plan name through PHP-compatible ON DUPLICATE KEY behavior."
+      ]
+    },
+    {
+      "scenario": "quality-tagged-cleanup",
+      "result": "pass",
+      "evidence": [
+        "Tagged quality result, order, test, plan, and NCR rows were removed from the throwaway database after evidence capture.",
+        "SQL verification returned zero remaining tagged quality rows."
+      ]
+    }
+  ],
+  "unverified": [
+    "quality-ncr-confirmed-write",
+    "quality-order-confirmed-create-route",
+    "quality-audit-log-readback",
+    "quality-tenant-isolation",
+    "quality-production-recovery-and-rollback"
+  ]
+}

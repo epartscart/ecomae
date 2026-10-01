@@ -109,7 +109,17 @@
         "movement-retry-observed-allowed",
         "tagged-inventory-cleanup"
       ],
-      "missing": ["quality-fixture", "wms-fixture", "planning-fixture", "inventory-tenant-isolation", "inventory-full-recovery-and-rollback"]
+      "verified": [
+        "quality-plan-dry-run",
+        "quality-plan-create-sql-readback",
+        "quality-test-dry-run-and-create",
+        "quality-order-fixture-and-browser-readback",
+        "quality-result-validation-and-retry",
+        "quality-invalid-test-denial",
+        "quality-plan-upsert-retry-observed-allowed",
+        "quality-tagged-cleanup"
+      ],
+      "missing": ["wms-fixture", "planning-fixture", "inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-ncr-confirmed-write", "quality-order-confirmed-create-route", "quality-audit-log-readback", "quality-tenant-isolation", "quality-production-recovery-and-rollback"]
     },
     {
       "id": "B5",
