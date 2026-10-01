@@ -272,3 +272,31 @@ digest checks.
 - Anonymous CP page access may be intercepted by middleware before a component's
   inline warning renders. Record the actual redirect and mark the warning
   unreachable rather than claiming it appeared.
+
+## Quality NCR audit verification (browser vs SQL)
+
+- Before testing, inspect the current ErpQualityApp conditional views. The
+  NCR update form may be under Test plans (`?qv=plans`) rather than
+  Non-conformance (`?qv=ncr`). Use the genuine form, and report any placement
+  mismatch rather than injecting an artificial update form.
+- Confirmation may be a hidden `confirmWrites=true` input, not a visible
+  checkbox. Confirm the actual submitted form fields.
+- Seed a uniquely tagged NCR only in throwaway local MariaDB. Corroborate
+  status, disposition, and corrective_action in `epc_qm_ncr`, then
+  independently read `epc_erp_audit_log` with entity_type='qm_ncr' and the
+  fixture entity_id. Check actor, action, summary and all JSON detail values.
+- Invalid-status requests cannot be entered through a fixed select.
+  If authorized, use an independently authenticated shell cookie jar,
+  never an extracted Chrome cookie. HTTP 400 plus ok=false/writes=0/
+  validation_code=invalid is a normal validation rejection for this path.
+  Compare the complete tagged NCR and audit rows before and after.
+- NCR list readback is not proof of corrective-action or audit UI readback.
+  Open the record and verify exact text visually. Workspace fragment links
+  may resolve against a root base URL; clicking and checking the resulting
+  address catches failures that inspecting anchor text misses.
+- Delete only the tagged NCR and its matching audit rows; verify both
+  remaining counts are zero and remove the temporary shell cookie jar.
+
+## Devin Secrets Needed
+- ECOMAE_OPERATOR_PASSWORD — local operator password; never print it.
+- ECOMAE_LOCAL_MARIADB_E2E_DSN — repo-scoped throwaway MariaDB password.

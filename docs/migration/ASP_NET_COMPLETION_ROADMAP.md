@@ -175,7 +175,7 @@ and must pass field, line, action, permission, database, browser, responsive
 desktop/mobile, visual, and rollback evidence. Until that evidence is complete,
 these routes remain ASP.NET previews/shadows and PHP remains authoritative.
 
-### Step 2 — Close storefront and remaining public surfaces (6–9 sessions)
+### Step 3 — Close storefront and remaining public surfaces (6–9 sessions)
 
 * Reproduce the PHP themes and asset loading on each industry host.
 * Test catalogue/search, vehicle search, cart, obtaining modes, guest checkout,
@@ -184,7 +184,7 @@ these routes remain ASP.NET previews/shadows and PHP remains authoritative.
 * Complete vendor/B2B, parts agent, demand intelligence, marketing forms, and
   SEO/sitemap evidence.
 
-### Step 3 — Close operations and deployment modes (4–6 sessions)
+### Step 4 — Close operations and deployment modes (4–6 sessions)
 
 * Verify Super CP provisioning and demo lifecycle.
 * Test tenant isolation, registration/expiry, on-prem installation, cloud
@@ -192,7 +192,7 @@ these routes remain ASP.NET previews/shadows and PHP remains authoritative.
 * Prove queue retry, webhook replay protection, worker scheduling, and API
   compatibility.
 
-### Step 4 — Acceptance and PHP removal gate (3–4 sessions plus windows)
+### Step 5 — Acceptance and PHP removal gate (3–4 sessions plus windows)
 
 * Run three combined browser rounds against the same tenant data.
 * Capture PHP/ASP.NET screenshots and field/action/report comparisons.
@@ -212,8 +212,10 @@ to mark a surface complete.
 
 ## Current decision
 
-The fastest safe path is **CP evidence → ERP business processes → storefront →
-operations → three acceptance rounds**. PHP/PHP-FPM must remain available and
+The official execution sequence is **ERP → ERP acceptance → remaining CP /
+cross-surface → storefront → operations → final cutover** (see
+`ERP_COMPLETION_DIRECTIVE.md`). ERP is worked by complete business process, not
+by route count, and non-essential scope is frozen until the ERP exit gate passes. PHP/PHP-FPM must remain available and
 authoritative until the final gate; the current 20.4% weighted completion
 headline therefore remains unchanged by route or presentation-only slices.
 
