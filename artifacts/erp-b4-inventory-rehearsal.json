@@ -1,0 +1,84 @@
+{
+  "module": "B4",
+  "area": "inventory",
+  "tenant": "throwaway-local-mariadb",
+  "liveTenantWrites": false,
+  "scenarios": [
+    {
+      "scenario": "inventory-item-dry-run",
+      "result": "pass",
+      "route": "/erp/ajax/inv-create-item",
+      "evidence": [
+        "confirmWrites=false returned dry-run-validated with writes=0 and writesBlocked=true.",
+        "The payload was not executed against the database."
+      ]
+    },
+    {
+      "scenario": "inventory-item-create-and-readback",
+      "result": "pass",
+      "route": "/erp/ajax/inv-create-item",
+      "evidence": [
+        "Tagged item B4-ITEM-20261001 was created with endpoint id 1.",
+        "SQL readback corroborated the tagged SKU, name, unit, and standard item type.",
+        "The authenticated Inventory Stock browser showed the tagged item with 5.00 on-hand quantity after movement posting."
+      ]
+    },
+    {
+      "scenario": "warehouse-create-and-readback",
+      "result": "pass",
+      "route": "/erp/ajax/inv-create-warehouse",
+      "evidence": [
+        "Tagged warehouse B4-WH-20261001 was created with endpoint id 1.",
+        "SQL readback corroborated the tagged warehouse code and name."
+      ]
+    },
+    {
+      "scenario": "inventory-movement-create-and-readback",
+      "result": "pass",
+      "route": "/erp/ajax/inv-record-movement",
+      "evidence": [
+        "confirmWrites=false returned dry-run-validated with writes=0 and writesBlocked=true for the tagged opening movement.",
+        "confirmWrites=true returned movement_id 1 for 5 units at unit cost 12.50.",
+        "SQL readback corroborated the opening movement and stock balance of 5.000 units at average cost 12.5000.",
+        "The authenticated browser rendered Stock rows 1, Qty on hand 5.00, Stock value 62.50, and the tagged item row."
+      ]
+    },
+    {
+      "scenario": "inventory-validation-and-retry",
+      "result": "pass",
+      "route": "/erp/ajax/inv-create-warehouse, /erp/ajax/inv-create-item, /erp/ajax/inv-record-movement",
+      "evidence": [
+        "Empty warehouse input returned Warehouse code and name required with writes=0.",
+        "Empty item name returned SKU and name required with writes=0.",
+        "A duplicate warehouse code returned Warehouse code already exists with writes=0.",
+        "A duplicate item SKU returned SKU already exists with writes=0.",
+        "Submitting the same tagged movement again returned movement_id 2; duplicate movement retries are recorded as observed-allowed because the current movement contract has no idempotency key."
+      ]
+    },
+    {
+      "scenario": "inventory-empty-csv-observed-noop",
+      "result": "observed-noop",
+      "route": "/erp/ajax/inv-import-csv",
+      "evidence": [
+        "confirmWrites=false returned dry-run-validated with writes=0 and writesBlocked=true.",
+        "confirmWrites=true returned Posted 0 movement(s) with no movement rows; the response reported writes=1 despite no posted movement.",
+        "This is recorded as an observed no-op and metadata inconsistency, not as a successful inventory write or denial."
+      ]
+    },
+    {
+      "scenario": "tagged-inventory-cleanup",
+      "result": "pass",
+      "evidence": [
+        "Tagged movement rows, stock balance, item, and warehouse were deleted from the throwaway database after evidence capture.",
+        "SQL verification returned zero remaining tagged warehouse, item, movement, and stock rows."
+      ]
+    }
+  ],
+  "missing": [
+    "quality-fixture",
+    "wms-fixture",
+    "planning-fixture",
+    "inventory-tenant-isolation",
+    "inventory-full-recovery-and-rollback"
+  ]
+}
