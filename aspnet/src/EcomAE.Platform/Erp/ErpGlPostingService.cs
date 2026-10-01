@@ -462,6 +462,8 @@ public sealed class ErpGlPostingService : IErpGlPostingService
     /// <summary>Subset of PHP <c>epc_erp_gl_ensure_schema</c> for the tables this service writes.</summary>
     private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
+        await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
+
         await ErpDb.TryExecuteAsync(
             connection,
             "CREATE TABLE IF NOT EXISTS `epc_erp_gl_journals` ("

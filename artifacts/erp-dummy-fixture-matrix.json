@@ -35,8 +35,9 @@
       "id": "B2",
       "area": "order-to-cash",
       "status": "partial",
-      "fixtureGroups": ["users", "sales_order", "voucher_sequence", "audit_log"],
-      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "invalid-customer-denial", "cleanup"]
+      "fixtureGroups": ["users", "sales_order", "voucher_sequence", "audit_log", "einvoice_documents", "shop_users_accounting", "coa_accounts", "gl_journals"],
+      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "invalid-customer-denial", "so-to-invoice-dry-run-zero-writes", "so-to-invoice-confirmed", "invoice-header-lines-events-readback", "customer-settlement-ledger-readback", "gl-journal-ar-1100-6100-readback", "si-gv-voucher-sequence-readback", "duplicate-invoice-denial", "cleanup"],
+      "notes": "so_to_invoice chain (SO -> SI -> shop_users_accounting -> GV journal 6100 Dr / 1100 Cr -> audit) passed on throwaway DB after porting PHP epc_erp_gl_seed_coa (GL was silently skipped on an empty COA). Open: phpAuthoritative=false dry-run metadata, tenant-isolation, browser-parity, recovery-and-rollback, uat-and-production."
     },
     {
       "id": "B3",
