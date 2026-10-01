@@ -65,6 +65,12 @@ gate passes. The ERP exit gate requires:
   with PHP/PHP-FPM retained as the verified fallback until the final release
   owner sign-off.
 
+The executable acceptance inventory is `ErpTenantAcceptanceCatalog`: it keeps
+the B1–B8, Jewellery, and fit-out business scenarios distinct and refuses
+tenant promotion unless route parity, functionality, denial behavior, tenant
+isolation, persisted readback, browser parity, recovery/rollback, and UAT/
+production evidence are all recorded.
+
 The next ERP tranches must therefore be implemented as business-process
 functionality and acceptance evidence, not only route or presentation
 coverage. After the ERP exit gate, resume the remaining CP and cross-surface
