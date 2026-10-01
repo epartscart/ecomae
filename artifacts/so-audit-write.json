@@ -1,0 +1,36 @@
+{
+  "scope": "throwaway-local-mariadb",
+  "route": "/erp/ajax/so-save",
+  "confirmWrites": true,
+  "result": {
+    "httpStatus": 200,
+    "writes": 1,
+    "phpAuthoritative": false,
+    "status": "draft",
+    "amountExVat": 10.0,
+    "vatAmount": 0.5,
+    "totalAmount": 10.5,
+    "voucher": "SO-2026-00001"
+  },
+  "sqlReadback": {
+    "salesOrder": {
+      "entityType": "sales_order",
+      "status": "draft",
+      "amountExVat": 10.0,
+      "totalAmount": 10.5
+    },
+    "audit": {
+      "entityType": "sales_order",
+      "action": "sales_order_save",
+      "summary": "Sales order saved",
+      "detail": {
+        "so_no": "SO-2026-00001"
+      }
+    }
+  },
+  "cleanup": {
+    "dummySalesOrderRows": 0,
+    "dummyAuditRows": 0,
+    "dummySequenceRows": 0
+  }
+}

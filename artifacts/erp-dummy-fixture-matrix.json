@@ -1,0 +1,73 @@
+{
+  "scope": "throwaway-local-mariadb",
+  "purpose": "Track fixture readiness separately from ERP implementation and acceptance.",
+  "scenarios": [
+    {
+      "id": "B1",
+      "area": "workflow",
+      "status": "missing-fixture",
+      "fixtureGroups": ["workflow", "approval", "agenda"]
+    },
+    {
+      "id": "B2",
+      "area": "order-to-cash",
+      "status": "partial",
+      "fixtureGroups": ["users", "sales_order", "voucher_sequence", "audit_log"],
+      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "cleanup"]
+    },
+    {
+      "id": "B3",
+      "area": "procure-to-pay",
+      "status": "missing-fixture",
+      "fixtureGroups": ["supplier", "purchase_order", "receipt", "purchase_invoice", "settlement"]
+    },
+    {
+      "id": "B4",
+      "area": "inventory",
+      "status": "missing-fixture",
+      "fixtureGroups": ["product", "warehouse", "stock", "quality", "wms", "planning"]
+    },
+    {
+      "id": "B5",
+      "area": "record-to-report",
+      "status": "partial",
+      "fixtureGroups": ["legal_entity", "business_unit", "dimension", "cost_centre", "intercompany"],
+      "missing": ["chart_of_accounts", "gl_journal", "budget", "period_close", "consolidation"]
+    },
+    {
+      "id": "B6",
+      "area": "reporting",
+      "status": "missing-fixture",
+      "fixtureGroups": ["ifrs_source", "tax_report", "drilldown", "source_evidence"]
+    },
+    {
+      "id": "B7",
+      "area": "treasury",
+      "status": "missing-fixture",
+      "fixtureGroups": ["cash_account", "bank_entry", "payment_batch", "collection", "reconciliation"]
+    },
+    {
+      "id": "B8",
+      "area": "tax-compliance",
+      "status": "missing-fixture",
+      "fixtureGroups": ["vat_profile", "corporate_tax", "einvoice", "withholding", "country_obligation"]
+    },
+    {
+      "id": "BJ",
+      "area": "jewellery",
+      "status": "missing-fixture",
+      "fixtureGroups": ["karat", "metal", "stone", "pearl", "diamond", "design", "tag", "repair", "fixing"]
+    },
+    {
+      "id": "BF",
+      "area": "fit-out",
+      "status": "missing-fixture",
+      "fixtureGroups": ["estimate", "boq", "project", "cost_code", "subcontract", "progress", "project_pnl"]
+    }
+  ],
+  "completion": {
+    "erpComplete": false,
+    "liveTenantWrites": false,
+    "phpFallbackRequired": true
+  }
+}
