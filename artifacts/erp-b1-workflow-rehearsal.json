@@ -94,6 +94,16 @@
       ]
     },
     {
+      "scenario": "workflow-duplicate-retry-behavior",
+      "result": "observed-allowed",
+      "route": "/erp/workflow/create",
+      "evidence": [
+        "Submitting the same tagged Workflow task payload twice returned Workflow task created. for both requests.",
+        "SQL readback showed two pending rows with the same title and workflow step; the current PHP-compatible create contract has no duplicate-denial rule.",
+        "Both tagged retry rows were removed during cleanup."
+      ]
+    },
+    {
       "scenario": "tagged-cleanup",
       "result": "pass",
       "evidence": [
@@ -105,7 +115,6 @@
     }
   ],
   "missing": [
-    "workflow-duplicate-retry-denial",
     "audit-readback",
     "tenant-isolation",
     "full-recovery-and-rollback"

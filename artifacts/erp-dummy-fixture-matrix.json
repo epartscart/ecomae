@@ -17,10 +17,10 @@
         "agenda-duplicate-retry-observed-allowed",
         "approval-queue-decision-and-denial",
         "workflow-invalid-input-browser-denial",
+        "workflow-duplicate-retry-observed-allowed",
         "tagged-cleanup"
       ],
       "missing": [
-        "workflow-duplicate-retry-denial",
         "audit-readback",
         "tenant-isolation",
         "full-recovery-and-rollback"
