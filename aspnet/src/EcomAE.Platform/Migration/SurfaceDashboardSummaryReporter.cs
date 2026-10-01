@@ -11899,6 +11899,78 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<ErpReceivableDetailResult> BuildErpReceivableDetailAsync(
+        long userId,
+        CancellationToken cancellationToken = default)
+    {
+        if (userId <= 0)
+        {
+            return new(null, [], "n/a", "Customer id is required.");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return new(null, [], "migration", "TenantRegistry DB is not configured.");
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            ErpReceivableDigest? customer = null;
+            await using (var customerCommand = connection.CreateCommand())
+            {
+                customerCommand.CommandText = LegacySurfaceDashboardSql.SelectErpReceivables;
+                AddParameter(customerCommand, "@limit", 500);
+                await using var customerReader = await customerCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await customerReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var candidate = new ErpReceivableDigest(
+                        Convert.ToInt64(customerReader["user_id"] is DBNull ? 0 : customerReader["user_id"], CultureInfo.InvariantCulture),
+                        Convert.ToString(customerReader["email"] is DBNull ? string.Empty : customerReader["email"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToDecimal(customerReader["balance"] is DBNull ? 0m : customerReader["balance"], CultureInfo.InvariantCulture),
+                        Convert.ToDecimal(customerReader["order_receivable_due"] is DBNull ? 0m : customerReader["order_receivable_due"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(customerReader["order_count"] is DBNull ? 0 : customerReader["order_count"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(customerReader["complete_order_count"] is DBNull ? 0 : customerReader["complete_order_count"], CultureInfo.InvariantCulture));
+                    if (candidate.UserId == userId)
+                    {
+                        customer = candidate;
+                        break;
+                    }
+                }
+            }
+
+            if (customer is null)
+            {
+                return new(null, [], "database", "Customer receivable not found.");
+            }
+
+            var entries = new List<ErpReceivableLedgerEntry>();
+            await using (var ledgerCommand = connection.CreateCommand())
+            {
+                ledgerCommand.CommandText = LegacySurfaceDashboardSql.SelectErpReceivableLedger;
+                AddParameter(ledgerCommand, "@user_id", userId);
+                await using var ledgerReader = await ledgerCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await ledgerReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    entries.Add(new(
+                        Convert.ToInt64(ledgerReader["id"] is DBNull ? 0 : ledgerReader["id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(ledgerReader["time_unix"] is DBNull ? 0 : ledgerReader["time_unix"], CultureInfo.InvariantCulture),
+                        Convert.ToInt32(ledgerReader["income"] is DBNull ? 0 : ledgerReader["income"], CultureInfo.InvariantCulture) != 0,
+                        Convert.ToDecimal(ledgerReader["amount"] is DBNull ? 0m : ledgerReader["amount"], CultureInfo.InvariantCulture),
+                        Convert.ToString(ledgerReader["operation_code"] is DBNull ? string.Empty : ledgerReader["operation_code"], CultureInfo.InvariantCulture) ?? string.Empty,
+                        Convert.ToInt64(ledgerReader["order_id"] is DBNull ? 0 : ledgerReader["order_id"], CultureInfo.InvariantCulture),
+                        Convert.ToInt64(ledgerReader["office_id"] is DBNull ? 0 : ledgerReader["office_id"], CultureInfo.InvariantCulture)));
+                }
+            }
+
+            return new(customer, entries, "database", string.Empty);
+        }
+        catch (Exception ex)
+        {
+            return new(null, [], "database-error", ex.Message);
+        }
+    }
+
     public async Task<ErpAgingDigestResult> BuildErpAgingDigestAsync(int limit, CancellationToken cancellationToken = default)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);

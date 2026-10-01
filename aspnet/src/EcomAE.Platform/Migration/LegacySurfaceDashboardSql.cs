@@ -1721,6 +1721,20 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>PHP customer statement rows from shop_users_accounting.</summary>
+    public const string SelectErpReceivableLedger = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix,
+               IFNULL(`income`, 0) AS income,
+               IFNULL(`amount`, 0) AS amount,
+               IFNULL(`operation_code`, '') AS operation_code,
+               IFNULL(`order_id`, 0) AS order_id,
+               IFNULL(`office_id`, 0) AS office_id
+        FROM `shop_users_accounting`
+        WHERE `user_id` = @user_id AND `active` = 1
+        ORDER BY `id` DESC
+        LIMIT 100
+        """;
+
     public const string SelectErpCreditProfiles = """
         SELECT `customer_id`, IFNULL(`customer_account`, '') AS customer_account,
                IFNULL(`customer_name`, '') AS customer_name,
