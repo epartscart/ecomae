@@ -15741,6 +15741,12 @@ public sealed class ControlPanelModule : ISurfaceModule
                 returnUrl = LiveWriteFormBinder.Text(form, "returnUrl", "return_url");
             }
 
+            var isSuper = SuperCpHostGate.IsAllowed(context);
+            if (!isSuper)
+            {
+                siteKey = CpSocialHubWriteService.ResolveSiteKey(null, false, context.Request.Host.Host);
+            }
+
             var key = (action ?? string.Empty).Trim();
             if (string.IsNullOrWhiteSpace(key))
             {
@@ -15759,13 +15765,13 @@ public sealed class ControlPanelModule : ISurfaceModule
                         new CpSocialHubSaveAccountRequest(
                             siteKey, platform, accountLabel, username, accessToken, apiKey, apiSecret,
                             pageId, igUserId, openId, privacyLevel,
-                            SuperCpHostGate.IsAllowed(context),
+                            isSuper,
                             context.Request.Host.Host),
                         cancellationToken),
                     "test_account" => await writes.TestAccountAsync(
-                        siteKey, platform, SuperCpHostGate.IsAllowed(context), context.Request.Host.Host, cancellationToken),
+                        siteKey, platform, isSuper, context.Request.Host.Host, cancellationToken),
                     _ => await writes.DeleteAccountAsync(
-                        siteKey, platform, SuperCpHostGate.IsAllowed(context), context.Request.Host.Host, cancellationToken),
+                        siteKey, platform, isSuper, context.Request.Host.Host, cancellationToken),
                 };
 
                 return LiveWriteFormBinder.Complete(
@@ -15781,7 +15787,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 var written = await writes.SaveDraftAsync(
                     new CpSocialHubSaveDraftRequest(
                         id, siteKey, platform, title, caption, hashtags, mediaUrl,
-                        SuperCpHostGate.IsAllowed(context),
+                        isSuper,
                         context.Request.Host.Host),
                     cancellationToken);
                 return LiveWriteFormBinder.Complete(

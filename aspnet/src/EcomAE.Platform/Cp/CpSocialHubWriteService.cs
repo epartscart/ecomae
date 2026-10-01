@@ -94,14 +94,14 @@ public sealed class CpSocialHubWriteService : ICpSocialHubWriteService
     /// <summary>PHP Super-CP GET site_key or <c>platform</c>; tenant host fallback.</summary>
     public static string ResolveSiteKey(string? posted, bool superCpHost, string? requestHost)
     {
-        var key = SiteKeySafe.Replace((posted ?? string.Empty).Trim().ToLowerInvariant(), string.Empty);
-        if (key.Length > 0)
-        {
-            return key;
-        }
-
         if (superCpHost)
         {
+            var key = SiteKeySafe.Replace((posted ?? string.Empty).Trim().ToLowerInvariant(), string.Empty);
+            if (key.Length > 0)
+            {
+                return key;
+            }
+
             return "platform";
         }
 
