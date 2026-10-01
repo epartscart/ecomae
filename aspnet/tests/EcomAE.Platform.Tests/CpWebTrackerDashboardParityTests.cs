@@ -130,6 +130,8 @@ public class CpWebTrackerDashboardParityTests
         Assert.DoesNotContain("epc_web_tracker_aspnet.js", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("Compare PHP reference", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("new(\"epartscart\"", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("[\"_all\", \"ecomae\", \"epartscart\"]", razor, StringComparison.Ordinal);
     }
 
     [Fact]
