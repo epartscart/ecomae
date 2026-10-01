@@ -18,6 +18,8 @@ public sealed class CpMetabaseWriteTests
     {
         Assert.Equal("eparts-cart", CpMetabaseWriteService.NormalizeSiteKey(" eParts-Cart! "));
         Assert.Equal("epartscart", CpMetabaseWriteService.NormalizeSiteKey("ePartsCart"));
+        Assert.Equal("indus_ae", CpMetabaseWriteService.ResolveSiteKey("other", false, "www.indus.ae"));
+        Assert.Equal("other", CpMetabaseWriteService.ResolveSiteKey("other", true, "www.ecomae.com"));
         Assert.Equal("https://mb.example", CpMetabaseWriteService.Clip("https://mb.example/extra-path-that-is-far-too-long-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx", 256)[..18]);
     }
 
@@ -59,6 +61,7 @@ public sealed class CpMetabaseWriteTests
         Assert.Contains("ICpMetabaseWriteService", module, StringComparison.Ordinal);
         Assert.Contains("save_config", module, StringComparison.Ordinal);
         Assert.Contains("add_dashboard", module, StringComparison.Ordinal);
+        Assert.Contains("CpMetabaseWriteService.ResolveSiteKey(null, false, host)", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpMetabaseWriteService.cs"));
         Assert.Contains("epc_metabase_configure", service, StringComparison.Ordinal);
@@ -73,6 +76,9 @@ public sealed class CpMetabaseWriteTests
         Assert.DoesNotContain("SmtpClient", service, StringComparison.Ordinal);
         Assert.DoesNotContain("cutoverAllowed = true", service, StringComparison.Ordinal);
         Assert.DoesNotContain("secret_key`=VALUES", service, StringComparison.Ordinal);
+        var sql = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs"));
+        Assert.Contains("@scope_all", sql, StringComparison.Ordinal);
+        Assert.Contains("@scope_site", sql, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

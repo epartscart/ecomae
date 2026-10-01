@@ -1914,6 +1914,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`metabase_url`, '') AS metabase_url,
                `active`
         FROM `epc_metabase_config`
+        WHERE (@scope_all = 1 OR `site_key` = @scope_site)
         ORDER BY CASE WHEN `site_key` = '__platform__' THEN 0 ELSE 1 END, `id` ASC
         LIMIT 1
         """;
@@ -1925,6 +1926,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`category`, '') AS category,
                `active`
         FROM `epc_metabase_dashboards`
+        WHERE (@scope_all = 1 OR `site_key` = @scope_site)
         ORDER BY `category` ASC, `dashboard_name` ASC, `id` ASC
         LIMIT @limit
         """;
@@ -1938,7 +1940,7 @@ public static class LegacySurfaceDashboardSql
                `active`,
                IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
         FROM `epc_metabase_dashboards`
-        WHERE `id` = @id
+        WHERE `id` = @id AND (@scope_all = 1 OR `site_key` = @scope_site)
         LIMIT 1
         """;
 
@@ -1948,7 +1950,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`metabase_url`, '') AS metabase_url,
                `active`
         FROM `epc_metabase_config`
-        WHERE `site_key` = @site_key
+        WHERE `site_key` = @site_key AND (@scope_all = 1 OR `site_key` = @scope_site)
         LIMIT 1
         """;
 
@@ -1961,6 +1963,7 @@ public static class LegacySurfaceDashboardSql
                `active`
         FROM `epc_metabase_dashboards`
         WHERE `site_key` = @site_key AND `category` = @category AND `id` <> @id
+          AND (@scope_all = 1 OR `site_key` = @scope_site)
         ORDER BY `dashboard_name` ASC, `id` ASC
         LIMIT 50
         """;

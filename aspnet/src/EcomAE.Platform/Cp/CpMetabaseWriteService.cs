@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -43,6 +44,16 @@ public sealed class CpMetabaseWriteService : ICpMetabaseWriteService
 
     public static string NormalizeSiteKey(string? raw)
         => SiteKeySafe.Replace((raw ?? string.Empty).Trim().ToLowerInvariant(), string.Empty);
+
+    public static string ResolveSiteKey(string? posted, bool superCpHost, string? requestHost)
+    {
+        if (superCpHost)
+        {
+            return NormalizeSiteKey(posted);
+        }
+
+        return CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(requestHost);
+    }
 
     public static string Clip(string? raw, int max)
     {

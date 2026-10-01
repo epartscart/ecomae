@@ -165,10 +165,18 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpMobileAppsDigestResult> BuildCpMobileAppsDigestAsync(CancellationToken cancellationToken = default);
 
     /// <summary>Read-only Metabase config + dashboards (secret_key never returned).</summary>
-    Task<CpMetabaseDigestResult> BuildCpMetabaseDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<CpMetabaseDigestResult> BuildCpMetabaseDigestAsync(
+        int limit,
+        CancellationToken cancellationToken = default,
+        string? requestHost = null,
+        bool isSuper = false);
 
     /// <summary>Opened Metabase dashboard (PHP <c>mb_id</c>) plus site URL and category siblings. secret_key omitted.</summary>
-    Task<CpMetabaseDashboardDetailResult> BuildCpMetabaseDashboardDetailAsync(long id, CancellationToken cancellationToken = default);
+    Task<CpMetabaseDashboardDetailResult> BuildCpMetabaseDashboardDetailAsync(
+        long id,
+        CancellationToken cancellationToken = default,
+        string? requestHost = null,
+        bool isSuper = false);
 
     /// <summary>Read-only NL report definitions metadata (query/recipients omitted).</summary>
     Task<CpNlReportingDigestResult> ListCpNlReportDefinitionsAsync(int limit, CancellationToken cancellationToken = default);
