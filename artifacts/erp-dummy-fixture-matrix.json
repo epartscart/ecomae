@@ -147,8 +147,11 @@
     {
       "id": "B6",
       "area": "reporting",
-      "status": "missing-fixture",
-      "fixtureGroups": ["ifrs_source", "tax_report", "drilldown", "source_evidence"]
+      "status": "partial",
+      "fixtureGroups": ["ifrs_source", "tax_report", "drilldown", "source_evidence"],
+      "verified": ["external-reporting-admin-authentication", "external-reporting-country-driven-catalogue", "external-reporting-catalogue-summary-readback", "ifrs18-annual-report-browser-readback", "ifrs18-registration-country-and-period-readback", "ifrs18-authority-and-standard-links-readback", "ifrs18-primary-statement-and-note-pack-readback", "ifrs18-tax-and-einvoice-bridge-readback", "ifrs18-source-schedule-containers-readback", "external-reporting-fetch-dry-run-zero-writes", "external-reporting-confirmed-generate-refused", "external-reporting-invalid-action-zero-writes", "external-reporting-unauthenticated-denial", "external-reporting-source-sql-readback", "external-reporting-read-only-no-write-path"],
+      "missing": ["ifrs-source-fixture-population", "tax-report-fixture-population", "sales-invoice-source-drilldown-populated-readback", "purchase-bill-source-drilldown-populated-readback", "source-document-audit-evidence", "external-reporting-tenant-isolation", "external-reporting-production-recovery-and-rollback", "external-reporting-uat-and-production-acceptance", "php-authoritative-report-generation-parity", "report-filing-and-scheduler-parity", "account-journal-voucher-drilldown-parity"],
+      "notes": "Authenticated throwaway-tenant browser readback reached the IFRS 18 annual pack and showed the country/period/authority controls, primary statements, 42-section note pack, tax/e-invoice bridge, and source-schedule containers. The live source projection was independently checked against PHP-owned tables: 4 active e-invoice rows and 0 active purchase rows were present in the throwaway database, so the rendered pack correctly remained sample-labelled and populated source-document drill-down rows were not claimed. External-reporting fetch/import/intake remains read-only on ASP.NET; dry-run returned zero writes, confirmed generation was refused, invalid action was refused, and unauthenticated access was denied. No live tenant or production data was touched."
     },
     {
       "id": "B7",
