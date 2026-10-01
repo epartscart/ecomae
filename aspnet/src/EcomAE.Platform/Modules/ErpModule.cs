@@ -12164,6 +12164,33 @@ public sealed class ErpModule : ISurfaceModule
             var result = await dashboards.ListErpMultiEntityAsync(limit ?? 200, cancellationToken);
             return Results.Ok(new { ok = true, surface = "erp", groups = result.Groups, intercompany = result.Intercompany, count = result.Count, memberTotal = result.MemberTotal, icTxnCount = result.IcTxnCount, pendingIcCount = result.PendingIcCount, source = result.Source, message = result.Message, session = SessionPayload(session), note = "epc_entity_groups + epc_intercompany_txns. Group/member/IC/eliminate on POST /erp/multi-entity/write when confirmWrites=true. ajax_erp multi_entity_save stays dry-run." });
         });
+        endpoints.MapGet(EcomAeRoutes.ErpMultiEntityConsolidatedTrialBalance, async (
+            HttpContext context,
+            long? groupId,
+            long? group_id,
+            ILegacySessionValidator validator,
+            IErpConsolidatedTrialBalanceReadService read,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+                return Unauthorized("Admin ERP capability required for consolidated trial-balance readback.");
+
+            var result = await read.ReadAsync(groupId ?? group_id ?? 0, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = result.Source != "invalid" && result.Source != "database-error",
+                surface = "erp",
+                group_id = result.GroupId,
+                entities = result.Entities,
+                accounts = result.Accounts,
+                source = result.Source,
+                message = result.Message,
+                phpAuthoritative = true,
+                session = SessionPayload(session),
+                note = "PHP epc_entity_consolidated_tb projection: entity count plus empty accounts container; detailed consolidated balances remain PHP-owned."
+            });
+        });
         endpoints.MapPost(EcomAeRoutes.ErpMultiEntityWrite, async (
             HttpContext context,
             ILegacySessionValidator validator,
