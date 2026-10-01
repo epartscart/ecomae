@@ -382,6 +382,7 @@ public sealed record ErpSupplierDetailResult(
     IReadOnlyList<ErpSupplierDigest> Siblings,
     IReadOnlyList<ErpPurchaseDigest> Purchases,
     IReadOnlyList<ErpSupplierPaymentDigest> Payments,
+    IReadOnlyList<ErpSupplierLedgerEntry> Ledger,
     string Source,
     string Message);
 
@@ -394,6 +395,17 @@ public sealed record ErpSupplierPaymentDigest(
     bool IsAdvance,
     long PurchaseId,
     int AllocationCount);
+
+public sealed record ErpSupplierLedgerEntry(
+    long Id,
+    long TimeUnix,
+    bool IsCredit,
+    decimal Amount,
+    long PurchaseId,
+    long CashEntryId,
+    long OrderId,
+    string Reference,
+    string EntryKind);
 
 public sealed record ErpPurchaseDigest(
     long Id,

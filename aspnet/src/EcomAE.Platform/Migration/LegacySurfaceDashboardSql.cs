@@ -802,6 +802,22 @@ public static class LegacySurfaceDashboardSql
         LIMIT 20
         """;
 
+    /// <summary>Active PHP-owned supplier payable ledger rows for the opened supplier.</summary>
+    public const string SelectErpSupplierLedger = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix,
+               IFNULL(`is_credit`, 0) AS is_credit,
+               IFNULL(`amount`, 0) AS amount,
+               IFNULL(`purchase_id`, 0) AS purchase_id,
+               IFNULL(`cash_entry_id`, 0) AS cash_entry_id,
+               IFNULL(`order_id`, 0) AS order_id,
+               IFNULL(`reference`, '') AS reference,
+               IFNULL(`entry_kind`, 'invoice') AS entry_kind
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1
+        ORDER BY `id` DESC
+        LIMIT 100
+        """;
+
     public const string SelectErpPurchases = """
         SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
                p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`

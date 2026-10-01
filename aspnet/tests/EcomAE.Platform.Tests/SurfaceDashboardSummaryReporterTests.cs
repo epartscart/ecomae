@@ -548,6 +548,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.DoesNotContain("trn_excerpt", LegacySurfaceDashboardSql.SelectErpSupplierCurrencySiblings, StringComparison.Ordinal);
         Assert.Contains("@currency_code", LegacySurfaceDashboardSql.SelectErpSupplierCurrencySiblings, StringComparison.Ordinal);
         Assert.Contains("`id` <> @id", LegacySurfaceDashboardSql.SelectErpSupplierCurrencySiblings, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_supplier_accounting", LegacySurfaceDashboardSql.SelectErpSupplierLedger, StringComparison.Ordinal);
+        Assert.Contains("`supplier_id` = @id", LegacySurfaceDashboardSql.SelectErpSupplierLedger, StringComparison.Ordinal);
+        Assert.Contains("`active` = 1", LegacySurfaceDashboardSql.SelectErpSupplierLedger, StringComparison.Ordinal);
+        Assert.Contains("entry_kind", LegacySurfaceDashboardSql.SelectErpSupplierLedger, StringComparison.Ordinal);
         Assert.Contains("users_profiles", LegacySurfaceDashboardSql.SelectStorefrontUserProfiles, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_journals", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);
         Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);

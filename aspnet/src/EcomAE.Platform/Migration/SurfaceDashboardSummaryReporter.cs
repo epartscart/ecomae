@@ -1643,12 +1643,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     {
         if (id <= 0)
         {
-            return new(null, [], [], [], "n/a", "");
+            return new(null, [], [], [], [], "n/a", "");
         }
 
         if (!_connections.IsConfigured)
         {
-            return new(null, [], [], [], "migration", "TenantRegistry DB is not configured.");
+            return new(null, [], [], [], [], "migration", "TenantRegistry DB is not configured.");
         }
 
         try
@@ -1675,7 +1675,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             if (header is null)
             {
-                return new(null, [], [], [], "database", "Supplier not found.");
+                return new(null, [], [], [], [], "database", "Supplier not found.");
             }
 
             var siblings = new List<ErpSupplierDigest>();
@@ -1736,11 +1736,32 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, purchases, payments, "database", string.Empty);
+            var ledger = new List<ErpSupplierLedgerEntry>();
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierLedger;
+                AddParameter(cmd, "@id", id);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    ledger.Add(new(
+                        ReadI64(reader, "id"),
+                        ReadI64(reader, "time_unix"),
+                        ReadI32(reader, "is_credit") != 0,
+                        ReadDec(reader, "amount"),
+                        ReadI64(reader, "purchase_id"),
+                        ReadI64(reader, "cash_entry_id"),
+                        ReadI64(reader, "order_id"),
+                        ReadStr(reader, "reference"),
+                        ReadStr(reader, "entry_kind")));
+                }
+            }
+
+            return new(header, siblings, purchases, payments, ledger, "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return new(null, [], [], [], "database-error", ex.Message);
+            return new(null, [], [], [], [], "database-error", ex.Message);
         }
     }
 
