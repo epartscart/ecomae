@@ -18,8 +18,35 @@
     {
       "id": "B3",
       "area": "procure-to-pay",
-      "status": "missing-fixture",
+      "status": "partial",
       "fixtureGroups": ["supplier", "purchase_order", "receipt", "purchase_invoice", "settlement"]
+      ,"verified": [
+        "po-dry-run",
+        "po-create",
+        "po-status-approval",
+        "po-to-invoice",
+        "supplier-payment",
+        "sql-readback",
+        "audit-readback",
+        "voucher-sequence-readback",
+        "duplicate-conversion-denial"
+      ],
+      "missing": [
+        "requisition",
+        "rfq",
+        "rfq-supplier-comparison",
+        "receipt-route",
+        "tenant-isolation",
+        "browser-parity",
+        "full-recovery-and-rollback"
+      ],
+      "schemaDivergenceFixed": [
+        "epc_erp_purchases.uae_vat_treatment",
+        "epc_erp_purchases.uae_tax_legislation_ref",
+        "epc_erp_purchases.gl_journal_id",
+        "epc_erp_supplier_accounting.active",
+        "epc_erp_supplier_accounting.gl_journal_id"
+      ]
     },
     {
       "id": "B4",

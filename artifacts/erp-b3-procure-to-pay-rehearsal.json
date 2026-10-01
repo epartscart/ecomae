@@ -1,0 +1,84 @@
+{
+  "scope": "throwaway-local-mariadb",
+  "tenant": "ecomae",
+  "liveTenantWrites": false,
+  "phpFallbackRequired": true,
+  "status": "partial",
+  "schemaAuthority": "php-owned",
+  "schemaCompatibility": {
+    "status": "fixed-in-aspnet-ensure-schema",
+    "details": [
+      "Existing PHP-created epc_erp_purchases tables now receive additive compatibility columns before invoice conversion.",
+      "Existing PHP-created epc_erp_supplier_accounting tables now receive additive compatibility columns before downstream settlement use."
+    ]
+  },
+  "verified": [
+    {
+      "scenario": "po-dry-run",
+      "route": "/erp/ajax/po-save",
+      "result": "pass",
+      "writes": 0
+    },
+    {
+      "scenario": "po-create",
+      "route": "/erp/ajax/po-save",
+      "result": "pass",
+      "po": "PO-2026-00001",
+      "amountExVat": 100.0,
+      "vatAmount": 5.0,
+      "totalAmount": 105.0
+    },
+    {
+      "scenario": "po-approval",
+      "route": "/erp/ajax/po-status",
+      "result": "pass",
+      "status": "approved"
+    },
+    {
+      "scenario": "po-to-invoice",
+      "route": "/erp/ajax/po-to-invoice",
+      "result": "pass",
+      "invoice": "PI-2026-00003",
+      "totalAmount": 105.0
+    },
+    {
+      "scenario": "supplier-payment",
+      "route": "/erp/ajax/supplier-payment",
+      "result": "pass",
+      "voucher": "PV-2026-00001",
+      "amount": 105.0
+    },
+    {
+      "scenario": "duplicate-conversion",
+      "route": "/erp/ajax/po-to-invoice",
+      "result": "denied",
+      "writes": 0,
+      "message": "Purchase order already linked to a purchase invoice"
+    },
+    {
+      "scenario": "persisted-readback",
+      "result": "pass",
+      "evidence": [
+        "purchase order status and purchase linkage",
+        "purchase invoice VAT and total",
+        "cash/bank payment entry",
+        "supplier accounting invoice and payment rows",
+        "PO/PI/PV voucher sequences",
+        "PO, purchase, and cash-entry audit rows"
+      ]
+    }
+  ],
+  "remaining": [
+    "requisition",
+    "rfq",
+    "rfq-supplier-comparison",
+    "receipt-route",
+    "tenant-isolation",
+    "browser-parity",
+    "full-recovery-and-rollback"
+  ],
+  "acceptance": {
+    "erpComplete": false,
+    "tenantPromotionAllowed": false
+  }
+}
