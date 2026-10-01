@@ -212,6 +212,39 @@ public static class LiveWriteFormBinder
         return ids.Distinct().ToArray();
     }
 
+    public static IReadOnlyList<long> ParallelLongs(IFormCollection form, params string[] names)
+    {
+        var ids = new List<long>();
+        foreach (var name in names)
+        {
+            foreach (var raw in form[name])
+            {
+                if (long.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id))
+                {
+                    ids.Add(id);
+                }
+            }
+        }
+
+        return ids;
+    }
+
+    public static IReadOnlyList<decimal> ParallelDecimals(IFormCollection form, params string[] names)
+    {
+        var amounts = new List<decimal>();
+        foreach (var name in names)
+        {
+            foreach (var raw in form[name])
+            {
+                amounts.Add(decimal.TryParse(raw, NumberStyles.Any, CultureInfo.InvariantCulture, out var amount)
+                    ? amount
+                    : 0m);
+            }
+        }
+
+        return amounts;
+    }
+
     public static IResult Complete(
         HttpContext context,
         string fallbackReturnUrl,

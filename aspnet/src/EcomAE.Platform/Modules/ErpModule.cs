@@ -2121,16 +2121,43 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpCashEntriesReceiptVoucher, async (
             HttpContext context,
-            ErpReceiptVoucherBody? body,
             ILegacySessionValidator validator,
             IErpReceiptVoucherDryRun dryRun,
             IErpCashWriteService writes,
             CancellationToken cancellationToken) =>
         {
+            ErpReceiptVoucherBody? body = null;
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
                 return Unauthorized("Admin ERP capability required for receipt voucher dry-run.");
+            }
+
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new ErpReceiptVoucherBody(
+                    LiveWriteFormBinder.Long(form, "user_id", "userId"),
+                    LiveWriteFormBinder.Long(form, "account_id", "accountId"),
+                    LiveWriteFormBinder.Dec(form, "amount"),
+                    LiveWriteFormBinder.Long(form, "sales_order_id", "salesOrderId"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                    LiveWriteFormBinder.Long(form, "sales_invoice_id", "salesInvoiceId"),
+                    form.ContainsKey("is_advance")
+                        ? LiveWriteFormBinder.Flag(form, "is_advance", "isAdvance")
+                        : null,
+                    LiveWriteFormBinder.Flag(form, "post_gl", "postGl"),
+                    LiveWriteFormBinder.Text(form, "note"),
+                    LiveWriteFormBinder.Long(form, "order_id", "orderId"),
+                    LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
+                    LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
+                    LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"));
+            }
+            else
+            {
+                body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpReceiptVoucherBody>(
+                    context,
+                    cancellationToken);
             }
 
             body ??= new ErpReceiptVoucherBody(0, 0, 0);
@@ -2138,10 +2165,16 @@ public sealed class ErpModule : ISurfaceModule
             {
                 var result = dryRun.Evaluate(
                     new ErpReceiptVoucherRequest(body.UserId, body.AccountId, body.Amount, body.SalesOrderId, false));
-                return Results.Ok(result.ToPayload(SessionPayload(session)));
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/cash-entries-app",
+                    result.ValidationCode == "ok",
+                    result.Detail,
+                    result.ToPayload(SessionPayload(session)),
+                    StatusCodes.Status200OK);
             }
 
-            return await ExecuteErpWriteAsync(session, async () =>
+            return await ExecuteErpWriteAsync(context, session, "/erp/cash-entries-app", async () =>
             {
                 var saved = await writes.ReceiptVoucherAsync(
                     new ErpReceiptVoucherInput
@@ -2167,16 +2200,40 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpCashEntriesPaymentVoucher, async (
             HttpContext context,
-            ErpPaymentVoucherBody? body,
             ILegacySessionValidator validator,
             IErpPaymentVoucherDryRun dryRun,
             IErpCashWriteService writes,
             CancellationToken cancellationToken) =>
         {
+            ErpPaymentVoucherBody? body = null;
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
                 return Unauthorized("Admin ERP capability required for payment voucher dry-run.");
+            }
+
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                body = new ErpPaymentVoucherBody(
+                    LiveWriteFormBinder.Long(form, "supplier_id", "supplierId"),
+                    LiveWriteFormBinder.Long(form, "account_id", "accountId"),
+                    LiveWriteFormBinder.Dec(form, "amount"),
+                    LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+                    LiveWriteFormBinder.Long(form, "purchase_id", "purchaseId"),
+                    LiveWriteFormBinder.Text(form, "reference"),
+                    LiveWriteFormBinder.Text(form, "note"),
+                    LiveWriteFormBinder.Long(form, "purchase_order_id", "purchaseOrderId"),
+                    form.ContainsKey("is_advance") && LiveWriteFormBinder.Flag(form, "is_advance", "isAdvance"),
+                    LiveWriteFormBinder.Flag(form, "auto_allocate", "autoAllocate"),
+                    LiveWriteFormBinder.ParallelLongs(form, "alloc_invoice_id[]", "alloc_invoice_id", "allocInvoiceId"),
+                    LiveWriteFormBinder.ParallelDecimals(form, "alloc_amount[]", "alloc_amount", "allocAmount"));
+            }
+            else
+            {
+                body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentVoucherBody>(
+                    context,
+                    cancellationToken);
             }
 
             body ??= new ErpPaymentVoucherBody(0, 0, 0);
@@ -2184,10 +2241,16 @@ public sealed class ErpModule : ISurfaceModule
             {
                 var result = dryRun.Evaluate(
                     new ErpPaymentVoucherRequest(body.SupplierId, body.AccountId, body.Amount, false));
-                return Results.Ok(result.ToPayload(SessionPayload(session)));
+                return LiveWriteFormBinder.Complete(
+                    context,
+                    "/erp/cash-entries-app",
+                    result.ValidationCode == "ok",
+                    result.Detail,
+                    result.ToPayload(SessionPayload(session)),
+                    StatusCodes.Status200OK);
             }
 
-            return await ExecuteErpWriteAsync(session, async () =>
+            return await ExecuteErpWriteAsync(context, session, "/erp/cash-entries-app", async () =>
             {
                 var saved = await writes.PaymentVoucherAsync(
                     new ErpPaymentVoucherInput
@@ -13213,6 +13276,56 @@ public sealed class ErpModule : ISurfaceModule
                 message = ex.Message,
                 session = SessionPayload(session),
             });
+        }
+    }
+
+    private static async Task<IResult> ExecuteErpWriteAsync(
+        HttpContext context,
+        LegacySessionContext session,
+        string fallbackReturnUrl,
+        Func<Task<(string Message, object Payload)>> write)
+    {
+        try
+        {
+            var (message, payload) = await write();
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallbackReturnUrl,
+                true,
+                message,
+                new
+                {
+                    ok = true,
+                    status = true,
+                    surface = "erp",
+                    writes = 1,
+                    writesBlocked = false,
+                    phpAuthoritative = false,
+                    message,
+                    result = payload,
+                    session = SessionPayload(session),
+                },
+                StatusCodes.Status200OK);
+        }
+        catch (ErpWriteException ex)
+        {
+            return LiveWriteFormBinder.Complete(
+                context,
+                fallbackReturnUrl,
+                false,
+                ex.Message,
+                new
+                {
+                    ok = false,
+                    status = false,
+                    surface = "erp",
+                    writes = 0,
+                    writesBlocked = false,
+                    phpAuthoritative = false,
+                    message = ex.Message,
+                    session = SessionPayload(session),
+                },
+                StatusCodes.Status200OK);
         }
     }
 
