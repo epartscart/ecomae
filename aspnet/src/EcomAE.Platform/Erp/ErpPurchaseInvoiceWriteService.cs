@@ -397,6 +397,22 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
             cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
+            "ALTER TABLE `epc_erp_purchases` ADD COLUMN `uae_vat_treatment` varchar(32) NOT NULL DEFAULT 'standard'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_purchases` ADD COLUMN `uae_tax_legislation_ref` varchar(64) NOT NULL DEFAULT ''",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_purchases` ADD COLUMN `gl_journal_id` int(11) NOT NULL DEFAULT 0",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_purchases` ADD COLUMN `active` tinyint(1) NOT NULL DEFAULT 1",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
             "CREATE TABLE IF NOT EXISTS `epc_erp_supplier_accounting` ("
             + " `id` int(11) NOT NULL AUTO_INCREMENT,"
             + " `supplier_id` int(11) NOT NULL DEFAULT 0,"
@@ -413,6 +429,14 @@ public sealed class ErpPurchaseInvoiceWriteService : IErpPurchaseInvoiceWriteSer
             + " PRIMARY KEY (`id`),"
             + " KEY `x_supplier` (`supplier_id`)"
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Supplier AP ledger'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_supplier_accounting` ADD COLUMN `active` tinyint(1) NOT NULL DEFAULT 1",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_erp_supplier_accounting` ADD COLUMN `gl_journal_id` int(11) NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
     }
 }
