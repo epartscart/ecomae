@@ -149,6 +149,37 @@
             {
                 <p class="text-muted" style="margin:1rem 0 0">No recent supplier payments found.</p>
             }
+            @if (_openedStatement.Count > 0)
+            {
+                <p class="text-muted" style="margin:1rem 0 .4rem">Supplier statement</p>
+                <div class="row">
+                    @SummaryCard("Open PO", _openedSummary.OpenPurchaseOrderValue)
+                    @SummaryCard("Invoiced AP", _openedSummary.InvoicedAp)
+                    @SummaryCard("Advance paid", _openedSummary.AdvancePaid)
+                    @SummaryCard("Net payable", _openedSummary.NetPayable)
+                </div>
+                <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
+                    <thead><tr><th>Date</th><th>Type</th><th>Voucher</th><th>Description</th><th class="text-right">Debit</th><th class="text-right">Credit</th></tr></thead>
+                    <tbody>
+                        @foreach (var entry in _openedStatement)
+                        {
+                            <tr>
+                                <td>@FormatTime(entry.TimeUnix)</td>
+                                <td>@entry.VoucherType</td>
+                                <td>@(string.IsNullOrWhiteSpace(entry.VoucherNumber) ? "—" : entry.VoucherNumber)</td>
+                                <td>@(string.IsNullOrWhiteSpace(entry.Description) ? "—" : entry.Description)</td>
+                                <td class="text-right">@entry.Debit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@entry.Credit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+                <p class="text-muted" style="margin:.7rem 0 0">Source: PHP <code>epc_erp_supplier_accounting</code>; inactive rows are excluded.</p>
+            }
+            else
+            {
+                <p class="text-muted" style="margin:1rem 0 0">No supplier statement lines found in the last two years.</p>
+            }
         </div>
     }
 
@@ -209,6 +240,9 @@
     private IReadOnlyList<ErpSupplierDigest> _openedSiblings = [];
     private IReadOnlyList<ErpPurchaseDigest> _openedPurchases = [];
     private IReadOnlyList<ErpSupplierPaymentDigest> _openedPayments = [];
+    private IReadOnlyList<ErpSupplierLedgerEntry> _openedLedger = [];
+    private IReadOnlyList<ErpSupplierStatementLine> _openedStatement = [];
+    private ErpSupplierStatementSummary _openedSummary = new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 
     private bool OpenedFound => _openedDetail is not null || _openedSupplier is not null;
 
@@ -222,6 +256,16 @@
         : _openedSupplier is null
             ? ""
             : (string.IsNullOrWhiteSpace(_openedSupplier.Name) ? $"Supplier #{_openedSupplier.Id}" : _openedSupplier.Name);
+
+    private RenderFragment SummaryCard(string label, decimal value) => __builder =>
+    {
+        <div class="col-sm-3">
+            <div class="epc-kpi-card" style="margin-bottom:.8rem">
+                <div class="text-muted">@label</div>
+                <strong>@value.ToString("N2", CultureInfo.InvariantCulture)</strong>
+            </div>
+        </div>
+    };
 
     protected override async Task OnInitializedAsync()
     {
@@ -250,6 +294,9 @@
             _openedSiblings = detail.Siblings;
             _openedPurchases = detail.Purchases;
             _openedPayments = detail.Payments;
+            _openedLedger = detail.Ledger;
+            _openedStatement = detail.Statement;
+            _openedSummary = detail.Summary;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;

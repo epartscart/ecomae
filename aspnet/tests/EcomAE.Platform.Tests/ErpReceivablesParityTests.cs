@@ -16,6 +16,8 @@ public sealed class ErpReceivablesParityTests
         Assert.Contains("BuildErpReceivablesDigestAsync", text, StringComparison.Ordinal);
         Assert.Contains("OrderReceivableDue", text, StringComparison.Ordinal);
         Assert.Contains("CompleteOrderCount", text, StringComparison.Ordinal);
+        Assert.Contains("BuildErpReceivableDetailAsync", text, StringComparison.Ordinal);
+        Assert.Contains("shop_users_accounting", text, StringComparison.Ordinal);
         Assert.DoesNotContain("BuildErpAgingDigestAsync", text, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);

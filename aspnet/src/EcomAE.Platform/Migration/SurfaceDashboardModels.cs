@@ -382,6 +382,9 @@ public sealed record ErpSupplierDetailResult(
     IReadOnlyList<ErpSupplierDigest> Siblings,
     IReadOnlyList<ErpPurchaseDigest> Purchases,
     IReadOnlyList<ErpSupplierPaymentDigest> Payments,
+    IReadOnlyList<ErpSupplierLedgerEntry> Ledger,
+    IReadOnlyList<ErpSupplierStatementLine> Statement,
+    ErpSupplierStatementSummary Summary,
     string Source,
     string Message);
 
@@ -394,6 +397,41 @@ public sealed record ErpSupplierPaymentDigest(
     bool IsAdvance,
     long PurchaseId,
     int AllocationCount);
+
+public sealed record ErpSupplierLedgerEntry(
+    long Id,
+    long TimeUnix,
+    bool IsCredit,
+    decimal Amount,
+    long PurchaseId,
+    long CashEntryId,
+    long OrderId,
+    string Reference,
+    string EntryKind);
+
+public sealed record ErpSupplierStatementLine(
+    long TimeUnix,
+    string VoucherType,
+    string VoucherNumber,
+    string Description,
+    decimal Debit,
+    decimal Credit,
+    string Source,
+    long SourceId);
+
+public sealed record ErpSupplierStatementSummary(
+    decimal AdvancePaid,
+    decimal OpenPurchaseOrderValue,
+    decimal InvoicedAp,
+    decimal InvoicedUnpaid,
+    decimal OtherPayments,
+    decimal GrossCommitment,
+    decimal NetAdvanceWithSupplier,
+    decimal NetPayable,
+    decimal LedgerPayable,
+    decimal ClosingBalance,
+    long DateFrom,
+    long DateTo);
 
 public sealed record ErpPurchaseDigest(
     long Id,
@@ -1253,6 +1291,21 @@ public sealed record ErpReceivablesDigestResult(
     ErpReceivablesSummary Summary,
     IReadOnlyList<ErpReceivableDigest> Customers,
     int Count,
+    string Source,
+    string Message);
+
+public sealed record ErpReceivableLedgerEntry(
+    long Id,
+    long TimeUnix,
+    bool IsIncome,
+    decimal Amount,
+    string OperationCode,
+    long OrderId,
+    long OfficeId);
+
+public sealed record ErpReceivableDetailResult(
+    ErpReceivableDigest? Customer,
+    IReadOnlyList<ErpReceivableLedgerEntry> Entries,
     string Source,
     string Message);
 

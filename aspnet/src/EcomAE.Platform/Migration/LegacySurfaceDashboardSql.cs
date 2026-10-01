@@ -802,6 +802,115 @@ public static class LegacySurfaceDashboardSql
         LIMIT 20
         """;
 
+    /// <summary>Active PHP-owned supplier payable ledger rows for the opened supplier.</summary>
+    public const string SelectErpSupplierLedger = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix,
+               IFNULL(`is_credit`, 0) AS is_credit,
+               IFNULL(`amount`, 0) AS amount,
+               IFNULL(`purchase_id`, 0) AS purchase_id,
+               IFNULL(`cash_entry_id`, 0) AS cash_entry_id,
+               IFNULL(`order_id`, 0) AS order_id,
+               IFNULL(`reference`, '') AS reference,
+               IFNULL(`entry_kind`, 'invoice') AS entry_kind
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1
+        ORDER BY `id` DESC
+        LIMIT 100
+        """;
+
+    /// <summary>PHP supplier statement purchase orders in the default two-year window.</summary>
+    public const string SelectErpSupplierStatementPurchaseOrders = """
+        SELECT `id`, IFNULL(`po_no`, '') AS voucher_no, IFNULL(`time_created`, 0) AS time_unix,
+               IFNULL(`title`, '') AS description, IFNULL(`total_amount`, 0) AS amount,
+               IFNULL(`status`, '') AS status
+        FROM `epc_erp_purchase_orders`
+        WHERE `supplier_id` = @id AND `purchase_id` = 0
+          AND `time_created` >= @from AND `time_created` <= @to
+        ORDER BY `time_created` DESC
+        """;
+
+    /// <summary>PHP supplier statement purchase invoices in the default two-year window.</summary>
+    public const string SelectErpSupplierStatementPurchaseInvoices = """
+        SELECT p.`id`, IFNULL(p.`voucher_no`, '') AS voucher_no,
+               IFNULL(p.`purchase_date`, 0) AS time_unix,
+               IFNULL(p.`total_amount`, 0) AS amount,
+               IFNULL(p.`status`, '') AS status,
+               IFNULL(p.`invoice_number`, '') AS invoice_number
+        FROM `epc_erp_purchases` p
+        WHERE p.`supplier_id` = @id AND p.`active` = 1
+          AND p.`purchase_date` >= @from AND p.`purchase_date` <= @to
+        ORDER BY p.`purchase_date` DESC
+        """;
+
+    /// <summary>PHP supplier statement payment vouchers and advances in the default two-year window.</summary>
+    public const string SelectErpSupplierStatementPayments = """
+        SELECT `id`, IFNULL(`voucher_no`, '') AS voucher_no,
+               IFNULL(`time`, 0) AS time_unix, IFNULL(`amount`, 0) AS amount,
+               IFNULL(`reference`, '') AS reference, IFNULL(`note`, '') AS note,
+               IFNULL(`is_advance`, 0) AS is_advance
+        FROM `epc_erp_cash_bank_entries`
+        WHERE `active` = 1 AND `counterparty_type` = 'supplier'
+          AND `counterparty_id` = @id AND `entry_type` = 'payment'
+          AND `time` >= @from AND `time` <= @to
+        ORDER BY `time` DESC
+        """;
+
+    /// <summary>PHP supplier statement adjustments excluding invoice/payment rows.</summary>
+    public const string SelectErpSupplierStatementAdjustments = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix,
+               IFNULL(`is_credit`, 0) AS is_credit, IFNULL(`amount`, 0) AS amount,
+               IFNULL(`reference`, '') AS reference, IFNULL(`note`, '') AS note,
+               IFNULL(`entry_kind`, '') AS entry_kind
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1 AND `cash_entry_id` = 0
+          AND (`entry_kind` IS NULL OR `entry_kind` NOT IN ('invoice', 'payment'))
+          AND `purchase_id` = 0 AND `time` >= @from AND `time` <= @to
+        ORDER BY `time` DESC
+        """;
+
+    public const string SelectErpSupplierStatementOpenPurchaseOrderTotal = """
+        SELECT IFNULL(SUM(`total_amount`), 0) AS value
+        FROM `epc_erp_purchase_orders`
+        WHERE `supplier_id` = @id AND `purchase_id` = 0
+          AND `status` IN ('draft', 'approved', 'partial')
+          AND `time_created` >= @from AND `time_created` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementInvoiceTotal = """
+        SELECT IFNULL(SUM(`total_amount`), 0) AS value
+        FROM `epc_erp_purchases`
+        WHERE `supplier_id` = @id AND `active` = 1
+          AND `purchase_date` >= @from AND `purchase_date` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementAdvanceTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_cash_bank_entries`
+        WHERE `active` = 1 AND `counterparty_type` = 'supplier'
+          AND `counterparty_id` = @id AND `entry_type` = 'payment'
+          AND `is_advance` = 1 AND `time` >= @from AND `time` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementOtherPaymentTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_cash_bank_entries`
+        WHERE `active` = 1 AND `counterparty_type` = 'supplier'
+          AND `counterparty_id` = @id AND `entry_type` = 'payment'
+          AND `is_advance` = 0 AND `time` >= @from AND `time` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementLedgerCreditTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1 AND `is_credit` = 1
+        """;
+
+    public const string SelectErpSupplierStatementLedgerDebitTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1 AND `is_credit` = 0
+        """;
+
     public const string SelectErpPurchases = """
         SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
                p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`
@@ -1719,6 +1828,20 @@ public static class LegacySurfaceDashboardSql
         HAVING balance != 0 OR order_count > 0 OR order_receivable_due != 0
         ORDER BY order_receivable_due DESC, balance DESC
         LIMIT @limit
+        """;
+
+    /// <summary>PHP customer statement rows from shop_users_accounting.</summary>
+    public const string SelectErpReceivableLedger = """
+        SELECT `id`, IFNULL(`time`, 0) AS time_unix,
+               IFNULL(`income`, 0) AS income,
+               IFNULL(`amount`, 0) AS amount,
+               IFNULL(`operation_code`, '') AS operation_code,
+               IFNULL(`order_id`, 0) AS order_id,
+               IFNULL(`office_id`, 0) AS office_id
+        FROM `shop_users_accounting`
+        WHERE `user_id` = @user_id AND `active` = 1
+        ORDER BY `id` DESC
+        LIMIT 100
         """;
 
     public const string SelectErpCreditProfiles = """
