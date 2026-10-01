@@ -3360,7 +3360,7 @@ public sealed class ErpModule : ISurfaceModule
                 return Results.Ok(dryRun.Evaluate(new ErpWorkflowStatusRequest(taskId, status, false)).ToPayload(SessionPayload(session)));
             }
 
-            var written = await writes.SetStatusAsync(taskId, status, cancellationToken);
+            var written = await writes.SetStatusAsync(taskId, status, session.UserId, cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
                 "/erp/workflow-app",

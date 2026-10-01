@@ -5,7 +5,16 @@ namespace EcomAE.Platform.Erp;
 /// </summary>
 public interface IErpWorkflowStatusWriteService
 {
-    Task<ErpSimpleWriteResult> SetStatusAsync(long taskId, string? status, CancellationToken cancellationToken = default);
+    Task<ErpSimpleWriteResult> SetStatusAsync(
+        long taskId,
+        string? status,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> SetStatusAsync(
+        long taskId,
+        string? status,
+        CancellationToken cancellationToken = default);
 }
 
 public sealed class ErpWorkflowStatusWriteService : IErpWorkflowStatusWriteService
@@ -13,15 +22,26 @@ public sealed class ErpWorkflowStatusWriteService : IErpWorkflowStatusWriteServi
     internal static readonly string[] Allowed = ["pending", "in_progress", "done", "cancelled"];
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpWorkflowStatusWriteService(IErpWriteConnectionFactory connections)
+    public ErpWorkflowStatusWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpAuditLogWriter? audit = null)
     {
         _connections = connections;
+        _audit = audit ?? new ErpAuditLogWriter();
     }
+
+    public Task<ErpSimpleWriteResult> SetStatusAsync(
+        long taskId,
+        string? status,
+        CancellationToken cancellationToken = default)
+        => SetStatusAsync(taskId, status, 0, cancellationToken);
 
     public async Task<ErpSimpleWriteResult> SetStatusAsync(
         long taskId,
         string? status,
+        int adminId,
         CancellationToken cancellationToken = default)
     {
         if (taskId <= 0)
@@ -48,6 +68,19 @@ public sealed class ErpWorkflowStatusWriteService : IErpWorkflowStatusWriteServi
             ErpDb.Positional("UPDATE `epc_erp_workflow_tasks` SET `status` = ?, `completed_at` = ? WHERE `id` = ?"),
             cancellationToken,
             next, completedAt, taskId);
+        await _audit.LogAsync(
+            connection,
+            null,
+            adminId,
+            "workflow_status",
+            "erp_workflow_task",
+            taskId,
+            "Workflow task status updated",
+            new Dictionary<string, string?>
+            {
+                ["status"] = next,
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Workflow task updated", taskId);
     }
 }
