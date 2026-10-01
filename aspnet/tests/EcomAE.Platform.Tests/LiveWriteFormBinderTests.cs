@@ -54,4 +54,19 @@ public sealed class LiveWriteFormBinderTests
         Assert.Contains("/cp/credit-limits-app?ok=", redirect.Url, StringComparison.Ordinal);
         Assert.Contains("Credit%20limit%20saved.", redirect.Url, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Parallel_form_values_preserve_order_and_duplicates()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.ContentType = "application/x-www-form-urlencoded";
+        context.Request.Form = new FormCollection(new Dictionary<string, Microsoft.Extensions.Primitives.StringValues>
+        {
+            ["alloc_invoice_id[]"] = new[] { "7", "7", "9" },
+            ["alloc_amount[]"] = new[] { "10.25", "2.75", "4.00" },
+        });
+
+        Assert.Equal(new long[] { 7, 7, 9 }, LiveWriteFormBinder.ParallelLongs(context.Request.Form, "alloc_invoice_id[]"));
+        Assert.Equal(new decimal[] { 10.25m, 2.75m, 4m }, LiveWriteFormBinder.ParallelDecimals(context.Request.Form, "alloc_amount[]"));
+    }
 }
