@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>fiscal_set_lock</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Dry-run for the ASP.NET-owned fiscal set-lock route.</summary>
 public interface IErpFiscalSetLockDryRun
 {
     ErpFiscalSetLockDryRunResult Evaluate(ErpFiscalSetLockRequest request);
@@ -14,7 +14,7 @@ public sealed class ErpFiscalSetLockDryRun : IErpFiscalSetLockDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET fiscal_set_lock is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes is handled by the ASP.NET fiscal set-lock write service.",
                 request);
         }
 
@@ -27,7 +27,7 @@ public sealed class ErpFiscalSetLockDryRun : IErpFiscalSetLockDryRun
 
         var clearing = request.LockDateUnix == 0;
         return new ErpFiscalSetLockDryRunResult(
-            "dry-run-validated", 0, true, false, true, "ok", true,
+            "dry-run-validated", 0, true, false, false, "ok", true,
             request.LockDateUnix, request.Note, clearing,
             [
                 clearing
@@ -42,7 +42,7 @@ public sealed class ErpFiscalSetLockDryRun : IErpFiscalSetLockDryRun
 
     private static ErpFiscalSetLockDryRunResult Refuse(
         string status, string code, string detail, ErpFiscalSetLockRequest request) =>
-        new(status, 0, true, false, true, code, false, request.LockDateUnix, request.Note, false, [], detail,
+        new(status, 0, true, false, false, code, false, request.LockDateUnix, request.Note, false, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=fiscal_set_lock");
 }
 
