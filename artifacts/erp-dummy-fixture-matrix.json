@@ -12,10 +12,12 @@
         "workflow-status-browser-update",
         "workflow-sql-readback",
         "agenda-browser-parity",
+        "agenda-confirmed-write-and-readback",
+        "agenda-invalid-title-denial",
+        "agenda-duplicate-retry-observed-allowed",
         "tagged-cleanup"
       ],
       "missing": [
-        "agenda-confirmed-write-and-readback",
         "approval-queue-decision-and-denial",
         "workflow-invalid-input-browser-denial",
         "workflow-duplicate-retry-denial",
