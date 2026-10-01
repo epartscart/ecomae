@@ -1182,6 +1182,8 @@ public static class EcomAeRoutes
     public const string ErpMultiEntityApp = "/erp/multi-entity-app";
     /// <summary>Live PHP <c>epc_entity_create_group</c> / add_member / record_intercompany / eliminate.</summary>
     public const string ErpMultiEntityWrite = "/erp/multi-entity/write";
+    /// <summary>PHP <c>epc_entity_consolidated_tb</c> read projection via <c>group_id</c>.</summary>
+    public const string ErpMultiEntityConsolidatedTrialBalance = "/erp/multi-entity/consolidated-tb";
     public const string ErpMultiCurrencyGl = "/erp/multi-currency-gl";
     public const string ErpMultiCurrencyGlApp = "/erp/multi-currency-gl-app";
     /// <summary>Live PHP <c>epc_mcgl_set_rate</c> UPSERT.</summary>

@@ -40,6 +40,22 @@ public sealed class ErpMultiEntityPhpParityTests
     }
 
     [Fact]
+    public void ConsolidatedTrialBalance_UsesPhpCompatibleReadProjection()
+    {
+        var routes = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Routing/EcomAeRoutes.cs"));
+        var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
+        var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpConsolidatedTrialBalanceReadService.cs"));
+
+        Assert.Contains("ErpMultiEntityConsolidatedTrialBalance", routes, StringComparison.Ordinal);
+        Assert.Contains("IErpConsolidatedTrialBalanceReadService", program, StringComparison.Ordinal);
+        Assert.Contains("epc_entity_consolidated_tb", module, StringComparison.Ordinal);
+        Assert.Contains("COUNT(*) FROM `epc_entity_members`", service, StringComparison.Ordinal);
+        Assert.Contains("Accounts", service, StringComparison.Ordinal);
+        Assert.Contains("phpAuthoritative = true", module, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void DryRun_BlocksUntilConfirmWrites()
     {
         var dry = new ErpMultiEntityWriteDryRun();
