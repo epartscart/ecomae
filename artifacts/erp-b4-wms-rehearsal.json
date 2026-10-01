@@ -1,0 +1,102 @@
+{
+  "module": "B4",
+  "area": "wms",
+  "tenant": "throwaway-local-mariadb",
+  "liveTenantWrites": false,
+  "phpSchemaAuthority": true,
+  "schema": {
+    "reference": "content/shop/finance/epc_erp_wms.php",
+    "tables": [
+      "epc_erp_wms_locations",
+      "epc_erp_wms_lp",
+      "epc_erp_wms_waves",
+      "epc_erp_wms_work"
+    ],
+    "provisioning": "Exact PHP-owned CREATE TABLE definitions were provisioned only in the throwaway database."
+  },
+  "scenarios": [
+    {
+      "scenario": "wms-dry-runs",
+      "result": "pass",
+      "routes": [
+        "/erp/wms/locations/save",
+        "/erp/wms/receive",
+        "/erp/wms/waves/create"
+      ],
+      "evidence": [
+        "Location, receive, and wave requests with confirmWrites=false returned writes=0 and writesBlocked=true.",
+        "SQL checks before confirmed writes showed no tagged WMS rows."
+      ]
+    },
+    {
+      "scenario": "wms-receive-putaway-lifecycle",
+      "result": "pass",
+      "routes": [
+        "/erp/wms/locations/save",
+        "/erp/wms/receive",
+        "/erp/wms/work/assign",
+        "/erp/wms/work/complete"
+      ],
+      "evidence": [
+        "Two tagged locations were created, receipt raised tagged put-away work, assignment persisted, and completion closed the work.",
+        "SQL readback showed the tagged license plate moved to the put-away location with 10.000 units."
+      ]
+    },
+    {
+      "scenario": "wms-wave-pick-lifecycle",
+      "result": "pass",
+      "routes": [
+        "/erp/wms/waves/create",
+        "/erp/wms/waves/release",
+        "/erp/wms/work/assign",
+        "/erp/wms/work/complete"
+      ],
+      "evidence": [
+        "A tagged wave and pick work were created and released.",
+        "Assignment and completion closed the pick work and reduced the tagged license plate from 10.000 to 6.000 units.",
+        "Wave status was automatically closed after its work completed."
+      ]
+    },
+    {
+      "scenario": "wms-browser-readback",
+      "result": "pass",
+      "route": "/erp/warehouse-wms-app",
+      "evidence": [
+        "Authenticated browser readback displayed Locations 2, License plates 1, Waves 1, and Open work 0.",
+        "The tagged receive and pick work rows were rendered as closed with their assignees."
+      ]
+    },
+    {
+      "scenario": "wms-validation-and-retry",
+      "result": "pass",
+      "routes": [
+        "/erp/wms/locations/save",
+        "/erp/wms/work/complete"
+      ],
+      "evidence": [
+        "Duplicate tagged location confirmation returned writes=0 and Location code already exists in this warehouse.",
+        "Completing already-closed tagged work returned writes=0 and Work already closed."
+      ]
+    },
+    {
+      "scenario": "wms-audit-readback",
+      "result": "unverified",
+      "evidence": [
+        "No WMS-specific rows were found in epc_erp_audit_log during this rehearsal."
+      ]
+    },
+    {
+      "scenario": "tagged-wms-cleanup",
+      "result": "pass",
+      "evidence": [
+        "Tagged work, waves, license plates, and locations were deleted from the throwaway database.",
+        "SQL verification returned zero remaining tagged WMS rows."
+      ]
+    }
+  ],
+  "unverified": [
+    "wms-audit-log-readback",
+    "wms-tenant-isolation",
+    "wms-production-recovery-and-rollback"
+  ]
+}

@@ -76,7 +76,6 @@
   ],
   "missing": [
     "quality-fixture",
-    "wms-fixture",
     "planning-fixture",
     "inventory-tenant-isolation",
     "inventory-full-recovery-and-rollback"
