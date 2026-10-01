@@ -25,7 +25,7 @@ public sealed class ErpGlManualEntryDryRun : IErpGlManualEntryDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET gl_manual_entry is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes requested; use the confirmed ASP.NET manual-journal write path.",
                 request);
         }
 
@@ -43,7 +43,7 @@ public sealed class ErpGlManualEntryDryRun : IErpGlManualEntryDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET gl_manual_entry is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes requested; use the confirmed ASP.NET manual-journal write path.",
                 request);
         }
 
@@ -82,7 +82,7 @@ public sealed class ErpGlManualEntryDryRun : IErpGlManualEntryDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             LineCount: lines.Count,
@@ -95,13 +95,13 @@ public sealed class ErpGlManualEntryDryRun : IErpGlManualEntryDryRun
                 "INSERT INTO `epc_erp_gl_journals` (…, source_type='manual', …) (NOT executed)",
                 "INSERT INTO `epc_erp_gl_lines` (journal_id, coa_id, debit, credit, line_note) × N (NOT executed)"
             ],
-            Detail: "Balanced manual journal would post under PHP rules; INSERT blocked until dual-sample + approval.",
+            Detail: "Balanced manual journal is validated without writing; confirmed ASP.NET posting requires confirmWrites=true.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_manual_entry");
     }
 
     private static ErpGlManualEntryDryRunResult Refuse(
         string status, string code, string detail, ErpGlManualEntryRequest request) =>
-        new(status, 0, true, false, true, code, false, request.Lines?.Count ?? 0, 0, 0,
+        new(status, 0, true, false, false, code, false, request.Lines?.Count ?? 0, 0, 0,
             request.Reference ?? "", request.Description ?? "", [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_manual_entry");
 }

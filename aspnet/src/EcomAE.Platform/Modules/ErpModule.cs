@@ -10845,7 +10845,6 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsManual, async (
             HttpContext context,
-            ErpGlManualEntryBody? body,
             ILegacySessionValidator validator,
             IErpGlManualEntryDryRun dryRun,
             IErpGlLedgerWriteService writes,
@@ -10857,7 +10856,11 @@ public sealed class ErpModule : ISurfaceModule
                 return Unauthorized("Admin ERP capability required for GL manual entry dry-run.");
             }
 
-            body ??= new ErpGlManualEntryBody([], null, null, false);
+            var body = context.Request.HasFormContentType
+                ? ReadGlManualEntryForm(await context.Request.ReadFormAsync(cancellationToken))
+                : await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpGlManualEntryBody>(
+                    context,
+                    cancellationToken) ?? new ErpGlManualEntryBody([], null, null, false);
             if (!body.ConfirmWrites)
             {
                 var lines = (body.Lines ?? [])
@@ -10869,7 +10872,11 @@ public sealed class ErpModule : ISurfaceModule
                 return Results.Ok(result.ToPayload(SessionPayload(session)));
             }
 
-            return await ExecuteErpWriteAsync(session, async () =>
+            return await ExecuteErpWriteAsync(
+                context,
+                session,
+                "/erp/gl-journals-app?tab=jw_journal_voucher",
+                async () =>
             {
                 var posted = await writes.ManualJournalAsync(
                     new ErpManualJournalInput
@@ -10886,7 +10893,7 @@ public sealed class ErpModule : ISurfaceModule
                 return (
                     "GL journal posted",
                     (object)new { journal_id = posted.JournalId, journal_no = posted.JournalNo });
-            });
+                });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpGlJournalsReverse, async (
@@ -21827,6 +21834,48 @@ public sealed class ErpModule : ISurfaceModule
         string? LangCode = null,
         bool ConfirmWrites = false);
     private sealed record ErpOfficesCashCodeDeleteBody(long OfficeId = 0, long Id = 0, bool ConfirmWrites = false);
+    private static ErpGlManualEntryBody ReadGlManualEntryForm(IFormCollection form)
+    {
+        var indices = new SortedSet<int>();
+        const string prefix = "lines[";
+        foreach (var key in form.Keys)
+        {
+            if (!key.StartsWith(prefix, StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var close = key.IndexOf(']', prefix.Length);
+            if (close <= prefix.Length
+                || !int.TryParse(
+                    key.AsSpan(prefix.Length, close - prefix.Length),
+                    NumberStyles.Integer,
+                    CultureInfo.InvariantCulture,
+                    out var index)
+                || index < 0)
+            {
+                continue;
+            }
+
+            indices.Add(index);
+        }
+
+        var lines = indices
+            .Select(index => new ErpGlManualLineBody(
+                LiveWriteFormBinder.Long(form, $"lines[{index}].coaId", $"lines[{index}].coa_id"),
+                LiveWriteFormBinder.Dec(form, $"lines[{index}].debit"),
+                LiveWriteFormBinder.Dec(form, $"lines[{index}].credit"),
+                LiveWriteFormBinder.Text(form, $"lines[{index}].lineNote", $"lines[{index}].line_note")))
+            .ToList();
+
+        return new ErpGlManualEntryBody(
+            lines,
+            LiveWriteFormBinder.Text(form, "reference"),
+            LiveWriteFormBinder.Text(form, "description"),
+            LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
+            LiveWriteFormBinder.Long(form, "journalDate", "journal_date"));
+    }
+
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
     private sealed record ErpGlManualEntryBody(
         IReadOnlyList<ErpGlManualLineBody>? Lines,

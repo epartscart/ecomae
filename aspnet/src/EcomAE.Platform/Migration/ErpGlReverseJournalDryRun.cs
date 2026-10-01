@@ -3,7 +3,6 @@ namespace EcomAE.Platform.Migration;
 /// <summary>
 /// Wave B dry-run for PHP ERP <c>gl_reverse_journal</c>.
 /// Simulates reversing journal post only; never executes INSERT.
-/// PHP ajax_erp.php remains authoritative.
 /// </summary>
 public interface IErpGlReverseJournalDryRun
 {
@@ -26,7 +25,7 @@ public sealed class ErpGlReverseJournalDryRun : IErpGlReverseJournalDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET gl_reverse_journal is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes requested; use the confirmed ASP.NET journal-reversal write path.",
                 request);
         }
 
@@ -49,7 +48,7 @@ public sealed class ErpGlReverseJournalDryRun : IErpGlReverseJournalDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET gl_reverse_journal is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes requested; use the confirmed ASP.NET journal-reversal write path.",
                 request);
         }
 
@@ -79,7 +78,7 @@ public sealed class ErpGlReverseJournalDryRun : IErpGlReverseJournalDryRun
             Writes: 0,
             WritesBlocked: true,
             CutoverAllowed: false,
-            PhpAuthoritative: true,
+            PhpAuthoritative: false,
             ValidationCode: "ok",
             WouldWrite: true,
             JournalId: journal.Id,
@@ -90,15 +89,15 @@ public sealed class ErpGlReverseJournalDryRun : IErpGlReverseJournalDryRun
             [
                 "SELECT lines FROM `epc_erp_gl_lines` WHERE journal_id=@id — swap debit/credit (NOT executed)",
                 $"INSERT reversing journal reference='REV of {journal.JournalNo}' via epc_erp_gl_post_journal (NOT executed)",
-                "Audit log gl_reverse remains PHP-only in this dry-run slice"
+                "Audit log gl_reverse is written by the confirmed ASP.NET reversal path (NOT executed)"
             ],
-            Detail: "Journal found in digest window; reversing post simulated. Line swap + fiscal locks stay PHP until dual-sample.",
+            Detail: "Journal found in digest window; reversal is validated without writing; confirmed ASP.NET posting swaps lines and records the audit event.",
             PhpAjax: "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_reverse_journal");
     }
 
     private static ErpGlReverseJournalDryRunResult Refuse(
         string status, string code, string detail, ErpGlReverseJournalRequest request) =>
-        new(status, 0, true, false, true, code, false, request.JournalId, null, null,
+        new(status, 0, true, false, false, code, false, request.JournalId, null, null,
             request.Note, [], detail,
             "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_reverse_journal");
 }
