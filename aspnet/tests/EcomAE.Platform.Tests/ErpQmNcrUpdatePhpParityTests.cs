@@ -57,6 +57,8 @@ public sealed class ErpQmNcrUpdatePhpParityTests
         Assert.Contains("HandleQmNcrUpdateAsync", text, StringComparison.Ordinal);
         var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpQmNcrUpdateWriteService.cs"));
         Assert.Contains("Non-conformance updated", service, StringComparison.Ordinal);
+        Assert.Contains("qm_ncr_update", service, StringComparison.Ordinal);
+        Assert.Contains("IErpAuditLogWriter", service, StringComparison.Ordinal);
         Assert.Contains("Invalid status", service, StringComparison.Ordinal);
         Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
         Assert.DoesNotContain("epc_qm_ncr_create", service, StringComparison.Ordinal);

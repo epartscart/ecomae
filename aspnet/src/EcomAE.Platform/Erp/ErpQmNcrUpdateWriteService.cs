@@ -20,7 +20,8 @@ public sealed record ErpQmNcrUpdateWriteRequest(
     long Id = 0,
     string? Status = null,
     string? Disposition = null,
-    string? CorrectiveAction = null);
+    string? CorrectiveAction = null,
+    int ActorUserId = 0);
 
 public sealed class ErpQmNcrUpdateWriteService : IErpQmNcrUpdateWriteService
 {
@@ -38,10 +39,12 @@ public sealed class ErpQmNcrUpdateWriteService : IErpQmNcrUpdateWriteService
     };
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpQmNcrUpdateWriteService(IErpWriteConnectionFactory connections)
+    public ErpQmNcrUpdateWriteService(IErpWriteConnectionFactory connections, IErpAuditLogWriter audit)
     {
         _connections = connections;
+        _audit = audit;
     }
 
     public async Task<ErpSimpleWriteResult> UpdateAsync(
@@ -80,6 +83,21 @@ public sealed class ErpQmNcrUpdateWriteService : IErpQmNcrUpdateWriteService
             ErpDb.Positional("UPDATE `epc_qm_ncr` SET `status`=?, `disposition`=?, `corrective_action`=?, `time_closed`=? WHERE id=?"),
             cancellationToken,
             status, disp, action, closed, request.Id).ConfigureAwait(false);
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorUserId,
+            "qm_ncr_update",
+            "qm_ncr",
+            request.Id,
+            "Non-conformance updated",
+            new Dictionary<string, string?>
+            {
+                ["status"] = status,
+                ["disposition"] = disp,
+                ["corrective_action"] = action,
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Non-conformance updated", request.Id);
     }
 

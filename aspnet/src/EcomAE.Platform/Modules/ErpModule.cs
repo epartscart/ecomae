@@ -20408,7 +20408,7 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.UpdateAsync(
-            new ErpQmNcrUpdateWriteRequest(id, status, disposition, action),
+            new ErpQmNcrUpdateWriteRequest(id, status, disposition, action, session.UserId),
             cancellationToken);
         return LiveWriteFormBinder.Complete(
             context,
