@@ -1,0 +1,79 @@
+{
+  "module": "B4",
+  "area": "planning",
+  "tenant": "throwaway-local-mariadb",
+  "liveTenantWrites": false,
+  "phpSchemaAuthority": true,
+  "schema": {
+    "reference": "content/shop/finance/epc_erp_mfg_routing.php and content/shop/finance/epc_erp_manufacturing.php",
+    "tables": [
+      "epc_erp_inv_items",
+      "epc_mfg_bom",
+      "epc_mfg_bom_lines",
+      "epc_mfg_planned"
+    ],
+    "provisioning": "Exact PHP-owned manufacturing planning definitions were provisioned only in the throwaway database."
+  },
+  "scenarios": [
+    {
+      "scenario": "mrp-dry-run",
+      "result": "pass",
+      "route": "/erp/ajax/mfgr-mrp-run",
+      "evidence": [
+        "A tagged finished-good demand and on-hand payload with confirmWrites=false returned dry-run-validated with writes=0 and writesBlocked=true.",
+        "The PHP-authoritative dry-run envelope reported phpAuthoritative=true and no planned rows were created."
+      ]
+    },
+    {
+      "scenario": "mrp-invalid-demand-denial",
+      "result": "pass",
+      "route": "/erp/ajax/mfgr-mrp-run",
+      "evidence": [
+        "A confirmed request with an empty demand object returned validation_code=invalid, At least one demand item is required, and writes=0."
+      ]
+    },
+    {
+      "scenario": "mrp-regeneration-and-bom-explosion",
+      "result": "pass",
+      "route": "/erp/ajax/mfgr-mrp-run",
+      "evidence": [
+        "A tagged two-level BOM run netted demand 10 against finished-good on-hand 2 and component on-hand 3.",
+        "SQL readback showed 8.000 production units at level 0 and 13.000 purchase units at level 1, both status planned, with the submitted due date."
+      ]
+    },
+    {
+      "scenario": "mrp-firm-and-retry",
+      "result": "observed-replacement",
+      "routes": [
+        "/erp/master-planning/firm",
+        "/erp/ajax/mfgr-mrp-run"
+      ],
+      "evidence": [
+        "Firming a planned order returned the expected redirect and changed its status to firmed.",
+        "Re-running the same MRP payload deleted and recreated the MRP rows; the retry is replacement semantics, not idempotency, and resets status to planned."
+      ]
+    },
+    {
+      "scenario": "planning-browser-readback",
+      "result": "pass",
+      "route": "/erp/order-planning-app?tab=master_planning",
+      "evidence": [
+        "Authenticated browser readback rendered Planned orders 2 and the tagged purchase/production rows with quantities, levels, due date, status, and Firm actions."
+      ]
+    },
+    {
+      "scenario": "tagged-planning-cleanup",
+      "result": "pass",
+      "evidence": [
+        "Tagged planned orders, BOM lines, BOM header, and inventory items were removed from the throwaway database.",
+        "SQL verification returned zero remaining tagged planning rows and items."
+      ]
+    }
+  ],
+  "unverified": [
+    "planning-params-and-recommendations",
+    "planning-audit-log-readback",
+    "planning-tenant-isolation",
+    "planning-production-recovery-and-rollback"
+  ]
+}
