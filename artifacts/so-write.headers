@@ -1,0 +1,15 @@
+HTTP/1.1 200 OK
+Content-Type: application/json; charset=utf-8
+Date: Thu, 01 Oct 2026 02:41:03 GMT
+Server: Kestrel
+Transfer-Encoding: chunked
+X-Content-Type-Options: nosniff
+X-Frame-Options: SAMEORIGIN
+Referrer-Policy: strict-origin-when-cross-origin
+Permissions-Policy: accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
+X-XSS-Protection: 0
+X-EcomAE-Storefront-Stub-Redirect: skipped-aspnet-primary
+X-EcomAE-Admin-Auth: ok
+X-EcomAE-Platform: primary
+X-EcomAE-Compat: on
+

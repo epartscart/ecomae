@@ -1,0 +1,572 @@
+[
+  {
+    "path": "/erp/inventory-forecast-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/customer-groups-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/soc2-compliance-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/cash-accounts-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/projects-overview-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/industry-packs-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/uae-tax-compliance-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/quality-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/login",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/inventory-stock-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/receivables-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/returns-rma-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/insurance-compliance-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/invoices-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/rfq-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/cost-models-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/print-designer-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/procurement-categories-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/recruitment-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/workflows-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/budgets-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/purchases-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/stock-transfers-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/crm-opportunities-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/landed-cost-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/inventory-report-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/payment-batches-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/audit-trail-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/order-pipeline-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/electronic-reporting-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/performance-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/navigation-coverage-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/tax-external-reporting-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/approvals-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/approvals",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/guide-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/guide",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/guide/howto",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/guide/full",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/guide/advanced",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/guide/erp-only",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/guide/customs",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/rfid-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/report-center-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/staff-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/aging-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/jewellery-masters-app",
+    "http": 404,
+    "error": ""
+  },
+  {
+    "path": "/erp/integrations-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/multi-currency-gl-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/sales-quotations-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/hr-overview-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/order-planning-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/fixed-assets-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/consolidations-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/bank-reconciliation-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/fleet-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/marketing-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/workspace-favorites-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/documents-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/coa-accounts-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/on-premises-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/gl-journals-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/data-migrations-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/production-overview-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/crm-board-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/aml-compliance-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/three-way-match-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/payroll-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/warehouse-wms-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/blockchain-proofs-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/purchase-orders-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/multi-entity-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/crm-tickets-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/dashboard-summary-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/dashboard-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/withholding-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/contacts-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/stock-movements-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/product-info-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/warehouses-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/suppliers-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/contracts-app",
+    "http": 404,
+    "error": ""
+  },
+  {
+    "path": "/erp/expense-reports-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/doc-expiry-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/carriers-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/collections-dunning-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/project-accounting-app",
+    "http": 404,
+    "error": ""
+  },
+  {
+    "path": "/erp/jewellery-fixing-app",
+    "http": 404,
+    "error": ""
+  },
+  {
+    "path": "/erp/workflow-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/report-scheduler-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/purchase-requests-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/einvoice-documents-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/accounts-summary-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/doc-attachments-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/finance-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/pos-overview-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/payables-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/vat-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/jewellery-repairs-app",
+    "http": 404,
+    "error": ""
+  },
+  {
+    "path": "/erp/opening-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/fulfillment-queue-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/jewellery-retail-app",
+    "http": 404,
+    "error": ""
+  },
+  {
+    "path": "/erp/user-control-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/delivery-notes-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/sales-orders-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/process-flow-tasks-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/cash-entries-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/agenda-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/module-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/jewellery-stock-verification-app",
+    "http": 404,
+    "error": ""
+  },
+  {
+    "path": "/erp/fin-advanced-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/tenant-config-app",
+    "http": 200,
+    "error": ""
+  },
+  {
+    "path": "/erp/period-close-app",
+    "http": 200,
+    "error": ""
+  }
+]
