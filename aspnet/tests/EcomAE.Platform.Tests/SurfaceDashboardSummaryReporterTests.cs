@@ -557,6 +557,9 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("epc_erp_purchases", LegacySurfaceDashboardSql.SelectErpSupplierStatementPurchaseInvoices, StringComparison.Ordinal);
         Assert.Contains("counterparty_type` = 'supplier'", LegacySurfaceDashboardSql.SelectErpSupplierStatementPayments, StringComparison.Ordinal);
         Assert.Contains("entry_kind", LegacySurfaceDashboardSql.SelectErpSupplierStatementAdjustments, StringComparison.Ordinal);
+        Assert.Contains("status` IN ('draft', 'approved', 'partial')", LegacySurfaceDashboardSql.SelectErpSupplierStatementOpenPurchaseOrderTotal, StringComparison.Ordinal);
+        Assert.Contains("is_advance` = 1", LegacySurfaceDashboardSql.SelectErpSupplierStatementAdvanceTotal, StringComparison.Ordinal);
+        Assert.Contains("is_advance` = 0", LegacySurfaceDashboardSql.SelectErpSupplierStatementOtherPaymentTotal, StringComparison.Ordinal);
         Assert.Contains("users_profiles", LegacySurfaceDashboardSql.SelectStorefrontUserProfiles, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_journals", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);
         Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);

@@ -868,6 +868,49 @@ public static class LegacySurfaceDashboardSql
         ORDER BY `time` DESC
         """;
 
+    public const string SelectErpSupplierStatementOpenPurchaseOrderTotal = """
+        SELECT IFNULL(SUM(`total_amount`), 0) AS value
+        FROM `epc_erp_purchase_orders`
+        WHERE `supplier_id` = @id AND `purchase_id` = 0
+          AND `status` IN ('draft', 'approved', 'partial')
+          AND `time_created` >= @from AND `time_created` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementInvoiceTotal = """
+        SELECT IFNULL(SUM(`total_amount`), 0) AS value
+        FROM `epc_erp_purchases`
+        WHERE `supplier_id` = @id AND `active` = 1
+          AND `purchase_date` >= @from AND `purchase_date` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementAdvanceTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_cash_bank_entries`
+        WHERE `active` = 1 AND `counterparty_type` = 'supplier'
+          AND `counterparty_id` = @id AND `entry_type` = 'payment'
+          AND `is_advance` = 1 AND `time` >= @from AND `time` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementOtherPaymentTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_cash_bank_entries`
+        WHERE `active` = 1 AND `counterparty_type` = 'supplier'
+          AND `counterparty_id` = @id AND `entry_type` = 'payment'
+          AND `is_advance` = 0 AND `time` >= @from AND `time` <= @to
+        """;
+
+    public const string SelectErpSupplierStatementLedgerCreditTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1 AND `is_credit` = 1
+        """;
+
+    public const string SelectErpSupplierStatementLedgerDebitTotal = """
+        SELECT IFNULL(SUM(`amount`), 0) AS value
+        FROM `epc_erp_supplier_accounting`
+        WHERE `supplier_id` = @id AND `active` = 1 AND `is_credit` = 0
+        """;
+
     public const string SelectErpPurchases = """
         SELECT p.`id`, p.`supplier_id`, s.`name` AS supplier_name, p.`purchase_date`,
                p.`invoice_number`, p.`total_amount`, p.`status`, p.`order_id`
