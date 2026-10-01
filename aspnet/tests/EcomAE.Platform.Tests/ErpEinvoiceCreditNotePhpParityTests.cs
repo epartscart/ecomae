@@ -14,7 +14,7 @@ public sealed class ErpEinvoiceCreditNotePhpParityTests
         Assert.Equal("dry-run-validated", result.Status);
         Assert.Equal(0, result.Writes);
         Assert.True(result.WritesBlocked);
-        Assert.True(result.PhpAuthoritative);
+        Assert.False(result.PhpAuthoritative);
         Assert.Contains(result.SimulatedSql, sql => sql.Contains("epc_einvoice_documents", StringComparison.Ordinal));
         Assert.Contains("no write", result.Detail, StringComparison.OrdinalIgnoreCase);
     }
