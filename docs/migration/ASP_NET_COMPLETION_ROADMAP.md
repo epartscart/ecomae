@@ -41,16 +41,7 @@ and the final cutover is controlled by the strictest unresolved gate.
 
 ## Execution order
 
-### Step 1 — Close CP evidence (3–5 sessions)
-
-* Generate the complete CP menu matrix for tenant and Super CP hosts.
-* Classify each PHP entry as a real twin, digest, redirect, or missing.
-* Finish remaining body/write/action/guide pages, including single-item flows.
-* Compare the same records in PHP and ASP.NET at desktop and mobile widths.
-* Close the CP exit gate only when the matrix has zero digest and zero missing
-  entries for the approved menu.
-
-### Step 2 — Close ERP by business process (8–12 sessions)
+### Step 1 — Close ERP by business process (8–12 sessions)
 
 Work in process order rather than isolated route order:
 
@@ -86,6 +77,20 @@ must degrade to a clear setup state, not a broken iframe or PHP-only claim.
 Each process requires New/Edit/Delete/Void/Submit/Approve/Post where applicable,
 field validation, audit, permission denial, source-document links, and database
 corroboration.
+
+The ERP-first sequence is now the active execution priority. CP completion work
+is queued behind the ERP exit gate except for security or tenant-isolation
+findings that must be fixed immediately. A CP or presentation slice must not be
+counted as ERP completion evidence.
+
+### Step 2 — Close CP evidence (3–5 sessions)
+
+* Generate the complete CP menu matrix for tenant and Super CP hosts.
+* Classify each PHP entry as a real twin, digest, redirect, or missing.
+* Finish remaining body/write/action/guide pages, including single-item flows.
+* Compare the same records in PHP and ASP.NET at desktop and mobile widths.
+* Close the CP exit gate only when the matrix has zero digest and zero missing
+  entries for the approved menu.
 
 #### D365/F&O-style document workspaces: PO, PI, SO, and SI
 
@@ -177,8 +182,8 @@ to mark a surface complete.
 
 ## Current decision
 
-The fastest safe path is **CP evidence → ERP business processes → storefront →
-operations → three acceptance rounds**. PHP/PHP-FPM must remain available and
+The fastest safe path is now **ERP business processes → CP evidence → storefront
+→ operations → three acceptance rounds**. PHP/PHP-FPM must remain available and
 authoritative until the final gate; the current 20.4% weighted completion
 headline therefore remains unchanged by route or presentation-only slices.
 
