@@ -15,10 +15,10 @@
         "agenda-confirmed-write-and-readback",
         "agenda-invalid-title-denial",
         "agenda-duplicate-retry-observed-allowed",
+        "approval-queue-decision-and-denial",
         "tagged-cleanup"
       ],
       "missing": [
-        "approval-queue-decision-and-denial",
         "workflow-invalid-input-browser-denial",
         "workflow-duplicate-retry-denial",
         "audit-readback",

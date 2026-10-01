@@ -72,6 +72,19 @@
       ]
     },
     {
+      "scenario": "approval-queue-decision-and-denial",
+      "result": "pass",
+      "route": "/erp/approvals/requests/raise",
+      "evidence": [
+        "The authenticated Approvals workspace rendered the queue, rule, raise-request, and decision forms.",
+        "A confirmWrites=false raise request returned dry-run-validated with writes=0.",
+        "After provisioning the PHP-owned approval tables and a tagged rule in the throwaway database, a confirmed request was raised.",
+        "The first request was rejected through /erp/approvals/requests/decide and SQL readback recorded rejected status plus the rejection audit log.",
+        "A second request was approved through the same route and SQL readback recorded approved status plus the approval audit log.",
+        "Tagged approval rules, requests, and log rows were deleted after evidence capture."
+      ]
+    },
+    {
       "scenario": "tagged-cleanup",
       "result": "pass",
       "evidence": [
@@ -83,7 +96,6 @@
     }
   ],
   "missing": [
-    "approval-queue-decision-and-denial",
     "workflow-invalid-input-browser-denial",
     "workflow-duplicate-retry-denial",
     "audit-readback",
