@@ -92,7 +92,7 @@
       "area": "inventory",
       "status": "partial",
       "fixtureGroups": ["product", "warehouse", "stock", "quality", "wms", "planning"]
-      ,"verified": ["inventory-item-dry-run", "inventory-item-invalid-name-denial", "warehouse-dry-run", "warehouse-invalid-input-denial", "movement-dry-run", "movement-invalid-quantity-denial"]
+      ,"verified": ["inventory-item-dry-run", "inventory-item-invalid-name-denial", "warehouse-dry-run", "warehouse-invalid-input-denial", "movement-dry-run", "movement-invalid-quantity-denial", "csv-import-empty-observed-noop"]
       ,"missing": ["warehouse-fixture", "stock-movement-fixture", "quality-fixture", "wms-fixture", "planning-fixture"]
     },
     {
