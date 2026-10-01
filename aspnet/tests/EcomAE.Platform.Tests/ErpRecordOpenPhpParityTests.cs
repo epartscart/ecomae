@@ -512,6 +512,8 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("epc_erp_supplier_accounting", razor, StringComparison.Ordinal);
         Assert.Contains("Voucher", razor, StringComparison.Ordinal);
         Assert.Contains("No supplier statement lines found", razor, StringComparison.Ordinal);
+        Assert.Contains("Open PO", razor, StringComparison.Ordinal);
+        Assert.Contains("Net payable", razor, StringComparison.Ordinal);
         Assert.Contains("Open payment", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
         Assert.Contains("PhpErpModulePageHeader", razor, StringComparison.Ordinal);

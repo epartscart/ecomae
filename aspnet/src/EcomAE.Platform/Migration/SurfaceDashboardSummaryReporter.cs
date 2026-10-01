@@ -1643,12 +1643,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     {
         if (id <= 0)
         {
-            return new(null, [], [], [], [], [], "n/a", "");
+            return new(null, [], [], [], [], [], new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "n/a", "");
         }
 
         if (!_connections.IsConfigured)
         {
-            return new(null, [], [], [], [], [], "migration", "TenantRegistry DB is not configured.");
+            return new(null, [], [], [], [], [], new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "migration", "TenantRegistry DB is not configured.");
         }
 
         try
@@ -1675,7 +1675,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             if (header is null)
             {
-                return new(null, [], [], [], [], [], "database", "Supplier not found.");
+                return new(null, [], [], [], [], [], new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "database", "Supplier not found.");
             }
 
             var siblings = new List<ErpSupplierDigest>();
@@ -1866,12 +1866,54 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 statement.RemoveRange(200, statement.Count - 200);
             }
 
-            return new(header, siblings, purchases, payments, ledger, statement, "database", string.Empty);
+            var summaryOpenPo = RoundSupplierMoney(await ReadSupplierStatementScalarAsync(connection, LegacySurfaceDashboardSql.SelectErpSupplierStatementOpenPurchaseOrderTotal, id, statementFrom, statementTo, cancellationToken).ConfigureAwait(false));
+            var summaryInvoiced = RoundSupplierMoney(await ReadSupplierStatementScalarAsync(connection, LegacySurfaceDashboardSql.SelectErpSupplierStatementInvoiceTotal, id, 0, statementTo, cancellationToken).ConfigureAwait(false));
+            var summaryAdvance = RoundSupplierMoney(await ReadSupplierStatementScalarAsync(connection, LegacySurfaceDashboardSql.SelectErpSupplierStatementAdvanceTotal, id, 0, statementTo, cancellationToken).ConfigureAwait(false));
+            var summaryPayments = RoundSupplierMoney(await ReadSupplierStatementScalarAsync(connection, LegacySurfaceDashboardSql.SelectErpSupplierStatementOtherPaymentTotal, id, 0, statementTo, cancellationToken).ConfigureAwait(false));
+            var summaryCredit = RoundSupplierMoney(await ReadSupplierStatementScalarAsync(connection, LegacySurfaceDashboardSql.SelectErpSupplierStatementLedgerCreditTotal, id, 0, 0, cancellationToken).ConfigureAwait(false));
+            var summaryDebit = RoundSupplierMoney(await ReadSupplierStatementScalarAsync(connection, LegacySurfaceDashboardSql.SelectErpSupplierStatementLedgerDebitTotal, id, 0, 0, cancellationToken).ConfigureAwait(false));
+            var invoicedUnpaid = RoundSupplierMoney(Math.Max(0m, summaryInvoiced - summaryPayments));
+            var grossCommitment = RoundSupplierMoney(summaryOpenPo + invoicedUnpaid);
+            var summary = new ErpSupplierStatementSummary(
+                summaryAdvance,
+                summaryOpenPo,
+                summaryInvoiced,
+                invoicedUnpaid,
+                summaryPayments,
+                grossCommitment,
+                RoundSupplierMoney(summaryAdvance - grossCommitment),
+                RoundSupplierMoney(Math.Max(0m, grossCommitment - summaryAdvance)),
+                RoundSupplierMoney(summaryCredit - summaryDebit),
+                RoundSupplierMoney(summaryCredit - summaryDebit),
+                0,
+                statementTo);
+
+            return new(header, siblings, purchases, payments, ledger, statement, summary, "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return new(null, [], [], [], [], [], "database-error", ex.Message);
+            return new(null, [], [], [], [], [], new(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0), "database-error", ex.Message);
         }
+    }
+
+    private static decimal RoundSupplierMoney(decimal value) =>
+        Math.Round(value, 2, MidpointRounding.AwayFromZero);
+
+    private static async Task<decimal> ReadSupplierStatementScalarAsync(
+        DbConnection connection,
+        string sql,
+        long supplierId,
+        long from,
+        long to,
+        CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        AddParameter(command, "@id", supplierId);
+        AddParameter(command, "@from", from);
+        AddParameter(command, "@to", to <= 0 ? DateTimeOffset.UtcNow.ToUnixTimeSeconds() : to);
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is null || value is DBNull ? 0m : Convert.ToDecimal(value, CultureInfo.InvariantCulture);
     }
 
     public async Task<ErpPurchaseListResult> ListErpPurchasesAsync(int limit, CancellationToken cancellationToken = default)

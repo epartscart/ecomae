@@ -384,6 +384,7 @@ public sealed record ErpSupplierDetailResult(
     IReadOnlyList<ErpSupplierPaymentDigest> Payments,
     IReadOnlyList<ErpSupplierLedgerEntry> Ledger,
     IReadOnlyList<ErpSupplierStatementLine> Statement,
+    ErpSupplierStatementSummary Summary,
     string Source,
     string Message);
 
@@ -417,6 +418,20 @@ public sealed record ErpSupplierStatementLine(
     decimal Credit,
     string Source,
     long SourceId);
+
+public sealed record ErpSupplierStatementSummary(
+    decimal AdvancePaid,
+    decimal OpenPurchaseOrderValue,
+    decimal InvoicedAp,
+    decimal InvoicedUnpaid,
+    decimal OtherPayments,
+    decimal GrossCommitment,
+    decimal NetAdvanceWithSupplier,
+    decimal NetPayable,
+    decimal LedgerPayable,
+    decimal ClosingBalance,
+    long DateFrom,
+    long DateTo);
 
 public sealed record ErpPurchaseDigest(
     long Id,

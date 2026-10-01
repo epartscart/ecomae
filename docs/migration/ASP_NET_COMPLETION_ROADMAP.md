@@ -1,6 +1,6 @@
 # ASP.NET Core completion roadmap
 
-**Status:** planning baseline after the cross-surface audit  
+**Status:** ERP-first completion plan; tenant-wide Super ERP promotion follows ERP acceptance
 **Authoritative reference:** the PHP/PHP-FPM application remains the behavioural,
 visual, security, deployment, and rollback reference until every exit gate passes.
 
@@ -41,7 +41,36 @@ and the final cutover is controlled by the strictest unresolved gate.
 
 ## Execution order
 
-### Step 1 — Close CP evidence (3–5 sessions)
+### Step 1 — Complete ERP and prove tenant-wide functionality (ERP exit gate)
+
+ERP is now the mandatory first completion area. Do not advance ordinary CP,
+storefront, or marketing parity as the primary workstream until the ERP exit
+gate passes. The ERP exit gate requires:
+
+* PHP-vs-ASP.NET route, field, action, report, permission, visual, and UX
+  reconciliation for every approved ERP module.
+* Functionality tests for each business process, including happy path,
+  validation rejection, permission denial, duplicate/retry behavior, audit
+  evidence, and persisted database readback.
+* Representative rehearsals for every tenant, industry pack, legal entity,
+  business unit, branch/site, cost centre, financial dimension, and
+  intercompany scope; no tenant may be promoted based only on another tenant's
+  fixture.
+* Tenant-isolation tests proving direct URLs, posted identifiers, exports,
+  reports, attachments, and drill-downs cannot cross the resolved tenant,
+  company, site, or financial scope.
+* Browser desktop/mobile parity, accessibility, performance, recovery,
+  rollback, UAT, and production smoke evidence.
+* A guarded tenant-by-tenant ownership switch to the ASP.NET Super ERP system,
+  with PHP/PHP-FPM retained as the verified fallback until the final release
+  owner sign-off.
+
+The next ERP tranches must therefore be implemented as business-process
+functionality and acceptance evidence, not only route or presentation
+coverage. After the ERP exit gate, resume the remaining CP and cross-surface
+workstreams.
+
+### Step 2 — Close CP evidence (3–5 sessions)
 
 * Generate the complete CP menu matrix for tenant and Super CP hosts.
 * Classify each PHP entry as a real twin, digest, redirect, or missing.
@@ -50,7 +79,7 @@ and the final cutover is controlled by the strictest unresolved gate.
 * Close the CP exit gate only when the matrix has zero digest and zero missing
   entries for the approved menu.
 
-### Step 2 — Close ERP by business process (8–12 sessions)
+#### ERP business-process workstream (within Step 1; 8–12 sessions)
 
 Work in process order rather than isolated route order:
 
@@ -140,7 +169,7 @@ and must pass field, line, action, permission, database, browser, responsive
 desktop/mobile, visual, and rollback evidence. Until that evidence is complete,
 these routes remain ASP.NET previews/shadows and PHP remains authoritative.
 
-### Step 3 — Close storefront and remaining public surfaces (6–9 sessions)
+### Step 2 — Close storefront and remaining public surfaces (6–9 sessions)
 
 * Reproduce the PHP themes and asset loading on each industry host.
 * Test catalogue/search, vehicle search, cart, obtaining modes, guest checkout,
@@ -149,7 +178,7 @@ these routes remain ASP.NET previews/shadows and PHP remains authoritative.
 * Complete vendor/B2B, parts agent, demand intelligence, marketing forms, and
   SEO/sitemap evidence.
 
-### Step 4 — Close operations and deployment modes (4–6 sessions)
+### Step 3 — Close operations and deployment modes (4–6 sessions)
 
 * Verify Super CP provisioning and demo lifecycle.
 * Test tenant isolation, registration/expiry, on-prem installation, cloud
@@ -157,7 +186,7 @@ these routes remain ASP.NET previews/shadows and PHP remains authoritative.
 * Prove queue retry, webhook replay protection, worker scheduling, and API
   compatibility.
 
-### Step 5 — Acceptance and PHP removal gate (3–4 sessions plus windows)
+### Step 4 — Acceptance and PHP removal gate (3–4 sessions plus windows)
 
 * Run three combined browser rounds against the same tenant data.
 * Capture PHP/ASP.NET screenshots and field/action/report comparisons.
