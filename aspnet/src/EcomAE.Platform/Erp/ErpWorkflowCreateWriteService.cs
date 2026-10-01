@@ -26,10 +26,14 @@ public sealed class ErpWorkflowCreateWriteService : IErpWorkflowCreateWriteServi
     public static readonly string[] AllowedStatuses = ["pending", "in_progress", "done", "cancelled"];
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpWorkflowCreateWriteService(IErpWriteConnectionFactory connections)
+    public ErpWorkflowCreateWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpAuditLogWriter? audit = null)
     {
         _connections = connections;
+        _audit = audit ?? new ErpAuditLogWriter();
     }
 
     public async Task<ErpSimpleWriteResult> CreateAsync(
@@ -97,6 +101,21 @@ public sealed class ErpWorkflowCreateWriteService : IErpWorkflowCreateWriteServi
             dept, step, task, notes, orderId, "pending", pri, assignedUserId, createdBy, due, now);
 
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        await _audit.LogAsync(
+            connection,
+            null,
+            createdBy,
+            "workflow_create",
+            "erp_workflow_task",
+            id,
+            "Workflow task created",
+            new Dictionary<string, string?>
+            {
+                ["title"] = task,
+                ["workflow_step"] = step,
+                ["status"] = "pending",
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Workflow task created.", id);
     }
 

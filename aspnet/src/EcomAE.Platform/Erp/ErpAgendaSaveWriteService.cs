@@ -30,10 +30,14 @@ public sealed record ErpAgendaSaveWriteRequest(
 public sealed class ErpAgendaSaveWriteService : IErpAgendaSaveWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpAgendaSaveWriteService(IErpWriteConnectionFactory connections)
+    public ErpAgendaSaveWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpAuditLogWriter? audit = null)
     {
         _connections = connections;
+        _audit = audit ?? new ErpAuditLogWriter();
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(
@@ -91,6 +95,20 @@ public sealed class ErpAgendaSaveWriteService : IErpAgendaSaveWriteService
             adminId,
             now).ConfigureAwait(false);
         var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        await _audit.LogAsync(
+            connection,
+            null,
+            (int)adminId,
+            "agenda_save",
+            "erp_agenda_event",
+            id,
+            "Agenda event added",
+            new Dictionary<string, string?>
+            {
+                ["title"] = title,
+                ["event_type"] = eventType,
+            },
+            cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok("Agenda event added", id);
     }
 

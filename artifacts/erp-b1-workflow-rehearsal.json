@@ -112,10 +112,23 @@
         "Both tagged agenda rows from the confirmed write and retry were deleted.",
         "A follow-up SQL count confirmed zero tagged agenda rows."
       ]
+    },
+    {
+      "scenario": "workflow-and-agenda-audit-readback",
+      "result": "pass",
+      "route": "/erp/workflow/create, /erp/workflow/status, /erp/ajax/agenda-save",
+      "evidence": [
+        "Unauthenticated workflow create was rejected with HTTP 302 and no write.",
+        "Authenticated workflow dry-run returned writes=0 and writesBlocked=true.",
+        "Confirmed tagged workflow creation persisted the business row and an epc_erp_audit_log row with admin_id=1, action=workflow_create, entity_type=erp_workflow_task, matching entity_id, summary, and title/workflow_step/status detail JSON.",
+        "Confirmed workflow status update persisted status=done and an epc_erp_audit_log row with admin_id=1, action=workflow_status, entity_type=erp_workflow_task, matching entity_id, summary, and status detail JSON.",
+        "Authenticated agenda dry-run returned writes=0 and writesBlocked=true.",
+        "Confirmed tagged agenda save persisted the business row and an epc_erp_audit_log row with admin_id=1, action=agenda_save, entity_type=erp_agenda_event, matching entity_id, summary, and title/event_type detail JSON.",
+        "All tagged workflow, agenda, and audit rows were deleted after SQL corroboration."
+      ]
     }
   ],
   "missing": [
-    "audit-readback",
     "tenant-isolation",
     "full-recovery-and-rollback"
   ],

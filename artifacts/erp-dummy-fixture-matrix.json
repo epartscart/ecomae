@@ -18,10 +18,10 @@
         "approval-queue-decision-and-denial",
         "workflow-invalid-input-browser-denial",
         "workflow-duplicate-retry-observed-allowed",
+        "workflow-and-agenda-audit-readback",
         "tagged-cleanup"
       ],
       "missing": [
-        "audit-readback",
         "tenant-isolation",
         "full-recovery-and-rollback"
       ],
