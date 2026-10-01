@@ -79,6 +79,7 @@ public sealed class CpMetabaseWriteTests
         var sql = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Migration/LegacySurfaceDashboardSql.cs"));
         Assert.Contains("@scope_all", sql, StringComparison.Ordinal);
         Assert.Contains("@scope_site", sql, StringComparison.Ordinal);
+        Assert.Contains("SelectCpPowerBiConfig", sql, StringComparison.Ordinal);
     }
 
     private static string FindRepoRoot()

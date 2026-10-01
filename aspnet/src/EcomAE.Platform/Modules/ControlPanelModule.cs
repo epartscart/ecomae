@@ -8842,7 +8842,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for power-bi digest.");
             }
 
-            var result = await dashboards.BuildCpPowerBiDigestAsync(limit ?? 200, cancellationToken);
+            var host = context.Request.Host.Host;
+            var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
+            var result = await dashboards.BuildCpPowerBiDigestAsync(limit ?? 200, cancellationToken, host, isSuper);
             return Results.Ok(new
             {
                 ok = true,

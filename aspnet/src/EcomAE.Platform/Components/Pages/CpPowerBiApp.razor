@@ -486,7 +486,7 @@
         _tenants = view.Tenants;
         _embed = view.Embed;
 
-        var result = await Dashboards.BuildCpPowerBiDigestAsync(200, ctx.RequestAborted);
+        var result = await Dashboards.BuildCpPowerBiDigestAsync(200, ctx.RequestAborted, ctx.Request.Host.Host, _isSuper);
         _summary = result.Summary;
         _reports = result.Reports;
         _source = result.Source;
@@ -494,7 +494,7 @@
 
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpPowerBiReportDetailAsync(_openedId, ctx.RequestAborted);
+            var detail = await Dashboards.BuildCpPowerBiReportDetailAsync(_openedId, ctx.RequestAborted, ctx.Request.Host.Host, _isSuper);
             _openedReport = detail.Report;
             _openedConfig = detail.SiteConfig;
             _openedSiblings = detail.Siblings;
