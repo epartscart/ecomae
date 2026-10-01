@@ -24,6 +24,7 @@ public sealed class ErpGlReverseJournalDryRunTests
         var r = ErpGlReverseJournalDryRun.EvaluateAgainstJournals(
             [Journal(9)], new ErpGlReverseJournalRequest(9, "void posting"));
         Assert.Equal("dry-run-validated", r.Status);
+        Assert.False(r.PhpAuthoritative);
         Assert.True(r.WouldWrite);
         Assert.Equal(0, r.Writes);
         Assert.Equal("JV-9", r.JournalNo);

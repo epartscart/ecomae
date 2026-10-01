@@ -25,6 +25,7 @@ public sealed class ErpGlManualEntryDryRunTests
             [Coa(1), Coa(2)],
             new ErpGlManualEntryRequest([new(1, 25, 0), new(2, 0, 25)], "JE-1", "test"));
         Assert.Equal("ok", r.ValidationCode);
+        Assert.False(r.PhpAuthoritative);
         Assert.True(r.WouldWrite);
         Assert.Equal(0, r.Writes);
     }

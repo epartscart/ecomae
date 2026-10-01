@@ -140,8 +140,9 @@
       "id": "B5",
       "area": "record-to-report",
       "status": "partial",
-      "fixtureGroups": ["legal_entity", "business_unit", "dimension", "cost_centre", "intercompany"],
-      "missing": ["chart_of_accounts", "gl_journal", "budget", "period_close", "consolidation"]
+      "fixtureGroups": ["legal_entity", "business_unit", "dimension", "cost_centre", "intercompany", "chart_of_accounts", "gl_journal", "voucher_sequence", "audit_log"],
+      "verified": ["manual-journal-dry-run-empty-lines", "manual-journal-dry-run-unbalanced", "manual-journal-dry-run-missing-coa", "manual-journal-balanced-confirmed-write", "manual-journal-header-readback", "manual-journal-line-readback", "manual-journal-sequence-readback", "manual-journal-audit-readback", "manual-journal-browser-form-readback", "manual-journal-invalid-form-zero-writes", "manual-journal-reversal-readback", "manual-journal-reversal-audit-readback", "manual-journal-duplicate-retry-observed-allowed", "manual-journal-tagged-cleanup-zero-rows"],
+      "missing": ["budget", "period_close", "consolidation", "manual-journal-closed-period-denial", "manual-journal-idempotency-contract"]
     },
     {
       "id": "B6",
