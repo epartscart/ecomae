@@ -7244,9 +7244,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(int limit, CancellationToken cancellationToken = default)
+    public async Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(
+        int limit,
+        CancellationToken cancellationToken = default,
+        string? requestHost = null,
+        bool isSuper = false)
     {
         var safeLimit = Math.Clamp(limit, 1, 500);
+        var scopeSiteKey = isSuper ? string.Empty : CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(requestHost);
         var emptySummary = new CpPowerBiConfigSummary(
             string.Empty, string.Empty, string.Empty, string.Empty, string.Empty,
             string.Empty, "none", string.Empty, false, 0, "migration", "TenantRegistry DB is not configured.");
@@ -7267,6 +7272,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             await using (var configCmd = connection.CreateCommand())
             {
                 configCmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiConfig;
+                AddMetabaseScope(configCmd, scopeSiteKey, isSuper);
                 await using var configReader = await configCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await configReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -7287,6 +7293,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             {
                 reportCmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiReports;
                 AddParameter(reportCmd, "@limit", safeLimit);
+                AddMetabaseScope(reportCmd, scopeSiteKey, isSuper);
                 await using var reportReader = await reportCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reportReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -7314,7 +7321,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
-    public async Task<CpPowerBiReportDetailResult> BuildCpPowerBiReportDetailAsync(long id, CancellationToken cancellationToken = default)
+    public async Task<CpPowerBiReportDetailResult> BuildCpPowerBiReportDetailAsync(
+        long id,
+        CancellationToken cancellationToken = default,
+        string? requestHost = null,
+        bool isSuper = false)
     {
         if (id <= 0)
         {
@@ -7329,11 +7340,13 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var scopeSiteKey = isSuper ? string.Empty : CpWebTrackerDashboardBuilder.ResolveOwnSiteKey(requestHost);
             CpPowerBiReportDetail? header = null;
             await using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiReportDetail;
                 AddParameter(cmd, "@id", id);
+                AddMetabaseScope(cmd, scopeSiteKey, isSuper);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -7361,6 +7374,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 await using var cmd = connection.CreateCommand();
                 cmd.CommandText = LegacySurfaceDashboardSql.SelectCpPowerBiSiteConfig;
                 AddParameter(cmd, "@site_key", header.SiteKey);
+                AddMetabaseScope(cmd, scopeSiteKey, isSuper);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
@@ -7385,6 +7399,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 AddParameter(cmd, "@site_key", header.SiteKey);
                 AddParameter(cmd, "@category", header.Category);
                 AddParameter(cmd, "@id", id);
+                AddMetabaseScope(cmd, scopeSiteKey, isSuper);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {

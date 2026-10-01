@@ -156,10 +156,18 @@ public interface ISurfaceDashboardSummaryReporter
     Task<CpApiClientDetailResult> BuildCpApiClientDetailAsync(long id, CancellationToken cancellationToken = default);
 
     /// <summary>Read-only Power BI config + reports (configure/embed writes remain PHP).</summary>
-    Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(int limit, CancellationToken cancellationToken = default);
+    Task<CpPowerBiDigestResult> BuildCpPowerBiDigestAsync(
+        int limit,
+        CancellationToken cancellationToken = default,
+        string? requestHost = null,
+        bool isSuper = false);
 
     /// <summary>Opened Power BI report (PHP <c>pbi_id</c>) plus site notes excerpt and category siblings.</summary>
-    Task<CpPowerBiReportDetailResult> BuildCpPowerBiReportDetailAsync(long id, CancellationToken cancellationToken = default);
+    Task<CpPowerBiReportDetailResult> BuildCpPowerBiReportDetailAsync(
+        long id,
+        CancellationToken cancellationToken = default,
+        string? requestHost = null,
+        bool isSuper = false);
 
     /// <summary>Read-only mobile apps integrations_json.mobile (save_mobile writes remain PHP).</summary>
     Task<CpMobileAppsDigestResult> BuildCpMobileAppsDigestAsync(CancellationToken cancellationToken = default);

@@ -1966,6 +1966,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`notes`, '') AS notes,
                `active`
         FROM `epc_power_bi_config`
+        WHERE (@scope_all = 1 OR `site_key` = @scope_site)
         ORDER BY CASE WHEN `site_key` = '__platform__' THEN 0 ELSE 1 END, `id` ASC
         LIMIT 1
         """;
@@ -1980,6 +1981,7 @@ public static class LegacySurfaceDashboardSql
                IFNULL(`embed_url`, '') AS embed_url,
                `active`
         FROM `epc_power_bi_reports`
+        WHERE (@scope_all = 1 OR `site_key` = @scope_site)
         ORDER BY `category` ASC, `report_name` ASC, `id` ASC
         LIMIT @limit
         """;
@@ -1995,7 +1997,7 @@ public static class LegacySurfaceDashboardSql
                `active`,
                IFNULL(CAST(`created_at` AS CHAR),'') AS created_at
         FROM `epc_power_bi_reports`
-        WHERE `id` = @id
+        WHERE `id` = @id AND (@scope_all = 1 OR `site_key` = @scope_site)
         LIMIT 1
         """;
 
@@ -2012,7 +2014,7 @@ public static class LegacySurfaceDashboardSql
                LEFT(IFNULL(`notes`,''), 280) AS notes_excerpt,
                `active`
         FROM `epc_power_bi_config`
-        WHERE `site_key` = @site_key
+        WHERE `site_key` = @site_key AND (@scope_all = 1 OR `site_key` = @scope_site)
         LIMIT 1
         """;
 
@@ -2027,6 +2029,7 @@ public static class LegacySurfaceDashboardSql
                `active`
         FROM `epc_power_bi_reports`
         WHERE `site_key` = @site_key AND `category` = @category AND `id` <> @id
+          AND (@scope_all = 1 OR `site_key` = @scope_site)
         ORDER BY `report_name` ASC, `id` ASC
         LIMIT 50
         """;
