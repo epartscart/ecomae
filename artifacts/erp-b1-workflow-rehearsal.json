@@ -85,6 +85,15 @@
       ]
     },
     {
+      "scenario": "workflow-invalid-input-browser-denial",
+      "result": "pass",
+      "route": "/erp/workflow/create",
+      "evidence": [
+        "The authenticated browser submitted the empty required Workflow title form and native validation displayed 'Please fill out this field.' without navigating or writing.",
+        "A direct authenticated empty-title request returned the PHP-compatible redirect error 'Title is required.'."
+      ]
+    },
+    {
       "scenario": "tagged-cleanup",
       "result": "pass",
       "evidence": [
@@ -96,7 +105,6 @@
     }
   ],
   "missing": [
-    "workflow-invalid-input-browser-denial",
     "workflow-duplicate-retry-denial",
     "audit-readback",
     "tenant-isolation",
