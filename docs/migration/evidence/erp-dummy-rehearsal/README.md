@@ -36,13 +36,14 @@ not included in this evidence.
    action tested.
 2. **Sales-order confirmed write passed locally.** The ASP.NET writer persisted
    the document and calculated VAT/total values against the throwaway database.
-3. **Audit evidence is incomplete.** The local write did not create
+3. **Dedicated lifecycle ownership is separate from registry authority.** The
+   dedicated `/erp/ajax/so-save` dry-run returns `phpAuthoritative: false`
+   because the lifecycle catalog marks this route `write-live-gated`; the
+   registry's `phpAuthoritative: true` result only proves that the broad
+   registry gate still blocks all catalog writes. These are separate acceptance
+   layers and must not be conflated.
+4. **Audit evidence is incomplete.** The local write did not create
    `epc_erp_audit_log`, so audit-readback is **unverified**, not passed.
-4. **Dedicated dry-run metadata mismatch.** The dedicated `/erp/ajax/so-save`
-   dry-run returned `writes: 0` and `writesBlocked: true`, but
-   `phpAuthoritative: false`. This contradicts the migration policy and must be
-   corrected before the dedicated route can satisfy the PHP-authoritative
-   acceptance gate.
 5. **This is not ERP completion evidence.** Registry coverage and one successful
    local write do not prove PHP functional parity, browser parity, tenant
    isolation, recovery, UAT, production readiness, or tenant promotion.
