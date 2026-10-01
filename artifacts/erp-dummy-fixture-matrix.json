@@ -12,13 +12,15 @@
         "workflow-status-browser-update",
         "workflow-sql-readback",
         "agenda-browser-parity",
+        "agenda-confirmed-write-and-readback",
+        "agenda-invalid-title-denial",
+        "agenda-duplicate-retry-observed-allowed",
+        "approval-queue-decision-and-denial",
+        "workflow-invalid-input-browser-denial",
+        "workflow-duplicate-retry-observed-allowed",
         "tagged-cleanup"
       ],
       "missing": [
-        "agenda-confirmed-write-and-readback",
-        "approval-queue-decision-and-denial",
-        "workflow-invalid-input-browser-denial",
-        "workflow-duplicate-retry-denial",
         "audit-readback",
         "tenant-isolation",
         "full-recovery-and-rollback"
@@ -34,7 +36,7 @@
       "area": "order-to-cash",
       "status": "partial",
       "fixtureGroups": ["users", "sales_order", "voucher_sequence", "audit_log"],
-      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "cleanup"]
+      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "invalid-customer-denial", "cleanup"]
     },
     {
       "id": "B3",
@@ -88,8 +90,10 @@
     {
       "id": "B4",
       "area": "inventory",
-      "status": "missing-fixture",
+      "status": "partial",
       "fixtureGroups": ["product", "warehouse", "stock", "quality", "wms", "planning"]
+      ,"verified": ["inventory-item-dry-run", "inventory-item-invalid-name-denial", "warehouse-dry-run", "warehouse-invalid-input-denial", "movement-dry-run", "movement-invalid-quantity-denial", "csv-import-empty-observed-noop"]
+      ,"missing": ["warehouse-fixture", "stock-movement-fixture", "quality-fixture", "wms-fixture", "planning-fixture"]
     },
     {
       "id": "B5",

@@ -38,7 +38,69 @@
       "result": "pass",
       "route": "/erp/agenda-app",
       "evidence": [
-        "Authenticated browser rendered the Agenda workspace, database digest source, session state, empty state, and add-event surface."
+        "Authenticated browser rendered the Agenda workspace, database digest source, session state, and add-event surface.",
+        "After the confirmed write, the browser rendered the tagged event with title, type, start, end, and location."
+      ]
+    },
+    {
+      "scenario": "agenda-confirmed-write-and-readback",
+      "result": "pass",
+      "route": "/erp/agenda/events/save",
+      "evidence": [
+        "A confirmWrites=false form request returned dry-run-validated with writes=0 and did not create a row.",
+        "A confirmWrites=true form request returned the PHP-compatible Agenda event added redirect.",
+        "SQL readback from epc_erp_agenda_events matched the tagged title, type, start/end timestamps, location, notes, and admin_id.",
+        "The authenticated browser rendered the persisted tagged event in /erp/agenda-app."
+      ]
+    },
+    {
+      "scenario": "agenda-invalid-title-denial",
+      "result": "pass",
+      "route": "/erp/agenda/events/save",
+      "evidence": [
+        "A confirmWrites=true request with an empty title returned Event title required.",
+        "The invalid request did not create an agenda row."
+      ]
+    },
+    {
+      "scenario": "agenda-duplicate-retry-behavior",
+      "result": "observed-allowed",
+      "route": "/erp/agenda/events/save",
+      "evidence": [
+        "Retrying the same tagged payload returned Agenda event added and created a second row.",
+        "No duplicate-denial contract is present for agenda events; both rows were removed during cleanup."
+      ]
+    },
+    {
+      "scenario": "approval-queue-decision-and-denial",
+      "result": "pass",
+      "route": "/erp/approvals/requests/raise",
+      "evidence": [
+        "The authenticated Approvals workspace rendered the queue, rule, raise-request, and decision forms.",
+        "A confirmWrites=false raise request returned dry-run-validated with writes=0.",
+        "After provisioning the PHP-owned approval tables and a tagged rule in the throwaway database, a confirmed request was raised.",
+        "The first request was rejected through /erp/approvals/requests/decide and SQL readback recorded rejected status plus the rejection audit log.",
+        "A second request was approved through the same route and SQL readback recorded approved status plus the approval audit log.",
+        "Tagged approval rules, requests, and log rows were deleted after evidence capture."
+      ]
+    },
+    {
+      "scenario": "workflow-invalid-input-browser-denial",
+      "result": "pass",
+      "route": "/erp/workflow/create",
+      "evidence": [
+        "The authenticated browser submitted the empty required Workflow title form and native validation displayed 'Please fill out this field.' without navigating or writing.",
+        "A direct authenticated empty-title request returned the PHP-compatible redirect error 'Title is required.'."
+      ]
+    },
+    {
+      "scenario": "workflow-duplicate-retry-behavior",
+      "result": "observed-allowed",
+      "route": "/erp/workflow/create",
+      "evidence": [
+        "Submitting the same tagged Workflow task payload twice returned Workflow task created. for both requests.",
+        "SQL readback showed two pending rows with the same title and workflow step; the current PHP-compatible create contract has no duplicate-denial rule.",
+        "Both tagged retry rows were removed during cleanup."
       ]
     },
     {
@@ -47,15 +109,12 @@
       "evidence": [
         "Tagged workflow row was deleted from the throwaway database.",
         "A follow-up SQL count confirmed zero tagged workflow rows.",
-        "No tagged agenda row remained."
+        "Both tagged agenda rows from the confirmed write and retry were deleted.",
+        "A follow-up SQL count confirmed zero tagged agenda rows."
       ]
     }
   ],
   "missing": [
-    "agenda-confirmed-write-and-readback",
-    "approval-queue-decision-and-denial",
-    "workflow-invalid-input-browser-denial",
-    "workflow-duplicate-retry-denial",
     "audit-readback",
     "tenant-isolation",
     "full-recovery-and-rollback"
