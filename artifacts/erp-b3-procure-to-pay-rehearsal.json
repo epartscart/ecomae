@@ -93,12 +93,55 @@
         "confirmed RFQ persisted with DUMMY_ONLY_REHEARSAL description",
         "dedicated route returned phpAuthoritative=false"
       ]
+    },
+    {
+      "scenario": "rfq-supplier-response",
+      "result": "pass",
+      "route": "/erp/ajax/save-rfq-response",
+      "evidence": [
+        "dry-run blocked writes",
+        "confirmed supplier response persisted in epc_scm_rfq_responses",
+        "invalid RFQ line denied with zero writes",
+        "dedicated route returned phpAuthoritative=false"
+      ]
+    },
+    {
+      "scenario": "rfq-supplier-comparison",
+      "result": "pass",
+      "route": "/erp/rfq-app?rfq_id=1",
+      "evidence": [
+        "persisted responses rendered in the RFQ workspace",
+        "best-price recommendation selected supplier 502",
+        "supplier ranking totals matched PHP comparison semantics",
+        "SQL readback corroborated response rows"
+      ]
+    },
+    {
+      "scenario": "rfq-award-to-po",
+      "result": "pass",
+      "route": "/erp/ajax/award-rfq",
+      "evidence": [
+        "dry-run blocked writes",
+        "confirmed award created a draft PO and marked the PHP SCM RFQ awarded",
+        "PO header and line read back from epc_erp_purchase_orders and epc_erp_po_lines",
+        "repeat award was denied after the RFQ entered awarded state",
+        "purchase-order audit row was verified"
+      ]
+    },
+    {
+      "scenario": "receipt-route",
+      "result": "pass",
+      "route": "/erp/ajax/po-receive-lines",
+      "evidence": [
+        "dry-run validated the PHP po_receive_lines contract with zero writes",
+        "confirmed cumulative receipt changed PO status to received",
+        "SQL readback showed qty_received equal to ordered quantity and zero open quantity",
+        "po_receive_lines and po_status audit rows were verified",
+        "tagged PO, lines, RFQ rows, audit rows, and consumed local PO sequence were cleaned up"
+      ]
     }
   ],
   "remaining": [
-    "rfq-supplier-response",
-    "rfq-supplier-comparison",
-    "receipt-route",
     "tenant-isolation",
     "browser-parity",
     "full-recovery-and-rollback"

@@ -29,14 +29,16 @@
         "requisition-save-line-submit-convert",
         "requisition-invalid-decision-denial",
         "rfq-save",
+        "rfq-supplier-response",
+        "rfq-supplier-comparison",
+        "rfq-award-to-po",
+        "receipt-route",
         "sql-readback",
         "audit-readback",
         "voucher-sequence-readback",
         "duplicate-conversion-denial"
       ],
       "missing": [
-        "rfq-supplier-comparison",
-        "receipt-route",
         "tenant-isolation",
         "browser-parity",
         "full-recovery-and-rollback"
