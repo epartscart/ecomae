@@ -66,11 +66,37 @@
         "PO/PI/PV voucher sequences",
         "PO, purchase, and cash-entry audit rows"
       ]
+    },
+    {
+      "scenario": "requisition-lifecycle",
+      "result": "pass",
+      "routes": [
+        "/erp/procurement/requisitions/save",
+        "/erp/procurement/requisitions/add-line",
+        "/erp/procurement/requisitions/submit",
+        "/erp/ajax/proc-req-convert"
+      ],
+      "evidence": [
+        "save and add-line dry-runs blocked writes",
+        "confirmed header and line persisted",
+        "policy auto-approval transitioned draft to approved",
+        "approved requisition converted to PO-PR-00001",
+        "decision on an auto-approved requisition denied without a write"
+      ]
+    },
+    {
+      "scenario": "rfq-save",
+      "result": "pass",
+      "route": "/erp/ajax/save-rfq",
+      "evidence": [
+        "dry-run blocked writes",
+        "confirmed RFQ persisted with DUMMY_ONLY_REHEARSAL description",
+        "dedicated route returned phpAuthoritative=false"
+      ]
     }
   ],
   "remaining": [
-    "requisition",
-    "rfq",
+    "rfq-supplier-response",
     "rfq-supplier-comparison",
     "receipt-route",
     "tenant-isolation",
