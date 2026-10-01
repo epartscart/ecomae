@@ -139,11 +139,34 @@
         "po_receive_lines and po_status audit rows were verified",
         "tagged PO, lines, RFQ rows, audit rows, and consumed local PO sequence were cleaned up"
       ]
+    },
+    {
+      "scenario": "browser-parity",
+      "result": "pass",
+      "routes": [
+        "/erp/login",
+        "/erp",
+        "/erp/purchase-orders-app?company=1"
+      ],
+      "evidence": [
+        "real browser login succeeded through the PHP-compatible ASP.NET bridge",
+        "authenticated ERP dashboard rendered with tenant/company context",
+        "Procure to Pay purchase-order workspace rendered with D365 action pane, guarded actions, KPIs, form, line grid, and PHP classic-twin link",
+        "browser session used Host www.ecomae.com against the throwaway local database"
+      ]
+    },
+    {
+      "scenario": "recovery-and-rollback",
+      "result": "partial",
+      "evidence": [
+        "tagged B3 rows, audit records, and consumed local voucher sequence rows were deleted and verified absent",
+        "duplicate conversion and invalid-input denial paths were verified without writes",
+        "full production recovery, backup restore, and ownership rollback remain unverified in the local rehearsal"
+      ]
     }
   ],
   "remaining": [
     "tenant-isolation",
-    "browser-parity",
     "full-recovery-and-rollback"
   ],
   "acceptance": {

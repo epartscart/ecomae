@@ -36,13 +36,26 @@
         "sql-readback",
         "audit-readback",
         "voucher-sequence-readback",
-        "duplicate-conversion-denial"
+        "duplicate-conversion-denial",
+        "browser-login-and-procurement-workspace"
       ],
       "missing": [
         "tenant-isolation",
-        "browser-parity",
         "full-recovery-and-rollback"
       ],
+      "recovery": {
+        "status": "partial",
+        "verified": [
+          "tagged-row-cleanup",
+          "audit-cleanup",
+          "voucher-sequence-cleanup",
+          "duplicate-write-denial"
+        ],
+        "missing": [
+          "production-backup-restore",
+          "ownership-rollback"
+        ]
+      },
       "schemaDivergenceFixed": [
         "epc_erp_purchases.uae_vat_treatment",
         "epc_erp_purchases.uae_tax_legislation_ref",
