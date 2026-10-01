@@ -36,7 +36,7 @@
       "area": "order-to-cash",
       "status": "partial",
       "fixtureGroups": ["users", "sales_order", "voucher_sequence", "audit_log"],
-      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "cleanup"]
+      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "invalid-customer-denial", "cleanup"]
     },
     {
       "id": "B3",
