@@ -1643,12 +1643,12 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     {
         if (id <= 0)
         {
-            return new(null, [], [], [], [], "n/a", "");
+            return new(null, [], [], [], [], [], "n/a", "");
         }
 
         if (!_connections.IsConfigured)
         {
-            return new(null, [], [], [], [], "migration", "TenantRegistry DB is not configured.");
+            return new(null, [], [], [], [], [], "migration", "TenantRegistry DB is not configured.");
         }
 
         try
@@ -1675,7 +1675,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             if (header is null)
             {
-                return new(null, [], [], [], [], "database", "Supplier not found.");
+                return new(null, [], [], [], [], [], "database", "Supplier not found.");
             }
 
             var siblings = new List<ErpSupplierDigest>();
@@ -1757,11 +1757,120 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            return new(header, siblings, purchases, payments, ledger, "database", string.Empty);
+            var statement = new List<ErpSupplierStatementLine>();
+            var statementTo = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var statementFrom = DateTimeOffset.UtcNow.AddYears(-2).ToUnixTimeSeconds();
+
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierStatementPurchaseOrders;
+                AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@from", statementFrom);
+                AddParameter(cmd, "@to", statementTo);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var status = ReadStr(reader, "status");
+                    statement.Add(new(
+                        ReadI64(reader, "time_unix"),
+                        "PO",
+                        ReadStr(reader, "voucher_no"),
+                        $"{ReadStr(reader, "description")} ({status})",
+                        0m,
+                        new[] { "draft", "approved", "partial" }.Contains(status, StringComparer.OrdinalIgnoreCase)
+                            ? ReadDec(reader, "amount")
+                            : 0m,
+                        "purchase_order",
+                        ReadI64(reader, "id")));
+                }
+            }
+
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierStatementPurchaseInvoices;
+                AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@from", statementFrom);
+                AddParameter(cmd, "@to", statementTo);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var voucher = ReadStr(reader, "voucher_no");
+                    statement.Add(new(
+                        ReadI64(reader, "time_unix"),
+                        "PI",
+                        string.IsNullOrWhiteSpace(voucher) ? ReadStr(reader, "invoice_number") : voucher,
+                        $"Purchase invoice ({ReadStr(reader, "status")})",
+                        0m,
+                        ReadDec(reader, "amount"),
+                        "purchase_invoice",
+                        ReadI64(reader, "id")));
+                }
+            }
+
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierStatementPayments;
+                AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@from", statementFrom);
+                AddParameter(cmd, "@to", statementTo);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var isAdvance = ReadI32(reader, "is_advance") != 0;
+                    var voucher = ReadStr(reader, "voucher_no");
+                    statement.Add(new(
+                        ReadI64(reader, "time_unix"),
+                        isAdvance ? "ADV" : "PV",
+                        string.IsNullOrWhiteSpace(voucher) ? ReadStr(reader, "reference") : voucher,
+                        $"{(isAdvance ? "Advance payment" : "Payment voucher")} — {ReadStr(reader, "note")}",
+                        ReadDec(reader, "amount"),
+                        0m,
+                        isAdvance ? "advance_payment" : "cash_entry",
+                        ReadI64(reader, "id")));
+                }
+            }
+
+            await using (var cmd = connection.CreateCommand())
+            {
+                cmd.CommandText = LegacySurfaceDashboardSql.SelectErpSupplierStatementAdjustments;
+                AddParameter(cmd, "@id", id);
+                AddParameter(cmd, "@from", statementFrom);
+                AddParameter(cmd, "@to", statementTo);
+                await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var isCredit = ReadI32(reader, "is_credit") != 0;
+                    var kind = ReadStr(reader, "entry_kind");
+                    if (string.IsNullOrWhiteSpace(kind))
+                    {
+                        kind = isCredit ? "invoice" : "payment";
+                    }
+
+                    statement.Add(new(
+                        ReadI64(reader, "time_unix"),
+                        kind.Length > 3 ? kind[..3].ToUpperInvariant() : kind.ToUpperInvariant(),
+                        string.IsNullOrWhiteSpace(ReadStr(reader, "reference"))
+                            ? $"LEDGER-{ReadI64(reader, "id")}"
+                            : ReadStr(reader, "reference"),
+                        string.IsNullOrWhiteSpace(ReadStr(reader, "note")) ? kind : ReadStr(reader, "note"),
+                        isCredit ? 0m : ReadDec(reader, "amount"),
+                        isCredit ? ReadDec(reader, "amount") : 0m,
+                        "supplier_accounting",
+                        ReadI64(reader, "id")));
+                }
+            }
+
+            statement.Sort((left, right) => right.TimeUnix.CompareTo(left.TimeUnix));
+            if (statement.Count > 200)
+            {
+                statement.RemoveRange(200, statement.Count - 200);
+            }
+
+            return new(header, siblings, purchases, payments, ledger, statement, "database", string.Empty);
         }
         catch (Exception ex)
         {
-            return new(null, [], [], [], [], "database-error", ex.Message);
+            return new(null, [], [], [], [], [], "database-error", ex.Message);
         }
     }
 

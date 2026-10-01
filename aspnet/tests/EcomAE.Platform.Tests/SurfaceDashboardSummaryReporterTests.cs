@@ -552,6 +552,11 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("`supplier_id` = @id", LegacySurfaceDashboardSql.SelectErpSupplierLedger, StringComparison.Ordinal);
         Assert.Contains("`active` = 1", LegacySurfaceDashboardSql.SelectErpSupplierLedger, StringComparison.Ordinal);
         Assert.Contains("entry_kind", LegacySurfaceDashboardSql.SelectErpSupplierLedger, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_purchase_orders", LegacySurfaceDashboardSql.SelectErpSupplierStatementPurchaseOrders, StringComparison.Ordinal);
+        Assert.Contains("purchase_id` = 0", LegacySurfaceDashboardSql.SelectErpSupplierStatementPurchaseOrders, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_purchases", LegacySurfaceDashboardSql.SelectErpSupplierStatementPurchaseInvoices, StringComparison.Ordinal);
+        Assert.Contains("counterparty_type` = 'supplier'", LegacySurfaceDashboardSql.SelectErpSupplierStatementPayments, StringComparison.Ordinal);
+        Assert.Contains("entry_kind", LegacySurfaceDashboardSql.SelectErpSupplierStatementAdjustments, StringComparison.Ordinal);
         Assert.Contains("users_profiles", LegacySurfaceDashboardSql.SelectStorefrontUserProfiles, StringComparison.Ordinal);
         Assert.Contains("epc_erp_gl_journals", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);
         Assert.DoesNotContain("description", LegacySurfaceDashboardSql.SelectErpGlJournals, StringComparison.Ordinal);

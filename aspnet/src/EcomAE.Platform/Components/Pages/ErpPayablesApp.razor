@@ -149,22 +149,21 @@
             {
                 <p class="text-muted" style="margin:1rem 0 0">No recent supplier payments found.</p>
             }
-            @if (_openedLedger.Count > 0)
+            @if (_openedStatement.Count > 0)
             {
                 <p class="text-muted" style="margin:1rem 0 .4rem">Supplier statement</p>
                 <table class="table table-striped table-bordered table-condensed table-epc epc-erp-table">
-                    <thead><tr><th>Date</th><th>Direction</th><th class="text-right">Amount</th><th>Kind</th><th>Reference</th><th>Purchase</th><th>Cash entry</th></tr></thead>
+                    <thead><tr><th>Date</th><th>Type</th><th>Voucher</th><th>Description</th><th class="text-right">Debit</th><th class="text-right">Credit</th></tr></thead>
                     <tbody>
-                        @foreach (var entry in _openedLedger)
+                        @foreach (var entry in _openedStatement)
                         {
                             <tr>
                                 <td>@FormatTime(entry.TimeUnix)</td>
-                                <td>@(entry.IsCredit ? "Credit" : "Debit")</td>
-                                <td class="text-right">@entry.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
-                                <td>@(string.IsNullOrWhiteSpace(entry.EntryKind) ? "—" : entry.EntryKind)</td>
-                                <td>@(string.IsNullOrWhiteSpace(entry.Reference) ? "—" : entry.Reference)</td>
-                                <td>@(entry.PurchaseId > 0 ? entry.PurchaseId.ToString(CultureInfo.InvariantCulture) : "—")</td>
-                                <td>@(entry.CashEntryId > 0 ? entry.CashEntryId.ToString(CultureInfo.InvariantCulture) : "—")</td>
+                                <td>@entry.VoucherType</td>
+                                <td>@(string.IsNullOrWhiteSpace(entry.VoucherNumber) ? "—" : entry.VoucherNumber)</td>
+                                <td>@(string.IsNullOrWhiteSpace(entry.Description) ? "—" : entry.Description)</td>
+                                <td class="text-right">@entry.Debit.ToString("N2", CultureInfo.InvariantCulture)</td>
+                                <td class="text-right">@entry.Credit.ToString("N2", CultureInfo.InvariantCulture)</td>
                             </tr>
                         }
                     </tbody>
@@ -173,7 +172,7 @@
             }
             else
             {
-                <p class="text-muted" style="margin:1rem 0 0">No active supplier ledger entries found.</p>
+                <p class="text-muted" style="margin:1rem 0 0">No supplier statement lines found in the last two years.</p>
             }
         </div>
     }
@@ -236,6 +235,7 @@
     private IReadOnlyList<ErpPurchaseDigest> _openedPurchases = [];
     private IReadOnlyList<ErpSupplierPaymentDigest> _openedPayments = [];
     private IReadOnlyList<ErpSupplierLedgerEntry> _openedLedger = [];
+    private IReadOnlyList<ErpSupplierStatementLine> _openedStatement = [];
 
     private bool OpenedFound => _openedDetail is not null || _openedSupplier is not null;
 
@@ -278,6 +278,7 @@
             _openedPurchases = detail.Purchases;
             _openedPayments = detail.Payments;
             _openedLedger = detail.Ledger;
+            _openedStatement = detail.Statement;
             if (_openedDetail is null && !string.IsNullOrWhiteSpace(detail.Message))
             {
                 _message = detail.Message;
