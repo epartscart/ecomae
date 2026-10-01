@@ -35,8 +35,9 @@
       "id": "B2",
       "area": "order-to-cash",
       "status": "partial",
-      "fixtureGroups": ["users", "sales_order", "voucher_sequence", "audit_log"],
-      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "invalid-customer-denial", "cleanup"]
+      "fixtureGroups": ["users", "sales_order", "voucher_sequence", "audit_log", "einvoice_documents", "shop_users_accounting", "coa_accounts", "gl_journals"],
+      "verified": ["sales-order-save", "vat-calculation", "sql-readback", "audit-readback", "invalid-customer-denial", "so-to-invoice-dry-run-zero-writes", "so-to-invoice-confirmed", "invoice-header-lines-events-readback", "customer-settlement-ledger-readback", "gl-journal-ar-1100-6100-readback", "si-gv-voucher-sequence-readback", "duplicate-invoice-denial", "cleanup", "receipt-voucher-dry-run-zero-writes", "receipt-voucher-confirmed-fifo-allocation", "invoice-paid-amount-due-readback", "settlement-allocation-row-readback", "receipt-ledger-readback", "receipt-gl-journal-1010-1100-readback", "advance-receipt-gl-2050-2100-vat-readback", "rv-voucher-sequence-readback", "receipt-audit-readback", "invalid-amount-denial-zero-writes", "advance-receipt-unallocated", "cleanup"],
+      "notes": "so_to_invoice chain (SO -> SI -> shop_users_accounting -> GV journal 6100 Dr / 1100 Cr -> audit) passed on throwaway DB after porting PHP epc_erp_gl_seed_coa (GL was silently skipped on an empty COA). Dry-run phpAuthoritative=false is consistent with live ASP.NET writes (same convention as B3 fix 11450dc74). Open: tenant-isolation, browser-parity, recovery-and-rollback, uat-and-production. Receipt/collection slice: RV dry-run zero writes; confirmed RV (autoAllocate) FIFO-allocated 315.00 to SI-2026-00003 (paid_amount=315, amount_due=0, epc_erp_settlement_allocations ar row, shop_users_accounting settlement row, GV journal 1010 Dr / 1100 Cr, audit receipt_voucher); amount=0 denied with zero writes; unallocated 50.00 became advance (is_advance=1, epc_uae_vat_advance 47.62+2.38, GV journal 1010 Dr / 2050 + 2100 Cr); RV sequence advanced 3->5 across confirmed attempts only; tagged rows cleaned to zero. Fix: PHP adds coa_id to epc_erp_cash_bank_accounts (epc_erp_gl.php) but ASP.NET did not, so receipt GL posting was silently skipped; column now added in ErpGlChartOfAccountsSeeder."
     },
     {
       "id": "B3",

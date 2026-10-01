@@ -1061,6 +1061,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             return ledgerId;
         }
 
+        await ErpGlChartOfAccountsSeeder.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         var receivable = await CoaIdAsync(connection, "1100", cancellationToken).ConfigureAwait(false);
         var expense = await CoaIdAsync(connection, "6100", cancellationToken).ConfigureAwait(false);
         if (receivable <= 0 || expense <= 0)
