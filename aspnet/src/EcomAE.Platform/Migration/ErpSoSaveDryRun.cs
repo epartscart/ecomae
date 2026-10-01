@@ -11,13 +11,13 @@ public sealed class ErpSoSaveDryRun : IErpSoSaveDryRun
             return Refuse("dry-run-confirm-refused","confirm_writes_refused","Use confirm_writes=true to execute the live ASP.NET sales-order writer.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,false,false,"ok",true,request.Id, request.Code,
             ["ajax_erp.php?action=so_save (NOT executed)"],
             "ERP so_save payload validated; no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=so_save");
     }
     private static ErpSoSaveDryRunResult Refuse(string s,string c,string d,ErpSoSaveRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=so_save");
+        new(s,0,true,false,false,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=so_save");
 }
 public sealed record ErpSoSaveRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
 public sealed record ErpSoSaveDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)

@@ -40,7 +40,7 @@ public sealed class ErpOrderLifecycleDryRunTests
         var result = new ErpSoSaveDryRun().Evaluate(new ErpSoSaveRequest(9, "SO-9", true));
 
         Assert.Equal("confirm_writes_refused", result.ValidationCode);
-        Assert.True(result.PhpAuthoritative);
+        Assert.False(result.PhpAuthoritative);
         Assert.Contains("confirm_writes=true", result.Detail, StringComparison.Ordinal);
     }
 }
