@@ -90,8 +90,10 @@
     {
       "id": "B4",
       "area": "inventory",
-      "status": "missing-fixture",
+      "status": "partial",
       "fixtureGroups": ["product", "warehouse", "stock", "quality", "wms", "planning"]
+      ,"verified": ["inventory-item-dry-run", "inventory-item-invalid-name-denial"]
+      ,"missing": ["warehouse-fixture", "stock-movement-fixture", "quality-fixture", "wms-fixture", "planning-fixture"]
     },
     {
       "id": "B5",
