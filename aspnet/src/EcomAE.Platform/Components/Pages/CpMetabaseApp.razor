@@ -4,6 +4,7 @@
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
@@ -248,7 +249,9 @@
             return; // guest browse — Sign in for live data
         }
 
-        var result = await Dashboards.BuildCpMetabaseDigestAsync(200, ctx.RequestAborted);
+        var host = ctx.Request.Host.Host;
+        var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
+        var result = await Dashboards.BuildCpMetabaseDigestAsync(200, ctx.RequestAborted, host, isSuper);
         _summary = result.Summary;
         _dashboards = result.Dashboards;
         _source = result.Source;
@@ -256,7 +259,7 @@
 
         if (_openedId > 0)
         {
-            var detail = await Dashboards.BuildCpMetabaseDashboardDetailAsync(_openedId, ctx.RequestAborted);
+            var detail = await Dashboards.BuildCpMetabaseDashboardDetailAsync(_openedId, ctx.RequestAborted, host, isSuper);
             _openedDash = detail.Dashboard;
             _openedConfig = detail.SiteConfig;
             _openedSiblings = detail.Siblings;

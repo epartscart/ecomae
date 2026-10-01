@@ -9178,7 +9178,9 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Unauthorized("Admin CP capability required for metabase digest.");
             }
 
-            var result = await dashboards.BuildCpMetabaseDigestAsync(limit ?? 200, cancellationToken);
+            var host = context.Request.Host.Host;
+            var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
+            var result = await dashboards.BuildCpMetabaseDigestAsync(limit ?? 200, cancellationToken, host, isSuper);
             return Results.Ok(new
             {
                 ok = true,
@@ -9224,6 +9226,13 @@ public sealed class ControlPanelModule : ISurfaceModule
                 dashboardName = LiveWriteFormBinder.Text(form, "dashboard_name", "dashboardName");
                 category = LiveWriteFormBinder.Text(form, "category");
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            var host = context.Request.Host.Host;
+            var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
+            if (!isSuper)
+            {
+                siteKey = CpMetabaseWriteService.ResolveSiteKey(null, false, host);
             }
 
             var key = (action ?? string.Empty).Trim();
