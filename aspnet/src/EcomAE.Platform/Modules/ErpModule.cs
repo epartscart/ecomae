@@ -10959,6 +10959,7 @@ public sealed class ErpModule : ISurfaceModule
                         Reference = body.Reference ?? string.Empty,
                         Description = body.Description ?? string.Empty,
                         JournalDate = body.JournalDate,
+                        IdempotencyKey = body.IdempotencyKey ?? string.Empty,
                     },
                     session.UserId,
                     cancellationToken);
@@ -22186,7 +22187,8 @@ public sealed class ErpModule : ISurfaceModule
             LiveWriteFormBinder.Text(form, "reference"),
             LiveWriteFormBinder.Text(form, "description"),
             LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"),
-            LiveWriteFormBinder.Long(form, "journalDate", "journal_date"));
+            LiveWriteFormBinder.Long(form, "journalDate", "journal_date"),
+            LiveWriteFormBinder.Text(form, "idempotencyKey", "idempotency_key", "idem_key"));
     }
 
     private sealed record ErpGlManualLineBody(long CoaId, decimal Debit, decimal Credit, string? LineNote = null);
@@ -22195,7 +22197,8 @@ public sealed class ErpModule : ISurfaceModule
         string? Reference,
         string? Description,
         bool ConfirmWrites = false,
-        long JournalDate = 0);
+        long JournalDate = 0,
+        string? IdempotencyKey = null);
     private sealed record ErpGlReverseJournalBody(
         long JournalId,
         string? Note,

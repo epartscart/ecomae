@@ -1,0 +1,55 @@
+{
+  "process": "B5",
+  "scenario": "manual-journal-idempotency-contract",
+  "status": "verified",
+  "scope": "throwaway-local-mariadb",
+  "release": "working-tree",
+  "php_contract": {
+    "source": "content/shop/finance/epc_erp_concurrency.php",
+    "action": "gl_post_journal",
+    "key_limit": 80,
+    "user_scope": true,
+    "pending_message": "Same request is already in progress — wait a moment",
+    "successful_replay_ttl_seconds": 600
+  },
+  "aspnet_contract": {
+    "route": "/erp/gl-journals/manual",
+    "json_key_names": [
+      "idempotencyKey",
+      "idempotency_key",
+      "idem_key"
+    ],
+    "form_key_names": [
+      "idempotencyKey",
+      "idempotency_key",
+      "idem_key"
+    ],
+    "action": "gl_post_journal",
+    "pending_claim_seconds": 120,
+    "successful_replay_seconds": 600,
+    "dry_run_preserved": true
+  },
+  "observed": [
+    "confirmed manual journal with an idempotency key posted successfully",
+    "exact replay returned the original journal result",
+    "replay created no second journal header",
+    "idempotency response row was persisted",
+    "tagged journal and idempotency rows were removed during cleanup"
+  ],
+  "verification": {
+    "test": "EcomAE.Platform.Tests.ErpGlManualJournalIdempotencyTests.ManualJournalReplayReturnsTheOriginalJournalWithoutADuplicateWrite",
+    "result": "passed",
+    "database_cleanup": {
+      "journal_reference_prefix": "DEVIN-B5-IDEM-",
+      "idempotency_key_prefix": "devin-b5-idem-",
+      "remaining_journals": 0,
+      "remaining_idempotency_rows": 0
+    }
+  },
+  "production": {
+    "backup_restore": "open",
+    "route_rollback": "open",
+    "uat": "open",
+    "release_owner_approval": "open"
+  }
+}
