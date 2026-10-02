@@ -190,7 +190,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`receipt_total`,`refund_due`,`adjust_sale_return`,`old_gold_exchange`,`gold_scheme_redeem`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                    "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`receipt_total`,`refund_due`,`adjust_sale_return`,`old_gold_exchange`,`gold_scheme_redeem`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
                 cancellationToken,
                 companyId,
                 branch,
@@ -214,7 +214,12 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 gross,
                 totalWithVat,
                 net,
-                receipts.Sum(receipt => RoundNonNeg(receipt.AmountLc > 0 ? receipt.AmountLc : receipt.AmountFc, 2)),
+                receipts.Sum(receipt =>
+                {
+                    var receiptRate = receipt.CurrencyRate <= 0 ? 1m : RoundNonNeg(receipt.CurrencyRate, 6);
+                    var amountFc = RoundNonNeg(receipt.AmountFc, 2);
+                    return NormalizeReceiptAmountLc(receipt, receiptRate, amountFc);
+                }),
                 refundDue,
                 adjustSaleReturn,
                 oldGoldExchange,
@@ -233,7 +238,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             {
                 var stockCode = Clip((line.StockCode ?? string.Empty).Trim(), 20);
                 var description = Clip((line.Description ?? string.Empty).Trim(), 120);
-                if (stockCode.Length == 0 && description.Length == 0)
+                if (!ShouldPersistLine(line))
                 {
                     continue;
                 }
@@ -384,9 +389,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 var receiptCurrency = Clip((receipt.Currency ?? currency).Trim().ToUpperInvariant(), 5);
                 var receiptRate = receipt.CurrencyRate <= 0 ? 1m : RoundNonNeg(receipt.CurrencyRate, 6);
                 var amountFc = RoundNonNeg(receipt.AmountFc, 2);
-                var amountLc = receipt.AmountLc > 0
-                    ? RoundNonNeg(receipt.AmountLc, 2)
-                    : RoundNonNeg(amountFc * receiptRate, 2);
+                var amountLc = NormalizeReceiptAmountLc(receipt, receiptRate, amountFc);
                 if (amountFc == 0 && amountLc == 0)
                 {
                     continue;
@@ -415,6 +418,19 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
             throw;
         }
     }
+
+    public static decimal NormalizeReceiptAmountLc(
+        ErpJwVoucherReceiptSaveRequest receipt,
+        decimal receiptRate,
+        decimal amountFc)
+        => receipt.AmountLc > 0
+            ? RoundNonNeg(receipt.AmountLc, 2)
+            : RoundNonNeg(amountFc * receiptRate, 2);
+
+    public static bool ShouldPersistLine(ErpJwVoucherLineSaveRequest line)
+        => !string.IsNullOrWhiteSpace(line.StockCode)
+            || !string.IsNullOrWhiteSpace(line.Description)
+            || !string.IsNullOrWhiteSpace(line.TagNo);
 
     private static decimal CalculateLineTotal(ErpJwVoucherLineSaveRequest line)
     {
