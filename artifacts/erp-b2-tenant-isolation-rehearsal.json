@@ -1,0 +1,36 @@
+{
+  "process": "B2 Order-to-Cash",
+  "scope": "throwaway-local-mariadb",
+  "tenant": "ecomae",
+  "liveTenantWrites": false,
+  "phpFallbackRequired": true,
+  "status": "partial",
+  "schemaAuthority": "php-owned",
+  "verified": [
+    {
+      "scenario": "tenant-isolation",
+      "result": "pass",
+      "scope": "two-physical-throwaway-mariadb-databases",
+      "evidence": [
+        "tenant registry mapped www.ecomae.com to ecomae and b2-tenant2.local to ecomae_b2_tenant2",
+        "receipt-voucher dry-run on b2-tenant2.local returned writes=0 and writesBlocked=true",
+        "authenticated confirmed tagged receipt write through b2-tenant2.local persisted only in ecomae_b2_tenant2",
+        "tenant-2 cash-entry readback rendered the unique marker",
+        "tenant-1 cash-entry readback did not render the tenant-2 marker",
+        "tenant-2 SQL showed the tagged cash entry, one settlement allocation, invoice 2 paid_amount 51.23 and amount_due 208.77",
+        "tenant-2 SQL showed authenticated receipt audit actor admin_id 1 and RV/GV sequence advancement",
+        "tenant-1 SQL showed zero tagged cash entries and invoice 2 remained paid_amount 50.00 and amount_due 210.00",
+        "temporary registry row and physical tenant database were removed after evidence capture"
+      ]
+    }
+  ],
+  "remaining": [
+    "tenant-isolation-in-full-process-fixture",
+    "full-recovery-and-rollback",
+    "uat-and-production"
+  ],
+  "acceptance": {
+    "erpComplete": false,
+    "tenantPromotionAllowed": false
+  }
+}
