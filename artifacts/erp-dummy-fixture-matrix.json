@@ -109,6 +109,7 @@
         "movement-retry-observed-allowed",
         "tagged-inventory-cleanup",
         "inventory-tenant-isolation",
+        "inventory-local-backup-restore",
         "inventory-invalid-id-denial",
         "inventory-invalid-type-denial",
         "wms-location-receive-putaway-lifecycle",
@@ -144,7 +145,7 @@
         "wms-tenant-isolation",
         "planning-audit-not-emitted-by-php"
       ],
-      "missing": ["inventory-full-recovery-and-rollback", "quality-production-recovery-and-rollback", "wms-production-recovery-and-rollback", "planning-production-recovery-and-rollback"],
+      "missing": ["quality-production-recovery-and-rollback", "wms-production-recovery-and-rollback", "planning-production-recovery-and-rollback"],
       "recovery": {
         "status": "partial",
         "verified": [
