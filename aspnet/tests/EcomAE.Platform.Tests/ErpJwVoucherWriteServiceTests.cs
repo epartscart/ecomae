@@ -80,7 +80,8 @@ public sealed class ErpJwVoucherWriteServiceTests
             AdjustSaleReturn: 25,
             OldGoldExchange: 100,
             GoldSchemeRedeem: 50,
-            RefundDue: 10);
+            RefundDue: 10,
+            ActorUserId: 17);
 
         Assert.Equal("TAG-001", request.Lines![0].TagNo);
         Assert.Equal(525m, request.Receipts![0].AmountLc);
@@ -88,6 +89,7 @@ public sealed class ErpJwVoucherWriteServiceTests
         Assert.Equal(100m, request.OldGoldExchange);
         Assert.Equal(50m, request.GoldSchemeRedeem);
         Assert.Equal(10m, request.RefundDue);
+        Assert.Equal(17, request.ActorUserId);
     }
 
     [Fact]
