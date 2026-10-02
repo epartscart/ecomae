@@ -325,6 +325,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     await using var tagReader = await tagRead.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                     if (!await tagReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                     {
+                        await tagReader.DisposeAsync().ConfigureAwait(false);
                         await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
                         return ErpSimpleWriteResult.Fail("not_found", $"Jewellery tag or barcode '{tag}' was not found.");
                     }
@@ -374,11 +375,12 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                         connection,
                         transaction,
                         ErpDb.Positional(
-                            "INSERT INTO `epc_jw_tag_history` (`tag_id`,`action`,`reference`,`time_created`) VALUES (?,?,?,?)"),
+                            "INSERT INTO `epc_jw_tag_history` (`tag_id`,`action`,`reference`,`actor_id`,`time_created`) VALUES (?,?,?,?,?)"),
                         cancellationToken,
                         tagId,
                         nextStatus,
                         $"{vocType} voucher #{id}",
+                        Math.Max(0, request.ActorUserId),
                         DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
                 }
             }
