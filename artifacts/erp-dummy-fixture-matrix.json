@@ -130,10 +130,11 @@
         "quality-plan-upsert-retry-observed-allowed",
         "quality-ncr-update-dry-run-and-confirmed-write",
         "quality-ncr-invalid-status-denial",
+        "quality-ncr-audit-readback",
         "quality-ncr-browser-readback",
         "quality-tagged-cleanup"
       ],
-      "missing": ["inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-ncr-create-confirmed-write", "quality-order-confirmed-create-route", "quality-audit-log-readback", "quality-tenant-isolation", "quality-production-recovery-and-rollback", "wms-audit-log-readback", "wms-tenant-isolation", "wms-production-recovery-and-rollback", "planning-params-and-recommendations", "planning-audit-log-readback", "planning-tenant-isolation", "planning-production-recovery-and-rollback"]
+      "missing": ["inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-ncr-create-confirmed-write", "quality-order-confirmed-create-route", "quality-tenant-isolation", "quality-production-recovery-and-rollback", "wms-audit-log-readback", "wms-tenant-isolation", "wms-production-recovery-and-rollback", "planning-params-and-recommendations", "planning-audit-log-readback", "planning-tenant-isolation", "planning-production-recovery-and-rollback"]
     },
     {
       "id": "B5",

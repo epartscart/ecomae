@@ -103,6 +103,16 @@
       ]
     },
     {
+      "scenario": "quality-ncr-audit-readback",
+      "result": "pass",
+      "route": "/erp/ajax/qm-ncr-update",
+      "evidence": [
+        "A uniquely tagged NCR was updated on throwaway local MariaDB after the dry-run returned writes=0.",
+        "SQL readback confirmed the persisted status, disposition, and corrective action.",
+        "SQL readback of epc_erp_audit_log confirmed actor admin_id=1, action qm_ncr_update, entity_type qm_ncr, the tagged entity id, and detail_json containing the updated values."
+      ]
+    },
+    {
       "scenario": "quality-ncr-browser-readback",
       "result": "pass",
       "route": "/erp/quality-app?qv=ncr",
@@ -123,7 +133,6 @@
   "unverified": [
     "quality-ncr-create-confirmed-write",
     "quality-order-confirmed-create-route",
-    "quality-audit-log-readback",
     "quality-tenant-isolation",
     "quality-production-recovery-and-rollback"
   ]
