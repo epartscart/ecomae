@@ -174,8 +174,11 @@
     {
       "id": "BJ",
       "area": "jewellery",
-      "status": "missing-fixture",
-      "fixtureGroups": ["karat", "metal", "stone", "pearl", "diamond", "design", "tag", "repair", "fixing"]
+      "status": "partial",
+      "fixtureGroups": ["karat", "metal", "stone", "pearl", "diamond", "design", "tag", "repair", "fixing", "purchase", "sale_return", "stock_verification", "finance_history"],
+      "verified": ["blueprint-requirements-reconciled", "observed-screen-controls-mapped", "php-authority-and-open-rule-boundary-recorded", "jewellery-ui-contract-tests", "jewellery-company-scope-contract-tests", "jewellery-master-update-contract-tests", "jewellery-voucher-atomicity-and-total-contract-tests", "jewellery-tag-barcode-guard-contract-tests", "jewellery-fixing-guard-contract-tests", "jewellery-repair-lifecycle-contract-tests", "jewellery-history-projection-contract-tests"],
+      "missing": ["throwaway-database-confirmed-master-persistence", "throwaway-database-confirmed-purchase-fixing-tag-sale-return", "throwaway-database-repair-transfer-receive-delivery", "jewellery-sql-readback", "jewellery-php-audit-readback", "jewellery-authenticated-browser-readback", "jewellery-tenant-isolation-second-physical-database", "jewellery-recovery-and-rollback", "jewellery-uat-and-production-acceptance"],
+      "notes": "Reconciled the supplied INDUS blueprint, metal/diamond linkage study, replacement-system study, and photo pack. Focused ASP.NET contract/service tests pass. This is not persistence or acceptance evidence: confirmed throwaway writes, SQL/audit readback, authenticated browser flows, second-database isolation, recovery, UAT, and production remain open; PHP remains authoritative and live tenants remain untouched."
     },
     {
       "id": "BF",

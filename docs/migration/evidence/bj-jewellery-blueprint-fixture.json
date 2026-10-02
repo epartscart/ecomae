@@ -1,0 +1,36 @@
+{
+  "id": "BJ",
+  "area": "jewellery",
+  "status": "partial",
+  "sourceMaterial": [
+    "INDUS_Jewellery_ERP_Devin_AI_Build_Blueprint.docx",
+    "INDUS_LIVE_metal_diamond_master_linkage.docx",
+    "INDUS_LIVE_replacement_system_study.docx",
+    "photo.zip"
+  ],
+  "verified": [
+    "blueprint-requirements-reconciled",
+    "observed-screen-controls-mapped",
+    "php-authority-and-open-rule-boundary-recorded",
+    "jewellery-ui-contract-tests",
+    "jewellery-company-scope-contract-tests",
+    "jewellery-master-update-contract-tests",
+    "jewellery-voucher-atomicity-and-total-contract-tests",
+    "jewellery-tag-barcode-guard-contract-tests",
+    "jewellery-fixing-guard-contract-tests",
+    "jewellery-repair-lifecycle-contract-tests",
+    "jewellery-history-projection-contract-tests"
+  ],
+  "missing": [
+    "throwaway-database-confirmed-master-persistence",
+    "throwaway-database-confirmed-purchase-fixing-tag-sale-return",
+    "throwaway-database-repair-transfer-receive-delivery",
+    "jewellery-sql-readback",
+    "jewellery-php-audit-readback",
+    "jewellery-authenticated-browser-readback",
+    "jewellery-tenant-isolation-second-physical-database",
+    "jewellery-recovery-and-rollback",
+    "jewellery-uat-and-production-acceptance"
+  ],
+  "notes": "The supplied studies and photos are requirements evidence, not permission to invent legacy formulas or write live data. Focused ASP.NET Jewellery tests pass for the mapped UI/service contracts. No confirmed throwaway-database write, SQL/audit readback, authenticated browser acceptance, second-database isolation, recovery, UAT, or production gate is claimed in this tranche. PHP remains authoritative and liveTenantWrites remains false."
+}

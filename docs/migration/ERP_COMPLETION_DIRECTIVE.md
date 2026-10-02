@@ -62,7 +62,7 @@ must be re-derived from the artifacts on each report.
 | CRM | 60% | 60% | 30% | 50% | 0% | No |
 | HR/Payroll | 35% | 40% | 20% | 30% | 0% | No |
 | Reporting/IFRS (B6) | 55% | 65% | 55% | n/a | 0% (no fixture) | No |
-| Jewellery (BJ) | 60% | 60% | 40% | 50% | 0% (no fixture) | No |
+| Jewellery (BJ) | 60% | 60% | 40% | 50% | 20% (contract/service coverage; persistence and acceptance gates open) | No |
 | Fit-Out (BF) | 65% | 60% | 45% | 55% | 0% (no fixture) | No |
 | Administration/Org settings | 60% | 65% | n/a | 50% | 10% | No |
 
