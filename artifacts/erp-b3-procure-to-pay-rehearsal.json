@@ -156,6 +156,19 @@
       ]
     },
     {
+      "scenario": "tenant-isolation",
+      "result": "pass",
+      "scope": "two-physical-throwaway-mariadb-databases",
+      "evidence": [
+        "tenant registry mapped www.ecomae.com to ecomae and b3-tenant2.local to ecomae_b3_tenant2",
+        "authenticated confirmed tagged PO write through b3-tenant2.local persisted only in ecomae_b3_tenant2",
+        "tenant-2 purchase-order readback returned the tagged PO",
+        "tenant-1 purchase-order readback did not return the tenant-2 tagged PO",
+        "tenant-2 tagged PO was deleted through the tenant-2 route",
+        "direct SQL cleanup verification found zero tagged rows in ecomae_b3_tenant2"
+      ]
+    },
+    {
       "scenario": "recovery-and-rollback",
       "result": "partial",
       "evidence": [
@@ -166,7 +179,6 @@
     }
   ],
   "remaining": [
-    "tenant-isolation",
     "full-recovery-and-rollback"
   ],
   "acceptance": {
