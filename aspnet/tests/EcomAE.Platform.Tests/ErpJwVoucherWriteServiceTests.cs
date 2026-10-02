@@ -89,4 +89,26 @@ public sealed class ErpJwVoucherWriteServiceTests
         Assert.Equal(50m, request.GoldSchemeRedeem);
         Assert.Equal(10m, request.RefundDue);
     }
+
+    [Fact]
+    public void ForeignCurrencyReceiptUsesConvertedLocalAmount()
+    {
+        var receipt = new ErpJwVoucherReceiptSaveRequest(
+            Currency: "USD",
+            CurrencyRate: 3.6725m,
+            AmountFc: 100);
+
+        var amountFc = decimal.Round(receipt.AmountFc, 2);
+        var rate = decimal.Round(receipt.CurrencyRate, 6);
+
+        Assert.Equal(367.25m, ErpJwVoucherWriteService.NormalizeReceiptAmountLc(receipt, rate, amountFc));
+    }
+
+    [Fact]
+    public void TagOnlyLineIsPersisted()
+    {
+        var line = new ErpJwVoucherLineSaveRequest(TagNo: "TAG-ONLY-001");
+
+        Assert.True(ErpJwVoucherWriteService.ShouldPersistLine(line));
+    }
 }
