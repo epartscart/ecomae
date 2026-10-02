@@ -293,6 +293,7 @@ builder.Services.AddSingleton<IErpAmlKycSaveDryRun, ErpAmlKycSaveDryRun>();
 builder.Services.AddSingleton<IErpAmlAlertStatusDryRun, ErpAmlAlertStatusDryRun>();
 builder.Services.AddSingleton<IErpAmlSettingsSaveDryRun, ErpAmlSettingsSaveDryRun>();
 builder.Services.AddSingleton<IErpBankImportDryRun, ErpBankImportDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBankImportWriteService, EcomAE.Platform.Erp.ErpBankImportWriteService>();
 builder.Services.AddSingleton<IErpBankReconcileDryRun, ErpBankReconcileDryRun>();
 builder.Services.AddSingleton<IErpFxPostRevaluationDryRun, ErpFxPostRevaluationDryRun>();
 builder.Services.AddSingleton<IErpSupplierPaymentDryRun, ErpSupplierPaymentDryRun>();

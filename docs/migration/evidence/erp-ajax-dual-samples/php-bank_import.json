@@ -14,5 +14,5 @@
   "dualSampleBaseline": "migration-contract-golden",
   "pairedAspNetGolden": "aspnet-bank_import.json",
   "generatedAtUnix": 1785869386,
-  "note": "Seeded from aspnet erp ajax golden for contract-only compare. Live PHP ajax remains authoritative until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
+  "note": "Seeded from aspnet erp ajax golden for contract-only compare. Live PHP ajax remains authoritative; ASP.NET confirmed import remains gated until paired field dual-sample + RELEASE_OWNER_APPROVAL.md."
 }

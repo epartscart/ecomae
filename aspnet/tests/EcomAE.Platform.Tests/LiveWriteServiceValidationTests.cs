@@ -11,6 +11,38 @@ namespace EcomAE.Platform.Tests;
 public sealed class LiveWriteServiceValidationTests
 {
     [Fact]
+    public void Bank_import_parser_matches_php_column_and_direction_rules()
+    {
+        var rows = ErpBankImportWriteService.ParseCsv(
+            "date,description,reference,amount\n" +
+            "2026-09-30,Customer receipt,INV-7,\"1,250.50\"\n" +
+            "2026-10-01,Supplier payment,-75.25\n");
+
+        Assert.Equal(2, rows.Count);
+        Assert.Equal("Customer receipt", rows[0].Description);
+        Assert.Equal("INV-7", rows[0].Reference);
+        Assert.Equal(1250.50m, rows[0].Amount);
+        Assert.Equal(1, rows[0].Direction);
+        Assert.Equal("Supplier payment", rows[1].Description);
+        Assert.Equal(string.Empty, rows[1].Reference);
+        Assert.Equal(75.25m, rows[1].Amount);
+        Assert.Equal(0, rows[1].Direction);
+    }
+
+    [Fact]
+    public void Bank_import_dry_run_requires_an_account_without_writes()
+    {
+        var result = new ErpBankImportDryRun().Evaluate(
+            new ErpBankImportRequest(0, "2026-10-01,Receipt,10", false));
+
+        Assert.Equal("dry-run-invalid", result.Status);
+        Assert.Equal("invalid_account", result.ValidationCode);
+        Assert.Equal(0, result.Writes);
+        Assert.True(result.WritesBlocked);
+        Assert.True(result.PhpAuthoritative);
+    }
+
+    [Fact]
     public void Financial_dimension_selection_rejects_unknown_or_non_positive_values()
     {
         var allowed = new Dictionary<string, IReadOnlySet<long>>(StringComparer.OrdinalIgnoreCase)

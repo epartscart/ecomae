@@ -5107,8 +5107,56 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAmlAlertStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAmlSettingsSave, async (HttpContext context, ErpAmlSettingsSaveBody? body, ILegacySessionValidator validator, IErpAmlSettingsSaveDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAmlSettingsSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBankImport, async (HttpContext context, ErpBankImportBody? body, ILegacySessionValidator validator, IErpBankImportDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpBankImportRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBankImport, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpBankImportDryRun dryRun,
+            IErpBankImportWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login", "Admin ERP capability required.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBankImportBody>(context, cancellationToken) ?? new();
+            var accountId = body.AccountId;
+            var csvText = body.CsvText;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                accountId = LiveWriteFormBinder.Long(form, "accountId", "account_id");
+                csvText = LiveWriteFormBinder.Text(form, "csvText", "csv_text");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpBankImportRequest(accountId, csvText, false)).ToPayload(SessionPayload(session)));
+            }
+
+            var written = await writes.ImportAsync(
+                new ErpBankImportWriteRequest(accountId, csvText, session.UserId),
+                cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/erp/bank-reconciliation",
+                written.Succeeded,
+                written.Message,
+                new
+                {
+                    ok = written.Succeeded,
+                    writes = written.Writes,
+                    phpAuthoritative = true,
+                    validation_code = written.Code,
+                    message = written.Message,
+                    imported = written.Writes,
+                    first_line_id = written.Id,
+                    session = SessionPayload(session)
+                });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBankReconcile, HandleBankReconcileAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFxPostRevaluation, async (HttpContext context, ErpFxPostRevaluationBody? body, ILegacySessionValidator validator, IErpFxPostRevaluationDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFxPostRevaluationRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
@@ -24053,7 +24101,10 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpAmlKycSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAmlAlertStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpAmlSettingsSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpBankImportBody(bool ConfirmWrites = false);
+    private sealed record ErpBankImportBody(
+        long AccountId = 0,
+        string? CsvText = null,
+        bool ConfirmWrites = false);
     private sealed record ErpBankReconcileBody(bool ConfirmWrites = false);
     private sealed record ErpFxPostRevaluationBody(bool ConfirmWrites = false);
     private sealed record ErpSupplierPaymentBody(
