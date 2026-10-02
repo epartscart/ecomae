@@ -1,0 +1,31 @@
+{
+  "area": "B8",
+  "scenario": "unavailable PHP-owned e-invoice seller schema denial",
+  "authority": "php-until-formal-acceptance",
+  "environment": "throwaway local MariaDB tenant database",
+  "observedAt": "2026-10-02",
+  "checks": {
+    "sellerSchemaTemporarilyUnavailable": {
+      "action": "renamed epc_einvoice_settings away from its required table name",
+      "restored": true
+    },
+    "confirmedSaveDenied": {
+      "requestCountry": "AE",
+      "httpStatus": 200,
+      "ok": false,
+      "writes": 0,
+      "phpAuthoritative": false,
+      "validationCode": "db",
+      "message": "PHP-owned e-invoice seller schema is unavailable."
+    },
+    "cleanup": {
+      "schemaRestored": true,
+      "taggedSellerRowsRemaining": 0,
+      "taggedCompanyRowsRemaining": 0
+    }
+  },
+  "formalStatus": "OPEN",
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false
+}
