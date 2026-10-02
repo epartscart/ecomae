@@ -33,7 +33,8 @@
     "preview country does not override the registered tenant country",
     "confirmed seller profile persistence returns one write on an authenticated tenant-two session",
     "seller profile SQL and authenticated browser readback match the persisted AE profile",
-    "separate tenant databases prove tenant-two-only seller visibility with tenant-one negative SQL/browser readback"
+    "separate tenant databases prove tenant-two-only seller visibility with tenant-one negative SQL/browser readback",
+    "PHP seller-profile audit parity is not applicable because the PHP writer emits no epc_erp_audit_log rows"
   ],
   "countryFixture": {
     "AE": { "scheme": "UAE-FTA", "taxLabel": "VAT", "clearance": false, "requires": ["seller_trn", "buyer_trn"] },
@@ -48,7 +49,6 @@
     "aspPintAeIsNotGlobalDefault": true
   },
   "unverified": [
-    "PHP audit readback for the seller-profile settings key/value write",
     "ASP sandbox roundtrip",
     "production recovery and rollback",
     "tenant-specific UAT and production acceptance"
@@ -59,5 +59,5 @@
     "phpFallbackRequired": true,
     "dummyRowsCreated": false
   },
-  "reasonUnverified": "Local authenticated persistence, SQL settings readback, browser readback, and two-database seller isolation are now directly evidenced. PHP audit-row parity, ASP sandbox, production recovery/rollback, UAT, and production acceptance remain separate open gates."
+  "reasonUnverified": "Local authenticated persistence, SQL settings readback, browser readback, two-database seller isolation, and PHP audit applicability are now directly evidenced. ASP sandbox, production recovery/rollback, UAT, and production acceptance remain separate open gates."
 }

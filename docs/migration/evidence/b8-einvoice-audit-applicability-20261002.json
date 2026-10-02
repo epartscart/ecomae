@@ -1,0 +1,30 @@
+{
+  "area": "B8",
+  "scenario": "PHP seller-profile audit applicability",
+  "observedAt": "2026-10-02",
+  "authority": {
+    "php": [
+      "content/shop/finance/epc_einvoice.php",
+      "content/shop/finance/epc_einvoice_schema.php"
+    ],
+    "auditTable": "epc_erp_audit_log"
+  },
+  "sourceInspection": {
+    "function": "epc_einvoice_save_settings",
+    "sellerSettingsTable": "epc_einvoice_settings",
+    "writesAuditRows": false,
+    "auditWriterReferenceFound": false
+  },
+  "sqlCorroboration": {
+    "database": "local ecomae tenant database",
+    "query": "SELECT COUNT(*) FROM epc_erp_audit_log WHERE action LIKE '%einvoice%' OR action LIKE '%seller%'",
+    "matchingRows": 0
+  },
+  "conclusion": "not_applicable",
+  "reason": "The PHP seller-settings writer persists key/value settings but does not emit epc_erp_audit_log rows; the local SQL query found no matching e-invoice or seller audit rows. This gate is not applicable to PHP parity and is not an ASP.NET audit acceptance claim.",
+  "productionEvidence": false,
+  "formalStatus": "OPEN",
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false
+}
