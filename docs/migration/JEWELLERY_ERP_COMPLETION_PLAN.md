@@ -1,6 +1,9 @@
 # Jewellery ERP completion plan
 
-This plan is the Jewellery (`BJ`) workstream under the ERP completion directive. It
+This plan is the Jewellery (`BJ`) workstream under the ERP completion directive.
+The attachment reconciliation and A–L first-deliverable register are maintained
+in `INDUS_JEWELLERY_REPLACEMENT_TRACEABILITY.md`.
+It
 uses the supplied INDUS studies and photo pack as requirements evidence, while
 keeping PHP as the behavioral authority until each process is accepted.
 
