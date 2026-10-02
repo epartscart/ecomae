@@ -134,6 +134,18 @@ public sealed class ErpJewelleryModuleParityTests
     }
 
     [Fact]
+    public void JewelleryVoucherFormPreservesTagOnlyLinesAndAuthenticatedActor()
+    {
+        var module = ReadPlatformSource("Modules/ErpModule.cs");
+        var page = ReadApp("CpJewelleryRetailApp.razor");
+
+        Assert.Contains("|| !string.IsNullOrWhiteSpace(line.TagNo)", module, StringComparison.Ordinal);
+        Assert.Contains("ActorUserId: session.UserId", module, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"line_stock_code\" required", page, StringComparison.Ordinal);
+        Assert.DoesNotContain("name=\"line_description\" required", page, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void FitOutEstimateRevisionComparison_IsRegisteredAndProjectScoped()
     {
         var service = ReadPlatformSource("Erp/ErpFitOutEstimateRevisionReadService.cs");

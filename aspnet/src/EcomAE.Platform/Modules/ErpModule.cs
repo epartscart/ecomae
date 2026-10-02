@@ -9683,7 +9683,10 @@ public sealed class ErpModule : ISurfaceModule
                             MetalAmount: LiveWriteFormBinder.DecAt(form, "line_metal_amount", index),
                             StoneAmount: LiveWriteFormBinder.DecAt(form, "line_stone_amount", index),
                             DiscountAmount: LiveWriteFormBinder.DecAt(form, "line_disc_amount", index)))
-                        .Where(line => !string.IsNullOrWhiteSpace(line.StockCode) || !string.IsNullOrWhiteSpace(line.Description))
+                        .Where(line =>
+                            !string.IsNullOrWhiteSpace(line.StockCode)
+                            || !string.IsNullOrWhiteSpace(line.Description)
+                            || !string.IsNullOrWhiteSpace(line.TagNo))
                         .ToArray();
                 }
 
@@ -9756,7 +9759,8 @@ public sealed class ErpModule : ISurfaceModule
                     OldGoldExchange: oldGoldExchange,
                     GoldSchemeRedeem: goldSchemeRedeem,
                     Lines: lines,
-                    Receipts: receipts),
+                    Receipts: receipts,
+                    ActorUserId: session.UserId),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
