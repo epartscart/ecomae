@@ -80,35 +80,41 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
         ErpEinvoiceSellerWriteRequest request,
         CancellationToken cancellationToken = default)
     {
-        var country = NormalizeCountry(request.SellerCountryCode);
-        if (country != "AE")
-        {
-            return ErpSimpleWriteResult.Fail("invalid", "Seller country must be AE for UAE FTA e-invoicing");
-        }
-
-        var trn = DigitsOnly(request.SellerTrn);
-        if (!TrnValid(trn))
-        {
-            return ErpSimpleWriteResult.Fail("invalid", "Seller TRN must be exactly 15 digits (FTA)");
-        }
-
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
         }
 
-        var tin = string.IsNullOrWhiteSpace(request.SellerTin) ? TinFromTrn(trn) : request.SellerTin.Trim();
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var country = await ResolveRegisteredCountryAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (country is null)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Registered tenant country is required for e-invoice compliance");
+        }
+
+        var identifier = DigitsOnly(request.SellerTrn);
+        if (country == "AE" && !TrnValid(identifier))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Seller TRN must be exactly 15 digits (FTA)");
+        }
+
+        if (country != "AE" && identifier.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Seller tax registration number is required");
+        }
+
+        var tin = string.IsNullOrWhiteSpace(request.SellerTin) ? TinFromTrn(identifier) : request.SellerTin.Trim();
         var settings = new Dictionary<string, string>(StringComparer.Ordinal)
         {
             ["seller_name"] = (request.SellerName ?? string.Empty).Trim(),
-            ["seller_trn"] = trn,
+            ["seller_trn"] = identifier,
             ["seller_tin"] = tin,
             ["seller_legal_reg_no"] = (request.SellerLegalRegNo ?? string.Empty).Trim(),
             ["seller_legal_reg_type"] = (request.SellerLegalRegType ?? "TL").Trim(),
             ["seller_authority_name"] = (request.SellerAuthorityName ?? string.Empty).Trim(),
             ["seller_address_line1"] = (request.SellerAddressLine1 ?? string.Empty).Trim(),
-            ["seller_city"] = string.IsNullOrWhiteSpace(request.SellerCity) ? "Dubai" : request.SellerCity.Trim(),
-            ["seller_emirate"] = string.IsNullOrWhiteSpace(request.SellerEmirate) ? "Dubai" : request.SellerEmirate.Trim(),
+            ["seller_city"] = country == "AE" && string.IsNullOrWhiteSpace(request.SellerCity) ? "Dubai" : (request.SellerCity ?? string.Empty).Trim(),
+            ["seller_emirate"] = country == "AE" && string.IsNullOrWhiteSpace(request.SellerEmirate) ? "Dubai" : (request.SellerEmirate ?? string.Empty).Trim(),
             ["seller_country_code"] = country,
             ["seller_phone"] = (request.SellerPhone ?? string.Empty).Trim(),
             ["seller_email"] = (request.SellerEmail ?? string.Empty).Trim(),
@@ -117,16 +123,15 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             ["payment_terms"] = string.IsNullOrWhiteSpace(request.PaymentTerms) ? "Within 7 days" : request.PaymentTerms.Trim()
         };
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await UpsertSettingsAsync(connection, settings, cancellationToken).ConfigureAwait(false);
         await UpsertCompanyAsync(
             connection,
             country,
-            trn,
+            identifier,
             settings["seller_name"],
             request.CompanyVatRegistered ? "1" : "0",
             cancellationToken).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Seller profile saved — FTA company registration updated", 1);
+        return ErpSimpleWriteResult.Ok("Seller profile saved — registered-country compliance profile updated", 1);
     }
 
     public async Task<ErpSimpleWriteResult> SaveBuyerAsync(
@@ -275,6 +280,82 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
                 key,
                 value).ConfigureAwait(false);
         }
+    }
+
+    private static async Task<string?> ResolveRegisteredCountryAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        if (await TableExistsAsync(connection, "epc_tax_toolkit_tenant_profile", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_tax_toolkit_tenant_profile", "country_code", cancellationToken).ConfigureAwait(false))
+        {
+            var profileCountry = NormalizeRegisteredCountry(await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT `country_code` FROM `epc_tax_toolkit_tenant_profile` WHERE TRIM(COALESCE(`country_code`, '')) <> '' ORDER BY `time_updated` DESC LIMIT 1"),
+                cancellationToken).ConfigureAwait(false));
+            if (profileCountry.Length > 0)
+            {
+                return profileCountry;
+            }
+        }
+
+        if (await TableExistsAsync(connection, "epc_price_settings", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_price_settings", "setting_key", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_price_settings", "setting_value", cancellationToken).ConfigureAwait(false))
+        {
+            var companyCountry = NormalizeRegisteredCountry(await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = 'company_country_code' LIMIT 1"),
+                cancellationToken).ConfigureAwait(false));
+            if (companyCountry.Length > 0)
+            {
+                return companyCountry;
+            }
+        }
+
+        return null;
+    }
+
+    private static string NormalizeRegisteredCountry(string? raw)
+    {
+        var value = (raw ?? string.Empty).Trim();
+        return value.Length == 0 ? string.Empty : NormalizeCountry(value);
+    }
+
+    private static async Task<bool> TableExistsAsync(
+        System.Data.Common.DbConnection connection,
+        string table,
+        CancellationToken cancellationToken)
+    {
+        var count = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"),
+            cancellationToken,
+            table).ConfigureAwait(false);
+        return count > 0;
+    }
+
+    private static async Task<bool> ColumnExistsAsync(
+        System.Data.Common.DbConnection connection,
+        string table,
+        string column,
+        CancellationToken cancellationToken)
+    {
+        var count = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT COUNT(*) FROM information_schema.COLUMNS WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ? AND COLUMN_NAME = ?"),
+            cancellationToken,
+            table,
+            column).ConfigureAwait(false);
+        return count > 0;
     }
 
     public static string NormalizeCountry(string? raw)

@@ -4488,14 +4488,14 @@ public sealed class LiveWriteServiceValidationTests
         Assert.Equal("AE", ErpEinvoiceProfileWriteService.NormalizeCountry("UAE"));
         Assert.True(ErpEinvoiceProfileWriteService.TrnValid("100123456789012"));
         Assert.Equal("1001234567", ErpEinvoiceProfileWriteService.TinFromTrn("100123456789012"));
-        var einvCountry = await new ErpEinvoiceProfileWriteService(new ConfiguredNeverOpened())
+        var einvCountry = await new ErpEinvoiceProfileWriteService(new UnconfiguredConnections())
             .SaveSellerAsync(new ErpEinvoiceSellerWriteRequest(SellerName: "Co", SellerTrn: "100123456789012", SellerCountryCode: "US"));
         Assert.False(einvCountry.Succeeded);
-        Assert.Equal("invalid", einvCountry.Code);
-        var einvTrn = await new ErpEinvoiceProfileWriteService(new ConfiguredNeverOpened())
+        Assert.Equal("db", einvCountry.Code);
+        var einvTrn = await new ErpEinvoiceProfileWriteService(new UnconfiguredConnections())
             .SaveSellerAsync(new ErpEinvoiceSellerWriteRequest(SellerName: "Co", SellerTrn: "123", SellerCountryCode: "AE"));
         Assert.False(einvTrn.Succeeded);
-        Assert.Equal("invalid", einvTrn.Code);
+        Assert.Equal("db", einvTrn.Code);
         var einvBuyer = await new ErpEinvoiceProfileWriteService(new ConfiguredNeverOpened())
             .SaveBuyerAsync(new ErpEinvoiceBuyerWriteRequest(UserId: 0, BuyerName: "Buyer"));
         Assert.False(einvBuyer.Succeeded);
