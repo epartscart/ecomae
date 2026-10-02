@@ -46,7 +46,10 @@ dashboards/reports (professional parity before acceptance); P2 micro-polish
 Sources: `artifacts/erp-dummy-fixture-matrix.json`, `artifacts/erp-b*-*.json`,
 `ErpTenantAcceptanceCatalog`. "Accepted" requires all gates incl. isolation,
 rollback, UAT; none are accepted yet. Percentages are approximate bands and
-must be re-derived from the artifacts on each report.
+must be re-derived from the artifacts on each report. They are implementation
+telemetry only, not acceptance credit: a process remains **OPEN** when any
+mandatory acceptance gate lacks direct evidence, even if its development
+percentage reaches 95% or 100%.
 
 | Process | Functional | UI/UX | Reports | Writes | Testing | Accepted |
 |---|---:|---:|---:|---:|---:|---:|
