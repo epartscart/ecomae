@@ -1539,7 +1539,7 @@ public static class SurfacePayloadContractCatalog
         new("erp", "qm_test_add", "/erp/ajax/qm-test-add", "write-live-gated", "POST PHP epc_qm_test_add ajax alias; confirmWrites=true writes ASP.NET; plan save, orders, NCR, and schema ensure stay PHP."),
         new("erp", "qm_order_create dry-run", "/erp/ajax/qm-order-create", "write-dry-run-gated", "POST dry-run for PHP qm_order_create; writes=0; confirm_writes refused; PHP authoritative."),
         new("erp", "qm_order_record dry-run", "/erp/ajax/qm-order-record", "write-dry-run-gated", "POST dry-run for PHP qm_order_record; writes=0; confirm_writes refused; PHP authoritative."),
-        new("erp", "qm_ncr_create dry-run", "/erp/ajax/qm-ncr-create", "write-dry-run-gated", "POST dry-run for PHP qm_ncr_create; writes=0; confirm_writes refused; PHP authoritative."),
+        new("erp", "qm_ncr_create", "/erp/ajax/qm-ncr-create", "write-live-gated", "POST dry-run by default; confirm_writes=true persists PHP-compatible epc_qm_ncr rows and audit evidence."),
         new("erp", "qm_ncr_update", "/erp/ajax/qm-ncr-update", "write-live-gated", "POST PHP epc_qm_ncr_update ajax alias; confirmWrites=true writes ASP.NET; order create/record, NCR create, and schema stay PHP."),
         new("erp", "rbac_priv_save", "/erp/ajax/rbac-priv-save", "write-live-gated", "POST PHP epc_rbac_privilege_save ajax alias; confirmWrites=true writes ASP.NET; duty save, role save, attach helpers, and schema ensure stay PHP."),
         new("erp", "rbac_duty_save", "/erp/ajax/rbac-duty-save", "write-live-gated", "POST PHP epc_rbac_duty_save ajax alias; confirmWrites=true writes ASP.NET; privilege save, role save, attach helpers, and schema ensure stay PHP."),

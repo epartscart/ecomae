@@ -65,6 +65,18 @@ public sealed class ErpQmNcrUpdatePhpParityTests
         Assert.DoesNotContain("epc_qm_order_record", service, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void NcrCreate_UsesPhpContractAndLiveAudit()
+    {
+        var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpQmNcrCreateWriteService.cs"));
+        Assert.Contains("epc_qm_ncr", service, StringComparison.Ordinal);
+        Assert.Contains("qm_ncr_create", service, StringComparison.Ordinal);
+        Assert.Contains("Non-conformance created", service, StringComparison.Ordinal);
+        Assert.Contains("IErpAuditLogWriter", service, StringComparison.Ordinal);
+        Assert.Contains("status`,`corrective_action", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("CREATE TABLE", service, StringComparison.Ordinal);
+    }
+
     private static string FindRepoFile(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);

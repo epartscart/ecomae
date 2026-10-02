@@ -1016,7 +1016,7 @@ public static class EcomAeRoutes
     /// <summary>HTML form POST for PHP <c>qm_order_create</c> dry-run.</summary>
     public const string ErpQualityOrderCreateForm = "/erp/quality/order-create";
     public const string ErpQualityOrderRecordForm = "/erp/quality/order-record";
-    /// <summary>HTML form POST for PHP <c>qm_ncr_create</c> dry-run.</summary>
+    /// <summary>HTML form POST for PHP-compatible <c>qm_ncr_create</c>.</summary>
     public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
     /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>
     public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
@@ -1292,7 +1292,7 @@ public static class EcomAeRoutes
     public const string ErpAjaxQmOrderCreate = "/erp/ajax/qm-order-create";
     /// <summary>Wave B dry-run for PHP qm_order_record (writes=0).</summary>
     public const string ErpAjaxQmOrderRecord = "/erp/ajax/qm-order-record";
-    /// <summary>Wave B dry-run for PHP qm_ncr_create (writes=0).</summary>
+    /// <summary>PHP-compatible <c>qm_ncr_create</c>; dry-run unless confirmed.</summary>
     public const string ErpAjaxQmNcrCreate = "/erp/ajax/qm-ncr-create";
     /// <summary>Wave B dry-run for PHP qm_ncr_update (writes=0).</summary>
     public const string ErpAjaxQmNcrUpdate = "/erp/ajax/qm-ncr-update";

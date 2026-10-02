@@ -15,7 +15,7 @@
 <PhpChromeStyles Surface="erp" />
 <PhpErpDesktopChrome IsAdmin="_isAdmin" Title="Quality" BreadcrumbArea="Operations" BreadcrumbTab="Quality">
     <ErpOpenedRecordBanner Id="_openedId" Found="@(_opened is not null)" Caption="@OpenedCaption" ListHref="@_listHref" />
-    <PhpErpModulePageHeader Title="Quality management" Subtitle="Open an NCR for the corrective-action excerpt and closed time. NCR update writes here." PhpTabHref="@_phpTab" />
+    <PhpErpModulePageHeader Title="Quality management" Subtitle="Open an NCR for the corrective-action excerpt and closed time. NCR create and update writes are recorded here." PhpTabHref="@_phpTab" />
     <PhpErpD365ActionPane PhpTabHref="@_phpTab" RefreshHref="@Nav.Uri" />
     <ErpPhpFlash Ok="@_ok" Err="@_err" />
 
@@ -169,6 +169,7 @@
             <ErpPhpCreateWell Title="Raise non-conformance">
                 <form method="post" action="@EcomAeRoutes.ErpQualityNcrCreateForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                     <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+                    <input type="hidden" name="company_id" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
                     <select name="order_id" class="form-control input-sm">
                         <option value="0">(standalone)</option>
                         @foreach (var o in _orders)
@@ -215,7 +216,7 @@
                     Fields="@QualityWorkspaceFields"
                     Lines="@QualityWorkspaceLines"
                     Tabs="@QualityWorkspaceTabs" />
-                <p class="text-muted" style="margin:.85rem 0 0">NCR update writes stay here. Order create/record and NCR create stay Classic.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">NCR create and update writes stay here. Order create/record remains Classic.</p>
                 @if (_openedSiblings.Count > 0)
                 {
                     <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
@@ -372,7 +373,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Live: <code>qm_ncr_update</code>. Open ?ncr_id= loads the corrective-action excerpt. Order create/record and NCR create stay Classic.
+        Source: @_source. Live: <code>qm_ncr_create</code> and <code>qm_ncr_update</code>. Open ?ncr_id= loads the corrective-action excerpt. Order create/record stays Classic.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
@@ -386,6 +387,7 @@
     private string _view = "orders";
     private long _selPlan;
     private long _selOrder;
+    private long _companyId;
     private IReadOnlyList<ErpQmPlanDigest> _plans = [];
     private IReadOnlyList<ErpQmOrderDigest> _orders = [];
     private IReadOnlyList<ErpQmNcrDigest> _ncrs = [];
@@ -492,6 +494,11 @@
             : (qv is "plans" or "orders" ? qv : "orders");
         _ = long.TryParse(ctx.Request.Query["plan_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out _selPlan);
         _ = long.TryParse(ctx.Request.Query["order_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out _selOrder);
+        _ = long.TryParse(
+            ctx.Request.Query["company"].FirstOrDefault() ?? ctx.Request.Query["companyId"].FirstOrDefault(),
+            NumberStyles.Integer,
+            CultureInfo.InvariantCulture,
+            out _companyId);
         _ok = ctx.Request.Query["ok"].ToString();
         _err = ctx.Request.Query["err"].ToString();
 
