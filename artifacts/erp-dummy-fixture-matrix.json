@@ -134,7 +134,8 @@
         "quality-ncr-browser-readback",
         "quality-tagged-cleanup",
         "quality-ncr-create-confirmed-write",
-        "quality-order-confirmed-create-route"
+        "quality-order-confirmed-create-route",
+        "quality-audit-log-readback"
       ],
       "missing": ["inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-tenant-isolation", "quality-production-recovery-and-rollback", "wms-audit-log-readback", "wms-tenant-isolation", "wms-production-recovery-and-rollback", "planning-params-and-recommendations", "planning-audit-log-readback", "planning-tenant-isolation", "planning-production-recovery-and-rollback"]
     },

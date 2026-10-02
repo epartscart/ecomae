@@ -151,6 +151,18 @@
       ]
     },
     {
+      "scenario": "quality-audit-log-readback",
+      "result": "pass",
+      "route": "/erp/quality/ncr-update",
+      "evidence": [
+        "Tagged NCR fixture B4-QM-NCR-AUDIT-20261001 (id 2) was inserted into the throwaway database using the exact PHP epc_qm_ncr contract after SHOW CREATE TABLE epc_erp_audit_log inspection.",
+        "Dry-run returned writes=0, writesBlocked=true, phpAuthoritative=false and left epc_erp_audit_log qm_ncr count at 0; invalid status returned Invalid status with writes=0.",
+        "Confirmed update returned writes=1 and epc_erp_audit_log row id 10 read back with admin_id=1, action=qm_ncr_update, entity_type=qm_ncr, entity_id=2, summary=Non-conformance updated, detail_json={status:investigate,disposition:rework,corrective_action:Audit tagged quality issue}, ip_address=127.0.0.1.",
+        "Audit and NCR rows were deleted afterward; SQL verification returned zero remaining tagged NCR rows and zero qm_ncr audit rows.",
+        "No ASP.NET-owned audit-trail workspace renders epc_erp_audit_log rows (/erp/audit-trail-app is a parity scaffold), so browser audit readback is not claimed; this scenario is SQL-evidenced only."
+      ]
+    },
+    {
       "scenario": "quality-tagged-cleanup",
       "result": "pass",
       "evidence": [
