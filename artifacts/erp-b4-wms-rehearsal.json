@@ -90,6 +90,20 @@
       ]
     },
     {
+      "scenario": "wms-tenant-isolation",
+      "result": "pass",
+      "evidence": [
+        "Two separate throwaway MariaDB databases were registered behind b4-wms-t1.local and b4-wms-t2.local; the rebuilt listener executable was the active worktree binary.",
+        "Independent authenticated tenant-1 and tenant-2 sessions passed WMS location dry-runs with writes=0 and writesBlocked=true.",
+        "Only tenant 2 performed the confirmed tagged location and receive write; direct SQL found the tagged location, license plate, and put-away work only in ecomae_b4_wms_t2.",
+        "Authenticated /erp/warehouse-wms-app HTML readback rendered B4WMS_T2_ITEM and B4WMS_T2_REF for tenant 2, while tenant 1 rendered no tenant-2 markers.",
+        "All temporary WMS registry aliases were removed, both throwaway databases were dropped, and database-absence verification passed."
+      ],
+      "limitations": [
+        "This proves local physical tenant isolation only; WMS production recovery/rollback, UAT, production smoke, and release-owner approval remain open."
+      ]
+    },
+    {
       "scenario": "tagged-wms-cleanup",
       "result": "pass",
       "evidence": [
@@ -99,7 +113,6 @@
     }
   ],
   "unverified": [
-    "wms-tenant-isolation",
     "wms-production-recovery-and-rollback"
   ]
 }
