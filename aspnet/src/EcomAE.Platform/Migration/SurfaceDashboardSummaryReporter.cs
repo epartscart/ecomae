@@ -12885,6 +12885,72 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
     }
 
+    public async Task<CpEinvoiceSellerProfile> BuildCpEinvoiceSellerProfileAsync(CancellationToken cancellationToken = default)
+    {
+        var empty = new CpEinvoiceSellerProfile("", "", "", "", "", "", "", "", false, "migration", "TenantRegistry DB is not configured.");
+        if (!_connections.IsConfigured)
+        {
+            return empty;
+        }
+
+        try
+        {
+            await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var settings = new Dictionary<string, string>(StringComparer.Ordinal);
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = """
+                    SELECT `setting_key`, `setting_value`
+                    FROM `epc_einvoice_settings`
+                    WHERE `setting_key` IN ('seller_name', 'seller_trn', 'seller_tin', 'seller_city',
+                                            'seller_emirate', 'seller_country_code', 'seller_email')
+                    """;
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var key = Convert.ToString(reader["setting_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    settings[key] = Convert.ToString(reader["setting_value"] is DBNull ? string.Empty : reader["setting_value"], CultureInfo.InvariantCulture) ?? string.Empty;
+                }
+            }
+
+            var companyCountry = string.Empty;
+            var vatRegistered = false;
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = """
+                    SELECT `setting_key`, `setting_value`
+                    FROM `epc_price_settings`
+                    WHERE `setting_key` IN ('company_country_code', 'company_vat_registered')
+                    """;
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var key = Convert.ToString(reader["setting_key"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var value = Convert.ToString(reader["setting_value"] is DBNull ? string.Empty : reader["setting_value"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    if (key == "company_country_code") companyCountry = value;
+                    if (key == "company_vat_registered") vatRegistered = value is "1" or "true";
+                }
+            }
+
+            return new(
+                settings.GetValueOrDefault("seller_name", ""),
+                settings.GetValueOrDefault("seller_trn", ""),
+                settings.GetValueOrDefault("seller_tin", ""),
+                settings.GetValueOrDefault("seller_city", ""),
+                settings.GetValueOrDefault("seller_emirate", ""),
+                settings.GetValueOrDefault("seller_country_code", ""),
+                settings.GetValueOrDefault("seller_email", ""),
+                companyCountry,
+                vatRegistered,
+                "database",
+                "");
+        }
+        catch (Exception ex)
+        {
+            return empty with { Source = "database-error", Message = ex.Message };
+        }
+    }
+
     public async Task<CpEinvoiceDocumentDetailResult> BuildCpEinvoiceDocumentDetailAsync(long id, CancellationToken cancellationToken = default)
     {
         if (id <= 0)

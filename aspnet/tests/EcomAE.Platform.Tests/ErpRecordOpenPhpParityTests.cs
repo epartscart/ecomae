@@ -4619,6 +4619,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ShowGhostScaffold=\"false\"", text, StringComparison.Ordinal);
         Assert.Contains("table-epc", text, StringComparison.Ordinal);
         Assert.Contains("/erp/ajax/einvoice-save-seller", text, StringComparison.Ordinal);
+        Assert.Contains("BuildCpEinvoiceSellerProfileAsync", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"@_sellerProfile.SellerName\"", text, StringComparison.Ordinal);
+        Assert.Contains("value=\"@_sellerProfile.SellerTrn\"", text, StringComparison.Ordinal);
+        Assert.Contains("_sellerProfile.CompanyVatRegistered", text, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", text, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", text, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", text, StringComparison.Ordinal);
