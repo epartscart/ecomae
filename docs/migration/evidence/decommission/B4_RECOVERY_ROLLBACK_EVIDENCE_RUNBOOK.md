@@ -45,6 +45,8 @@ python3 scripts/validate_b4_recovery_bundle.py <tenant-process-bundle.json>
 
 The validator rejects missing production references, throwaway-only evidence,
 failed rollback checks, and any attempt to enable cutover or remove PHP.
+The private bundle must explicitly include `"productionEvidence": true`;
+local rehearsal evidence alone cannot satisfy the production gate.
 
 ## Database recovery rehearsal
 
