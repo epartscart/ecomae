@@ -1,0 +1,39 @@
+{
+  "process": "B7",
+  "scenario": "bank-statement-import-php-contract",
+  "status": "verified",
+  "scope": "contract-and-dry-run",
+  "release": "working-tree",
+  "php_contract": {
+    "source": "content/shop/finance/epc_erp_phase8.php",
+    "action": "bank_import",
+    "table": "epc_erp_bank_statement_lines",
+    "header_date_column_is_skipped": true,
+    "blank_and_malformed_rows_are_ignored": true,
+    "amount_is_absolute": true,
+    "non_negative_direction": 1,
+    "negative_direction": 0,
+    "import_batch_prefix": "IMP-YYYYMMDD-HHMMSS",
+    "matched_entry_default": 0
+  },
+  "aspnet_contract": {
+    "route": "/erp/ajax/bank-import",
+    "service": "ErpBankImportWriteService",
+    "confirm_writes_required": true,
+    "php_authoritative": true,
+    "schema_creation": false
+  },
+  "observed": [
+    "CSV header, quoted comma amounts, references, and signed amounts match PHP parsing rules",
+    "positive amounts persist as direction 1 and negative amounts as absolute direction 0",
+    "missing account validation is denied before writes",
+    "dry-run remains zero-write and PHP-authoritative",
+    "confirmed persistence and SQL cleanup remain unverified because the authenticated tenant fixture is unavailable"
+  ],
+  "production": {
+    "backup_restore": "open",
+    "route_rollback": "open",
+    "uat": "open",
+    "release_owner_approval": "open"
+  }
+}
