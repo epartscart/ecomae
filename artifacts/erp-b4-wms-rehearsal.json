@@ -80,9 +80,13 @@
     },
     {
       "scenario": "wms-audit-readback",
-      "result": "unverified",
+      "result": "not_applicable",
       "evidence": [
-        "No WMS-specific rows were found in epc_erp_audit_log during this rehearsal."
+        "The PHP-owned WMS implementation in content/shop/finance/epc_erp_wms.php creates and mutates only the four WMS tables; its location, license-plate, wave, work, assignment, and completion functions do not call epc_erp_audit_log.",
+        "Direct SQL verification found no WMS-specific rows in epc_erp_audit_log after the throwaway lifecycle."
+      ],
+      "limitations": [
+        "This closes the WMS audit-readback applicability question only; WMS tenant isolation and production recovery/rollback remain unverified."
       ]
     },
     {
@@ -95,7 +99,6 @@
     }
   ],
   "unverified": [
-    "wms-audit-log-readback",
     "wms-tenant-isolation",
     "wms-production-recovery-and-rollback"
   ]
