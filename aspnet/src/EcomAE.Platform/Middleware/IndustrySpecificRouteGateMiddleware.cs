@@ -1,3 +1,4 @@
+using EcomAE.Platform.Auth;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 
@@ -5,10 +6,12 @@ namespace EcomAE.Platform.Middleware;
 
 public sealed class IndustrySpecificRouteGateMiddleware(
     RequestDelegate next,
-    ISurfaceDashboardSummaryReporter dashboards)
+    ISurfaceDashboardSummaryReporter dashboards,
+    ILegacySessionValidator validator)
 {
     private readonly RequestDelegate _next = next;
     private readonly ISurfaceDashboardSummaryReporter _dashboards = dashboards;
+    private readonly ILegacySessionValidator _validator = validator;
 
     public async Task InvokeAsync(HttpContext context)
     {
@@ -43,6 +46,12 @@ public sealed class IndustrySpecificRouteGateMiddleware(
 
         try
         {
+            var session = await _validator.ValidateAsync(context, context.RequestAborted);
+            if (!ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session))
+            {
+                return null;
+            }
+
             return await _dashboards.BuildErpCompanyDigestAsync(requested.Value, context.RequestAborted);
         }
         catch
