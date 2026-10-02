@@ -122,6 +122,20 @@
       ]
     },
     {
+      "scenario": "quality-ncr-create-confirmed-write",
+      "result": "pass",
+      "route": "/erp/ajax/qm-ncr-create and /erp/quality/ncr-create",
+      "evidence": [
+        "PHP epc_qm_ncr_create and the PHP-owned epc_qm_ncr schema were re-read before rehearsal; ASP.NET performs no schema creation.",
+        "Authenticated JSON dry-run returned dry-run-validated with writes=0, writesBlocked=true, phpAuthoritative=true, and SQL showed zero tagged rows before and after.",
+        "Authenticated JSON confirmWrites=true created a tagged NCR with returned id 5; SQL readback confirmed company_id 1, order_id 0, title, severity major, disposition rework, status open, empty corrective_action, and a current Unix timestamp.",
+        "SQL readback of epc_erp_audit_log confirmed admin_id 1, action qm_ncr_create, entity_type qm_ncr, entity id 5, summary Non-conformance created, and request detail values.",
+        "Invalid severity and invalid disposition each returned writes=0 with validation_code=invalid and left tagged NCR and audit counts unchanged.",
+        "Authenticated native form submission with company_id=1 created tagged NCR id 6 with severity critical and disposition scrap; the quality workspace HTML readback rendered both tagged NCR titles.",
+        "Unauthorized JSON access returned HTTP 401 with admin_auth_required; separate physical tenant isolation was not claimed because the rehearsal used one throwaway tenant database."
+      ]
+    },
+    {
       "scenario": "quality-tagged-cleanup",
       "result": "pass",
       "evidence": [
@@ -131,7 +145,6 @@
     }
   ],
   "unverified": [
-    "quality-ncr-create-confirmed-write",
     "quality-order-confirmed-create-route",
     "quality-tenant-isolation",
     "quality-production-recovery-and-rollback"

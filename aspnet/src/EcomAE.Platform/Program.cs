@@ -1032,6 +1032,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgrRouteSaveWriteService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgrPlannedFirmWriteService, EcomAE.Platform.Erp.ErpMfgrPlannedFirmWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOplSetStatusWriteService, EcomAE.Platform.Erp.ErpOplSetStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpQmNcrUpdateWriteService, EcomAE.Platform.Erp.ErpQmNcrUpdateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpQmNcrCreateWriteService, EcomAE.Platform.Erp.ErpQmNcrCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpQmOrderRecordWriteService, EcomAE.Platform.Erp.ErpQmOrderRecordWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosIntelToggleWriteService, EcomAE.Platform.Erp.ErpBosIntelToggleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCtrOcrWriteService, EcomAE.Platform.Erp.ErpCtrOcrWriteService>();

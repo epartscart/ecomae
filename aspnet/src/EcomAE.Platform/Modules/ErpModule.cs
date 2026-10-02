@@ -6255,8 +6255,7 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmOrderCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmOrderRecord, async (HttpContext context, ErpQmOrderRecordBody? body, ILegacySessionValidator validator, IErpQmOrderRecordDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmOrderRecordRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrCreate, async (HttpContext context, ErpQmNcrCreateBody? body, ILegacySessionValidator validator, IErpQmNcrCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmNcrCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrCreate, HandleQmNcrCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrUpdate, HandleQmNcrUpdateAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpQualityPlanSaveForm, HandleQmPlanSaveAsync).DisableAntiforgery();
@@ -6311,16 +6310,7 @@ public sealed class ErpModule : ISurfaceModule
             var result = await writes.RecordAsync(orderId, values, cancellationToken);
             return LiveWriteFormBinder.Complete(context, "/erp/quality-app", result.Succeeded, result.Message, new { ok = result.Succeeded, writes = result.Writes, phpAuthoritative = false, validation_code = result.Code, message = result.Message, id = result.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpQualityNcrCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmNcrCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=ncr");
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Results.Redirect("/erp/login");
-            var code = DryRunHtmlForm.Read(context.Request, "title");
-            var result = dryRun.Evaluate(new ErpQmNcrCreateRequest(0, code, false));
-            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
-        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpQualityNcrCreateForm, HandleQmNcrCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpProductInfoCreateItemForm, async (HttpContext context, ILegacySessionValidator validator, IErpInvCreateItemDryRun dryRun, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -20726,6 +20716,75 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleQmNcrCreateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpQmNcrCreateDryRun dryRun,
+        IErpQmNcrCreateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        var returnUrl = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=ncr");
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return context.Request.HasFormContentType
+                ? LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/quality-app?qv=ncr", "Admin ERP capability required for NCR creation.")
+                : Unauthorized("Admin ERP capability required.");
+        }
+
+        long companyId;
+        long orderId;
+        string title;
+        string severity;
+        string disposition;
+        bool confirm;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            companyId = LiveWriteFormBinder.Long(form, "company_id");
+            orderId = LiveWriteFormBinder.Long(form, "order_id");
+            title = form["title"].ToString();
+            severity = form["severity"].ToString();
+            disposition = form["disposition"].ToString();
+            confirm = true;
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+            companyId = ErpQmNcrUpdateWriteService.JsonLong(root, "company_id", "companyId");
+            orderId = ErpQmNcrUpdateWriteService.JsonLong(root, "order_id", "orderId");
+            title = ErpQmNcrUpdateWriteService.JsonText(root, "title");
+            severity = ErpQmNcrUpdateWriteService.JsonText(root, "severity");
+            disposition = ErpQmNcrUpdateWriteService.JsonText(root, "disposition");
+            confirm = ErpQmNcrUpdateWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+        }
+
+        if (companyId <= 0)
+        {
+            companyId = ErpHostContext.ActiveCompanyIdFromQuery(context.Request) ?? 0;
+        }
+
+        if (!confirm)
+        {
+            var dry = dryRun.Evaluate(new ErpQmNcrCreateRequest(orderId, title, false));
+            return context.Request.HasFormContentType
+                ? DryRunHtmlForm.Redirect(returnUrl, dry.ValidationCode == "ok", dry.Detail)
+                : Results.Ok(dry.ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.CreateAsync(
+            new ErpQmNcrCreateWriteRequest(companyId, orderId, title, severity, disposition, session.UserId),
+            cancellationToken);
+        return context.Request.HasFormContentType
+            ? LiveWriteFormBinder.Complete(
+                context,
+                returnUrl,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) })
+            : Results.Ok(new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleBosIntelToggleAsync(

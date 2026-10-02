@@ -1,19 +1,17 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>qm_ncr_create</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Dry-run validation for PHP-compatible <c>qm_ncr_create</c>.</summary>
 public interface IErpQmNcrCreateDryRun { ErpQmNcrCreateDryRunResult Evaluate(ErpQmNcrCreateRequest request); }
 public sealed class ErpQmNcrCreateDryRun : IErpQmNcrCreateDryRun
 {
     public ErpQmNcrCreateDryRunResult Evaluate(ErpQmNcrCreateRequest request)
     {
         ArgumentNullException.ThrowIfNull(request);
-        if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET qm_ncr_create is not implemented; PHP ajax_erp.php remains authoritative.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
         return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
             ["ajax_erp.php?action=qm_ncr_create (NOT executed)"],
-            "ERP qm_ncr_create payload validated; UPDATE blocked.",
+            "ERP qm_ncr_create payload validated; confirmed creation requires confirm_writes=true.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=qm_ncr_create");
     }
     private static ErpQmNcrCreateDryRunResult Refuse(string s,string c,string d,ErpQmNcrCreateRequest r)=>
