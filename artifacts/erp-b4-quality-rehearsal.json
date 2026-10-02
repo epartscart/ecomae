@@ -151,6 +151,21 @@
       ]
     },
     {
+      "scenario": "quality-tenant-isolation",
+      "result": "pass",
+      "route": "/erp/ajax/qm-ncr-create and /erp/ajax/qm-order-create",
+      "evidence": [
+        "A second local throwaway MariaDB database ecomae_b4_tenant2 was cloned from ecomae and mapped only to host b4-tenant2.local through the tenant registry; the live tenant registry row was temporary and dedicated to this rehearsal.",
+        "The current isolation worktree built successfully with zero warnings and zero errors, and the port 5080 listener was restarted from its resulting EcomAE.Platform binary before the final rehearsal.",
+        "Separate authenticated ERP sessions were established for www.ecomae.com and b4-tenant2.local using the actual login bridge and host-based tenant resolution.",
+        "On b4-tenant2.local, NCR dry-run returned writes=0 and writesBlocked=true, then confirmed creation wrote one uniquely tagged epc_qm_ncr row; Quality Order dry-run returned writes=0 and writesBlocked=true, then confirmed creation wrote one uniquely tagged epc_qm_order row.",
+        "SQL readback in ecomae_b4_tenant2 confirmed the tagged NCR and Quality Order plus two PHP-compatible epc_erp_audit_log rows with admin_id=1, actions qm_ncr_create and qm_order_create, and matching detail_json values.",
+        "SQL readback in the separate ecomae database returned zero tagged NCR rows, zero tagged Quality Order rows, and zero matching audit rows; authenticated quality workspace requests on the two hosts resolved to their respective company contexts and did not render the other tenant's tagged markers.",
+        "Tagged rows and audit rows were deleted, the temporary b4-tenant2 registry row was removed, ecomae_b4_tenant2 was dropped, and post-cleanup verification returned zero tagged rows and no remaining second database.",
+        "This is local throwaway physical database isolation evidence only; production backup/restore, ownership rollback, UAT, and release approval remain separate gates."
+      ]
+    },
+    {
       "scenario": "quality-audit-log-readback",
       "result": "pass",
       "route": "/erp/quality/ncr-update",
@@ -172,7 +187,6 @@
     }
   ],
   "unverified": [
-    "quality-tenant-isolation",
     "quality-production-recovery-and-rollback"
   ]
 }
