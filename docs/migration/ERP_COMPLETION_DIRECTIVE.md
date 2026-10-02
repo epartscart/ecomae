@@ -56,7 +56,7 @@ percentage reaches 95% or 100%.
 | Foundation (shared shell/workspace/permissions) | 85% | 75% | n/a | n/a | 60% | No |
 | Order-to-Cash (B2) | 70% | 65% | 40% | 60% | 35% (6 verified, 0 open gaps listed; isolation/rollback pending) | No |
 | Procure-to-Pay (B3) | 80% | 70% | 45% | 75% | 65% (18 verified, 1 open) | No |
-| Inventory/WMS (B4) | 70% | 65% | 40% | 60% | 45% (11 verified, 14 open) | No |
+| Inventory/WMS (B4) | 70% | 65% | 40% | 60% | 50% (12 verified, 13 open) | No |
 | Finance/GL (B5) | 55% | 60% | 40% | 45% | 0% (5 open, no fixture) | No |
 | AR/AP | 55% | 60% | 40% | 45% | 10% | No |
 | Treasury (B7) | 45% | 55% | 30% | 40% | 0% (no fixture) | No |
