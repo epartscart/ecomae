@@ -37,6 +37,8 @@ def main() -> int:
         raise SystemExit("keepPhpFallback must be true")
     if bundle.get("readyForPhpRemoval") is not False:
         raise SystemExit("readyForPhpRemoval must be false")
+    if bundle.get("productionEvidence") is not True:
+        raise SystemExit("productionEvidence must be true")
     if bundle.get("process") != "B8":
         raise SystemExit("process must be B8")
 
