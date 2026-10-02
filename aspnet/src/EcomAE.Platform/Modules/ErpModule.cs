@@ -9615,7 +9615,12 @@ public sealed class ErpModule : ISurfaceModule
             var vatAmount = body.VatAmount;
             var roundOff = body.RoundOff;
             var grossTotal = body.GrossTotal;
+            var refundDue = body.RefundDue;
+            var adjustSaleReturn = body.AdjustSaleReturn;
+            var oldGoldExchange = body.OldGoldExchange;
+            var goldSchemeRedeem = body.GoldSchemeRedeem;
             var lines = body.Lines;
+            var receipts = body.Receipts;
             var confirm = body.ConfirmWrites;
             if (context.Request.HasFormContentType)
             {
@@ -9639,6 +9644,10 @@ public sealed class ErpModule : ISurfaceModule
                 vatAmount = LiveWriteFormBinder.Dec(form, "vat_amount", "vatAmount");
                 roundOff = LiveWriteFormBinder.Dec(form, "round_off", "rnd_off_amount", "roundOff");
                 grossTotal = LiveWriteFormBinder.Dec(form, "gross_total", "grossTotal");
+                refundDue = LiveWriteFormBinder.Dec(form, "refund_due", "refundDue");
+                adjustSaleReturn = LiveWriteFormBinder.Dec(form, "adjust_sale_return", "adjustSaleReturn");
+                oldGoldExchange = LiveWriteFormBinder.Dec(form, "old_gold_exchange", "oldGoldExchange");
+                goldSchemeRedeem = LiveWriteFormBinder.Dec(form, "gold_scheme_redeem", "goldSchemeRedeem");
                 var lineCount = new[]
                 {
                     form["line_stock_code"].Count,
@@ -9653,13 +9662,15 @@ public sealed class ErpModule : ISurfaceModule
                     form["line_metal_rate"].Count,
                     form["line_metal_amount"].Count,
                     form["line_stone_amount"].Count,
-                    form["line_disc_amount"].Count
+                    form["line_disc_amount"].Count,
+                    form["line_tag_no"].Count
                 }.Max();
                 if (lineCount > 0)
                 {
                     lines = Enumerable.Range(0, lineCount)
                         .Select(index => new ErpJwVoucherLineSaveRequest(
                             StockCode: LiveWriteFormBinder.TextAt(form, "line_stock_code", index),
+                            TagNo: LiveWriteFormBinder.TextAt(form, "line_tag_no", index),
                             Division: LiveWriteFormBinder.TextAt(form, "line_division", index),
                             Description: LiveWriteFormBinder.TextAt(form, "line_description", index),
                             Pcs: LiveWriteFormBinder.IntAt(form, "line_pcs", index),
@@ -9673,6 +9684,27 @@ public sealed class ErpModule : ISurfaceModule
                             StoneAmount: LiveWriteFormBinder.DecAt(form, "line_stone_amount", index),
                             DiscountAmount: LiveWriteFormBinder.DecAt(form, "line_disc_amount", index)))
                         .Where(line => !string.IsNullOrWhiteSpace(line.StockCode) || !string.IsNullOrWhiteSpace(line.Description))
+                        .ToArray();
+                }
+
+                var receiptCount = new[]
+                {
+                    form["receipt_mode"].Count,
+                    form["receipt_currency"].Count,
+                    form["receipt_currency_rate"].Count,
+                    form["receipt_amount_fc"].Count,
+                    form["receipt_amount_lc"].Count
+                }.Max();
+                if (receiptCount > 0)
+                {
+                    receipts = Enumerable.Range(0, receiptCount)
+                        .Select(index => new ErpJwVoucherReceiptSaveRequest(
+                            ReceiptMode: LiveWriteFormBinder.TextAt(form, "receipt_mode", index),
+                            Currency: LiveWriteFormBinder.TextAt(form, "receipt_currency", index),
+                            CurrencyRate: LiveWriteFormBinder.DecAt(form, "receipt_currency_rate", index),
+                            AmountFc: LiveWriteFormBinder.DecAt(form, "receipt_amount_fc", index),
+                            AmountLc: LiveWriteFormBinder.DecAt(form, "receipt_amount_lc", index)))
+                        .Where(receipt => receipt.AmountFc > 0 || receipt.AmountLc > 0)
                         .ToArray();
                 }
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
@@ -9719,7 +9751,12 @@ public sealed class ErpModule : ISurfaceModule
                     VatAmount: vatAmount,
                     RoundOff: roundOff,
                     GrossTotal: grossTotal,
-                    Lines: lines),
+                    RefundDue: refundDue,
+                    AdjustSaleReturn: adjustSaleReturn,
+                    OldGoldExchange: oldGoldExchange,
+                    GoldSchemeRedeem: goldSchemeRedeem,
+                    Lines: lines,
+                    Receipts: receipts),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(
                 context,
@@ -23426,6 +23463,11 @@ public sealed class ErpModule : ISurfaceModule
         decimal RoundOff = 0,
         decimal GrossTotal = 0,
         IReadOnlyList<ErpJwVoucherLineSaveRequest>? Lines = null,
+        decimal RefundDue = 0,
+        decimal AdjustSaleReturn = 0,
+        decimal OldGoldExchange = 0,
+        decimal GoldSchemeRedeem = 0,
+        IReadOnlyList<ErpJwVoucherReceiptSaveRequest>? Receipts = null,
         bool ConfirmWrites = false);
     private sealed record ErpJwFixingSaveBody(
         int CompanyId = 0,

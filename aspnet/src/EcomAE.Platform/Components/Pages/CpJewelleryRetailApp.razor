@@ -196,11 +196,16 @@
                 <label>Voucher date <input class="form-control input-sm" name="voc_date" type="date" /></label>
                 <label>Customer <input class="form-control input-sm" name="customer_name" required /></label>
                 <label>Customer code <input class="form-control input-sm" name="party_code" /></label>
+                @if (_tab == "jw_sales_return")
+                {
+                    <label>Source invoice id <input class="form-control input-sm" name="ref_invoice_no" type="number" min="1" required /></label>
+                }
                 <label>Mobile <input class="form-control input-sm" name="mobile" /></label>
                 <label>Salesman <input class="form-control input-sm" name="salesman" /></label>
                 <label>Currency <input class="form-control input-sm" name="currency" value="AED" maxlength="5" /></label>
                 <label>Currency rate <input class="form-control input-sm" name="currency_rate" type="number" step="0.000001" value="1" /></label>
                 <label>Line stock code <input class="form-control input-sm" name="line_stock_code" required /></label>
+                <label>Tag / barcode <input class="form-control input-sm" name="line_tag_no" placeholder="optional physical tag" /></label>
                 <label>Line description <input class="form-control input-sm" name="line_description" required /></label>
                 <label>Division
                     <select class="form-control input-sm" name="line_division">
@@ -223,6 +228,7 @@
                     <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;width:100%;padding:.45rem 0;border-top:1px solid #e5e7eb;">
                         <span style="font-size:.8rem;color:#64748b;width:4rem">Line @extraLine</span>
                         <label>Stock code <input class="form-control input-sm" name="line_stock_code" maxlength="20" /></label>
+                        <label>Tag / barcode <input class="form-control input-sm" name="line_tag_no" maxlength="100" /></label>
                         <label>Description <input class="form-control input-sm" name="line_description" maxlength="120" /></label>
                         <label>Division
                             <select class="form-control input-sm" name="line_division">
@@ -244,6 +250,16 @@
                 <label>Net Amt <input class="form-control input-sm" name="net_amount" type="number" step="0.01" value="0" /></label>
                 <label>VAT <input class="form-control input-sm" name="vat_amount" type="number" step="0.01" value="0" /></label>
                 <label>Gross total <input class="form-control input-sm" name="gross_total" type="number" step="0.01" value="0" /></label>
+                <label>Sale return adjustment <input class="form-control input-sm" name="adjust_sale_return" type="number" step="0.01" value="0" /></label>
+                <label>Old-gold exchange <input class="form-control input-sm" name="old_gold_exchange" type="number" step="0.01" value="0" /></label>
+                <label>Scheme redemption <input class="form-control input-sm" name="gold_scheme_redeem" type="number" step="0.01" value="0" /></label>
+                <label>Refund due <input class="form-control input-sm" name="refund_due" type="number" step="0.01" value="0" /></label>
+                <strong style="width:100%;font-size:.85rem;margin-top:.35rem">Tender / receipt</strong>
+                <label>Mode <input class="form-control input-sm" name="receipt_mode" value="CASH" maxlength="20" /></label>
+                <label>Currency <input class="form-control input-sm" name="receipt_currency" value="AED" maxlength="5" /></label>
+                <label>Rate <input class="form-control input-sm" name="receipt_currency_rate" type="number" step="0.000001" value="1" /></label>
+                <label>Amount FC <input class="form-control input-sm" name="receipt_amount_fc" type="number" step="0.01" value="0" /></label>
+                <label>Amount LC <input class="form-control input-sm" name="receipt_amount_lc" type="number" step="0.01" value="0" /></label>
                 <label>Narration <input class="form-control input-sm" name="narration" /></label>
                 <button type="submit" class="btn btn-primary btn-sm">Save voucher</button>
             </form>
