@@ -48,6 +48,19 @@ public sealed class ErpPaymentBatchLiveWriteParityTests
         Assert.Contains("epc_erp_payment_batches", service, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void LifecycleRoute_BindsNativeFormsAndRejectsLostUpdates()
+    {
+        var module = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        var service = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Erp/ErpPaymentBatchStatusWriteService.cs"));
+
+        Assert.Contains("HasFormContentType", module, StringComparison.Ordinal);
+        Assert.Contains("\"batch_id\"", module, StringComparison.Ordinal);
+        Assert.Contains("\"target_status\"", module, StringComparison.Ordinal);
+        Assert.Contains("\"conflict\"", service, StringComparison.Ordinal);
+        Assert.Contains("updated == 0", service, StringComparison.Ordinal);
+    }
+
     private static string FindRepoFile(string relative)
     {
         var dir = new DirectoryInfo(AppContext.BaseDirectory);
