@@ -11,6 +11,7 @@ from pathlib import Path
 REQUIRED_SECTIONS = {
     "countryProfile": ("reference", "registeredCountry", "previewOverride"),
     "functional": ("reference", "status", "happyPath", "denialPath", "persistedReadback", "browserReadback"),
+    "tenantIsolation": ("reference", "status", "tenantTwoReadback", "tenantOneNonVisibility"),
     "productionRecovery": ("reference", "status", "backupChecksum", "restoreReadback", "rollbackRouteOwner"),
     "productionSmoke": ("reference", "status", "routeOwner"),
     "releaseIdentity": ("reference", "expectedSha", "observedSha", "matches"),
@@ -73,7 +74,7 @@ def main() -> int:
     country = bundle["countryProfile"]
     if country["registeredCountry"].strip().upper() != tenant_country.strip().upper():
         raise SystemExit("countryProfile.registeredCountry must match tenantCountry")
-    for section in ("functional", "productionRecovery", "productionSmoke"):
+    for section in ("functional", "tenantIsolation", "productionRecovery", "productionSmoke"):
         if bundle[section]["status"].lower() != "pass":
             raise SystemExit(f"{section}.status must be pass")
     if bundle["productionRecovery"]["rollbackRouteOwner"].lower() != "php":

@@ -40,6 +40,12 @@ The bundle must contain:
     "persistedReadback": "<sql-and-audit-readback>",
     "browserReadback": "<authenticated-browser-readback>"
   },
+  "tenantIsolation": {
+    "reference": "<physical-tenant-isolation-record>",
+    "status": "pass",
+    "tenantTwoReadback": "<tenant-two-only-sql-and-browser-readback>",
+    "tenantOneNonVisibility": "<tenant-one-negative-readback>"
+  },
   "productionRecovery": {
     "reference": "<production-backup-restore-rollback-record>",
     "status": "pass",
@@ -76,16 +82,20 @@ The bundle must contain:
    authenticated browser readback.
 3. Confirm that a preview country cannot change the registered-country
    compliance result.
-4. Capture production backup/checksum, restore readback, exact-route rollback
+4. Prove physical tenant isolation with separate tenant databases: readback must
+   be visible only to the writing tenant, and the other tenant must have no
+   matching SQL or browser visibility.
+5. Capture production backup/checksum, restore readback, exact-route rollback
    to PHP, and cleanup evidence without removing PHP/PHP-FPM ownership.
-5. Capture production smoke while the exact B8 route is ASP.NET-owned, then
+6. Capture production smoke while the exact B8 route is ASP.NET-owned, then
    compare the intended release SHA with
    `/var/www/ecomae-aspnet/current/platform/RELEASE_SHA`.
-6. Attach release-owner approval only after all country, recovery, smoke,
+7. Attach release-owner approval only after all country, isolation, recovery, smoke,
    identity, and cleanup results are reviewed.
 
 The bundle is incomplete when any reference is missing, points at throwaway
 evidence, the registered country differs from `tenantCountry`, a preview
-country overrides it, the release SHA does not match, or rollback does not
-return ownership to PHP. Keep PHP fallback reachable and broad cutover
-disabled; this contract does not assert that any production evidence exists.
+country overrides it, tenant two is visible from tenant one, the release SHA
+does not match, or rollback does not return ownership to PHP. Keep PHP fallback
+reachable and broad cutover disabled; this contract does not assert that any
+production evidence exists.
