@@ -20,6 +20,7 @@ The bundle must contain:
   "tenant": "epartscart",
   "tenantCountry": "AE",
   "process": "B8",
+  "productionEvidence": true,
   "cutoverAllowed": false,
   "keepPhpFallback": true,
   "readyForPhpRemoval": false,
