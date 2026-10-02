@@ -1,0 +1,44 @@
+{
+  "area": "B8",
+  "slice": "tenant-country-tax-toolkit-fixture",
+  "status": "partial",
+  "authority": {
+    "php": [
+      "content/shop/finance/epc_tax_toolkit.php",
+      "content/shop/finance/epc_tax_toolkit_world.php"
+    ],
+    "aspnet": [
+      "aspnet/src/EcomAE.Platform/Erp/ErpTaxToolkitCountryProfile.cs",
+      "aspnet/tests/EcomAE.Platform.Tests/ErpTaxToolkitCountryProfilePhpParityTests.cs"
+    ]
+  },
+  "verified": [
+    "tenant-country VAT/GST type, standard rate, registration label, and currency match the PHP worldwide fixture for AE, SA, IN, DE, and AU",
+    "tenant-country corporate-tax rate and UAE threshold match the PHP worldwide fixture",
+    "UK alias normalizes to GB and AE aliases normalize to AE",
+    "unknown countries use the PHP manual corporate-tax configuration fallback"
+  ],
+  "fixture": {
+    "AE": { "kit": "AE-UAE-VAT", "taxType": "vat", "rate": 5.0, "currency": "AED", "corporateTaxRate": 9.0, "threshold": 375000, "thresholdCurrency": "AED" },
+    "SA": { "kit": "SA-KSA-VAT", "taxType": "vat", "rate": 15.0, "currency": "SAR", "corporateTaxRate": 20.0 },
+    "IN": { "kit": "IN-INDIA-GST", "taxType": "gst", "rate": 18.0, "currency": "INR", "corporateTaxRate": 30.0 },
+    "DE": { "kit": "DE-GERMANY-VAT", "taxType": "vat", "rate": 19.0, "currency": "EUR", "corporateTaxRate": 15.0 },
+    "AU": { "kit": "AU-AUSTRALIA-GST", "taxType": "gst", "rate": 10.0, "currency": "AUD", "corporateTaxRate": 30.0 },
+    "ZZ": { "kit": "ZZ-ZZ-VAT", "taxType": "vat", "rate": 15.0, "currency": "USD", "corporateTaxRate": null }
+  },
+  "unverified": [
+    "confirmed tax-toolkit persistence",
+    "SQL and PHP audit readback",
+    "authenticated browser readback",
+    "second physical database tenant isolation",
+    "production recovery and rollback",
+    "UAT and production acceptance"
+  ],
+  "safety": {
+    "liveTenantWrites": false,
+    "productionWrites": false,
+    "phpFallbackRequired": true,
+    "dummyRowsCreated": false
+  },
+  "reasonUnverified": "This tranche is contract and fixture evidence only. The local tenant-registry authentication bridge and provisioned PHP-owned toolkit tables are not available for a confirmed write rehearsal."
+}
