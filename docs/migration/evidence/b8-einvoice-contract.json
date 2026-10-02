@@ -1,0 +1,53 @@
+{
+  "area": "B8",
+  "slice": "einvoice-validation-and-credit-note-dry-run",
+  "status": "partial",
+  "authority": {
+    "php": [
+      "content/shop/finance/epc_erp_einvoice.php",
+      "content/shop/finance/epc_einvoice.php",
+      "content/shop/finance/epc_einvoice_schema.php"
+    ],
+    "aspnet": [
+      "aspnet/src/EcomAE.Platform/Migration/ErpEinvoiceCreditNoteDryRun.cs",
+      "aspnet/src/EcomAE.Platform/Erp/ErpEinvoiceSubmitWriteService.cs",
+      "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"
+    ],
+    "dualSamples": [
+      "docs/migration/evidence/erp-ajax-dual-samples/aspnet-einvoice_create.json",
+      "docs/migration/evidence/erp-ajax-dual-samples/php-einvoice_create.json",
+      "docs/migration/evidence/erp-ajax-dual-samples/aspnet-einvoice_credit_note.json",
+      "docs/migration/evidence/erp-ajax-dual-samples/php-einvoice_credit_note.json"
+    ]
+  },
+  "verified": [
+    "credit-note dry-run returns writes=0 and writesBlocked=true",
+    "credit-note dry-run refuses a missing original document",
+    "credit-note dry-run keeps confirm_writes on the live ASP.NET writer path",
+    "credit-note dry-run preserves the PHP einvoice_credit_note action reference",
+    "manual submission requires validation_ok and a configured ASP",
+    "manual submission queues an ASP reference plus asp_manual and fta_report event contracts",
+    "existing PHP/ASP.NET dual samples provide action-envelope comparison evidence"
+  ],
+  "countryRules": {
+    "sourceOfTruth": "tenant registered country and PHP tax/e-invoice profile",
+    "previewCountryMustNotOverrideTenant": true,
+    "aspPintAeIsNotGlobalDefault": true
+  },
+  "unverified": [
+    "tenant-country fixture with AE/SA/GB or generic fallback",
+    "confirmed e-invoice persistence",
+    "SQL and PHP audit readback",
+    "ASP sandbox roundtrip",
+    "authenticated browser readback",
+    "production recovery and rollback",
+    "UAT and production acceptance"
+  ],
+  "safety": {
+    "liveTenantWrites": false,
+    "productionWrites": false,
+    "phpFallbackRequired": true,
+    "dummyRowsCreated": false
+  },
+  "reasonUnverified": "The local throwaway database is reachable, but the PHP-owned e-invoice fixture tables and authenticated tenant-registry login are not available for a confirmed rehearsal. Contract and dry-run evidence is therefore kept separate from persistence and browser acceptance."
+}
