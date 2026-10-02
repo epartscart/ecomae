@@ -1,0 +1,33 @@
+{
+  "area": "B8",
+  "scenario": "missing authoritative tenant country denial",
+  "authority": "php-until-formal-acceptance",
+  "environment": "throwaway local MariaDB tenant database",
+  "observedAt": "2026-10-02",
+  "checks": {
+    "authoritativeSourcesTemporarilyEmpty": {
+      "tenantProfileCountry": "",
+      "companyCountry": ""
+    },
+    "previewCountryCannotBypassDenial": {
+      "requestCountry": "AE",
+      "httpStatus": 200,
+      "ok": false,
+      "writes": 0,
+      "phpAuthoritative": false,
+      "validationCode": "invalid",
+      "message": "Registered tenant country is required for e-invoice compliance"
+    },
+    "restoration": {
+      "tenantProfileCountry": "AE",
+      "tenantProfileKit": "AE-UAE-VAT",
+      "companyCountry": "AE",
+      "taggedSellerRowsRemaining": 0,
+      "taggedCompanyRowsRemaining": 0
+    }
+  },
+  "formalStatus": "OPEN",
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false
+}
