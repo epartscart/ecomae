@@ -16,6 +16,7 @@ public interface IErpJwVoucherWriteService
 
 public sealed record ErpJwVoucherLineSaveRequest(
     string? StockCode = null,
+    string? TagNo = null,
     string? Division = null,
     string? Description = null,
     int Pcs = 0,
@@ -34,6 +35,13 @@ public sealed record ErpJwVoucherLineSaveRequest(
     decimal TotalAmount = 0,
     decimal TotalWithVat = 0,
     decimal NetAmount = 0);
+
+public sealed record ErpJwVoucherReceiptSaveRequest(
+    string? ReceiptMode = null,
+    string? Currency = null,
+    decimal CurrencyRate = 0,
+    decimal AmountFc = 0,
+    decimal AmountLc = 0);
 
 public sealed record ErpJwVoucherSaveRequest(
     int CompanyId = 0,
@@ -55,7 +63,12 @@ public sealed record ErpJwVoucherSaveRequest(
     decimal VatAmount = 0,
     decimal RoundOff = 0,
     decimal GrossTotal = 0,
-    IReadOnlyList<ErpJwVoucherLineSaveRequest>? Lines = null);
+    decimal RefundDue = 0,
+    decimal AdjustSaleReturn = 0,
+    decimal OldGoldExchange = 0,
+    decimal GoldSchemeRedeem = 0,
+    IReadOnlyList<ErpJwVoucherLineSaveRequest>? Lines = null,
+    IReadOnlyList<ErpJwVoucherReceiptSaveRequest>? Receipts = null);
 
 public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 {
@@ -89,9 +102,23 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         }
 
         var lines = request.Lines ?? [];
+        var receipts = request.Receipts ?? [];
         if (lines.Count > 0 && !await TableExistsAsync(connection, "epc_jewel_voucher_lines", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Jewellery voucher line tables are not provisioned");
+        }
+
+        var taggedLines = lines
+            .Where(line => !string.IsNullOrWhiteSpace(line.TagNo))
+            .ToArray();
+        if (taggedLines.Length > 0 && !await TableExistsAsync(connection, "epc_jw_tags", cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Jewellery tag tables are not provisioned");
+        }
+
+        if (receipts.Count > 0 && !await TableExistsAsync(connection, "epc_jewel_voucher_receipts", cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Jewellery voucher receipt tables are not provisioned");
         }
 
         var companyId = request.CompanyId < 0 ? 0 : request.CompanyId;
@@ -134,6 +161,10 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
         var vat = RoundNonNeg(request.VatAmount, 2);
         var roundOff = RoundNonNeg(request.RoundOff, 2);
         var gross = RoundNonNeg(request.GrossTotal, 2);
+        var refundDue = RoundNonNeg(request.RefundDue, 2);
+        var adjustSaleReturn = RoundNonNeg(request.AdjustSaleReturn, 2);
+        var oldGoldExchange = RoundNonNeg(request.OldGoldExchange, 2);
+        var goldSchemeRedeem = RoundNonNeg(request.GoldSchemeRedeem, 2);
         if (net == 0)
         {
             var pricedLineTotal = lines
@@ -159,7 +190,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 connection,
                 transaction,
                 ErpDb.Positional(
-                    "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
+                    "INSERT INTO `epc_jewel_voucher` (`company_id`,`branch`,`voc_type`,`voc_date`,`voc_no`,`party_code`,`party_name`,`party_curr`,`party_curr_rate`,`customer_name`,`salesman`,`supp_inv_no`,`cr_days`,`narration`,`remarks`,`net_amount`,`vat_amount`,`rnd_off_amount`,`rnd_net_amount`,`gross_total`,`total_with_vat`,`sub_total`,`receipt_total`,`refund_due`,`adjust_sale_return`,`old_gold_exchange`,`gold_scheme_redeem`,`status`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
                 cancellationToken,
                 companyId,
                 branch,
@@ -183,6 +214,11 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                 gross,
                 totalWithVat,
                 net,
+                receipts.Sum(receipt => RoundNonNeg(receipt.AmountLc > 0 ? receipt.AmountLc : receipt.AmountFc, 2)),
+                refundDue,
+                adjustSaleReturn,
+                oldGoldExchange,
+                goldSchemeRedeem,
                 "draft").ConfigureAwait(false);
 
             var id = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
@@ -235,7 +271,7 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     ErpDb.Positional(
                         "INSERT INTO `epc_jewel_voucher_lines` (`voucher_id`,`line_no`,`stock_code`,`division`,`description`,`pcs`,`qty`,`gr_wt`,`purity`,`pure_wt`,`mkg_rate`,`mkg_amount`,`metal_rate`,`metal_amount`,`stone_amount`,`wastage_pct`,`wastage_qty`,`disc_amount`,`total_amount`,`total_with_vat`,`net_amount`) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"),
                     cancellationToken,
-                    id,
+                        id,
                     lineNo++,
                     stockCode,
                     division,
@@ -256,6 +292,118 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     totalAmount,
                     lineTotalWithVat,
                     netAmount).ConfigureAwait(false);
+            }
+
+            if (taggedLines.Length > 0)
+            {
+                var isReturn = vocType.Equals("SRN", StringComparison.OrdinalIgnoreCase);
+                var isSale = vocType is "RSI" or "MSI";
+                if (!isReturn && !isSale)
+                {
+                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                    return ErpSimpleWriteResult.Fail("invalid", "Tag references are only valid on jewellery sales and returns.");
+                }
+
+                foreach (var line in taggedLines)
+                {
+                    var tag = Clip((line.TagNo ?? string.Empty).Trim(), 100);
+                    await using var tagRead = connection.CreateCommand();
+                    tagRead.Transaction = transaction;
+                    tagRead.CommandText = ErpDb.Positional(
+                        "SELECT `id`,`status`,`sold_invoice_id` FROM `epc_jw_tags` WHERE `company_id`=? AND (`tag_no`=? OR `barcode`=?) LIMIT 1 FOR UPDATE");
+                    ErpDb.AddParameters(tagRead, companyId, tag, tag);
+                    await using var tagReader = await tagRead.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    if (!await tagReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        return ErpSimpleWriteResult.Fail("not_found", $"Jewellery tag or barcode '{tag}' was not found.");
+                    }
+
+                    var tagId = Convert.ToInt64(tagReader["id"], CultureInfo.InvariantCulture);
+                    var tagStatus = Convert.ToString(tagReader["status"], CultureInfo.InvariantCulture) ?? string.Empty;
+                    var soldInvoiceId = Convert.ToInt64(tagReader["sold_invoice_id"], CultureInfo.InvariantCulture);
+                    await tagReader.DisposeAsync().ConfigureAwait(false);
+                    if (isSale && tagStatus is not ("in_stock" or "displayed" or "reserved"))
+                    {
+                        await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                        return ErpSimpleWriteResult.Fail("invalid", $"Jewellery tag '{tag}' is not available for sale.");
+                    }
+
+                    if (isReturn)
+                    {
+                        if (tagStatus != "sold")
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                            return ErpSimpleWriteResult.Fail("invalid", $"Jewellery tag '{tag}' is not sold and cannot be returned.");
+                        }
+
+                        if (!int.TryParse(suppInv, NumberStyles.Integer, CultureInfo.InvariantCulture, out var sourceInvoiceId)
+                            || sourceInvoiceId <= 0
+                            || soldInvoiceId != sourceInvoiceId)
+                        {
+                            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                            return ErpSimpleWriteResult.Fail("invalid", $"Sales return for tag '{tag}' must reference its source invoice.");
+                        }
+                    }
+
+                    var nextStatus = isReturn ? "returned" : "sold";
+                    var soldId = isReturn ? 0 : id;
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional(
+                            "UPDATE `epc_jw_tags` SET `status`=?,`sold_invoice_id`=?,`sold_date`=CASE WHEN ?='sold' THEN CURDATE() ELSE NULL END,`time_updated`=? WHERE `id`=? AND `company_id`=?"),
+                        cancellationToken,
+                        nextStatus,
+                        soldId,
+                        nextStatus,
+                        DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                        tagId,
+                        companyId).ConfigureAwait(false);
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional(
+                            "INSERT INTO `epc_jw_tag_history` (`tag_id`,`action`,`reference`,`time_created`) VALUES (?,?,?,?)"),
+                        cancellationToken,
+                        tagId,
+                        nextStatus,
+                        $"{vocType} voucher #{id}",
+                        DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+                }
+            }
+
+            foreach (var receipt in receipts)
+            {
+                var receiptMode = Clip((receipt.ReceiptMode ?? string.Empty).Trim().ToUpperInvariant(), 20);
+                if (receiptMode.Length == 0)
+                {
+                    receiptMode = "CASH";
+                }
+
+                var receiptCurrency = Clip((receipt.Currency ?? currency).Trim().ToUpperInvariant(), 5);
+                var receiptRate = receipt.CurrencyRate <= 0 ? 1m : RoundNonNeg(receipt.CurrencyRate, 6);
+                var amountFc = RoundNonNeg(receipt.AmountFc, 2);
+                var amountLc = receipt.AmountLc > 0
+                    ? RoundNonNeg(receipt.AmountLc, 2)
+                    : RoundNonNeg(amountFc * receiptRate, 2);
+                if (amountFc == 0 && amountLc == 0)
+                {
+                    continue;
+                }
+
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_jewel_voucher_receipts` (`voucher_id`,`receipt_mode`,`currency`,`curr_rate`,`amount_fc`,`amount_lc`) VALUES (?,?,?,?,?,?)"),
+                    cancellationToken,
+                    id,
+                    receiptMode,
+                    receiptCurrency,
+                    receiptRate,
+                    amountFc,
+                    amountLc).ConfigureAwait(false);
             }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);

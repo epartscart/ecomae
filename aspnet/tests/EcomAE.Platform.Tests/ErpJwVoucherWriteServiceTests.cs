@@ -60,4 +60,33 @@ public sealed class ErpJwVoucherWriteServiceTests
         Assert.Equal(25m, line.StoneAmount);
         Assert.Equal(5m, line.DiscountAmount);
     }
+
+    [Fact]
+    public void VoucherContractCarriesTagTenderAndJewelleryAdjustmentFields()
+    {
+        var line = new ErpJwVoucherLineSaveRequest(
+            StockCode: "TAG-001",
+            TagNo: "TAG-001",
+            Description: "Tagged ring");
+        var receipt = new ErpJwVoucherReceiptSaveRequest(
+            ReceiptMode: "CARD",
+            Currency: "AED",
+            CurrencyRate: 1,
+            AmountLc: 525);
+        var request = new ErpJwVoucherSaveRequest(
+            Action: "jw_retail_sale_save",
+            Lines: [line],
+            Receipts: [receipt],
+            AdjustSaleReturn: 25,
+            OldGoldExchange: 100,
+            GoldSchemeRedeem: 50,
+            RefundDue: 10);
+
+        Assert.Equal("TAG-001", request.Lines![0].TagNo);
+        Assert.Equal(525m, request.Receipts![0].AmountLc);
+        Assert.Equal(25m, request.AdjustSaleReturn);
+        Assert.Equal(100m, request.OldGoldExchange);
+        Assert.Equal(50m, request.GoldSchemeRedeem);
+        Assert.Equal(10m, request.RefundDue);
+    }
 }
