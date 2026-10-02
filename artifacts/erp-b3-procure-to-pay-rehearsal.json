@@ -174,12 +174,13 @@
       "evidence": [
         "tagged B3 rows, audit records, and consumed local voucher sequence rows were deleted and verified absent",
         "duplicate conversion and invalid-input denial paths were verified without writes",
-        "full production recovery, backup restore, and ownership rollback remain unverified in the local rehearsal"
+        "local MariaDB backup and restore round-trip was verified against a uniquely tagged throwaway probe table; the probe was mutated, restored from the dump, read back, and removed",
+        "full production recovery, backup restore, and ownership rollback remain unverified"
       ]
     }
   ],
   "remaining": [
-    "full-recovery-and-rollback"
+    "production-backup-restore-and-ownership-rollback"
   ],
   "acceptance": {
     "erpComplete": false,

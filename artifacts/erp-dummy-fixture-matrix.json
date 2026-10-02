@@ -61,19 +61,18 @@
         "audit-readback",
         "voucher-sequence-readback",
         "duplicate-conversion-denial",
-        "browser-login-and-procurement-workspace"
+        "browser-login-and-procurement-workspace",
+        "tenant-isolation-physical-database"
       ],
-      "missing": [
-        "tenant-isolation",
-        "full-recovery-and-rollback"
-      ],
+      "missing": ["production-backup-restore-and-ownership-rollback"],
       "recovery": {
         "status": "partial",
         "verified": [
           "tagged-row-cleanup",
           "audit-cleanup",
           "voucher-sequence-cleanup",
-          "duplicate-write-denial"
+          "duplicate-write-denial",
+          "local-mariadb-probe-backup-restore"
         ],
         "missing": [
           "production-backup-restore",
