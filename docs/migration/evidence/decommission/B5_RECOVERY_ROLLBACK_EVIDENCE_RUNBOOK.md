@@ -1,0 +1,70 @@
+# B5 Finance/GL recovery and rollback evidence
+
+This runbook defines the operator evidence required before Finance/GL can
+advance from local rehearsal to production acceptance. It does not grant
+cutover permission and must not be filled with throwaway-database evidence.
+
+## Required bundle
+
+Create a private operator bundle outside the repository and validate it with:
+
+```bash
+python3 scripts/validate_b5_recovery_bundle.py /secure/evidence/<tenant>-b5-recovery.json
+```
+
+The bundle must contain:
+
+```json
+{
+  "tenant": "epartscart",
+  "process": "B5",
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false,
+  "release": {
+    "sha": "<active-release-sha>",
+    "health": "<health-check-reference>",
+    "routeOwnerBefore": "aspnet"
+  },
+  "productionBackup": {
+    "reference": "<approved-production-backup-reference>",
+    "checksum": "<backup-checksum>",
+    "capturedAt": "<utc-timestamp>"
+  },
+  "restoreReadback": {
+    "reference": "<restore-target-readback>",
+    "capturedAt": "<utc-timestamp>"
+  },
+  "ownershipRollback": {
+    "reference": "<exact-route-rollback-reference>",
+    "nginxTest": "pass",
+    "reload": "pass",
+    "phpRouteSmoke": "pass",
+    "aspnetRouteOwnerAfter": "php"
+  },
+  "cleanup": {
+    "reference": "<tagged-fixture-cleanup-reference>"
+  },
+  "releaseOwnerApproval": {
+    "reference": "<human-approval-reference>"
+  }
+}
+```
+
+## Operator sequence
+
+1. Record the active release SHA and `/health` response before the rehearsal.
+2. Capture an approved production tenant backup and checksum without modifying
+   PHP/PHP-FPM ownership.
+3. Restore into the approved recovery target and read back the GL journal,
+   journal lines, voucher sequence, audit, and idempotency tables.
+4. Exercise only the exact ASP.NET route under test, then remove its exact
+   Nginx proxy ownership block.
+5. Run `nginx -t`, reload Nginx, and prove the same route is served by PHP.
+6. Remove tagged rehearsal data and record the cleanup result.
+7. Attach release-owner approval only after the production smoke and rollback
+   results are reviewed.
+
+The bundle is incomplete when any reference is missing, points at throwaway
+evidence, or reports ASP.NET as the post-rollback owner. Keep PHP fallback
+reachable and do not create `RELEASE_OWNER_APPROVAL.md` in the repository.
