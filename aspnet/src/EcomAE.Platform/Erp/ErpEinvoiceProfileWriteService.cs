@@ -92,6 +92,11 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             return ErpSimpleWriteResult.Fail("invalid", "Registered tenant country is required for e-invoice compliance");
         }
 
+        if (!await SellerSchemaAvailableAsync(connection, cancellationToken).ConfigureAwait(false))
+        {
+            return ErpSimpleWriteResult.Fail("db", "PHP-owned e-invoice seller schema is unavailable.");
+        }
+
         var identifier = DigitsOnly(request.SellerTrn);
         if (country == "AE" && !TrnValid(identifier))
         {
@@ -357,6 +362,19 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
             table,
             column).ConfigureAwait(false);
         return count > 0;
+    }
+
+    private static async Task<bool> SellerSchemaAvailableAsync(
+        System.Data.Common.DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        return await TableExistsAsync(connection, "epc_einvoice_settings", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_einvoice_settings", "setting_key", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_einvoice_settings", "setting_value", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_einvoice_settings", "time_updated", cancellationToken).ConfigureAwait(false)
+            && await TableExistsAsync(connection, "epc_price_settings", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_price_settings", "setting_key", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_price_settings", "setting_value", cancellationToken).ConfigureAwait(false);
     }
 
     public static string NormalizeCountry(string? raw)
