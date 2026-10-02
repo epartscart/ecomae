@@ -1,0 +1,77 @@
+{
+  "area": "B8",
+  "scenario": "physical tenant isolation for tenant-country e-invoice seller persistence",
+  "authority": "php-until-formal-acceptance",
+  "environment": "local MariaDB with two independently routed tenant databases",
+  "observedAt": "2026-10-02",
+  "release": {
+    "sha": "1b42d523ee8573064fd7d9aeb32020874af3d2b2",
+    "routeOwner": "aspnet"
+  },
+  "tenantOne": {
+    "siteKey": "b8-iso-t1",
+    "host": "b8-iso-t1.localhost",
+    "database": "b8_iso_t1_20261002184506",
+    "dryRun": {
+      "writes": 0,
+      "writesBlocked": true,
+      "phpAuthoritative": true,
+      "validationCode": "ok"
+    },
+    "browserReadback": {
+      "sellerNameVisible": false,
+      "sellerTrnVisible": false,
+      "registeredCountryVisible": "AE"
+    },
+    "sqlNegativeReadback": {
+      "matchingSellerRows": 0
+    }
+  },
+  "tenantTwo": {
+    "siteKey": "b8-iso-t2",
+    "host": "b8-iso-t2.localhost",
+    "database": "b8_iso_t2_20261002184506",
+    "registeredCountry": "AE",
+    "requestCountry": "SA",
+    "dryRun": {
+      "writes": 0,
+      "writesBlocked": true,
+      "phpAuthoritative": true,
+      "validationCode": "ok"
+    },
+    "confirmedWrite": {
+      "httpStatus": 200,
+      "ok": true,
+      "writes": 1,
+      "validationCode": "ok",
+      "message": "Seller profile saved — registered-country compliance profile updated"
+    },
+    "sqlReadback": {
+      "sellerName": "B8 ISO Tenant Two",
+      "sellerTrn": "310123456789003",
+      "sellerCountryCode": "AE",
+      "sellerCity": "Dubai"
+    },
+    "browserReadback": {
+      "sellerName": "B8 ISO Tenant Two",
+      "sellerTrn": "310123456789003",
+      "sellerCountryCode": "AE"
+    }
+  },
+  "cleanup": {
+    "registryAliasRowsRemaining": 0,
+    "temporaryDatabasesRemaining": 0,
+    "taggedSellerRowsRemaining": 0
+  },
+  "formalStatus": "OPEN",
+  "productionEvidence": false,
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false,
+  "notes": [
+    "Tenant-two persistence was visible only through the tenant-two host and database.",
+    "Tenant-one had no matching SQL row and no authenticated browser visibility.",
+    "The request-country preview SA did not override the registered AE compliance country.",
+    "This local rehearsal does not satisfy production backup, rollback, UAT, smoke, release-identity, cleanup, or approval gates."
+  ]
+}
