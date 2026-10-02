@@ -81,6 +81,8 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
 {
     private static readonly HashSet<string> InTypes =
         ["opening", "purchase_in", "transfer_in", "return_in", "adjustment"];
+    private static readonly HashSet<string> MovementTypes =
+        ["opening", "purchase_in", "sale_out", "transfer_in", "transfer_out", "adjustment", "return_in", "return_out"];
 
     private readonly IErpWriteConnectionFactory _connections;
 
@@ -97,6 +99,11 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         if (request.WarehouseId <= 0 || request.ItemId <= 0 || request.Qty == 0)
         {
             return ErpSimpleWriteResult.Fail("invalid", "Warehouse, item and quantity required");
+        }
+
+        if (!MovementTypes.Contains(type))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Invalid movement type");
         }
 
         if (!_connections.IsConfigured)
@@ -896,6 +903,28 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         string type,
         CancellationToken cancellationToken)
     {
+        var warehouseExists = await ErpDb.ScalarAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT 1 FROM `epc_erp_inv_warehouses` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            request.WarehouseId).ConfigureAwait(false);
+        if (warehouseExists is null)
+        {
+            throw new ErpWriteException("Warehouse not found");
+        }
+
+        var itemExists = await ErpDb.ScalarAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT 1 FROM `epc_erp_inv_items` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            request.ItemId).ConfigureAwait(false);
+        if (itemExists is null)
+        {
+            throw new ErpWriteException("Item not found");
+        }
+
         var qty = request.Qty;
         var unitCost = request.UnitCost;
         var qtyAbs = Math.Abs(qty);

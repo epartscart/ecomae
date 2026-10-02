@@ -1,7 +1,7 @@
 {
   "module": "B4",
   "area": "inventory",
-  "tenant": "throwaway-local-mariadb",
+  "tenant": "throwaway-two-database-host-routed-local-mariadb",
   "liveTenantWrites": false,
   "scenarios": [
     {
@@ -72,11 +72,36 @@
         "Tagged movement rows, stock balance, item, and warehouse were deleted from the throwaway database after evidence capture.",
         "SQL verification returned zero remaining tagged warehouse, item, movement, and stock rows."
       ]
+    },
+    {
+      "scenario": "inventory-tenant-isolation",
+      "result": "pass",
+      "hosts": [
+        "www.ecomae.com:5080",
+        "b4-inv-tenant2.local:5080"
+      ],
+      "evidence": [
+        "Tenant-1 and tenant-2 authenticated ERP sessions used separate host-routed tenant databases.",
+        "Tenant-2 dry-run returned writes=0, writesBlocked=true, and cutoverAllowed=false with zero SQL movement rows.",
+        "Tenant-2 confirmed movement returned writes=1 and persisted the tagged opening movement and 2.000-unit stock balance in ecomae_b4_inv_tenant2.",
+        "Tenant-1 SQL contained zero matching tagged movement rows.",
+        "Authenticated tenant-2 stock-movement HTML rendered the tagged reference and item; tenant-1 HTML did not render the marker."
+      ]
+    },
+    {
+      "scenario": "inventory-negative-paths",
+      "result": "pass",
+      "route": "/erp/ajax/inv-record-movement",
+      "evidence": [
+        "Zero warehouse/item IDs returned invalid with writes=0.",
+        "Nonexistent item ID returned Item not found with writes=0.",
+        "Invalid movement type returned Invalid movement type with writes=0.",
+        "Unauthenticated confirmed write returned HTTP 401 and created no tagged row."
+      ]
     }
   ],
   "missing": [
     "quality-fixture",
-    "inventory-tenant-isolation",
     "inventory-full-recovery-and-rollback"
   ]
 }
