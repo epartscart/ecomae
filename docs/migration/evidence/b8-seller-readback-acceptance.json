@@ -1,0 +1,65 @@
+{
+  "area": "B8",
+  "scenario": "e-invoice seller profile persistence and browser readback",
+  "authority": "php-until-formal-acceptance",
+  "environment": "throwaway local MariaDB tenant database",
+  "observedAt": "2026-10-02",
+  "checks": {
+    "anonymous_denial": {
+      "httpStatus": 401,
+      "code": "admin_auth_required",
+      "writes": 0
+    },
+    "dryRun": {
+      "httpStatus": 200,
+      "status": "dry-run-validated",
+      "writes": 0,
+      "writesBlocked": true,
+      "phpAuthoritative": true,
+      "validationCode": "ok",
+      "requestCountry": "SA",
+      "registeredCountry": "AE"
+    },
+    "confirmedPersistence": {
+      "httpStatus": 200,
+      "writes": 1,
+      "phpAuthoritative": false,
+      "validationCode": "ok",
+      "registeredCountry": "AE",
+      "requestCountryDoesNotSelectCompliance": true
+    },
+    "authenticatedBrowserReadback": {
+      "passed": true,
+      "sellerName": "B8-READBACK-20261002",
+      "sellerTrn": "100123456789012",
+      "sellerCountryCode": "AE",
+      "sellerCity": "Dubai",
+      "companyVatRegistered": true
+    },
+    "sqlCorroboration": {
+      "passed": true,
+      "tables": [
+        "epc_einvoice_settings",
+        "epc_price_settings"
+      ]
+    },
+    "cleanup": {
+      "passed": true,
+      "taggedSellerRowsRemaining": 0,
+      "taggedCompanyRowsRemaining": 0
+    }
+  },
+  "remainingMandatoryGates": [
+    "production backup and restore",
+    "exact-route rollback to PHP",
+    "tenant-specific UAT",
+    "production smoke",
+    "exact release identity",
+    "production cleanup verification",
+    "release-owner approval"
+  ],
+  "formalStatus": "OPEN",
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false
+}
