@@ -18,6 +18,7 @@ The bundle must contain:
 {
   "tenant": "epartscart",
   "process": "B5",
+  "productionEvidence": true,
   "cutoverAllowed": false,
   "keepPhpFallback": true,
   "readyForPhpRemoval": false,
