@@ -19,18 +19,20 @@
     "jewellery-tag-barcode-guard-contract-tests",
     "jewellery-fixing-guard-contract-tests",
     "jewellery-repair-lifecycle-contract-tests",
-    "jewellery-history-projection-contract-tests"
+    "jewellery-history-projection-contract-tests",
+    "throwaway-database-confirmed-master-persistence",
+    "jewellery-sql-readback",
+    "jewellery-dry-run-zero-write",
+    "jewellery-negative-validation"
   ],
   "missing": [
-    "throwaway-database-confirmed-master-persistence",
     "throwaway-database-confirmed-purchase-fixing-tag-sale-return",
     "throwaway-database-repair-transfer-receive-delivery",
-    "jewellery-sql-readback",
     "jewellery-php-audit-readback",
     "jewellery-authenticated-browser-readback",
     "jewellery-tenant-isolation-second-physical-database",
     "jewellery-recovery-and-rollback",
     "jewellery-uat-and-production-acceptance"
   ],
-  "notes": "The supplied studies and photos are requirements evidence, not permission to invent legacy formulas or write live data. Focused ASP.NET Jewellery tests pass for the mapped UI/service contracts. No confirmed throwaway-database write, SQL/audit readback, authenticated browser acceptance, second-database isolation, recovery, UAT, or production gate is claimed in this tranche. PHP remains authoritative and liveTenantWrites remains false."
+  "notes": "The supplied studies and photos are requirements evidence, not permission to invent legacy formulas or write live data. On the throwaway MariaDB tenant, PHP-owned karat and metal-stock schemas were inspected and reconciled before confirmed writes; tagged karat and metal rows persisted, direct SQL readback matched the submitted values, dry-run requests returned writes=0 with writesBlocked=true, invalid karat input was denied, and cleanup returned tagged rows to zero. The authenticated Jewellery masters HTTP surface rendered the company-scoped karat row after the required dependent master tables were provisioned. The local fixture initially diverged from PHP (reduced karat/metal schemas and absent dependent master tables), so audit-log, purchase/fixing/tag/sale-return, repair transfer/receive/delivery, true browser acceptance, second-database isolation, recovery, UAT, and production gates remain open. PHP remains authoritative and liveTenantWrites remains false."
 }
