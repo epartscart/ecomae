@@ -1818,6 +1818,8 @@ public static class EcomAeRoutes
     public const string ErpAjaxTransferVoucher = "/erp/ajax/transfer-voucher";
     /// <summary>ERP payment_batch_save compatibility endpoint with dry-run and confirmed-write modes.</summary>
     public const string ErpAjaxPaymentBatchSave = "/erp/ajax/payment-batch-save";
+    /// <summary>PHP-compatible payment_batch_status lifecycle endpoint with dry-run and confirmed-write modes.</summary>
+    public const string ErpAjaxPaymentBatchStatus = "/erp/ajax/payment-batch-status";
     /// <summary>Wave B dry-run for PHP petty_cash_save (writes=0).</summary>
     public const string ErpAjaxPettyCashSave = "/erp/ajax/petty-cash-save";
     /// <summary>Wave B dry-run for PHP agenda_save (writes=0).</summary>
