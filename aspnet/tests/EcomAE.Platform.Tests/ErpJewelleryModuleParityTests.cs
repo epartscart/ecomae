@@ -749,6 +749,17 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("Fit-out project progress is project-scoped and read-only", module, StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void IndustryRouteGate_DoesNotTrustQueryCompanyWithoutStaffSession()
+    {
+        var middleware = ReadPlatformSource("Middleware/IndustrySpecificRouteGateMiddleware.cs");
+
+        Assert.Contains("ILegacySessionValidator validator", middleware, StringComparison.Ordinal);
+        Assert.Contains("_validator.ValidateAsync(context, context.RequestAborted)", middleware, StringComparison.Ordinal);
+        Assert.Contains("ErpJewelleryModuleChrome.HasJewelleryStaffAccess(session)", middleware, StringComparison.Ordinal);
+        Assert.Contains("return null;", middleware, StringComparison.Ordinal);
+    }
+
     private static string ReadApp(string fileName)
     {
         var root = FindRepoRoot();
