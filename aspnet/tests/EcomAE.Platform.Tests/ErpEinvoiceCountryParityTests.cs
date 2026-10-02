@@ -13,6 +13,7 @@ public sealed class ErpEinvoiceCountryParityTests
 
         Assert.Contains("epc_tax_toolkit_tenant_profile", service, StringComparison.Ordinal);
         Assert.Contains("company_country_code", service, StringComparison.Ordinal);
+        Assert.Contains("ColumnExistsAsync(connection, \"epc_tax_toolkit_tenant_profile\", \"time_updated\"", service, StringComparison.Ordinal);
         Assert.Contains("Registered tenant country is required for e-invoice compliance", service, StringComparison.Ordinal);
         Assert.Contains("[\"seller_country_code\"] = country", service, StringComparison.Ordinal);
         Assert.Contains("country == \"AE\" && string.IsNullOrWhiteSpace(request.SellerCity)", service, StringComparison.Ordinal);

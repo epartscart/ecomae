@@ -287,7 +287,8 @@ public sealed class ErpEinvoiceProfileWriteService : IErpEinvoiceProfileWriteSer
         CancellationToken cancellationToken)
     {
         if (await TableExistsAsync(connection, "epc_tax_toolkit_tenant_profile", cancellationToken).ConfigureAwait(false)
-            && await ColumnExistsAsync(connection, "epc_tax_toolkit_tenant_profile", "country_code", cancellationToken).ConfigureAwait(false))
+            && await ColumnExistsAsync(connection, "epc_tax_toolkit_tenant_profile", "country_code", cancellationToken).ConfigureAwait(false)
+            && await ColumnExistsAsync(connection, "epc_tax_toolkit_tenant_profile", "time_updated", cancellationToken).ConfigureAwait(false))
         {
             var profileCountry = NormalizeRegisteredCountry(await ErpDb.StringAsync(
                 connection,
