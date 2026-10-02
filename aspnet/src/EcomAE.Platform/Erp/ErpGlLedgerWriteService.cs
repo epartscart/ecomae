@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Text.Json;
 
 namespace EcomAE.Platform.Erp;
 
@@ -13,6 +14,8 @@ public sealed record ErpManualJournalInput
     public string Description { get; init; } = string.Empty;
 
     public long JournalDate { get; init; }
+
+    public string IdempotencyKey { get; init; } = string.Empty;
 }
 
 /// <summary>PHP <c>epc_erp_gl_create_coa</c> payload.</summary>
@@ -171,36 +174,90 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureCoaSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
-        await AssertCoaLinesAsync(connection, lines, cancellationToken).ConfigureAwait(false);
-        await AssertPostingPeriodOpenAsync(connection, input.JournalDate, cancellationToken).ConfigureAwait(false);
-
-        var journalId = await _gl.PostJournalAsync(
-            connection,
-            new ErpGlJournalHeader
+        var idempotencyKey = input.IdempotencyKey.Trim();
+        var claimedIdempotency = false;
+        if (idempotencyKey.Length > 0)
+        {
+            await EnsureIdempotencySchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+            var replay = await ClaimManualJournalIdempotencyAsync(
+                connection,
+                idempotencyKey,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+            if (replay is not null)
             {
-                JournalDate = input.JournalDate,
-                Reference = input.Reference,
-                Description = input.Description.Trim().Length > 0 ? input.Description : "Manual journal entry",
-                SourceType = "manual",
-            },
-            lines,
-            adminId,
-            cancellationToken).ConfigureAwait(false);
+                return replay;
+            }
 
-        var journalNo = await JournalNoAsync(connection, journalId, cancellationToken).ConfigureAwait(false);
-        await LogAsync(
-            connection,
-            adminId,
-            "gl_manual_entry",
-            journalId,
-            "GL journal posted",
-            new Dictionary<string, string?>
+            claimedIdempotency = true;
+        }
+
+        try
+        {
+            await AssertCoaLinesAsync(connection, lines, cancellationToken).ConfigureAwait(false);
+            await AssertPostingPeriodOpenAsync(connection, input.JournalDate, cancellationToken).ConfigureAwait(false);
+
+            var journalId = await _gl.PostJournalAsync(
+                connection,
+                new ErpGlJournalHeader
+                {
+                    JournalDate = input.JournalDate,
+                    Reference = input.Reference,
+                    Description = input.Description.Trim().Length > 0 ? input.Description : "Manual journal entry",
+                    SourceType = "manual",
+                },
+                lines,
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+
+            var journalNo = await JournalNoAsync(connection, journalId, cancellationToken).ConfigureAwait(false);
+            await LogAsync(
+                connection,
+                adminId,
+                "gl_manual_entry",
+                journalId,
+                "GL journal posted",
+                new Dictionary<string, string?>
+                {
+                    ["journal_no"] = journalNo,
+                    ["lines"] = lines.Count.ToString(CultureInfo.InvariantCulture),
+                },
+                cancellationToken).ConfigureAwait(false);
+            var result = new ErpJournalResult(journalId, journalNo);
+            if (claimedIdempotency)
             {
-                ["journal_no"] = journalNo,
-                ["lines"] = lines.Count.ToString(CultureInfo.InvariantCulture),
-            },
-            cancellationToken).ConfigureAwait(false);
-        return new ErpJournalResult(journalId, journalNo);
+                await StoreManualJournalIdempotencyAsync(
+                    connection,
+                    idempotencyKey,
+                    adminId,
+                    result,
+                    cancellationToken).ConfigureAwait(false);
+            }
+
+            return result;
+        }
+        catch
+        {
+            if (claimedIdempotency)
+            {
+                try
+                {
+                    await ErpDb.ExecuteAsync(
+                        connection,
+                        null,
+                        ErpDb.Positional(
+                            "DELETE FROM `epc_erp_idempotency` WHERE `idem_key` = ? AND `user_id` = ?"),
+                        cancellationToken,
+                        idempotencyKey[..Math.Min(80, idempotencyKey.Length)],
+                        adminId);
+                }
+                catch (DbException)
+                {
+                }
+            }
+
+            throw;
+        }
     }
 
     public async Task<ErpReversedJournalResult> ReverseJournalAsync(
@@ -565,6 +622,117 @@ public sealed class ErpGlLedgerWriteService : IErpGlLedgerWriteService
             }
         }
     }
+
+    private static async Task EnsureIdempotencySchemaAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        await ErpDb.TryExecuteAsync(
+            connection,
+            """
+            CREATE TABLE IF NOT EXISTS `epc_erp_idempotency` (
+                `idem_key` varchar(80) NOT NULL,
+                `user_id` bigint NOT NULL,
+                `action` varchar(64) NOT NULL,
+                `response_json` longtext NOT NULL,
+                `time_created` bigint NOT NULL,
+                `expires_at` bigint NOT NULL,
+                PRIMARY KEY (`idem_key`, `user_id`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4
+            """,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<ErpJournalResult?> ClaimManualJournalIdempotencyAsync(
+        DbConnection connection,
+        string key,
+        int adminId,
+        CancellationToken cancellationToken)
+    {
+        key = key[..Math.Min(80, key.Length)];
+        var existing = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT `response_json` FROM `epc_erp_idempotency`"
+                + " WHERE `idem_key` = ? AND `user_id` = ? AND `expires_at` >= ? LIMIT 1"),
+            cancellationToken,
+            key,
+            adminId,
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+        if (!string.IsNullOrWhiteSpace(existing))
+        {
+            if (existing.Contains("\"_pending\"", StringComparison.Ordinal))
+            {
+                throw new ErpWriteException("Same request is already in progress — wait a moment");
+            }
+
+            var replay = JsonSerializer.Deserialize<ErpJournalResult>(existing);
+            if (replay is not null)
+            {
+                return replay;
+            }
+        }
+
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_erp_idempotency`"
+                    + " (`idem_key`,`user_id`,`action`,`response_json`,`time_created`,`expires_at`)"
+                    + " VALUES (?,?,?,?,?,?)"),
+                cancellationToken,
+                key,
+                adminId,
+                "gl_post_journal",
+                "{\"_pending\":true}",
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
+                DateTimeOffset.UtcNow.AddSeconds(120).ToUnixTimeSeconds()).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            var concurrent = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT `response_json` FROM `epc_erp_idempotency`"
+                    + " WHERE `idem_key` = ? AND `user_id` = ? AND `expires_at` >= ? LIMIT 1"),
+                cancellationToken,
+                key,
+                adminId,
+                DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+            if (!string.IsNullOrWhiteSpace(concurrent)
+                && !concurrent.Contains("\"_pending\"", StringComparison.Ordinal))
+            {
+                return JsonSerializer.Deserialize<ErpJournalResult>(concurrent);
+            }
+
+            throw new ErpWriteException("Same request is already in progress — wait a moment");
+        }
+
+        return null;
+    }
+
+    private static Task StoreManualJournalIdempotencyAsync(
+        DbConnection connection,
+        string key,
+        int adminId,
+        ErpJournalResult result,
+        CancellationToken cancellationToken)
+        => ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "UPDATE `epc_erp_idempotency` SET `response_json` = ?, `action` = ?,"
+                + " `expires_at` = ? WHERE `idem_key` = ? AND `user_id` = ?"),
+            cancellationToken,
+            JsonSerializer.Serialize(result),
+            "gl_post_journal",
+            DateTimeOffset.UtcNow.AddSeconds(600).ToUnixTimeSeconds(),
+            key[..Math.Min(80, key.Length)],
+            adminId);
 
     private static async Task<(string JournalNo, long CompanyId, long ReversedByJournalId)?> JournalHeadAsync(
         DbConnection connection,
