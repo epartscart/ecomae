@@ -47,27 +47,47 @@ def main() -> int:
         raise SystemExit("promotion gate list does not match ErpTenantAcceptanceCatalog")
     if promotion.get("allGatesMustPass") is not True:
         raise SystemExit("allGatesMustPass must be true")
-    if promotion.get("noPartialTenantPromotion") is not True:
-        raise SystemExit("noPartialTenantPromotion must be true")
+    if promotion.get("noPartialGatePromotion") is not True:
+        raise SystemExit("noPartialGatePromotion must be true")
+    if promotion.get("productionBackupRestoreRequired") is not True:
+        raise SystemExit("productionBackupRestoreRequired must be true")
+    if promotion.get("releaseOwnerApprovalRequired") is not True:
+        raise SystemExit("releaseOwnerApprovalRequired must be true")
 
     tenants = document.get("tenants", [])
-    if {tenant.get("tenant") for tenant in tenants} != EXPECTED_TENANTS:
+    tenant_names = [tenant.get("tenant") for tenant in tenants]
+    if len(tenant_names) != len(set(tenant_names)):
+        raise SystemExit("tenant list contains duplicate entries")
+    if set(tenant_names) != EXPECTED_TENANTS:
         raise SystemExit("tenant list does not match the named ERP tenant set")
     for tenant in tenants:
-        if tenant.get("status") != "blocked":
-            raise SystemExit(f"{tenant.get('tenant')}: status must remain blocked")
-        if tenant.get("evidence") != {}:
-            raise SystemExit(f"{tenant.get('tenant')}: evidence must be direct and non-invented")
+        status = tenant.get("status")
+        evidence = tenant.get("evidence")
+        if status not in {"blocked", "ready"}:
+            raise SystemExit(f"{tenant.get('tenant')}: invalid status={status!r}")
+        if status == "blocked" and evidence != {}:
+            raise SystemExit(f"{tenant.get('tenant')}: blocked tenant cannot claim evidence")
+        if status == "ready":
+            if not isinstance(evidence, dict):
+                raise SystemExit(f"{tenant.get('tenant')}: ready evidence must be an object")
+            missing = REQUIRED_GATES - set(evidence)
+            if missing:
+                raise SystemExit(
+                    f"{tenant.get('tenant')}: ready evidence missing gates: {sorted(missing)}"
+                )
+            if any(not isinstance(value, str) or not value.strip() for value in evidence.values()):
+                raise SystemExit(f"{tenant.get('tenant')}: ready evidence references must be non-empty")
 
     acceptance = document.get("acceptance", {})
-    if acceptance.get("readyTenantCount") != 0:
-        raise SystemExit("readyTenantCount must remain zero")
+    ready_count = sum(tenant.get("status") == "ready" for tenant in tenants)
+    if acceptance.get("readyTenantCount") != ready_count:
+        raise SystemExit("readyTenantCount does not match tenant statuses")
     if acceptance.get("totalTenantCount") != len(EXPECTED_TENANTS):
         raise SystemExit("totalTenantCount does not match the named tenant set")
-    if acceptance.get("erpExitGate") is not False:
-        raise SystemExit("erpExitGate must remain false")
+    if acceptance.get("erpExitGate") is True and ready_count != len(EXPECTED_TENANTS):
+        raise SystemExit("erpExitGate cannot be true while a tenant remains blocked")
 
-    print(f"PASS: {len(tenants)} named tenants remain fail-closed and unpromoted")
+    print(f"PASS: {ready_count}/{len(tenants)} tenants have complete staged evidence")
     return 0
 
 
