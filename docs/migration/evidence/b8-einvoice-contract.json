@@ -27,15 +27,24 @@
     "credit-note dry-run preserves the PHP einvoice_credit_note action reference",
     "manual submission requires validation_ok and a configured ASP",
     "manual submission queues an ASP reference plus asp_manual and fta_report event contracts",
-    "existing PHP/ASP.NET dual samples provide action-envelope comparison evidence"
+    "existing PHP/ASP.NET dual samples provide action-envelope comparison evidence",
+    "tenant-country e-invoice profiles match the PHP AE/SA/IN/GB/DE/FR/IT/AU map",
+    "unknown tenant countries use the PHP generic fallback profile",
+    "preview country does not override the registered tenant country"
   ],
+  "countryFixture": {
+    "AE": { "scheme": "UAE-FTA", "taxLabel": "VAT", "clearance": false, "requires": ["seller_trn", "buyer_trn"] },
+    "SA": { "scheme": "ZATCA", "taxLabel": "VAT", "clearance": true, "requires": ["seller_trn", "qr"] },
+    "IN": { "scheme": "GST-IRN", "taxLabel": "GST", "clearance": true, "requires": ["seller_gstin", "buyer_gstin", "hsn"] },
+    "GB": { "scheme": "EN16931", "taxLabel": "VAT", "clearance": false, "requires": ["seller_vat"] },
+    "ZZ": { "scheme": "GENERIC", "taxLabel": "TAX", "clearance": false, "requires": [] }
+  },
   "countryRules": {
     "sourceOfTruth": "tenant registered country and PHP tax/e-invoice profile",
     "previewCountryMustNotOverrideTenant": true,
     "aspPintAeIsNotGlobalDefault": true
   },
   "unverified": [
-    "tenant-country fixture with AE/SA/GB or generic fallback",
     "confirmed e-invoice persistence",
     "SQL and PHP audit readback",
     "ASP sandbox roundtrip",

@@ -3,6 +3,7 @@ using EcomAE.Platform.Auth;
 using EcomAE.Platform.Bos;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Storefront;
 using Xunit;
 

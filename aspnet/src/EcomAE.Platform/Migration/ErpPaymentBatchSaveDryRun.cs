@@ -15,13 +15,13 @@ public sealed class ErpPaymentBatchSaveDryRun : IErpPaymentBatchSaveDryRun
             return Refuse("dry-run-invalid","invalid_batch_type","batch_type must be sepa, local, or cheque.", request);
         if (request.LineCount < 0)
             return Refuse("dry-run-invalid","invalid_line_count","line_count must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+        return new("dry-run-validated",0,true,false,false,"ok",true,request.Id, request.Code,
             ["INSERT epc_erp_payment_batches (NOT executed)"],
             "Payment-batch payload validated; no write was performed.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=payment_batch_save");
     }
     private static ErpPaymentBatchSaveDryRunResult Refuse(string s,string c,string d,ErpPaymentBatchSaveRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=payment_batch_save");
+        new(s,0,true,false,false,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=payment_batch_save");
 }
 public sealed record ErpPaymentBatchSaveRequest(
     long Id = 0,
