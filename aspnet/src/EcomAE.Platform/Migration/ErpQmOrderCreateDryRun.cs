@@ -8,19 +8,53 @@ public sealed class ErpQmOrderCreateDryRun : IErpQmOrderCreateDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET qm_order_create is not implemented; PHP ajax_erp.php remains authoritative.", request);
-        if (request.Id < 0)
-            return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is required for persistence and is handled by the guarded ASP.NET writer.", request);
+        if (request.CompanyId <= 0)
+            return Refuse("dry-run-invalid","company_required","company_id is required.", request);
+        if (request.PlanId < 0 || request.ItemId < 0 || request.Qty < 0)
+            return Refuse("dry-run-invalid","invalid_request","plan_id, item_id, and qty must be non-negative.", request);
+        return new("dry-run-validated",0,true,false,true,"ok",true,request.CompanyId, request.PlanId,
+            request.RefType, request.RefId, request.ItemId, request.Qty,
             ["ajax_erp.php?action=qm_order_create (NOT executed)"],
-            "ERP qm_order_create payload validated; UPDATE blocked.",
+            "ERP qm_order_create payload validated; INSERT blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=qm_order_create");
     }
     private static ErpQmOrderCreateDryRunResult Refuse(string s,string c,string d,ErpQmOrderCreateRequest r)=>
-        new(s,0,true,false,true,c,false,r.Id, r.Code,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=qm_order_create");
+        new(s,0,true,false,true,c,false,r.CompanyId, r.PlanId, r.RefType, r.RefId, r.ItemId, r.Qty, [],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=qm_order_create");
 }
-public sealed record ErpQmOrderCreateRequest(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-public sealed record ErpQmOrderCreateDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,long Id, string? Code,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
+public sealed record ErpQmOrderCreateRequest(
+    long CompanyId = 0,
+    long PlanId = 0,
+    string? RefType = null,
+    string? RefId = null,
+    long ItemId = 0,
+    decimal Qty = 0,
+    bool ConfirmWrites = false);
+public sealed record ErpQmOrderCreateDryRunResult(
+    string Status,
+    int Writes,
+    bool WritesBlocked,
+    bool CutoverAllowed,
+    bool PhpAuthoritative,
+    string ValidationCode,
+    bool WouldWrite,
+    long CompanyId,
+    long PlanId,
+    string? RefType,
+    string? RefId,
+    long ItemId,
+    decimal Qty,
+    IReadOnlyList<string> SimulatedSql,
+    string Detail,
+    string PhpAjax)
 {
-    public object ToPayload(object session)=>new{ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,validation_code=ValidationCode,would_write=WouldWrite,intended=new{id=Id,code=Code},simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail};
+    public object ToPayload(object session)=>new
+    {
+        ok=true,surface="erp",status=Status,writes=Writes,writesBlocked=WritesBlocked,
+        cutoverAllowed=CutoverAllowed,phpAuthoritative=PhpAuthoritative,
+        validation_code=ValidationCode,would_write=WouldWrite,
+        intended=new { company_id=CompanyId, plan_id=PlanId, ref_type=RefType ?? "item",
+            ref_id=RefId ?? string.Empty, item_id=ItemId, qty=Qty, status="open", verdict=string.Empty },
+        simulated=SimulatedSql,php_ajax=PhpAjax,session,note=Detail
+    };
 }

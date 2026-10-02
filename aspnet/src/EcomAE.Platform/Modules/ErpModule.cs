@@ -6251,25 +6251,14 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrPlannedFirm, HandleMfgrPlannedFirmAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmPlanSave, HandleQmPlanSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmTestAdd, HandleQmTestAddAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxQmOrderCreate, async (HttpContext context, ErpQmOrderCreateBody? body, ILegacySessionValidator validator, IErpQmOrderCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmOrderCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxQmOrderCreate, HandleQmOrderCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmOrderRecord, async (HttpContext context, ErpQmOrderRecordBody? body, ILegacySessionValidator validator, IErpQmOrderRecordDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpQmOrderRecordRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrCreate, HandleQmNcrCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxQmNcrUpdate, HandleQmNcrUpdateAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpQualityPlanSaveForm, HandleQmPlanSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpQualityOrderCreateForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmOrderCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            var ret = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=orders");
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-                return Results.Redirect("/erp/login");
-            var code = DryRunHtmlForm.Read(context.Request, "ref_id");
-            if (string.IsNullOrWhiteSpace(code)) code = DryRunHtmlForm.Read(context.Request, "code");
-            var result = dryRun.Evaluate(new ErpQmOrderCreateRequest(0, code, false));
-            return DryRunHtmlForm.Redirect(ret, result.ValidationCode == "ok", result.Detail);
-        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpQualityOrderCreateForm, HandleQmOrderCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpQualityOrderRecordForm, async (HttpContext context, ILegacySessionValidator validator, IErpQmOrderRecordWriteService writes, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -20718,6 +20707,86 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleQmOrderCreateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpQmOrderCreateDryRun dryRun,
+        IErpQmOrderCreateWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        var returnUrl = DryRunHtmlForm.SafeReturnUrl(context.Request, "/erp/quality-app?qv=orders");
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return context.Request.HasFormContentType
+                ? LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/quality-app?qv=orders", "Admin ERP capability required for quality order creation.")
+                : Unauthorized("Admin ERP capability required.");
+        }
+
+        long companyId;
+        long planId;
+        string refType;
+        string refId;
+        long itemId;
+        decimal qty;
+        bool confirm;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId", "company");
+            planId = LiveWriteFormBinder.Long(form, "plan_id", "planId");
+            refType = LiveWriteFormBinder.Text(form, "ref_type", "refType");
+            refId = LiveWriteFormBinder.Text(form, "ref_id", "refId");
+            itemId = LiveWriteFormBinder.Long(form, "item_id", "itemId");
+            qty = LiveWriteFormBinder.Dec(form, "qty");
+            confirm = true;
+        }
+        else
+        {
+            var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+            companyId = ErpQmNcrUpdateWriteService.JsonLong(root, "company_id", "companyId");
+            planId = ErpQmNcrUpdateWriteService.JsonLong(root, "plan_id", "planId");
+            refType = ErpQmNcrUpdateWriteService.JsonText(root, "ref_type", "refType");
+            refId = ErpQmNcrUpdateWriteService.JsonText(root, "ref_id", "refId");
+            itemId = ErpQmNcrUpdateWriteService.JsonLong(root, "item_id", "itemId");
+            qty = 0;
+            if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("qty", out var qtyValue))
+            {
+                if (!qtyValue.TryGetDecimal(out qty))
+                {
+                    decimal.TryParse(qtyValue.ToString(), NumberStyles.Number, CultureInfo.InvariantCulture, out qty);
+                }
+            }
+            confirm = ErpQmNcrUpdateWriteService.JsonFlag(root, "confirmWrites", "confirm_writes");
+        }
+
+        if (companyId <= 0)
+        {
+            companyId = ErpHostContext.ActiveCompanyIdFromQuery(context.Request) ?? 0;
+        }
+
+        var request = new ErpQmOrderCreateRequest(companyId, planId, refType, refId, itemId, qty, confirm);
+        if (!confirm)
+        {
+            var dry = dryRun.Evaluate(request);
+            return context.Request.HasFormContentType
+                ? DryRunHtmlForm.Redirect(returnUrl, dry.ValidationCode == "ok", dry.Detail)
+                : Results.Ok(dry.ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.CreateAsync(
+            new ErpQmOrderCreateWriteRequest(companyId, planId, refType, refId, itemId, qty, session.UserId),
+            cancellationToken);
+        return context.Request.HasFormContentType
+            ? LiveWriteFormBinder.Complete(
+                context,
+                returnUrl,
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) })
+            : Results.Ok(new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleQmNcrCreateAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -22344,7 +22413,6 @@ public sealed class ErpModule : ISurfaceModule
         string? Expected = null,
         int Sort = 0,
         bool ConfirmWrites = false);
-    private sealed record ErpQmOrderCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpQmOrderRecordBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpQmNcrCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpQmNcrUpdateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

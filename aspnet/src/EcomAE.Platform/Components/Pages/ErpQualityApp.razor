@@ -280,6 +280,7 @@
                     <ErpPhpCreateWell Title="New quality order">
                         <form method="post" action="@EcomAeRoutes.ErpQualityOrderCreateForm" class="form-inline" style="display:flex;flex-wrap:wrap;gap:8px;align-items:end;">
                             <input type="hidden" name="returnUrl" value="/erp/quality-app?qv=orders" />
+                            <input type="hidden" name="company_id" value="@_companyId.ToString(CultureInfo.InvariantCulture)" />
                             <select name="plan_id" class="form-control input-sm" required>
                                 <option value="">Plan…</option>
                                 @foreach (var p in _plans)

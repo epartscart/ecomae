@@ -136,6 +136,21 @@
       ]
     },
     {
+      "scenario": "quality-order-confirmed-create-route",
+      "result": "pass",
+      "route": "/erp/ajax/qm-order-create and /erp/quality/order-create",
+      "evidence": [
+        "PHP epc_qm_order_create and the PHP-owned epc_qm_order schema were re-read before rehearsal; ASP.NET performs no schema creation.",
+        "Authenticated JSON without confirmation returned dry-run-validated with writes=0, writesBlocked=true, phpAuthoritative=true, and the tagged-row count remained zero.",
+        "Authenticated JSON confirmWrites=true created a tagged order and returned writes=1 with an inserted id; SQL readback confirmed company_id 2, plan_id 17, ref_type item, item_id 88, qty 1.2500, status open, empty verdict, and a current Unix timestamp.",
+        "SQL readback of epc_erp_audit_log confirmed admin_id 1, action qm_order_create, entity_type qm_order, the inserted entity id, and detail_json containing the PHP-compatible values.",
+        "The confirm_writes alias also created a tagged order; negative qty returned validation_code=invalid with writes=0.",
+        "Authenticated native form submission with company_id=2 created a tagged order and redirected safely to /erp/quality-app?qv=orders; authenticated HTML readback rendered the Quality orders workspace and hidden company_id propagation.",
+        "Unauthenticated JSON access returned HTTP 401 with admin_auth_required, and unauthenticated native-form access redirected to /erp/login.",
+        "Physical tenant isolation and production recovery/rollback were not claimed because this rehearsal used one throwaway tenant database."
+      ]
+    },
+    {
       "scenario": "quality-tagged-cleanup",
       "result": "pass",
       "evidence": [
@@ -145,7 +160,6 @@
     }
   ],
   "unverified": [
-    "quality-order-confirmed-create-route",
     "quality-tenant-isolation",
     "quality-production-recovery-and-rollback"
   ]
