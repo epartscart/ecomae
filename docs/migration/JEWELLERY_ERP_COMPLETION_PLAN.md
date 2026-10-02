@@ -6,6 +6,9 @@ in `INDUS_JEWELLERY_REPLACEMENT_TRACEABILITY.md`.
 It
 uses the supplied INDUS studies and photo pack as requirements evidence, while
 keeping PHP as the behavioral authority until each process is accepted.
+The supplied `INDUS_LIVE_Maximum_Fields_Legacy_Style_ERP_2.xlsx` is now also
+recorded as field-catalogue evidence; it expands the explicit acceptance
+surface but does not establish PHP schema or behavior by itself.
 
 ## Evidence boundary
 
