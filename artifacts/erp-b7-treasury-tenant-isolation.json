@@ -1,0 +1,34 @@
+{
+  "process": "B7 Treasury",
+  "scope": "throwaway-local-mariadb",
+  "tenant": "ecomae",
+  "liveTenantWrites": false,
+  "phpFallbackRequired": true,
+  "status": "partial",
+  "schemaAuthority": "php-owned",
+  "verified": [
+    {
+      "scenario": "treasury-tenant-isolation",
+      "result": "pass",
+      "scope": "two-physical-throwaway-mariadb-databases",
+      "evidence": [
+        "tenant registry mapped www.ecomae.com to ecomae and b7-treasury-tenant2.local to ecomae_b7_tenant2",
+        "authenticated dry-run cash-account creation on both hosts returned writes=0 and writesBlocked=true",
+        "authenticated confirmed tagged cash-account creation through b7-treasury-tenant2.local returned writes=1 and persisted only in ecomae_b7_tenant2",
+        "tenant-2 SQL showed one tagged cash account with cash type, AED currency, active status, tagged notes, and one tagged PHP-compatible audit row",
+        "tenant-2 authenticated cash-account HTML readback rendered the unique marker in the opened-record/detail view",
+        "tenant-1 SQL showed zero tagged cash accounts and zero tagged audit rows",
+        "tenant-1 authenticated cash-account HTML readback did not render the tenant-2 marker",
+        "tagged cash-account and audit rows were deleted, the temporary registry mapping was removed, and ecomae_b7_tenant2 was dropped; post-cleanup counts were zero"
+      ]
+    }
+  ],
+  "remaining": [
+    "treasury-production-recovery-and-rollback",
+    "treasury-uat-and-production-acceptance"
+  ],
+  "acceptance": {
+    "erpComplete": false,
+    "tenantPromotionAllowed": false
+  }
+}
