@@ -1252,6 +1252,7 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPaymentBatchSave, HandlePaymentBatchSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPaymentBatchStatus, HandlePaymentBatchStatusAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPettyCashSave, HandlePettyCashSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAgendaSave, HandleAgendaSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxKbSave, HandleKbSaveAsync).DisableAntiforgery();
@@ -13489,6 +13490,58 @@ public sealed class ErpModule : ISurfaceModule
             });
     }
 
+    private static async Task<IResult> HandlePaymentBatchStatusAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPaymentBatchStatusWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required for payment-batch lifecycle.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentBatchStatusBody>(context, cancellationToken)
+            ?? new ErpPaymentBatchStatusBody();
+        if (!body.ConfirmWrites)
+        {
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                status = "dry-run-validated",
+                writes = 0,
+                writesBlocked = true,
+                cutoverAllowed = false,
+                phpAuthoritative = true,
+                validation_code = body.Id > 0 && (body.TargetStatus is "submitted" or "processed" or "cancelled")
+                    ? "ok"
+                    : "invalid_transition",
+                would_write = body.Id > 0,
+                intended = new { id = body.Id, status = body.TargetStatus ?? string.Empty },
+                session = SessionPayload(session)
+            });
+        }
+
+        var written = await writes.SetStatusAsync(
+            body.Id,
+            body.TargetStatus ?? string.Empty,
+            session.UserId,
+            cancellationToken);
+        return Results.Json(new
+        {
+            ok = written.Succeeded,
+            status = written.Succeeded,
+            writes = written.Writes,
+            message = written.Message,
+            code = written.Code,
+            id = body.Id,
+            target_status = body.TargetStatus,
+            session = SessionPayload(session)
+        }, statusCode: written.Succeeded ? StatusCodes.Status200OK : StatusCodes.Status400BadRequest);
+    }
+
     private static async Task<IResult> HandleSupplierSettlementAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -23094,6 +23147,10 @@ public sealed class ErpModule : ISurfaceModule
         string? ExecutionDate = null,
         string? Notes = null,
         Dictionary<string, long>? Dim = null);
+    private sealed record ErpPaymentBatchStatusBody(
+        long Id = 0,
+        string? TargetStatus = null,
+        bool ConfirmWrites = false);
     private sealed record ErpSaveRfqResponseBody(
         long RfqId = 0,
         long RfqLineId = 0,
