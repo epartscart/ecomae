@@ -1,0 +1,113 @@
+{
+  "artifact": "tenant-by-tenant-erp-migration-gate",
+  "version": 1,
+  "scope": "erp",
+  "authority": "php-until-formal-acceptance",
+  "cutoverAllowed": false,
+  "readyForPhpRemoval": false,
+  "promotionRule": {
+    "requiredForEachTenant": [
+      "php-route-parity",
+      "functional-happy-path",
+      "validation-and-denial",
+      "tenant-isolation",
+      "persisted-readback",
+      "browser-parity",
+      "recovery-and-rollback",
+      "uat-and-production"
+    ],
+    "allGatesMustPass": true,
+    "noPartialTenantPromotion": true,
+    "productionBackupRestoreRequired": true,
+    "releaseOwnerApprovalRequired": true
+  },
+  "tenants": [
+    {
+      "tenant": "epartscart",
+      "hosts": [
+        "epartscart.com",
+        "www.epartscart.com"
+      ],
+      "status": "blocked",
+      "evidence": {},
+      "open": [
+        "tenant-specific ERP functional and browser acceptance",
+        "physical tenant isolation",
+        "production backup/restore and ownership rollback",
+        "UAT and production release-owner approval"
+      ]
+    },
+    {
+      "tenant": "electronicae",
+      "hosts": [
+        "electronicae.com",
+        "www.electronicae.com"
+      ],
+      "status": "blocked",
+      "evidence": {},
+      "open": [
+        "tenant-specific ERP functional and browser acceptance",
+        "physical tenant isolation",
+        "production backup/restore and ownership rollback",
+        "UAT and production release-owner approval"
+      ]
+    },
+    {
+      "tenant": "stylenlook",
+      "hosts": [
+        "stylenlook.com",
+        "www.stylenlook.com"
+      ],
+      "status": "blocked",
+      "evidence": {},
+      "open": [
+        "tenant-specific ERP functional and browser acceptance",
+        "physical tenant isolation",
+        "production backup/restore and ownership rollback",
+        "UAT and production release-owner approval"
+      ]
+    },
+    {
+      "tenant": "thejewellerytrend",
+      "hosts": [
+        "thejewellerytrend.com",
+        "www.thejewellerytrend.com"
+      ],
+      "status": "blocked",
+      "evidence": {},
+      "open": [
+        "tenant-specific Jewellery and ERP functional acceptance",
+        "physical tenant isolation",
+        "production backup/restore and ownership rollback",
+        "UAT and production release-owner approval"
+      ]
+    },
+    {
+      "tenant": "taxofinca",
+      "hosts": [
+        "taxofinca.com",
+        "www.taxofinca.com"
+      ],
+      "status": "blocked",
+      "evidence": {},
+      "open": [
+        "tenant-specific tax/compliance and ERP functional acceptance",
+        "physical tenant isolation",
+        "production backup/restore and ownership rollback",
+        "UAT and production release-owner approval"
+      ]
+    }
+  ],
+  "evidencePolicy": [
+    "A process rehearsal on one tenant is not evidence for another tenant.",
+    "A throwaway database proves rehearsal behavior only; it does not prove production backup, restore, rollback, UAT, or release approval.",
+    "A health response does not prove the intended release is active; record the active RELEASE_SHA.",
+    "Do not set a tenant status to ready until every required gate has a direct evidence reference.",
+    "Keep PHP/PHP-FPM reachable and broad cutover disabled while any tenant remains blocked."
+  ],
+  "acceptance": {
+    "readyTenantCount": 0,
+    "totalTenantCount": 5,
+    "erpExitGate": false
+  }
+}
