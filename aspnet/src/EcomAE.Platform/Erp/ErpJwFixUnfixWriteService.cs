@@ -34,20 +34,26 @@ public sealed record ErpJwFixUnfixCreateRequest(
     decimal MarginOnFix = 0,
     decimal MarginOnUnfix = 0,
     decimal MakingCharges = 0,
-    string? Notes = null);
+    string? Notes = null,
+    int ActorUserId = 0);
 
 public sealed record ErpJwFixUnfixSettleRequest(
     long Id = 0,
     int CompanyId = 0,
-    decimal SettleRate = 0);
+    decimal SettleRate = 0,
+    int ActorUserId = 0);
 
 public sealed class ErpJwFixUnfixWriteService : IErpJwFixUnfixWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpJwFixUnfixWriteService(IErpWriteConnectionFactory connections)
+    public ErpJwFixUnfixWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpAuditLogWriter? audit = null)
     {
         _connections = connections;
+        _audit = audit ?? new ErpAuditLogWriter();
     }
 
     public async Task<ErpSimpleWriteResult> CreateAsync(
@@ -123,6 +129,25 @@ public sealed class ErpJwFixUnfixWriteService : IErpJwFixUnfixWriteService
         {
             return ErpSimpleWriteResult.Fail("invalid", "Failed");
         }
+
+        await _audit.LogAsync(
+            connection,
+            null,
+            request.ActorUserId,
+            "jw_fix_unfix_create",
+            "epc_fix_unfix_purchases",
+            id,
+            "Jewellery fix/unfix purchase created",
+            new Dictionary<string, string?>
+            {
+                ["company_id"] = request.CompanyId.ToString(CultureInfo.InvariantCulture),
+                ["structure_type"] = structure,
+                ["metal_type"] = metal,
+                ["karat"] = karat,
+                ["weight_grams"] = weight.ToString("0.000", CultureInfo.InvariantCulture),
+                ["total_value"] = total.ToString("0.00", CultureInfo.InvariantCulture),
+            },
+            cancellationToken).ConfigureAwait(false);
 
         return ErpSimpleWriteResult.Ok((structure == "fix" ? "Fix" : "Unfix") + " purchase created", id);
     }
@@ -239,6 +264,24 @@ public sealed class ErpJwFixUnfixWriteService : IErpJwFixUnfixWriteService
                 weight,
                 gainLoss,
                 now).ConfigureAwait(false);
+
+            await _audit.LogAsync(
+                connection,
+                transaction,
+                request.ActorUserId,
+                "jw_fix_unfix_settle",
+                "epc_fix_unfix_purchases",
+                request.Id,
+                "Jewellery unfix purchase settled",
+                new Dictionary<string, string?>
+                {
+                    ["company_id"] = companyId.ToString(CultureInfo.InvariantCulture),
+                    ["settle_rate"] = settleRate.ToString("0.0000", CultureInfo.InvariantCulture),
+                    ["weight_settled"] = weight.ToString("0.000", CultureInfo.InvariantCulture),
+                    ["gain_loss"] = gainLoss.ToString("0.00", CultureInfo.InvariantCulture),
+                    ["status"] = "settled",
+                },
+                cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok(
