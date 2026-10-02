@@ -1,13 +1,17 @@
 using System.Data.Common;
+using System.Globalization;
+using System.Text.Json;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Bos;
 
 /// <summary>
-/// Live PHP <c>ajax_epc_bos.php</c> <c>tenant_config</c> <c>set</c> / <c>epc_tenant_config_set</c>.
-/// Bulk-set, import, and schema-ensure stay Classic. This service does not invent a send.
+/// Live PHP <c>ajax_epc_bos.php</c> <c>tenant_config</c> <c>set</c> / <c>bulk_set</c>
+/// / <c>epc_tenant_config_set</c> / <c>epc_tenant_config_bulk_set</c>.
+/// Import and schema-ensure stay Classic. This service does not invent a send.
 /// It does not emit CREATE/ALTER. This write uses the platform operator PDO.
+/// Dedicated <c>/bos/ajax-writes/dry-run/bulk_set</c> stays refuse-confirm.
 /// </summary>
 public interface IBosTenantConfigWriteService
 {
@@ -16,6 +20,13 @@ public interface IBosTenantConfigWriteService
         string? group,
         string? key,
         string? value,
+        long updatedBy,
+        CancellationToken cancellationToken = default);
+
+    Task<ErpSimpleWriteResult> BulkSetAsync(
+        string? siteKey,
+        string? group,
+        string? valuesJson,
         long updatedBy,
         CancellationToken cancellationToken = default);
 }
@@ -117,6 +128,59 @@ public sealed class BosTenantConfigWriteService : IBosTenantConfigWriteService
         return Groups.TryGetValue(group, out var fields) && fields.TryGetValue(key, out field);
     }
 
+    /// <summary>
+    /// PHP <c>json_decode((string)($_POST['values'] ?? '{}'), true) ?: array()</c>.
+    /// Missing/null/invalid/empty-object becomes an empty list. Object keys stay raw
+    /// (bulk_set does not run the ajax <c>preg_replace</c> used on single-key set).
+    /// </summary>
+    public static IReadOnlyList<(string Key, string Value)> ParseValues(string? raw)
+    {
+        if (string.IsNullOrWhiteSpace(raw))
+        {
+            return Array.Empty<(string, string)>();
+        }
+
+        try
+        {
+            using var doc = JsonDocument.Parse(raw);
+            var el = doc.RootElement;
+            if (el.ValueKind == JsonValueKind.Object)
+            {
+                return el.EnumerateObject()
+                    .Select(prop => (prop.Name, PhpJsonScalar(prop.Value)))
+                    .ToArray();
+            }
+
+            if (el.ValueKind == JsonValueKind.Array)
+            {
+                var i = 0;
+                return el.EnumerateArray()
+                    .Select(item => (i++.ToString(CultureInfo.InvariantCulture), PhpJsonScalar(item)))
+                    .ToArray();
+            }
+
+            return Array.Empty<(string, string)>();
+        }
+        catch (JsonException)
+        {
+            return Array.Empty<(string, string)>();
+        }
+    }
+
+    /// <summary>PHP <c>(string)</c> after <c>json_decode(..., true)</c>.</summary>
+    public static string PhpJsonScalar(JsonElement el)
+        => el.ValueKind switch
+        {
+            JsonValueKind.String => el.GetString() ?? "",
+            JsonValueKind.Number => el.TryGetInt64(out var n)
+                ? n.ToString(CultureInfo.InvariantCulture)
+                : el.GetDouble().ToString(CultureInfo.InvariantCulture),
+            JsonValueKind.True => "1",
+            JsonValueKind.False => "",
+            JsonValueKind.Null or JsonValueKind.Undefined => "",
+            _ => "Array",
+        };
+
     public async Task<ErpSimpleWriteResult> SetAsync(
         string? siteKey,
         string? group,
@@ -138,49 +202,98 @@ public sealed class BosTenantConfigWriteService : IBosTenantConfigWriteService
             return ErpSimpleWriteResult.Fail("invalid", "Invalid config group");
         }
 
-        if (!TryField(groupKey, configKey, out var field))
+        if (!TryField(groupKey, configKey, out _))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Invalid config key");
         }
 
+        return await WriteConfiguredAsync(
+            site, groupKey, [(configKey, value ?? "")], updatedBy, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<ErpSimpleWriteResult> BulkSetAsync(
+        string? siteKey,
+        string? group,
+        string? valuesJson,
+        long updatedBy,
+        CancellationToken cancellationToken = default)
+    {
+        var site = PhpBosSiteKey(siteKey);
+        if (site.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Missing site_key");
+        }
+
+        var groupKey = PhpGroupKey(group);
+        var pairs = ParseValues(valuesJson)
+            .Where(pair => TryField(groupKey, pair.Key, out _))
+            .ToArray();
+        if (pairs.Length == 0)
+        {
+            return ErpSimpleWriteResult.Ok("Tenant config saved", 1);
+        }
+
+        return await WriteConfiguredAsync(site, groupKey, pairs, updatedBy, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<ErpSimpleWriteResult> WriteConfiguredAsync(
+        string site,
+        string groupKey,
+        IReadOnlyList<(string Key, string Value)> pairs,
+        long updatedBy,
+        CancellationToken cancellationToken)
+    {
         if (!_connections.IsConfigured)
         {
             return ErpSimpleWriteResult.Fail("db", "Database unavailable");
         }
 
-        var newValue = value ?? "";
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-            var stored = await ErpDb.StringAsync(
-                connection, null,
-                ErpDb.Positional("SELECT `config_value` FROM `epc_tenant_config` WHERE `site_key` = ? AND `config_group` = ? AND `config_key` = ?"),
-                cancellationToken, site, groupKey, configKey).ConfigureAwait(false);
-            var oldValue = stored ?? field.Default;
-            await ErpDb.ExecuteAsync(
-                connection, null,
-                ErpDb.Positional(
-                    """
-                    INSERT INTO `epc_tenant_config`
-                        (`site_key`, `config_group`, `config_key`, `config_value`, `value_type`, `label`, `updated_by`)
-                    VALUES (?, ?, ?, ?, ?, ?, ?)
-                    ON DUPLICATE KEY UPDATE
-                        `config_value` = VALUES(`config_value`),
-                        `updated_by` = VALUES(`updated_by`),
-                        `updated_at` = NOW()
-                    """),
-                cancellationToken, site, groupKey, configKey, newValue, field.Type, field.Label, updatedBy).ConfigureAwait(false);
-            await ErpDb.ExecuteAsync(
-                connection, null,
-                ErpDb.Positional(
-                    """
-                    INSERT INTO `epc_tenant_config_history`
-                        (`site_key`, `config_group`, `config_key`, `old_value`, `new_value`, `changed_by`)
-                    VALUES (?, ?, ?, ?, ?, ?)
-                    """),
-                cancellationToken, site, groupKey, configKey, oldValue, newValue, updatedBy).ConfigureAwait(false);
-            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Ok("Tenant config saved", id > 0 ? id : 1);
+            long id = 1;
+            foreach (var (configKey, newValue) in pairs)
+            {
+                if (!TryField(groupKey, configKey, out var field))
+                {
+                    continue;
+                }
+
+                var stored = await ErpDb.StringAsync(
+                    connection, null,
+                    ErpDb.Positional("SELECT `config_value` FROM `epc_tenant_config` WHERE `site_key` = ? AND `config_group` = ? AND `config_key` = ?"),
+                    cancellationToken, site, groupKey, configKey).ConfigureAwait(false);
+                var oldValue = stored ?? field.Default;
+                await ErpDb.ExecuteAsync(
+                    connection, null,
+                    ErpDb.Positional(
+                        """
+                        INSERT INTO `epc_tenant_config`
+                            (`site_key`, `config_group`, `config_key`, `config_value`, `value_type`, `label`, `updated_by`)
+                        VALUES (?, ?, ?, ?, ?, ?, ?)
+                        ON DUPLICATE KEY UPDATE
+                            `config_value` = VALUES(`config_value`),
+                            `updated_by` = VALUES(`updated_by`),
+                            `updated_at` = NOW()
+                        """),
+                    cancellationToken, site, groupKey, configKey, newValue, field.Type, field.Label, updatedBy).ConfigureAwait(false);
+                await ErpDb.ExecuteAsync(
+                    connection, null,
+                    ErpDb.Positional(
+                        """
+                        INSERT INTO `epc_tenant_config_history`
+                            (`site_key`, `config_group`, `config_key`, `old_value`, `new_value`, `changed_by`)
+                        VALUES (?, ?, ?, ?, ?, ?)
+                        """),
+                    cancellationToken, site, groupKey, configKey, oldValue, newValue, updatedBy).ConfigureAwait(false);
+                var last = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+                if (last > 0)
+                {
+                    id = last;
+                }
+            }
+
+            return ErpSimpleWriteResult.Ok("Tenant config saved", id);
         }
         catch (DbException)
         {

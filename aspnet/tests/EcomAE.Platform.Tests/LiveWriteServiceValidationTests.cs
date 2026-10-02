@@ -3221,6 +3221,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosTenantConfigDb.Succeeded);
         Assert.Equal("db", bosTenantConfigDb.Code);
 
+        var bosTenantConfigBulkDb = await new BosTenantConfigWriteService(new UnconfiguredConnections())
+            .BulkSetAsync("acme", "branding", "{\"company_name\":\"Acme\"}", 0);
+        Assert.False(bosTenantConfigBulkDb.Succeeded);
+        Assert.Equal("db", bosTenantConfigBulkDb.Code);
+
         var bosAiReviewDb = await new BosAiClassWriteService(new UnconfiguredConnections())
             .ReviewAsync(9, "Auto Parts", "Brakes", "8708", 1);
         Assert.False(bosAiReviewDb.Succeeded);
