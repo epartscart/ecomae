@@ -1,0 +1,44 @@
+{
+  "area": "B8",
+  "scenario": "non-AE registered-country e-invoice seller persistence",
+  "authority": "php-until-formal-acceptance",
+  "environment": "throwaway local MariaDB tenant database",
+  "observedAt": "2026-10-02",
+  "checks": {
+    "registeredCountry": {
+      "before": "AE",
+      "temporaryFixture": "SA",
+      "restored": "AE"
+    },
+    "requestCountryIgnoredForCompliance": {
+      "requestCountry": "AE",
+      "registeredCountry": "SA",
+      "validationCode": "ok",
+      "writes": 1,
+      "phpAuthoritative": false
+    },
+    "nonAeIdentifier": {
+      "sellerTrn": "123456789",
+      "sellerTin": "123456789",
+      "accepted": true
+    },
+    "sqlCorroboration": {
+      "sellerName": "B8-NONAE-20261002",
+      "sellerTrn": "123456789",
+      "sellerTin": "123456789",
+      "companyLegalName": "B8-NONAE-20261002",
+      "companyTrn": "123456789"
+    },
+    "cleanup": {
+      "passed": true,
+      "registeredCountryAfterCleanup": "AE",
+      "registeredKitAfterCleanup": "AE-UAE-VAT",
+      "taggedSellerRowsRemaining": 0,
+      "taggedCompanyRowsRemaining": 0
+    }
+  },
+  "formalStatus": "OPEN",
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false
+}
