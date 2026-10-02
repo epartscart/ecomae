@@ -72,6 +72,14 @@ percentage reaches 95% or 100%.
 Formal weighted tracker headline remains **20.4% complete / 79.6% pending**
 (`ASPNET_MIGRATION_TRACKER.md`); ERP accepted-process count is **0/15**.
 
+Tenant promotion is tenant-specific. The gate contract in
+`TENANT_BY_TENANT_ERP_MIGRATION_GATE.md` and its machine-readable board in
+`evidence/tenant-by-tenant-erp-migration-gate.json` require an independent
+evidence bundle for every named tenant. One tenant's rehearsal, weighted
+percentage, health response, or release cannot satisfy another tenant's ERP
+acceptance; backup/restore, rollback, UAT, and release-owner approval remain
+mandatory before any tenant ownership switch.
+
 ## Session output format
 
 Every session ends with: COMPLETED & ACCEPTED · COMPLETED BUT AWAITING
