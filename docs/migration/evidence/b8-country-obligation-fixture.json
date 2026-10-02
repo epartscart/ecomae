@@ -1,0 +1,35 @@
+{
+  "area": "B8",
+  "slice": "tenant-country-obligation-fixture",
+  "status": "partial",
+  "authority": {
+    "php": "content/shop/finance/epc_bos_compliance.php",
+    "aspnet": [
+      "aspnet/src/EcomAE.Platform/Erp/ErpCountryObligationProfile.cs",
+      "aspnet/tests/EcomAE.Platform.Tests/ErpCountryObligationProfilePhpParityTests.cs"
+    ]
+  },
+  "verified": [
+    "common e-invoicing and payroll obligations",
+    "AE FTA VAT, corporate-tax, and ESR obligations",
+    "SA ZATCA VAT and corporate-tax obligations",
+    "generic country VAT/GST and corporate-tax obligations",
+    "UAE and UK country alias normalization"
+  ],
+  "unverified": [
+    "industry-specific AML/DNFBP obligations",
+    "confirmed persistence",
+    "filing-calendar SQL and PHP audit readback",
+    "authenticated browser readback",
+    "second physical database tenant isolation",
+    "production recovery and rollback",
+    "UAT and production acceptance"
+  ],
+  "safety": {
+    "liveTenantWrites": false,
+    "productionWrites": false,
+    "phpFallbackRequired": true,
+    "dummyRowsCreated": false
+  },
+  "reasonUnverified": "This tranche mirrors the country-seeded obligation contract only. It does not replace PHP schema ensure, industry-profile expansion, filing writes, or tenant acceptance."
+}
