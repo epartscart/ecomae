@@ -141,9 +141,10 @@
         "planning-tenant-isolation",
         "planning-params-and-recommendations",
         "wms-audit-not-emitted-by-php",
-        "wms-tenant-isolation"
+        "wms-tenant-isolation",
+        "planning-audit-not-emitted-by-php"
       ],
-      "missing": ["inventory-full-recovery-and-rollback", "quality-production-recovery-and-rollback", "wms-production-recovery-and-rollback", "planning-audit-log-readback", "planning-production-recovery-and-rollback"],
+      "missing": ["inventory-full-recovery-and-rollback", "quality-production-recovery-and-rollback", "wms-production-recovery-and-rollback", "planning-production-recovery-and-rollback"],
       "recovery": {
         "status": "partial",
         "verified": [
