@@ -136,9 +136,11 @@
         "quality-ncr-create-confirmed-write",
         "quality-order-confirmed-create-route",
         "quality-audit-log-readback",
-        "quality-tenant-isolation"
+        "quality-tenant-isolation",
+        "planning-tenant-isolation"
       ],
-      "missing": ["inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-production-recovery-and-rollback", "wms-audit-log-readback", "wms-tenant-isolation", "wms-production-recovery-and-rollback", "planning-params-and-recommendations", "planning-audit-log-readback", "planning-tenant-isolation", "planning-production-recovery-and-rollback"]
+      "missing": ["inventory-tenant-isolation", "inventory-full-recovery-and-rollback", "quality-production-recovery-and-rollback", "wms-audit-log-readback", "wms-tenant-isolation", "wms-production-recovery-and-rollback", "planning-params-and-recommendations", "planning-audit-log-readback", "planning-production-recovery-and-rollback"],
+      "notes": "Planning physical tenant-isolation rehearsal passed on two separate throwaway MariaDB databases routed by host: b4-planning-tenant2.local used a cloned ecomae_b4_planning_tenant2 database. Authenticated tenant-1 and tenant-2 ERP sessions both passed MRP dry-run with writes=0 and writesBlocked=true; only tenant 2 performed the confirmed BOM-exploded MRP write, and direct SQL plus authenticated master-planning HTML readback showed tenant-2-only production/purchase rows (8.000 and 13.000, source=mrp, status=planned). Tenant 1 had zero matching planning rows. Tagged BOM, inventory, and planned rows were deleted, the temporary registry mapping was removed, and the physical database was dropped and verified absent. Planning audit-log readback is not claimed because the PHP MRP functions do not emit audit rows; parameters/recommendations, production recovery/rollback, UAT, and production approval remain open."
     },
     {
       "id": "B5",
