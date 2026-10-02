@@ -1,0 +1,38 @@
+{
+  "area": "B8",
+  "slice": "withholding-contract-and-dry-run",
+  "status": "partial",
+  "authority": {
+    "php": "content/shop/finance/epc_erp_withholding.php",
+    "aspnet": [
+      "aspnet/src/EcomAE.Platform/Erp/ErpWhtRecordWriteService.cs",
+      "aspnet/src/EcomAE.Platform/Migration/ErpWhtRecordDryRun.cs",
+      "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs",
+      "aspnet/src/EcomAE.Platform/Components/Pages/ErpWithholdingApp.razor"
+    ]
+  },
+  "verified": [
+    "PHP-owned epc_wht_code and epc_wht_txn schema fields were preserved",
+    "native withholding form posts bind code_id, vendor, doc_ref, txn_date, base_amount, company_id, and confirmWrites",
+    "dry-run requests remain writes=0 and writesBlocked=true until confirmWrites=true",
+    "invalid code and non-positive base amount are denied",
+    "withholding calculation matches PHP half-up rounding",
+    "tax calculation reads tenant jurisdiction from PHP-owned tenant profile data"
+  ],
+  "unverified": [
+    "confirmed withholding persistence",
+    "direct SQL readback and PHP audit readback",
+    "certificate issuance and settlement lifecycle",
+    "authenticated browser readback",
+    "second physical database tenant isolation",
+    "production backup/restore and ownership rollback",
+    "UAT and production acceptance"
+  ],
+  "safety": {
+    "liveTenantWrites": false,
+    "productionWrites": false,
+    "phpFallbackRequired": true,
+    "dummyRowsCreated": false
+  },
+  "reasonUnverified": "The throwaway local database is reachable, but PHP withholding tables are not provisioned and the local tenant-registry authentication bridge is unavailable for a confirmed ASP.NET write rehearsal. This evidence therefore does not claim persistence or browser acceptance."
+}
