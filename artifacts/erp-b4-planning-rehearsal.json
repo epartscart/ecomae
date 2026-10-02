@@ -83,10 +83,21 @@
         "Invalid recommendation status returned validation_code=invalid with writes=0 and left the confirmed row unchanged. A rejected-to-confirmed retry completed successfully. Negative and out-of-range parameter inputs were normalized to the PHP-compatible bounds.",
         "Tagged item, warehouse, stock, parameter, recommendation rows, and locally provisioned planning tables were removed and verified absent."
       ]
+    },
+    {
+      "scenario": "planning-audit-readback",
+      "result": "not_applicable",
+      "evidence": [
+        "The PHP-owned MRP implementation in content/shop/finance/epc_erp_mfg_routing.php persists BOM and planned-order rows without calling epc_erp_audit_log.",
+        "The PHP-owned order-planning implementation in content/shop/finance/epc_erp_order_planning.php persists parameters and recommendations without calling epc_erp_audit_log.",
+        "Direct throwaway SQL readback from the planning rehearsals found no planning-specific audit rows."
+      ],
+      "limitations": [
+        "Planning production recovery/rollback, UAT, production smoke, and release-owner approval remain open."
+      ]
     }
   ],
   "unverified": [
-    "planning-audit-log-readback",
     "planning-tenant-isolation",
     "planning-production-recovery-and-rollback"
   ]
