@@ -34,8 +34,100 @@ program is an ERP-first PHP coexistence migration. Therefore:
 | H. Reporting catalogue | PHP/ASP.NET report inventories and Jewellery history projections | **Partial**; drill-down/export/print parity is not accepted for every report family |
 | I. Migration/reconciliation strategy | tenant safety, PHP decommission, ERP acceptance and Jewellery plans | **Present**; Jewellery stock/WIP/consignment reconciliation needs executable fixtures |
 | J. Automated testing strategy | contract tests, focused service tests, throwaway rehearsal skill | **Partial**; golden transaction scenarios need stock + accounting + tax + audit + reversal assertions |
-| K. Screenshot/Excel gap list | visual parity matrix, field mapping, acceptance board | **Present and expanded below**; Excel workbook was not supplied in this attachment |
+| K. Screenshot/Excel gap list | visual parity matrix, field mapping, acceptance board, and the supplied `INDUS_LIVE_Maximum_Fields_Legacy_Style_ERP_2.xlsx` | **Present and expanded below**; workbook fields are evidence of the requested legacy-style surface, not proof of PHP schema or accepted behavior |
 | L. Revised roadmap and measurable gates | ERP completion directive and Jewellery completion plan | **Present**; this document adds dependency order and target architecture gates |
+
+## Supplied workbook reconciliation
+
+The workbook is **consistent with the Jewellery scope and direction**, but it is
+more concrete and broader than the earlier attachment set. It supplies a
+legacy-style menu and field catalogue for 15 surfaces:
+
+1. Account Master
+2. POS Customer
+3. Metal Purchase
+4. POS Sale
+5. Branch Transfer
+6. Manufacture
+7. Journal Voucher
+8. Metal Stock Balance
+9. Employee Master
+10. Metal Master
+11. Diamond Master
+12. Daily Rates
+13. Stock Ledger
+14. Trial Balance
+15. Dashboard
+
+The following areas match the existing plan directly:
+
+| Workbook evidence | Existing plan/traceability match | Reconciliation result |
+| --- | --- | --- |
+| Metal/karat/rate master | Metal, karat, rate type, currency and daily-rate mapping | **Aligned**; effective-date, branch, status and rate snapshots remain acceptance fields |
+| Diamond/stone master | Stone, pearl, diamond, design and component linkage | **Aligned**; certificate, lot, supplier, cost/ct, price/ct and picture fields are now explicit workbook requirements |
+| Metal purchase/fixing | Purchase, fixing, supplier, purity, pure weight, FC/LC and VAT | **Aligned**; settlement, approval, posting and attachment fields remain open behavior gates |
+| POS sale | Tagged sale, karat/rate, customer, VAT and return | **Aligned but incomplete**; tender, multiple currencies, scheme redemption, tourist refund, due and limited-edit behavior need end-to-end proof |
+| Branch transfer | Branch/location movement and measured stock values | **Aligned**; receipt, in-transit, source links, differences and posting behavior remain open |
+| Manufacture | BOM/component, tag, cost/price, metal/stone/other tabs | **Aligned but incomplete**; WIP, pure-weight, wastage/loss, component issue and finished-tag posting remain open |
+| Journal voucher/trial balance | Balanced FC/LC finance and reporting architecture | **Aligned**; PHP account mappings, VAT lines, allocation, party, cost centre and report drill-down remain open |
+| Metal stock balance/stock ledger | Stock balance, ledger, verification, branch/location and tag identity | **Aligned but incomplete**; universal immutable movement/reversal and full filter/export/print parity remain open |
+| Account master/POS customer | Party, customer, supplier, KYC/AML, credit and commercial controls | **Partially aligned**; workbook adds credit limits, gold-unfix limits, margin, identity, sanctions, approval and account-control fields not yet accepted end-to-end |
+| Employee master | Salesman/operator/organization scope | **Partially aligned**; salary, immigration, leave, WPS and pay-component tabs are new workbook evidence and are not Jewellery acceptance scope unless PHP references confirm them |
+| Dashboard | Management KPIs and workflow chain | **Aligned as a presentation target**; live KPI source, drill-down and reconciliation remain unaccepted |
+
+### Newly explicit workbook field requirements
+
+The workbook adds field-level requirements that were only implicit or absent in
+the earlier mapping:
+
+- **Account controls:** trade debtor/creditor mode, credit limits in LC and
+  gold-unfix grams, credit days, margins, interest, brokerage, account hold,
+  allocation, cash-account flag, transaction dates, trade licence/TRN and
+  banking details.
+- **Customer/KYC/AML:** government ID and expiry, nationality, customer risk,
+  approval state, KYC state, sanctions names/passports/DOBs, AKA, related
+  persons and risk result.
+- **Sale/tender:** stock code plus tag/barcode, measured weights, cost/margin,
+  tender mode/currency/rate, bank/card reference, approval number, gold-scheme
+  redemption, adjusted return, VAT rounding, due, attachments and limited-edit
+  status.
+- **Transfer:** source/destination locations, in-transit state, purchase and
+  batch references, purity/stone differences, sales-return transfer and
+  attachment links.
+- **Manufacture:** classification, tag/barcode, five price tiers, cost centre,
+  component sequence/IDs, metal/stone/other component tabs, issue location,
+  batch, supplier reference, setting type and picture references.
+- **Finance/reporting:** VAT debit/credit totals, allocation references,
+  opening/period/closing balances, stock-ledger movement directions, report
+  filters, valuation switches, zero-quantity controls, in-transit/repair
+  inclusion and output template.
+- **Operations:** employee organization, immigration/leave/salary tabs and
+  pay-component lines.
+
+These are **field-catalogue requirements**, not authorization to create shadow
+tables. Each field must be mapped to an observed PHP column, existing PHP
+remark/JSON contract, or an explicitly approved post-migration enhancement.
+
+### Workbook-specific gaps added to the acceptance board
+
+- No complete PHP-to-workbook field/action/validation/report trace exists yet
+  for all 15 sheets.
+- Account Master and POS Customer KYC/AML/credit-control behavior is not
+  fully accepted through native UI, SQL/audit, permission and negative-path
+  evidence.
+- POS tender, scheme redemption, old-gold exchange, tourist VAT refund,
+  multiple-currency settlement, adjusted return and limited-edit controls
+  remain open.
+- Manufacture's full component tabs, tag creation, WIP/pure-weight/loss
+  reconciliation, price tiers and finished-stock posting remain open.
+- Branch transfer receipt/in-transit and purity/stone-difference behavior
+  remain open.
+- Stock Ledger, Trial Balance and Dashboard need populated-source drill-down,
+  filter, export/print and reconciliation evidence rather than shell/readback
+  claims.
+- Employee Master salary/immigration/leave evidence is present in the workbook
+  but its inclusion in the ERP Jewellery migration must first be confirmed
+  against PHP ownership and scope.
 
 ## Target ERD (proposal, not PHP schema)
 
@@ -198,8 +290,9 @@ current migration:
   recovery, UAT, and production gates remain open;
 - report filter/drill/export/print parity is not accepted for every listed
   report family;
-- the workbook/Excel-specific field gap list cannot be closed until the
-  workbook is available for inspection.
+- the supplied workbook now provides the field catalogue, but the
+  PHP-to-workbook field/action/validation/report trace is still open for all
+  15 sheets;
 
 These are acceptance gaps, not authorization to invent PHP columns or migrate
 live data.
