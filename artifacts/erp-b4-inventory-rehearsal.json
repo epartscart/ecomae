@@ -98,10 +98,25 @@
         "Invalid movement type returned Invalid movement type with writes=0.",
         "Unauthenticated confirmed write returned HTTP 401 and created no tagged row."
       ]
+    },
+    {
+      "scenario": "inventory-local-backup-restore",
+      "result": "pass",
+      "evidence": [
+        "A fresh throwaway database was provisioned from the PHP-owned inventory table schemas only.",
+        "Tagged warehouse, item, stock, and opening-movement rows were backed up with mysqldump.",
+        "All tagged rows were deleted, restored from the dump, and corroborated as 1/1/1/1 rows with qty_on_hand=7.000.",
+        "The temporary database and backup files were removed; database absence was verified."
+      ],
+      "limitations": [
+        "This is local throwaway MariaDB backup/restore evidence only.",
+        "Production backup/restore and ownership rollback remain unverified."
+      ]
     }
   ],
   "missing": [
     "quality-fixture",
-    "inventory-full-recovery-and-rollback"
+    "inventory-full-recovery-and-rollback",
+    "inventory-production-backup-restore-and-ownership-rollback"
   ]
 }
