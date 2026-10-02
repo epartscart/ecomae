@@ -13550,8 +13550,21 @@ public sealed class ErpModule : ISurfaceModule
             return Unauthorized("Admin ERP capability required for payment-batch lifecycle.");
         }
 
-        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentBatchStatusBody>(context, cancellationToken)
-            ?? new ErpPaymentBatchStatusBody();
+        ErpPaymentBatchStatusBody body;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            body = new(
+                LiveWriteFormBinder.Long(form, "id", "batch_id"),
+                LiveWriteFormBinder.Text(form, "targetStatus", "target_status"),
+                LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+        }
+        else
+        {
+            body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPaymentBatchStatusBody>(context, cancellationToken)
+                ?? new ErpPaymentBatchStatusBody();
+        }
+
         if (!body.ConfirmWrites)
         {
             return Results.Ok(new

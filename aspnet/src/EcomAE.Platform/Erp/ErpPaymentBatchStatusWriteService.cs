@@ -50,7 +50,7 @@ public sealed class ErpPaymentBatchStatusWriteService : IErpPaymentBatchStatusWr
         }
 
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        await ErpDb.ExecuteAsync(
+        var updated = await ErpDb.ExecuteAsync(
             connection,
             null,
             ErpDb.Positional("""
@@ -63,6 +63,13 @@ public sealed class ErpPaymentBatchStatusWriteService : IErpPaymentBatchStatusWr
             now,
             batchId,
             current).ConfigureAwait(false);
+
+        if (updated == 0)
+        {
+            return ErpSimpleWriteResult.Fail(
+                "conflict",
+                "Payment batch status changed before this request completed.");
+        }
 
         await TrySyncProcessCaseAsync(connection, batchId, target, now, cancellationToken).ConfigureAwait(false);
         return ErpSimpleWriteResult.Ok($"Payment batch {target}.", batchId);
