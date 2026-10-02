@@ -7911,7 +7911,8 @@ public sealed class ErpModule : ISurfaceModule
                     marginOnFix,
                     marginOnUnfix,
                     makingCharges,
-                    notes),
+                    notes,
+                    session.UserId),
                 cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
@@ -7969,7 +7970,9 @@ public sealed class ErpModule : ISurfaceModule
                 return Results.Ok(result.ToPayload(SessionPayload(session)));
             }
 
-            var written = await writes.SettleAsync(new ErpJwFixUnfixSettleRequest(id, companyId, settleRate), cancellationToken);
+            var written = await writes.SettleAsync(
+                new ErpJwFixUnfixSettleRequest(id, companyId, settleRate, session.UserId),
+                cancellationToken);
             return LiveWriteFormBinder.Complete(context, returnApp, written.Succeeded, written.Message, new
             {
                 ok = written.Succeeded,

@@ -125,7 +125,11 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("structure_type` = 'unfix'", service, StringComparison.Ordinal);
         Assert.Contains("company_id` = ?", service, StringComparison.Ordinal);
         Assert.Contains("CompanyId", service, StringComparison.Ordinal);
+        Assert.Contains("jw_fix_unfix_create", service, StringComparison.Ordinal);
+        Assert.Contains("jw_fix_unfix_settle", service, StringComparison.Ordinal);
+        Assert.Contains("ActorUserId", service, StringComparison.Ordinal);
         Assert.Contains("companyId = LiveWriteFormBinder.Int(form", module, StringComparison.Ordinal);
+        Assert.Contains("session.UserId)", module, StringComparison.Ordinal);
         Assert.Contains("name=\"company\"", page, StringComparison.Ordinal);
     }
 
