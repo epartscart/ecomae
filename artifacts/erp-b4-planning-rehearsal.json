@@ -68,10 +68,24 @@
         "Tagged planned orders, BOM lines, BOM header, and inventory items were removed from the throwaway database.",
         "SQL verification returned zero remaining tagged planning rows and items."
       ]
+    },
+    {
+      "scenario": "planning-params-and-recommendations",
+      "result": "pass",
+      "routes": [
+        "/erp/ajax/opl-params-save",
+        "/erp/ajax/opl-set-status"
+      ],
+      "evidence": [
+        "Authenticated tenant-1 parameter-save and recommendation-status dry-runs returned writes=0, writesBlocked=true, cutoverAllowed=false, and no SQL rows were created.",
+        "Confirmed parameter save persisted lead time, service level, review period, minimum quantity, order multiple, manual buffer, supplier, and stocked values through the ASP.NET route.",
+        "Confirmed recommendation status UPSERT persisted ROQ 6.000, order value 60.00, supplier, and confirmed status; authenticated order-planning HTML visibly rendered the tagged SKU, item, warehouse, quantities, value, supplier, and status.",
+        "Invalid recommendation status returned validation_code=invalid with writes=0 and left the confirmed row unchanged. A rejected-to-confirmed retry completed successfully. Negative and out-of-range parameter inputs were normalized to the PHP-compatible bounds.",
+        "Tagged item, warehouse, stock, parameter, recommendation rows, and locally provisioned planning tables were removed and verified absent."
+      ]
     }
   ],
   "unverified": [
-    "planning-params-and-recommendations",
     "planning-audit-log-readback",
     "planning-tenant-isolation",
     "planning-production-recovery-and-rollback"
