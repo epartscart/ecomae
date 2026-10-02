@@ -3467,6 +3467,19 @@ public sealed record CpEinvoiceDocumentsDigestResult(
     string Source,
     string Message);
 
+public sealed record CpEinvoiceSellerProfile(
+    string SellerName,
+    string SellerTrn,
+    string SellerTin,
+    string SellerCity,
+    string SellerEmirate,
+    string SellerCountryCode,
+    string SellerEmail,
+    string CompanyCountryCode,
+    bool CompanyVatRegistered,
+    string Source,
+    string Message);
+
 public sealed record CpEinvoiceDocumentDetail(
     long Id,
     string Uuid,

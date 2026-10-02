@@ -51,11 +51,11 @@
         <form id="seller" method="post" action="/erp/ajax/einvoice-save-seller" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:1rem 0;max-width:52rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@_returnHref" />
-            <label>Seller name <input type="text" name="sellerName" required /></label>
-            <label>TRN <input type="text" name="sellerTrn" required maxlength="15" /></label>
-            <label>Country <input type="text" name="sellerCountryCode" value="AE" style="width:4rem" /></label>
-            <label>City <input type="text" name="sellerCity" value="Dubai" /></label>
-            <label>VAT registered <input type="checkbox" name="companyVatRegistered" value="1" checked /></label>
+            <label>Seller name <input type="text" name="sellerName" value="@_sellerProfile.SellerName" required /></label>
+            <label>TRN <input type="text" name="sellerTrn" value="@_sellerProfile.SellerTrn" required maxlength="15" /></label>
+            <label>Country <input type="text" name="sellerCountryCode" value="@(_sellerProfile.SellerCountryCode is { Length: > 0 } ? _sellerProfile.SellerCountryCode : "AE")" style="width:4rem" /></label>
+            <label>City <input type="text" name="sellerCity" value="@(_sellerProfile.SellerCity is { Length: > 0 } ? _sellerProfile.SellerCity : "Dubai")" /></label>
+            <label>VAT registered <input type="checkbox" name="companyVatRegistered" value="1" checked="@_sellerProfile.CompanyVatRegistered" /></label>
             <button type="submit">Save seller</button>
         </form>
         <form method="post" action="/erp/ajax/einvoice-save-buyer" style="display:flex;flex-wrap:wrap;gap:.45rem;align-items:end;margin:0 0 1rem;max-width:52rem">
@@ -220,6 +220,7 @@
     private CpEinvoiceDocumentDetail? _openedDocument;
     private IReadOnlyList<CpEinvoiceLineDigest> _openedLines = [];
     private IReadOnlyList<CpEinvoiceEventDigest> _openedEvents = [];
+    private CpEinvoiceSellerProfile _sellerProfile = new("", "", "", "", "", "", "", "", false, "n/a", "");
 
     private string OpenedCaption => _openedDocument is null
         ? ""
@@ -304,6 +305,7 @@
         _rows = result.Documents;
         _source = result.Source;
         _message = result.Message;
+        _sellerProfile = await Dashboards.BuildCpEinvoiceSellerProfileAsync(ctx.RequestAborted);
 
         if (_openedId > 0)
         {
