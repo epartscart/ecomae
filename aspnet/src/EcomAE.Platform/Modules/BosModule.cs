@@ -3713,6 +3713,63 @@ public sealed class BosModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
+        endpoints.MapPost(EcomAeRoutes.BosTenantConfigBulkSet, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IBosTenantConfigWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("bos"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/bos/login?returnUrl=/bos/fleet-summary-app", "Admin BOS capability required for tenant-config bulk-set.");
+            }
+
+            if (!SuperCpHostGate.IsAllowed(context))
+            {
+                return Results.NotFound();
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<BosTenantConfigBulkSetBody>(context, cancellationToken)
+                       ?? new();
+            var siteKey = body.SiteKey;
+            var group = body.Group;
+            var values = body.Values;
+            var updatedBy = body.UpdatedBy;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                siteKey = FormOrNull(form, "site_key", "siteKey");
+                group = FormOrNull(form, "group");
+                values = FormOrNull(form, "values");
+                updatedBy = LiveWriteFormBinder.Long(form, "updated_by", "updatedBy", "user_id", "userId");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(new
+                {
+                    status = "dry-run",
+                    writes = 0,
+                    writesBlocked = true,
+                    phpAuthoritative = true,
+                    validation_code = "dry_run",
+                    message = "Set confirmWrites=true to bulk-set tenant config.",
+                    session = SessionPayload(session)
+                });
+            }
+
+            var written = await writes.BulkSetAsync(siteKey, group, values, updatedBy, cancellationToken);
+            return LiveWriteFormBinder.Complete(
+                context,
+                "/bos/fleet-summary-app",
+                written.Succeeded,
+                written.Message,
+                new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, cutoverAllowed = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }).DisableAntiforgery();
+
         endpoints.MapPost(EcomAeRoutes.BosAiClassReview, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -4439,6 +4496,13 @@ public sealed class BosModule : ISurfaceModule
         string? Group = null,
         string? Key = null,
         string? Value = null,
+        long UpdatedBy = 0);
+
+    private sealed record BosTenantConfigBulkSetBody(
+        bool ConfirmWrites = false,
+        string? SiteKey = null,
+        string? Group = null,
+        string? Values = null,
         long UpdatedBy = 0);
 
     private sealed record BosAiClassReviewBody(
