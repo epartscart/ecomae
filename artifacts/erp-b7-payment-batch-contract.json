@@ -1,0 +1,59 @@
+{
+  "process": "B7",
+  "scenario": "payment-batch-line-and-processing-contract",
+  "status": "verified",
+  "scope": "php-schema-and-process-flow-contract",
+  "php_contract": {
+    "source": [
+      "content/shop/finance/epc_erp_extended.php",
+      "content/shop/finance/epc_erp_processflow.php"
+    ],
+    "table": "epc_erp_payment_batches",
+    "line_model": "scalar-line-count",
+    "line_table": null,
+    "supported_statuses": [
+      "draft",
+      "submitted",
+      "processed",
+      "cancelled"
+    ],
+    "status_transitions": [
+      "draft->submitted",
+      "submitted->processed",
+      "draft->cancelled",
+      "submitted->cancelled"
+    ],
+    "process_flow": {
+      "subject_type": "erp_payment",
+      "category": "payment_lifecycle",
+      "draft_step": 1,
+      "submitted_step": 2,
+      "processed_step": 3,
+      "processed_case_status": "done",
+      "cancelled_case_status": "cancelled"
+    },
+    "audit": {
+      "payment_batch_audit_rows": "not-emitted-by-php",
+      "evidence": "source inspection"
+    }
+  },
+  "aspnet_contract": {
+    "draft_route": "/erp/ajax/payment-batch-save",
+    "lifecycle_route": "/erp/ajax/payment-batch-status",
+    "line_model": "scalar-line-count",
+    "lost_update_result": "conflict",
+    "process_flow_sync": true
+  },
+  "observed": [
+    "PHP owns a payment-batch header with line_count and no child payment-batch line table",
+    "PHP process-flow cases advance from prepared to submitted to processed and cancel without inventing payment audit rows",
+    "ASP.NET native lifecycle binding and conditional-update conflict handling match the guarded contract",
+    "confirmed tenant persistence, SQL readback, browser rows, isolation, recovery, UAT, and production gates remain open"
+  ],
+  "production": {
+    "backup_restore": "open",
+    "route_rollback": "open",
+    "uat": "open",
+    "release_owner_approval": "open"
+  }
+}
