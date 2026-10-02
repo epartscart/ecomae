@@ -37,6 +37,15 @@ curl -fsS http://127.0.0.1:5100/health
 
 Record the outputs without recording secrets.
 
+Validate each completed bundle before attaching it to the acceptance record:
+
+```bash
+python3 scripts/validate_b4_recovery_bundle.py <tenant-process-bundle.json>
+```
+
+The validator rejects missing production references, throwaway-only evidence,
+failed rollback checks, and any attempt to enable cutover or remove PHP.
+
 ## Database recovery rehearsal
 
 Use the production backup mechanism approved by the database owner. Do not
