@@ -19,7 +19,8 @@ promotion gate:
 7. Production recovery and ownership rollback
 8. UAT and production release-owner approval
 
-The result is fail-closed:
+The result is fail-closed for each tenant, while tenants may be staged
+independently:
 
 ```text
 ready(tenant) =
@@ -28,8 +29,12 @@ ready(tenant) =
   && release_owner_approval_recorded(tenant)
 ```
 
-No tenant may be promoted because another tenant passed, because a weighted
-percentage increased, or because the service health endpoint returned 200.
+No tenant may be marked `ready` because another tenant passed, because a
+weighted percentage increased, or because the service health endpoint returned
+200. A `ready` tenant must contain a direct evidence reference for every gate;
+blocked tenants must contain no evidence claims. `ready` means eligible for a
+separate exact-route promotion decision, not that broad cutover or PHP removal
+is authorized.
 
 ## Required evidence bundle
 
@@ -63,6 +68,7 @@ or release approval by implication.
 9. Promote only the exact approved routes for that tenant.
 10. Re-run health, release-SHA, route, browser, and rollback smoke checks.
 
-Until all five named tenants have their own complete bundles, keep
-`cutoverAllowed=false`, `readyForPhpRemoval=false`, PHP/PHP-FPM available, and
-broad `/cp`, `/erp`, `/bos`, API, and storefront cutover disabled.
+Keep `cutoverAllowed=false`, `readyForPhpRemoval=false`, PHP/PHP-FPM available,
+and broad `/cp`, `/erp`, `/bos`, API, and storefront cutover disabled while
+tenant bundles are being staged. Staging one tenant does not authorize broad
+cutover or PHP removal.
