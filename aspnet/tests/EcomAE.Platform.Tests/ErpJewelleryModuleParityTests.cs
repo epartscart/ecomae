@@ -138,9 +138,12 @@ public sealed class ErpJewelleryModuleParityTests
     {
         var module = ReadPlatformSource("Modules/ErpModule.cs");
         var page = ReadApp("CpJewelleryRetailApp.razor");
+        var service = ReadSource("ErpJwVoucherWriteService.cs");
 
         Assert.Contains("|| !string.IsNullOrWhiteSpace(line.TagNo)", module, StringComparison.Ordinal);
         Assert.Contains("ActorUserId: session.UserId", module, StringComparison.Ordinal);
+        Assert.Contains("`reference`,`actor_id`,`time_created`", service, StringComparison.Ordinal);
+        Assert.Contains("Math.Max(0, request.ActorUserId)", service, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"line_stock_code\" required", page, StringComparison.Ordinal);
         Assert.DoesNotContain("name=\"line_description\" required", page, StringComparison.Ordinal);
     }
@@ -221,6 +224,10 @@ public sealed class ErpJewelleryModuleParityTests
         Assert.Contains("if (pricedLineTotal > 0)", voucher, StringComparison.Ordinal);
         Assert.Contains("var pricedLineTotal = lines", voucher, StringComparison.Ordinal);
         Assert.Contains("if (net == 0)\n        {\n            var pricedLineTotal", voucher, StringComparison.Ordinal);
+        Assert.Contains(
+            "await tagReader.DisposeAsync().ConfigureAwait(false);\n                        await transaction.RollbackAsync",
+            voucher,
+            StringComparison.Ordinal);
     }
 
     [Fact]
