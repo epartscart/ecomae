@@ -68,15 +68,20 @@ public sealed record ErpJwVoucherSaveRequest(
     decimal OldGoldExchange = 0,
     decimal GoldSchemeRedeem = 0,
     IReadOnlyList<ErpJwVoucherLineSaveRequest>? Lines = null,
-    IReadOnlyList<ErpJwVoucherReceiptSaveRequest>? Receipts = null);
+    IReadOnlyList<ErpJwVoucherReceiptSaveRequest>? Receipts = null,
+    int ActorUserId = 0);
 
 public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpAuditLogWriter _audit;
 
-    public ErpJwVoucherWriteService(IErpWriteConnectionFactory connections)
+    public ErpJwVoucherWriteService(
+        IErpWriteConnectionFactory connections,
+        IErpAuditLogWriter? audit = null)
     {
         _connections = connections;
+        _audit = audit ?? new ErpAuditLogWriter();
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(
@@ -408,6 +413,25 @@ public sealed class ErpJwVoucherWriteService : IErpJwVoucherWriteService
                     amountFc,
                     amountLc).ConfigureAwait(false);
             }
+
+            await _audit.LogAsync(
+                connection,
+                transaction,
+                request.ActorUserId,
+                "jw_voucher_save",
+                "epc_jewel_voucher",
+                id,
+                $"{vocType} voucher saved",
+                new Dictionary<string, string?>
+                {
+                    ["company_id"] = companyId.ToString(CultureInfo.InvariantCulture),
+                    ["voucher_type"] = vocType,
+                    ["line_count"] = lines.Count.ToString(CultureInfo.InvariantCulture),
+                    ["receipt_count"] = receipts.Count.ToString(CultureInfo.InvariantCulture),
+                    ["net_amount"] = net.ToString(CultureInfo.InvariantCulture),
+                    ["total_with_vat"] = totalWithVat.ToString(CultureInfo.InvariantCulture)
+                },
+                cancellationToken).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Ok(vocType + " voucher saved", id);
