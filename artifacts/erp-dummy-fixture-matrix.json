@@ -22,7 +22,8 @@
         "tagged-cleanup",
         "workflow-agenda-approval-raise-tenant-isolation",
         "tenant-scoped-approval-decide-denial-observed",
-        "approval-decide-tenant-isolation-with-tenant-approver"
+        "approval-decide-tenant-isolation-with-tenant-approver",
+        "approval-request-browser-row-readback"
       ],
       "missing": [
         "full-recovery-and-rollback"
