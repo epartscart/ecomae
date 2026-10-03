@@ -956,6 +956,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceFileWriteService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFyCreateWriteService, EcomAE.Platform.Erp.ErpFyCreateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosWfDecideWriteService, EcomAE.Platform.Erp.ErpBosWfDecideWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosWfRaiseWriteService, EcomAE.Platform.Erp.ErpBosWfRaiseWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosWfRequestReadService, EcomAE.Platform.Erp.ErpBosWfRequestReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOaPartySaveWriteService, EcomAE.Platform.Erp.ErpOaPartySaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpErFormatSaveWriteService, EcomAE.Platform.Erp.ErpErFormatSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOaAddressSaveWriteService, EcomAE.Platform.Erp.ErpOaAddressSaveWriteService>();

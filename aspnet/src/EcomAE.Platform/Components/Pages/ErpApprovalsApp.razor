@@ -7,6 +7,7 @@
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject EcomAE.Platform.Erp.IErpBosWfRequestReadService ApprovalRequests
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
@@ -162,6 +163,90 @@
         </table>
     </div>
 
+    @if (_isAdmin)
+    {
+        <h4 style="margin:1.4rem 0 .6rem">Approval requests</h4>
+        <div class="epc-erp-kpi epc-erp-stat-row" aria-label="Approval request stats">
+            <div class="kpi"><div class="lbl">Pending</div><div class="val">@_requests.Summary.Pending.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Approved</div><div class="val">@_requests.Summary.Approved.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Rejected</div><div class="val">@_requests.Summary.Rejected.ToString(CultureInfo.InvariantCulture)</div></div>
+            <div class="kpi"><div class="lbl">Active rules</div><div class="val">@_requests.Summary.Rules.ToString(CultureInfo.InvariantCulture)</div></div>
+        </div>
+        @if (!string.IsNullOrWhiteSpace(_requests.Message))
+        {
+            <p class="text-muted">@_requests.Message</p>
+        }
+
+        <h5>Pending approvals</h5>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-bordered table-condensed table-epc epc-erp-table" aria-label="Pending approval requests">
+                <thead><tr><th>Document</th><th>Type</th><th>Amount</th><th>Step</th><th>Raised</th><th>Decision</th></tr></thead>
+                <tbody>
+                    @foreach (var r in _requests.Pending)
+                    {
+                        <tr id="approval-request-@r.Id">
+                            <td><strong>@r.Title</strong><br /><small class="text-muted">@r.EntityRef</small></td>
+                            <td>@EcomAE.Platform.Erp.ErpBosWfRequestReadService.EntityTypeLabel(r.EntityType)</td>
+                            <td>@r.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td><span class="label label-warning">Step @((r.CurrentStep + 1).ToString(CultureInfo.InvariantCulture))/@r.StepCount.ToString(CultureInfo.InvariantCulture): @r.CurrentStepLabel</span></td>
+                            <td><small>@Day(r.CreatedAt)</small></td>
+                            <td style="white-space:nowrap">
+                                <form method="post" action="/erp/approvals/requests/decide" style="display:inline-block;margin:0">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
+                                    <input type="hidden" name="request_id" value="@r.Id" />
+                                    <input type="hidden" name="decision" value="approve" />
+                                    <input type="text" name="comment" placeholder="Comment" style="width:120px" />
+                                    <button class="btn btn-xs btn-success" type="submit">Approve</button>
+                                </form>
+                                <form method="post" action="/erp/approvals/requests/decide" style="display:inline-block;margin:0" onsubmit="return confirm('Reject this request?');">
+                                    <input type="hidden" name="confirmWrites" value="true" />
+                                    <input type="hidden" name="returnUrl" value="/erp/approvals-app" />
+                                    <input type="hidden" name="request_id" value="@r.Id" />
+                                    <input type="hidden" name="decision" value="reject" />
+                                    <button class="btn btn-xs btn-danger" type="submit">Reject</button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                    @if (_requests.Pending.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-muted">No pending approvals.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <h5>History &amp; audit</h5>
+        <div class="epc-erp-table-wrap">
+            <table class="table table-bordered table-condensed table-epc epc-erp-table" aria-label="Approval request history">
+                <thead><tr><th>Document</th><th>Type</th><th>Amount</th><th>Status</th><th>Decided</th><th>Audit trail</th></tr></thead>
+                <tbody>
+                    @foreach (var r in _requests.History)
+                    {
+                        <tr id="approval-history-@r.Id">
+                            <td><strong>@r.Title</strong><br /><small class="text-muted">@r.EntityRef</small></td>
+                            <td>@EcomAE.Platform.Erp.ErpBosWfRequestReadService.EntityTypeLabel(r.EntityType)</td>
+                            <td>@r.Amount.ToString("N2", CultureInfo.InvariantCulture)</td>
+                            <td><span class="label label-@StatusClass(r.Status)">@r.Status</span></td>
+                            <td><small>@(r.DecidedAt > 0 ? Day(r.DecidedAt) : "—")</small></td>
+                            <td>
+                                @foreach (var l in r.Log)
+                                {
+                                    <small>&rsaquo; <strong>@l.Action</strong>@(l.ActorName.Length > 0 ? " by " + l.ActorName : "")@(l.Comment.Length > 0 ? " — " + l.Comment : "") <span class="text-muted">(@Minute(l.Time))</span></small><br />
+                                }
+                            </td>
+                        </tr>
+                    }
+                    @if (_requests.History.Count == 0)
+                    {
+                        <tr><td colspan="6" class="text-muted">No approval requests yet.</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+
 </PhpErpDesktopChrome>
 
 @code {
@@ -173,6 +258,7 @@
     private string _flashErr = "";
     private string _openedId = "";
     private ErpApprovalQueueItemDigest? _opened;
+    private EcomAE.Platform.Erp.ErpBosWfRequestReadResult _requests = EcomAE.Platform.Erp.ErpBosWfRequestReadResult.Empty("n/a", "");
     private IReadOnlyList<string> ApprovalWorkspaceTabs => ["General", "Queue", "Target", "Actions"];
 
     private IReadOnlyList<ErpDocumentWorkspaceField> ApprovalWorkspaceFields => _opened is null
@@ -213,7 +299,20 @@
         _source = result.Source;
         _message = result.Message;
         _opened = string.IsNullOrWhiteSpace(_openedId) ? null : _queue.FirstOrDefault(item => item.Id == _openedId);
+        _requests = await ApprovalRequests.ReadAsync(ctx.RequestAborted);
     }
+
+    private static string Day(long unix) => DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("dd MMM yyyy", CultureInfo.InvariantCulture);
+
+    private static string Minute(long unix) => DateTimeOffset.FromUnixTimeSeconds(unix).ToLocalTime().ToString("dd MMM HH:mm", CultureInfo.InvariantCulture);
+
+    private static string StatusClass(string status) => status switch
+    {
+        "approved" => "success",
+        "rejected" => "danger",
+        "pending" => "warning",
+        _ => "default",
+    };
 
     private static string AppHrefFor(string id) => id switch
     {

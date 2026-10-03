@@ -54,6 +54,20 @@
       ]
     },
     {
+      "scenario": "approval-request-browser-row-readback",
+      "result": "pass",
+      "scope": "local-throwaway-mariadb-base-tenant",
+      "route": "/erp/approvals-app",
+      "evidence": [
+        "ErpApprovalsApp now reads tenant-local epc_bos_approval_requests and epc_bos_approval_log through IErpBosWfRequestReadService with PHP ordering and limits (pending created_at DESC limit 100, history created_at DESC limit 80, log id ASC)",
+        "two tagged pending requests seeded in the local fixture tenant rendered as authenticated pending rows with PHP entity-type labels, N2 amounts, step label 'Step 1/1: Manager sign-off', and per-row approve/reject forms",
+        "per-row approve and reject posts to /erp/approvals/requests/decide returned 302 with 'Approved (final)' and 'Rejected'; SQL showed approved/rejected status, decided_at set, and actor/comment audit rows",
+        "the refreshed page rendered both requests in history with approved/rejected status labels and the audit trail including actor and comment, and the pending table showed 'No pending approvals.'",
+        "an anonymous request redirected (302) and rendered zero tagged content",
+        "tagged requests and log rows were deleted; approval requests, log, and rules counts returned to zero"
+      ]
+    },
+    {
       "scenario": "isolation-cleanup",
       "result": "pass",
       "evidence": [
@@ -65,7 +79,6 @@
     }
   ],
   "remaining": [
-    "approval-request-browser-row-readback",
     "workflow-production-recovery-and-rollback",
     "workflow-uat-and-production-acceptance"
   ],
@@ -79,7 +92,7 @@
     "tenantPromotionAllowed": false
   },
   "notes": [
-    "The approvals workspace renders a dashboard digest and decision forms, not a per-request list, so approval isolation is corroborated by SQL only.",
+    "Approval two-tenant isolation was corroborated by SQL before the approvals workspace gained per-request rows; the per-request browser readback was rehearsed on the base fixture tenant only.",
     "This local rehearsal does not satisfy production backup, restore, exact-route rollback, UAT, smoke, release-identity, cleanup, or release-owner approval gates."
   ]
 }
