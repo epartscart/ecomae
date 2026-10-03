@@ -1774,6 +1774,8 @@ check 'cp debug console app page exists' test -f "$ROOT/aspnet/src/EcomAE.Platfo
 check 'same-to-same look validator includes MarketingPreviewApp' bash -c 'grep -Fq -- "MarketingPreviewApp.razor" "$1" && exit 1 || exit 0' _ "$ROOT/scripts/validate_same_to_same_look_gaps.py"
 check 'storefront industry host resolver exists' test -f "$ROOT/aspnet/src/EcomAE.Platform/Presentation/StorefrontIndustryHostResolver.cs"
 check 'cp debug console item field floor exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-debug-console-item-field-floor.json"
+check 'B2 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b2_recovery_bundle.py" 'productionEvidence must be true'
+check 'B3 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b3_recovery_bundle.py" 'productionEvidence must be true'
 check 'B4 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b4_recovery_bundle.py" 'productionEvidence must be true'
 check 'B5 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b5_recovery_bundle.py" 'productionEvidence must be true'
 check 'B7 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b7_recovery_bundle.py" 'productionEvidence must be true'
