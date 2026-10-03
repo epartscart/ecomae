@@ -21,10 +21,10 @@
         "workflow-and-agenda-audit-readback",
         "tagged-cleanup",
         "workflow-agenda-approval-raise-tenant-isolation",
-        "tenant-scoped-approval-decide-denial-observed"
+        "tenant-scoped-approval-decide-denial-observed",
+        "approval-decide-tenant-isolation-with-tenant-approver"
       ],
       "missing": [
-        "approval-decide-tenant-isolation-with-tenant-approver",
         "full-recovery-and-rollback"
       ],
       "recovery": {

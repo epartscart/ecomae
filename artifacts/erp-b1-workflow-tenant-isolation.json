@@ -39,17 +39,32 @@
       ]
     },
     {
+      "scenario": "approval-decide-tenant-isolation-with-tenant-approver",
+      "result": "pass",
+      "scope": "two-physical-throwaway-mariadb-databases",
+      "route": "/erp/approvals/requests/decide",
+      "evidence": [
+        "a second throwaway database (ecomae_b1dec_t2_1791004112) was cloned from the base fixture and mapped to b1-decide-tenant2.local; only that tenant database received a tagged active expense approval rule and a tagged 'Administration Approve' module ACL granted to the operator group, so the tenant-2 session carried module_acl for administration Approve without super ERP access",
+        "both hosts authenticated independently; raise and decide dry-runs on both hosts returned dry-run-validated with writes=0 and writesBlocked=true and left approval request/log counts unchanged in both databases",
+        "two tagged expense approval requests were raised through tenant 2 (PHP-compatible success redirects) and persisted only in the tenant-2 database with rule-raised log rows",
+        "confirmed approve and reject attempts for the tenant-2 request ids from the tenant-1 session returned 'Request not pending' and changed no rows in either database",
+        "the tenant-2 approver approved one request (Approved (final), status=approved, decided_at set) and rejected the other (Rejected, status=rejected, decided_at set); approved/rejected epc_bos_approval_log rows carried the tenant-2 actor and tagged comment",
+        "confirmed retries on both decided requests returned 'Request not pending' with no additional rows, matching PHP epc_bos_wf_decide",
+        "tenant-1 SQL had zero tagged requests or log rows; neither approvals workspace rendered the tag because the page is a digest/decision surface"
+      ]
+    },
+    {
       "scenario": "isolation-cleanup",
       "result": "pass",
       "evidence": [
         "tagged approval log, request, and rule rows, tagged audit rows, workflow task, and agenda event were deleted from tenant 2 with zero residue",
         "the temporary b1-iso-t2 registry row was removed and ecomae_b1_tenant2_1790999820 was dropped",
-        "post-cleanup registry, hostname, database, and tenant-1 tagged-row counts were zero"
+        "post-cleanup registry, hostname, database, and tenant-1 tagged-row counts were zero",
+        "approval-decide rehearsal cleanup removed the b1-decide-tenant2.local registry row, dropped ecomae_b1dec_t2_1791004112, revoked its grants, and verified zero registry/database/grant residue and zero tenant-1 approval rules, requests, logs, modules, or module ACL rows"
       ]
     }
   ],
   "remaining": [
-    "approval-decide-tenant-isolation-with-tenant-approver",
     "approval-request-browser-row-readback",
     "workflow-production-recovery-and-rollback",
     "workflow-uat-and-production-acceptance"
