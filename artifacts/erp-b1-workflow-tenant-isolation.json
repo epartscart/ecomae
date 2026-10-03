@@ -1,0 +1,70 @@
+{
+  "process": "B1 Home & Workflow",
+  "scope": "throwaway-local-mariadb",
+  "tenant": "ecomae",
+  "observedAt": "2026-10-03",
+  "release": {
+    "sha": "17534da9764079fc18fa65ed047834ca311ee69a",
+    "routeOwner": "aspnet"
+  },
+  "liveTenantWrites": false,
+  "phpFallbackRequired": true,
+  "status": "partial",
+  "schemaAuthority": "php-owned",
+  "verified": [
+    {
+      "scenario": "workflow-agenda-approval-raise-tenant-isolation",
+      "result": "pass",
+      "scope": "two-physical-throwaway-mariadb-databases",
+      "evidence": [
+        "tenant registry mapped www.ecomae.com to ecomae and b1-workflow-tenant2.local to ecomae_b1_tenant2_1790999820",
+        "both hosts authenticated independently and redirected to /erp/app",
+        "authenticated dry-runs for workflow create, agenda save, and approval raise on both hosts returned dry-run-validated with writes=0 and writesBlocked=true; row counts were unchanged in both databases",
+        "confirmed tagged workflow create, agenda save, and approval raise through b1-workflow-tenant2.local returned the PHP-compatible success redirects and persisted only in the tenant-2 database",
+        "tenant-2 SQL showed one tagged workflow task, one tagged agenda event, one tagged pending approval request with its rule-raised approval log row, and workflow_create/agenda_save audit rows",
+        "confirmed tenant-2 workflow status update persisted status=done with completed_at and a workflow_status audit row",
+        "tenant-2 authenticated /erp/workflow-app and /erp/agenda-app HTML rendered the unique marker",
+        "tenant-1 SQL showed zero tagged workflow, agenda, approval rule, approval request, and audit rows; tenant-1 audit count stayed at its baseline",
+        "tenant-1 authenticated /erp/workflow-app, /erp/agenda-app, and /erp/approvals-app HTML did not render the tenant-2 marker"
+      ]
+    },
+    {
+      "scenario": "tenant-scoped-approval-decide-denial",
+      "result": "observed-fail-closed",
+      "route": "/erp/approvals/requests/decide",
+      "evidence": [
+        "the tenant-2 session carried tenant ERP access without super ERP access or an administration Approve module ACL",
+        "both dry-run and confirmed decide requests on tenant 2 were refused by the administration Approve capability gate; the tagged request stayed pending with decided_at=0",
+        "the same dry-run decide request on the super-ERP tenant-1 session returned dry-run-validated with writes=0"
+      ]
+    },
+    {
+      "scenario": "isolation-cleanup",
+      "result": "pass",
+      "evidence": [
+        "tagged approval log, request, and rule rows, tagged audit rows, workflow task, and agenda event were deleted from tenant 2 with zero residue",
+        "the temporary b1-iso-t2 registry row was removed and ecomae_b1_tenant2_1790999820 was dropped",
+        "post-cleanup registry, hostname, database, and tenant-1 tagged-row counts were zero"
+      ]
+    }
+  ],
+  "remaining": [
+    "approval-decide-tenant-isolation-with-tenant-approver",
+    "approval-request-browser-row-readback",
+    "workflow-production-recovery-and-rollback",
+    "workflow-uat-and-production-acceptance"
+  ],
+  "formalStatus": "OPEN",
+  "productionEvidence": false,
+  "cutoverAllowed": false,
+  "keepPhpFallback": true,
+  "readyForPhpRemoval": false,
+  "acceptance": {
+    "erpComplete": false,
+    "tenantPromotionAllowed": false
+  },
+  "notes": [
+    "The approvals workspace renders a dashboard digest and decision forms, not a per-request list, so approval isolation is corroborated by SQL only.",
+    "This local rehearsal does not satisfy production backup, restore, exact-route rollback, UAT, smoke, release-identity, cleanup, or release-owner approval gates."
+  ]
+}

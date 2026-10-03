@@ -19,10 +19,12 @@
         "workflow-invalid-input-browser-denial",
         "workflow-duplicate-retry-observed-allowed",
         "workflow-and-agenda-audit-readback",
-        "tagged-cleanup"
+        "tagged-cleanup",
+        "workflow-agenda-approval-raise-tenant-isolation",
+        "tenant-scoped-approval-decide-denial-observed"
       ],
       "missing": [
-        "tenant-isolation",
+        "approval-decide-tenant-isolation-with-tenant-approver",
         "full-recovery-and-rollback"
       ],
       "recovery": {
