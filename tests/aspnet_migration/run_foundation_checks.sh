@@ -1776,6 +1776,8 @@ check 'storefront industry host resolver exists' test -f "$ROOT/aspnet/src/EcomA
 check 'cp debug console item field floor exists' test -f "$ROOT/docs/migration/evidence/surface-parity/cp-debug-console-item-field-floor.json"
 check 'B2 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b2_recovery_bundle.py" 'productionEvidence must be true'
 check 'B3 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b3_recovery_bundle.py" 'productionEvidence must be true'
+check 'B1 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b1_recovery_bundle.py" 'productionEvidence must be true'
+check 'B6 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b6_recovery_bundle.py" 'productionEvidence must be true'
 check 'B4 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b4_recovery_bundle.py" 'productionEvidence must be true'
 check 'B5 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b5_recovery_bundle.py" 'productionEvidence must be true'
 check 'B7 recovery validator requires production evidence' contains "$ROOT/scripts/validate_b7_recovery_bundle.py" 'productionEvidence must be true'
