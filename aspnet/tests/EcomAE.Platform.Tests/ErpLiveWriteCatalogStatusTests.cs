@@ -66,6 +66,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/cc-kpi-tiles",
         "/erp/ajax/concurrency-status",
         "/erp/ajax/presence-heartbeat",
+        "/erp/ajax/edit-lock-acquire",
         "/erp/ajax/cc-approval-queue",
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",

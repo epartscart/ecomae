@@ -4623,8 +4623,7 @@ public sealed class ErpModule : ISurfaceModule
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockAcquire, async (HttpContext context, ErpEditLockAcquireBody? body, ILegacySessionValidator validator, IErpEditLockAcquireDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpEditLockAcquireRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockAcquire, HandleEditLockAcquireAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockHeartbeat, HandleEditLockHeartbeatAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockRelease, HandleEditLockReleaseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPresenceHeartbeat, HandlePresenceHeartbeatAsync).DisableAntiforgery();
@@ -23879,6 +23878,75 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+
+    /// <summary>
+    /// PHP ajax <c>edit_lock_acquire</c> twin: soft edit lock acquire for the calling admin.
+    /// 403 on denied force-take, 409 on another user's live lock; can_force mirrors PHP.
+    /// </summary>
+    private static async Task<IResult> HandleEditLockAcquireAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpEditLockAcquireDryRun dryRun,
+        IErpEditLockAcquireWriteService acquire,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/sales-orders-app", "Admin ERP capability required for edit lock acquire.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var entityType = AmlText(fields, "entity_type", "entityType");
+        var entityId = AmlText(fields, "entity_id", "entityId");
+        var resourceKey = AmlText(fields, "resourceKey", "resource_key");
+        var ttl = (int)AmlLong(fields, "ttl", "ttlSeconds", "ttl_seconds");
+        if (ttl <= 0) ttl = 120;
+        var force = AmlFlag(fields, "force", "force_lock", "forceLock");
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpEditLockAcquireRequest(resourceKey, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var cookie = context.Request.Cookies["session"] ?? context.Request.Cookies["admin_session"] ?? "";
+        var ctx = new ErpPresenceContext(
+            session.UserId,
+            "",
+            "",
+            entityType,
+            entityId,
+            cookie,
+            context.Request.Headers.UserAgent.ToString(),
+            ErpPresenceWriteService.ClientIp(context),
+            session.HasBackendAccess);
+        var res = await acquire.AcquireAsync(ctx, ttl, force, cancellationToken);
+
+        var payload = new Dictionary<string, object?>(StringComparer.Ordinal)
+        {
+            ["ok"] = res.Ok,
+            ["message"] = res.Message,
+            ["writes"] = res.Writes,
+            ["phpAuthoritative"] = false,
+            ["session"] = SessionPayload(session),
+        };
+        if (res.Lock is not null) payload["lock"] = res.Lock;
+        if (res.Conflict is not null) payload["conflict"] = res.Conflict;
+        if (res.ConflictCode is not null) payload["conflict_code"] = res.ConflictCode;
+        payload["can_force"] = res.CanForce || res.ConflictCode != "force_denied";
+
+        if (res.ConflictCode == "force_denied")
+        {
+            payload["conflict"] = true;
+            return Results.Json(payload, statusCode: StatusCodes.Status403Forbidden);
+        }
+        if (res.Conflict is not null)
+        {
+            return Results.Json(payload, statusCode: StatusCodes.Status409Conflict);
+        }
+        return LiveWriteFormBinder.Complete(context, "/erp/sales-orders-app", res.Ok, res.Message, payload);
     }
 
     private static async Task<IResult> HandleEditLockReleaseAsync(
