@@ -1,3 +1,4 @@
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using Xunit;
 
@@ -40,4 +41,13 @@ public sealed class ErpEinvoiceCreditNotePhpParityTests
         Assert.True(result.WritesBlocked);
         Assert.Contains("live ASP.NET credit-note writer", result.Detail, StringComparison.OrdinalIgnoreCase);
     }
+
+    [Theory]
+    [InlineData(105.00, 0.00, 105.00, false)]
+    [InlineData(105.00, 0.00, 105.004, false)]
+    [InlineData(105.00, 50.00, 55.00, false)]
+    [InlineData(105.00, 50.00, 55.01, true)]
+    [InlineData(105.00, 105.00, 105.00, true)]
+    public void CreditNotes_CannotExceedOriginalInvoiceTotal(decimal original, decimal credited, decimal credit, bool exceeds)
+        => Assert.Equal(exceeds, ErpEinvoiceCreditNoteWriteService.ExceedsOriginal(original, credited, credit));
 }
