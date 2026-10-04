@@ -8,7 +8,7 @@ public sealed class ErpFxPostRevaluationDryRun : IErpFxPostRevaluationDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET fx_post_revaluation is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live route handler (IErpFxRevaluationWriteService.PostAsync); this evaluator never writes.", request);
         
         return new("dry-run-validated",0,true,false,true,"ok",true,
             ["ajax_erp.php?action=fx_post_revaluation (NOT executed)"],
