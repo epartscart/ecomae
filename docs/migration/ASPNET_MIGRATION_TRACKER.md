@@ -80,6 +80,15 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — public accessories search
+
+Not complete.
+
+- www.epartscart.com `/en/accessories` calls `/content/shop/docpart/ajax_epc_accessories_search.php`. That anonymous route now returns the PHP marketplace JSON (`status`, `items`, `facets`, `currency_default: AED`). With no published ads the body is an empty catalog and the page says the categories are ready. Categories, makes, and UAE cities are seeded from `epc_pakwheels_accessories_taxonomy.json` when those tables are empty, the same way PHP `epc_acc_marketplace_search` does.
+- Snapshotted www.ecomae.com marketing URLs from the PHP catalog (documentation, compare, bos articles, solutions, legal, industries, free tools, brochure) were already 200. Brochure cards use the process SVG from the previous checkpoint.
+
+Still open: new-account OAuth provisioning, authenticated CP, production deploy, ERP posting, VIN `email.png` (file not in the repo), tenant `/brochure-cp` (no epartscart snapshot), `/erp-demo`.
+
 ### Checkpoint 2026-10-04 — brochure illustrations, favicon, UMAPI logos
 
 Not complete.
