@@ -5,6 +5,15 @@ namespace EcomAE.Platform.Erp;
 
 public sealed record ErpGlLine(long CoaId, decimal Debit, decimal Credit, string LineNote);
 
+public sealed record ErpGlSalesInvoicePosting(
+    long InvoiceId,
+    string InvoiceNumber,
+    decimal Subtotal,
+    decimal TotalVat,
+    decimal TotalIncl,
+    long IssueDate,
+    string LegislationRef = "");
+
 public sealed record ErpGlJournalHeader
 {
     public long JournalDate { get; init; }
@@ -44,6 +53,17 @@ public interface IErpGlPostingService
     Task<long> PostCashEntryAsync(
         DbConnection connection,
         long cashEntryId,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// Sales-invoice recognition (Dr 1100 AR / Cr 4000 revenue / Cr 2100 VAT output), the same
+    /// account mapping PHP <c>epc_erp_gl_post_sales_orders</c> applies to storefront orders.
+    /// Idempotent per <c>source_type = 'sales_invoice'</c> / document id.
+    /// </summary>
+    Task<long> PostSalesInvoiceAsync(
+        DbConnection connection,
+        ErpGlSalesInvoicePosting invoice,
         int adminId,
         CancellationToken cancellationToken = default);
 
@@ -312,6 +332,75 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         }
     }
 
+    public async Task<long> PostSalesInvoiceAsync(
+        DbConnection connection,
+        ErpGlSalesInvoicePosting invoice,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        ArgumentNullException.ThrowIfNull(invoice);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var existing = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'sales_invoice' AND `source_id` = ? AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            invoice.InvoiceId).ConfigureAwait(false);
+        if (existing > 0)
+        {
+            return existing;
+        }
+
+        var receivableId = await CoaIdByCodeAsync(connection, "1100", cancellationToken).ConfigureAwait(false);
+        var revenueId = await CoaIdByCodeAsync(connection, "4000", cancellationToken).ConfigureAwait(false);
+        if (receivableId <= 0 || revenueId <= 0)
+        {
+            throw new ErpWriteException("Sales COA accounts missing");
+        }
+
+        var lines = SalesInvoiceLines(
+            receivableId,
+            revenueId,
+            invoice.TotalVat > 0m ? await CoaIdByCodeAsync(connection, "2100", cancellationToken).ConfigureAwait(false) : 0L,
+            invoice);
+
+        return await PostJournalAsync(
+            connection,
+            new ErpGlJournalHeader
+            {
+                JournalDate = invoice.IssueDate,
+                Reference = invoice.InvoiceNumber,
+                Description = "Sales invoice " + invoice.InvoiceNumber,
+                SourceType = "sales_invoice",
+                SourceId = invoice.InvoiceId,
+                LegislationRef = invoice.LegislationRef,
+            },
+            lines,
+            adminId,
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>Dr AR gross; Cr revenue net; Cr VAT output when the tenant charges VAT and the account exists.</summary>
+    public static List<ErpGlLine> SalesInvoiceLines(long receivableId, long revenueId, long vatOutputId, ErpGlSalesInvoicePosting invoice)
+    {
+        ArgumentNullException.ThrowIfNull(invoice);
+        var vat = vatOutputId > 0 ? invoice.TotalVat : 0m;
+        var lines = new List<ErpGlLine>(3)
+        {
+            new(receivableId, invoice.TotalIncl, 0m, "Sales invoice " + invoice.InvoiceNumber),
+            new(revenueId, 0m, invoice.TotalIncl - vat, "Sales revenue (ex VAT)"),
+        };
+        if (vat > 0m)
+        {
+            lines.Add(new ErpGlLine(vatOutputId, 0m, vat, "VAT output"));
+        }
+
+        return lines;
+    }
+
     public async Task<long> PostPurchaseAsync(
         DbConnection connection,
         long purchaseId,
@@ -472,7 +561,7 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             + " `journal_date` int(11) NOT NULL,"
             + " `reference` varchar(128) DEFAULT NULL,"
             + " `description` text,"
-            + " `source_type` enum('manual','sales','purchase','payment','cash','opening','adjustment') NOT NULL DEFAULT 'manual',"
+            + " `source_type` enum('manual','sales','purchase','payment','cash','opening','adjustment','sales_invoice') NOT NULL DEFAULT 'manual',"
             + " `source_id` int(11) NOT NULL DEFAULT 0,"
             + " `admin_id` int(11) NOT NULL DEFAULT 0,"
             + " `active` tinyint(1) NOT NULL DEFAULT 1,"
@@ -498,6 +587,21 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             + " KEY `x_coa` (`coa_id`)"
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP GL journal lines'",
             cancellationToken).ConfigureAwait(false);
+
+        // Tenant databases created by PHP lack the 'sales_invoice' source type; appending an
+        // enum member is a metadata-only change and PHP readers keep working.
+        var sourceType = await ErpDb.StringAsync(
+            connection,
+            null,
+            "SELECT `COLUMN_TYPE` FROM `information_schema`.`COLUMNS` WHERE `TABLE_SCHEMA` = DATABASE() AND `TABLE_NAME` = 'epc_erp_gl_journals' AND `COLUMN_NAME` = 'source_type'",
+            cancellationToken).ConfigureAwait(false);
+        if (sourceType is null || !sourceType.Contains("'sales_invoice'", StringComparison.Ordinal))
+        {
+            await ErpDb.TryExecuteAsync(
+                connection,
+                "ALTER TABLE `epc_erp_gl_journals` MODIFY `source_type` enum('manual','sales','purchase','payment','cash','opening','adjustment','sales_invoice') NOT NULL DEFAULT 'manual'",
+                cancellationToken).ConfigureAwait(false);
+        }
 
         // PHP adds these through epc_erp_schema_add_column_if_missing on tenant
         // databases created before multi-entity / VAT columns existed.

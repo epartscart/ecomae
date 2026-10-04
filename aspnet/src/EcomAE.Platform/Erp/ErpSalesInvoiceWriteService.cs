@@ -22,7 +22,8 @@ public sealed record ErpSoToInvoiceResult(
     decimal SubtotalExVat,
     decimal TotalVat,
     decimal TotalInclVat,
-    long LedgerId);
+    long LedgerId,
+    long GlJournalId = 0);
 
 /// <summary>
 /// Live ASP.NET port of PHP <c>epc_erp_so_convert_to_invoice</c> → <c>epc_erp_invoice_save</c> →
@@ -54,6 +55,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
     private readonly IErpVoucherNumberService _vouchers;
     private readonly IErpTaxAmountCalculator _tax;
     private readonly IErpCashWriteService _cash;
+    private readonly IErpGlPostingService _gl;
     private readonly IErpAuditLogWriter _audit;
 
     public ErpSalesInvoiceWriteService(
@@ -61,12 +63,14 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         IErpVoucherNumberService vouchers,
         IErpTaxAmountCalculator tax,
         IErpCashWriteService cash,
+        IErpGlPostingService gl,
         IErpAuditLogWriter audit)
     {
         _connections = connections;
         _vouchers = vouchers;
         _tax = tax;
         _cash = cash;
+        _gl = gl;
         _audit = audit;
     }
 
@@ -222,6 +226,9 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
             throw;
         }
 
+        // The customer sub-ledger row mirrors PHP; the GL side is posted as proper sales
+        // recognition (Dr AR / Cr revenue / Cr VAT output) instead of the generic AR
+        // settlement journal, which books invoices as Dr 6100 expense / Cr 1100.
         var ledgerId = await _cash.CustomerSettlementAsync(
             connection,
             new ErpCustomerSettlementInput
@@ -233,8 +240,21 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
                 Reference = invoiceNumber,
                 Note = "Sales invoice from SO " + order.SoNo,
                 Time = issueDate,
-                PostGl = true,
+                PostGl = false,
             },
+            adminId,
+            cancellationToken).ConfigureAwait(false);
+
+        var glJournalId = await _gl.PostSalesInvoiceAsync(
+            connection,
+            new ErpGlSalesInvoicePosting(
+                invoiceId,
+                invoiceNumber,
+                subtotal,
+                totalVat,
+                totalIncl,
+                issueDate,
+                SalesLegislationRef(seller)),
             adminId,
             cancellationToken).ConfigureAwait(false);
 
@@ -263,7 +283,17 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
             },
             cancellationToken).ConfigureAwait(false);
 
-        return new ErpSoToInvoiceResult(salesOrderId, invoiceId, invoiceNumber, subtotal, totalVat, totalIncl, ledgerId);
+        return new ErpSoToInvoiceResult(salesOrderId, invoiceId, invoiceNumber, subtotal, totalVat, totalIncl, ledgerId, glJournalId);
+    }
+
+    /// <summary>Legislation stamp follows the tenant's registered country; only AE maps to the FTA VAT decree.</summary>
+    public static string SalesLegislationRef(IReadOnlyDictionary<string, string> seller)
+    {
+        ArgumentNullException.ThrowIfNull(seller);
+        return seller.TryGetValue("seller_country_code", out var country)
+            && string.Equals(country.Trim(), "AE", StringComparison.OrdinalIgnoreCase)
+            ? "vat-decree-8-2017"
+            : string.Empty;
     }
 
     /// <summary>

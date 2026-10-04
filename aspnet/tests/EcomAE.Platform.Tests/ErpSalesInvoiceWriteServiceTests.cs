@@ -36,6 +36,7 @@ public sealed class ErpSalesInvoiceWriteServiceTests
                 new ErpAuditLogWriter(),
                 new ErpSettlementAllocationService(),
                 new ErpAdvanceVatService(new ErpGlPostingService(vouchers))),
+            new ErpGlPostingService(vouchers),
             new ErpAuditLogWriter());
     }
 
@@ -187,6 +188,47 @@ public sealed class ErpSalesInvoiceWriteServiceTests
         Assert.Empty(errors);
         Assert.Contains("Invoice number is required", ErpSalesInvoiceWriteService.ValidateTaxInvoice(" ", Seller(), Buyer(), Lines(), 5m));
     }
+
+    [Fact]
+    public void ConversionPostsSalesRecognitionInsteadOfArSettlementJournal()
+    {
+        var root = FindRepoRoot();
+        var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpSalesInvoiceWriteService.cs"));
+
+        Assert.Contains("PostGl = false", service, StringComparison.Ordinal);
+        Assert.Contains("_gl.PostSalesInvoiceAsync(", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("glJournalId = 0;", service, StringComparison.Ordinal);
+
+        var gl = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpGlPostingService.cs"));
+        Assert.Contains("'adjustment','sales_invoice')", gl, StringComparison.Ordinal);
+        Assert.Contains("MODIFY `source_type` enum(", gl, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void SalesInvoiceJournalIsDrArCrRevenueCrVatOutput()
+    {
+        var posting = new ErpGlSalesInvoicePosting(7, "SI-2026-00007", 200m, 10m, 210m, 1_700_000_000);
+        var lines = ErpGlPostingService.SalesInvoiceLines(11, 44, 21, posting);
+
+        Assert.Collection(
+            lines,
+            ar => Assert.Equal((11L, 210m, 0m), (ar.CoaId, ar.Debit, ar.Credit)),
+            rev => Assert.Equal((44L, 0m, 200m), (rev.CoaId, rev.Debit, rev.Credit)),
+            vat => Assert.Equal((21L, 0m, 10m), (vat.CoaId, vat.Debit, vat.Credit)));
+        Assert.Equal(lines.Sum(l => l.Debit), lines.Sum(l => l.Credit));
+
+        var noVatAccount = ErpGlPostingService.SalesInvoiceLines(11, 44, 0, posting);
+        Assert.Equal(2, noVatAccount.Count);
+        Assert.Equal(210m, noVatAccount[1].Credit);
+    }
+
+    [Theory]
+    [InlineData("AE", "vat-decree-8-2017")]
+    [InlineData("ae", "vat-decree-8-2017")]
+    [InlineData("SA", "")]
+    [InlineData("", "")]
+    public void LegislationRefFollowsTenantCountry(string country, string expected)
+        => Assert.Equal(expected, ErpSalesInvoiceWriteService.SalesLegislationRef(Seller(country)));
 
     private static string FindRepoRoot()
     {
