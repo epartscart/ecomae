@@ -17,22 +17,28 @@ public interface IErpOplPlanningWriteService
     Task<ErpOplSeedResult> SeedDemoAsync(long warehouseId, CancellationToken cancellationToken = default);
     Task<ErpOplClearResult> ClearDemoAsync(CancellationToken cancellationToken = default);
     Task<ErpOplConfirmAllResult> ConfirmAllAsync(long warehouseId, CancellationToken cancellationToken = default);
+    Task<ErpOplCreatePosResult> CreateDraftPosAsync(long warehouseId, int adminId, CancellationToken cancellationToken = default);
+    Task<ErpOplAutoplanResult> AutoplanAsync(long warehouseId, int adminId, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpOplSeedResult(bool Ok, string Message, int Items, int Movements, int Writes);
 public sealed record ErpOplClearResult(bool Ok, string Message, long Cleared, int Writes);
 public sealed record ErpOplConfirmAllResult(bool Ok, string Message, int Confirmed, int Writes);
+public sealed record ErpOplCreatePosResult(bool Ok, string Message, int Pos, int Lines, decimal Value, int Assign, int Writes);
+public sealed record ErpOplAutoplanResult(bool Ok, string Message, int Confirmed, ErpOplCreatePosResult Pos, int Writes);
 
 public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
 {
     private const int DemandMonths = 12;
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IErpPurchaseOrderWriteService _purchaseOrders;
     private readonly TimeProvider _clock;
 
-    public ErpOplPlanningWriteService(IErpWriteConnectionFactory connections, TimeProvider? clock = null)
+    public ErpOplPlanningWriteService(IErpWriteConnectionFactory connections, IErpPurchaseOrderWriteService purchaseOrders, TimeProvider? clock = null)
     {
         _connections = connections;
+        _purchaseOrders = purchaseOrders;
         _clock = clock ?? TimeProvider.System;
     }
 
@@ -135,7 +141,155 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
         return new(true, $"{recs.Count} recommendation(s) confirmed", recs.Count, writes);
     }
 
-    private sealed record Recommendation(long ItemId, long WarehouseId, double Roq, double Value, string Supplier, string Status);
+    public async Task<ErpOplAutoplanResult> AutoplanAsync(long warehouseId, int adminId, CancellationToken cancellationToken = default)
+    {
+        var confirmed = await ConfirmAllAsync(warehouseId, cancellationToken).ConfigureAwait(false);
+        var pos = await CreateDraftPosAsync(warehouseId, adminId, cancellationToken).ConfigureAwait(false);
+        var message = $"Confirmed {confirmed.Confirmed} due line(s). {pos.Message}";
+        return new(pos.Pos > 0, message, confirmed.Confirmed, pos, confirmed.Writes + pos.Writes);
+    }
+
+    /// <summary>PHP epc_opl_create_draft_pos: group due confirmed recommendations by supplier into draft POs.</summary>
+    public async Task<ErpOplCreatePosResult> CreateDraftPosAsync(long warehouseId, int adminId, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured) return new(false, "TenantRegistry DB is not configured.", 0, 0, 0m, 0, 0);
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var supById = new Dictionary<long, string>();
+        var supByName = new Dictionary<string, long>(StringComparer.Ordinal);
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "SELECT `id`, `name` FROM `epc_erp_suppliers` WHERE `active` = 1 ORDER BY `id`";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var sid = Convert.ToInt64(reader.GetValue(0));
+                var name = Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? "";
+                supById[sid] = name;
+                supByName[name.Trim().ToLowerInvariant()] = sid;
+            }
+        }
+        if (supById.Count == 0)
+        {
+            return new(false, "No suppliers defined yet — add a supplier first, then raise POs.", 0, 0, 0m, 0, 0);
+        }
+        var fallbackSid = supById.Keys.OrderBy(k => k).First();
+
+        var orderedMap = new HashSet<string>(StringComparer.Ordinal);
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "SELECT `item_id`, `warehouse_id`, `ordered_po_id` FROM `epc_erp_order_recommendations`";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (Convert.ToInt64(reader.GetValue(2)) > 0)
+                {
+                    orderedMap.Add(Convert.ToInt64(reader.GetValue(0)) + ":" + Convert.ToInt64(reader.GetValue(1)));
+                }
+            }
+        }
+
+        var recs = await RecommendationsAsync(connection, warehouseId, onlyDue: false, statusFilter: "confirmed", search: "", cancellationToken).ConfigureAwait(false);
+        var groups = new Dictionary<long, List<Recommendation>>();
+        var assignCount = 0;
+        foreach (var r in recs)
+        {
+            if (r.Roq <= 0) continue;
+            var key = r.ItemId + ":" + r.WarehouseId;
+            if (orderedMap.Contains(key)) continue;
+            var supName = r.Supplier.Trim().ToLowerInvariant();
+            long sid;
+            if (supName.Length > 0 && supByName.TryGetValue(supName, out var match))
+            {
+                sid = match;
+            }
+            else
+            {
+                sid = fallbackSid;
+                assignCount++;
+            }
+            if (!groups.TryGetValue(sid, out var lines)) { lines = []; groups[sid] = lines; }
+            lines.Add(r);
+        }
+
+        var posCreated = 0;
+        var linesTotal = 0;
+        var valueTotal = 0.0;
+        var writes = 0;
+        var today = _clock.GetUtcNow().ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        foreach (var (sid, lines) in groups)
+        {
+            var hasUnassigned = false;
+            var sumEx = 0.0;
+            var noteLines = new List<string>();
+            foreach (var r in lines)
+            {
+                var supName = r.Supplier.Trim().ToLowerInvariant();
+                if (supName.Length == 0 || !supByName.ContainsKey(supName)) hasUnassigned = true;
+                sumEx += r.Value;
+                var label = r.Sku.Length > 0 ? r.Sku : "#" + r.ItemId;
+                noteLines.Add(string.Format(
+                    CultureInfo.InvariantCulture,
+                    "{0} {1} — qty {2} @ {3} = {4}{5}",
+                    label,
+                    r.Name,
+                    r.Roq.ToString("0.###", CultureInfo.InvariantCulture),
+                    r.UnitCost.ToString("0.00", CultureInfo.InvariantCulture),
+                    r.Value.ToString("0.00", CultureInfo.InvariantCulture),
+                    r.WarehouseName.Length > 0 ? " [" + r.WarehouseName + "]" : ""));
+            }
+            var supLabel = supById.TryGetValue(sid, out var n) ? n : "Supplier #" + sid;
+            var title = hasUnassigned && groups.Count == 1 && sid == fallbackSid
+                ? "Replenishment " + today + " (supplier to assign)"
+                : "Replenishment " + today + " — " + supLabel;
+            var notes = "Auto-drafted from Order planning confirmed recommendations.\n";
+            if (hasUnassigned) notes += "NOTE: some lines had no supplier set on the item worksheet — please verify/assign before sending.\n";
+            notes += "\n" + string.Join("\n", noteLines);
+
+            var saved = await _purchaseOrders.SaveAsync(
+                new ErpPurchaseOrderInput
+                {
+                    SupplierId = (int)sid,
+                    Title = title,
+                    AmountExVat = (decimal)Math.Round(sumEx, 2),
+                    Status = "draft",
+                    Notes = notes,
+                },
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+            if (saved.Id > 0)
+            {
+                posCreated++;
+                foreach (var r in lines)
+                {
+                    writes += await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional(
+                        "UPDATE `epc_erp_order_recommendations` SET `ordered_po_id` = ? WHERE `item_id` = ? AND `warehouse_id` = ?"),
+                        cancellationToken, saved.Id, r.ItemId, r.WarehouseId).ConfigureAwait(false);
+                    linesTotal++;
+                    valueTotal += r.Value;
+                }
+            }
+        }
+
+        if (posCreated == 0)
+        {
+            return new(false, "No new confirmed lines to order — confirm recommendations first (or they are already on a draft PO).", 0, 0, 0m, 0, 0);
+        }
+        var msg = string.Format(
+            CultureInfo.InvariantCulture,
+            "Created {0} draft PO{1} covering {2} line{3} ({4} AED). Review them in Purchasing → Purchase orders before sending.",
+            posCreated, posCreated == 1 ? "" : "s", linesTotal, linesTotal == 1 ? "" : "s",
+            valueTotal.ToString("0.00", CultureInfo.InvariantCulture));
+        if (assignCount > 0)
+        {
+            msg += string.Format(CultureInfo.InvariantCulture,
+                " {0} line{1} had no supplier set — grouped into a \"supplier to assign\" draft.", assignCount, assignCount == 1 ? "" : "s");
+        }
+        return new(true, msg, posCreated, linesTotal, (decimal)Math.Round(valueTotal, 2), assignCount, writes);
+    }
+
+    private sealed record Recommendation(long ItemId, long WarehouseId, double Roq, double Value, string Supplier, string Status, string Sku, string Name, string WarehouseName, double UnitCost);
 
     private async Task<List<Recommendation>> RecommendationsAsync(DbConnection connection, long warehouseId, bool onlyDue, string statusFilter, string search, CancellationToken cancellationToken)
     {
@@ -179,7 +333,7 @@ public sealed class ErpOplPlanningWriteService : IErpOplPlanningWriteService
             var status = statusMap.TryGetValue(key, out var st) ? st : "pending";
             if (onlyDue && m.Roq <= 0) continue;
             if (statusFilter.Length > 0 && status != statusFilter) continue;
-            outList.Add((key, new Recommendation(m.ItemId, m.WarehouseId, m.Roq, m.Value, m.Supplier, status)));
+            outList.Add((key, new Recommendation(m.ItemId, m.WarehouseId, m.Roq, m.Value, m.Supplier, status, s.Sku, s.Name, s.WarehouseName, row.AvgUnitCost)));
         }
         outList.Sort((x, y) =>
         {

@@ -79,6 +79,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/opl-clear-demo",
         "/erp/ajax/opl-confirm-all",
         "/erp/ajax/cs-list-declarations",
+        "/erp/ajax/opl-create-pos",
+        "/erp/ajax/opl-autoplan",
         "/erp/ajax/cc-approval-queue",
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",
