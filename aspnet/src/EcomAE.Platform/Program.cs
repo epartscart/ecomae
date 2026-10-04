@@ -1300,6 +1300,8 @@ app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Exact /en/ /ar/ /me/ /ru/ homes → same storefront as / (browser URL stays /en/).
 app.UseMiddleware<LangHomeFallbackMiddleware>();
+// /ar|/ru|/me deep storefront URLs → the /en Blazor twins (browser URL stays).
+app.UseMiddleware<StorefrontLangAliasMiddleware>();
 // Bare / on www.ecomae.com and www.epartscart.com (nginx classic-entry proxy, in-process).
 app.UseMiddleware<PublicHomeRewriteMiddleware>();
 // Industry package slugs (/gaming, /gold, /kontakty) + tax /shop/erp → dedicated apps.

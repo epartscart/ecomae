@@ -80,6 +80,14 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — storefront lang aliases and marketing industry cards
+
+Local Kestrel (www.epartscart.com / www.ecomae.com, port 5080):
+- `/ar|/ru|/me` catalog links emitted by the lang home (`/ar/parts`, `/ru/vehicle-catalog`, …) 404 because Blazor routes are `/en/…` only. `StorefrontLangAliasMiddleware` rewrites those deep storefront paths onto the English twins and keeps the visitor prefix.
+- Home industry cards `/platform/industries/{code}` 404. PHP `epc_ecomae_platform_match_path` aliases that plural path to `/platform/industry/{code}` (hyphen → underscore). Snapshots now serve the same page.
+
+ERP posting paths were not changed.
+
 ### Checkpoint 2026-10-04 — Cursor review tranche and live fallback-route probe
 
 Merged (local evidence only, PHP fallback and release locks unchanged):
