@@ -8,7 +8,7 @@ public sealed class ErpInvoiceListDryRun : IErpInvoiceListDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET invoice_list is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live /erp/ajax route; this dry-run remains zero-write.", request);
         
         return new("dry-run-validated",0,true,false,true,"ok",true,
             ["ajax_erp.php?action=invoice_list (NOT executed)"],

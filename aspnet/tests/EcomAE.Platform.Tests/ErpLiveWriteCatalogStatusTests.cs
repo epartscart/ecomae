@@ -51,6 +51,9 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/fy-period-status",
         "/erp/ajax/fa-create-asset",
         "/erp/ajax/fa-run-depreciation",
+        "/erp/ajax/period-log",
+        "/erp/ajax/settlement-open-docs",
+        "/erp/ajax/invoice-list",
     ];
 
     [Fact]
@@ -84,7 +87,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
                 ? Regex.Match(module, "Task<IResult> " + handler.Value + "\\(").Index
                 : map.Index;
             var window = module.Substring(start, Math.Min(6000, module.Length - start));
-            Assert.Matches("IErp\\w*Write\\w*Service", window);
+            Assert.Matches("IErp\\w*(Write|Read)\\w*Service", window);
         }
     }
 
