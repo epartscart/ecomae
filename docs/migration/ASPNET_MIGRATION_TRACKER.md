@@ -80,6 +80,17 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — storefront demo, CP brochure, public ERP sample
+
+Not complete.
+
+- www.ecomae.com `/shop` and `/shop/` return the public storefront already served at `/en`. `/shop/cart` is unchanged. www.epartscart.com `/shop` stays 404.
+- www.epartscart.com `/brochure-cp`, `/brochure/cp`, and `/en/brochure-cp` return the PHP epartscart Control Panel brochure (client deck by default; scope and view query strings select the other renders). www.ecomae.com `/brochure-cp` stays the ECOM AE snapshot.
+- `/erp-demo`, `/shop/erp-demo`, and `/en/erp-demo` return the read-only sample dashboard (`epc_demo_kpis`). Industry query switches jewellery, trading, construction, retail, and manufacturing. No seed, clear, or posting. The marketing-host full Super ERP mirror remains the signed-in `/erp` shell.
+- `origin/main` through #1983 is merged into this branch. This checkpoint did not edit ERP posting. `pf_seed`, `pf_clear`, and `pf_sync-orders` stay dry-run.
+
+Still open: new-account OAuth provisioning, authenticated CP, every tenant CP page, production deploy, missing marketing screen PNGs and VIN `email.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — storefront and CP install files
 
 Not complete.
