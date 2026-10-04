@@ -19,7 +19,10 @@ public interface IErpWorkflowWriteService
 {
     Task<ErpWorkflowSaveResult> SaveAsync(ErpWorkflowSaveInput input, int adminId, CancellationToken cancellationToken = default);
 
-    Task<ErpWorkflowRunResult> RunAsync(long workflowId, int adminId, CancellationToken cancellationToken = default);
+    /// <summary>PHP <c>epc_workflow_create</c>: insert a workflow + steps only (no <c>workflow_save</c> audit row).</summary>
+    Task<ErpWorkflowSaveResult> CreateAsync(ErpWorkflowSaveInput input, int createdBy, CancellationToken cancellationToken = default);
+
+    Task<ErpWorkflowRunResult> RunAsync(long workflowId, int adminId, JsonObject? triggerData = null, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpWorkflowStepInput(
@@ -155,7 +158,54 @@ public sealed class ErpWorkflowWriteService : IErpWorkflowWriteService
         return new ErpWorkflowSaveResult(workflowId > 0, "Workflow saved", workflowId);
     }
 
-    public async Task<ErpWorkflowRunResult> RunAsync(long workflowId, int adminId, CancellationToken cancellationToken = default)
+    public async Task<ErpWorkflowSaveResult> CreateAsync(ErpWorkflowSaveInput input, int createdBy, CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(input);
+        if (input.Id > 0)
+        {
+            throw new ErpWriteException("Invalid workflow id");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            throw new ErpWriteException("TenantRegistry DB is not configured.");
+        }
+
+        var siteKey = ResolveSiteKey();
+        var name = (input.Name ?? string.Empty).Trim();
+        if (name.Length == 0)
+        {
+            name = "Untitled Workflow";
+        }
+
+        var description = (input.Description ?? string.Empty).Trim();
+        var triggerType = NormalizeEnum(input.TriggerType, "manual", TriggerTypes);
+        var triggerConfig = NormalizeJsonObject(input.TriggerConfigJson);
+        var steps = NormalizeSteps(input.Steps);
+        var active = input.Active ? 1 : 0;
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        long workflowId;
+        await using (var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false))
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_workflows` (`site_key`, `name`, `description`, `trigger_type`, `trigger_config`, `active`, `created_by`) VALUES (?, ?, ?, ?, ?, ?, ?)"),
+                cancellationToken,
+                siteKey, name, description, triggerType, triggerConfig.ToJsonString(), active, createdBy).ConfigureAwait(false);
+            workflowId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+            await InsertStepsAsync(connection, transaction, workflowId, steps, cancellationToken).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+
+        return new ErpWorkflowSaveResult(workflowId > 0, "Workflow saved", workflowId);
+    }
+
+    public async Task<ErpWorkflowRunResult> RunAsync(long workflowId, int adminId, JsonObject? triggerData = null, CancellationToken cancellationToken = default)
     {
         if (workflowId <= 0)
         {
@@ -176,7 +226,7 @@ public sealed class ErpWorkflowWriteService : IErpWorkflowWriteService
             throw new ErpWriteException("Workflow not found");
         }
 
-        var triggerData = new JsonObject { ["source"] = "manual_ui" };
+        triggerData ??= new JsonObject { ["source"] = "manual_ui" };
         var started = DateTimeOffset.UtcNow;
 
         // PHP writes the run row first and keeps it even when steps fail — no ambient transaction.
@@ -799,7 +849,7 @@ public sealed class ErpWorkflowWriteService : IErpWorkflowWriteService
 
     private sealed record WorkflowRow(long Id, string SiteKey, string Name, IReadOnlyList<WorkflowStepRow> Steps);
 
-    internal static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    public static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,

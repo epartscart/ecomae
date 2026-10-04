@@ -1784,15 +1784,11 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowSave, HandleWorkflowSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowRun, HandleWorkflowRunAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationActivate, async (HttpContext context, ErpAutomationActivateBody? body, ILegacySessionValidator validator, IErpAutomationActivateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpAutomationActivateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationActivate, HandleAutomationActivateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationDeactivate, HandleAutomationDeactivateAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationInstallTemplate, async (HttpContext context, ErpAutomationInstallTemplateBody? body, ILegacySessionValidator validator, IErpAutomationInstallTemplateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAutomationInstallTemplateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationEnableCategory, async (HttpContext context, ErpAutomationEnableCategoryBody? body, ILegacySessionValidator validator, IErpAutomationEnableCategoryDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAutomationEnableCategoryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationTick, async (HttpContext context, ErpAutomationTickBody? body, ILegacySessionValidator validator, IErpAutomationTickDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpAutomationTickRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationInstallTemplate, HandleAutomationInstallTemplateAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationEnableCategory, HandleAutomationEnableCategoryAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationTick, HandleAutomationTickAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxTenantConfigSave, HandleTenantConfigSaveAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpOnPremisesSetupWizardDryRun, (
@@ -20340,18 +20336,41 @@ public sealed class ErpModule : ISurfaceModule
 
         var input = new ErpWorkflowSaveInput(0, null, null, null, null, false, Array.Empty<ErpWorkflowStepInput>());
         var confirm = false;
-        var json = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWorkflowSaveBody>(context, cancellationToken);
-        if (json is not null)
+        var json = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+        if (json.ValueKind == JsonValueKind.Object)
         {
+            // PHP reads snake_case keys (trigger_type, step_type, retry_count) from the decoded body;
+            // accept camelCase variants for .NET callers as well.
+            long.TryParse(ErpAutomationDeactivateWriteService.JsonText(json, "id"), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var jsonId);
+            var steps = new List<ErpWorkflowStepInput>();
+            if (json.TryGetProperty("steps", out var stepsEl) && stepsEl.ValueKind == JsonValueKind.Array)
+            {
+                foreach (var stepEl in stepsEl.EnumerateArray())
+                {
+                    int.TryParse(
+                        FirstJsonText(stepEl, "retry_count", "retryCount"),
+                        System.Globalization.NumberStyles.Integer,
+                        System.Globalization.CultureInfo.InvariantCulture,
+                        out var retry);
+                    steps.Add(new ErpWorkflowStepInput(
+                        FirstJsonText(stepEl, "step_type", "stepType"),
+                        FirstJsonText(stepEl, "action_type", "actionType"),
+                        FirstJsonText(stepEl, "label"),
+                        FirstJsonText(stepEl, "config"),
+                        FirstJsonText(stepEl, "on_failure", "onFailure"),
+                        retry));
+                }
+            }
+
             input = new ErpWorkflowSaveInput(
-                json.Id,
-                json.Name,
-                json.Description,
-                json.TriggerType,
-                json.TriggerConfig,
-                json.Active,
-                (json.Steps ?? []).Select(s => new ErpWorkflowStepInput(s.StepType, s.ActionType, s.Label, s.Config, s.OnFailure, s.RetryCount)).ToList());
-            confirm = json.ConfirmWrites;
+                jsonId,
+                FirstJsonText(json, "name"),
+                FirstJsonText(json, "description"),
+                FirstJsonText(json, "trigger_type", "triggerType"),
+                FirstJsonText(json, "trigger_config", "triggerConfig"),
+                ErpAutomationDeactivateWriteService.JsonFlag(json, "active"),
+                steps);
+            confirm = ErpAutomationDeactivateWriteService.JsonFlag(json, "confirmWrites", "confirm_writes");
         }
 
         if (context.Request.HasFormContentType)
@@ -20431,7 +20450,7 @@ public sealed class ErpModule : ISurfaceModule
 
         return await ExecuteErpWriteAsync(session, async () =>
         {
-            var result = await writes.RunAsync(id, session.UserId, cancellationToken);
+            var result = await writes.RunAsync(id, session.UserId, cancellationToken: cancellationToken);
             return ("Run " + result.Status, (object)new
             {
                 run_id = result.RunId,
@@ -23109,6 +23128,203 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleAutomationActivateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutomationActivateDryRun dryRun,
+        IErpAutomationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workflows-app", "Admin ERP capability required for automation activate.");
+        }
+
+        var (id, _, confirm) = await ReadAutomationBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpAutomationActivateRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.ActivateAsync(id, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/workflows-app",
+            result.Ok,
+            result.Message,
+            new { ok = result.Ok, writes = result.Ok ? 1 : 0, phpAuthoritative = false, message = result.Message, workflow_id = result.WorkflowId, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleAutomationInstallTemplateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutomationInstallTemplateDryRun dryRun,
+        IErpAutomationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workflows-app", "Admin ERP capability required for automation install.");
+        }
+
+        var (_, templateId, confirm) = await ReadAutomationBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpAutomationInstallTemplateRequest(0, templateId, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.InstallTemplateAsync(templateId, session.UserId, cancellationToken);
+        var message = result.Ok
+            ? (result.Created ? "Template installed" : "Template already installed")
+            : (result.Error ?? "Install failed");
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/workflows-app",
+            result.Ok,
+            message,
+            new { ok = result.Ok, writes = result.Ok ? 1 : 0, phpAuthoritative = false, message, workflow_id = result.WorkflowId, created = result.Created, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleAutomationEnableCategoryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutomationEnableCategoryDryRun dryRun,
+        IErpAutomationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workflows-app", "Admin ERP capability required for automation enable-category.");
+        }
+
+        var (_, category, confirm) = await ReadAutomationBodyAsync(context, cancellationToken, "category");
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpAutomationEnableCategoryRequest(0, category, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.EnableCategoryAsync(category, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/workflows-app",
+            result.Succeeded,
+            result.Message,
+            new { ok = result.Succeeded, writes = result.Writes, phpAuthoritative = false, message = result.Message, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleAutomationTickAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAutomationTickDryRun dryRun,
+        IErpAutomationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/workflows-app", "Admin ERP capability required for automation tick.");
+        }
+
+        var (_, _, confirm) = await ReadAutomationBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpAutomationTickRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.TickAsync(session.UserId, cancellationToken);
+        var message = "Scheduled tick ran " + result.Ran.ToString(CultureInfo.InvariantCulture) + " workflow(s)";
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/workflows-app",
+            result.Ok,
+            message,
+            new
+            {
+                ok = result.Ok,
+                writes = result.Ok ? 1 : 0,
+                phpAuthoritative = false,
+                message,
+                ran = result.Ran,
+                results = result.Results.Select(r => new
+                {
+                    workflow_id = r.WorkflowId,
+                    name = r.Name,
+                    automation = r.Automation,
+                    error = r.Error,
+                    processed = r.Processed,
+                    actioned = r.Actioned,
+                    result = r.Result is null
+                        ? null
+                        : new { run_id = r.Result.RunId, status = r.Result.Status, duration_ms = r.Result.DurationMs },
+                }),
+                session = SessionPayload(session),
+            });
+    }
+
+    /// <summary>Like <see cref="ErpAutomationDeactivateWriteService.JsonText"/> but also returns raw JSON for object/array values (PHP would take the whole value).</summary>
+    private static string FirstJsonText(JsonElement root, params string[] names)
+    {
+        if (root.ValueKind != JsonValueKind.Object)
+        {
+            return "";
+        }
+
+        foreach (var name in names)
+        {
+            if (!root.TryGetProperty(name, out var prop))
+            {
+                continue;
+            }
+
+            return prop.ValueKind switch
+            {
+                JsonValueKind.String => prop.GetString() ?? "",
+                JsonValueKind.Number or JsonValueKind.Object or JsonValueKind.Array => prop.GetRawText(),
+                JsonValueKind.True => "1",
+                JsonValueKind.False => "0",
+                _ => "",
+            };
+        }
+
+        return "";
+    }
+
+    private static async Task<(string Id, string? Secondary, bool Confirm)> ReadAutomationBodyAsync(
+        HttpContext context,
+        CancellationToken cancellationToken,
+        string secondaryField = "template_id")
+    {
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var secondary = LiveWriteFormBinder.Text(form, secondaryField);
+            if (secondary.Length == 0 && secondaryField.Equals("template_id", StringComparison.Ordinal))
+            {
+                secondary = LiveWriteFormBinder.Text(form, "templateId");
+            }
+
+            return (
+                LiveWriteFormBinder.Text(form, "id"),
+                secondary,
+                LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+        }
+
+        var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+        var secondaryValue = ErpAutomationDeactivateWriteService.JsonText(root, secondaryField);
+        if (secondaryValue.Length == 0 && secondaryField.Equals("template_id", StringComparison.Ordinal))
+        {
+            secondaryValue = ErpAutomationDeactivateWriteService.JsonText(root, "templateId");
+        }
+
+        return (
+            ErpAutomationDeactivateWriteService.JsonText(root, "id"),
+            secondaryValue,
+            ErpAutomationDeactivateWriteService.JsonFlag(root, "confirmWrites", "confirm_writes"));
     }
 
     private static async Task<IResult> HandlePeriodLockAsync(
