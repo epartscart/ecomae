@@ -70,6 +70,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/qm-order-record",
         "/erp/ajax/demo-seed-sales",
         "/erp/ajax/demo-clear-sales",
+        "/erp/ajax/integrity-scan",
+        "/erp/ajax/integrity-apply-fks",
         "/erp/ajax/cc-approval-queue",
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",
