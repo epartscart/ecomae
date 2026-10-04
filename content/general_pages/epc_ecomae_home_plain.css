@@ -63,7 +63,7 @@
 
 /* Buttons */
 .ehm-home--plain .ehm-btn{
-  font-family:var(--p-sans);font-size:15px;font-weight:600;letter-spacing:0;
+  box-sizing:border-box;font-family:var(--p-sans);font-size:15px;font-weight:600;letter-spacing:0;
   padding:11px 20px;border-radius:6px;box-shadow:none;transition:background-color .15s,border-color .15s;
 }
 .ehm-home--plain .ehm-btn--p{background:var(--p-ink);color:#fff!important;border:1px solid var(--p-ink)}
@@ -121,9 +121,8 @@
 
 /* Trust strip: plain facts separated by rules */
 .ehm-home--plain .ehm-trust{background:var(--p-white);padding:22px 0;border-bottom:1px solid var(--p-line)}
-.ehm-home--plain .ehm-trust-row{justify-content:flex-start;gap:0;row-gap:10px}
-.ehm-home--plain .ehm-ti{font-size:14px;color:var(--p-muted);padding:0 18px;border-left:1px solid var(--p-line)}
-.ehm-home--plain .ehm-ti:first-child{padding-left:0;border-left:0}
+.ehm-home--plain .ehm-trust-row{justify-content:space-between;gap:8px 12px}
+.ehm-home--plain .ehm-ti{font-size:13px;color:var(--p-muted)}
 .ehm-home--plain .ehm-ti strong{color:var(--p-ink);font-weight:600}
 .ehm-home--plain .ehm-trust + .ehm-divider{display:none}
 
@@ -279,7 +278,7 @@
 .ehm-home--plain .ehm-comp-banner p[style]{margin:14px 0 0!important;font-size:17px!important;max-width:640px!important}
 .ehm-home--plain .ehm-comp-grid{margin-top:40px;gap:16px}
 .ehm-home--plain .ehm-comp-card{padding:26px}
-.ehm-home--plain .ehm-comp-title{font-family:var(--p-sans);font-weight:600;font-size:16px;color:var(--p-ink)}
+.ehm-home--plain .ehm-comp-title{font-family:var(--p-sans);font-weight:600;font-size:16px;color:var(--p-ink);margin:0 0 8px}
 .ehm-home--plain .ehm-comp-desc{font-size:14.5px;color:var(--p-body)}
 .ehm-home--plain .ehm-comp-li{margin-top:16px;padding-top:14px;border-top:1px solid var(--p-line)}
 .ehm-home--plain .ehm-comp-li li{font-size:14px;color:var(--p-body)}
@@ -359,7 +358,7 @@
 .ehm-home--plain .ehm-step p{font-size:15px;color:var(--p-body)}
 
 /* Live tenants */
-.ehm-home--plain section[aria-label="Live tenants"]{border-top:0}
+.ehm-home--plain section[aria-label="Live tenants"]{border-top:0;background:var(--p-white)}
 .ehm-home--plain section[aria-label="Live tenants"] > .ehm-wrap > p{
   text-align:left!important;font-size:14px!important;font-weight:600!important;letter-spacing:0!important;
   text-transform:none!important;color:var(--p-ink)!important;margin:0 0 14px!important;
@@ -403,11 +402,12 @@
   .ehm-home--plain .ehm-cta-box{grid-template-columns:1fr}
   .ehm-home--plain .epc-demo-cred,
   .ehm-home--plain .ehm-cta-box > div[style*="display:flex"]{grid-column:1;grid-row:auto;justify-content:flex-start!important;margin-top:24px}
+  .ehm-home--plain .epc-demo-cred{margin:4px 0 20px}
 }
 @media(max-width:768px){
   .ehm-home--plain .ehm-sec{padding:64px 0}
   .ehm-home--plain .ehm-client-grid{grid-template-columns:1fr 1fr}
-  .ehm-home--plain .ehm-ti{border-left:0;padding:0 16px 0 0}
+  .ehm-home--plain .ehm-trust-row{justify-content:flex-start}
   .ehm-home--plain .ehm-cp-stat{border-left:0;padding-left:0}
   .ehm-home--plain .ehm-steps{gap:8px}
 }

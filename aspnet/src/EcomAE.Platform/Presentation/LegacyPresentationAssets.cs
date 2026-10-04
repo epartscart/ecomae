@@ -154,7 +154,7 @@ public static class LegacyPresentationAssets
         "/platform-assets/epc_ecomae_layla_widget.css?v=20260811footer",
         "/platform-assets/epc_ecomae_demo_portal.css?v=20260811footer",
         // Light editorial skin for home sections below the hero (.ehm-home--plain); must load last
-        "/platform-assets/epc_ecomae_home_plain.css?v=20261004a"
+        "/platform-assets/epc_ecomae_home_plain.css?v=20261004c"
     ];
 
     /// <summary>Home 3D / scroll helpers used after the marketing hub hero.</summary>
