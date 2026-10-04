@@ -65,7 +65,7 @@ public sealed class ErpFinFxRevalueWriteService : IErpFinFxRevalueWriteService
             return ErpSimpleWriteResult.Fail("invalid", "FX revaluation run table is not provisioned");
         }
 
-        var companyId = await ResolveActiveCompanyIdAsync(connection, request.CompanyHint, cancellationToken).ConfigureAwait(false);
+        var companyId = await ErpFinAdvancedCompany.ResolveAsync(connection, request.CompanyHint, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,
@@ -159,35 +159,6 @@ public sealed class ErpFinFxRevalueWriteService : IErpFinFxRevalueWriteService
 
     private static decimal Num(string s)
         => decimal.TryParse(s.Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : 0m;
-
-    private static async Task<long> ResolveActiveCompanyIdAsync(
-        DbConnection connection,
-        long hint,
-        CancellationToken cancellationToken)
-    {
-        if (!await ColumnExistsAsync(connection, "epc_erp_pm_legal_entities", "id", cancellationToken).ConfigureAwait(false))
-        {
-            return 0;
-        }
-
-        var ids = new List<long>();
-        await using (var command = connection.CreateCommand())
-        {
-            command.CommandText = "SELECT `id` FROM `epc_erp_pm_legal_entities` WHERE `active`=1 ORDER BY `id`";
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
-            {
-                ids.Add(Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture));
-            }
-        }
-
-        if (ids.Count == 0)
-        {
-            return 0;
-        }
-
-        return hint > 0 && ids.Contains(hint) ? hint : ids[0];
-    }
 
     private static async Task<bool> ColumnExistsAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
     {
