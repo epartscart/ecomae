@@ -136,6 +136,7 @@ interpretation is unchanged but now evidence-backed:
 2. **Function** — dual-sample + per-module interactive ports (large; interactive stays 0 until human MODULE_FUNCTION_TEST_PASS)  
 3. **Gate** — human `RELEASE_OWNER_APPROVAL.md` before any PHP removal  
 4. Never broad `/cp|/erp|/bos|/storefront` cutover; never tenant ASP.NET cutover without explicit confirm
+5. **Fallback route (2026-10-04)** — `/php-reference/{home,cp,erp}` return 404 live on all product hosts; operator must install the nginx blocks before any rollback claim (SSH to the origin is currently denied to Devin)
 
 ## Related
 

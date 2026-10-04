@@ -80,6 +80,24 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — Cursor review tranche and live fallback-route probe
+
+Merged (local evidence only, PHP fallback and release locks unchanged):
+#1938 period-close `year_month` SQL alias + SO→invoice duplicate/number-burn guard,
+#1939 cumulative credit-note cap, #1940 shared ERP/CP/BOS cross-site write guard,
+#1941 concurrency-safe receipt knock-off / bill paid reads, #1942 SO→invoice GL now
+Dr `1100` / Cr `4000` / Cr `2100` (no `6100`), GL failure no longer swallowed,
+`source_type` enum widened additively with `sales_invoice`.
+
+Direct live probe via Cloudflare edge (`dig @1.1.1.1`, `curl --resolve`): ASP.NET
+owns `/`, `/erp/login`, `/cp/login`, `/bos/login` on ecomae, epartscart,
+thejewellerytrend, taxofinca (`x-ecomae-platform: primary`), but
+`/php-reference/{home,cp,erp}` return **404 on all four hosts** — the PHP fallback
+route blocks in `deploy/aspnet/nginx-classic-entry-tenant-aspnet-primary-shadow-example.conf`
+are not installed live. SSH `root@31.97.216.247` is denied, so this is an
+**operator action**: install the `/php-reference/*` blocks, reload nginx, re-probe.
+Until then rollback-to-PHP is unverified and cutover/PHP removal stay disabled.
+
 ### Premium enterprise presentation gate
 
 Functional route coverage is not sufficient for ERP/CP completion. Every ASP.NET
@@ -394,7 +412,7 @@ Standing rules that apply to every item below:
 ---
 
 ## Phase C — Storefront & remaining areas
-- [ ] C1 Storefront themes (`expan`, `limo`, `modex`, `nero`) CSS/asset parity; fix `/php-reference/home` 404
+- [ ] C1 Storefront themes (`expan`, `limo`, `modex`, `nero`) CSS/asset parity; fix `/php-reference/home` 404 (live 404 on all product hosts re-confirmed 2026-10-04; nginx blocks not installed, SSH denied)
 - [ ] C2 Catalogue & search (search tabs, spare-parts search, ucats/umapi/laximo, vehicle catalog) — search latency (~6 s)
 - [ ] C3 Cart / checkout / payments (gateway callbacks, obtaining modes, guest order)
 - [ ] C4 Customer area (account, requests, balance, quotes, returns, garage, wishlist, print docs)
