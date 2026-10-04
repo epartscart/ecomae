@@ -57,6 +57,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/save-contact",
         "/erp/ajax/sync-contacts",
         "/erp/ajax/customer-create",
+        "/erp/ajax/save-company",
+        "/erp/ajax/save-template",
     ];
 
     [Fact]
@@ -90,7 +92,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
                 ? Regex.Match(module, "Task<IResult> " + handler.Value + "\\(").Index
                 : map.Index;
             var window = module.Substring(start, Math.Min(6000, module.Length - start));
-            Assert.Matches("IErp\\w*(Write|Read)\\w*Service", window);
+            Assert.Matches("I(Erp|Cp)\\w*(Write|Read)\\w*Service", window);
         }
     }
 
