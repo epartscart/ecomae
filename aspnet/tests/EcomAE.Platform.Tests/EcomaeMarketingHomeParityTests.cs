@@ -97,6 +97,21 @@ public sealed class EcomaeMarketingHomeParityTests
     }
 
     [Fact]
+    public void HomeSections_UsePlainSkinWithoutEmojiOrGradientHeadlines()
+    {
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeHomeSections.razor"));
+        Assert.Contains("class=\"ehm-home ehm-home--plain\"", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ehm-home--3d", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("ehm-dot", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("class=\"ehm-glow", text, StringComparison.Ordinal);
+        Assert.DoesNotMatch(@"[\u2600-\u27BF\u25CF]|\p{Cs}", text);
+
+        Assert.Equal("/platform-assets/epc_ecomae_home_plain.css",
+            LegacyPresentationAssets.MarketingStylesheets[^1].Split('?')[0]);
+        Assert.True(File.Exists(FindRepoFile("content/general_pages/epc_ecomae_home_plain.css")));
+    }
+
+    [Fact]
     public void MarketingChromeFooterMatchesPhpBreadth()
     {
         var path = FindRepoFile("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaeMarketingChrome.razor");
