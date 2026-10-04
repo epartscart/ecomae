@@ -5686,8 +5686,7 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, movement_id = written.Id, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvScanLookup, async (HttpContext context, ErpInvScanLookupBody? body, ILegacySessionValidator validator, IErpInvScanLookupDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvScanLookupRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvScanLookup, HandleInvScanLookupAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvTransfer, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -20175,6 +20174,49 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             return ("Customer created", (object)new { user_id = userId });
+        });
+    }
+
+    private static async Task<IResult> HandleInvScanLookupAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpInvScanLookupDryRun dryRun,
+        IErpInventoryScanReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInvScanLookupBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var code = body.Code;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            code = LiveWriteFormBinder.Text(form, "code");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpInvScanLookupRequest(body.Id, code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.LookupAsync(code, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            item = r.Item,
+            on_hand = r.OnHand,
+            session = SessionPayload(session),
         });
     }
 
