@@ -8,7 +8,7 @@ public sealed class ErpDashboardDryRun : IErpDashboardDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET dashboard is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live IErpDashboardReadService; the dry-run never executes.", request);
         
         return new("dry-run-validated",0,true,false,true,"ok",true,
             ["ajax_erp.php?action=dashboard (NOT executed)"],
