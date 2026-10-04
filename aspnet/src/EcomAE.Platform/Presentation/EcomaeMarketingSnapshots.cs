@@ -91,6 +91,13 @@ public static class EcomaeMarketingSnapshots
             value = aliased;
         }
 
+        // PHP epc_ecomae_platform_match_path: /platform/industries/{code}
+        // (hyphen or underscore) is the public alias of /platform/industry/{code}.
+        if (TryAliasIndustriesPlural(value, out var industryPath))
+        {
+            value = industryPath;
+        }
+
         // Bare /bos is the product BOS app (Super-CP only) — never a marketing snapshot.
         if (value.Equals("/bos", StringComparison.OrdinalIgnoreCase))
         {
@@ -112,6 +119,39 @@ public static class EcomaeMarketingSnapshots
         }
 
         return slug;
+    }
+
+    /// <summary>
+    /// PHP <c>industries/{code}</c> alias. Hyphens become underscores so
+    /// <c>/platform/industries/auto-parts</c> serves the <c>auto_parts</c> snapshot.
+    /// The index <c>/platform/industries</c> is not an alias.
+    /// </summary>
+    internal static bool TryAliasIndustriesPlural(string path, out string industryPath)
+    {
+        industryPath = path;
+        const string prefix = "/platform/industries/";
+        if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var code = path[prefix.Length..].Trim('/');
+        if (code.Length == 0 || code.Contains('/', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var normalized = code.ToLowerInvariant().Replace('-', '_');
+        foreach (var ch in normalized)
+        {
+            if (!char.IsAsciiLetterOrDigit(ch) && ch != '_')
+            {
+                return false;
+            }
+        }
+
+        industryPath = "/platform/industry/" + normalized;
+        return true;
     }
 
     /// <summary>

@@ -15,6 +15,10 @@ public sealed class EcomaeMarketingSnapshotTests
     [InlineData("/platform/pricing/", "platform__pricing")]
     [InlineData("/platform/pricing?x=1", "platform__pricing")]
     [InlineData("/platform/industry/auto_parts", "platform__industry__auto_parts")]
+    [InlineData("/platform/industries/auto_parts", "platform__industry__auto_parts")]
+    [InlineData("/platform/industries/auto-parts", "platform__industry__auto_parts")]
+    [InlineData("/platform/industries/tax_advisory/", "platform__industry__tax_advisory")]
+    [InlineData("/platform/industries/fashion", "platform__industry__fashion")]
     [InlineData("/platform/free-tools/vat", "platform__free-tools__vat")]
     [InlineData("/platform/brochure", "brochure")]
     [InlineData("/platform/brochure/cp", "brochure__cp")]
@@ -36,6 +40,17 @@ public sealed class EcomaeMarketingSnapshotTests
     public void CanonicalPathsMapToSnapshotSlugs(string path, string slug)
     {
         Assert.Equal(slug, EcomaeMarketingSnapshots.SlugFor(path));
+    }
+
+    [Fact]
+    public void IndustriesPluralAliasServesTheSameSnapshotAsSingular()
+    {
+        var plural = EcomaeMarketingSnapshots.HtmlFor("/platform/industries/auto_parts");
+        var singular = EcomaeMarketingSnapshots.HtmlFor("/platform/industry/auto_parts");
+        Assert.False(string.IsNullOrWhiteSpace(plural));
+        Assert.Equal(singular, plural);
+        Assert.Contains("Auto spare parts", plural, StringComparison.Ordinal);
+        Assert.Null(EcomaeMarketingSnapshots.SlugFor("/platform/industries/../auto_parts"));
     }
 
     [Fact]
@@ -99,6 +114,11 @@ public sealed class EcomaeMarketingSnapshotTests
     [InlineData("/platform/contact")]
     [InlineData("/platform/demo")]
     [InlineData("/platform/industry/auto_parts")]
+    [InlineData("/platform/industries/auto_parts")]
+    [InlineData("/platform/industries/electronics")]
+    [InlineData("/platform/industries/fashion")]
+    [InlineData("/platform/industries/jewellery")]
+    [InlineData("/platform/industries/tax_advisory")]
     [InlineData("/brochure")]
     [InlineData("/brochure/cp")]
     [InlineData("/documentation")]
