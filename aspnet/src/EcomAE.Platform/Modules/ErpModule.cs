@@ -657,8 +657,7 @@ public sealed class ErpModule : ISurfaceModule
             });
         });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceList, HandleInvoiceListAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceFromOrder, async (HttpContext context, ErpInvoiceFromOrderBody? body, ILegacySessionValidator validator, IErpInvoiceFromOrderDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvoiceFromOrderRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceFromOrder, HandleInvoiceFromOrderAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAiQuery, async (HttpContext context, ErpAiQueryBody? body, ILegacySessionValidator validator, IErpAiQueryDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAiQueryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityScan, async (HttpContext context, ErpIntegrityScanBody? body, ILegacySessionValidator validator, IErpIntegrityScanDryRun dryRun, CancellationToken cancellationToken) =>
@@ -20159,6 +20158,94 @@ public sealed class ErpModule : ISurfaceModule
 
             return ("Supplier created", (object)new { id });
         });
+    }
+
+    private static async Task<IResult> HandleInvoiceFromOrderAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpInvoiceFromOrderDryRun dryRun,
+        IErpInvoiceFromOrderWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInvoiceFromOrderBody>(context, cancellationToken) ?? new(0, null, false);
+        var confirm = body.ConfirmWrites;
+        var orderId = body.Id;
+        var code = body.Code;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var idRaw = form["order_id"].ToString();
+            if (idRaw.Length == 0)
+            {
+                idRaw = form["id"].ToString();
+            }
+
+            if (idRaw.Length > 0 && long.TryParse(idRaw, System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var parsed))
+            {
+                orderId = parsed;
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpInvoiceFromOrderRequest(orderId, code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        // Catalog stays PHP-authoritative until runtime proof + cutover gates pass; live calls still
+        // execute so the writer can be proven, but the envelope never claims PHP removal.
+        try
+        {
+            var result = await writes.ConvertAsync(orderId, session.UserId, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                status = true,
+                surface = "erp",
+                writes = 1,
+                writesBlocked = false,
+                phpAuthoritative = true,
+                cutoverAllowed = false,
+                readyForPhpRemoval = false,
+                message = "Invoice generated from order",
+                result = new
+                {
+                    invoice_id = result.SalesInvoiceId,
+                    invoice_number = result.InvoiceNumber,
+                    order_id = result.OrderId,
+                    subtotal_ex_vat = result.SubtotalExVat,
+                    total_vat = result.TotalVat,
+                    total_incl_vat = result.TotalInclVat,
+                    paid_amount = result.PaidAmount,
+                    amount_due = result.AmountDue,
+                    ledger_id = result.LedgerId,
+                    gl_journal_id = result.GlJournalId,
+                },
+                session = SessionPayload(session),
+            });
+        }
+        catch (ErpWriteException ex)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                status = false,
+                surface = "erp",
+                writes = 0,
+                writesBlocked = false,
+                phpAuthoritative = true,
+                cutoverAllowed = false,
+                readyForPhpRemoval = false,
+                message = ex.Message,
+                session = SessionPayload(session),
+            });
+        }
     }
 
     private static async Task<IResult> HandleGlPostSalesAsync(

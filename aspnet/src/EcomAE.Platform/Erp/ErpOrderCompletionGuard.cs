@@ -18,9 +18,10 @@ internal static class ErpOrderCompletionGuard
         DbConnection connection,
         long orderId,
         string context,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        DbTransaction? transaction = null)
     {
-        if (!await IsCompleteAsync(connection, orderId, cancellationToken).ConfigureAwait(false))
+        if (!await IsCompleteAsync(connection, orderId, cancellationToken, transaction).ConfigureAwait(false))
         {
             throw new ErpWriteException(Message(orderId, context));
         }
@@ -29,7 +30,8 @@ internal static class ErpOrderCompletionGuard
     public static async Task<bool> IsCompleteAsync(
         DbConnection connection,
         long orderId,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        DbTransaction? transaction = null)
     {
         ArgumentNullException.ThrowIfNull(connection);
         if (orderId <= 0)
@@ -40,17 +42,19 @@ internal static class ErpOrderCompletionGuard
         var orderFinish = await IdsAsync(
             connection,
             "SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1 ORDER BY `order` ASC",
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            transaction).ConfigureAwait(false);
         var itemFinish = await IdsAsync(
             connection,
             "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `for_finish` = 1 ORDER BY `order` ASC",
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            transaction).ConfigureAwait(false);
 
-        if (orderFinish.Count > 0 && await HasOrderStatusColumnAsync(connection, cancellationToken).ConfigureAwait(false))
+        if (orderFinish.Count > 0 && await HasOrderStatusColumnAsync(connection, cancellationToken, transaction).ConfigureAwait(false))
         {
             var found = await ErpDb.LongAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional(
                     "SELECT `id` FROM `shop_orders` WHERE `id` = ? AND `successfully_created` = 1 AND `status` IN ("
                     + Join(orderFinish) + ") LIMIT 1"),
@@ -67,12 +71,13 @@ internal static class ErpOrderCompletionGuard
         var notCounted = await IdsAsync(
             connection,
             "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `count_flag` = 0",
-            cancellationToken).ConfigureAwait(false);
+            cancellationToken,
+            transaction).ConfigureAwait(false);
         var exclusion = string.Concat(notCounted.Select(id => " AND `status` != " + id.ToString(CultureInfo.InvariantCulture)));
 
         var totalItems = await ErpDb.LongAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("SELECT COUNT(*) FROM `shop_orders_items` WHERE `order_id` = ?" + exclusion),
             cancellationToken,
             orderId).ConfigureAwait(false);
@@ -83,7 +88,7 @@ internal static class ErpOrderCompletionGuard
 
         var openItems = await ErpDb.LongAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional(
                 "SELECT COUNT(*) FROM `shop_orders_items` WHERE `order_id` = ?" + exclusion
                 + " AND `status` NOT IN (" + Join(itemFinish) + ")"),
@@ -96,12 +101,13 @@ internal static class ErpOrderCompletionGuard
     public static string Join(IReadOnlyList<long> ids)
         => ids.Count == 0 ? "0" : string.Join(',', ids.Select(id => id.ToString(CultureInfo.InvariantCulture)));
 
-    private static async Task<List<long>> IdsAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
+    private static async Task<List<long>> IdsAsync(DbConnection connection, string sql, CancellationToken cancellationToken, DbTransaction? transaction = null)
     {
         var ids = new List<long>();
         try
         {
             await using var command = connection.CreateCommand();
+            command.Transaction = transaction;
             command.CommandText = sql;
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -117,13 +123,13 @@ internal static class ErpOrderCompletionGuard
         return ids;
     }
 
-    private static async Task<bool> HasOrderStatusColumnAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<bool> HasOrderStatusColumnAsync(DbConnection connection, CancellationToken cancellationToken, DbTransaction? transaction = null)
     {
         try
         {
             var column = await ErpDb.StringAsync(
                 connection,
-                null,
+                transaction,
                 "SHOW COLUMNS FROM `shop_orders` LIKE 'status'",
                 cancellationToken).ConfigureAwait(false);
             return !string.IsNullOrEmpty(column);
