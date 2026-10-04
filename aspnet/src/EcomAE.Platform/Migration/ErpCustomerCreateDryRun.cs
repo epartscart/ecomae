@@ -8,12 +8,12 @@ public sealed class ErpCustomerCreateDryRun : IErpCustomerCreateDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET customer_create is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET customer_create route; the dry-run never writes.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
         return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,
             ["ajax_erp.php?action=customer_create (NOT executed)"],
-            "ERP customer_create payload validated; UPDATE blocked.",
+            "ERP customer_create payload validated; no write without confirm_writes.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=customer_create");
     }
     private static ErpCustomerCreateDryRunResult Refuse(string s,string c,string d,ErpCustomerCreateRequest r)=>
