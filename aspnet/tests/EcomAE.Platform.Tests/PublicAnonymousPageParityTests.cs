@@ -178,4 +178,72 @@ public sealed class PublicAnonymousPageParityTests
         Assert.Contains("https://www.epartscart.com/en/parts/BOSCH", xml, StringComparison.Ordinal);
         Assert.DoesNotContain("/parts/brands/", xml, StringComparison.Ordinal);
     }
+
+    [Theory]
+    [InlineData("/sitemap-wh-0.php", 0, true)]
+    [InlineData("/sitemap-wh-79.php", 79, true)]
+    [InlineData("/sitemap-wh-80.php", 80, false)]
+    [InlineData("/sitemap-products.php", -1, false)]
+    public void WarehouseShardPath_MatchesPhpFiles(string path, int shard, bool served)
+    {
+        var parsed = PublicSeoSitemaps.TryParseWarehouseShard(path, out var value);
+        if (shard < 0)
+        {
+            Assert.False(parsed);
+            return;
+        }
+
+        Assert.True(parsed);
+        Assert.Equal(shard, value);
+        Assert.Equal(served, PublicSeoSitemaps.IsServedWarehouseShard(value));
+    }
+
+    [Fact]
+    public void WarehouseShardXml_UsesPartChpu()
+    {
+        var xml = PublicSeoSitemaps.WarehouseShardUrlset(
+            "https://www.epartscart.com",
+            [("bosch", "0 986 494 527")]);
+        Assert.Contains("https://www.epartscart.com/en/parts/BOSCH/0986494527", xml, StringComparison.Ordinal);
+        Assert.Contains("<priority>0.6</priority>", xml, StringComparison.Ordinal);
+        Assert.Equal(
+            ["sitemap-wh-0.php"],
+            PublicSeoSitemaps.WarehouseShardChildren(1).ToArray());
+    }
+
+    [Fact]
+    public void CatalogEntry_RewritesKnownActionsAndKeepsMissingAction()
+    {
+        Assert.True(PublicCatalogApiEntry.IsEntryPath("/api/v1/catalog.php"));
+        Assert.True(PublicCatalogApiEntry.TryMapAction("engine_search", out var slug));
+        Assert.Equal("engine-search", slug);
+        Assert.False(PublicCatalogApiEntry.TryMapAction("", out _));
+        Assert.False(PublicCatalogApiEntry.TryMapAction("not-a-real-action", out _));
+        Assert.Contains("missing_action", PublicCatalogApiEntry.ErrorJson(
+            PublicCatalogApiEntry.MissingActionCode,
+            PublicCatalogApiEntry.MissingActionMessage), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void EpcApiV1_AnonymousRoutesMatchPhp()
+    {
+        Assert.Equal("", EpcPublicApiV1.RouteOf("/epc-api/v1"));
+        Assert.Equal("health", EpcPublicApiV1.RouteOf("/epc-api/v1/health"));
+        Assert.Equal("tenant/info", EpcPublicApiV1.RouteOf("/epc-api/v1/tenant/info/"));
+        Assert.False(EpcPublicApiV1.IsKeyedRoute("health"));
+        Assert.True(EpcPublicApiV1.IsKeyedRoute("orders"));
+        Assert.Equal("read:orders", EpcPublicApiV1.RequiredScope("orders"));
+
+        var health = EpcPublicApiV1.HealthJson(new DateTimeOffset(2026, 10, 4, 18, 0, 0, TimeSpan.Zero));
+        Assert.Contains("\"service\": \"epc-api\"", health, StringComparison.Ordinal);
+        Assert.Contains("/epc-api/v1/health", health, StringComparison.Ordinal);
+        Assert.Contains("2026-10-04T18:00:00+00:00", health, StringComparison.Ordinal);
+
+        var areas = EpcPublicApiV1.CapabilityAreas();
+        Assert.Contains(areas, area => area.Area == "Platform & Super CP" && area.Count > 0);
+        var missing = EpcPublicApiV1.ErrorJson("missing_api_key", EpcPublicApiV1.MissingKeyMessage);
+        Assert.Contains("missing_api_key", missing, StringComparison.Ordinal);
+        Assert.Contains("Send X-API-Key header", missing, StringComparison.Ordinal);
+        Assert.NotNull(EpcPublicApiV1.OpenApiPath());
+    }
 }

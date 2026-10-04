@@ -15,6 +15,8 @@ public sealed class PublicAnonymousPagesMiddleware
 
     public async Task InvokeAsync(HttpContext context)
     {
+        PublicCatalogApiEntry.TryRewriteToExistingRoute(context);
+
         if (!HttpMethods.IsGet(context.Request.Method) && !HttpMethods.IsHead(context.Request.Method))
         {
             await _next(context);

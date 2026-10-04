@@ -1382,12 +1382,97 @@ app.MapGet("/sitemap-industries.xml", IndustriesSitemap);
 app.MapGet("/sitemap-marketing.php", () =>
     Results.Content(PublicSeoSitemaps.MarketingUrlset(), "application/xml; charset=utf-8"));
 
-app.MapGet("/sitemap-index.php", (HttpContext context) =>
+app.MapGet("/sitemap-index.php", async (
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
 {
     var host = context.Request.Host.Host ?? string.Empty;
     var origin = StorefrontPublicSeo.PublicOrigin(host);
+    var children = PublicSeoSitemaps.IndexChildren(host).ToList();
+    if (!StorefrontPublicSeo.IsEcomaeMarketingHost(host)
+        && !PublicSeoSitemaps.ShouldRedirectIndustriesSitemap(host))
+    {
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var shards = await PublicSeoSitemaps.CountWarehouseShardsAsync(connection, cancellationToken).ConfigureAwait(false);
+            children.AddRange(PublicSeoSitemaps.WarehouseShardChildren(shards));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+        }
+    }
+
+    return Results.Content(PublicSeoSitemaps.SitemapIndex(origin, children), "application/xml; charset=utf-8");
+});
+
+app.Map("/epc-api/v1", EpcPublicApiEndpoint.Handle);
+app.Map("/epc-api/v1/{**rest}", EpcPublicApiEndpoint.Handle);
+
+app.MapMethods("/api/v1/catalog", ["GET", "HEAD", "POST"], CatalogPhpEntry);
+app.MapMethods("/api/v1/catalog.php", ["GET", "HEAD", "POST"], CatalogPhpEntry);
+
+static async Task<IResult> CatalogPhpEntry(
+    HttpContext context,
+    ILegacyApiClientAuthenticator authenticator,
+    CancellationToken cancellationToken)
+{
+    var action = context.Request.Query["action"].ToString().Trim();
+    if (action.Length == 0)
+    {
+        return CatalogClientJson(
+            StatusCodes.Status400BadRequest,
+            PublicCatalogApiEntry.MissingActionCode,
+            PublicCatalogApiEntry.MissingActionMessage);
+    }
+
+    var auth = await authenticator.RequireAsync(context.Request, "catalog", action.ToLowerInvariant(), cancellationToken)
+        .ConfigureAwait(false);
+    if (!auth.Succeeded)
+    {
+        return CatalogClientJson(auth.StatusCode, auth.Code, auth.Message);
+    }
+
+    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+    context.Response.ContentType = "application/json; charset=utf-8";
+    context.Response.Headers.CacheControl = "no-cache, must-revalidate";
+    return Results.Text(
+        "{\"message\":\"" + PublicCatalogApiEntry.UnknownActionMessage + "\"}",
+        "application/json; charset=utf-8",
+        statusCode: StatusCodes.Status400BadRequest);
+}
+
+static IResult CatalogClientJson(int status, string code, string message)
+    => new CatalogClientJsonResult(status, PublicCatalogApiEntry.ErrorJson(code, message));
+
+app.MapGet("/sitemap-wh-{shard:int}.php", async (
+    int shard,
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
+{
+    if (!PublicSeoSitemaps.IsServedWarehouseShard(shard))
+    {
+        return Results.NotFound();
+    }
+
+    var origin = StorefrontPublicSeo.PublicOrigin(context.Request.Host.Host);
+    IReadOnlyList<(string Brand, string Article)> pairs = [];
+    try
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+        pairs = await PublicSeoSitemaps.ReadWarehouseShardAsync(connection, shard, cancellationToken).ConfigureAwait(false);
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+    }
+
+    context.Response.Headers["X-Sitemap-Cache"] = "miss";
     return Results.Content(
-        PublicSeoSitemaps.SitemapIndex(origin, PublicSeoSitemaps.IndexChildren(host)),
+        PublicSeoSitemaps.WarehouseShardUrlset(origin, pairs),
         "application/xml; charset=utf-8");
 });
 
