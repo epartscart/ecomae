@@ -88,6 +88,11 @@ public sealed class ErpEinvoiceCreditNoteWriteService : IErpEinvoiceCreditNoteWr
             return ErpEinvoiceCreditNoteWriteResult.Fail("invalid", "Original invoice has no lines.", request.OriginalDocumentId);
         }
 
+        if (string.Equals(original.InvoiceTypeCode, "381", StringComparison.Ordinal))
+        {
+            return ErpEinvoiceCreditNoteWriteResult.Fail("invalid", "A credit note cannot be credited again.", request.OriginalDocumentId);
+        }
+
         var reason = Clip(string.IsNullOrWhiteSpace(request.Reason) ? "Sales return" : request.Reason.Trim(), 255);
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var lineRecords = original.Lines.Select((line, index) => new CreditLine(
@@ -104,6 +109,26 @@ public sealed class ErpEinvoiceCreditNoteWriteService : IErpEinvoiceCreditNoteWr
         var subtotal = Round2(lineRecords.Sum(line => line.LineNet));
         var totalVat = Round2(lineRecords.Sum(line => line.TaxAmount));
         var total = Round2(subtotal + totalVat);
+
+        var alreadyCredited = await ErpDb.DecimalAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT IFNULL(SUM(`total_incl_vat`), 0) FROM `epc_einvoice_documents`"
+                + " WHERE `invoice_type_code` = '381' AND `active` = 1 AND `status` <> 'cancelled'"
+                + " AND `invoice_number` LIKE CONCAT('CN-', ?, '-%')"),
+            cancellationToken,
+            original.InvoiceNumber).ConfigureAwait(false);
+        if (ExceedsOriginal(original.TotalInclVat, alreadyCredited, total))
+        {
+            return ErpEinvoiceCreditNoteWriteResult.Fail(
+                "over_credit",
+                "Credit notes for " + original.InvoiceNumber + " would exceed the original invoice total ("
+                + Round2(alreadyCredited).ToString("0.00", CultureInfo.InvariantCulture) + " of "
+                + Round2(original.TotalInclVat).ToString("0.00", CultureInfo.InvariantCulture) + " already credited).",
+                request.OriginalDocumentId);
+        }
+
         var taxBreakdown = JsonSerializer.Serialize(new[]
         {
             new
@@ -230,7 +255,8 @@ public sealed class ErpEinvoiceCreditNoteWriteService : IErpEinvoiceCreditNoteWr
         command.CommandText = ErpDb.Positional(
             """
             SELECT `invoice_number`,`order_id`,`user_id`,`payment_means_code`,
-                   COALESCE(`seller_json`,''),COALESCE(`buyer_json`,'')
+                   COALESCE(`seller_json`,''),COALESCE(`buyer_json`,''),
+                   `total_incl_vat`,COALESCE(`invoice_type_code`,'380')
             FROM `epc_einvoice_documents`
             WHERE `id` = ? AND `active` = 1
             LIMIT 1
@@ -249,6 +275,8 @@ public sealed class ErpEinvoiceCreditNoteWriteService : IErpEinvoiceCreditNoteWr
             Convert.ToString(reader.GetValue(3), CultureInfo.InvariantCulture) ?? string.Empty,
             Convert.ToString(reader.GetValue(4), CultureInfo.InvariantCulture) ?? string.Empty,
             Convert.ToString(reader.GetValue(5), CultureInfo.InvariantCulture) ?? string.Empty,
+            Convert.ToDecimal(reader.GetValue(6), CultureInfo.InvariantCulture),
+            Convert.ToString(reader.GetValue(7), CultureInfo.InvariantCulture) ?? "380",
             []);
         await reader.CloseAsync().ConfigureAwait(false);
 
@@ -278,6 +306,10 @@ public sealed class ErpEinvoiceCreditNoteWriteService : IErpEinvoiceCreditNoteWr
         return original;
     }
 
+    /// <summary>Cumulative credit notes may never exceed the original tax invoice total (half-cent tolerance).</summary>
+    public static bool ExceedsOriginal(decimal originalTotal, decimal alreadyCredited, decimal creditTotal)
+        => Round2(alreadyCredited + creditTotal) > Round2(originalTotal) + 0.005m;
+
     private static decimal Round2(decimal value)
         => decimal.Round(value, 2, MidpointRounding.AwayFromZero);
 
@@ -291,6 +323,8 @@ public sealed class ErpEinvoiceCreditNoteWriteService : IErpEinvoiceCreditNoteWr
         string PaymentMeansCode,
         string SellerJson,
         string BuyerJson,
+        decimal TotalInclVat,
+        string InvoiceTypeCode,
         List<OriginalLine> Lines);
 
     private sealed record OriginalLine(
