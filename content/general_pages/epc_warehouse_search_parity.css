@@ -161,12 +161,21 @@
 .epc-parts-desk__panel[hidden] {
 	display: none !important;
 }
+#all_table_products td.td_manufacturer,
+#all_table_products .epc-warehouse-subrow__label,
+#all_table_products .epc-warehouse-label,
+#all_table_products .epc-warehouse-label .info_box {
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	max-width: none;
+}
 .epc-warehouse-subrow__label {
 	color: #0f766e;
 	font-size: 11px;
 	font-weight: 700;
 	margin-top: 2px;
-	white-space: nowrap;
+	line-height: 1.3;
 }
 .epc-warehouse-subrow__label .fa {
 	margin-right: 3px;

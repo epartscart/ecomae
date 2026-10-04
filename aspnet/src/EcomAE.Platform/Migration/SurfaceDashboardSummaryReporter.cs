@@ -5239,8 +5239,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         var kept = new List<StorefrontPartOfferDigest>(rows.Count);
         foreach (var row in rows)
         {
-            if (row.PriceId > 0 && meta.TryGetValue(row.PriceId, out var storage))
+            // PHP prices_enclosure only emits rows for office storages. When that map loaded,
+            // price lists with no storage (and hidden / paused storages) stay off the public table.
+            if (meta.Count > 0)
             {
+                if (row.PriceId <= 0 || !meta.TryGetValue(row.PriceId, out var storage))
+                {
+                    continue;
+                }
+
                 if (!StorefrontWarehouseOfferPolicy.IsPublicStorage(storage.Hidden, storage.Paused))
                 {
                     continue;

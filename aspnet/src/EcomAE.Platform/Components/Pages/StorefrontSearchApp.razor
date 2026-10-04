@@ -41,7 +41,7 @@
     @((MarkupString)_chpuHeadExtras)
     @((MarkupString)_chpuJsonLd)
 }
-<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20261004-search-seo" />
+<link rel="stylesheet" href="/platform-assets/epc_warehouse_search_parity.css?v=20260904-purchase" />
 <link rel="stylesheet" href="/platform-assets/epc_sku_media.css?v=20260812-fitment-sku" />
 <style>
         /* Keep Classic professional-shell look; hide extra search chrome on CHPU/picker. */
@@ -814,7 +814,7 @@
     var price = pricesVisible ? priceRaw.toFixed(2) : mask;
     var purchaseRaw = Number(p.pricePurchase || p.price_purchase || 0);
     var purchaseHtml = (pricesVisible && showPurchase && purchaseRaw > 0)
-      ? '<div class="epc-price-purchase show_data_class"><span class="epc-price-purchase__label">Purchase</span> ' + purchaseRaw.toFixed(2) + '</div>'
+      ? '<div class="epc-price-purchase show_data_class" style="font-size: 10px; color: #959393; position: relative; top: 1px;"><span class="epc-price-purchase__label">Purchase</span> ' + purchaseRaw.toFixed(2) + '</div>'
       : '';
     var wh = warehouseCaption(p, storageRaw);
     var photoHtml = isSub
@@ -841,7 +841,7 @@
     tr.innerHTML =
       photoHtml + mfrHtml + artHtml + nameHtml +
       '<td class="td_exist ' + (pricesVisible && exist > 0 ? 'epc-stock-ok' : 'epc-stock-out') + '">' + avail + '</td>' +
-      '<td class="td_time_to_exe"><span class="epc-warehouse-term">' + term + '</span></td>' +
+      '<td class="td_time_to_exe"><span class="epc-warehouse-term" style="border-bottom:0;text-decoration:none">' + term + '</span></td>' +
       '<td class="td_info">' + (isSub ? '' : infoCellHtml(p, show, storageRaw, pricesVisible)) + '</td>' +
       '<td class="td_price product_price">' + (pricesVisible ? ('<span class="epc-price-sell epc-price-value" data-epc-base-price="' + price + '">' + price + '</span>' + purchaseHtml) : price) + '</td>' +
       '<td class="td_add_to_cart">' + actionsHtml(p, exist, show) + '</td>' +
@@ -2195,7 +2195,7 @@
                 <td class="td_exist @(row.Exist > 0 ? "epc-stock-ok" : "epc-stock-out")">
                     @(row.Exist > 0 ? row.Exist.ToString(CultureInfo.InvariantCulture) : "0")
                 </td>
-                <td class="td_time_to_exe"><span class="epc-warehouse-term">@term</span></td>
+                <td class="td_time_to_exe"><span class="epc-warehouse-term" style="border-bottom:0;text-decoration:none">@term</span></td>
                 <td class="td_info">
                     @if (!isSubRow)
                     {
@@ -2222,7 +2222,7 @@
                     <span class="epc-price-sell epc-price-value" data-epc-base-price="@priceBase">@row.Price.ToString("N2", CultureInfo.InvariantCulture)</span>
                     @if (_showPurchaseCost && row.PricePurchase > 0)
                     {
-                        <div class="epc-price-purchase show_data_class"><span class="epc-price-purchase__label">Purchase</span> @row.PricePurchase.ToString("N2", CultureInfo.InvariantCulture)</div>
+                        <div class="epc-price-purchase show_data_class" style="font-size: 10px; color: #959393; position: relative; top: 1px;"><span class="epc-price-purchase__label">Purchase</span> @row.PricePurchase.ToString("N2", CultureInfo.InvariantCulture)</div>
                     }
                 </td>
             }
