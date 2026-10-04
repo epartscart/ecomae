@@ -80,6 +80,15 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — storefront and CP install files
+
+Not complete.
+
+- www.epartscart.com serves `/manifest.webmanifest`, `/sw.js`, `/icons/pwa-icon-192.svg`, and `/icons/pwa-icon-512.svg`. The storefront head emits the same tags as `templates/nero/desktop.php` when the host is epartscart.com. www.ecomae.com does not.
+- `/cp/manifest.webmanifest`, `/cp/sw.js`, `/cp/offline.html`, and the two CP icons answer without a login, matching `epc_cp_pwa_maybe_serve_asset`. This is not a signed-in Control Panel.
+
+Still open: new-account OAuth provisioning, authenticated CP, production deploy, ERP posting, VIN `email.png`, tenant `/brochure-cp`, `/erp-demo`.
+
 ### Checkpoint 2026-10-04 — public accessories search
 
 Not complete.
