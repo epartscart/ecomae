@@ -65,5 +65,30 @@ public sealed class ErpHrtCostmPhpParityTests
         var program = ReadRepo("aspnet/src/EcomAE.Platform/Program.cs");
         Assert.Contains("IErpHrtReviewWriteService, EcomAE.Platform.Erp.ErpHrtReviewWriteService", program);
         Assert.Contains("IErpCostmCloseWriteService, EcomAE.Platform.Erp.ErpCostmCloseWriteService", program);
+        Assert.Contains("IErpBosComplianceFetchService, EcomAE.Platform.Erp.ErpBosComplianceFetchService", program);
+    }
+
+    [Fact]
+    public void BosComplianceFetchKeepsPhpSeedContract()
+    {
+        var row = SurfacePayloadContractCatalog.Functions.Single(r => r.AspNetRouteOrCapability == EcomAeRoutes.ErpAjaxBosComplianceFetch);
+        Assert.Equal("write-live-gated", row.Status);
+        Assert.Contains("confirm_writes=true", row.Notes);
+
+        var module = ReadRepo("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs");
+        Assert.Contains("endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceFetch, HandleBosComplianceFetchAsync).DisableAntiforgery();", module);
+
+        var service = ReadRepo("aspnet/src/EcomAE.Platform/Erp/ErpBosComplianceFetchService.cs");
+        Assert.Contains("epc_bos_compliance_obligations", service);
+        Assert.Contains("epc_bos_retention_rules", service);
+        Assert.Contains("epc_price_settings", service);
+        Assert.Contains("is_seed", service);
+        Assert.Contains("2026.06.2", service);
+        Assert.Contains("erp_company_country", service);
+        Assert.Contains("erp_industry_pack", service);
+        Assert.Contains("Compliance catalog is up to date", service);
+        Assert.Contains("UAE FTA (EmaraTax)", service);
+        Assert.Contains("ZATCA (Saudi Arabia)", service);
+        Assert.Contains("aml_dpmsr", service);
     }
 }

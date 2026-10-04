@@ -169,8 +169,7 @@ public sealed class ErpModule : ISurfaceModule
                 return ("Preview ready", (object)new { @base = p.Base, as_of = p.AsOf, by_currency = p.ByCurrency.Select(c => new { currency = c.Currency, outstanding_fc = c.OutstandingFc, booked_base = c.BookedBase, current_base = c.CurrentBase, unrealised = c.Unrealised, count = c.Count }), lines = p.Lines.Select(l => new { doc_type = "ar", doc_id = l.DocId, @ref = l.Ref, currency = l.Currency, outstanding_fc = l.OutstandingFc, booked_rate = l.BookedRate, current_rate = l.CurrentRate, booked_base = l.BookedBase, current_base = l.CurrentBase, unrealised = l.Unrealised }), total_unrealised = p.TotalUnrealised });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceFetch, async (HttpContext context, ErpBosComplianceFetchBody? body, ILegacySessionValidator validator, IErpBosComplianceFetchDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpBosComplianceFetchRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceFetch, HandleBosComplianceFetchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlAssortmentSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlDiscountSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlPosSale, async (HttpContext context, ErpRtlPosSaleBody? body, ILegacySessionValidator validator, IErpRtlPosSaleDryRun dryRun, CancellationToken cancellationToken) =>
@@ -19267,6 +19266,45 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleBosComplianceFetchAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpBosComplianceFetchDryRun dryRun,
+        IErpBosComplianceFetchService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for compliance fetch.");
+        }
+
+        var confirm = false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpBosComplianceFetchBody>(context, cancellationToken);
+            confirm = body?.ConfirmWrites == true;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpBosComplianceFetchRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.FetchAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            result.Ok,
+            result.Message,
+            new { ok = result.Ok, writes = result.Writes, phpAuthoritative = false, message = result.Message, version = result.Version, added = result.Added, updated = result.Updated, added_count = result.Added.Count, updated_count = result.Updated.Count, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleHrtReviewFinalizeAsync(
