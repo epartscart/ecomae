@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>shortcut_delete_key</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Wave B dry-run for PHP <c>shortcut_delete_key</c>. Zero-write validation; confirm_writes=true is served by the live write service in the route handler.</summary>
 public interface IErpShortcutDeleteKeyDryRun { ErpShortcutDeleteKeyDryRunResult Evaluate(ErpShortcutDeleteKeyRequest request); }
 public sealed class ErpShortcutDeleteKeyDryRun : IErpShortcutDeleteKeyDryRun
 {
@@ -8,7 +8,7 @@ public sealed class ErpShortcutDeleteKeyDryRun : IErpShortcutDeleteKeyDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET shortcut_delete_key is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET shortcut_delete_key write service in the route handler; this dry-run evaluator never writes.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
         return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,

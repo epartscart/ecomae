@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>workflow_status</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Wave B dry-run for PHP <c>workflow_status</c>. Zero-write validation; confirm_writes=true is served by the live write service in the route handler.</summary>
 public interface IErpWorkflowStatusDryRun
 {
     ErpWorkflowStatusDryRunResult Evaluate(ErpWorkflowStatusRequest request);
@@ -17,7 +17,7 @@ public sealed class ErpWorkflowStatusDryRun : IErpWorkflowStatusDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET workflow_status is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes is handled by the live ASP.NET workflow_status write service in the route handler; this dry-run evaluator never writes.",
                 request);
         }
 

@@ -17,7 +17,7 @@ public interface IErpFyWriteService
 
 public sealed class ErpFyWriteService : IErpFyWriteService
 {
-    internal static readonly string[] AllowedPeriod = ["open", "closed", "locked"];
+    public static readonly string[] AllowedPeriod = ["open", "closed", "locked"];
 
     private readonly IErpWriteConnectionFactory _connections;
 

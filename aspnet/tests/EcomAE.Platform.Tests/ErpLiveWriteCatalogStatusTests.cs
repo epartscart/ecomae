@@ -35,6 +35,20 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/period-list",
         "/erp/ajax/period-checklist",
         "/erp/ajax/period-summary",
+        "/erp/workflow/status",
+        "/erp/subscriptions/status",
+        "/erp/ajax/inv-set-reorder-level",
+        "/erp/ajax/hr-update-days",
+        "/erp/ajax/prja-recognize",
+        "/erp/ajax/transfer-voucher",
+        "/erp/ajax/shortcut-delete",
+        "/erp/ajax/shortcut-delete-key",
+        "/erp/ajax/shortcut-reset",
+        "/erp/ajax/erp-fav-add",
+        "/erp/ajax/erp-fav-remove",
+        "/erp/ajax/ctr-status",
+        "/erp/ajax/fy-reopen",
+        "/erp/ajax/fy-period-status",
     ];
 
     [Fact]

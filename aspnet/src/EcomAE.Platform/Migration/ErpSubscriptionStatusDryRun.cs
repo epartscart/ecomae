@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>sub_status</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Wave B dry-run for PHP <c>sub_status</c>. Zero-write validation; confirm_writes=true is served by the live write service in the route handler.</summary>
 public interface IErpSubscriptionStatusDryRun { ErpSubscriptionStatusDryRunResult Evaluate(ErpSubscriptionStatusRequest request); }
 public sealed class ErpSubscriptionStatusDryRun : IErpSubscriptionStatusDryRun
 {
@@ -8,7 +8,7 @@ public sealed class ErpSubscriptionStatusDryRun : IErpSubscriptionStatusDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET sub_status is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET sub_status write service in the route handler; this dry-run evaluator never writes.", request);
         if (request.Id <= 0)
             return Refuse("dry-run-invalid","invalid_request","id must be positive.", request);
         var status = (request.Status ?? "active").Trim().ToLowerInvariant();
