@@ -8,7 +8,7 @@ public sealed class ErpSaveTemplateDryRun : IErpSaveTemplateDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET save_template is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET save_template route; this dry-run never writes.", request);
         if (request.Id < 0)
             return Refuse("dry-run-invalid","invalid_request","id must be >= 0.", request);
         return new("dry-run-validated",0,true,false,true,"ok",true,request.Id, request.Code,

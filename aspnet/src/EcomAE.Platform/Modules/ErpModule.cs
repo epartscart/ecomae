@@ -2,6 +2,7 @@ using System.Globalization;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
@@ -1051,10 +1052,8 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDocumentUploadRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocumentDelete, async (HttpContext context, ErpDocumentDeleteBody? body, ILegacySessionValidator validator, IErpDocumentDeleteDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpDocumentDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveCompany, async (HttpContext context, ErpSaveCompanyBody? body, ILegacySessionValidator validator, IErpSaveCompanyDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSaveCompanyRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveTemplate, async (HttpContext context, ErpSaveTemplateBody? body, ILegacySessionValidator validator, IErpSaveTemplateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSaveTemplateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveCompany, HandleSaveCompanyAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveTemplate, HandleSaveTemplateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxUploadLogo, async (HttpContext context, ErpUploadLogoBody? body, ILegacySessionValidator validator, IErpUploadLogoDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpUploadLogoRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxUploadAttachment, async (HttpContext context, ErpUploadAttachmentBody? body, ILegacySessionValidator validator, IErpUploadAttachmentDryRun dryRun, CancellationToken cancellationToken) =>
@@ -19931,6 +19930,110 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandleSaveCompanyAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSaveCompanyDryRun dryRun,
+        ICpDocumentControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/document-control-app", "Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSaveCompanyBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var request = new CpDocumentCompanySaveRequest(
+            body.ExpectedVersion, body.LegalName, body.TradeName, body.AddressLine1, body.AddressLine2, body.City, body.Country,
+            body.Trn, body.Phone, body.Email, body.Website, body.LogoPath, body.BankName, body.BankIban, body.LegalFooter,
+            JsonPostedFields(body));
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var posted = new HashSet<string>(CpDocumentControlWriteService.FieldMax.Keys.Where(form.ContainsKey), StringComparer.Ordinal);
+            request = new CpDocumentCompanySaveRequest(
+                LiveWriteFormBinder.Int(form, "expected_version", "expectedVersion"),
+                LiveWriteFormBinder.Text(form, "legal_name"), LiveWriteFormBinder.Text(form, "trade_name"),
+                LiveWriteFormBinder.Text(form, "address_line1"), LiveWriteFormBinder.Text(form, "address_line2"),
+                LiveWriteFormBinder.Text(form, "city"), LiveWriteFormBinder.Text(form, "country"), LiveWriteFormBinder.Text(form, "trn"),
+                LiveWriteFormBinder.Text(form, "phone"), LiveWriteFormBinder.Text(form, "email"), LiveWriteFormBinder.Text(form, "website"),
+                LiveWriteFormBinder.Text(form, "logo_path"), LiveWriteFormBinder.Text(form, "bank_name"), LiveWriteFormBinder.Text(form, "bank_iban"),
+                LiveWriteFormBinder.Text(form, "legal_footer"), posted);
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpSaveCompanyRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(context, session, "/erp/document-control-app", async () =>
+        {
+            var written = await writes.SaveCompanyAsync(request, cancellationToken);
+            if (!written.Succeeded)
+            {
+                throw new ErpWriteException(written.Message);
+            }
+
+            return ("Company profile saved", (object)new { });
+        });
+    }
+
+    private static HashSet<string> JsonPostedFields(ErpSaveCompanyBody body)
+    {
+        var posted = new HashSet<string>(StringComparer.Ordinal);
+        void Add(string column, string? value) { if (value is not null) posted.Add(column); }
+        Add("legal_name", body.LegalName); Add("trade_name", body.TradeName); Add("address_line1", body.AddressLine1); Add("address_line2", body.AddressLine2);
+        Add("city", body.City); Add("country", body.Country); Add("trn", body.Trn); Add("phone", body.Phone); Add("email", body.Email);
+        Add("website", body.Website); Add("logo_path", body.LogoPath); Add("bank_name", body.BankName); Add("bank_iban", body.BankIban); Add("legal_footer", body.LegalFooter);
+        return posted;
+    }
+
+    private static async Task<IResult> HandleSaveTemplateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSaveTemplateDryRun dryRun,
+        ICpDocumentControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/document-control-app", "Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSaveTemplateBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var request = new CpDocumentTemplateSaveRequest(body.Code, body.Title, body.Description, body.HeaderHtml, body.BodyHtml, body.FooterHtml, body.CssExtra, body.Active, null);
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            request = new CpDocumentTemplateSaveRequest(
+                LiveWriteFormBinder.Text(form, "code"), LiveWriteFormBinder.Text(form, "title"), LiveWriteFormBinder.Text(form, "description"),
+                LiveWriteFormBinder.Text(form, "header_html"), LiveWriteFormBinder.Text(form, "body_html"), LiveWriteFormBinder.Text(form, "footer_html"),
+                LiveWriteFormBinder.Text(form, "css_extra"), LiveWriteFormBinder.Flag(form, "active"), null);
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpSaveTemplateRequest(body.Id, request.Code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(context, session, "/erp/document-control-app", async () =>
+        {
+            var written = await writes.SaveTemplateAsync(request, cancellationToken);
+            if (!written.Succeeded)
+            {
+                throw new ErpWriteException(written.Message);
+            }
+
+            return ("Template saved", (object)new { });
+        });
+    }
+
     private static async Task<IResult> HandleSaveContactAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -24174,8 +24277,8 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpSyncContactsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpDocumentUploadBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpDocumentDeleteBody(long Id, bool ConfirmWrites = false);
-    private sealed record ErpSaveCompanyBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpSaveTemplateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpSaveCompanyBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, int ExpectedVersion = 0, string? LegalName = null, string? TradeName = null, string? AddressLine1 = null, string? AddressLine2 = null, string? City = null, string? Country = null, string? Trn = null, string? Phone = null, string? Email = null, string? Website = null, string? LogoPath = null, string? BankName = null, string? BankIban = null, string? LegalFooter = null);
+    private sealed record ErpSaveTemplateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, string? Title = null, string? Description = null, string? HeaderHtml = null, string? BodyHtml = null, string? FooterHtml = null, string? CssExtra = null, bool Active = false);
     private sealed record ErpUploadLogoBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpUploadAttachmentBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpDeleteAttachmentBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
