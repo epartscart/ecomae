@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — public sitemaps, promo redirects, storefront assets
+
+Not complete.
+
+- www.ecomae.com serves `/sitemap-industries.php`, `/sitemap-industries.xml`, `/sitemap-marketing.php`, `/sitemap-index.php`, `/sitemap-pages.php`, and `/sitemap-products.php`. Industry hosts 302 the industries map to www. www.epartscart.com `/sitemap-index.php` lists pages and products. Product hubs include in-stock brands; a missing CMS `content` table falls back to public storefront hubs instead of HTTP 500. `/robots.txt` on the marketing host also names `sitemap-industries.php` and `sitemap-index.php`. Warehouse `sitemap-wh-N.php` shards are not routed.
+- Marketing host `/akciya`, `/en/akciya`, and `/promotion` return 301 `/` with `X-Robots-Tag: noindex`. `/en` and `/en/terms` stay 200. The same promo path on www.epartscart.com stays 404.
+- In-repo storefront files that PHP links and ASP.NET was 404ing now return 200: storefront animations CSS/JS, VIN hystmodal CSS/JS, `vin_zapros.css`, and `/lib/jQuery_ui/jquery-ui.css` and `jquery-ui.js`. `email.png` and `vin.png` are not in the repo.
+- Devin's #1971–#1983 are merged. This checkpoint did not edit ERP posting. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 4991 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, authenticated CP, every tenant CP page, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, warehouse sitemap shards, `/epc-api/v1` and `/api/v1/catalog`, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — storefront demo, CP brochure, public ERP sample
 
 Not complete.
