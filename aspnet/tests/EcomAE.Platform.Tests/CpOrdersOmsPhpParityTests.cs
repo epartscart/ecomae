@@ -44,6 +44,8 @@ public sealed class CpOrdersOmsPhpParityTests
         Assert.Contains("CpOrdersOmsStylesheets", text, StringComparison.Ordinal);
         Assert.Contains("order_id=", text, StringComparison.Ordinal);
         Assert.Contains("data-epc-oms-ssr", text, StringComparison.Ordinal);
+        var orders = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Cp/CpOrdersListService.cs"));
+        Assert.Contains("catch (DbException)", orders, StringComparison.Ordinal);
         Assert.Contains("@page \"/cp/shop/orders/orders\"", text, StringComparison.Ordinal);
         Assert.Contains("@page \"/cp/shop/orders/order\"", text, StringComparison.Ordinal);
         Assert.Contains("GetCpOrderDetailAsync", text, StringComparison.Ordinal);
