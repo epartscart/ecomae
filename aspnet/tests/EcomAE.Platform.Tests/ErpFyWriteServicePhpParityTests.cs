@@ -27,7 +27,7 @@ public sealed class ErpFyWriteServicePhpParityTests
     public void NoLiveRouteDryRunStillClaimsUnimplemented()
     {
         var dir = Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Migration");
-        foreach (var name in new[] { "ErpFyReopen", "ErpFyPeriodStatus", "ErpFyClose", "ErpWorkflowStatus", "ErpSubscriptionStatus", "ErpInvSetReorderLevel", "ErpHrUpdateDays", "ErpPrjaRecognize", "ErpTransferVoucher", "ErpShortcutDelete", "ErpShortcutDeleteKey", "ErpShortcutReset", "ErpErpFavAdd", "ErpErpFavRemove", "ErpCtrStatus" })
+        foreach (var name in new[] { "ErpFyReopen", "ErpFyPeriodStatus", "ErpFyClose", "ErpWorkflowStatus", "ErpSubscriptionStatus", "ErpInvSetReorderLevel", "ErpHrUpdateDays", "ErpPrjaRecognize", "ErpTransferVoucher", "ErpShortcutDelete", "ErpShortcutDeleteKey", "ErpShortcutReset", "ErpErpFavAdd", "ErpErpFavRemove", "ErpCtrStatus", "ErpFaCreateAsset", "ErpFaRunDepreciation" })
         {
             var src = File.ReadAllText(Path.Combine(dir, name + "DryRun.cs"));
             Assert.DoesNotContain("is not implemented", src, StringComparison.Ordinal);

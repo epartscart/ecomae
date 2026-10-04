@@ -49,6 +49,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/ctr-status",
         "/erp/ajax/fy-reopen",
         "/erp/ajax/fy-period-status",
+        "/erp/ajax/fa-create-asset",
+        "/erp/ajax/fa-run-depreciation",
     ];
 
     [Fact]
