@@ -19,6 +19,7 @@ public interface IErpPresenceWriteService
     Task<ErpPresenceHeartbeatResult> HeartbeatAsync(ErpPresenceContext context, CancellationToken cancellationToken = default);
 
     Task<ErpConcurrencyStatusResult> ConcurrencyStatusAsync(ErpPresenceContext context, CancellationToken cancellationToken = default);
+
 }
 
 public sealed record ErpPresenceContext(
@@ -154,7 +155,7 @@ public sealed class ErpPresenceWriteService : IErpPresenceWriteService
         return new(presence.Result, presence, lockRow, version, now, presence.CanForceLock);
     }
 
-    private async Task<ErpPresenceHeartbeatResult> HeartbeatCoreAsync(DbConnection connection, ErpPresenceContext context, CancellationToken ct)
+    internal async Task<ErpPresenceHeartbeatResult> HeartbeatCoreAsync(DbConnection connection, ErpPresenceContext context, CancellationToken ct)
     {
         var userId = context.UserId;
         if (userId <= 0)
@@ -221,7 +222,7 @@ public sealed class ErpPresenceWriteService : IErpPresenceWriteService
     }
 
     /// <summary>PHP <c>epc_erp_concurrency_purge</c>: throttled, best-effort DELETEs.</summary>
-    private static async Task PurgeAsync(DbConnection connection, long now, CancellationToken ct)
+    internal static async Task PurgeAsync(DbConnection connection, long now, CancellationToken ct)
     {
         var last = Interlocked.Read(ref _lastPurge);
         if (now - last < PurgeThrottleSeconds) return;
@@ -245,7 +246,7 @@ public sealed class ErpPresenceWriteService : IErpPresenceWriteService
     }
 
     /// <summary>PHP <c>epc_erp_concurrency_user_label</c>: users.name, then email, else "User #id".</summary>
-    private static async Task<string> UserLabelAsync(DbConnection connection, int userId, CancellationToken ct)
+    internal static async Task<string> UserLabelAsync(DbConnection connection, int userId, CancellationToken ct)
     {
         try
         {
@@ -273,7 +274,7 @@ public sealed class ErpPresenceWriteService : IErpPresenceWriteService
     /// PHP <c>epc_erp_concurrency_can_force_lock</c>: backend-tree membership (session) or an
     /// Administrator-named group binding.
     /// </summary>
-    private static async Task<bool> CanForceLockAsync(DbConnection connection, ErpPresenceContext context, CancellationToken ct)
+    internal static async Task<bool> CanForceLockAsync(DbConnection connection, ErpPresenceContext context, CancellationToken ct)
     {
         if (context.HasBackendAccess) return true;
         var n = await SafeLongAsync(
@@ -285,6 +286,7 @@ public sealed class ErpPresenceWriteService : IErpPresenceWriteService
             "%Administrator%").ConfigureAwait(false);
         return n > 0;
     }
+
 
     private static async Task<long> SafeLongAsync(DbConnection c, string sql, CancellationToken ct, params object?[] p)
     {
@@ -298,10 +300,10 @@ public sealed class ErpPresenceWriteService : IErpPresenceWriteService
         }
     }
 
-    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken ct)
+    internal static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken ct)
         => await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = ?"), ct, table).ConfigureAwait(false) > 0;
 
-    private static string Cut(string s, int max) => s.Length > max ? s[..max] : s;
+    internal static string Cut(string s, int max) => s.Length > max ? s[..max] : s;
 
     private static ErpPresenceHeartbeatResult Empty(ErpSimpleWriteResult result, int userId)
         => new(result, Array.Empty<IReadOnlyDictionary<string, object?>>(), 0, userId, false);
