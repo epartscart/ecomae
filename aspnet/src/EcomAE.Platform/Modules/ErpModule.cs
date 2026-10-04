@@ -3409,22 +3409,7 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(result.ToPayload(SessionPayload(session)));
         });
 
-        endpoints.MapPost(EcomAeRoutes.ErpGlSyncUnposted, async (
-            HttpContext context,
-            ErpGlSyncUnpostedBody? body,
-            ILegacySessionValidator validator,
-            IErpGlSyncUnpostedDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for GL sync-unposted dry-run.");
-            }
-            body ??= new ErpGlSyncUnpostedBody(false);
-            var result = dryRun.Evaluate(new ErpGlSyncUnpostedRequest(body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpGlSyncUnposted, HandleGlSyncUnpostedAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpWorkflowStatus, async (
             HttpContext context,
@@ -20186,6 +20171,39 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             return ("Supplier created", (object)new { id });
+        });
+    }
+
+    private static async Task<IResult> HandleGlSyncUnpostedAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpGlSyncUnpostedDryRun dryRun,
+        IErpGlSyncUnpostedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpGlSyncUnpostedBody>(context, cancellationToken) ?? new(false);
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpGlSyncUnpostedRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(session, async () =>
+        {
+            var n = await writes.SyncAsync(session.UserId, cancellationToken);
+            return ("Synced " + n + " sub-ledger entry(ies) to GL", (object)new { synced = n });
         });
     }
 
