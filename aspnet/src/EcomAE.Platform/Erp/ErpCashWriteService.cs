@@ -1061,7 +1061,8 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 connection,
                 input.OrderId,
                 "Customer settlement linked to order",
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                transaction).ConfigureAwait(false);
         }
 
         if (entryKind == "write_off" && income)
