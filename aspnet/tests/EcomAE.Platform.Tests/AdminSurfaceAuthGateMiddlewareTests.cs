@@ -38,6 +38,11 @@ public sealed class AdminSurfaceAuthGateMiddlewareTests
     [InlineData("/php-reference/cp", false)]
     [InlineData("/migration/php-reference-mode", false)]
     [InlineData("/health", false)]
+    [InlineData("/cp/manifest.webmanifest", false)]
+    [InlineData("/cp/sw.js", false)]
+    [InlineData("/cp/offline.html", false)]
+    [InlineData("/cp/assets/app/icon-192.svg", false)]
+    [InlineData("/cp/assets/app/icon-512.svg", false)]
     public void RequiresAdminMatchesPhpControlWall(string path, bool required)
     {
         Assert.Equal(required, AdminSurfaceAuthGateMiddleware.RequiresAdmin(path));

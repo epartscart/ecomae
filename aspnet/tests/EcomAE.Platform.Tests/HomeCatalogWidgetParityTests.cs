@@ -1,3 +1,4 @@
+using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Storefront;
 using Xunit;
@@ -138,6 +139,54 @@ public sealed class HomeCatalogWidgetParityTests
         Assert.Equal(24, AccessoriesMarketplaceSearch.NormalizePerPage(null));
         Assert.Equal(12, AccessoriesMarketplaceSearch.NormalizePerPage("1"));
         Assert.Equal(48, AccessoriesMarketplaceSearch.NormalizePerPage("99"));
+    }
+
+    [Fact]
+    public void EpartscartPwa_MatchesPhpHostAndFiles()
+    {
+        Assert.True(StorefrontPublicSeo.IsEpartscartHostname("www.epartscart.com"));
+        Assert.True(StorefrontPublicSeo.IsEpartscartHostname("epartscart.com:5080"));
+        Assert.False(StorefrontPublicSeo.IsEpartscartHostname("www.ecomae.com"));
+        Assert.False(StorefrontPublicSeo.IsEpartscartHostname("shop.epartscart.com"));
+        var chrome = File.ReadAllText(FindChrome());
+        Assert.Contains("href=\"/manifest.webmanifest\"", chrome, StringComparison.Ordinal);
+        Assert.Contains("href=\"/icons/pwa-icon-192.svg\"", chrome, StringComparison.Ordinal);
+        Assert.Contains("serviceWorker.register('/sw.js'", chrome, StringComparison.Ordinal);
+        Assert.Contains("IsEpartscartHostname", chrome, StringComparison.Ordinal);
+        var bridge = File.ReadAllText(FindBridge());
+        Assert.Contains("\"/manifest.webmanifest\"", bridge, StringComparison.Ordinal);
+        Assert.Contains("\"/sw.js\"", bridge, StringComparison.Ordinal);
+        Assert.Contains("\"/cp/sw.js\"", bridge, StringComparison.Ordinal);
+        Assert.Contains("\"/cp/offline.html\"", bridge, StringComparison.Ordinal);
+        Assert.False(AdminSurfaceAuthGateMiddleware.RequiresAdmin("/cp/sw.js"));
+        Assert.True(File.Exists(FindRepo("manifest.webmanifest")));
+        Assert.True(File.Exists(FindRepo("sw.js")));
+        Assert.True(File.Exists(FindRepo("icons/pwa-icon-192.svg")));
+        Assert.True(File.Exists(FindRepo("cp/manifest.webmanifest")));
+        Assert.True(File.Exists(FindRepo("cp/offline.html")));
+    }
+
+    private static string FindChrome()
+        => FindRepo("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpStorefrontDesktopChrome.razor");
+
+    private static string FindBridge()
+        => FindRepo("aspnet/src/EcomAE.Platform/Presentation/PhpLegacyAssetBridge.cs");
+
+    private static string FindRepo(string relative)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null)
+        {
+            var candidate = Path.Combine(dir.FullName, relative);
+            if (File.Exists(candidate))
+            {
+                return candidate;
+            }
+
+            dir = dir.Parent;
+        }
+
+        throw new DirectoryNotFoundException(relative);
     }
 
     [Fact]

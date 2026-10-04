@@ -176,6 +176,24 @@ public static class StorefrontPublicSeo
         return $"{scheme}://{hostName}{path}";
     }
 
+    /// <summary>PHP <c>epc_portal_is_epartscart_hostname</c>: www stripped, exact <c>epartscart.com</c>.</summary>
+    public static bool IsEpartscartHostname(string? host)
+    {
+        var h = (host ?? string.Empty).Trim().TrimEnd('.').ToLowerInvariant();
+        var colon = h.IndexOf(':');
+        if (colon >= 0)
+        {
+            h = h[..colon];
+        }
+
+        if (h.StartsWith("www.", StringComparison.Ordinal))
+        {
+            h = h[4..];
+        }
+
+        return h == "epartscart.com";
+    }
+
     public static bool PreferHttpsPublicHost(string? host)
     {
         var h = (host ?? string.Empty).Trim().TrimEnd('.').ToLowerInvariant();

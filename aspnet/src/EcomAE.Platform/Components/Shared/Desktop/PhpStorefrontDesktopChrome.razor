@@ -18,7 +18,33 @@
 *@
 <HeadContent>
 <meta name="ecomae-storefront-chrome-css" content="body-inline" />
+@if (IsEpartscartHost)
+{
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="eParts Cart" />
+    <link rel="apple-touch-icon" href="/icons/pwa-icon-192.svg" />
+}
 </HeadContent>
+@if (IsEpartscartHost)
+{
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="theme-color" content="#dc2626" />
+    <meta name="apple-mobile-web-app-title" content="eParts Cart" />
+    <link rel="apple-touch-icon" href="/icons/pwa-icon-192.svg" />
+    <script>
+    (function () {
+      if ('serviceWorker' in navigator) {
+        window.addEventListener('load', function () {
+          navigator.serviceWorker.register('/sw.js', { scope: '/' }).catch(function () {});
+        }, { once: true });
+      }
+    })();
+    </script>
+}
 <style>
     /*
       Header polish is inlined so live look cannot depend on a missing /content/*.css
@@ -840,6 +866,9 @@
 
     /// <summary>Home body sections rendered BEFORE #sb-site (same slot as PHP desktop.php).</summary>
     [Parameter] public RenderFragment? HomeContent { get; set; }
+
+    private bool IsEpartscartHost =>
+        StorefrontPublicSeo.IsEpartscartHostname(Http.HttpContext?.Request.Host.Host);
 
     private bool _signedIn;
     private string _userLabel = "Account";

@@ -351,6 +351,33 @@ public static class PhpLegacyAssetBridge
         // PHP docroot files. Browsers request /favicon.ico on every public page.
         endpoints.MapGet("/favicon.ico", () => ServeRepoFile(repoRoot, "favicon.ico", "image/x-icon"));
         endpoints.MapGet("/favicon.svg", () => ServeRepoFile(repoRoot, "favicon.svg", "image/svg+xml; charset=utf-8"));
+        // PHP templates/nero/desktop.php PWA block, epartscart host only in the HTML.
+        endpoints.MapGet("/manifest.webmanifest", () =>
+            ServeRepoFile(repoRoot, "manifest.webmanifest", "application/manifest+json; charset=utf-8"));
+        endpoints.MapGet("/sw.js", (HttpContext context) =>
+        {
+            context.Response.Headers.CacheControl = "no-cache";
+            return ServeRepoFile(repoRoot, "sw.js", "application/javascript; charset=utf-8");
+        });
+        endpoints.MapGet("/icons/pwa-icon-192.svg", () =>
+            ServeRepoFile(repoRoot, "icons/pwa-icon-192.svg", "image/svg+xml"));
+        endpoints.MapGet("/icons/pwa-icon-512.svg", () =>
+            ServeRepoFile(repoRoot, "icons/pwa-icon-512.svg", "image/svg+xml"));
+        // PHP cp/epc_cp_pwa_assets.php — served before the CP login wall.
+        endpoints.MapGet("/cp/manifest.webmanifest", () =>
+            ServeRepoFile(repoRoot, "cp/manifest.webmanifest", "application/manifest+json; charset=utf-8"));
+        endpoints.MapGet("/cp/sw.js", (HttpContext context) =>
+        {
+            context.Response.Headers.CacheControl = "no-cache";
+            context.Response.Headers["Service-Worker-Allowed"] = "/cp/";
+            return ServeRepoFile(repoRoot, "cp/sw.js", "application/javascript; charset=utf-8");
+        });
+        endpoints.MapGet("/cp/offline.html", () =>
+            ServeRepoFile(repoRoot, "cp/offline.html", "text/html; charset=utf-8"));
+        endpoints.MapGet("/cp/assets/app/icon-192.svg", () =>
+            ServeRepoFile(repoRoot, "cp/assets/app/icon-192.svg", "image/svg+xml"));
+        endpoints.MapGet("/cp/assets/app/icon-512.svg", () =>
+            ServeRepoFile(repoRoot, "cp/assets/app/icon-512.svg", "image/svg+xml"));
         endpoints.MapGet(BrochureProcessPhoto.PhpPath, BrochureProcessPhoto.Serve);
         endpoints.MapGet(BrochureProcessPhoto.AssetPath, BrochureProcessPhoto.Serve);
         // App.razor favicon. UseStaticFiles is off, so the wwwroot path 404s unless mapped.
