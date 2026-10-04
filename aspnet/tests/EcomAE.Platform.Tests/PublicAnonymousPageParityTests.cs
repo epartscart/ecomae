@@ -283,4 +283,58 @@ public sealed class PublicAnonymousPageParityTests
         Assert.DoesNotContain("approval_queue", json, StringComparison.Ordinal);
         Assert.DoesNotContain("omit-me", json, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void EpcApiV1_PowerBiDatasetsMatchPhpCatchShapes()
+    {
+        var dash = new Dictionary<string, object?>
+        {
+            ["date_from"] = 1759276800L,
+            ["date_to"] = 1759363199L,
+            ["order_count"] = 3L,
+            ["revenue_ex_vat"] = 12.5m,
+            ["profit_ex_vat"] = 2.25m,
+            ["receivable_due_orders"] = 1m,
+            ["customer_ledger_balance"] = 4.5m,
+            ["payable_balance"] = 0m,
+            ["cash_bank_total"] = 100.1m,
+            ["vat_net_payable"] = -0.5m,
+        };
+        var kpis = EpcPowerBiDatasets.FromDashboard("tenant_demo", dash);
+        Assert.Equal(8, kpis.Rows.Count);
+        Assert.Equal(["site_key", "metric", "value", "period_from", "period_to", "unit"], kpis.Headers);
+        Assert.Equal("order_count", kpis.Rows[0][1]);
+        Assert.Equal(3, kpis.Rows[0][2]);
+        Assert.Equal(12.5d, kpis.Rows[1][2]);
+        Assert.Equal(-0.5d, kpis.Rows[7][2]);
+        var kpiJson = EpcPowerBiDatasets.DatasetJson("tenant_demo", "kpis", kpis);
+        Assert.Contains("\"dataset\": \"kpis\"", kpiJson, StringComparison.Ordinal);
+        Assert.Contains("\"source\": \"epc_erp_dashboard\"", kpiJson, StringComparison.Ordinal);
+        Assert.Contains("\"count\": 8", kpiJson, StringComparison.Ordinal);
+        Assert.DoesNotContain("kpi_tiles", kpiJson, StringComparison.Ordinal);
+
+        var orders = EpcPowerBiDatasets.OrdersUnavailable();
+        var ordersJson = EpcPowerBiDatasets.DatasetJson("tenant_demo", "orders", orders);
+        Assert.Contains("\"error\": \"orders_unavailable\"", ordersJson, StringComparison.Ordinal);
+        Assert.Contains("\"count\": 0", ordersJson, StringComparison.Ordinal);
+        Assert.Contains("\"rows\": []", ordersJson, StringComparison.Ordinal);
+
+        var failed = EpcPowerBiDatasets.ReportFailed("Table 'ecomae.shop_orders' doesn't exist");
+        var salesJson = EpcPowerBiDatasets.DatasetJson("tenant_demo", "sales", failed);
+        Assert.Contains("shop_orders", salesJson, StringComparison.Ordinal);
+        Assert.Contains("\"rows\": []", salesJson, StringComparison.Ordinal);
+        Assert.Empty(failed.Rows);
+
+        var metrics = EpcPowerBiDatasets.MetricsFailed();
+        var metricsJson = EpcPowerBiDatasets.DatasetJson("tenant_demo", "metrics", metrics);
+        Assert.Contains("\"error\": \"bi_query_failed\"", metricsJson, StringComparison.Ordinal);
+        Assert.Empty(metrics.Rows);
+
+        Assert.Equal(100, EpcPowerBiDatasets.OrdersLimit(null));
+        Assert.Equal(1, EpcPowerBiDatasets.OrdersLimit("0"));
+        Assert.Equal(200, EpcPowerBiDatasets.OrdersLimit("500"));
+        Assert.Equal(1759276800L, EpcPowerBiDatasets.ParseDate("2025-10-01", 1));
+        Assert.True(EpcPublicApiV1.IsKeyedRoute("powerbi/kpis"));
+        Assert.True(EpcPublicApiV1.PowerBiScopeAllowed(["read:erp"]));
+    }
 }

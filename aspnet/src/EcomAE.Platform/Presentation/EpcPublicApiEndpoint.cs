@@ -82,9 +82,9 @@ public static class EpcPublicApiEndpoint
                 return await DashboardSummaryAsync(connections, dashboard, auth, cancellationToken).ConfigureAwait(false);
             }
 
-            if (EpcPublicApiV1.IsPowerBiRoute(route) && !route.Equals("powerbi/catalog", StringComparison.OrdinalIgnoreCase))
+            if (EpcPublicApiV1.IsPowerBiRoute(route))
             {
-                return ApiJson(503, EpcPublicApiV1.ErrorJson("erp_unavailable", "ERP helpers not available on this stack."));
+                return await PowerBiAsync(context, connections, registry, dashboard, auth, route, cancellationToken).ConfigureAwait(false);
             }
 
             if (route.Equals("tenant/info", StringComparison.OrdinalIgnoreCase))
@@ -238,6 +238,104 @@ public static class EpcPublicApiEndpoint
         Add(command, "@bare", bare);
         var mode = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) as string;
         return string.IsNullOrWhiteSpace(mode) ? "full" : mode;
+    }
+
+    private static async Task<IResult> PowerBiAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        DbConnection registry,
+        IErpDashboardReadService dashboard,
+        AuthHold auth,
+        string route,
+        CancellationToken cancellationToken)
+    {
+        if (route.Equals("powerbi/metrics", StringComparison.OrdinalIgnoreCase))
+        {
+            EpcPowerBiDatasets.Dataset dataset;
+            try
+            {
+                dataset = await EpcPowerBiRead.MetricsAsync(registry, auth.SiteKey, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                dataset = EpcPowerBiDatasets.MetricsFailed();
+            }
+
+            return PowerBiResult(context, "metrics", auth.SiteKey, dataset);
+        }
+
+        var tenantDb = await OpenTenantAsync(connections, auth.SiteKey, cancellationToken).ConfigureAwait(false);
+        if (tenantDb.Error is not null)
+        {
+            return tenantDb.Error;
+        }
+
+        await using var connection = tenantDb.Connection!;
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        var to = EpcPowerBiDatasets.ParseDate(context.Request.Query["to"].ToString(), now);
+        var from = EpcPowerBiDatasets.ParseDate(context.Request.Query["from"].ToString(), EpcPowerBiDatasets.DefaultFrom(to));
+        try
+        {
+            if (route.Equals("powerbi/kpis", StringComparison.OrdinalIgnoreCase))
+            {
+                var read = await dashboard.DashboardOnConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+                if (!read.Result.Succeeded)
+                {
+                    return ApiJson(500, EpcPublicApiV1.ErrorJson("internal_error", "API request failed."));
+                }
+
+                return PowerBiResult(context, "kpis", auth.SiteKey, EpcPowerBiDatasets.FromDashboard(auth.SiteKey, read.Data));
+            }
+
+            if (route.Equals("powerbi/orders", StringComparison.OrdinalIgnoreCase))
+            {
+                var limit = EpcPowerBiDatasets.OrdersLimit(context.Request.Query["limit"].ToString());
+                var orders = await EpcPowerBiRead.OrdersAsync(connection, auth.SiteKey, limit, cancellationToken).ConfigureAwait(false);
+                return PowerBiResult(context, "orders", auth.SiteKey, orders);
+            }
+
+            if (route.Equals("powerbi/sales", StringComparison.OrdinalIgnoreCase))
+            {
+                return PowerBiResult(context, "sales", auth.SiteKey, await EpcPowerBiRead.SalesAsync(connection, from, to, cancellationToken).ConfigureAwait(false));
+            }
+
+            if (route.Equals("powerbi/stock", StringComparison.OrdinalIgnoreCase))
+            {
+                return PowerBiResult(context, "stock", auth.SiteKey, await EpcPowerBiRead.StockAsync(connection, from, to, cancellationToken).ConfigureAwait(false));
+            }
+
+            if (route.Equals("powerbi/gl", StringComparison.OrdinalIgnoreCase))
+            {
+                return PowerBiResult(context, "gl", auth.SiteKey, await EpcPowerBiRead.GlAsync(connection, from, to, cancellationToken).ConfigureAwait(false));
+            }
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            if (route.Equals("powerbi/kpis", StringComparison.OrdinalIgnoreCase))
+            {
+                return ApiJson(500, EpcPublicApiV1.ErrorJson("internal_error", "API request failed."));
+            }
+
+            if (route.Equals("powerbi/orders", StringComparison.OrdinalIgnoreCase))
+            {
+                return PowerBiResult(context, "orders", auth.SiteKey, EpcPowerBiDatasets.OrdersUnavailable());
+            }
+
+            var id = route["powerbi/".Length..];
+            return PowerBiResult(context, id, auth.SiteKey, EpcPowerBiDatasets.ReportFailed(ex.Message));
+        }
+
+        return ApiJson(404, EpcPublicApiV1.ErrorJson("not_found", "Unknown API route: " + route));
+    }
+
+    private static IResult PowerBiResult(HttpContext context, string datasetId, string siteKey, EpcPowerBiDatasets.Dataset dataset)
+    {
+        if (EpcPowerBiDatasets.WantsCsv(context.Request))
+        {
+            return new CsvResult(datasetId, EpcPowerBiDatasets.Csv(dataset));
+        }
+
+        return ApiJson(200, EpcPowerBiDatasets.DatasetJson(siteKey, datasetId, dataset));
     }
 
     private static async Task<IResult> DashboardSummaryAsync(
@@ -539,6 +637,20 @@ public static class EpcPublicApiEndpoint
     private static IResult ApiJson(int status, string body)
     {
         return new VersionedJsonResult(status, body);
+    }
+
+    private sealed class CsvResult(string datasetId, string body) : IResult
+    {
+        public async Task ExecuteAsync(HttpContext httpContext)
+        {
+            var safe = new string(datasetId.Where(ch => char.IsAsciiLetterOrDigit(ch) || ch is '.' or '_' or '-').ToArray());
+            httpContext.Response.StatusCode = 200;
+            httpContext.Response.ContentType = "text/csv; charset=utf-8";
+            httpContext.Response.Headers.CacheControl = "no-store";
+            httpContext.Response.Headers["X-ECOM-API-Version"] = "v1";
+            httpContext.Response.Headers.ContentDisposition = "attachment; filename=\"powerbi_" + safe + ".csv\"";
+            await httpContext.Response.WriteAsync(body).ConfigureAwait(false);
+        }
     }
 
     private sealed class VersionedJsonResult(int status, string body) : IResult
