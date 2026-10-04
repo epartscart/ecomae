@@ -2972,22 +2972,7 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpPeriodSoftClose, HandlePeriodSoftCloseAsync).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpPeriodLock, async (
-            HttpContext context,
-            ErpPeriodLockBody? body,
-            ILegacySessionValidator validator,
-            IErpPeriodLockDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for period lock dry-run.");
-            }
-            body ??= new ErpPeriodLockBody(null, null, false);
-            var result = dryRun.Evaluate(new ErpPeriodLockRequest(body.YearMonth, body.Note, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpPeriodLock, HandlePeriodLockAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpCustomerSettlement, async (
             HttpContext context,
@@ -3119,22 +3104,7 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpFiscalSetLock, HandleFiscalSetLockAsync).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpPeriodReopen, async (
-            HttpContext context,
-            ErpPeriodReopenBody? body,
-            ILegacySessionValidator validator,
-            IErpPeriodReopenDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for period reopen dry-run.");
-            }
-            body ??= new ErpPeriodReopenBody(null, null, false);
-            var result = dryRun.Evaluate(new ErpPeriodReopenRequest(body.YearMonth, body.Note, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpPeriodReopen, HandlePeriodReopenAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesAdjust, async (
             HttpContext context,
@@ -21581,6 +21551,82 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandlePeriodLockAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPeriodLockDryRun dryRun,
+        IErpPeriodLockReopenWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/period-close-app", "Admin ERP capability required for period lock.");
+        }
+
+        var (yearMonth, note, confirm) = await ReadPeriodBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPeriodLockRequest(yearMonth, note)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.LockAsync(new ErpPeriodLockWriteRequest(yearMonth, note, session.UserId), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/period-close-app",
+            written.Result.Succeeded,
+            written.Result.Message,
+            new { ok = written.Result.Succeeded, writes = written.Result.Writes, phpAuthoritative = false, validation_code = written.Result.Code, message = written.Result.Message, year_month = yearMonth, status = written.Result.Succeeded ? "locked" : null, checklist = written.Checklist, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandlePeriodReopenAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPeriodReopenDryRun dryRun,
+        IErpPeriodLockReopenWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/period-close-app", "Admin ERP capability required for period reopen.");
+        }
+
+        var (yearMonth, note, confirm) = await ReadPeriodBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPeriodReopenRequest(yearMonth, note)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.ReopenAsync(new ErpPeriodLockWriteRequest(yearMonth, note, session.UserId), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/period-close-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, year_month = yearMonth, status = written.Succeeded ? "open" : null, session = SessionPayload(session) });
+    }
+
+    private static async Task<(string YearMonth, string Note, bool Confirm)> ReadPeriodBodyAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var ym = form["year_month"].ToString();
+            if (ym.Length == 0)
+            {
+                ym = form["yearMonth"].ToString();
+            }
+            return (ym, form["note"].ToString(), LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes"));
+        }
+
+        var root = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<JsonElement>(context, cancellationToken);
+        return (
+            ErpPeriodSoftCloseWriteService.JsonText(root, "year_month", "yearMonth"),
+            ErpPeriodSoftCloseWriteService.JsonText(root, "note"),
+            ErpPeriodSoftCloseWriteService.JsonFlag(root, "confirmWrites", "confirm_writes"));
+    }
+
     private static async Task<IResult> HandlePeriodSoftCloseAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -21999,7 +22045,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPurchaseFromOrderBody(long OrderId, long SupplierId, bool ConfirmWrites = false);
     private sealed record ErpCcySetRateBody(string? From, string? To, decimal Rate, bool ConfirmWrites = false);
     private sealed record ErpPeriodSoftCloseBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
-    private sealed record ErpPeriodLockBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpCustomerSettlementBody(
         long UserId = 0,
         decimal Amount = 0,
@@ -22023,7 +22068,6 @@ public sealed class ErpModule : ISurfaceModule
         long Time = 0,
         bool PostGl = false);
     private sealed record ErpFiscalSetLockBody(long LockDateUnix = 0, string? Note = null, bool ConfirmWrites = false);
-    private sealed record ErpPeriodReopenBody(string? YearMonth, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpPurchaseAdjustmentBody(long PurchaseId, decimal DeltaExVat, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpOrderSettlementBody(
         long OrderId = 0,
