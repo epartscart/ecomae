@@ -1068,6 +1068,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrtApplicantStageWriteService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinPeriodsGenerateWriteService, EcomAE.Platform.Erp.ErpFinPeriodsGenerateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBankReconcileWriteService, EcomAE.Platform.Erp.ErpBankReconcileWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutomationDeactivateWriteService, EcomAE.Platform.Erp.ErpAutomationDeactivateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutomationWriteService, EcomAE.Platform.Erp.ErpAutomationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodSoftCloseWriteService, EcomAE.Platform.Erp.ErpPeriodSoftCloseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodLockReopenWriteService, EcomAE.Platform.Erp.ErpPeriodLockReopenWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodReadService, EcomAE.Platform.Erp.ErpPeriodReadService>();

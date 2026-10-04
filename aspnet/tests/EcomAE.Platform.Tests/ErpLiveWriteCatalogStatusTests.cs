@@ -75,6 +75,10 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/gl-journals/post-sales",
         "/erp/ajax/workflow-save",
         "/erp/ajax/workflow-run",
+        "/erp/ajax/automation-activate",
+        "/erp/ajax/automation-install-template",
+        "/erp/ajax/automation-enable-category",
+        "/erp/ajax/automation-tick",
     ];
 
     [Fact]
