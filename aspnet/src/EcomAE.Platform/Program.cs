@@ -1009,6 +1009,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCftInstrumentSaveWriteService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCftInstrumentStatusWriteService, EcomAE.Platform.Erp.ErpCftInstrumentStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocxSaveWriteService, EcomAE.Platform.Erp.ErpDocxSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinAllocSaveWriteService, EcomAE.Platform.Erp.ErpFinAllocSaveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinFxRevalueWriteService, EcomAE.Platform.Erp.ErpFinFxRevalueWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCostCenterWriteService, EcomAE.Platform.Erp.ErpCostCenterWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocxDeleteWriteService, EcomAE.Platform.Erp.ErpDocxDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTenantConfigSaveWriteService, EcomAE.Platform.Erp.ErpTenantConfigSaveWriteService>();

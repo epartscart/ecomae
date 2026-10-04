@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>fin_fx_revalue</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Dry-run for PHP <c>fin_fx_revalue</c>. Never writes; confirmed writes run through <c>IErpFinFxRevalueWriteService</c>.</summary>
 public interface IErpFinFxRevalueDryRun { ErpFinFxRevalueDryRunResult Evaluate(ErpFinFxRevalueRequest request); }
 public sealed class ErpFinFxRevalueDryRun : IErpFinFxRevalueDryRun
 {
@@ -8,7 +8,7 @@ public sealed class ErpFinFxRevalueDryRun : IErpFinFxRevalueDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET fin_fx_revalue is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live /erp/ajax/fin-fx-revalue route (IErpFinFxRevalueWriteService); the dry-run evaluator never writes.", request);
         
         return new("dry-run-validated",0,true,false,true,"ok",true,
             ["ajax_erp.php?action=fin_fx_revalue (NOT executed)"],

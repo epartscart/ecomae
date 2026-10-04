@@ -10647,8 +10647,7 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpInsClaimAddRequest(id, policyId, claimNo, false)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinPeriodsGenerate, HandleFinPeriodsGenerateAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinFxRevalue, async (HttpContext context, ErpFinFxRevalueBody? body, ILegacySessionValidator validator, IErpFinFxRevalueDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinFxRevalueRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinFxRevalue, HandleFinFxRevalueAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocSave, HandleFinAllocSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocRun, async (HttpContext context, ErpFinAllocRunBody? body, ILegacySessionValidator validator, IErpFinAllocRunDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinAllocRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
@@ -19610,6 +19609,50 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleFinFxRevalueAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFinFxRevalueDryRun dryRun,
+        IErpFinFxRevalueWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fin-advanced-app", "Admin ERP capability required for FX revaluation run.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFinFxRevalueBody>(context, cancellationToken) ?? new();
+        var balances = body.Balances;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            balances = LiveWriteFormBinder.Text(form, "balances");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var companyHint = 0L;
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            companyHint = parsedCompany;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpFinFxRevalueRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.RevalueAsync(new ErpFinFxRevalueWriteRequest(balances, companyHint), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fin-advanced-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, run_id = written.Id, id = written.Id, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleFinAllocSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -22674,7 +22717,7 @@ public sealed class ErpModule : ISurfaceModule
         string? Note = null,
         bool ConfirmWrites = false);
     private sealed record ErpFinPeriodsGenerateBody(bool ConfirmWrites = false);
-    private sealed record ErpFinFxRevalueBody(bool ConfirmWrites = false);
+    private sealed record ErpFinFxRevalueBody(bool ConfirmWrites = false, string? Balances = null);
     private sealed record ErpFinAllocSaveBody(
         long Id = 0,
         long CompanyId = 0,
