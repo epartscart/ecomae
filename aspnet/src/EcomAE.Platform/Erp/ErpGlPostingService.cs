@@ -103,6 +103,12 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             throw new ErpWriteException("Period is closed: cannot post on or before " + closed);
         }
 
+        var periodStatus = await PeriodStatusAsync(connection, journalDate, cancellationToken).ConfigureAwait(false);
+        if (PeriodBlocksPosting(periodStatus))
+        {
+            throw new ErpWriteException(PeriodBlockedMessage(periodStatus));
+        }
+
         // Voucher numbering runs DDL, which MySQL implicitly commits — resolve it
         // before the journal transaction opens, exactly as PHP does.
         var journalNo = await _vouchers.NextAsync(connection, null, "GV", cancellationToken).ConfigureAwait(false);
@@ -514,6 +520,36 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
             cancellationToken,
             code);
+
+    /// <summary>`epc_erp_periods.status` of <c>soft_close</c> or <c>locked</c> blocks every journal source,
+    /// not only manual journals (sub-ledger postings share this path).</summary>
+    public static bool PeriodBlocksPosting(string status)
+        => status.Equals("locked", StringComparison.OrdinalIgnoreCase)
+            || status.Equals("soft_close", StringComparison.OrdinalIgnoreCase);
+
+    public static string PeriodBlockedMessage(string status)
+        => "Journal posting is blocked because the accounting period is " + status.Replace('_', ' ');
+
+    public static string PeriodKey(long journalDate)
+        => DateTimeOffset.FromUnixTimeSeconds(journalDate).ToUniversalTime().ToString("yyyy-MM", CultureInfo.InvariantCulture);
+
+    private static async Task<string> PeriodStatusAsync(DbConnection connection, long journalDate, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var status = await ErpDb.StringAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COALESCE(`status`, 'open') FROM `epc_erp_periods` WHERE `year_month` = ? LIMIT 1"),
+                cancellationToken,
+                PeriodKey(journalDate)).ConfigureAwait(false);
+            return string.IsNullOrWhiteSpace(status) ? "open" : status;
+        }
+        catch (DbException)
+        {
+            return "open";
+        }
+    }
 
     private static async Task<long> FiscalLockDateAsync(DbConnection connection, CancellationToken cancellationToken)
     {
