@@ -71,6 +71,37 @@ public sealed class HomeCatalogWidgetParityTests
     }
 
     [Fact]
+    public void SuppliersJson_UnionsPriceListBrands_LikePhp()
+    {
+        var json = HomeCatalogWidgets.SuppliersJson(
+            [new HomeCatalogWidgets.CachedUmapiBrand(12, "Bosch", "Bosch GmbH")],
+            [
+                new HomeCatalogWidgets.StockUmapiBrand("BOSCH", 4),
+                new HomeCatalogWidgets.StockUmapiBrand("MAHLE", 9),
+            ]);
+        Assert.Contains("\"rows\":2", json, StringComparison.Ordinal);
+        Assert.Contains("\"source\":\"database\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"SUP_ID\":12", json, StringComparison.Ordinal);
+        Assert.Contains("Bosch GmbH", json, StringComparison.Ordinal);
+        Assert.Contains("Loaded price-list brand: 9 part numbers", json, StringComparison.Ordinal);
+        Assert.Contains("\"LOCAL_STOCK_COUNT\":9", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("Loaded price-list brand: 4 part numbers", json, StringComparison.Ordinal);
+        Assert.Equal("""{"rows":0,"data":[],"source":"database"}""", HomeCatalogWidgets.SuppliersJson([], []));
+        Assert.Equal("[]", HomeCatalogWidgets.EmptyVehicleCatalogJson());
+    }
+
+    [Fact]
+    public void UmapiCacheSchema_CreatesThePhpCacheTables()
+    {
+        var sql = string.Join('\n', HomeCatalogWidgets.UmapiCacheSchemaStatements());
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_umapi_manufacturers`", sql, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_umapi_brands`", sql, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_umapi_models`", sql, StringComparison.Ordinal);
+        Assert.Contains("CREATE TABLE IF NOT EXISTS `epc_umapi_modifications`", sql, StringComparison.Ordinal);
+        Assert.Equal(8, HomeCatalogWidgets.UmapiCacheSchemaStatements().Count);
+    }
+
+    [Fact]
     public void ShopPrivacyPath_IsOnlyPrivacy()
     {
         Assert.True(EcomaeMarketingSnapshots.IsShopPrivacyPath("/privacy"));

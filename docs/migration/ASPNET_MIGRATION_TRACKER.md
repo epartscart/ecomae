@@ -80,12 +80,21 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — homepage catalog cache and /platform/tools
+
+Not complete. Homepage list actions no longer forward the rejected UMAPI key as HTTP 402.
+
+- `/api/umapi_proxy.php` creates the PHP `epc_umapi_*` cache tables when they are missing (`CREATE TABLE IF NOT EXISTS`, same statements as `epc_ensure_cache_tables`). `action=suppliers` then returns the PHP stock-brand payload from `epc_umapi_brands` plus in-stock rows in `shop_docpart_prices_data` (`source: database`). `action=manufacturers`, `models`, and `modifications` return **200 `[]`** when that cache is empty, so the homepage widgets do not throw on `Payment Required`. TecDoc makes are not invented from parts brands. VIN and other live actions still forward the upstream status. This is not a full port of the UMAPI proxy.
+- www.ecomae.com `/platform/tools` serves the existing free-tools snapshot. PHP maps that path to the same page as `/platform/free-tools`.
+
+Still open: new-account OAuth provisioning, authenticated CP beyond login, production deploy, ERP posting, VIN `email.png` if the file is not in the repo.
+
 ### Checkpoint 2026-10-04 — OAuth callback, home widgets, shop privacy, marketing customers
 
 Not complete. This slice only closes the next 404s on the same branch.
 
 - `/api/epc_oauth_callback.php` (GET and POST) and `/epc-auth-handoff.php` are ASP.NET. Missing or bad state is **400** HTML (`Missing sign-in parameters.` / `This sign-in link has expired.`). A valid state with no local credentials is **503** `Google sign-in is not configured.` (the start route stays **422**). When credentials exist, the code is exchanged and an existing confirmed user gets a session cookie or a cross-host handoff. New-account provisioning is still PHP.
-- Homepage `/api/umapi_proxy.php` and `/content/shop/docpart/ajax_epc_product_family.php` return JSON (catalog rows, PHP validation errors, or the upstream catalog JSON). Local product-family summary is 200. Manufacturers has no `epc_umapi_manufacturers` cache and the fallback UMAPI key is rejected, so that action forwards **402** `Payment Required` the way PHP does when the offline cache is empty. This is not a full port of the 2000-line UMAPI proxy.
+- Homepage `/api/umapi_proxy.php` and `/content/shop/docpart/ajax_epc_product_family.php` return JSON (catalog rows, PHP validation errors, or the upstream catalog JSON). Local product-family summary is 200. The next checkpoint stops forwarding **402** for the homepage brand and vehicle lists. This is not a full port of the 2000-line UMAPI proxy.
 - www.epartscart.com `/privacy` and `/en/privacy` serve the same privacy snapshot as www.ecomae.com `/privacy`.
 - www.ecomae.com `/customers` serves the PHP customer-results snapshot (`/platform/customer-results` remains the canonical path).
 

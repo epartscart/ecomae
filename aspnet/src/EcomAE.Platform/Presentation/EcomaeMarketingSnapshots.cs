@@ -27,6 +27,8 @@ public static class EcomaeMarketingSnapshots
         ["/capabilities"] = "/platform/capabilities",
         ["/free-tools"] = "/platform/free-tools",
         ["/tools"] = "/platform/free-tools",
+        // PHP epc_ecomae_platform_match_path: /platform/tools is the same free-tools page.
+        ["/platform/tools"] = "/platform/free-tools",
         ["/platform/brochure"] = "/brochure",
         ["/platform/brochure/cp"] = "/brochure/cp",
         ["/brochure-cp"] = "/brochure/cp",

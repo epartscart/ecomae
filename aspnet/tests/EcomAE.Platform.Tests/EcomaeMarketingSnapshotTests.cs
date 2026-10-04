@@ -37,6 +37,8 @@ public sealed class EcomaeMarketingSnapshotTests
     [InlineData("/demo", "platform__demo")]
     [InlineData("/faq", "platform__faq")]
     [InlineData("/capabilities", "platform__capabilities")]
+    [InlineData("/tools", "platform__free-tools")]
+    [InlineData("/platform/tools", "platform__free-tools")]
     public void CanonicalPathsMapToSnapshotSlugs(string path, string slug)
     {
         Assert.Equal(slug, EcomaeMarketingSnapshots.SlugFor(path));
@@ -110,6 +112,7 @@ public sealed class EcomaeMarketingSnapshotTests
     [InlineData("/platform/industries")]
     [InlineData("/platform/capabilities")]
     [InlineData("/platform/free-tools")]
+    [InlineData("/platform/tools")]
     [InlineData("/platform/about")]
     [InlineData("/platform/contact")]
     [InlineData("/platform/demo")]

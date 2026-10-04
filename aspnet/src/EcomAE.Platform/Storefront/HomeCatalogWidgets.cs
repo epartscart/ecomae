@@ -28,6 +28,139 @@ public static class HomeCatalogWidgets
         Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
     };
 
+    /// <summary>Copied from PHP <c>epc_ensure_cache_tables</c>.</summary>
+    private static readonly string[] UmapiCacheDdl =
+    [
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_cache` (
+            `cache_key` varchar(190) NOT NULL,
+            `action` varchar(40) NOT NULL,
+            `section` varchar(20) NOT NULL,
+            `language` varchar(10) NOT NULL,
+            `region` varchar(20) NOT NULL,
+            `request_json` text NULL,
+            `response_json` mediumtext NOT NULL,
+            `rows_count` int NOT NULL DEFAULT 0,
+            `http_status` int NOT NULL DEFAULT 200,
+            `last_sync` int NOT NULL DEFAULT 0,
+            PRIMARY KEY (`cache_key`),
+            KEY `action_section` (`action`, `section`),
+            KEY `last_sync` (`last_sync`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_manufacturers` (
+            `section` varchar(20) NOT NULL,
+            `mfa_id` int NOT NULL,
+            `manufacturer` varchar(255) NOT NULL,
+            `manufacturer_ru` varchar(255) NULL,
+            `type` varchar(255) NULL,
+            `country` varchar(120) NULL,
+            `popular` tinyint NOT NULL DEFAULT 0,
+            `is_logo` tinyint NOT NULL DEFAULT 0,
+            `raw_json` text NULL,
+            `updated_at` int NOT NULL DEFAULT 0,
+            PRIMARY KEY (`section`, `mfa_id`),
+            KEY `manufacturer` (`manufacturer`),
+            KEY `popular` (`popular`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_models` (
+            `section` varchar(20) NOT NULL,
+            `mfa_id` int NOT NULL,
+            `ms_id` int NOT NULL,
+            `model_series` varchar(255) NOT NULL,
+            `year_from` varchar(20) NULL,
+            `year_to` varchar(20) NULL,
+            `raw_json` text NULL,
+            `updated_at` int NOT NULL DEFAULT 0,
+            PRIMARY KEY (`section`, `ms_id`),
+            KEY `mfa_id` (`mfa_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_modifications` (
+            `section` varchar(20) NOT NULL,
+            `ms_id` int NOT NULL,
+            `modification_id` int NOT NULL,
+            `title` varchar(255) NOT NULL,
+            `year_from` varchar(20) NULL,
+            `year_to` varchar(20) NULL,
+            `power_kw` varchar(50) NULL,
+            `capacity_lt` varchar(50) NULL,
+            `fuel_type` varchar(120) NULL,
+            `raw_json` text NULL,
+            `updated_at` int NOT NULL DEFAULT 0,
+            PRIMARY KEY (`section`, `modification_id`),
+            KEY `ms_id` (`ms_id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_brands` (
+            `sup_id` int NOT NULL,
+            `brand` varchar(255) NOT NULL,
+            `full_name` varchar(255) NULL,
+            `raw_json` text NULL,
+            `updated_at` int NOT NULL DEFAULT 0,
+            PRIMARY KEY (`sup_id`),
+            KEY `brand` (`brand`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_sync_status` (
+            `id` tinyint NOT NULL,
+            `connected` tinyint NOT NULL DEFAULT 0,
+            `status_code` int NOT NULL DEFAULT 0,
+            `message` varchar(255) NULL,
+            `last_checked` int NOT NULL DEFAULT 0,
+            `last_success` int NOT NULL DEFAULT 0,
+            `last_error` int NOT NULL DEFAULT 0,
+            `key_hash` varchar(64) NULL,
+            PRIMARY KEY (`id`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_vin_cache` (
+            `vin` varchar(17) NOT NULL,
+            `language` varchar(10) NOT NULL DEFAULT 'en',
+            `region` varchar(20) NOT NULL DEFAULT 'WWW',
+            `response_json` mediumtext NOT NULL,
+            `vehicle_count` int NOT NULL DEFAULT 0,
+            `manufacturer` varchar(255) NULL,
+            `model_label` varchar(255) NULL,
+            `http_status` int NOT NULL DEFAULT 200,
+            `updated_at` int NOT NULL DEFAULT 0,
+            PRIMARY KEY (`vin`, `language`, `region`),
+            KEY `updated_at` (`updated_at`),
+            KEY `vehicle_count` (`vehicle_count`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+        """
+        CREATE TABLE IF NOT EXISTS `epc_umapi_usage_log` (
+            `id` bigint NOT NULL AUTO_INCREMENT,
+            `usage_date` date NOT NULL,
+            `created_at` int NOT NULL DEFAULT 0,
+            `action` varchar(40) NOT NULL,
+            `section` varchar(20) NOT NULL DEFAULT '',
+            `source` varchar(40) NOT NULL DEFAULT 'unknown',
+            `request_path` varchar(255) NOT NULL DEFAULT '',
+            `http_status` int NOT NULL DEFAULT 0,
+            `from_cache` tinyint NOT NULL DEFAULT 0,
+            `quota_blocked` tinyint NOT NULL DEFAULT 0,
+            `is_live` tinyint NOT NULL DEFAULT 0,
+            `message` varchar(255) NULL,
+            `ip` varchar(45) NULL,
+            PRIMARY KEY (`id`),
+            KEY `usage_date` (`usage_date`),
+            KEY `created_at` (`created_at`),
+            KEY `action_date` (`action`, `usage_date`),
+            KEY `source_date` (`source`, `usage_date`),
+            KEY `live_date` (`is_live`, `usage_date`)
+        ) ENGINE=InnoDB DEFAULT CHARSET=utf8
+        """,
+    ];
+
     public static void Map(IEndpointRouteBuilder endpoints)
     {
         endpoints.MapMethods(ProductFamilyPath, ["GET", "POST"], ProductFamilyAsync);
@@ -54,6 +187,74 @@ public static class HomeCatalogWidgets
 
     public static string UmapiMessageBrandPartsEmpty(string brand)
         => JsonSerializer.Serialize(new { brand, rows = 0, data = Array.Empty<object>(), message = "Database connection unavailable." }, Json);
+
+    /// <summary>Vehicle catalog widgets require a JSON array. An empty array is the offline list, not an error.</summary>
+    public static string EmptyVehicleCatalogJson() => "[]";
+
+    /// <summary>Parts-brand widget reads <c>data</c>/<c>rows</c>. Zero rows is "No brands found", not HTTP 402.</summary>
+    public static string EmptySuppliersJson()
+        => """{"rows":0,"data":[],"source":"database"}""";
+
+    public readonly record struct CachedUmapiBrand(int SupId, string Brand, string FullName);
+
+    public readonly record struct StockUmapiBrand(string Brand, int PartsCount);
+
+    /// <summary>
+    /// PHP <c>epc_cached_brands_payload</c>: rows from <c>epc_umapi_brands</c>, then
+    /// in-stock manufacturers from <c>shop_docpart_prices_data</c> that are not already listed.
+    /// </summary>
+    public static string SuppliersJson(IReadOnlyList<CachedUmapiBrand> cached, IReadOnlyList<StockUmapiBrand> stock)
+    {
+        var seen = new HashSet<string>(StringComparer.Ordinal);
+        var data = new List<Dictionary<string, object?>>();
+        foreach (var row in cached)
+        {
+            var brand = (row.Brand ?? string.Empty).Trim();
+            if (brand.Length == 0)
+            {
+                continue;
+            }
+
+            seen.Add(brand.ToUpperInvariant());
+            data.Add(new Dictionary<string, object?>
+            {
+                ["SUP_ID"] = row.SupId,
+                ["SUP_BRAND"] = brand,
+                ["SUP_FULL_NAME"] = row.FullName ?? string.Empty,
+            });
+        }
+
+        foreach (var row in stock)
+        {
+            var brand = (row.Brand ?? string.Empty).Trim();
+            if (brand.Length == 0)
+            {
+                continue;
+            }
+
+            if (!seen.Add(brand.ToUpperInvariant()))
+            {
+                continue;
+            }
+
+            data.Add(new Dictionary<string, object?>
+            {
+                ["SUP_ID"] = 0,
+                ["SUP_BRAND"] = brand,
+                ["SUP_FULL_NAME"] = "Loaded price-list brand: " + row.PartsCount.ToString(CultureInfo.InvariantCulture) + " part numbers",
+                ["LOCAL_STOCK_COUNT"] = row.PartsCount,
+            });
+        }
+
+        data.Sort(static (a, b) => string.Compare(
+            a["SUP_BRAND"] as string,
+            b["SUP_BRAND"] as string,
+            StringComparison.OrdinalIgnoreCase));
+        return JsonSerializer.Serialize(new { rows = data.Count, data, source = "database" }, Json);
+    }
+
+    /// <summary>PHP <c>epc_ensure_cache_tables</c> statements. Storefront catalog cache, not ERP posting.</summary>
+    public static IReadOnlyList<string> UmapiCacheSchemaStatements() => UmapiCacheDdl;
 
     public static string InferLabel(string? partName)
     {
@@ -456,11 +657,24 @@ public static class HomeCatalogWidgets
                 if (connections.IsConfigured)
                 {
                     await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                    await EnsureUmapiCacheTablesAsync(connection, cancellationToken).ConfigureAwait(false);
                     var cached = await TryLocalUmapiAsync(connection, action, section, context, cancellationToken).ConfigureAwait(false);
                     if (cached is not null)
                     {
                         return WriteJson(StatusCodes.Status200OK, cached, noStore: false, cacheSeconds: action == "suppliers" ? 7200 : 3600);
                     }
+                }
+
+                // Homepage grids treat a missing TecDoc cache as an empty list.
+                // Forwarding the rejected-key 402 makes response.ok false and the widget shows an error.
+                if (action is "manufacturers" or "models" or "modifications")
+                {
+                    return WriteJson(StatusCodes.Status200OK, EmptyVehicleCatalogJson(), noStore: false, cacheSeconds: 60);
+                }
+
+                if (action == "suppliers")
+                {
+                    return WriteJson(StatusCodes.Status200OK, EmptySuppliersJson(), noStore: false, cacheSeconds: 60);
                 }
             }
 
@@ -469,7 +683,7 @@ public static class HomeCatalogWidgets
                 return WriteJson(StatusCodes.Status200OK, UmapiMessageBrandPartsEmpty(context.Request.Query["brand"].ToString()), noStore: false, cacheSeconds: 600);
             }
 
-            if (action is "manufacturers" or "models" or "modifications" or "suppliers" or "categories" or "products" or "articles" or "vin")
+            if (action is "categories" or "products" or "articles" or "vin")
             {
                 var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
                 if (live is not null)
@@ -488,11 +702,43 @@ public static class HomeCatalogWidgets
         }
         catch (DbException)
         {
-            return WriteJson(StatusCodes.Status502BadGateway, """{"message":"Catalog service did not return a response.","statusCode":502}""", noStore: false);
+            return HomepageListFallback(action);
         }
         catch (Exception)
         {
-            return WriteJson(StatusCodes.Status502BadGateway, """{"message":"Catalog service did not return a response.","statusCode":502}""", noStore: false);
+            return HomepageListFallback(action);
+        }
+    }
+
+    private static IResult HomepageListFallback(string action)
+    {
+        if (action is "manufacturers" or "models" or "modifications")
+        {
+            return WriteJson(StatusCodes.Status200OK, EmptyVehicleCatalogJson(), noStore: false, cacheSeconds: 60);
+        }
+
+        if (action == "suppliers")
+        {
+            return WriteJson(StatusCodes.Status200OK, EmptySuppliersJson(), noStore: false, cacheSeconds: 60);
+        }
+
+        return WriteJson(StatusCodes.Status502BadGateway, """{"message":"Catalog service did not return a response.","statusCode":502}""", noStore: false);
+    }
+
+    private static async Task EnsureUmapiCacheTablesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        foreach (var sql in UmapiCacheDdl)
+        {
+            try
+            {
+                await using var command = connection.CreateCommand();
+                command.CommandText = sql;
+                await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+            catch (DbException)
+            {
+                // Same as PHP epc_ensure_cache_tables: a failed create does not throw to the widget.
+            }
         }
     }
 
@@ -544,8 +790,8 @@ public static class HomeCatalogWidgets
 
             if (action == "suppliers")
             {
+                var cachedBrands = new List<CachedUmapiBrand>();
                 command.CommandText = "SELECT `sup_id`, `brand`, `full_name` FROM `epc_umapi_brands` ORDER BY `brand` ASC";
-                var data = new List<object>();
                 await using (var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
                 {
                     while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -556,21 +802,43 @@ public static class HomeCatalogWidgets
                             continue;
                         }
 
-                        data.Add(new
-                        {
-                            SUP_ID = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
-                            SUP_BRAND = brand,
-                            SUP_FULL_NAME = reader.IsDBNull(2) ? "" : reader.GetString(2),
-                        });
+                        cachedBrands.Add(new CachedUmapiBrand(
+                            reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                            brand,
+                            reader.IsDBNull(2) ? "" : reader.GetString(2)));
                     }
                 }
 
-                if (data.Count == 0)
+                var stock = new List<StockUmapiBrand>();
+                try
                 {
-                    return null;
+                    await using var stockCommand = connection.CreateCommand();
+                    stockCommand.CommandText = """
+                        SELECT UPPER(TRIM(`manufacturer`)) AS `brand`, COUNT(DISTINCT COALESCE(NULLIF(`article_show`, ''), `article`)) AS `parts_count`
+                        FROM `shop_docpart_prices_data`
+                        WHERE TRIM(IFNULL(`manufacturer`, '')) != '' AND TRIM(IFNULL(`article`, '')) != '' AND IFNULL(`price`, 0) > 0 AND IFNULL(`exist`, 0) > 0
+                        GROUP BY UPPER(TRIM(`manufacturer`))
+                        ORDER BY `brand` ASC
+                        """;
+                    await using var stockReader = await stockCommand.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                    while (await stockReader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        var brand = stockReader.IsDBNull(0) ? "" : stockReader.GetString(0).Trim();
+                        if (brand.Length == 0)
+                        {
+                            continue;
+                        }
+
+                        var parts = stockReader.IsDBNull(1) ? 0 : Convert.ToInt32(stockReader.GetValue(1), CultureInfo.InvariantCulture);
+                        stock.Add(new StockUmapiBrand(brand, parts));
+                    }
+                }
+                catch (DbException)
+                {
+                    // Price table missing. Saved brands still apply; PHP's combined query would have returned null.
                 }
 
-                return JsonSerializer.Serialize(new { rows = data.Count, data, source = "database" }, Json);
+                return SuppliersJson(cachedBrands, stock);
             }
 
             if (action == "brand_parts")
