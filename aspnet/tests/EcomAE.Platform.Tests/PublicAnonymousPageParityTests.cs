@@ -101,4 +101,81 @@ public sealed class PublicAnonymousPageParityTests
         var printed = TenantCpBrochure.HtmlFor("client", "deck", print: true);
         Assert.Contains("window.print()", printed, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void IndustrySitemap_ListsHubAndSubpathFromSnapshots()
+    {
+        var xml = PublicSeoSitemaps.IndustryUrlset();
+        Assert.Contains("https://agriculture.ecomae.com/", xml, StringComparison.Ordinal);
+        Assert.Contains("https://agriculture.ecomae.com/crop-farming-cultivation", xml, StringComparison.Ordinal);
+        Assert.Contains("<priority>0.85</priority>", xml, StringComparison.Ordinal);
+        Assert.DoesNotContain("agriculture__", xml, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void MarketingSitemap_ListsPlatformAndIndustryHosts()
+    {
+        var xml = PublicSeoSitemaps.MarketingUrlset();
+        Assert.Contains("https://www.ecomae.com/platform", xml, StringComparison.Ordinal);
+        Assert.Contains("https://www.ecomae.com/privacy", xml, StringComparison.Ordinal);
+        Assert.Contains("https://agriculture.ecomae.com/", xml, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("www.ecomae.com", "/akciya", true)]
+    [InlineData("www.ecomae.com", "/en/akciya", true)]
+    [InlineData("www.ecomae.com", "/ru/promotions", true)]
+    [InlineData("ecomae.com", "/promotion/", true)]
+    [InlineData("www.ecomae.com", "/en/terms", false)]
+    [InlineData("www.ecomae.com", "/en", false)]
+    [InlineData("www.ecomae.com", "/platform", false)]
+    [InlineData("www.epartscart.com", "/akciya", false)]
+    public void LegacyPromo_IsMarketingHostOnly(string host, string path, bool expected)
+        => Assert.Equal(expected, PublicSeoSitemaps.IsLegacyPromoRedirect(host, path));
+
+    [Fact]
+    public void SitemapIndex_FollowsHostBranches()
+    {
+        var marketing = PublicSeoSitemaps.SitemapIndex(
+            "https://www.ecomae.com",
+            PublicSeoSitemaps.IndexChildren("www.ecomae.com"));
+        Assert.Contains("https://www.ecomae.com/sitemap-industries.php", marketing, StringComparison.Ordinal);
+        Assert.Contains("https://www.ecomae.com/sitemap-marketing.php", marketing, StringComparison.Ordinal);
+        Assert.DoesNotContain("sitemap-products.php", marketing, StringComparison.Ordinal);
+
+        var tenant = PublicSeoSitemaps.SitemapIndex(
+            "https://www.epartscart.com",
+            PublicSeoSitemaps.IndexChildren("www.epartscart.com"));
+        Assert.Contains("https://www.epartscart.com/sitemap-products.php", tenant, StringComparison.Ordinal);
+        Assert.Contains("https://www.epartscart.com/sitemap-pages.php", tenant, StringComparison.Ordinal);
+        Assert.DoesNotContain("sitemap-industries.php", tenant, StringComparison.Ordinal);
+
+        var industry = PublicSeoSitemaps.IndexChildren("agriculture.ecomae.com");
+        Assert.Equal(["sitemap.xml"], industry);
+        Assert.True(PublicSeoSitemaps.ShouldRedirectIndustriesSitemap("energy.ecomae.com"));
+        Assert.False(PublicSeoSitemaps.ShouldRedirectIndustriesSitemap("www.ecomae.com"));
+    }
+
+    [Fact]
+    public void MarketingRobots_AdvertisesIndustryAndIndexMaps()
+    {
+        var robots = StorefrontPublicSeo.RobotsTxt("www.ecomae.com");
+        Assert.Contains("Sitemap: https://www.ecomae.com/sitemap-industries.php", robots, StringComparison.Ordinal);
+        Assert.Contains("Sitemap: https://www.ecomae.com/sitemap-index.php", robots, StringComparison.Ordinal);
+        Assert.DoesNotContain("Disallow: /en/parts/brands/", robots, StringComparison.Ordinal);
+
+        var shop = StorefrontPublicSeo.RobotsTxt("www.epartscart.com");
+        Assert.Contains("Sitemap: https://www.epartscart.com/sitemap-index.php", shop, StringComparison.Ordinal);
+        Assert.Contains("Sitemap: https://www.epartscart.com/sitemap-products.php", shop, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void ProductHubUrlset_KeepsHubsWhenBrandsAreMissing()
+    {
+        var xml = PublicSeoSitemaps.ProductHubUrlset("https://www.epartscart.com", ["bosch"]);
+        Assert.Contains("https://www.epartscart.com/en/parts<", xml, StringComparison.Ordinal);
+        Assert.Contains("https://www.epartscart.com/en/available-brands", xml, StringComparison.Ordinal);
+        Assert.Contains("https://www.epartscart.com/en/parts/BOSCH", xml, StringComparison.Ordinal);
+        Assert.DoesNotContain("/parts/brands/", xml, StringComparison.Ordinal);
+    }
 }

@@ -1361,9 +1361,95 @@ app.MapGet(EcomAeRoutes.ReleaseIdentity, (IHostEnvironment environment) =>
     });
 });
 
-// Public sitemap + robots. Do not 302 to sitemap-index.php — that PHP file is not an ASP.NET route.
+// Public sitemap + robots. /sitemap.xml stays a urlset. sitemap-index.php is its own route.
 app.MapGet("/robots.txt", (HttpContext context) =>
     Results.Text(StorefrontPublicSeo.RobotsTxt(context.Request.Host.Host), "text/plain; charset=utf-8"));
+
+IResult IndustriesSitemap(HttpContext context)
+{
+    if (PublicSeoSitemaps.ShouldRedirectIndustriesSitemap(context.Request.Host.Host))
+    {
+        return Results.Redirect("https://www.ecomae.com/sitemap-industries.php", permanent: false);
+    }
+
+    context.Response.Headers["X-Robots-Tag"] = "noindex";
+    return Results.Content(PublicSeoSitemaps.IndustryUrlset(), "application/xml; charset=utf-8");
+}
+
+app.MapGet("/sitemap-industries.php", IndustriesSitemap);
+app.MapGet("/sitemap-industries.xml", IndustriesSitemap);
+
+app.MapGet("/sitemap-marketing.php", () =>
+    Results.Content(PublicSeoSitemaps.MarketingUrlset(), "application/xml; charset=utf-8"));
+
+app.MapGet("/sitemap-index.php", (HttpContext context) =>
+{
+    var host = context.Request.Host.Host ?? string.Empty;
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    return Results.Content(
+        PublicSeoSitemaps.SitemapIndex(origin, PublicSeoSitemaps.IndexChildren(host)),
+        "application/xml; charset=utf-8");
+});
+
+app.MapGet("/sitemap-pages.php", async (
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
+{
+    var host = context.Request.Host.Host ?? string.Empty;
+    if (StorefrontPublicSeo.IsEcomaeMarketingHost(host))
+    {
+        return Results.Content(PublicSeoSitemaps.MarketingPagesUrlset(), "application/xml; charset=utf-8");
+    }
+
+    if (PublicSeoSitemaps.ShouldRedirectIndustriesSitemap(host))
+    {
+        return Results.Content(PublicSeoSitemaps.IndustryHostUrlset(host), "application/xml; charset=utf-8");
+    }
+
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    try
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+        var xml = await PublicSeoSitemaps.TenantPagesUrlsetAsync(connection, origin, cancellationToken).ConfigureAwait(false);
+        return Results.Content(xml, "application/xml; charset=utf-8");
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        return Results.Content(PublicSeoSitemaps.TenantPageFallbackUrlset(origin), "application/xml; charset=utf-8");
+    }
+});
+
+app.MapGet("/sitemap-products.php", async (
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
+{
+    var host = context.Request.Host.Host ?? string.Empty;
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    var brand = context.Request.Query["brand"].ToString().Trim();
+    try
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+        if (brand.Length == 0)
+        {
+            var brands = await PublicSeoSitemaps.ReadInStockManufacturersAsync(connection, cancellationToken).ConfigureAwait(false);
+            return Results.Content(PublicSeoSitemaps.ProductHubUrlset(origin, brands), "application/xml; charset=utf-8");
+        }
+
+        var articles = await PublicSeoSitemaps.ReadBrandArticlesAsync(connection, brand, cancellationToken).ConfigureAwait(false);
+        return Results.Content(PublicSeoSitemaps.ProductBrandUrlset(origin, brand, articles), "application/xml; charset=utf-8");
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        var xml = brand.Length == 0
+            ? PublicSeoSitemaps.ProductHubUrlset(origin, [])
+            : PublicSeoSitemaps.ProductBrandUrlset(origin, brand, []);
+        return Results.Content(xml, "application/xml; charset=utf-8");
+    }
+});
 
 app.MapGet(EcomAeRoutes.SitemapXml, async (
     HttpContext context,

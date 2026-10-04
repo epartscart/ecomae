@@ -587,7 +587,24 @@ public static class StorefrontPublicSeo
         }
 
         sb.Append('\n');
-        sb.Append("Sitemap: ").Append(origin).Append("/sitemap.xml\n");
+        if (IsEcomaeMarketingHost(host))
+        {
+            // PHP epc_ecomae_marketing_serve_seo_file on www.
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-industries.php\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap.xml\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-index.php\n");
+        }
+        else if (EcomaeIndustryShowcaseSnapshots.TryResolveHostSlug(host, out _))
+        {
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap.xml\n");
+        }
+        else
+        {
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap.xml\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-index.php\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-products.php\n");
+        }
+
         return sb.ToString();
     }
 

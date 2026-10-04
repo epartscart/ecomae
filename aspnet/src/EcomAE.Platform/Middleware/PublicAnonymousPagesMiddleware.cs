@@ -24,6 +24,14 @@ public sealed class PublicAnonymousPagesMiddleware
         var path = context.Request.Path.Value;
         var host = context.Request.Host.Host;
 
+        if (PublicSeoSitemaps.IsLegacyPromoRedirect(host, path))
+        {
+            context.Response.StatusCode = StatusCodes.Status301MovedPermanently;
+            context.Response.Headers.Location = "/";
+            context.Response.Headers["X-Robots-Tag"] = "noindex";
+            return;
+        }
+
         if (PublicAnonymousPages.IsErpDemoPath(path))
         {
             await WriteHtml(context, PublicErpDemoPage.Html(context.Request.Query["industry"].ToString()));
