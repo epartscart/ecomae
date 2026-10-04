@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>prja_recognize</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Wave B dry-run for PHP <c>prja_recognize</c>. Zero-write validation; confirm_writes=true is served by the live write service in the route handler.</summary>
 public interface IErpPrjaRecognizeDryRun { ErpPrjaRecognizeDryRunResult Evaluate(ErpPrjaRecognizeRequest request); }
 public sealed class ErpPrjaRecognizeDryRun : IErpPrjaRecognizeDryRun
 {
@@ -8,7 +8,7 @@ public sealed class ErpPrjaRecognizeDryRun : IErpPrjaRecognizeDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET prja_recognize is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes is handled by the live ASP.NET prja_recognize write service in the route handler; this dry-run evaluator never writes.", request);
         if (request.ProjectId <= 0)
             return Refuse("dry-run-invalid","project_required","project_id must be greater than zero.", request);
         if (request.Method is not null && request.Method is not ("poc" or "completed" or "straight_line"))
