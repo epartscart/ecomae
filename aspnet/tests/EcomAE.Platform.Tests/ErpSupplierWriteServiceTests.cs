@@ -48,4 +48,15 @@ public sealed class ErpSupplierWriteServiceTests
         Assert.Contains("dimensions.SaveAsync(\"vendor\", id, dim", module, StringComparison.Ordinal);
         Assert.Contains("dimensions.SaveAsync(\"purchase\", created.PurchaseId, dim", module, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SyncFromStoragesMirrorsPhpNotExistsInsert()
+    {
+        var src = Src("Erp/ErpSupplierWriteService.cs");
+        Assert.Contains("SELECT `id`, `name`, `short_name` FROM `shop_storages`", src);
+        Assert.Contains("WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_suppliers` WHERE `storage_id` = ? AND `active` = 1)", src);
+        var module = Src("Modules/ErpModule.cs");
+        Assert.Contains("writes.SyncFromStoragesAsync(cancellationToken)", module);
+        Assert.Contains("\"Synced \" + n + \" supplier(s) from warehouses\"", module);
+    }
 }

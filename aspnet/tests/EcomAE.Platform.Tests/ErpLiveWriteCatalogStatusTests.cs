@@ -70,6 +70,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",
         "/erp/purchases/create",
+        "/erp/suppliers/sync",
     ];
 
     [Fact]
