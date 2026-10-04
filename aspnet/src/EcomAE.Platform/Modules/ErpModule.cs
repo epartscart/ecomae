@@ -655,10 +655,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceFromOrder, HandleInvoiceFromOrderAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAiQuery, async (HttpContext context, ErpAiQueryBody? body, ILegacySessionValidator validator, IErpAiQueryDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAiQueryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityScan, async (HttpContext context, ErpIntegrityScanBody? body, ILegacySessionValidator validator, IErpIntegrityScanDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpIntegrityScanRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityApplyFks, async (HttpContext context, ErpIntegrityApplyFksBody? body, ILegacySessionValidator validator, IErpIntegrityApplyFksDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpIntegrityApplyFksRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityScan, HandleIntegrityScanAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityApplyFks, HandleIntegrityApplyFksAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFaCreateAsset, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -24036,6 +24034,75 @@ public sealed class ErpModule : ISurfaceModule
             res.Ok,
             res.Message,
             new { ok = res.Ok, writes = res.Writes, phpAuthoritative = false, message = res.Message, cleared = res.Cleared, session = SessionPayload(session) });
+    }
+
+
+    /// <summary>PHP ajax <c>integrity_scan</c> twin: epc_erp_integrity_scan — read-only orphan scan.</summary>
+    private static async Task<IResult> HandleIntegrityScanAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpIntegrityScanDryRun dryRun,
+        IErpIntegrityService integrity,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/command-center-app", "Admin ERP capability required for integrity scan.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpIntegrityScanRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var rows = await integrity.ScanAsync(cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/command-center-app",
+            true,
+            "Scan complete",
+            new
+            {
+                ok = true,
+                writes = 0,
+                phpAuthoritative = false,
+                message = "Scan complete",
+                relationships = rows.Select(r => new { child = r.Child, col = r.Col, parent = r.Parent, pcol = r.Pcol, orphans = r.Orphans, status = r.Status }).ToArray(),
+                session = SessionPayload(session),
+            });
+    }
+
+    /// <summary>PHP ajax <c>integrity_apply_fks</c> twin: epc_erp_integrity_apply_fks — FKs only on clean relationships.</summary>
+    private static async Task<IResult> HandleIntegrityApplyFksAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpIntegrityApplyFksDryRun dryRun,
+        IErpIntegrityService integrity,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/command-center-app", "Admin ERP capability required for FK application.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpIntegrityApplyFksRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var res = await integrity.ApplyFksAsync(cancellationToken);
+        var ok = res.Errors.Count == 0;
+        var message = res.Applied.Count + " foreign key(s) applied, " + res.Skipped.Count + " skipped" + (res.Errors.Count > 0 ? ", " + res.Errors.Count + " error(s)" : string.Empty);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/command-center-app",
+            ok,
+            message,
+            new { ok, writes = res.Applied.Count, phpAuthoritative = false, message, applied = res.Applied, skipped = res.Skipped, errors = res.Errors, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleEditLockAcquireAsync(

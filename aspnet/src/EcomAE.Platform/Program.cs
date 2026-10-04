@@ -450,6 +450,7 @@ builder.Services.AddSingleton<IErpInvoiceFromOrderDryRun, ErpInvoiceFromOrderDry
 builder.Services.AddSingleton<IErpAiQueryDryRun, ErpAiQueryDryRun>();
 builder.Services.AddSingleton<IErpIntegrityScanDryRun, ErpIntegrityScanDryRun>();
 builder.Services.AddSingleton<IErpIntegrityApplyFksDryRun, ErpIntegrityApplyFksDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpIntegrityService, EcomAE.Platform.Erp.ErpIntegrityService>();
 builder.Services.AddSingleton<IErpFaCreateAssetDryRun, ErpFaCreateAssetDryRun>();
 builder.Services.AddSingleton<IErpFaRunDepreciationDryRun, ErpFaRunDepreciationDryRun>();
 builder.Services.AddSingleton<IErpOpeningCreateBatchDryRun, ErpOpeningCreateBatchDryRun>();
