@@ -153,7 +153,7 @@ internal static class OperatorGuideChapters
                     "Excel is supported via step 3 (ajax_3_excel_convert.php). Prefer UTF-8 CSV for large files."
                 ]),
             OperatorGuidesCatalog.Ch("2. Pyprices — upload file from PC (manager row)",
-                "Engine: /pyprices/pyprices-api.php + upload_file.php. History: pyprices_upload.",
+                "Engine: POST /cp/prices/upload-file (channel=pc). History source: pyprices_upload.",
                 [
                     "Ensure pyprices health checks are OK.",
                     "On /cp/prices-upload-app, use the PC file input on the row (POST /cp/prices/upload-file, channel=pc).",

@@ -66,6 +66,7 @@ public sealed class CpPricesUploadWarehouseTests
     {
         var razor = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/CpPricesUploadApp.razor"));
         Assert.Contains("@page \"/cp/shop/prices\"", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("@page \"/cp/shop/prices/guide\"", razor, StringComparison.Ordinal);
         Assert.Contains("@page \"/cp/shop/prices/price\"", razor, StringComparison.Ordinal);
         Assert.Contains("data-epc-prices-ssr", razor, StringComparison.Ordinal);
         Assert.Contains("id=\"prices_table\"", razor, StringComparison.Ordinal);
@@ -82,6 +83,10 @@ public sealed class CpPricesUploadWarehouseTests
         Assert.Contains("/cp/prices/update-now", razor, StringComparison.Ordinal);
         Assert.Contains("/cp/prices/cron-tasks", razor, StringComparison.Ordinal);
         Assert.Contains("/api/prices/deploy-upload", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/prices/upload-history", razor, StringComparison.Ordinal);
+        Assert.Contains("Update file / history", razor, StringComparison.Ordinal);
+        Assert.Contains("id=\"epc_price_upload_history\"", razor, StringComparison.Ordinal);
+        Assert.Contains("download_latest", razor, StringComparison.Ordinal);
         Assert.Contains("value=\"wizard\"", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);

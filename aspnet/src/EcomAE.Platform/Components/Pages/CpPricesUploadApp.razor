@@ -3,19 +3,21 @@
 @page "/cp/shop/prices_upload"
 @page "/cp/shop/prices/upload"
 @page "/cp/shop/prices/multivendor"
-@page "/cp/shop/prices/guide"
 @page "/cp/shop/prices/review"
 @page "/cp/shop/prices/price"
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
 @using EcomAE.Platform.Cp
+@using EcomAE.Platform.Cp.PriceImport
+@using EcomAE.Platform.Erp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
 @using EcomAE.Platform.Routing
 @inject ILegacySessionValidator Sessions
 @inject ICpCsrfGuard Csrf
 @inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IErpWriteConnectionFactory TenantDb
 @inject IHttpContextAccessor Http
 
 <PageTitle>Price lists · Control Panel · eParts Cart</PageTitle>
@@ -45,6 +47,10 @@
         .epc-prices-dl dt { color:#64748b; font-size:.78rem; }
         .epc-prices-dl dd { margin:0; font-weight:600; }
         .epc-prices-note { margin-top:1rem; padding:.75rem .9rem; background:#eff6ff; border:1px solid #93c5fd; border-radius:.45rem; color:#1e3a8a; font-size:.86rem; }
+        .epc-price-hist-cell { min-width:9rem; }
+        .epc-price-hist-meta { display:block; margin-top:.2rem; font-size:.72rem; color:#64748b; max-width:11rem; word-break:break-all; }
+        .epc-price-hist-link { display:inline-block; margin-top:.25rem; font-size:.75rem; font-weight:700; }
+        .epc-hist-row-active { background:#ecfdf5; }
         .epc-prices-empty { padding:1.1rem; color:#64748b; }
         .epc-price-wh-empty { color:#94a3b8; font-style:italic; }
         .epc-prices-flash-ok { margin:0 0 1rem; padding:.7rem .9rem; border-radius:.4rem; background:#ecfdf5; color:#065f46; }
@@ -62,6 +68,7 @@
             <a href="/cp/prices-edit-app"><i class="fa fa-pencil"></i> Prices edit</a>
             <a href="/cp/shop/prices/multivendor"><i class="fa fa-sitemap"></i> Multi-vendor</a>
             <a href="/cp/shop/prices/guide"><i class="fa fa-book"></i> Upload guide</a>
+            <a href="/cp/prices-upload-app#epc-upload-history"><i class="fa fa-history"></i> Upload history</a>
             <a href="/cp/price-lists-app"><i class="fa fa-tags"></i> Commerce lists</a>
             <a href="/cp">Command centre</a>
         </div>
@@ -294,6 +301,7 @@
                             <th>Warehouse</th>
                             <th>Updated</th>
                             <th>Rows</th>
+                            <th class="text-left">Update file / history</th>
                             <th class="text-left">Manual update</th>
                             <th class="text-left">Auto-update</th>
                             <th class="text-left">Actions</th>
@@ -302,11 +310,11 @@
                     <tbody>
                         @if (!_isAdmin)
                         {
-                            <tr><td colspan="8" class="epc-prices-empty">Sign in with a Control Panel admin session to load live price lists.</td></tr>
+                            <tr><td colspan="9" class="epc-prices-empty">Sign in with a Control Panel admin session to load live price lists.</td></tr>
                         }
                         else if (_lists.Count == 0)
                         {
-                            <tr><td colspan="8" class="epc-prices-empty">No Docpart price lists in this shop digest. Add a list, then upload via PC / FTP / e-mail / URL. Source: @_source</td></tr>
+                            <tr><td colspan="9" class="epc-prices-empty">No Docpart price lists in this shop digest. Add a list, then upload via PC / FTP / e-mail / URL. Source: @_source</td></tr>
                         }
                         else
                         {
@@ -328,6 +336,27 @@
                                     </td>
                                     <td><a id="@($"last_updated_{row.Id}")" href="@editHref">@(string.IsNullOrWhiteSpace(row.LastUpdated) ? "—" : row.LastUpdated)</a></td>
                                     <td><a id="@($"records_count_{row.Id}")" href="@editHref">@row.RecordsCount.ToString(CultureInfo.InvariantCulture)</a></td>
+                                    <td class="text-left epc-price-hist-cell">
+                                        @{
+                                            var latest = LatestFor(row.Id);
+                                        }
+                                        @if (latest is null)
+                                        {
+                                            <a class="epc-price-action" href="@HistoryHref("export_db", row.Id, 0)" title="Export current DB prices">DB export</a>
+                                            <span class="epc-price-hist-meta">No archive yet</span>
+                                        }
+                                        else if (latest.HasFile)
+                                        {
+                                            <a class="epc-price-action" href="@HistoryHref("download_latest", row.Id, 0)" title="Download active upload file">Download</a>
+                                            <span class="epc-price-hist-meta">@latest.File<br />@latest.Created</span>
+                                        }
+                                        else
+                                        {
+                                            <a class="epc-price-action" href="@HistoryHref("export_db", row.Id, 0)" title="Archive missing — export current DB">DB export</a>
+                                            <span class="epc-price-hist-meta">@latest.File<br />archive missing</span>
+                                        }
+                                        <a class="epc-price-hist-link" href="@("/cp/prices-upload-app?hist=" + row.Id.ToString(CultureInfo.InvariantCulture) + "#epc-upload-history")">Upload history</a>
+                                    </td>
                                     <td class="text-left">
                                         <div class="epc-price-actions">
                                             <form method="post" action="@EcomAeRoutes.CpPricesUploadFile" enctype="multipart/form-data" style="display:inline;">
@@ -376,6 +405,82 @@
             </div>
         }
 
+        @if (_isAdmin)
+        {
+            <h2 id="epc-upload-history" style="margin:1.25rem 0 .55rem;font-size:1.05rem;">Upload history</h2>
+            @if (!string.IsNullOrWhiteSpace(_historyMessage))
+            {
+                <div class="epc-prices-flash-err" role="status">@_historyMessage</div>
+            }
+            <p class="help-block" style="margin:0 0 .55rem;">
+                Archived source files from <code>/cp/prices/upload-file</code>, <code>/cp/prices/update-now</code>, cron and <code>/api/prices/deploy-upload</code>.
+                Downloads use <code>/cp/prices/upload-history</code>.
+                @if (_historyPriceId > 0)
+                {
+                    <a href="/cp/prices-upload-app#epc-upload-history">Show every list</a>
+                }
+            </p>
+            <div class="epc-prices-table-wrap">
+                <table class="epc-prices-table" id="epc_price_upload_history">
+                    <thead>
+                        <tr>
+                            <th>#</th>
+                            <th>Date</th>
+                            <th>Price list</th>
+                            <th>Source</th>
+                            <th>File</th>
+                            <th>Imported</th>
+                            <th>Skipped</th>
+                            <th>Status</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @if (_history.Count == 0)
+                        {
+                            <tr><td colspan="9" class="epc-prices-empty">No upload history yet. Upload a CSV on a list to archive it here.</td></tr>
+                        }
+                        else
+                        {
+                            @foreach (var item in _history)
+                            {
+                                <tr class="@(item.Active ? "epc-hist-row-active" : null)">
+                                    <td>@item.Id.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@item.Created</td>
+                                    <td>@item.PriceName (#@item.PriceId.ToString(CultureInfo.InvariantCulture))</td>
+                                    <td>@SourceLabel(item.Source)</td>
+                                    <td>
+                                        @item.File
+                                        @if (item.Active)
+                                        {
+                                            <span class="epc-price-hist-meta">ACTIVE</span>
+                                        }
+                                    </td>
+                                    <td>@item.Imported.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@item.Skipped.ToString(CultureInfo.InvariantCulture)</td>
+                                    <td>@item.Status</td>
+                                    <td>
+                                        @if (item.HasFile)
+                                        {
+                                            <a href="@HistoryHref("download", 0, item.Id)">Download</a>
+                                        }
+                                        else
+                                        {
+                                            <a href="@HistoryHref("export_db", item.PriceId, 0)">DB export</a>
+                                        }
+                                        @if (item.Skipped > 0 || item.Status is "partial" or "failed")
+                                        {
+                                            <a href="@HistoryHref("download_skipped", 0, item.Id)">Skipped</a>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
         <div class="epc-prices-note">
             Uploaded amounts are supplier purchase. Storefront customer price = purchase + group markup
             (<code>shop_offices_storages_map</code>). Staff with <code>for_percentage</code> see purchase under the sell price.
@@ -395,6 +500,40 @@
     private CpPriceListsSummary _summary = new(0, 0, 0, "migration", "");
     private IReadOnlyList<CpDocpartPriceListDigest> _lists = [];
     private CpDocpartPriceListDetail? _detail;
+    private IReadOnlyList<UploadHistoryRow> _history = [];
+    private Dictionary<long, UploadHistoryRow> _latestByList = [];
+    private string _historyMessage = "";
+    private long _historyPriceId;
+
+    private string HistoryHref(string action, long priceId, long historyId)
+    {
+        var csrf = Uri.EscapeDataString(_csrf);
+        if (action == "download" || action == "download_skipped")
+        {
+            return "/cp/prices/upload-history?action=" + action
+                   + "&history_id=" + historyId.ToString(CultureInfo.InvariantCulture)
+                   + "&csrf_guard_key=" + csrf;
+        }
+
+        return "/cp/prices/upload-history?action=" + action
+               + "&price_id=" + priceId.ToString(CultureInfo.InvariantCulture)
+               + "&csrf_guard_key=" + csrf;
+    }
+
+    private UploadHistoryRow? LatestFor(long priceId)
+        => _latestByList.TryGetValue(priceId, out var row) ? row : null;
+
+    private static string SourceLabel(string source) => source switch
+    {
+        "cp_wizard" => "CP wizard",
+        "pyprices_upload" => "PC upload",
+        "pyprices_ftp" => "FTP",
+        "pyprices_email" => "E-mail",
+        "pyprices_url" => "URL",
+        "deploy_api" => "Deploy API",
+        "deploy_reupload" => "Deploy reupload",
+        _ => string.IsNullOrWhiteSpace(source) ? "—" : source,
+    };
 
     private string WizardReturn
         => _detail is null
@@ -452,10 +591,17 @@
             _way = qWay;
         }
 
+        if (long.TryParse(ctx.Request.Query["hist"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var histId) && histId > 0)
+        {
+            _historyPriceId = histId;
+        }
+
         if (!_isAdmin)
         {
             return;
         }
+
+        await LoadUploadHistoryAsync(ctx.RequestAborted);
 
         var digest = await Dashboards.BuildCpDocpartPriceListsDigestAsync(200, ctx.RequestAborted);
         _summary = digest.Summary;
@@ -469,4 +615,66 @@
             _detail = await Dashboards.BuildCpDocpartPriceListDetailAsync(priceId, ctx.RequestAborted);
         }
     }
+
+    private async Task LoadUploadHistoryAsync(CancellationToken cancellationToken)
+    {
+        if (!TenantDb.IsConfigured)
+        {
+            _historyMessage = "Upload history needs the tenant shop database.";
+            return;
+        }
+
+        try
+        {
+            await using var connection = await TenantDb.OpenAsync(cancellationToken);
+            await CpPriceUploadHistory.EnsureSchemaAsync(connection, cancellationToken);
+            var rows = await CpPriceUploadHistory.ListAsync(connection, _historyPriceId, 40, cancellationToken);
+            var latest = await CpPriceUploadHistory.LatestPerListAsync(connection, cancellationToken);
+            _history = rows.Select(MapHistory).ToList();
+            _latestByList = latest
+                .Select(MapHistory)
+                .GroupBy(row => row.PriceId)
+                .ToDictionary(group => group.Key, group => group.First());
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            _historyMessage = "Upload history could not be loaded.";
+        }
+    }
+
+    private static UploadHistoryRow MapHistory(IReadOnlyDictionary<string, object?> row)
+    {
+        static long LongOf(IReadOnlyDictionary<string, object?> source, string key)
+            => long.TryParse(CpPriceUploadHistory.Text(source, key), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : 0;
+
+        static int IntOf(IReadOnlyDictionary<string, object?> source, string key)
+            => int.TryParse(CpPriceUploadHistory.Text(source, key), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) ? value : 0;
+
+        var activeText = CpPriceUploadHistory.Text(row, "is_active");
+        return new UploadHistoryRow(
+            LongOf(row, "id"),
+            LongOf(row, "price_id"),
+            CpPriceUploadHistory.Text(row, "price_name"),
+            CpPriceUploadHistory.Text(row, "upload_source"),
+            CpPriceUploadHistory.Text(row, "original_filename"),
+            CpPriceUploadHistory.Text(row, "created_at"),
+            IntOf(row, "rows_imported"),
+            IntOf(row, "rows_skipped"),
+            CpPriceUploadHistory.Text(row, "status"),
+            CpPriceUploadHistory.Text(row, "stored_relpath").Trim().Length > 0,
+            activeText is "1" or "True" or "true");
+    }
+
+    private sealed record UploadHistoryRow(
+        long Id,
+        long PriceId,
+        string PriceName,
+        string Source,
+        string File,
+        string Created,
+        int Imported,
+        int Skipped,
+        string Status,
+        bool HasFile,
+        bool Active);
 }
