@@ -1053,6 +1053,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutomationDeactivateWriteServ
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodSoftCloseWriteService, EcomAE.Platform.Erp.ErpPeriodSoftCloseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodLockReopenWriteService, EcomAE.Platform.Erp.ErpPeriodLockReopenWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseFromOrderAdjustWriteService, EcomAE.Platform.Erp.ErpPurchaseFromOrderAdjustWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFxRevaluationWriteService, EcomAE.Platform.Erp.ErpFxRevaluationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBplanAdvanceWriteService, EcomAE.Platform.Erp.ErpBplanAdvanceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEditLockReleaseWriteService, EcomAE.Platform.Erp.ErpEditLockReleaseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEditLockHeartbeatWriteService, EcomAE.Platform.Erp.ErpEditLockHeartbeatWriteService>();
