@@ -80,6 +80,17 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — CP users JSON digest
+
+Not complete.
+
+- Signed-in www.epartscart.com `/cp/users` is **200** with `source: database`, count 2, and the two `docpart.users` rows (`prices@local.test`, `operator@local.test`). `time_registered` and `time_last_visit` are not columns, so those fields are 0, matching PHP `epc_dl_customers`. No users were inserted.
+- `/cp/users-app` still lists the same accounts. This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5002 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, the rest of authenticated CP, every tenant CP page, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — CP users list
 
 Not complete.
