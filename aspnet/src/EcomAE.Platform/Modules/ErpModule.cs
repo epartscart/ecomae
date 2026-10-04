@@ -172,8 +172,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceFetch, HandleBosComplianceFetchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlAssortmentSet, HandleRtlAssortmentSetAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlDiscountSave, HandleRtlDiscountSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlPosSale, async (HttpContext context, ErpRtlPosSaleBody? body, ILegacySessionValidator validator, IErpRtlPosSaleDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpRtlPosSaleRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxRtlPosSale, HandleRtlPosSaleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsClaimStatus, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -6297,8 +6296,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmToggle, HandlePmToggleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmBudgetLineSave, HandlePmBudgetLineSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPmListingSave, async (HttpContext context, ErpPmListingSaveBody? body, ILegacySessionValidator validator, IErpPmListingSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPmListingSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPmListingSave, HandlePmListingSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmListingAttach, HandlePmListingAttachAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmChequeSave, HandlePmChequeSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgrWcSave, HandleMfgrWcSaveAsync).DisableAntiforgery();
@@ -19262,6 +19260,133 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleRtlPosSaleAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpRtlPosSaleDryRun dryRun,
+        IErpRtlPosSaleWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for POS sale.");
+        }
+
+        var confirm = false;
+        var companyId = 0L; var channelId = 0L; var itemId = 0L;
+        var qty = 0.0; var unitPrice = 0.0; var taxRate = 0.0;
+        var tender = "cash";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            companyId = LiveWriteFormBinder.Long(form, "company_id", "companyId", "company");
+            channelId = LiveWriteFormBinder.Long(form, "channel_id", "channelId");
+            itemId = LiveWriteFormBinder.Long(form, "item_id", "itemId");
+            qty = (double)LiveWriteFormBinder.Dec(form, "qty");
+            unitPrice = (double)LiveWriteFormBinder.Dec(form, "unit_price", "unitPrice");
+            taxRate = (double)LiveWriteFormBinder.Dec(form, "tax_rate", "taxRate");
+            var t = LiveWriteFormBinder.Text(form, "tender");
+            if (t.Length > 0) tender = t;
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpRtlPosSaleBody>(context, cancellationToken);
+            confirm = body?.ConfirmWrites == true;
+            companyId = body?.CompanyId ?? 0;
+            channelId = body?.ChannelId ?? 0;
+            itemId = body?.ItemId ?? 0;
+            qty = body?.Qty ?? 0;
+            unitPrice = body?.UnitPrice ?? 0;
+            taxRate = body?.TaxRate ?? 0;
+            if (body?.Tender is { Length: > 0 } bt) tender = bt;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpRtlPosSaleRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.SaleAsync(
+            new EcomAE.Platform.Erp.ErpRtlPosSaleRequest(companyId, channelId, [new ErpRtlPosSaleLine(itemId, qty, unitPrice)], tender, taxRate),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            result.Ok,
+            result.Message,
+            new { ok = result.Ok, writes = result.Writes, phpAuthoritative = false, message = result.Message, res = new { id = result.Id, gross = result.Gross, discount = result.Discount, net = result.Net, tax = result.Tax, total = result.Total }, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandlePmListingSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPmListingSaveDryRun dryRun,
+        IErpPmListingSaveWriteService writes,
+        IErpDimensionWriteService dimensions,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for listing save.");
+        }
+
+        var confirm = false;
+        var request = new EcomAE.Platform.Erp.ErpPmListingSaveRequest();
+        Dictionary<string, long>? dim = null;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            dim = new Dictionary<string, long>(StringComparer.Ordinal);
+            foreach (var key in form.Keys)
+            {
+                if (key.StartsWith("dim[", StringComparison.Ordinal) && key.EndsWith(']')
+                    && long.TryParse(form[key].ToString(), out var dimId) && dimId > 0)
+                {
+                    dim[key[4..^1]] = dimId;
+                }
+            }
+            request = new EcomAE.Platform.Erp.ErpPmListingSaveRequest(
+                LiveWriteFormBinder.Long(form, "id"),
+                LiveWriteFormBinder.Text(form, "resource_type"),
+                LiveWriteFormBinder.Text(form, "title"),
+                LiveWriteFormBinder.Text(form, "description"),
+                (double)LiveWriteFormBinder.Dec(form, "qty"),
+                (double)LiveWriteFormBinder.Dec(form, "rate"),
+                LiveWriteFormBinder.Text(form, "voucher_ref"),
+                LiveWriteFormBinder.Text(form, "status"));
+        }
+        else
+        {
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPmListingSaveBody>(context, cancellationToken);
+            confirm = body?.ConfirmWrites == true;
+            if (body is not null)
+            {
+                request = new EcomAE.Platform.Erp.ErpPmListingSaveRequest(body.Id, body.ResourceType, body.Title, body.Description, body.Qty, body.Rate, body.VoucherRef, body.Status);
+            }
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpPmListingSaveRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.SaveAsync(request, cancellationToken);
+        if (result.Ok && dim is { Count: > 0 })
+        {
+            await dimensions.SaveAsync("listing", result.Id, dim, cancellationToken);
+        }
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            result.Ok,
+            result.Message,
+            new { ok = result.Ok, writes = result.Writes, phpAuthoritative = false, message = result.Message, id = result.Id, ref_no = result.RefNo, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandleOplCreatePosAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -25362,7 +25487,17 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPmToggleBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpPmBudgetSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmBudgetLineSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpPmListingSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPmListingSaveBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        string? ResourceType = null,
+        string? Title = null,
+        string? Description = null,
+        double Qty = 0,
+        double Rate = 0,
+        string? VoucherRef = null,
+        string? Status = null);
     private sealed record ErpPmListingAttachBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmChequeSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpMfgrWcSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
@@ -25966,7 +26101,17 @@ public sealed class ErpModule : ISurfaceModule
         long Ends = 0,
         int? Active = null,
         bool ConfirmWrites = false);
-    private sealed record ErpRtlPosSaleBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpRtlPosSaleBody(
+        long Id = 0,
+        string? Code = null,
+        bool ConfirmWrites = false,
+        long CompanyId = 0,
+        long ChannelId = 0,
+        long ItemId = 0,
+        double Qty = 0,
+        double UnitPrice = 0,
+        string? Tender = null,
+        double TaxRate = 0);
     private sealed record ErpInsClaimStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpPrjSaveBody(
         long Id = 0,
