@@ -1647,8 +1647,7 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxErpGlobalSearch, async (HttpContext context, ErpErpGlobalSearchBody? body, ILegacySessionValidator validator, IErpErpGlobalSearchDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpErpGlobalSearchRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxErpGlobalSearch, HandleErpGlobalSearchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxJwRepairCreate, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -20220,6 +20219,71 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandleErpGlobalSearchAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpErpGlobalSearchDryRun dryRun,
+        IErpGlobalSearchReadService reads,
+        ISurfaceDashboardSummaryReporter dashboards,
+        IErpNavTenantRules navRules,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpErpGlobalSearchBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var q = body.Q ?? body.Code;
+        var limit = body.Limit;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            q = LiveWriteFormBinder.Text(form, "q", "code");
+            limit = form.ContainsKey("limit") ? LiveWriteFormBinder.Int(form, "limit") : 20;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpErpGlobalSearchRequest(body.Id, q, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var host = context.Request.Host.Host;
+        var isSuper = PlatformHostPolicy.IsSuperCpHost(host);
+        var hostCtx = ErpHostContext.Resolve(host);
+        var companies = ErpIndustryNav.EnsureSwitchableCompanies(
+            (await dashboards.BuildErpCompaniesDigestAsync(50, cancellationToken)).Companies,
+            isSuper,
+            hostCtx.BrandLabel);
+        var activeQ = ErpHostContext.ActiveCompanyIdFromQuery(context.Request);
+        var active = companies.FirstOrDefault(c => activeQ is > 0 && c.Id == activeQ) ?? companies.FirstOrDefault();
+        var siteKey = context.Items[TenantResolutionMiddleware.HttpContextItemKey] is TenantContext tenant ? tenant.SiteKey : host;
+        var rules = await navRules.ResolveAsync(siteKey, cancellationToken);
+        var jewellery = ErpIndustryNav.ShowJewelleryModules(hostCtx.IndustryCode, active);
+        var industry = active is null
+            ? hostCtx.IndustryCode
+            : jewellery ? "jewellery" : (string.IsNullOrWhiteSpace(active.IndustryPack) ? "core" : active.IndustryPack);
+        var nav = ErpIndustryNav.FilterTopnav(
+            LegacyDesktopChromeCatalog.ErpTopnav(),
+            new ErpIndustryNav.ErpNavAudience("current", industry, active?.CountryCode, isSuper, rules.DisabledTabIds, rules.EnabledModuleIds));
+
+        var r = await reads.SearchAsync(q, limit, nav, active?.Id ?? 0, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            results = r.Rows,
+            session = SessionPayload(session),
+        });
+    }
+
     private static async Task<IResult> HandleShortcutListAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -24492,7 +24556,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpShortcutReorderBody(long Id = 0, string? Code = null, string? Ids = null, bool ConfirmWrites = false);
     private sealed record ErpErpFavAddBody(long Id = 0, string? Code = null, string? TabKey = null, string? AreaKey = null, bool ConfirmWrites = false);
     private sealed record ErpErpFavRemoveBody(long Id = 0, string? Code = null, string? TabKey = null, bool ConfirmWrites = false);
-    private sealed record ErpErpGlobalSearchBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpErpGlobalSearchBody(long Id = 0, string? Code = null, string? Q = null, int Limit = 20, bool ConfirmWrites = false);
     private sealed record ErpJwRepairCreateBody(
         long Id = 0,
         string? Code = null,
