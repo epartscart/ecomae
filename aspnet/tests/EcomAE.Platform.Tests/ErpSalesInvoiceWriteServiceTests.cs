@@ -156,6 +156,38 @@ public sealed class ErpSalesInvoiceWriteServiceTests
             StringComparison.Ordinal);
     }
 
+    [Fact]
+    public void ConversionRefusesWhenANonCancelledDocumentAlreadyReferencesTheSalesOrder()
+    {
+        var root = FindRepoRoot();
+        var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpSalesInvoiceWriteService.cs"));
+
+        Assert.Contains(
+            "WHERE `sales_order_id` = ? AND `status` <> 'cancelled'",
+            service,
+            StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void InvoiceNumberIsAllocatedInsideTheInsertTransactionAfterValidation()
+    {
+        var root = FindRepoRoot();
+        var service = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Erp/ErpSalesInvoiceWriteService.cs"));
+
+        Assert.DoesNotContain("_vouchers.NextAsync(connection, null, \"SI\"", service, StringComparison.Ordinal);
+        var validate = service.IndexOf("ValidateTaxInvoiceContent(seller, buyer, lines, totalVat)", StringComparison.Ordinal);
+        var allocate = service.IndexOf("_vouchers.NextAsync(connection, transaction, \"SI\"", StringComparison.Ordinal);
+        Assert.True(validate > 0 && allocate > validate);
+    }
+
+    [Fact]
+    public void ContentValidationDoesNotRequireAnInvoiceNumber()
+    {
+        var errors = ErpSalesInvoiceWriteService.ValidateTaxInvoiceContent(Seller(), Buyer(), Lines(), 5m);
+        Assert.Empty(errors);
+        Assert.Contains("Invoice number is required", ErpSalesInvoiceWriteService.ValidateTaxInvoice(" ", Seller(), Buyer(), Lines(), 5m));
+    }
+
     private static string FindRepoRoot()
     {
         var directory = new DirectoryInfo(AppContext.BaseDirectory);

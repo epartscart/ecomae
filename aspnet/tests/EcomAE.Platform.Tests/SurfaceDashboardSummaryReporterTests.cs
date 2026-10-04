@@ -971,6 +971,10 @@ public sealed class SurfaceDashboardSummaryReporterTests
         Assert.Contains("@status", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("b.`id` <> @id", LegacySurfaceDashboardSql.SelectErpOpeningBatchStatusSiblings, StringComparison.Ordinal);
         Assert.Contains("epc_erp_periods", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
+        Assert.Contains("AS `year_month`", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
+        Assert.Contains("AS `year_month`", LegacySurfaceDashboardSql.SelectErpFiscalPeriodDetail, StringComparison.Ordinal);
+        Assert.Contains("AS `year_month`", LegacySurfaceDashboardSql.SelectErpFiscalPeriodStatusSiblings, StringComparison.Ordinal);
+        Assert.DoesNotContain("AS year_month", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
         Assert.DoesNotContain("`note`", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
         Assert.DoesNotContain("checklist_json", LegacySurfaceDashboardSql.SelectErpFiscalPeriods, StringComparison.Ordinal);
         Assert.Contains("LEFT(IFNULL(`note`,''), 280)", LegacySurfaceDashboardSql.SelectErpFiscalPeriodDetail, StringComparison.Ordinal);

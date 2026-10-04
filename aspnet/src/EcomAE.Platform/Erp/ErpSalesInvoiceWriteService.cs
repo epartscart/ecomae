@@ -30,7 +30,9 @@ public sealed record ErpSoToInvoiceResult(
 /// <c>epc_erp_invoices.php</c>, <c>epc_einvoice.php</c>): same guards, line copy, per-line tenant tax,
 /// SI numbering, document/line/event persistence, AR settlement and status transition.
 /// Step order follows PHP: the invoice is persisted, then the AR settlement runs, and only then is the
-/// sales order flipped to <c>invoiced</c>, so a settlement failure leaves the order convertible again.
+/// sales order flipped to <c>invoiced</c>. Unlike PHP, a retry after a settlement failure is refused while a
+/// non-cancelled document already references the sales order, and the SI number is allocated inside the
+/// insert transaction after validation so failed attempts do not burn tax-invoice numbers.
 /// The PINT XML payload is left empty; the PHP export handler rebuilds and caches it on first download.
 /// </summary>
 public interface IErpSalesInvoiceWriteService
@@ -90,6 +92,18 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
             throw new ErpWriteException("Sales order already invoiced");
         }
 
+        var existingInvoiceId = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "SELECT `id` FROM `epc_einvoice_documents` WHERE `sales_order_id` = ? AND `status` <> 'cancelled' ORDER BY `id` DESC LIMIT 1"),
+            cancellationToken,
+            salesOrderId).ConfigureAwait(false);
+        if (existingInvoiceId > 0)
+        {
+            throw new ErpWriteException("Sales order already invoiced");
+        }
+
         if (!ConvertibleStatuses.Contains(order.Status, StringComparer.Ordinal))
         {
             throw new ErpWriteException("Only draft or confirmed sales orders can be invoiced");
@@ -108,11 +122,10 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         var totalVat = ErpTaxAmountCalculator.Round2(lines.Sum(line => line.TaxAmount));
         var totalIncl = ErpTaxAmountCalculator.Round2(subtotal + totalVat);
 
-        var invoiceNumber = await _vouchers.NextAsync(connection, null, "SI", cancellationToken).ConfigureAwait(false);
         var issueDate = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var dueDate = issueDate + (30 * 86400);
 
-        var errors = ValidateTaxInvoice(invoiceNumber, seller, buyer, lines, totalVat);
+        var errors = ValidateTaxInvoiceContent(seller, buyer, lines, totalVat);
         if (errors.Count > 0)
         {
             throw new ErpWriteException("Tax invoice validation failed: " + string.Join("; ", errors));
@@ -124,9 +137,11 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         var taxBreakdown = BuildTaxBreakdown(lines, subtotal, totalVat);
 
         long invoiceId;
+        string invoiceNumber;
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            invoiceNumber = await _vouchers.NextAsync(connection, transaction, "SI", cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection,
                 transaction,
@@ -263,15 +278,27 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         IReadOnlyList<ErpSalesInvoiceLine> lines,
         decimal totalVat)
     {
+        var errors = ValidateTaxInvoiceContent(seller, buyer, lines, totalVat);
+        if (invoiceNumber.Trim().Length == 0)
+        {
+            errors.Insert(0, "Invoice number is required");
+        }
+
+        return errors;
+    }
+
+    /// <summary>Everything in <see cref="ValidateTaxInvoice"/> except the invoice-number check, so the SI number can be allocated after validation inside the insert transaction.</summary>
+    public static List<string> ValidateTaxInvoiceContent(
+        IReadOnlyDictionary<string, string> seller,
+        IReadOnlyDictionary<string, string> buyer,
+        IReadOnlyList<ErpSalesInvoiceLine> lines,
+        decimal totalVat)
+    {
         ArgumentNullException.ThrowIfNull(seller);
         ArgumentNullException.ThrowIfNull(buyer);
         ArgumentNullException.ThrowIfNull(lines);
 
         var errors = new List<string>();
-        if (invoiceNumber.Trim().Length == 0)
-        {
-            errors.Add("Invoice number is required");
-        }
 
         foreach (var (key, label) in new[]
         {
@@ -730,6 +757,15 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
     /// <summary>Subset of PHP <c>epc_einvoice_ensure_schema</c> / <c>epc_erp_invoices_ensure_schema</c>.</summary>
     private static async Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_voucher_sequences` ("
+            + " `voucher_type` varchar(8) NOT NULL,"
+            + " `year` int(11) NOT NULL,"
+            + " `last_seq` int(11) NOT NULL DEFAULT 0,"
+            + " PRIMARY KEY (`voucher_type`,`year`)"
+            + ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='ERP voucher sequences'",
+            cancellationToken).ConfigureAwait(false);
         await ErpDb.TryExecuteAsync(
             connection,
             "CREATE TABLE IF NOT EXISTS `epc_einvoice_documents` ("
