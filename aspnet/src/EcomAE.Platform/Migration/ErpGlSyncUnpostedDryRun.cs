@@ -15,7 +15,7 @@ public sealed class ErpGlSyncUnpostedDryRun : IErpGlSyncUnpostedDryRun
         {
             return new ErpGlSyncUnpostedDryRunResult(
                 "dry-run-confirm-refused", 0, true, false, true, "confirm_writes_refused", false,
-                [], "confirm_writes requested but live ASP.NET gl_sync_unposted is not implemented; PHP ajax_erp.php remains authoritative.",
+                [], "confirm_writes is handled by the live IErpGlSyncUnpostedWriteService.SyncAsync; the dry-run never executes.",
                 "/CP/content/shop/finance/erp/ajax_erp.php?action=gl_sync_unposted");
         }
 

@@ -59,4 +59,18 @@ public sealed class ErpSupplierWriteServiceTests
         Assert.Contains("writes.SyncFromStoragesAsync(cancellationToken)", module);
         Assert.Contains("\"Synced \" + n + \" supplier(s) from warehouses\"", module);
     }
+
+    [Fact]
+    public void GlSyncUnpostedMirrorsPhpSubledgerSweep()
+    {
+        var src = Src("Erp/ErpGlSyncUnpostedWriteService.cs");
+        Assert.Contains("SELECT `id` FROM `epc_erp_purchases` WHERE `active` = 1 AND `gl_journal_id` = 0", src);
+        Assert.Contains("SELECT `id` FROM `epc_erp_cash_bank_entries` WHERE `active` = 1 AND `gl_journal_id` = 0", src);
+        Assert.Contains("_gl.PostPurchaseAsync(c, id, adminId", src);
+        Assert.Contains("_gl.PostCashEntryAsync(c, id, adminId", src);
+        Assert.DoesNotContain("CREATE TABLE", src, StringComparison.OrdinalIgnoreCase);
+        var module = Src("Modules/ErpModule.cs");
+        Assert.Contains("MapPost(EcomAeRoutes.ErpGlSyncUnposted, HandleGlSyncUnpostedAsync)", module);
+        Assert.Contains("\"Synced \" + n + \" sub-ledger entry(ies) to GL\"", module);
+    }
 }
