@@ -10769,8 +10769,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxIntgSubSave, HandleIntgSubSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxIntgEventRaise, HandleIntgEventRaiseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFyCreate, HandleFyCreateAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFyClose, async (HttpContext context, ErpFyCloseBody? body, ILegacySessionValidator validator, IErpFyCloseDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpFyCloseRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFyClose, HandleFyCloseAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFyReopen, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -16774,6 +16773,74 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleFyCloseAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFyCloseDryRun dryRun,
+        IErpFyCloseWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/period-close-app", "Admin ERP capability required for fiscal-year close.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFyCloseBody>(context, cancellationToken) ?? new();
+        var yearId = body.YearId > 0 ? body.YearId : body.Id;
+        var code = body.Code;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            yearId = LiveWriteFormBinder.Long(form, "year_id", "yearId", "id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var companyHint = 0L;
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            companyHint = parsedCompany;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpFyCloseRequest(yearId, code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await writes.CloseYearAsync(new ErpFyCloseWriteRequest(yearId, companyHint), cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/period-close-app",
+            r.Result.Succeeded,
+            r.Result.Message,
+            new
+            {
+                ok = r.Result.Succeeded,
+                writes = r.Result.Writes,
+                phpAuthoritative = false,
+                validation_code = r.Result.Code,
+                message = r.Result.Message,
+                res = new
+                {
+                    year_id = r.YearId,
+                    label = r.Label,
+                    net_pl = r.NetPl,
+                    result = r.Outcome,
+                    closing_entry = new
+                    {
+                        date = r.EntryDate,
+                        memo = r.Memo,
+                        lines = r.ClosingEntry.Select(l => new { account = l.Account, debit = l.Debit, credit = l.Credit }),
+                    },
+                    periods_closed = r.PeriodsClosed,
+                },
+                session = SessionPayload(session),
+            });
     }
 
     private static async Task<IResult> HandleFyCreateAsync(
@@ -23297,7 +23364,7 @@ public sealed class ErpModule : ISurfaceModule
         string? EndDateText = null,
         bool Monthly = false,
         bool ConfirmWrites = false);
-    private sealed record ErpFyCloseBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpFyCloseBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, long YearId = 0);
     private sealed record ErpFyReopenBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpFyPeriodStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false, int PeriodNo = 0);
     private sealed record ErpPltJobSaveBody(
