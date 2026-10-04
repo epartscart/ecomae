@@ -79,6 +79,9 @@ public sealed class StorefrontSearchTableSeoTests
         var home = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Pages/MarketingPreviewApp.razor"));
         Assert.Contains("https://www.ecomae.com/", home, StringComparison.Ordinal);
         Assert.Contains("og:description", home, StringComparison.Ordinal);
+        Assert.Contains("Body-stream SEO fallback", home, StringComparison.Ordinal);
+        var body = home[(home.IndexOf("</HeadContent>", StringComparison.Ordinal) + "</HeadContent>".Length)..];
+        Assert.Contains("rel=\"canonical\" href=\"https://www.ecomae.com/\"", body, StringComparison.Ordinal);
         Assert.Contains("Unified ERP", home, StringComparison.Ordinal);
 
         var platform = File.ReadAllText(Find("aspnet/src/EcomAE.Platform/Components/Shared/Desktop/PhpEcomaePlatformOverview.razor"));
