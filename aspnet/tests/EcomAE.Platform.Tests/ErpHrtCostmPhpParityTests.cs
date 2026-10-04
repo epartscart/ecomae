@@ -66,6 +66,50 @@ public sealed class ErpHrtCostmPhpParityTests
         Assert.Contains("IErpHrtReviewWriteService, EcomAE.Platform.Erp.ErpHrtReviewWriteService", program);
         Assert.Contains("IErpCostmCloseWriteService, EcomAE.Platform.Erp.ErpCostmCloseWriteService", program);
         Assert.Contains("IErpBosComplianceFetchService, EcomAE.Platform.Erp.ErpBosComplianceFetchService", program);
+        Assert.Contains("IErpOplPlanningWriteService, EcomAE.Platform.Erp.ErpOplPlanningWriteService", program);
+        Assert.Contains("IErpCsDeclarationsReadService, EcomAE.Platform.Erp.ErpCsDeclarationsReadService", program);
+    }
+
+    [Fact]
+    public void OplAndCsRoutesKeepPhpContract()
+    {
+        foreach (var route in new[]
+        {
+            EcomAeRoutes.ErpAjaxOplSeedDemo,
+            EcomAeRoutes.ErpAjaxOplClearDemo,
+            EcomAeRoutes.ErpAjaxOplConfirmAll,
+            EcomAeRoutes.ErpAjaxCsListDeclarations,
+        })
+        {
+            var row = SurfacePayloadContractCatalog.Functions.Single(r => r.AspNetRouteOrCapability == route);
+            Assert.Equal("write-live-gated", row.Status);
+            Assert.Contains("confirm_writes=true", row.Notes);
+        }
+
+        var module = ReadRepo("aspnet/src/EcomAE.Platform/Modules/ErpModule.cs");
+        Assert.Contains("ErpAjaxOplSeedDemo, HandleOplSeedDemoAsync).DisableAntiforgery()", module);
+        Assert.Contains("ErpAjaxOplClearDemo, HandleOplClearDemoAsync).DisableAntiforgery()", module);
+        Assert.Contains("ErpAjaxOplConfirmAll, HandleOplConfirmAllAsync).DisableAntiforgery()", module);
+        Assert.Contains("ErpAjaxCsListDeclarations, HandleCsListDeclarationsAsync).DisableAntiforgery()", module);
+
+        var opl = ReadRepo("aspnet/src/EcomAE.Platform/Erp/ErpOplPlanningWriteService.cs");
+        Assert.Contains("DEMO-DEMAND", opl);
+        Assert.Contains("epc_erp_inv_movements", opl);
+        Assert.Contains("epc_erp_order_recommendations", opl);
+        Assert.Contains("epc_erp_planning_params", opl);
+        Assert.Contains("recommendation(s) confirmed", opl);
+        Assert.Contains("seeded demand movements", opl);
+        Assert.Contains("1.32", opl);
+        Assert.Contains("0.49", opl);
+        Assert.Contains("30.4375", opl);
+
+        var cs = ReadRepo("aspnet/src/EcomAE.Platform/Erp/ErpCsDeclarationsReadService.cs");
+        Assert.Contains("epc_custom_shipping_declarations", cs);
+        Assert.Contains("epc_custom_shipping_declaration_items", cs);
+        Assert.Contains("field_data", cs);
+        Assert.Contains("pdf_autofill_keys", cs);
+        Assert.Contains("uq_cs_declaration_number", cs);
+        Assert.Contains("item_count", cs);
     }
 
     [Fact]
