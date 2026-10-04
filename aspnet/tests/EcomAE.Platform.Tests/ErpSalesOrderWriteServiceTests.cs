@@ -88,6 +88,26 @@ public sealed class ErpSalesOrderWriteServiceTests
     public void StatusListMatchesPhpEnum()
         => Assert.Equal(["draft", "confirmed", "invoiced", "cancelled"], ErpSalesOrderWriteService.AllowedStatuses);
 
+    [Theory]
+    [InlineData("draft", 0, "confirmed")]
+    [InlineData("confirmed", 0, "draft")]
+    [InlineData("draft", 0, "cancelled")]
+    [InlineData("confirmed", 0, "cancelled")]
+    [InlineData("confirmed", 0, "confirmed")]
+    [InlineData("invoiced", 12, "invoiced")]
+    public void SoStatusAllowsOrdinaryTransitions(string current, long salesInvoiceId, string target)
+        => Assert.Null(ErpSalesOrderWriteService.StatusTransitionError(current, salesInvoiceId, target));
+
+    [Theory]
+    [InlineData("invoiced", 12, "cancelled", "Invoiced sales orders cannot change status — issue a credit note on the invoice")]
+    [InlineData("invoiced", 0, "draft", "Invoiced sales orders cannot change status — issue a credit note on the invoice")]
+    [InlineData("confirmed", 12, "cancelled", "Invoiced sales orders cannot change status — issue a credit note on the invoice")]
+    [InlineData("confirmed", 0, "invoiced", "Use Convert to invoice to invoice a sales order")]
+    [InlineData("cancelled", 0, "draft", "Cancelled sales orders cannot be reopened")]
+    [InlineData("cancelled", 0, "confirmed", "Cancelled sales orders cannot be reopened")]
+    public void SoStatusCannotBypassCancelAndInvoiceGuards(string current, long salesInvoiceId, string target, string message)
+        => Assert.Equal(message, ErpSalesOrderWriteService.StatusTransitionError(current, salesInvoiceId, target));
+
     [Fact]
     public void EditingAnOrderPersistsItsContactId()
     {

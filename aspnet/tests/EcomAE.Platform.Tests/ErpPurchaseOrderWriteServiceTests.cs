@@ -77,6 +77,43 @@ public sealed class ErpPurchaseOrderWriteServiceTests
     public void StatusListMatchesPhpEnum()
         => Assert.Equal(["draft", "approved", "partial", "received", "cancelled"], ErpPurchaseOrderWriteService.AllowedStatuses);
 
+    [Theory]
+    [InlineData("draft", 0, "approved")]
+    [InlineData("approved", 0, "received")]
+    [InlineData("partial", 0, "received")]
+    [InlineData("draft", 0, "cancelled")]
+    [InlineData("approved", 0, "cancelled")]
+    [InlineData("partial", 0, "cancelled")]
+    [InlineData("received", 0, "cancelled")]
+    [InlineData("approved", 0, "approved")]
+    public void PoStatusAllowsPhpTabActions(string current, long purchaseId, string target)
+        => Assert.Null(ErpPurchaseOrderWriteService.StatusTransitionError(current, purchaseId, target));
+
+    [Theory]
+    [InlineData("cancelled", 0, "approved", "Cancelled purchase orders cannot be reopened")]
+    [InlineData("cancelled", 0, "draft", "Cancelled purchase orders cannot be reopened")]
+    [InlineData("received", 9, "cancelled", "Purchase orders linked to a purchase invoice cannot be cancelled — void the purchase invoice first")]
+    [InlineData("received", 0, "approved", "Only draft purchase orders can be approved")]
+    [InlineData("draft", 0, "received", "Only approved or partially received purchase orders can be marked received")]
+    [InlineData("approved", 0, "partial", "Use Receive lines to record a partial receipt")]
+    [InlineData("approved", 0, "draft", "Purchase orders cannot be moved back to draft")]
+    public void PoStatusRefusesTransitionsOutsideTheLifecycle(string current, long purchaseId, string target, string message)
+        => Assert.Equal(message, ErpPurchaseOrderWriteService.StatusTransitionError(current, purchaseId, target));
+
+    [Fact]
+    public void ReceiptRecomputeDoesNotGoThroughTheManualStatusGuard()
+    {
+        var root = new DirectoryInfo(AppContext.BaseDirectory);
+        while (root is not null && !File.Exists(Path.Combine(root.FullName, "aspnet", "EcomAE.AspNetCore.sln")))
+        {
+            root = root.Parent;
+        }
+
+        var service = File.ReadAllText(Path.Combine(root!.FullName, "aspnet/src/EcomAE.Platform/Erp/ErpPurchaseOrderWriteService.cs"));
+        Assert.Contains("await ApplyStatusAsync(connection, purchaseOrderId, status, adminId, cancellationToken)", service, StringComparison.Ordinal);
+        Assert.DoesNotContain("await SetStatusAsync(", service, StringComparison.Ordinal);
+    }
+
     [Fact]
     public void ReceivedJsonParsesPhpLineMap()
     {

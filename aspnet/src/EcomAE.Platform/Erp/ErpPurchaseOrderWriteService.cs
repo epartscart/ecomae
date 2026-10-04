@@ -273,6 +273,52 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
+        var header = await LoadHeaderAsync(connection, null, purchaseOrderId, cancellationToken).ConfigureAwait(false)
+            ?? throw new ErpWriteException("Purchase order not found");
+        var refusal = StatusTransitionError(header.Status, header.PurchaseId, status);
+        if (refusal is not null)
+        {
+            throw new ErpWriteException(refusal);
+        }
+
+        await ApplyStatusAsync(connection, purchaseOrderId, status, adminId, cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Lifecycle rules for the manual <c>po_status</c> route, following the actions PHP's purchase-order tab offers
+    /// per status (Approve from draft, Mark received from approved/partial, Cancel while not cancelled).
+    /// Receipt-driven partial/received transitions go through <see cref="ReceiveLinesAsync"/> instead.
+    /// Returns null when the change is allowed.
+    /// </summary>
+    public static string? StatusTransitionError(string current, long purchaseId, string target)
+    {
+        if (string.Equals(current, target, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        if (string.Equals(current, "cancelled", StringComparison.Ordinal))
+        {
+            return "Cancelled purchase orders cannot be reopened";
+        }
+
+        return target switch
+        {
+            "cancelled" when purchaseId > 0
+                => "Purchase orders linked to a purchase invoice cannot be cancelled — void the purchase invoice first",
+            "cancelled" => null,
+            "approved" when current == "draft" => null,
+            "approved" => "Only draft purchase orders can be approved",
+            "received" when current is "approved" or "partial" => null,
+            "received" => "Only approved or partially received purchase orders can be marked received",
+            "partial" => "Use Receive lines to record a partial receipt",
+            "draft" => "Purchase orders cannot be moved back to draft",
+            _ => "Invalid PO status",
+        };
+    }
+
+    private async Task ApplyStatusAsync(DbConnection connection, long purchaseOrderId, string status, int adminId, CancellationToken cancellationToken)
+    {
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         var stamp = status switch
         {
@@ -440,7 +486,7 @@ public sealed class ErpPurchaseOrderWriteService : IErpPurchaseOrderWriteService
 
         if (!string.Equals(status, header.Status, StringComparison.Ordinal))
         {
-            await SetStatusAsync(purchaseOrderId, status, adminId, cancellationToken).ConfigureAwait(false);
+            await ApplyStatusAsync(connection, purchaseOrderId, status, adminId, cancellationToken).ConfigureAwait(false);
         }
 
         await _audit.LogAsync(

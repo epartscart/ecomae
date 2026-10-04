@@ -236,26 +236,37 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
+        var current = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `status` FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            salesOrderId).ConfigureAwait(false)
+            ?? throw new ErpWriteException("Sales order not found");
+        var salesInvoiceId = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COALESCE(`sales_invoice_id`, 0) FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1"),
+            cancellationToken,
+            salesOrderId).ConfigureAwait(false);
+        var refusal = StatusTransitionError(current, salesInvoiceId, status);
+        if (refusal is not null)
+        {
+            throw new ErpWriteException(refusal);
+        }
+
         var affected = await ErpDb.ExecuteAsync(
             connection,
             null,
-            ErpDb.Positional("UPDATE `epc_erp_sales_orders` SET `status` = ?, `time_updated` = ? WHERE `id` = ?"),
+            ErpDb.Positional("UPDATE `epc_erp_sales_orders` SET `status` = ?, `time_updated` = ? WHERE `id` = ? AND `status` = ?"),
             cancellationToken,
             status,
             DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-            salesOrderId).ConfigureAwait(false);
+            salesOrderId,
+            current).ConfigureAwait(false);
         if (affected == 0)
         {
-            var exists = await ErpDb.LongAsync(
-                connection,
-                null,
-                ErpDb.Positional("SELECT `id` FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1"),
-                cancellationToken,
-                salesOrderId).ConfigureAwait(false);
-            if (exists <= 0)
-            {
-                throw new ErpWriteException("Sales order not found");
-            }
+            throw new ErpWriteException("Sales order was changed by another request — reload and retry");
         }
 
         await _audit.LogAsync(
@@ -268,6 +279,35 @@ public sealed class ErpSalesOrderWriteService : IErpSalesOrderWriteService
             "Sales order status updated",
             new Dictionary<string, string?> { ["status"] = status },
             cancellationToken).ConfigureAwait(false);
+    }
+
+    /// <summary>
+    /// Lifecycle rules for the generic <c>so_status</c> route, aligned with <c>/erp/sales-orders/cancel</c>
+    /// and <c>so_to_invoice</c> so this route cannot bypass them. Returns null when the change is allowed.
+    /// </summary>
+    public static string? StatusTransitionError(string current, long salesInvoiceId, string target)
+    {
+        if (string.Equals(current, target, StringComparison.Ordinal))
+        {
+            return null;
+        }
+
+        if (salesInvoiceId > 0 || string.Equals(current, "invoiced", StringComparison.Ordinal))
+        {
+            return "Invoiced sales orders cannot change status — issue a credit note on the invoice";
+        }
+
+        if (string.Equals(target, "invoiced", StringComparison.Ordinal))
+        {
+            return "Use Convert to invoice to invoice a sales order";
+        }
+
+        if (string.Equals(current, "cancelled", StringComparison.Ordinal))
+        {
+            return "Cancelled sales orders cannot be reopened";
+        }
+
+        return null;
     }
 
     public async Task DeleteAsync(long salesOrderId, int adminId, CancellationToken cancellationToken = default)
