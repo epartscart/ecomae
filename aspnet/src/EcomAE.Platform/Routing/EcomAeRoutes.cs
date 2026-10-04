@@ -2299,6 +2299,8 @@ public static class EcomAeRoutes
     public const string BosTenantInstallationManifest = "/bos/tenant-installations/manifest";
     /// <summary>Live PHP ajax_epc_bos.php ai_classification review. confirmWrites=true UPDATEs epc_ai_classifications. Super-CP only.</summary>
     public const string BosAiClassReview = "/bos/ai-class/review";
+    /// <summary>Live PHP ajax_epc_bos.php ai_classification seed_hs. confirmWrites=true INSERT IGNORE epc_hs_codes. Super-CP only. Dedicated /bos/ajax/seed-hs stays refuse-confirm.</summary>
+    public const string BosAiClassSeedHs = "/bos/ai-class/seed-hs";
     /// <summary>Live PHP ajax_epc_bos.php mfa_policy save. confirmWrites=true UPSERTs epc_mfa_policy. Super-CP only.</summary>
     public const string BosMfaSave = "/bos/mfa/save";
     public const string BosTenants = "/bos/tenants";

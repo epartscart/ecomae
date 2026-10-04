@@ -3231,6 +3231,11 @@ public sealed class LiveWriteServiceValidationTests
         Assert.False(bosAiReviewDb.Succeeded);
         Assert.Equal("db", bosAiReviewDb.Code);
 
+        var bosAiSeedHsDb = await new BosAiClassWriteService(new UnconfiguredConnections())
+            .SeedHsAsync();
+        Assert.False(bosAiSeedHsDb.Succeeded);
+        Assert.Equal("db", bosAiSeedHsDb.Code);
+
         var bosMfaSaveDb = await new BosMfaWriteService(new UnconfiguredConnections())
             .SavePolicyAsync(null, "[]", "[]", null);
         Assert.False(bosMfaSaveDb.Succeeded);
