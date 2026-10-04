@@ -33,7 +33,36 @@ public static class EcomaeMarketingSnapshots
         ["/platform/catalog-api"] = "/platform/api-services",
         ["/platform/price-pro-api"] = "/platform/api-services",
         ["/platform/customer-testimonials"] = "/platform/customer-results",
+        // PHP customer-results page. /customers was 404; it is the short public URL for that page.
+        ["/customers"] = "/platform/customer-results",
+        // PHP epc_ecomae_legal_top_level_aliases — shop hosts use the same privacy body.
+        ["/en/privacy"] = "/privacy",
     };
+
+    /// <summary>Shop hosts serve these legal aliases; the rest of marketing stays on www.ecomae.com.</summary>
+    public static bool IsShopPrivacyPath(string? path)
+    {
+        var value = NormalizePath(path);
+        return value is "/privacy" or "/en/privacy";
+    }
+
+    private static string NormalizePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return "/";
+        }
+
+        var value = path.Trim();
+        var q = value.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            value = value[..q];
+        }
+
+        value = "/" + value.Trim('/');
+        return value == "//" ? "/" : value;
+    }
 
     public static bool IsMarketingHost(string? host)
     {

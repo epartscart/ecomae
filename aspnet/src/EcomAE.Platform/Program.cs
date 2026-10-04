@@ -11,6 +11,7 @@ using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 using EcomAE.Platform.Services;
+using EcomAE.Platform.Storefront;
 using EcomAE.Platform.Surfaces;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.DataProtection;
@@ -1685,6 +1686,8 @@ app.MapEcomAeSurfaceModules();
 // even when PHP-FPM is not fronting Kestrel (local + loopback probes).
 PhpLegacyAssetBridge.Map(app, app.Environment);
 OAuthStartEndpoint.Map(app);
+OAuthCallbackEndpoint.Map(app);
+HomeCatalogWidgets.Map(app);
 // LifeOS cinematic MP4/PNG — platform does not UseStaticFiles; serve wwwroot explicitly.
 EcomAE.Platform.LifeOs.Cinematic.LifeOsCinematicAssets.Map(app, app.Environment);
 EcomAE.Platform.LifeOs.Clients.LifeOsPwaAssets.Map(app, app.Environment);

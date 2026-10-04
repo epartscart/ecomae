@@ -1,5 +1,6 @@
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace EcomAE.Platform.Auth;
 
@@ -177,9 +178,126 @@ public static class OAuthStart
             ("ru", PhpJsonString(returnUrl ?? string.Empty)),
             ("tm", termsAccepted ? "1" : "0"),
             ("t", unixTime.ToString(System.Globalization.CultureInfo.InvariantCulture)));
-        var payload = Base64Url(Encoding.UTF8.GetBytes(json));
+        var payload = Base64UrlEncode(Encoding.UTF8.GetBytes(json));
         var sig = HmacHex(payload, signingSecret ?? string.Empty);
         return payload + "." + sig;
+    }
+
+    /// <summary>PHP <c>epc_oauth_state_unpack</c>. Null when the HMAC, provider, or 900s TTL fails.</summary>
+    public static OAuthUnpackedState? UnpackState(string? state, string? signingSecret, long unixNow)
+    {
+        if (string.IsNullOrEmpty(state))
+        {
+            return null;
+        }
+
+        var dot = state.IndexOf('.');
+        if (dot <= 0 || dot >= state.Length - 1)
+        {
+            return null;
+        }
+
+        var payload = state[..dot];
+        var sig = state[(dot + 1)..];
+        var expected = HmacHex(payload, signingSecret ?? string.Empty);
+        var sigBytes = Encoding.UTF8.GetBytes(sig);
+        var expectedBytes = Encoding.UTF8.GetBytes(expected);
+        if (sigBytes.Length != expectedBytes.Length
+            || !CryptographicOperations.FixedTimeEquals(sigBytes, expectedBytes))
+        {
+            return null;
+        }
+
+        byte[] jsonBytes;
+        try
+        {
+            jsonBytes = Base64UrlDecode(payload);
+        }
+        catch (FormatException)
+        {
+            return null;
+        }
+
+        JsonDocument doc;
+        try
+        {
+            doc = JsonDocument.Parse(jsonBytes);
+        }
+        catch (JsonException)
+        {
+            return null;
+        }
+
+        using (doc)
+        {
+            if (doc.RootElement.ValueKind != JsonValueKind.Object)
+            {
+                return null;
+            }
+
+            var root = doc.RootElement;
+            var nonce = JsonString(root, "n");
+            var provider = JsonString(root, "pv");
+            if (PhpEmpty(nonce) || PhpEmpty(provider) || !TryJsonUnix(root, "t", out var issued) || issued == 0)
+            {
+                return null;
+            }
+
+            if (unixNow - issued > 900)
+            {
+                return null;
+            }
+
+            if (!IsKnownProvider(provider))
+            {
+                return null;
+            }
+
+            return new OAuthUnpackedState
+            {
+                Provider = provider,
+                Nonce = nonce,
+                TenantKey = JsonString(root, "tk"),
+                Kind = JsonString(root, "k"),
+                ReturnHost = JsonString(root, "rh"),
+                ReturnPath = FirstNonEmpty(JsonString(root, "rp"), "/"),
+                AuthMode = NormalizeMode(JsonString(root, "am")),
+                LangPrefix = JsonString(root, "lp"),
+                ReturnUrl = JsonString(root, "ru"),
+                TermsAccepted = JsonString(root, "tm") is "1" || (root.TryGetProperty("tm", out var tm) && tm.ValueKind == JsonValueKind.Number && tm.TryGetInt32(out var tmInt) && tmInt == 1),
+                IssuedAt = issued,
+            };
+        }
+    }
+
+    /// <summary>PHP <c>empty()</c> for a string: only <c>""</c> and <c>"0"</c>.</summary>
+    public static bool PhpEmpty(string? value)
+        => value is null || value.Length == 0 || string.Equals(value, "0", StringComparison.Ordinal);
+
+    public static string HmacHex(string payload, string secret)
+    {
+        var key = Encoding.UTF8.GetBytes(secret ?? string.Empty);
+        var data = Encoding.UTF8.GetBytes(payload ?? string.Empty);
+        var hash = HMACSHA256.HashData(key, data);
+        return Convert.ToHexString(hash).ToLowerInvariant();
+    }
+
+    public static string Base64UrlEncode(byte[] bytes)
+    {
+        var encoded = Convert.ToBase64String(bytes);
+        return encoded.TrimEnd('=').Replace('+', '-').Replace('/', '_');
+    }
+
+    public static byte[] Base64UrlDecode(string payload)
+    {
+        var padded = payload.Replace('-', '+').Replace('_', '/');
+        var mod = padded.Length % 4;
+        if (mod != 0)
+        {
+            padded += new string('=', 4 - mod);
+        }
+
+        return Convert.FromBase64String(padded);
     }
 
     public static string PhpUrlEncode(string value)
@@ -316,19 +434,57 @@ public static class OAuthStart
         return sb.ToString();
     }
 
-    private static string Base64Url(byte[] bytes)
+    private static string JsonString(JsonElement root, string name)
     {
-        var encoded = Convert.ToBase64String(bytes);
-        return encoded.TrimEnd('=').Replace('+', '-').Replace('/', '_');
+        if (!root.TryGetProperty(name, out var value))
+        {
+            return string.Empty;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString() ?? string.Empty,
+            JsonValueKind.Number => value.GetRawText(),
+            JsonValueKind.True => "1",
+            JsonValueKind.False => "0",
+            _ => string.Empty,
+        };
     }
 
-    private static string HmacHex(string payload, string secret)
+    private static bool TryJsonUnix(JsonElement root, string name, out long unix)
     {
-        var key = Encoding.UTF8.GetBytes(secret);
-        var data = Encoding.UTF8.GetBytes(payload);
-        var hash = HMACSHA256.HashData(key, data);
-        return Convert.ToHexString(hash).ToLowerInvariant();
+        unix = 0;
+        if (!root.TryGetProperty(name, out var value))
+        {
+            return false;
+        }
+
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt64(out unix))
+        {
+            return true;
+        }
+
+        return value.ValueKind == JsonValueKind.String
+            && long.TryParse(value.GetString(), System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out unix);
     }
+
+    private static string FirstNonEmpty(string preferred, string fallback)
+        => string.IsNullOrEmpty(preferred) ? fallback : preferred;
+}
+
+public sealed class OAuthUnpackedState
+{
+    public string Provider { get; init; } = "";
+    public string Nonce { get; init; } = "";
+    public string TenantKey { get; init; } = "";
+    public string Kind { get; init; } = "";
+    public string ReturnHost { get; init; } = "";
+    public string ReturnPath { get; init; } = "/";
+    public string AuthMode { get; init; } = "cp";
+    public string LangPrefix { get; init; } = "";
+    public string ReturnUrl { get; init; } = "";
+    public bool TermsAccepted { get; init; }
+    public long IssuedAt { get; init; }
 }
 
 public sealed class OAuthProviderCredentials

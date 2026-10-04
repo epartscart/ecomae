@@ -25,7 +25,8 @@ public sealed class EcomaeMarketingSnapshotMiddleware
             return;
         }
 
-        if (!EcomaeMarketingSnapshots.IsMarketingHost(context.Request.Host.Host))
+        var marketingHost = EcomaeMarketingSnapshots.IsMarketingHost(context.Request.Host.Host);
+        if (!marketingHost && !EcomaeMarketingSnapshots.IsShopPrivacyPath(context.Request.Path.Value))
         {
             await _next(context);
             return;
