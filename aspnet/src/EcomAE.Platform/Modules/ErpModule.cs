@@ -2280,6 +2280,7 @@ public sealed class ErpModule : ISurfaceModule
                         AllocInvoiceIds = body.AllocInvoiceId,
                         AllocAmounts = body.AllocAmount,
                         Note = body.Note ?? string.Empty,
+                        Time = body.Time,
                     },
                     session.UserId,
                     cancellationToken);
@@ -2355,6 +2356,7 @@ public sealed class ErpModule : ISurfaceModule
                         AllocAmounts = body.AllocAmount,
                         Reference = body.Reference ?? string.Empty,
                         Note = body.Note ?? string.Empty,
+                        Time = body.Time,
                     },
                     session.UserId,
                     cancellationToken);
@@ -23360,7 +23362,8 @@ public sealed class ErpModule : ISurfaceModule
         long? OrderId = null,
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
-        IReadOnlyList<decimal>? AllocAmount = null);
+        IReadOnlyList<decimal>? AllocAmount = null,
+        long Time = 0);
     private sealed record ErpPaymentVoucherBody(
         long SupplierId,
         long AccountId,
@@ -23373,7 +23376,8 @@ public sealed class ErpModule : ISurfaceModule
         bool IsAdvance = false,
         bool AutoAllocate = false,
         IReadOnlyList<long>? AllocInvoiceId = null,
-        IReadOnlyList<decimal>? AllocAmount = null);
+        IReadOnlyList<decimal>? AllocAmount = null,
+        long Time = 0);
     private sealed record ErpSupplierCreateBody(
         string? Name, string? ContactEmail = null, bool ConfirmWrites = false, long StorageId = 0, string? ContactPhone = null, string? Trn = null,
         string? CurrencyCode = null, string? CountryCode = null, string? VatRegistered = null, string? VendorAccount = null, string? VendorGroup = null,

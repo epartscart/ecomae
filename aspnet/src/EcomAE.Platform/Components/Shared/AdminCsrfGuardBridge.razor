@@ -1,0 +1,97 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
+@using EcomAE.Platform.Middleware
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
+@*
+  PHP stop_csrf.php bridge for admin surfaces: exposes the session csrf_guard_key and stamps it
+  onto every POST form (hidden input) and same-origin fetch (header) so ErpCsrfGuardMiddleware
+  can verify it. Rendered only for validated admin sessions on /erp /cp /bos /ip.
+*@
+@if (!string.IsNullOrEmpty(_key))
+{
+    <meta name="csrf-guard-key" content="@_key" />
+    <script id="epc-admin-csrf-bridge">
+    (function () {
+        'use strict';
+        var meta = document.querySelector('meta[name="csrf-guard-key"]');
+        var key = meta ? meta.getAttribute('content') : '';
+        if (!key) { return; }
+        var FIELD = '@CpCsrfGuard.FieldName';
+        var HEADER = '@ErpCsrfGuardMiddleware.Header';
+        function stamp(form) {
+            if (!form || form._epcCsrf) { return; }
+            var method = (form.getAttribute('method') || 'get').toLowerCase();
+            if (method === 'get') { return; }
+            form._epcCsrf = true;
+            if (form.querySelector('input[name="' + FIELD + '"]')) { return; }
+            var input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = FIELD;
+            input.value = key;
+            form.appendChild(input);
+        }
+        function stampAll(root) {
+            (root || document).querySelectorAll('form').forEach(stamp);
+        }
+        document.addEventListener('submit', function (e) { stamp(e.target); }, true);
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', function () { stampAll(); });
+        } else {
+            stampAll();
+        }
+        if (window.MutationObserver) {
+            new MutationObserver(function () { stampAll(); }).observe(document.documentElement, { childList: true, subtree: true });
+        }
+        if (window.fetch) {
+            var nativeFetch = window.fetch;
+            window.fetch = function (input, init) {
+                try {
+                    var url = typeof input === 'string' ? input : (input && input.url) || '';
+                    var abs = new URL(url, window.location.href);
+                    var method = ((init && init.method) || (input && input.method) || 'GET').toUpperCase();
+                    if (abs.origin === window.location.origin && method !== 'GET' && method !== 'HEAD') {
+                        init = init || {};
+                        var headers = new Headers(init.headers || (input && input.headers) || {});
+                        if (!headers.has(HEADER)) { headers.set(HEADER, key); }
+                        init.headers = headers;
+                    }
+                } catch (err) { /* leave request untouched */ }
+                return nativeFetch.call(this, input, init);
+            };
+        }
+    })();
+    </script>
+}
+
+@code {
+    private string _key = string.Empty;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var ctx = Http.HttpContext;
+        if (ctx is null)
+        {
+            return;
+        }
+
+        var path = ctx.Request.Path.Value ?? "/";
+        if (!(path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase)
+              || path.StartsWith("/cp", StringComparison.OrdinalIgnoreCase)
+              || path.StartsWith("/bos", StringComparison.OrdinalIgnoreCase)
+              || path.StartsWith("/ip", StringComparison.OrdinalIgnoreCase)))
+        {
+            return;
+        }
+
+        var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
+        if (session.Kind != LegacySessionKind.Admin)
+        {
+            return;
+        }
+
+        _key = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+    }
+}

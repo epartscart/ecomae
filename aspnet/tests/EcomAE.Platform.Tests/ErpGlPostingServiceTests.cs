@@ -93,7 +93,7 @@ public sealed class ErpGlPostingServiceTests
         Assert.NotNull(dir);
         var gl = File.ReadAllText(Path.Combine(dir!.FullName, "aspnet/src/EcomAE.Platform/Erp/ErpGlPostingService.cs"));
         var postJournal = gl.IndexOf("public async Task<long> PostJournalAsync(", StringComparison.Ordinal);
-        var guard = gl.IndexOf("PeriodBlocksPosting(periodStatus)", StringComparison.Ordinal);
+        var guard = gl.IndexOf("await AssertPostingPeriodOpenAsync(", postJournal, StringComparison.Ordinal);
         var begin = gl.IndexOf("BeginTransactionAsync", postJournal, StringComparison.Ordinal);
         Assert.True(postJournal > 0 && guard > postJournal && guard < begin);
     }
