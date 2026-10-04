@@ -1,3 +1,4 @@
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Presentation;
 using Xunit;
 
@@ -79,6 +80,21 @@ public sealed class CpUsersConsolePhpParityTests
 
         var program = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Program.cs"));
         Assert.Contains("ICpUserEditorService, EcomAE.Platform.Cp.CpUserEditorService", program, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UsersColumn_KeepsPresentFieldsAndSkipsMissingTimestamps()
+    {
+        var slim = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "user_id", "email", "phone", "unlocked", "email_confirmed", "phone_confirmed",
+        };
+        Assert.Equal("`users`.`email`", CpUserEditorService.UsersColumn(slim, "email", "''"));
+        Assert.Equal("`users`.`unlocked`", CpUserEditorService.UsersColumn(slim, "unlocked", "0"));
+        Assert.Equal("0", CpUserEditorService.UsersColumn(slim, "time_registered", "0"));
+        Assert.Equal("0", CpUserEditorService.UsersColumn(slim, "time_last_visit", "0"));
+        Assert.Equal("0", CpUserEditorService.UsersColumn(slim, "reg_variant", "0"));
+        Assert.Equal("0", CpUserEditorService.UsersColumn(slim, "admin_created", "0"));
     }
 
     [Fact]
