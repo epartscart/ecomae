@@ -287,6 +287,33 @@ public sealed class CpPriceImportParsingTests : IDisposable
         Assert.False(PriceFileNameFilter.Matches("s-uae.csv", "S-UAE"));
     }
 
+    /// <summary>
+    /// RAR 4 archive produced by <c>rar a -ep</c> of <c>supplier-prices.csv</c> (the semicolon Bosch fixture).
+    /// SharpCompress reads it the same way the PC upload path does.
+    /// </summary>
+    [Fact]
+    public void Rar_archive_extracts_the_inner_price_csv()
+    {
+        const string fixture =
+            "UmFyIRoHAQAzkrXlCgEFBgAFAQGAgADTFu9dMQIDC/IBBKcCpIMCM1N3SYADARNzdXBwbGllci1wcmlj" +
+            "ZXMuY3N2CgMThRTCaj1CmBHBdO8mBDQzP1YFT3fCt4BbB67rscF5NuuFgWxsdgUt8YbG9lNK/ya9YSTv" +
+            "sDI5HJxnQ1CMM/CzkqS3Es1IWI+PuPVpsw3pobgxTCSxq6KlFYmtRK4LvaVzACNwMANrbdoDU5FL9R+5" +
+            "O6IPVGhD72comJ/1GuTSa9TfI1IVUG3c5HeKB/M66Xpkpmhn1bPyaMaCMW3ibC6q0IqpxSINcDuJ1Dnz" +
+            "Dr1+enV8bJJy+84aTlKuo28fb06CAXeRmfGTuFj7J8KsSb12fxu9AED9W4+RaKH2mEqOQVVrQQbtX46Z" +
+            "O6jwY0zySfon0pchBtyLhqxaAB13VlEDBQQA";
+        var rar = Path.Combine(_dir, "pc-prices.rar");
+        File.WriteAllBytes(rar, Convert.FromBase64String(fixture));
+
+        var messages = new List<string>();
+        var target = Path.Combine(_dir, "rar-out");
+        var kept = PriceArchiveExtractor.Extract(rar, target, "", messages);
+
+        Assert.Single(kept);
+        Assert.Equal(Path.Combine(target, "supplier-prices.csv"), kept[0]);
+        Assert.Contains(messages, m => m.Contains("[supplier-prices.csv] has SUCCESSFULLY passed the checks", StringComparison.Ordinal));
+        Assert.Contains("0986494527", File.ReadAllText(kept[0]), StringComparison.Ordinal);
+    }
+
     [Fact]
     public void Issue_csv_matches_php_layout()
     {
