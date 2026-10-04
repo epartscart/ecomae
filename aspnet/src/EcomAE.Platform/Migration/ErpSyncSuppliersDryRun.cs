@@ -15,7 +15,7 @@ public sealed class ErpSyncSuppliersDryRun : IErpSyncSuppliersDryRun
         {
             return new ErpSyncSuppliersDryRunResult(
                 "dry-run-confirm-refused", 0, true, false, true, "confirm_writes_refused", false,
-                [], "confirm_writes requested but live ASP.NET sync_suppliers is not implemented; PHP ajax_erp.php remains authoritative.",
+                [], "confirm_writes is handled by the live IErpSupplierWriteService.SyncFromStoragesAsync; the dry-run never executes.",
                 "/CP/content/shop/finance/erp/ajax_erp.php?action=sync_suppliers");
         }
 

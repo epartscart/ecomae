@@ -10,6 +10,9 @@ namespace EcomAE.Platform.Erp;
 public interface IErpSupplierWriteService
 {
     Task<long> CreateAsync(ErpSupplierCreateInput input, CancellationToken cancellationToken = default);
+
+    /// <summary>PHP <c>epc_erp_sync_suppliers_from_storages</c>: one supplier per <c>shop_storages</c> row without an active supplier. Returns created count.</summary>
+    Task<int> SyncFromStoragesAsync(CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpSupplierCreateInput
@@ -133,5 +136,60 @@ public sealed class ErpSupplierWriteService : IErpSupplierWriteService
         }
 
         return await ErpDb.LastInsertIdAsync(c, null, cancellationToken).ConfigureAwait(false);
+    }
+
+    public async Task<int> SyncFromStoragesAsync(CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            throw new ErpWriteException("TenantRegistry DB is not configured.");
+        }
+
+        await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var storages = new List<(long Id, string Name)>();
+            await using (var cmd = c.CreateCommand())
+            {
+                cmd.CommandText = "SELECT `id`, `name`, `short_name` FROM `shop_storages`";
+                await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    var name = (r.IsDBNull(1) ? string.Empty : r.GetString(1)).Trim();
+                    if (name.Length == 0)
+                    {
+                        name = (r.IsDBNull(2) ? string.Empty : r.GetString(2)).Trim();
+                    }
+
+                    if (name.Length > 0)
+                    {
+                        storages.Add((Convert.ToInt64(r.GetValue(0), CultureInfo.InvariantCulture), name));
+                    }
+                }
+            }
+
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            var created = 0;
+            foreach (var (id, name) in storages)
+            {
+                created += await ErpDb.ExecuteAsync(
+                    c,
+                    null,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_erp_suppliers` (`storage_id`, `name`, `time_created`) SELECT ?, ?, ? FROM DUAL"
+                        + " WHERE NOT EXISTS (SELECT 1 FROM `epc_erp_suppliers` WHERE `storage_id` = ? AND `active` = 1)"),
+                    cancellationToken,
+                    id,
+                    name,
+                    now,
+                    id).ConfigureAwait(false);
+            }
+
+            return created;
+        }
+        catch (DbException ex)
+        {
+            throw new ErpWriteException("Supplier sync requires the PHP shop_storages/epc_erp_suppliers schema: " + ex.Message);
+        }
     }
 }

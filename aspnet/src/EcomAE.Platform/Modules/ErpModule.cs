@@ -3390,22 +3390,7 @@ public sealed class ErpModule : ISurfaceModule
             }
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpSuppliersSync, async (
-            HttpContext context,
-            ErpSyncSuppliersBody? body,
-            ILegacySessionValidator validator,
-            IErpSyncSuppliersDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for suppliers sync dry-run.");
-            }
-            body ??= new ErpSyncSuppliersBody(false);
-            var result = dryRun.Evaluate(new ErpSyncSuppliersRequest(body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpSuppliersSync, HandleSupplierSyncAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpGlPostSales, async (
             HttpContext context,
@@ -20201,6 +20186,39 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             return ("Supplier created", (object)new { id });
+        });
+    }
+
+    private static async Task<IResult> HandleSupplierSyncAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSyncSuppliersDryRun dryRun,
+        IErpSupplierWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSyncSuppliersBody>(context, cancellationToken) ?? new(false);
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpSyncSuppliersRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(session, async () =>
+        {
+            var n = await writes.SyncFromStoragesAsync(cancellationToken);
+            return ("Synced " + n + " supplier(s) from warehouses", (object)new { created = n });
         });
     }
 
