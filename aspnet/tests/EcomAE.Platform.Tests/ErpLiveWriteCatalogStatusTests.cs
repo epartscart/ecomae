@@ -59,6 +59,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/customer-create",
         "/erp/ajax/save-company",
         "/erp/ajax/save-template",
+        "/erp/ajax/shortcut-list",
     ];
 
     [Fact]
