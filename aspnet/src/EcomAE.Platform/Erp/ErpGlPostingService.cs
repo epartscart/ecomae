@@ -50,6 +50,21 @@ public interface IErpGlPostingService
         int adminId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// Posts inside the caller's ambient transaction (no own commit/rollback). The caller must run
+    /// <see cref="EnsureSchemaAsync"/> before opening the transaction because schema DDL implicitly commits.
+    /// </summary>
+    Task<long> PostJournalAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        ErpGlJournalHeader header,
+        IReadOnlyList<ErpGlLine> lines,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>GL tables, COA seed and voucher sequence schema — DDL that must precede any ambient transaction.</summary>
+    Task EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken = default);
+
     Task<long> PostCashEntryAsync(
         DbConnection connection,
         long cashEntryId,
@@ -63,6 +78,14 @@ public interface IErpGlPostingService
     /// </summary>
     Task<long> PostSalesInvoiceAsync(
         DbConnection connection,
+        ErpGlSalesInvoicePosting invoice,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>Same posting inside the caller's ambient transaction (SO→tax-invoice conversion).</summary>
+    Task<long> PostSalesInvoiceAsync(
+        DbConnection connection,
+        DbTransaction transaction,
         ErpGlSalesInvoicePosting invoice,
         int adminId,
         CancellationToken cancellationToken = default);
@@ -81,8 +104,20 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
     public ErpGlPostingService(IErpVoucherNumberService vouchers) => _vouchers = vouchers;
 
+    public Task<long> PostJournalAsync(
+        DbConnection connection,
+        ErpGlJournalHeader header,
+        IReadOnlyList<ErpGlLine> lines,
+        int adminId,
+        CancellationToken cancellationToken = default)
+        => PostJournalAsync(connection, null, header, lines, adminId, cancellationToken);
+
+    Task IErpGlPostingService.EnsureSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+        => EnsureSchemaAsync(connection, cancellationToken);
+
     public async Task<long> PostJournalAsync(
         DbConnection connection,
+        DbTransaction? ambient,
         ErpGlJournalHeader header,
         IReadOnlyList<ErpGlLine> lines,
         int adminId,
@@ -93,30 +128,23 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         ArgumentNullException.ThrowIfNull(lines);
 
         Validate(lines);
-        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (ambient is null)
+        {
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         var journalDate = header.JournalDate > 0 ? header.JournalDate : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        var lockDate = await FiscalLockDateAsync(connection, cancellationToken).ConfigureAwait(false);
-        if (lockDate > 0 && journalDate <= lockDate)
-        {
-            var closed = DateTimeOffset.FromUnixTimeSeconds(lockDate).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
-            throw new ErpWriteException("Period is closed: cannot post on or before " + closed);
-        }
-
-        var periodStatus = await PeriodStatusAsync(connection, journalDate, cancellationToken).ConfigureAwait(false);
-        if (PeriodBlocksPosting(periodStatus))
-        {
-            throw new ErpWriteException(PeriodBlockedMessage(periodStatus));
-        }
+        await AssertPostingPeriodOpenAsync(connection, ambient, journalDate, cancellationToken).ConfigureAwait(false);
 
         // Voucher numbering runs DDL, which MySQL implicitly commits — resolve it
         // before the journal transaction opens, exactly as PHP does.
-        var journalNo = await _vouchers.NextAsync(connection, null, "GV", cancellationToken).ConfigureAwait(false);
+        var journalNo = await _vouchers.NextAsync(connection, ambient, "GV", cancellationToken).ConfigureAwait(false);
         var companyId = header.CompanyId > 0
             ? header.CompanyId
-            : await DefaultCompanyIdAsync(connection, cancellationToken).ConfigureAwait(false);
+            : await DefaultCompanyIdAsync(connection, ambient, cancellationToken).ConfigureAwait(false);
 
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var transaction = ambient ?? await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        var owned = ambient is null;
         try
         {
             await ErpDb.ExecuteAsync(
@@ -153,13 +181,28 @@ public sealed class ErpGlPostingService : IErpGlPostingService
                     (line.LineNote ?? string.Empty).Trim()).ConfigureAwait(false);
             }
 
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            if (owned)
+            {
+                await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             return journalId;
         }
         catch
         {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            if (owned)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            }
+
             throw;
+        }
+        finally
+        {
+            if (owned)
+            {
+                await transaction.DisposeAsync().ConfigureAwait(false);
+            }
         }
     }
 
@@ -338,19 +381,41 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         }
     }
 
-    public async Task<long> PostSalesInvoiceAsync(
+    public Task<long> PostSalesInvoiceAsync(
         DbConnection connection,
         ErpGlSalesInvoicePosting invoice,
         int adminId,
         CancellationToken cancellationToken = default)
+        => PostSalesInvoiceCoreAsync(connection, null, invoice, adminId, cancellationToken);
+
+    public Task<long> PostSalesInvoiceAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        ErpGlSalesInvoicePosting invoice,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+        return PostSalesInvoiceCoreAsync(connection, transaction, invoice, adminId, cancellationToken);
+    }
+
+    private async Task<long> PostSalesInvoiceCoreAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        ErpGlSalesInvoicePosting invoice,
+        int adminId,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentNullException.ThrowIfNull(invoice);
-        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (transaction is null)
+        {
+            await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
 
         var existing = await ErpDb.LongAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional(
                 "SELECT `id` FROM `epc_erp_gl_journals` WHERE `source_type` = 'sales_invoice' AND `source_id` = ? AND `active` = 1 LIMIT 1"),
             cancellationToken,
@@ -360,8 +425,8 @@ public sealed class ErpGlPostingService : IErpGlPostingService
             return existing;
         }
 
-        var receivableId = await CoaIdByCodeAsync(connection, "1100", cancellationToken).ConfigureAwait(false);
-        var revenueId = await CoaIdByCodeAsync(connection, "4000", cancellationToken).ConfigureAwait(false);
+        var receivableId = await CoaIdByCodeAsync(connection, transaction, "1100", cancellationToken).ConfigureAwait(false);
+        var revenueId = await CoaIdByCodeAsync(connection, transaction, "4000", cancellationToken).ConfigureAwait(false);
         if (receivableId <= 0 || revenueId <= 0)
         {
             throw new ErpWriteException("Sales COA accounts missing");
@@ -370,11 +435,12 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         var lines = SalesInvoiceLines(
             receivableId,
             revenueId,
-            invoice.TotalVat > 0m ? await CoaIdByCodeAsync(connection, "2100", cancellationToken).ConfigureAwait(false) : 0L,
+            invoice.TotalVat > 0m ? await CoaIdByCodeAsync(connection, transaction, "2100", cancellationToken).ConfigureAwait(false) : 0L,
             invoice);
 
         return await PostJournalAsync(
             connection,
+            transaction,
             new ErpGlJournalHeader
             {
                 JournalDate = invoice.IssueDate,
@@ -514,9 +580,12 @@ public sealed class ErpGlPostingService : IErpGlPostingService
     }
 
     private static Task<long> CoaIdByCodeAsync(DbConnection connection, string code, CancellationToken cancellationToken)
+        => CoaIdByCodeAsync(connection, null, code, cancellationToken);
+
+    private static Task<long> CoaIdByCodeAsync(DbConnection connection, DbTransaction? transaction, string code, CancellationToken cancellationToken)
         => ErpDb.LongAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("SELECT `id` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
             cancellationToken,
             code);
@@ -527,19 +596,45 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         => status.Equals("locked", StringComparison.OrdinalIgnoreCase)
             || status.Equals("soft_close", StringComparison.OrdinalIgnoreCase);
 
+    /// <summary>
+    /// Fiscal-lock date and <c>epc_erp_periods</c> status guard shared by every sub-ledger write
+    /// (manual journals, customer receipts, supplier payments) so a locked month refuses the
+    /// document itself, not only its GL journal.
+    /// </summary>
+    public static async Task AssertPostingPeriodOpenAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        long postingDate,
+        CancellationToken cancellationToken)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        var lockDate = await FiscalLockDateAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+        if (lockDate > 0 && postingDate <= lockDate)
+        {
+            var closed = DateTimeOffset.FromUnixTimeSeconds(lockDate).ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+            throw new ErpWriteException("Period is closed: cannot post on or before " + closed);
+        }
+
+        var periodStatus = await PeriodStatusAsync(connection, transaction, postingDate, cancellationToken).ConfigureAwait(false);
+        if (PeriodBlocksPosting(periodStatus))
+        {
+            throw new ErpWriteException(PeriodBlockedMessage(periodStatus));
+        }
+    }
+
     public static string PeriodBlockedMessage(string status)
         => "Journal posting is blocked because the accounting period is " + status.Replace('_', ' ');
 
     public static string PeriodKey(long journalDate)
         => DateTimeOffset.FromUnixTimeSeconds(journalDate).ToUniversalTime().ToString("yyyy-MM", CultureInfo.InvariantCulture);
 
-    private static async Task<string> PeriodStatusAsync(DbConnection connection, long journalDate, CancellationToken cancellationToken)
+    private static async Task<string> PeriodStatusAsync(DbConnection connection, DbTransaction? transaction, long journalDate, CancellationToken cancellationToken)
     {
         try
         {
             var status = await ErpDb.StringAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional("SELECT COALESCE(`status`, 'open') FROM `epc_erp_periods` WHERE `year_month` = ? LIMIT 1"),
                 cancellationToken,
                 PeriodKey(journalDate)).ConfigureAwait(false);
@@ -551,13 +646,13 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         }
     }
 
-    private static async Task<long> FiscalLockDateAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<long> FiscalLockDateAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
         try
         {
             return await ErpDb.LongAsync(
                 connection,
-                null,
+                transaction,
                 "SELECT MAX(`lock_date`) FROM `epc_erp_fiscal_locks` WHERE `active` = 1",
                 cancellationToken).ConfigureAwait(false);
         }
@@ -568,13 +663,13 @@ public sealed class ErpGlPostingService : IErpGlPostingService
     }
 
     /// <summary>PHP <c>epc_erp_gl_default_company_id</c>: lowest-id active legal entity.</summary>
-    private static async Task<long> DefaultCompanyIdAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<long> DefaultCompanyIdAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
         try
         {
             return await ErpDb.LongAsync(
                 connection,
-                null,
+                transaction,
                 "SELECT MIN(`id`) FROM `epc_erp_pm_legal_entities` WHERE `active` = 1",
                 cancellationToken).ConfigureAwait(false);
         }

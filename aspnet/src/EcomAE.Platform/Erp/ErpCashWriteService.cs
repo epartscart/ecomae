@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Data.Common;
 using System.Text.Json;
 
@@ -199,6 +200,14 @@ public interface IErpCashWriteService
         int adminId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>Ledger row written inside the caller's ambient transaction (no own commit).</summary>
+    Task<long> CustomerSettlementAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default);
+
     Task<long> OrderSettlementAsync(
         ErpCustomerSettlementInput input,
         int adminId,
@@ -330,12 +339,26 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 amount);
         }
 
+        if (allocation.Count == 0 && input.SalesInvoiceId > 0)
+        {
+            // A receipt that names a sales invoice pays that invoice; it is never an advance.
+            var invoice = await _allocations.CustomerInvoiceAsync(connection, input.SalesInvoiceId, input.UserId, cancellationToken).ConfigureAwait(false)
+                ?? throw new ErpWriteException("Sales invoice not found for this customer");
+            if (invoice.Outstanding <= 0.005m)
+            {
+                throw new ErpWriteException("Sales invoice " + invoice.DocumentNumber + " is already fully paid");
+            }
+
+            allocation = new Dictionary<long, decimal> { [invoice.Id] = decimal.Min(amount, invoice.Outstanding) };
+        }
+
         var hasAllocation = allocation.Count > 0;
 
         // A receipt that settles invoices is never an advance — it knocks off AR.
         var isAdvance = !hasAllocation && (input.IsAdvance ?? true);
-        var voucherNo = await _vouchers.NextAsync(connection, null, "RV", cancellationToken).ConfigureAwait(false);
         var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpGlPostingService.AssertPostingPeriodOpenAsync(connection, null, time, cancellationToken).ConfigureAwait(false);
+        var voucherNo = await _vouchers.NextAsync(connection, null, "RV", cancellationToken).ConfigureAwait(false);
         var reference = input.Reference.Trim().Length > 0 ? input.Reference.Trim() : voucherNo;
         var note = input.Note.Trim().Length > 0
             ? input.Note.Trim()
@@ -440,13 +463,11 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         await AssertAccountAsync(connection, input.AccountId, cancellationToken).ConfigureAwait(false);
         await AssertSupplierAsync(connection, input.SupplierId, cancellationToken).ConfigureAwait(false);
 
-        var voucherNo = input.Reference.Trim();
-        if (!voucherNo.StartsWith("PV-", StringComparison.Ordinal))
-        {
-            voucherNo = await _vouchers.NextAsync(connection, null, "PV", cancellationToken).ConfigureAwait(false);
-        }
+        var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpGlPostingService.AssertPostingPeriodOpenAsync(connection, null, time, cancellationToken).ConfigureAwait(false);
 
-        // Which open bills this payment settles: explicit lines, else FIFO when asked.
+        // Which open bills this payment settles: explicit lines, else FIFO when asked,
+        // else the single bill named by purchase_id.
         var allocation = ErpSettlementAllocationService.ParseAllocations(input.AllocInvoiceIds, input.AllocAmounts);
         if (allocation.Count == 0 && input.AutoAllocate)
         {
@@ -455,7 +476,31 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 amount);
         }
 
-        var time = input.Time > 0 ? input.Time : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (allocation.Count == 0 && input.PurchaseId > 0 && !input.IsAdvance)
+        {
+            allocation = new Dictionary<long, decimal> { [input.PurchaseId] = amount };
+        }
+
+        foreach (var (billId, requested) in allocation)
+        {
+            var bill = await _allocations.SupplierBillAsync(connection, billId, input.SupplierId, cancellationToken).ConfigureAwait(false)
+                ?? throw new ErpWriteException("Supplier bill " + billId.ToString(CultureInfo.InvariantCulture) + " not found for this supplier");
+            if (bill.Outstanding <= 0.005m)
+            {
+                throw new ErpWriteException(ErpSettlementAllocationService.BillAlreadyPaidMessage(billId));
+            }
+
+            if (ErpTaxAmountCalculator.Round2(requested) > bill.Outstanding + 0.005m)
+            {
+                throw new ErpWriteException(ErpSettlementAllocationService.BillOverpaymentMessage(billId, ErpTaxAmountCalculator.Round2(requested), bill.Outstanding));
+            }
+        }
+
+        var voucherNo = input.Reference.Trim();
+        if (!voucherNo.StartsWith("PV-", StringComparison.Ordinal))
+        {
+            voucherNo = await _vouchers.NextAsync(connection, null, "PV", cancellationToken).ConfigureAwait(false);
+        }
         var isAdvance = allocation.Count == 0 && input.IsAdvance;
         var note = input.Note.Trim().Length > 0
             ? input.Note.Trim()
@@ -969,11 +1014,30 @@ public sealed class ErpCashWriteService : IErpCashWriteService
     }
 
     /// <summary>PHP <c>epc_erp_customer_settlement</c>: AR ledger row on <c>shop_users_accounting</c> plus optional GL.</summary>
-    public async Task<long> CustomerSettlementAsync(
+    public Task<long> CustomerSettlementAsync(
         DbConnection connection,
         ErpCustomerSettlementInput input,
         int adminId,
         CancellationToken cancellationToken = default)
+        => CustomerSettlementCoreAsync(connection, null, input, adminId, cancellationToken);
+
+    public Task<long> CustomerSettlementAsync(
+        DbConnection connection,
+        DbTransaction transaction,
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(transaction);
+        return CustomerSettlementCoreAsync(connection, transaction, input, adminId, cancellationToken);
+    }
+
+    private async Task<long> CustomerSettlementCoreAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        ErpCustomerSettlementInput input,
+        int adminId,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentNullException.ThrowIfNull(input);
@@ -997,7 +1061,8 @@ public sealed class ErpCashWriteService : IErpCashWriteService
                 connection,
                 input.OrderId,
                 "Customer settlement linked to order",
-                cancellationToken).ConfigureAwait(false);
+                cancellationToken,
+                transaction).ConfigureAwait(false);
         }
 
         if (entryKind == "write_off" && income)
@@ -1010,10 +1075,10 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             note = SettlementKindLabel(entryKind) + (reference.Length > 0 ? " — " + reference : string.Empty);
         }
 
-        await EnsureAccountingCodesAsync(connection, cancellationToken).ConfigureAwait(false);
+        await EnsureAccountingCodesAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
         var codeId = await ErpDb.LongAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1"),
             cancellationToken,
             income ? "epc_erp_ar_credit" : "epc_erp_ar_debit").ConfigureAwait(false);
@@ -1033,13 +1098,13 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         // tech_value_text detail column nor order_id (PHP probes SHOW COLUMNS too).
         var columns = new List<string> { "user_id", "time", "income", "amount", "operation_code", "active", "office_id" };
         var values = new List<object?> { userId, time, income ? 1 : 0, amount, codeId, 1, 0 };
-        if (await HasColumnAsync(connection, "shop_users_accounting", "order_id", cancellationToken).ConfigureAwait(false))
+        if (await HasColumnAsync(connection, transaction, "shop_users_accounting", "order_id", cancellationToken).ConfigureAwait(false))
         {
             columns.Add("order_id");
             values.Add(input.OrderId);
         }
 
-        if (await HasColumnAsync(connection, "shop_users_accounting", "tech_value_text", cancellationToken).ConfigureAwait(false))
+        if (await HasColumnAsync(connection, transaction, "shop_users_accounting", "tech_value_text", cancellationToken).ConfigureAwait(false))
         {
             columns.Add("tech_value_text");
             values.Add(detail);
@@ -1047,17 +1112,18 @@ public sealed class ErpCashWriteService : IErpCashWriteService
 
         await ErpDb.ExecuteAsync(
             connection,
-            null,
+            transaction,
             ErpDb.Positional(
                 "INSERT INTO `shop_users_accounting` (`" + string.Join("`,`", columns) + "`) VALUES ("
                 + string.Join(',', Enumerable.Repeat("?", columns.Count)) + ")"),
             cancellationToken,
             [.. values]).ConfigureAwait(false);
 
-        var ledgerId = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+        var ledgerId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
 
-        if (!postGl)
+        if (!postGl || transaction is not null)
         {
+            // Under an ambient transaction the caller owns GL posting (SO→invoice posts sales recognition itself).
             return ledgerId;
         }
 
@@ -1174,7 +1240,10 @@ public sealed class ErpCashWriteService : IErpCashWriteService
             cancellationToken);
 
     /// <summary>Port of PHP <c>epc_erp_ensure_accounting_codes</c>: seed the AR settlement codes on first use.</summary>
-    private static async Task EnsureAccountingCodesAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static Task EnsureAccountingCodesAsync(DbConnection connection, CancellationToken cancellationToken)
+        => EnsureAccountingCodesAsync(connection, null, cancellationToken);
+
+    private static async Task EnsureAccountingCodesAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
         foreach (var (key, income, name) in new[]
         {
@@ -1184,7 +1253,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         {
             var existing = await ErpDb.LongAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key` = ? LIMIT 1"),
                 cancellationToken,
                 key).ConfigureAwait(false);
@@ -1195,7 +1264,7 @@ public sealed class ErpCashWriteService : IErpCashWriteService
 
             await ErpDb.ExecuteAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional(
                     "INSERT INTO `shop_accounting_codes` (`income`, `name`, `manual_available`, `key`) VALUES (?, ?, 1, ?)"),
                 cancellationToken,
@@ -1205,13 +1274,13 @@ public sealed class ErpCashWriteService : IErpCashWriteService
         }
     }
 
-    private static async Task<bool> HasColumnAsync(DbConnection connection, string table, string column, CancellationToken cancellationToken)
+    private static async Task<bool> HasColumnAsync(DbConnection connection, DbTransaction? transaction, string table, string column, CancellationToken cancellationToken)
     {
         try
         {
             var found = await ErpDb.StringAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional("SHOW COLUMNS FROM `" + table + "` LIKE ?"),
                 cancellationToken,
                 column).ConfigureAwait(false);

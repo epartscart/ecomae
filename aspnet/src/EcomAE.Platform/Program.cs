@@ -372,6 +372,7 @@ builder.Services.AddSingleton<IErpPfClearDemoDryRun, ErpPfClearDemoDryRun>();
 builder.Services.AddSingleton<IErpPfSyncOrdersDryRun, ErpPfSyncOrdersDryRun>();
 builder.Services.AddSingleton<IErpDemoSeedSalesDryRun, ErpDemoSeedSalesDryRun>();
 builder.Services.AddSingleton<IErpDemoClearSalesDryRun, ErpDemoClearSalesDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDemoSalesWriteService, EcomAE.Platform.Erp.ErpDemoSalesWriteService>();
 builder.Services.AddSingleton<IErpCtrOcrDryRun, ErpCtrOcrDryRun>();
 builder.Services.AddSingleton<IErpDocxSaveDryRun, ErpDocxSaveDryRun>();
 builder.Services.AddSingleton<IErpDocxDeleteDryRun, ErpDocxDeleteDryRun>();
@@ -450,6 +451,12 @@ builder.Services.AddSingleton<IErpInvoiceFromOrderDryRun, ErpInvoiceFromOrderDry
 builder.Services.AddSingleton<IErpAiQueryDryRun, ErpAiQueryDryRun>();
 builder.Services.AddSingleton<IErpIntegrityScanDryRun, ErpIntegrityScanDryRun>();
 builder.Services.AddSingleton<IErpIntegrityApplyFksDryRun, ErpIntegrityApplyFksDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpIntegrityService, EcomAE.Platform.Erp.ErpIntegrityService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrtReviewWriteService, EcomAE.Platform.Erp.ErpHrtReviewWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCostmCloseWriteService, EcomAE.Platform.Erp.ErpCostmCloseWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceFetchService, EcomAE.Platform.Erp.ErpBosComplianceFetchService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOplPlanningWriteService, EcomAE.Platform.Erp.ErpOplPlanningWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCsDeclarationsReadService, EcomAE.Platform.Erp.ErpCsDeclarationsReadService>();
 builder.Services.AddSingleton<IErpFaCreateAssetDryRun, ErpFaCreateAssetDryRun>();
 builder.Services.AddSingleton<IErpFaRunDepreciationDryRun, ErpFaRunDepreciationDryRun>();
 builder.Services.AddSingleton<IErpOpeningCreateBatchDryRun, ErpOpeningCreateBatchDryRun>();
@@ -493,6 +500,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCashWriteService, EcomAE.Plat
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlLedgerWriteService, EcomAE.Platform.Erp.ErpGlLedgerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocLifecycleWriteService, EcomAE.Platform.Erp.ErpDocLifecycleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSalesInvoiceWriteService, EcomAE.Platform.Erp.ErpSalesInvoiceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInvoiceFromOrderWriteService, EcomAE.Platform.Erp.ErpInvoiceFromOrderWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEinvoiceCreditNoteWriteService, EcomAE.Platform.Erp.ErpEinvoiceCreditNoteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPurchaseOrderWriteService, EcomAE.Platform.Erp.ErpPurchaseOrderWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRfqAwardWriteService, EcomAE.Platform.Erp.ErpRfqAwardWriteService>();
@@ -763,6 +771,10 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRfidScanWriteService, EcomAE.
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGoldRateSetWriteService, EcomAE.Platform.Erp.ErpGoldRateSetWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlKycSaveWriteService, EcomAE.Platform.Erp.ErpAmlKycSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlAlertStatusWriteService, EcomAE.Platform.Erp.ErpAmlAlertStatusWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlCheckWriteService, EcomAE.Platform.Erp.ErpAmlCheckWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlSeedRulesWriteService, EcomAE.Platform.Erp.ErpAmlSeedRulesWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlSettingsSaveWriteService, EcomAE.Platform.Erp.ErpAmlSettingsSaveWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAmlReportGenerateWriteService, EcomAE.Platform.Erp.ErpAmlReportGenerateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpSlaWriteService, EcomAE.Platform.Erp.ErpSlaWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpTicketsWriteService, EcomAE.Platform.Erp.ErpTicketsWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCustomerGroupsWriteService, EcomAE.Platform.Erp.ErpCustomerGroupsWriteService>();
@@ -913,6 +925,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractStatusWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractSaveWriteService, EcomAE.Platform.Erp.ErpContractSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowStatusWriteService, EcomAE.Platform.Erp.ErpWorkflowStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowCreateWriteService, EcomAE.Platform.Erp.ErpWorkflowCreateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowWriteService, EcomAE.Platform.Erp.ErpWorkflowWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseStatusWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseSaveWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCasePromiseWriteService, EcomAE.Platform.Erp.ErpCollectionsCasePromiseWriteService>();
@@ -958,6 +971,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDocAddWriteService, EcomAE
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInsDeleteWriteService, EcomAE.Platform.Erp.ErpInsDeleteWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgBomSaveWriteService, EcomAE.Platform.Erp.ErpMfgBomSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgWoCreateWriteService, EcomAE.Platform.Erp.ErpMfgWoCreateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpMfgWriteService, EcomAE.Platform.Erp.ErpMfgWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceAddObligationWriteService, EcomAE.Platform.Erp.ErpBosComplianceAddObligationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfCaseReassignWriteService, EcomAE.Platform.Erp.ErpPfCaseReassignWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPfCaseStartWriteService, EcomAE.Platform.Erp.ErpPfCaseStartWriteService>();
@@ -1067,6 +1081,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrtApplicantStageWriteService
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinPeriodsGenerateWriteService, EcomAE.Platform.Erp.ErpFinPeriodsGenerateWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBankReconcileWriteService, EcomAE.Platform.Erp.ErpBankReconcileWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutomationDeactivateWriteService, EcomAE.Platform.Erp.ErpAutomationDeactivateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAutomationWriteService, EcomAE.Platform.Erp.ErpAutomationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodSoftCloseWriteService, EcomAE.Platform.Erp.ErpPeriodSoftCloseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodLockReopenWriteService, EcomAE.Platform.Erp.ErpPeriodLockReopenWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodReadService, EcomAE.Platform.Erp.ErpPeriodReadService>();
@@ -1083,6 +1098,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBplanAdvanceWriteService, Eco
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEditLockReleaseWriteService, EcomAE.Platform.Erp.ErpEditLockReleaseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEditLockHeartbeatWriteService, EcomAE.Platform.Erp.ErpEditLockHeartbeatWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPresenceWriteService, EcomAE.Platform.Erp.ErpPresenceWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEditLockAcquireWriteService, EcomAE.Platform.Erp.ErpEditLockAcquireWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCsDeleteDeclarationWriteService, EcomAE.Platform.Erp.ErpCsDeleteDeclarationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrjSaveWriteService, EcomAE.Platform.Erp.ErpPrjSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateWriteService, EcomAE.Platform.Erp.ErpFitOutEstimateWriteService>();
@@ -1295,6 +1311,9 @@ app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
 // Unsafe-method requests to /cp|/erp|/bos|/ip from a foreign Origin/Referer are refused (many
 // admin write endpoints are cookie-authenticated with DisableAntiforgery()).
 app.UseMiddleware<AdminCrossSiteWriteGuardMiddleware>();
+// PHP stop_csrf.php twin: every ERP unsafe-method request with an admin session must carry the
+// session csrf_guard_key (form/JSON/header); mismatch is a 403 with zero writes.
+app.UseMiddleware<ErpCsrfGuardMiddleware>();
 // LifeOS personal surfaces (join / companion / results) require a signed-in session.
 app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/ip|/lifeos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
