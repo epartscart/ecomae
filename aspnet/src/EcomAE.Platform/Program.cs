@@ -1077,6 +1077,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFxRevaluationWriteService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBplanAdvanceWriteService, EcomAE.Platform.Erp.ErpBplanAdvanceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEditLockReleaseWriteService, EcomAE.Platform.Erp.ErpEditLockReleaseWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpEditLockHeartbeatWriteService, EcomAE.Platform.Erp.ErpEditLockHeartbeatWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPresenceWriteService, EcomAE.Platform.Erp.ErpPresenceWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCsDeleteDeclarationWriteService, EcomAE.Platform.Erp.ErpCsDeleteDeclarationWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPrjSaveWriteService, EcomAE.Platform.Erp.ErpPrjSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFitOutEstimateWriteService, EcomAE.Platform.Erp.ErpFitOutEstimateWriteService>();

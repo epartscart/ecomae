@@ -146,8 +146,7 @@ public sealed class ErpModule : ISurfaceModule
             return Results.Ok(dryRun.Evaluate(new ErpAjaxWriteRegistryRequest(action, confirm)).ToPayload(SessionPayload(session)));
         }).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxConcurrencyStatus, async (HttpContext context, ErpConcurrencyStatusBody? body, ILegacySessionValidator validator, IErpConcurrencyStatusDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpConcurrencyStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxConcurrencyStatus, HandleConcurrencyStatusAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSettlementOpenDocs, HandleSettlementOpenDocsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDashboard, async (HttpContext context, ErpDashboardBody? body, ILegacySessionValidator validator, IErpDashboardDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDashboardRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
@@ -4714,8 +4713,7 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpEditLockAcquireRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockHeartbeat, HandleEditLockHeartbeatAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEditLockRelease, HandleEditLockReleaseAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPresenceHeartbeat, async (HttpContext context, ErpPresenceHeartbeatBody? body, ILegacySessionValidator validator, IErpPresenceHeartbeatDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(null,false); return Results.Ok(dryRun.Evaluate(new ErpPresenceHeartbeatRequest(body.ResourceKey, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPresenceHeartbeat, HandlePresenceHeartbeatAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceAddObligation, HandleBosComplianceAddObligationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxBosComplianceDisableObligation, async (
             HttpContext context,
@@ -22930,6 +22928,101 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
     }
 
+    private sealed record ErpPresenceBody(bool ConfirmWrites = false, string? Tab = null, string? Area = null, string? EntityType = null, string? EntityId = null, string? ResourceKey = null);
+
+    private static async Task<(bool Confirm, ErpPresenceContext Ctx)> ReadPresenceBodyAsync(HttpContext context, LegacySessionContext session, CancellationToken cancellationToken)
+    {
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPresenceBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites; var tab = body.Tab ?? ""; var area = body.Area ?? ""; var entityType = body.EntityType ?? ""; var entityId = body.EntityId ?? "";
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            tab = ErpEditLockHeartbeatWriteService.FormRaw(form, "tab");
+            area = ErpEditLockHeartbeatWriteService.FormRaw(form, "area");
+            entityType = ErpEditLockHeartbeatWriteService.FormRaw(form, "entity_type", "entityType");
+            entityId = ErpEditLockHeartbeatWriteService.FormRaw(form, "entity_id", "entityId");
+        }
+
+        var cookie = context.Request.Cookies["session"] ?? context.Request.Cookies["admin_session"] ?? "";
+        var ctx = new ErpPresenceContext(session.UserId, tab, area, entityType, entityId, cookie, context.Request.Headers.UserAgent.ToString(), ErpPresenceWriteService.ClientIp(context), session.HasBackendAccess);
+        return (confirm, ctx);
+    }
+
+    private static async Task<IResult> HandlePresenceHeartbeatAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPresenceHeartbeatDryRun dryRun,
+        IErpPresenceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (confirm, ctx) = await ReadPresenceBodyAsync(context, session, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPresenceHeartbeatRequest(ctx.EntityType + ":" + ctx.EntityId, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await writes.HeartbeatAsync(ctx, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = r.Result.Writes,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            active = r.Sample,
+            sample = r.Sample,
+            count = r.Count,
+            self_user_id = r.SelfUserId,
+            can_force_lock = r.CanForceLock,
+            session = SessionPayload(session),
+        });
+    }
+
+    private static async Task<IResult> HandleConcurrencyStatusAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpConcurrencyStatusDryRun dryRun,
+        IErpPresenceWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (confirm, ctx) = await ReadPresenceBodyAsync(context, session, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpConcurrencyStatusRequest(ctx.EntityType, ctx.EntityId, ctx.Tab, ctx.Area, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await writes.ConcurrencyStatusAsync(ctx, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = r.Presence.Result.Writes,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Succeeded ? "OK" : r.Result.Message,
+            presence = new { ok = r.Presence.Result.Succeeded, active = r.Presence.Sample, sample = r.Presence.Sample, count = r.Presence.Count, self_user_id = r.Presence.SelfUserId, can_force_lock = r.Presence.CanForceLock },
+            @lock = r.Lock,
+            row_version = r.RowVersion,
+            server_time = r.ServerTime,
+            can_force_lock = r.CanForceLock,
+            session = SessionPayload(session),
+        });
+    }
+
     private static async Task<IResult> HandleEditLockHeartbeatAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -24166,7 +24259,6 @@ public sealed class ErpModule : ISurfaceModule
         int? Active = null,
         long CompanyId = 0,
         bool ConfirmWrites = false);
-    private sealed record ErpConcurrencyStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpSettlementOpenDocsBody(bool ConfirmWrites = false, string? DocType = null, long CounterpartyId = 0);
     private sealed record ErpDashboardBody(bool ConfirmWrites = false);
     private sealed record ErpCommandCenterBody(bool ConfirmWrites = false);
@@ -25315,7 +25407,6 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpEditLockAcquireBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpEditLockHeartbeatBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpEditLockReleaseBody(string? ResourceKey = null, bool ConfirmWrites = false);
-    private sealed record ErpPresenceHeartbeatBody(string? ResourceKey = null, bool ConfirmWrites = false);
     private sealed record ErpBosComplianceAddObligationBody(
         string? Title = null,
         string? Code = null,

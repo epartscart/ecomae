@@ -1,6 +1,6 @@
 namespace EcomAE.Platform.Migration;
 
-/// <summary>Wave B dry-run for PHP <c>presence_heartbeat</c>. Never UPDATE. PHP authoritative.</summary>
+/// <summary>Dry-run envelope for PHP <c>presence_heartbeat</c> when <c>confirmWrites</c> is omitted; live upsert is <c>IErpPresenceWriteService</c>.</summary>
 public interface IErpPresenceHeartbeatDryRun { ErpPresenceHeartbeatDryRunResult Evaluate(ErpPresenceHeartbeatRequest request); }
 public sealed class ErpPresenceHeartbeatDryRun : IErpPresenceHeartbeatDryRun
 {
@@ -8,16 +8,14 @@ public sealed class ErpPresenceHeartbeatDryRun : IErpPresenceHeartbeatDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET presence_heartbeat is not implemented; PHP ajax_erp.php remains authoritative.", request);
-        if (string.IsNullOrWhiteSpace(request.ResourceKey))
-            return Refuse("dry-run-invalid","invalid_request","resourceKey is required.", request);
-        return new("dry-run-validated",0,true,false,true,"ok",true,request.ResourceKey,
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes refused on the dry-run path; POST confirmWrites=true to run on ASP.NET.", request);
+        return new("dry-run-validated",0,true,false,false,"ok",true,request.ResourceKey,
             ["ajax_erp.php?action=presence_heartbeat resource=@resourceKey (NOT executed)"],
             "ERP presence_heartbeat payload validated; UPDATE blocked.",
             "/CP/content/shop/finance/erp/ajax_erp.php?action=presence_heartbeat");
     }
     private static ErpPresenceHeartbeatDryRunResult Refuse(string s,string c,string d,ErpPresenceHeartbeatRequest r)=>
-        new(s,0,true,false,true,c,false,r.ResourceKey,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=presence_heartbeat");
+        new(s,0,true,false,false,c,false,r.ResourceKey,[],d,"/CP/content/shop/finance/erp/ajax_erp.php?action=presence_heartbeat");
 }
 public sealed record ErpPresenceHeartbeatRequest(string? ResourceKey = null, bool ConfirmWrites = false);
 public sealed record ErpPresenceHeartbeatDryRunResult(string Status,int Writes,bool WritesBlocked,bool CutoverAllowed,bool PhpAuthoritative,string ValidationCode,bool WouldWrite,string? ResourceKey,IReadOnlyList<string> SimulatedSql,string Detail,string PhpAjax)
