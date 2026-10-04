@@ -28,6 +28,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/purchases/adjust",
         "/erp/ajax/fx-revaluation-preview",
         "/erp/ajax/fx-post-revaluation",
+        "/erp/ajax/fin-fx-revalue",
     ];
 
     [Fact]
