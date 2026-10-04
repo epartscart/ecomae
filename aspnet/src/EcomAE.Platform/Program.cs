@@ -1262,6 +1262,9 @@ app.UseMiddleware<RouteCutoverDecisionMiddleware>();
 // Hard wall: /cp /erp /bos /ip require admin session (no guest-browse chrome on live tenants).
 // LifeOS customer marketing stays public.
 app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
+// Unsafe-method requests to /cp|/erp|/bos|/ip from a foreign Origin/Referer are refused (many
+// admin write endpoints are cookie-authenticated with DisableAntiforgery()).
+app.UseMiddleware<AdminCrossSiteWriteGuardMiddleware>();
 // LifeOS personal surfaces (join / companion / results) require a signed-in session.
 app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/ip|/lifeos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.
