@@ -54,6 +54,9 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/period-log",
         "/erp/ajax/settlement-open-docs",
         "/erp/ajax/invoice-list",
+        "/erp/ajax/save-contact",
+        "/erp/ajax/sync-contacts",
+        "/erp/ajax/customer-create",
     ];
 
     [Fact]

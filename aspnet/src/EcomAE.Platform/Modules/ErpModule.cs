@@ -1045,10 +1045,8 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session)
                 });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveContact, async (HttpContext context, ErpSaveContactBody? body, ILegacySessionValidator validator, IErpSaveContactDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSaveContactRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncContacts, async (HttpContext context, ErpSyncContactsBody? body, ILegacySessionValidator validator, IErpSyncContactsDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSyncContactsRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveContact, HandleSaveContactAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncContacts, HandleSyncContactsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocumentUpload, async (HttpContext context, ErpDocumentUploadBody? body, ILegacySessionValidator validator, IErpDocumentUploadDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDocumentUploadRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocumentDelete, async (HttpContext context, ErpDocumentDeleteBody? body, ILegacySessionValidator validator, IErpDocumentDeleteDryRun dryRun, CancellationToken cancellationToken) =>
@@ -1231,8 +1229,7 @@ public sealed class ErpModule : ISurfaceModule
                 });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCustomerCreate, async (HttpContext context, ErpCustomerCreateBody? body, ILegacySessionValidator validator, IErpCustomerCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCustomerCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCustomerCreate, HandleCustomerCreateAsync).DisableAntiforgery();
         // Live write (PHP so_save parity) when confirmWrites=true; otherwise the Wave B dry-run gate.
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSoSave, async (HttpContext context, ErpSoSaveBody? body, ILegacySessionValidator validator, IErpSoSaveDryRun dryRun, IErpSalesOrderWriteService writes, CancellationToken cancellationToken) =>
         {
@@ -19934,6 +19931,151 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandleSaveContactAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSaveContactDryRun dryRun,
+        IErpContactWriteService writes,
+        IErpDimensionWriteService dimensions,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contacts-app", "Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSaveContactBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var input = new ErpContactInput
+        {
+            Id = body.Id, PartyType = body.PartyType, Name = body.Name, Company = body.Company, Email = body.Email, Phone = body.Phone, Trn = body.Trn,
+            Address = body.Address, City = body.City, CountryCode = body.CountryCode, CurrencyCode = body.CurrencyCode,
+            LinkedUserId = body.LinkedUserId, LinkedSupplierId = body.LinkedSupplierId, Notes = body.Notes,
+        };
+        IReadOnlyDictionary<string, long> dim = ErpDimensionWriteService.ParseDimMap(body.Dim);
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            input = new ErpContactInput
+            {
+                Id = LiveWriteFormBinder.Long(form, "id"), PartyType = form.ContainsKey("party_type") ? form["party_type"].ToString() : null,
+                Name = LiveWriteFormBinder.Text(form, "name"), Company = LiveWriteFormBinder.Text(form, "company"), Email = LiveWriteFormBinder.Text(form, "email"),
+                Phone = LiveWriteFormBinder.Text(form, "phone"), Trn = LiveWriteFormBinder.Text(form, "trn"), Address = LiveWriteFormBinder.Text(form, "address"),
+                City = LiveWriteFormBinder.Text(form, "city"),
+                CountryCode = form.ContainsKey("country_code") ? form["country_code"].ToString() : null,
+                CurrencyCode = form.ContainsKey("currency_code") ? form["currency_code"].ToString() : null,
+                LinkedUserId = LiveWriteFormBinder.Long(form, "linked_user_id"), LinkedSupplierId = LiveWriteFormBinder.Long(form, "linked_supplier_id"),
+                Notes = LiveWriteFormBinder.Text(form, "notes"),
+            };
+            dim = ErpDimensionWriteService.ParseDimMap(form);
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpSaveContactRequest(input.Id, input.Name, false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(context, session, "/erp/contacts-app", async () =>
+        {
+            var id = await writes.SaveContactAsync(input, cancellationToken);
+            if (dim.Count > 0)
+            {
+                await dimensions.SaveAsync("contact", id, dim, cancellationToken);
+            }
+
+            return ("Contact saved", (object)new { id });
+        });
+    }
+
+    private static async Task<IResult> HandleSyncContactsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSyncContactsDryRun dryRun,
+        IErpContactWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/contacts-app", "Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSyncContactsBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpSyncContactsRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(context, session, "/erp/contacts-app", async () =>
+        {
+            var created = await writes.SyncContactsAsync(cancellationToken);
+            return ("Synced " + created.ToString(CultureInfo.InvariantCulture) + " contact(s)", (object)new { created });
+        });
+    }
+
+    private static async Task<IResult> HandleCustomerCreateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCustomerCreateDryRun dryRun,
+        IErpContactWriteService writes,
+        IErpDimensionWriteService dimensions,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/customers-app", "Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCustomerCreateBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var input = new ErpCustomerProvisionInput
+        {
+            Name = body.Name, Email = body.Email, Phone = body.Phone, Company = body.Company, Trn = body.Trn, Address = body.Address, City = body.City,
+            CountryCode = body.CountryCode, CurrencyCode = body.CurrencyCode,
+        };
+        IReadOnlyDictionary<string, long> dim = ErpDimensionWriteService.ParseDimMap(body.Dim);
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            input = new ErpCustomerProvisionInput
+            {
+                Name = LiveWriteFormBinder.Text(form, "name"), Email = LiveWriteFormBinder.Text(form, "email"), Phone = LiveWriteFormBinder.Text(form, "phone"),
+                Company = form.ContainsKey("company") ? form["company"].ToString() : null, Trn = form.ContainsKey("trn") ? form["trn"].ToString() : null,
+                Address = form.ContainsKey("address") ? form["address"].ToString() : null, City = form.ContainsKey("city") ? form["city"].ToString() : null,
+                CountryCode = form.ContainsKey("country_code") ? form["country_code"].ToString() : null,
+                CurrencyCode = form.ContainsKey("currency_code") ? form["currency_code"].ToString() : null,
+            };
+            dim = ErpDimensionWriteService.ParseDimMap(form);
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCustomerCreateRequest(0, input.Email, false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(context, session, "/erp/customers-app", async () =>
+        {
+            var userId = await writes.ProvisionCustomerAsync(input, cancellationToken);
+            if (dim.Count > 0)
+            {
+                await dimensions.SaveAsync("customer", userId, dim, cancellationToken);
+            }
+
+            return ("Customer created", (object)new { user_id = userId });
+        });
+    }
+
     private static async Task<IResult> HandlePeriodLogAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -24028,7 +24170,7 @@ public sealed class ErpModule : ISurfaceModule
         string? Notes = null,
         bool ConfirmWrites = false,
         IReadOnlyDictionary<string, long>? Dim = null);
-    private sealed record ErpSaveContactBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpSaveContactBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, string? PartyType = null, string? Name = null, string? Company = null, string? Email = null, string? Phone = null, string? Trn = null, string? Address = null, string? City = null, string? CountryCode = null, string? CurrencyCode = null, long LinkedUserId = 0, long LinkedSupplierId = 0, string? Notes = null, Dictionary<string, long>? Dim = null);
     private sealed record ErpSyncContactsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpDocumentUploadBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpDocumentDeleteBody(long Id, bool ConfirmWrites = false);
@@ -24062,7 +24204,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpPoStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
     private sealed record ErpPoReceiveLinesBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, string? ReceivedJson = null);
     private sealed record ErpPoToInvoiceBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpCustomerCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpCustomerCreateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, string? Name = null, string? Email = null, string? Phone = null, string? Company = null, string? Trn = null, string? Address = null, string? City = null, string? CountryCode = null, string? CurrencyCode = null, Dictionary<string, long>? Dim = null);
     private sealed record ErpSoSaveBody(
         long Id = 0,
         string? Code = null,
