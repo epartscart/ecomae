@@ -19,7 +19,7 @@ public sealed class ErpPurchaseAdjustmentDryRun : IErpPurchaseAdjustmentDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_adjustment is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes is handled by the live /erp route handler (IErpPurchaseFromOrderAdjustWriteService); the dry-run evaluator itself never writes.",
                 request);
         }
 
@@ -41,7 +41,7 @@ public sealed class ErpPurchaseAdjustmentDryRun : IErpPurchaseAdjustmentDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET purchase_adjustment is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes is handled by the live /erp route handler (IErpPurchaseFromOrderAdjustWriteService); the dry-run evaluator itself never writes.",
                 request);
         }
 
