@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — warehouse shards and public APIs
+
+Not complete.
+
+- www.epartscart.com `/sitemap-wh-0.php` through `/sitemap-wh-79.php` return a urlset of `/en/parts/{BRAND}/{ARTICLE}`. Local stock fills shard 0 only, so `/sitemap-wh-1.php` is an empty urlset and the tenant sitemap index lists `sitemap-wh-0.php`. `/sitemap-wh-80.php` stays 404. A missing price table stays an empty urlset.
+- `/epc-api/v1` and `/health` return the PHP health JSON when the platform database opens. `/capabilities` and `/openapi.json` are public. Keyed routes without a key return 401 `missing_api_key`. An unknown key returns 401 `invalid_api_key`. An unknown path returns 404 `not_found` JSON.
+- `/api/v1/catalog` and `/api/v1/catalog.php` without `action` return 400 `missing_action`. A known action with no key returns 401 `missing_api_key` on the existing catalog route. A malformed key returns 401 `invalid_key_format`.
+- A valid key on `/epc-api/v1/erp/dashboard-summary` and the Power BI row datasets returns 503 `erp_unavailable`. Those dataset bodies are not ported. This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 4998 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, authenticated CP, every tenant CP page, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, keyed ERP dashboard and Power BI row datasets, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — public sitemaps, promo redirects, storefront assets
 
 Not complete.
