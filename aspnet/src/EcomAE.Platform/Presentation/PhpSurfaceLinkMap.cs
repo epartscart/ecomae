@@ -1292,6 +1292,14 @@ public static class PhpSurfaceLinkMap
         }
 
         var value = pathAndQuery.Trim();
+        // Lowercase /cp/shop/orders and /cp/shop/payments/payments are the URLs staff
+        // actually open. Uppercase /CP/ already remaps. Single-segment ASP.NET routes
+        // (/cp/orders, /cp/users, /cp/login) stay put.
+        if (TryMapLowercaseCpModulePath(value, out aspNetHref))
+        {
+            return true;
+        }
+
         var stripped = StripStorefrontLangPrefix(value);
         // CHPU /parts/{brand}/{article} always stays on Blazor (with or without /en).
         // Lang-prefixed aliases (/en/shop/part_search, /en/umapi_catalog, …) stay too.
@@ -1490,6 +1498,49 @@ public static class PhpSurfaceLinkMap
         }
 
         return false;
+    }
+
+    /// <summary>
+    /// Nested lowercase CP module URLs (<c>/cp/shop/payments/payments</c>) redirect to the
+    /// ASP.NET app <see cref="MapCpPhpPath"/> already knows. One-segment routes stay.
+    /// The <c>/cp</c> fallback means "no module map" and must not redirect.
+    /// </summary>
+    private static bool TryMapLowercaseCpModulePath(string pathAndQuery, out string aspNetHref)
+    {
+        aspNetHref = "/";
+        var qIndex = pathAndQuery.IndexOf('?', StringComparison.Ordinal);
+        var path = (qIndex < 0 ? pathAndQuery : pathAndQuery[..qIndex]).TrimEnd('/');
+        if (!path.StartsWith("/cp/", StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var rest = path["/cp/".Length..];
+        if (!rest.Contains('/', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var mapped = MapCpPhpPath(pathAndQuery);
+        if (string.IsNullOrWhiteSpace(mapped))
+        {
+            return false;
+        }
+
+        var mappedPath = mapped.Split('?', 2)[0].TrimEnd('/');
+        if (mappedPath.Equals("/cp", StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        if (string.Equals(mapped, pathAndQuery, StringComparison.OrdinalIgnoreCase)
+            || string.Equals(mappedPath, path, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        aspNetHref = mapped;
+        return true;
     }
 
     private static bool IsUpperPhpShell(string value, string shell)

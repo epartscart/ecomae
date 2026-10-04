@@ -347,22 +347,19 @@ public static class PhpLegacyAssetBridge
             return File.Exists(path) ? Results.File(path, "application/javascript; charset=utf-8") : Results.NotFound();
         });
 
-        endpoints.MapGet("/platform-assets/ecomae-mark.svg", () =>
+        endpoints.MapGet("/platform-assets/ecomae-mark.svg", () => ServeEcomaeMark(repoRoot));
+        // App.razor favicon. UseStaticFiles is off, so the wwwroot path 404s unless mapped.
+        endpoints.MapGet("/assets/media/logos/ecomae_mark.svg", () => ServeEcomaeMark(repoRoot));
+        // Nero/modex/limo/expan desktop.php — linked from every storefront shell.
+        endpoints.MapGet("/modules/slider/css/style.css", () =>
         {
-            foreach (var candidate in new[]
-                     {
-                         "content/general_pages/epc_ecomae_logo.svg",
-                         "aspnet/src/EcomAE.Platform/wwwroot/assets/media/logos/ecomae_mark.svg"
-                     })
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "modules", "slider", "css", "style.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
             {
-                var path = Path.GetFullPath(Path.Combine(repoRoot, candidate));
-                if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
-                {
-                    return Results.File(path, "image/svg+xml");
-                }
+                return Results.File(path, "text/css; charset=utf-8");
             }
 
-            return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
+            return Results.NotFound();
         });
 
         // PHP animated-logo helpers die with "No access" outside _ASTEXE_ (and when PHP
@@ -452,6 +449,24 @@ public static class PhpLegacyAssetBridge
 
             return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
         });
+    }
+
+    private static IResult ServeEcomaeMark(string repoRoot)
+    {
+        foreach (var candidate in new[]
+                 {
+                     "content/general_pages/epc_ecomae_logo.svg",
+                     "aspnet/src/EcomAE.Platform/wwwroot/assets/media/logos/ecomae_mark.svg"
+                 })
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, candidate));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "image/svg+xml");
+            }
+        }
+
+        return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
     }
 
     private static IResult ServeUniverseStill(string repoRoot, string fileName)

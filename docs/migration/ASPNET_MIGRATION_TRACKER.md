@@ -80,6 +80,16 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — OAuth start, storefront shell assets, lowercase CP modules
+
+Local Kestrel (www.epartscart.com, port 5080). Migration is **not** complete.
+
+- Customer and CP login buttons still use `/api/epc_oauth_start.php`. That URL was 404. It now follows PHP: 400 unknown provider, 422 when the provider has no credentials (local Google is 422, not a splash), 302 to the provider when credentials exist. The callback `/api/epc_oauth_callback.php` is still 404. Session minting is not ported.
+- `/modules/slider/css/style.css` and `/assets/media/logos/ecomae_mark.svg` were 404 on every storefront/CP shell. They are served from the repo / inline mark.
+- Nested lowercase CP module URLs such as `/cp/shop/payments/payments` and `/cp/shop/orders/orders` 302 to the existing ASP.NET apps. Single-segment routes (`/cp/orders`, `/cp/users`, `/cp/login`) stay. ERP posting was not edited.
+
+Still 404 on the storefront home widgets: `/api/umapi_proxy.php`, `/content/shop/docpart/ajax_epc_product_family.php`, `/content/general_pages/vin_zapros/email.png` (file is not in the repo). `/en/privacy` is 404 on tenant hosts.
+
 ### Checkpoint 2026-10-04 — named tenant homes and industries.ecomae.com
 
 Local Kestrel: bare `/` on electronicae, stylenlook, thejewellerytrend, and taxofinca (apex and www) 404'd because only epartscart.com was rewritten to `/storefront/app`. Those hosts now use the same storefront rewrite. `/cp` already redirected to the branded CP login. `industries.ecomae.com` `/` now serves the `/platform/industries` snapshot (`X-EcomAE-Industry-Showcase: directory`). The 28 `{slug}.ecomae.com` hubs were already snapshots.
