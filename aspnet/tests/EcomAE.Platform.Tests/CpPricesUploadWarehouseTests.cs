@@ -78,6 +78,11 @@ public sealed class CpPricesUploadWarehouseTests
         Assert.Contains("BuildCpDocpartPriceListsDigestAsync", razor, StringComparison.Ordinal);
         Assert.Contains("BuildCpDocpartPriceListDetailAsync", razor, StringComparison.Ordinal);
         Assert.Contains("file_", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/prices/upload-file", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/prices/update-now", razor, StringComparison.Ordinal);
+        Assert.Contains("/cp/prices/cron-tasks", razor, StringComparison.Ordinal);
+        Assert.Contains("/api/prices/deploy-upload", razor, StringComparison.Ordinal);
+        Assert.Contains("value=\"wizard\"", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("@onclick", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("<a href=\"/php-reference/", razor, StringComparison.Ordinal);

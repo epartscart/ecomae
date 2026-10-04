@@ -108,9 +108,9 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("Open this guide while logged into the control panel",
                 "A public link without a session shows the CP login screen (that is normal).",
                 [
-                    "Primary URL: /cp/shop/prices/guide (PHP /CP/shop/prices/guide).",
-                    "Alternate: /CP/shop/prices?view=guide.",
-                    "Back to price lists: /cp/prices-upload-app (PHP /CP/shop/prices)."
+                    "Primary URL: /cp/guides-app?g=prices-upload (this chapter).",
+                    "Price lists console: /cp/prices-upload-app (also /cp/shop/prices and /CP/shop/prices/guide).",
+                    "Working writes: POST /cp/prices/upload-file, POST /cp/prices/update-now, POST /cp/prices/cron-tasks, GET /cp/prices/cron-tick, POST /api/prices/deploy-upload."
                 ]),
             OperatorGuidesCatalog.Ch("System health / live snapshot",
                 "PHP loads shop_docpart_prices, upload history, cron tasks, and pyprices pending tasks. Health checks that call pyprices/cron over HTTP run via AJAX only — not on initial page load.",
@@ -145,9 +145,9 @@ internal static class OperatorGuideChapters
                 "Engine: PHP steps ajax_1 → ajax_6. History: cp_wizard.",
                 [
                     "Create or edit the price list — set column numbers, separator, rows to skip, file name substring.",
-                    "Open Price lists → green Upload on the row, or /shop/prices/upload?price_id=ID.",
-                    "Choose file (CSV, TXT, or archive). Optionally enable clean table before import.",
-                    "Wizard runs: prepare temp dir → extract archive → convert Excel → normalize CSV → import to DB → enable keys.",
+                    "Open /cp/shop/prices/upload?price_id=ID (column-mapping wizard) or the green Upload on /cp/prices-upload-app.",
+                    "Set 1-based columns (brand, article, name, qty, price, days), skip rows, encoding and separator, then choose the file.",
+                    "POST /cp/prices/upload-file with channel=wizard saves that map and imports. channel=pc is the row file input.",
                     "Check row count on the manager page and Upload history (skipped lines CSV if any).",
                     "Test: 5–10 row CSV with known brand/article/price. Confirm records_count increases and history shows cp_wizard.",
                     "Excel is supported via step 3 (ajax_3_excel_convert.php). Prefer UTF-8 CSV for large files."
@@ -156,8 +156,8 @@ internal static class OperatorGuideChapters
                 "Engine: /pyprices/pyprices-api.php + upload_file.php. History: pyprices_upload.",
                 [
                     "Ensure pyprices health checks are OK.",
-                    "On Price lists, use the file input on the row (load_mode 1).",
-                    "File is staged; a pyprices task runs; external_tasks_account.php polls until done.",
+                    "On /cp/prices-upload-app, use the PC file input on the row (POST /cp/prices/upload-file, channel=pc).",
+                    "CSV, TXT, XLS, XLSX, ZIP, RAR, 7z and TAR are accepted. The import replaces the list when at least one row is valid.",
                     "Refresh — last_updated and record count should change.",
                     "Test: small CSV matching file_name_substring. Watch pyprices task log on the row."
                 ]),
@@ -166,7 +166,7 @@ internal static class OperatorGuideChapters
                 [
                     "Edit price list → FTP host, user, password, folder, file name substring (and archive substring if zipped).",
                     "Place the correct file on the FTP server.",
-                    "Manual test: on manager row, click FTP icon in Manual update column.",
+                    "Manual test: on the manager row, click FTP (POST /cp/prices/update-now for that price_id).",
                     "For automatic updates: add a schedule (cron) — see section 6.",
                     "If manual FTP works but schedule fails → configure server cron."
                 ]),
@@ -176,22 +176,22 @@ internal static class OperatorGuideChapters
                     "Configure global mailbox in config.php: prices_email_server, port, encryption, username, password (Gmail: App Password, IMAP SSL 993).",
                     "Edit each price list → E-mail block: sender e-mail, optional subject substring, required file name substring.",
                     "Supplier sends one attachment per list; filename must contain that list’s substring.",
-                    "Manual test: E-mail icon in Manual update. Scheduled: add list to cron schedule.",
+                    "Manual test: E-mail button (POST /cp/prices/update-now). Scheduled: add the list on /cp/prices-upload-app?way=cron.",
                     "Check Upload history for a downloadable copy of the imported file."
                 ]),
             OperatorGuidesCatalog.Ch("5. Update from URL / link",
                 "Engine: pyprices URL or wizard download. Set load_mode = URL and fill the link field.",
                 [
                     "Edit price list → paste direct file URL in link.",
-                    "Manual test: link icon in Manual update, or open upload wizard (can download from link when no file selected).",
+                    "Manual test: URL button (POST /cp/prices/update-now). The list link must be a direct http(s) file.",
                     "Schedule for automatic pulls if needed."
                 ]),
             OperatorGuidesCatalog.Ch("6. Scheduled automatic update (cron)",
                 "The pyprices module works correctly when manual updates work. Scheduled updates require a cron job every minute on the server.",
                 [
-                    "On Price lists, create a schedule for a test list (FTP/email/URL as configured).",
-                    "Add hosting cron task (every minute) wget to cron_crutch.php?key=tech_key.",
-                    "Alternative: server crontab with PHP CLI running cron_task_executor.php.",
+                    "On /cp/prices-upload-app?way=cron, save a schedule (POST /cp/prices/cron-tasks, action=save).",
+                    "Add a hosting cron every minute: GET /cp/prices/cron-tick?key=tech_key (add wait=1 to run in the request).",
+                    "The tick imports each linked FTP, e-mail or URL list that is due this minute.",
                     "Verify: after 1–2 minutes, last_updated should change without a manual click.",
                     "If manual FTP/email/URL works but schedule does not → cron is not running."
                 ]),
@@ -206,7 +206,7 @@ internal static class OperatorGuideChapters
             OperatorGuidesCatalog.Ch("8–11. Deploy API, Treelax API, manual grid, price review",
                 "Remaining channels from the PHP accordion.",
                 [
-                    "Deploy API — POST price_file + tech_key to epc-upload-uae-prices.php. History: deploy_api.",
+                    "Deploy API — POST price_file + key (tech_key) to /api/prices/deploy-upload. Actions: upload, reupload_latest, list_prices, list_latest_uploads. History: deploy_api.",
                     "Treelax API — supplier API pull when configured on the list.",
                     "Manual grid — edit rows on Prices edit; not a bulk ingest.",
                     "Price review — browse imported rows, preview site price per customer profile, edit lines."

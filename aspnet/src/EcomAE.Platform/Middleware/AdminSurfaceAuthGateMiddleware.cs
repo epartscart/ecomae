@@ -146,6 +146,8 @@ public sealed class AdminSurfaceAuthGateMiddleware
         var bare = path.TrimEnd('/');
         return bare.Equals("/cp/login", StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/cp/logout", StringComparison.OrdinalIgnoreCase)
+            // PHP cron_crutch.php is a tech_key URL, not an admin session.
+            || bare.Equals(EcomAeRoutes.CpPricesCronTick, StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/erp/login", StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/erp/logout", StringComparison.OrdinalIgnoreCase)
             || bare.Equals("/bos/login", StringComparison.OrdinalIgnoreCase)

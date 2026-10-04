@@ -20,6 +20,7 @@ public sealed class AdminSurfaceAuthGateMiddlewareTests
     [InlineData("/ip/app", true)]
     [InlineData("/IP/login", false)]
     [InlineData("/CP/shop/orders/orders", true)]
+    [InlineData("/cp/prices/cron-tick", false)]
     [InlineData("/cp/login", false)]
     [InlineData("/cp/login/", false)]
     [InlineData("/cp/logout", false)]

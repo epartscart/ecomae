@@ -6,8 +6,12 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.3" />
+    <PackageReference Include="ExcelDataReader" Version="3.7.0" />
+    <PackageReference Include="FluentFTP" Version="54.2.1" />
+    <PackageReference Include="MailKit" Version="4.18.1" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="MySqlConnector" Version="2.6.1" />
+    <PackageReference Include="SharpCompress" Version="0.50.4" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
