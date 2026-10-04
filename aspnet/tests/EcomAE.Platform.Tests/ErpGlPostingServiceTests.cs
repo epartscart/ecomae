@@ -61,4 +61,40 @@ public sealed class ErpGlPostingServiceTests
             new ErpGlLine(2, 0m, 95.24m, "Revenue"),
             new ErpGlLine(3, 0m, 4.76m, "Output tax"),
         ]);
+
+    [Theory]
+    [InlineData("soft_close", true)]
+    [InlineData("locked", true)]
+    [InlineData("LOCKED", true)]
+    [InlineData("open", false)]
+    [InlineData("", false)]
+    public void SharedJournalPathBlocksSoftClosedAndLockedPeriods(string status, bool blocked)
+        => Assert.Equal(blocked, ErpGlPostingService.PeriodBlocksPosting(status));
+
+    [Fact]
+    public void PeriodBlockMessageMatchesManualJournalWording()
+        => Assert.Equal(
+            "Journal posting is blocked because the accounting period is soft close",
+            ErpGlPostingService.PeriodBlockedMessage("soft_close"));
+
+    [Fact]
+    public void PeriodKeyIsUtcYearMonth()
+        => Assert.Equal("2026-10", ErpGlPostingService.PeriodKey(1_791_104_600));
+
+    [Fact]
+    public void PeriodGuardLivesInSharedPostJournalPath()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "aspnet", "EcomAE.AspNetCore.sln")) && !Directory.Exists(Path.Combine(dir.FullName, ".git")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.NotNull(dir);
+        var gl = File.ReadAllText(Path.Combine(dir!.FullName, "aspnet/src/EcomAE.Platform/Erp/ErpGlPostingService.cs"));
+        var postJournal = gl.IndexOf("public async Task<long> PostJournalAsync(", StringComparison.Ordinal);
+        var guard = gl.IndexOf("PeriodBlocksPosting(periodStatus)", StringComparison.Ordinal);
+        var begin = gl.IndexOf("BeginTransactionAsync", postJournal, StringComparison.Ordinal);
+        Assert.True(postJournal > 0 && guard > postJournal && guard < begin);
+    }
 }
