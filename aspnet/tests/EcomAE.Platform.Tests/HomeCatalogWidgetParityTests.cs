@@ -127,6 +127,20 @@ public sealed class HomeCatalogWidgetParityTests
     }
 
     [Fact]
+    public void AccessoriesSearch_MatchesPhpUrlAndFilters()
+    {
+        Assert.Equal("/content/shop/docpart/ajax_epc_accessories_search.php", AccessoriesMarketplaceSearch.Path);
+        Assert.Equal("/en/accessories-spare-parts?id=9&category=car-care&subcategory=car-wax",
+            AccessoriesMarketplaceSearch.StorefrontDetailUrl(9, "car-care", "car-wax"));
+        Assert.False(AccessoriesMarketplaceSearch.IsOutboundExternalUrl("/en/accessories?category=car-care"));
+        Assert.False(AccessoriesMarketplaceSearch.IsOutboundExternalUrl("https://www.epartscart.com/en/accessories-spare-parts?id=4"));
+        Assert.True(AccessoriesMarketplaceSearch.IsOutboundExternalUrl("https://example.com/item"));
+        Assert.Equal(24, AccessoriesMarketplaceSearch.NormalizePerPage(null));
+        Assert.Equal(12, AccessoriesMarketplaceSearch.NormalizePerPage("1"));
+        Assert.Equal(48, AccessoriesMarketplaceSearch.NormalizePerPage("99"));
+    }
+
+    [Fact]
     public void ShopPrivacyPath_IsOnlyPrivacy()
     {
         Assert.True(EcomaeMarketingSnapshots.IsShopPrivacyPath("/privacy"));

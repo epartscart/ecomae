@@ -1688,6 +1688,7 @@ PhpLegacyAssetBridge.Map(app, app.Environment);
 OAuthStartEndpoint.Map(app);
 OAuthCallbackEndpoint.Map(app);
 HomeCatalogWidgets.Map(app);
+AccessoriesMarketplaceSearch.Map(app);
 // LifeOS cinematic MP4/PNG — platform does not UseStaticFiles; serve wwwroot explicitly.
 EcomAE.Platform.LifeOs.Cinematic.LifeOsCinematicAssets.Map(app, app.Environment);
 EcomAE.Platform.LifeOs.Clients.LifeOsPwaAssets.Map(app, app.Environment);
