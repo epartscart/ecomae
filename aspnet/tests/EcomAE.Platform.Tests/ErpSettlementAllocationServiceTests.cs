@@ -71,3 +71,63 @@ public sealed class ErpSettlementAllocationServiceTests
         Assert.True(sql.IndexOf("`amount_due` =", StringComparison.Ordinal) < sql.IndexOf("`paid_amount` = ROUND", StringComparison.Ordinal));
     }
 }
+
+public sealed class ErpSubLedgerGuardTests
+{
+    private static string Source(string relative)
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "aspnet", "EcomAE.AspNetCore.sln")) && !Directory.Exists(Path.Combine(dir.FullName, ".git")) && !File.Exists(Path.Combine(dir.FullName, ".git")))
+        {
+            dir = dir.Parent;
+        }
+
+        Assert.NotNull(dir);
+        return File.ReadAllText(Path.Combine(dir!.FullName, relative));
+    }
+
+    [Fact]
+    public void SupplierBillRefusalMessagesNameBillAndAmounts()
+    {
+        Assert.Equal("Supplier bill 8 is already fully paid", ErpSettlementAllocationService.BillAlreadyPaidMessage(8));
+        Assert.Equal(
+            "Payment 400.00 exceeds open balance 300.00 of supplier bill 8",
+            ErpSettlementAllocationService.BillOverpaymentMessage(8, 400m, 300m));
+    }
+
+    [Fact]
+    public void PaymentAllocationRefusesOverpaymentAndPaidBillsInsteadOfCapping()
+    {
+        var src = Source("aspnet/src/EcomAE.Platform/Erp/ErpSettlementAllocationService.cs");
+        var apply = src.IndexOf("public async Task<decimal> ApplyPaymentAllocationsAsync(", StringComparison.Ordinal);
+        Assert.True(apply > 0);
+        var body = src[apply..];
+        Assert.Contains("throw new ErpWriteException(BillAlreadyPaidMessage(billId));", body, StringComparison.Ordinal);
+        Assert.Contains("throw new ErpWriteException(BillOverpaymentMessage(billId, amount, outstanding));", body, StringComparison.Ordinal);
+    }
+
+    [Theory]
+    [InlineData("public async Task<ErpCashEntryResult> ReceiptVoucherAsync(")]
+    [InlineData("public async Task<ErpCashEntryResult> PaymentVoucherAsync(")]
+    public void ReceiptAndPaymentCheckPeriodLockBeforeAnyWrite(string method)
+    {
+        var src = Source("aspnet/src/EcomAE.Platform/Erp/ErpCashWriteService.cs");
+        var start = src.IndexOf(method, StringComparison.Ordinal);
+        Assert.True(start > 0, method);
+        var guard = src.IndexOf("ErpGlPostingService.AssertPostingPeriodOpenAsync(connection, null, time, cancellationToken)", start, StringComparison.Ordinal);
+        var voucher = src.IndexOf("_vouchers.NextAsync(", start, StringComparison.Ordinal);
+        var txn = src.IndexOf("BeginTransactionAsync", start, StringComparison.Ordinal);
+        Assert.True(guard > start && guard < voucher && guard < txn, method);
+    }
+
+    [Fact]
+    public void ReceiptNamingSalesInvoiceAllocatesToItAndIsNeverAnAdvance()
+    {
+        var src = Source("aspnet/src/EcomAE.Platform/Erp/ErpCashWriteService.cs");
+        var start = src.IndexOf("public async Task<ErpCashEntryResult> ReceiptVoucherAsync(", StringComparison.Ordinal);
+        var named = src.IndexOf("if (allocation.Count == 0 && input.SalesInvoiceId > 0)", start, StringComparison.Ordinal);
+        var advance = src.IndexOf("var isAdvance = !hasAllocation && (input.IsAdvance ?? true);", start, StringComparison.Ordinal);
+        Assert.True(named > start && named < advance);
+        Assert.Contains("_allocations.CustomerInvoiceAsync(connection, input.SalesInvoiceId, input.UserId, cancellationToken)", src[named..advance], StringComparison.Ordinal);
+    }
+}

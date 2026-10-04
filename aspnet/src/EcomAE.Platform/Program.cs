@@ -1294,6 +1294,9 @@ app.UseMiddleware<AdminSurfaceAuthGateMiddleware>();
 // Unsafe-method requests to /cp|/erp|/bos|/ip from a foreign Origin/Referer are refused (many
 // admin write endpoints are cookie-authenticated with DisableAntiforgery()).
 app.UseMiddleware<AdminCrossSiteWriteGuardMiddleware>();
+// PHP stop_csrf.php twin: every ERP unsafe-method request with an admin session must carry the
+// session csrf_guard_key (form/JSON/header); mismatch is a 403 with zero writes.
+app.UseMiddleware<ErpCsrfGuardMiddleware>();
 // LifeOS personal surfaces (join / companion / results) require a signed-in session.
 app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 // Credential POSTs on /cp|/erp|/bos|/ip|/lifeos|/storefront/login and /auth/login/admin — before antiforgery/Blazor.

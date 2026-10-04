@@ -89,23 +89,16 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
-        var order = await LoadSalesOrderAsync(connection, salesOrderId, cancellationToken).ConfigureAwait(false)
-            ?? throw new ErpWriteException("Sales order not found");
-        if (order.SalesInvoiceId > 0)
-        {
-            throw new ErpWriteException("Sales order already invoiced");
-        }
+        // GL/COA/voucher DDL implicitly commits on MySQL, so every schema ensure runs before the
+        // single conversion transaction opens.
+        await _gl.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
 
-        var existingInvoiceId = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "SELECT `id` FROM `epc_einvoice_documents` WHERE `sales_order_id` = ? AND `status` <> 'cancelled' ORDER BY `id` DESC LIMIT 1"),
-            cancellationToken,
-            salesOrderId).ConfigureAwait(false);
-        if (existingInvoiceId > 0)
+        var order = await LoadSalesOrderAsync(connection, null, salesOrderId, cancellationToken).ConfigureAwait(false)
+            ?? throw new ErpWriteException("Sales order not found");
+        var completed = await CompletedConversionAsync(connection, null, order, cancellationToken).ConfigureAwait(false);
+        if (completed is not null)
         {
-            throw new ErpWriteException("Sales order already invoiced");
+            return completed;
         }
 
         if (!ConvertibleStatuses.Contains(order.Status, StringComparer.Ordinal))
@@ -142,9 +135,27 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
 
         long invoiceId;
         string invoiceNumber;
+        long ledgerId;
+        long glJournalId;
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
+            // Re-read under the row lock: a concurrent or earlier committed conversion is returned
+            // as-is instead of burning a second SI number or dying with "already invoiced".
+            var locked = await LoadSalesOrderAsync(connection, transaction, salesOrderId, cancellationToken).ConfigureAwait(false)
+                ?? throw new ErpWriteException("Sales order not found");
+            var alreadyDone = await CompletedConversionAsync(connection, transaction, locked, cancellationToken).ConfigureAwait(false);
+            if (alreadyDone is not null)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return alreadyDone;
+            }
+
+            if (!ConvertibleStatuses.Contains(locked.Status, StringComparer.Ordinal))
+            {
+                throw new ErpWriteException("Only draft or confirmed sales orders can be invoiced");
+            }
+
             invoiceNumber = await _vouchers.NextAsync(connection, transaction, "SI", cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection,
@@ -218,70 +229,77 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
                 JsonSerializer.Serialize(new Dictionary<string, string> { ["sales_order"] = order.SoNo }),
                 issueDate).ConfigureAwait(false);
 
+            // The customer sub-ledger row mirrors PHP; the GL side is posted as proper sales
+            // recognition (Dr AR / Cr revenue / Cr VAT output) instead of the generic AR
+            // settlement journal, which books invoices as Dr 6100 expense / Cr 1100.
+            ledgerId = await _cash.CustomerSettlementAsync(
+                connection,
+                transaction,
+                new ErpCustomerSettlementInput
+                {
+                    UserId = order.CustomerUserId,
+                    Amount = totalIncl,
+                    Income = true,
+                    EntryKind = "adjustment",
+                    Reference = invoiceNumber,
+                    Note = "Sales invoice from SO " + order.SoNo,
+                    Time = issueDate,
+                    PostGl = false,
+                },
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+
+            glJournalId = await _gl.PostSalesInvoiceAsync(
+                connection,
+                transaction,
+                new ErpGlSalesInvoicePosting(
+                    invoiceId,
+                    invoiceNumber,
+                    subtotal,
+                    totalVat,
+                    totalIncl,
+                    issueDate,
+                    SalesLegislationRef(seller)),
+                adminId,
+                cancellationToken).ConfigureAwait(false);
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "UPDATE `epc_erp_sales_orders` SET `status` = 'invoiced', `sales_invoice_id` = ?, `time_updated` = ? WHERE `id` = ?"),
+                cancellationToken,
+                invoiceId,
+                issueDate,
+                salesOrderId).ConfigureAwait(false);
+
+            await _audit.LogAsync(
+                connection,
+                transaction,
+                adminId,
+                "so_to_invoice",
+                "sales_order",
+                salesOrderId,
+                "Converted to sales invoice",
+                new Dictionary<string, string?>
+                {
+                    ["invoice_id"] = invoiceId.ToString(CultureInfo.InvariantCulture),
+                    ["si_no"] = invoiceNumber,
+                },
+                cancellationToken).ConfigureAwait(false);
+
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw new ErpWriteException("Sales order conversion failed and was rolled back: " + ex.Message);
         }
         catch
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
-
-        // The customer sub-ledger row mirrors PHP; the GL side is posted as proper sales
-        // recognition (Dr AR / Cr revenue / Cr VAT output) instead of the generic AR
-        // settlement journal, which books invoices as Dr 6100 expense / Cr 1100.
-        var ledgerId = await _cash.CustomerSettlementAsync(
-            connection,
-            new ErpCustomerSettlementInput
-            {
-                UserId = order.CustomerUserId,
-                Amount = totalIncl,
-                Income = true,
-                EntryKind = "adjustment",
-                Reference = invoiceNumber,
-                Note = "Sales invoice from SO " + order.SoNo,
-                Time = issueDate,
-                PostGl = false,
-            },
-            adminId,
-            cancellationToken).ConfigureAwait(false);
-
-        var glJournalId = await _gl.PostSalesInvoiceAsync(
-            connection,
-            new ErpGlSalesInvoicePosting(
-                invoiceId,
-                invoiceNumber,
-                subtotal,
-                totalVat,
-                totalIncl,
-                issueDate,
-                SalesLegislationRef(seller)),
-            adminId,
-            cancellationToken).ConfigureAwait(false);
-
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional(
-                "UPDATE `epc_erp_sales_orders` SET `status` = 'invoiced', `sales_invoice_id` = ?, `time_updated` = ? WHERE `id` = ?"),
-            cancellationToken,
-            invoiceId,
-            issueDate,
-            salesOrderId).ConfigureAwait(false);
-
-        await _audit.LogAsync(
-            connection,
-            null,
-            adminId,
-            "so_to_invoice",
-            "sales_order",
-            salesOrderId,
-            "Converted to sales invoice",
-            new Dictionary<string, string?>
-            {
-                ["invoice_id"] = invoiceId.ToString(CultureInfo.InvariantCulture),
-                ["si_no"] = invoiceNumber,
-            },
-            cancellationToken).ConfigureAwait(false);
 
         return new ErpSoToInvoiceResult(salesOrderId, invoiceId, invoiceNumber, subtotal, totalVat, totalIncl, ledgerId, glJournalId);
     }
@@ -498,15 +516,74 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         long ShopOrderId,
         decimal TotalAmount);
 
+    /// <summary>
+    /// Idempotent retry: a sales order that already carries a committed conversion (status
+    /// <c>invoiced</c> with its tax invoice, or a live document referencing it) returns that
+    /// invoice instead of failing. A document whose conversion never committed cannot exist —
+    /// the whole conversion is one transaction — so any live document found here is complete.
+    /// </summary>
+    private static async Task<ErpSoToInvoiceResult?> CompletedConversionAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        ErpSalesOrderRow order,
+        CancellationToken cancellationToken)
+    {
+        var invoiceId = order.SalesInvoiceId;
+        if (invoiceId <= 0)
+        {
+            invoiceId = await ErpDb.LongAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "SELECT `id` FROM `epc_einvoice_documents` WHERE `sales_order_id` = ? AND `status` <> 'cancelled' AND `active` = 1 ORDER BY `id` DESC LIMIT 1"),
+                cancellationToken,
+                order.Id).ConfigureAwait(false);
+        }
+
+        if (invoiceId <= 0)
+        {
+            return null;
+        }
+
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = ErpDb.Positional(
+            "SELECT d.`invoice_number`, d.`subtotal_ex_vat`, d.`total_vat`, d.`total_incl_vat`,"
+            + " (SELECT MAX(j.`id`) FROM `epc_erp_gl_journals` j WHERE j.`source_type` = 'sales_invoice' AND j.`source_id` = d.`id` AND j.`active` = 1)"
+            + " FROM `epc_einvoice_documents` d WHERE d.`id` = ? LIMIT 1");
+        var parameter = command.CreateParameter();
+        parameter.ParameterName = "@p0";
+        parameter.Value = invoiceId;
+        command.Parameters.Add(parameter);
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            throw new ErpWriteException("Sales order already invoiced");
+        }
+
+        return new ErpSoToInvoiceResult(
+            order.Id,
+            invoiceId,
+            reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
+            reader.IsDBNull(1) ? 0m : reader.GetDecimal(1),
+            reader.IsDBNull(2) ? 0m : reader.GetDecimal(2),
+            reader.IsDBNull(3) ? 0m : reader.GetDecimal(3),
+            0L,
+            reader.IsDBNull(4) ? 0L : reader.GetInt64(4));
+    }
+
     private static async Task<ErpSalesOrderRow?> LoadSalesOrderAsync(
         DbConnection connection,
+        DbTransaction? transaction,
         long salesOrderId,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
         command.CommandText = ErpDb.Positional(
             "SELECT `so_no`, `customer_user_id`, `contact_id`, `status`, `sales_invoice_id`, `total_amount`"
-            + " FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1");
+            + " FROM `epc_erp_sales_orders` WHERE `id` = ? LIMIT 1" + (transaction is null ? string.Empty : " FOR UPDATE"));
         var parameter = command.CreateParameter();
         parameter.ParameterName = "@p0";
         parameter.Value = salesOrderId;

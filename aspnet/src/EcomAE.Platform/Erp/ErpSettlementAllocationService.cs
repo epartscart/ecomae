@@ -28,6 +28,20 @@ public interface IErpSettlementAllocationService
         int supplierId,
         CancellationToken cancellationToken = default);
 
+    /// <summary>One customer invoice (current tenant, this customer) with its outstanding balance, or <c>null</c>.</summary>
+    Task<ErpOpenDocument?> CustomerInvoiceAsync(
+        DbConnection connection,
+        long invoiceId,
+        int userId,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>One supplier bill (current tenant, this supplier) with its outstanding balance, or <c>null</c>.</summary>
+    Task<ErpOpenDocument?> SupplierBillAsync(
+        DbConnection connection,
+        long billId,
+        int supplierId,
+        CancellationToken cancellationToken = default);
+
     /// <summary>PHP <c>epc_erp_apply_receipt_allocations</c>: raises <c>paid_amount</c> on the settled invoices.</summary>
     Task<decimal> ApplyReceiptAllocationsAsync(
         DbConnection connection,
@@ -205,6 +219,73 @@ public sealed class ErpSettlementAllocationService : IErpSettlementAllocationSer
         }
     }
 
+    public async Task<ErpOpenDocument?> CustomerInvoiceAsync(
+        DbConnection connection,
+        long invoiceId,
+        int userId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        if (invoiceId <= 0 || userId <= 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            var rows = await ReadOpenDocumentsAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT `id`, `invoice_number`, (CASE WHEN `payment_due_date` > 0 THEN `payment_due_date` ELSE `issue_date` END),"
+                    + " `total_incl_vat`, ROUND(`total_incl_vat` - `paid_amount`, 2) AS outstanding"
+                    + " FROM `epc_einvoice_documents`"
+                    + " WHERE `id` = ? AND `user_id` = ? AND `active` = 1 AND `status` <> 'cancelled'"
+                    + " AND `doc_category` IN ('tax_invoice','commercial_invoice') LIMIT 1"),
+                cancellationToken,
+                invoiceId,
+                userId).ConfigureAwait(false);
+            return rows.Count > 0 ? rows[0] : null;
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
+    public async Task<ErpOpenDocument?> SupplierBillAsync(
+        DbConnection connection,
+        long billId,
+        int supplierId,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        if (billId <= 0 || supplierId <= 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            var rows = await ReadOpenDocumentsAsync(
+                connection,
+                null,
+                ErpDb.Positional(
+                    "SELECT p.`id`, p.`invoice_number`, p.`purchase_date`, p.`total_amount`,"
+                    + " ROUND(p.`total_amount` - " + PaidSubquery + ", 2) AS outstanding"
+                    + " FROM `epc_erp_purchases` p"
+                    + " WHERE p.`id` = ? AND p.`supplier_id` = ? AND p.`active` = 1 AND p.`status` <> 'draft' LIMIT 1"),
+                cancellationToken,
+                billId,
+                supplierId).ConfigureAwait(false);
+            return rows.Count > 0 ? rows[0] : null;
+        }
+        catch (DbException)
+        {
+            return null;
+        }
+    }
+
     public async Task<decimal> ApplyReceiptAllocationsAsync(
         DbConnection connection,
         long cashEntryId,
@@ -314,17 +395,19 @@ public sealed class ErpSettlementAllocationService : IErpSettlementAllocationSer
                 continue;
             }
 
-            var bill = await LoadBillAsync(connection, transaction, billId, supplierId, cancellationToken).ConfigureAwait(false);
-            if (bill is null)
-            {
-                continue;
-            }
+            var bill = await LoadBillAsync(connection, transaction, billId, supplierId, cancellationToken).ConfigureAwait(false)
+                ?? throw new ErpWriteException("Supplier bill " + billId.ToString(CultureInfo.InvariantCulture) + " not found for this supplier");
 
-            var (billTotal, paid) = bill.Value;
+            var (billTotal, paid) = bill;
             var outstanding = ErpTaxAmountCalculator.Round2(billTotal - paid);
             if (outstanding <= Epsilon)
             {
-                continue;
+                throw new ErpWriteException(BillAlreadyPaidMessage(billId));
+            }
+
+            if (amount > outstanding + Epsilon)
+            {
+                throw new ErpWriteException(BillOverpaymentMessage(billId, amount, outstanding));
             }
 
             var apply = decimal.Min(decimal.Min(amount, outstanding), capLeft);
@@ -384,6 +467,13 @@ public sealed class ErpSettlementAllocationService : IErpSettlementAllocationSer
         "UPDATE `epc_einvoice_documents` SET `amount_due` = ROUND(`total_incl_vat` - (`paid_amount` + ?), 2),"
         + " `paid_amount` = ROUND(`paid_amount` + ?, 2), `time_updated` = ?"
         + " WHERE `id` = ? AND ROUND(`total_incl_vat` - `paid_amount`, 2) >= ? - 0.005";
+
+    public static string BillAlreadyPaidMessage(long billId)
+        => "Supplier bill " + billId.ToString(CultureInfo.InvariantCulture) + " is already fully paid";
+
+    public static string BillOverpaymentMessage(long billId, decimal amount, decimal outstanding)
+        => "Payment " + amount.ToString("0.00", CultureInfo.InvariantCulture) + " exceeds open balance "
+           + outstanding.ToString("0.00", CultureInfo.InvariantCulture) + " of supplier bill " + billId.ToString(CultureInfo.InvariantCulture);
 
     private const string PaidSubquery =
         "IFNULL((SELECT SUM(a.`amount`) FROM `epc_erp_supplier_accounting` a"
