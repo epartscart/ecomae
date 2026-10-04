@@ -1361,8 +1361,7 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCsListDeclarationsRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsImportDeclarationPdf, async (HttpContext context, ErpCsImportDeclarationPdfBody? body, ILegacySessionValidator validator, IErpCsImportDeclarationPdfDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCsImportDeclarationPdfRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutList, async (HttpContext context, ErpShortcutListBody? body, ILegacySessionValidator validator, IErpShortcutListDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpShortcutListRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutList, HandleShortcutListAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutAdd, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -20179,6 +20178,48 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandleShortcutListAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpShortcutListDryRun dryRun,
+        IErpShortcutReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpShortcutListBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var surface = body.Surface;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            surface = LiveWriteFormBinder.Text(form, "surface");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpShortcutListRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.ListAsync(session.UserId, surface, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            items = r.Rows,
+            session = SessionPayload(session),
+        });
+    }
+
     private static async Task<IResult> HandlePeriodLogAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -24390,7 +24431,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpCsDeleteDeclarationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCsListDeclarationsBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpCsImportDeclarationPdfBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpShortcutListBody(bool ConfirmWrites = false);
+    private sealed record ErpShortcutListBody(bool ConfirmWrites = false, string? Surface = null);
     private sealed record ErpShortcutAddBody(
         long Id = 0,
         string? Code = null,
