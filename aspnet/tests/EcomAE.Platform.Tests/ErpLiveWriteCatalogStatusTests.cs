@@ -79,6 +79,13 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/automation-install-template",
         "/erp/ajax/automation-enable-category",
         "/erp/ajax/automation-tick",
+        "/erp/ajax/aml-check",
+        "/erp/ajax/aml-kyc-save",
+        "/erp/ajax/aml-alert-status",
+        "/erp/ajax/aml-settings-save",
+        "/erp/ajax/aml-report-generate",
+        "/erp/ajax/aml-seed-rules",
+        "/erp/ajax/invoice-from-order",
     ];
 
     [Fact]
