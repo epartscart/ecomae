@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — keyed ERP dashboard summary
+
+Not complete.
+
+- A missing `X-API-Key` on `/epc-api/v1/erp/dashboard-summary` stays 401 `missing_api_key`. An unknown key stays 401 `invalid_api_key`.
+- A key with `read:erp` opens that key's tenant database and runs the existing read-only dashboard KPI query. The public JSON is PHP's envelope (`tenant_site_key`, `period.from`/`to`, nine KPIs). Command-center tiles are not included. This checkpoint did not edit ERP posting and does not create schema.
+- Local `ecomae` and `docpart` have no `shop_orders` table. The valid-key call returns 500 `internal_error` / `API request failed.`, which is PHP's outer catch when that query throws. No KPI numbers were invented.
+- Power BI row datasets (`kpis`, `orders`, `sales`, `stock`, `gl`, `metrics`) stay 503 `erp_unavailable` after a valid key. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 4999 passed, 0 failed. Filtered `PublicAnonymousPageParityTests`: 48 passed.
+
+Still open: new-account OAuth provisioning, authenticated CP, every tenant CP page, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, Power BI row datasets, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — warehouse shards and public APIs
 
 Not complete.
