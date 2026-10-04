@@ -102,6 +102,31 @@ public sealed class HomeCatalogWidgetParityTests
     }
 
     [Fact]
+    public void UmapiImageUrl_MatchesPhp()
+    {
+        Assert.False(HomeCatalogWidgets.TryUmapiImageUrl("", "1", out _));
+        Assert.False(HomeCatalogWidgets.TryUmapiImageUrl("supplier", "0", out _));
+        Assert.True(HomeCatalogWidgets.TryUmapiImageUrl("Supplier", "12", out var supplier));
+        Assert.Equal("https://image.umapi.ru/SUPPLIERS/12.png", supplier);
+        Assert.True(HomeCatalogWidgets.TryUmapiImageUrl("manufacturer", "4", out var make));
+        Assert.Equal("https://image.umapi.ru/MANUFACTURERS/4.png", make);
+    }
+
+    [Fact]
+    public void BrochureProcessPhoto_UsesPhpTopicAndCrc()
+    {
+        Assert.Equal(0xCBF43926u, BrochureProcessPhoto.PhpCrc32("123456789"));
+        var svg = BrochureProcessPhoto.Build("ai", "Web tracker", "AI hooks", "fn-seed");
+        Assert.Contains("aria-label=\"Web tracker\"", svg, StringComparison.Ordinal);
+        Assert.Contains(">AI</text>", svg, StringComparison.Ordinal);
+        Assert.DoesNotContain("epc_brochure_process_photo.php", EcomaeMarketingSnapshots.RewritePhpAssetUrls(
+            "<img src=\"/content/general_pages/epc_brochure_process_photo.php?topic=ai&amp;t=Web\" />"), StringComparison.Ordinal);
+        var rewritten = EcomaeMarketingSnapshots.RewritePhpAssetUrls(
+            "<img src=\"/content/general_pages/epc_brochure_process_photo.php?topic=ai&amp;t=Web\" />");
+        Assert.Contains("/platform-assets/brochure-process.svg?topic=ai", rewritten, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void ShopPrivacyPath_IsOnlyPrivacy()
     {
         Assert.True(EcomaeMarketingSnapshots.IsShopPrivacyPath("/privacy"));

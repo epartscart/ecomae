@@ -19,6 +19,7 @@ public static class HomeCatalogWidgets
 {
     public const string ProductFamilyPath = "/content/shop/docpart/ajax_epc_product_family.php";
     public const string UmapiProxyPath = "/api/umapi_proxy.php";
+    public const string UmapiImagePath = "/api/umapi_image.php";
 
     /// <summary>PHP <c>epc_config_key</c> fallback when config.php has no key.</summary>
     public const string DefaultUmapiKey = "2da16082-e7bc-4bd9-bee2-62b38c79ad8b";
@@ -165,6 +166,60 @@ public static class HomeCatalogWidgets
     {
         endpoints.MapMethods(ProductFamilyPath, ["GET", "POST"], ProductFamilyAsync);
         endpoints.MapMethods(UmapiProxyPath, ["GET", "POST"], UmapiProxyAsync);
+        endpoints.MapGet(UmapiImagePath, UmapiImageAsync);
+    }
+
+    /// <summary>PHP <c>api/umapi_image.php</c>: supplier and manufacturer logos from image.umapi.ru.</summary>
+    public static bool TryUmapiImageUrl(string? kind, string? id, out string url)
+    {
+        url = string.Empty;
+        var normalized = (kind ?? string.Empty).Trim().ToLowerInvariant();
+        if (!int.TryParse(id, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) || parsed < 1
+            || normalized is not ("supplier" or "manufacturer"))
+        {
+            return false;
+        }
+
+        var folder = normalized == "manufacturer" ? "MANUFACTURERS" : "SUPPLIERS";
+        url = "https://image.umapi.ru/" + folder + "/" + parsed.ToString(CultureInfo.InvariantCulture) + ".png";
+        return true;
+    }
+
+    private static async Task<IResult> UmapiImageAsync(HttpContext context, IHttpClientFactory httpClientFactory, CancellationToken cancellationToken)
+    {
+        if (!TryUmapiImageUrl(context.Request.Query["kind"], context.Request.Query["id"], out var url))
+        {
+            return Results.Text("Bad request", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status400BadRequest);
+        }
+
+        try
+        {
+            var http = httpClientFactory.CreateClient();
+            http.Timeout = TimeSpan.FromSeconds(10);
+            using var request = new HttpRequestMessage(HttpMethod.Get, url);
+            request.Headers.TryAddWithoutValidation("User-Agent", "ePartsCart-UmapiImage/1.0");
+            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("image/*"));
+            using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
+            var bytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
+            if (!response.IsSuccessStatusCode || bytes.Length < 64)
+            {
+                return Results.Text("Not found", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status404NotFound);
+            }
+
+            var type = response.Content.Headers.ContentType?.ToString();
+            if (string.IsNullOrWhiteSpace(type))
+            {
+                type = "image/png";
+            }
+
+            context.Response.Headers.CacheControl = "public, max-age=604800, immutable";
+            context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            return Results.File(bytes, type);
+        }
+        catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException)
+        {
+            return Results.Text("Not found", "text/plain; charset=utf-8", Encoding.UTF8, StatusCodes.Status404NotFound);
+        }
     }
 
     public static string UnavailableJson()

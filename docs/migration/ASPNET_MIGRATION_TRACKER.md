@@ -80,6 +80,16 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — brochure illustrations, favicon, UMAPI logos
+
+Not complete.
+
+- `/favicon.ico` and `/favicon.svg` serve the repo files browsers request on every page.
+- Brochure process cards no longer 404. `/content/general_pages/epc_brochure_process_photo.php` and `/platform-assets/brochure-process.svg` return the PHP topic SVG. Marketing HTML rewrites the `.php` image URL.
+- `/api/umapi_image.php` proxies supplier and manufacturer logos the way PHP does (400 for a bad id, image bytes from `image.umapi.ru`).
+
+Still open: new-account OAuth provisioning, authenticated CP, production deploy, ERP posting, VIN `email.png` (file not in the repo), tenant `/brochure-cp` (the epartscart-branded brochure is not snapshotted; www.ecomae.com `/brochure/cp` already is).
+
 ### Checkpoint 2026-10-04 — homepage catalog cache and /platform/tools
 
 Not complete. Homepage list actions no longer forward the rejected UMAPI key as HTTP 402.

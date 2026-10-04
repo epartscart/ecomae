@@ -348,6 +348,11 @@ public static class PhpLegacyAssetBridge
         });
 
         endpoints.MapGet("/platform-assets/ecomae-mark.svg", () => ServeEcomaeMark(repoRoot));
+        // PHP docroot files. Browsers request /favicon.ico on every public page.
+        endpoints.MapGet("/favicon.ico", () => ServeRepoFile(repoRoot, "favicon.ico", "image/x-icon"));
+        endpoints.MapGet("/favicon.svg", () => ServeRepoFile(repoRoot, "favicon.svg", "image/svg+xml; charset=utf-8"));
+        endpoints.MapGet(BrochureProcessPhoto.PhpPath, BrochureProcessPhoto.Serve);
+        endpoints.MapGet(BrochureProcessPhoto.AssetPath, BrochureProcessPhoto.Serve);
         // App.razor favicon. UseStaticFiles is off, so the wwwroot path 404s unless mapped.
         endpoints.MapGet("/assets/media/logos/ecomae_mark.svg", () => ServeEcomaeMark(repoRoot));
         // Nero/modex/limo/expan desktop.php — linked from every storefront shell.
@@ -449,6 +454,17 @@ public static class PhpLegacyAssetBridge
 
             return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
         });
+    }
+
+    private static IResult ServeRepoFile(string repoRoot, string relative, string contentType)
+    {
+        var path = Path.GetFullPath(Path.Combine(repoRoot, relative));
+        if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
+        {
+            return Results.NotFound();
+        }
+
+        return Results.File(path, contentType);
     }
 
     private static IResult ServeEcomaeMark(string repoRoot)

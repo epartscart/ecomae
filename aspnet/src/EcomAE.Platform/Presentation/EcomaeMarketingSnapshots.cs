@@ -253,6 +253,12 @@ public static class EcomaeMarketingSnapshots
             "/platform-assets/$1",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
 
+        // Brochure process cards. The PHP script is an SVG generator; keep the query string.
+        html = html.Replace(
+            "/content/general_pages/epc_brochure_process_photo.php",
+            BrochureProcessPhoto.AssetPath,
+            StringComparison.Ordinal);
+
         // Public verify UI is ASP.NET — never leave the PHP script in product HTML.
         html = Regex.Replace(
             html,
