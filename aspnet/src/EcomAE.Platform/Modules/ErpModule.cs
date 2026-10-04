@@ -147,8 +147,7 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpAjaxConcurrencyStatus, async (HttpContext context, ErpConcurrencyStatusBody? body, ILegacySessionValidator validator, IErpConcurrencyStatusDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpConcurrencyStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSettlementOpenDocs, async (HttpContext context, ErpSettlementOpenDocsBody? body, ILegacySessionValidator validator, IErpSettlementOpenDocsDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpSettlementOpenDocsRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSettlementOpenDocs, HandleSettlementOpenDocsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDashboard, async (HttpContext context, ErpDashboardBody? body, ILegacySessionValidator validator, IErpDashboardDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDashboardRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCommandCenter, async (HttpContext context, ErpCommandCenterBody? body, ILegacySessionValidator validator, IErpCommandCenterDryRun dryRun, CancellationToken cancellationToken) =>
@@ -661,8 +660,7 @@ public sealed class ErpModule : ISurfaceModule
                 });
             });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceList, async (HttpContext context, ErpInvoiceListBody? body, ILegacySessionValidator validator, IErpInvoiceListDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpInvoiceListRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceList, HandleInvoiceListAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceFromOrder, async (HttpContext context, ErpInvoiceFromOrderBody? body, ILegacySessionValidator validator, IErpInvoiceFromOrderDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpInvoiceFromOrderRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAiQuery, async (HttpContext context, ErpAiQueryBody? body, ILegacySessionValidator validator, IErpAiQueryDryRun dryRun, CancellationToken cancellationToken) =>
@@ -10573,8 +10571,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacDutySave, HandleRbacDutySaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxRbacDutyPriv, HandleRbacDutyPrivAsync).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodLog, async (HttpContext context, ErpPeriodLogBody? body, ILegacySessionValidator validator, IErpPeriodLogDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpPeriodLogRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodLog, HandlePeriodLogAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplAutoplan, async (HttpContext context, ErpOplAutoplanBody? body, ILegacySessionValidator validator, IErpOplAutoplanDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOplAutoplanRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOplSeedDemo, async (HttpContext context, ErpOplSeedDemoBody? body, ILegacySessionValidator validator, IErpOplSeedDemoDryRun dryRun, CancellationToken cancellationToken) =>
@@ -19937,6 +19934,140 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandlePeriodLogAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPeriodLogDryRun dryRun,
+        IErpFinanceAjaxReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPeriodLogBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var yearMonth = body.YearMonth;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            yearMonth = LiveWriteFormBinder.Text(form, "year_month", "yearMonth");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPeriodLogRequest(body.Id, body.Code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.PeriodLogAsync(yearMonth, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            log = r.Rows,
+            session = SessionPayload(session),
+        });
+    }
+
+    private static async Task<IResult> HandleSettlementOpenDocsAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSettlementOpenDocsDryRun dryRun,
+        IErpFinanceAjaxReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpSettlementOpenDocsBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var docType = body.DocType;
+        var counterpartyId = body.CounterpartyId;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            docType = LiveWriteFormBinder.Text(form, "doc_type", "docType");
+            counterpartyId = LiveWriteFormBinder.Long(form, "counterparty_id", "counterpartyId");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpSettlementOpenDocsRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.SettlementOpenDocsAsync(string.IsNullOrEmpty(docType) ? "ar" : docType, counterpartyId, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            docs = r.Rows,
+            session = SessionPayload(session),
+        });
+    }
+
+    private static async Task<IResult> HandleInvoiceListAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpInvoiceListDryRun dryRun,
+        IErpFinanceAjaxReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpInvoiceListBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var from = body.From;
+        var to = body.To;
+        var status = body.Status;
+        var q = body.Q;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            from = LiveWriteFormBinder.Text(form, "from");
+            to = LiveWriteFormBinder.Text(form, "to");
+            status = LiveWriteFormBinder.Text(form, "status");
+            q = LiveWriteFormBinder.Text(form, "q");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpInvoiceListRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.InvoiceListAsync(from, to, status, q, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            invoices = r.Rows,
+            session = SessionPayload(session),
+        });
+    }
+
     private static async Task<IResult> HandleFinAllocRunAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -23015,7 +23146,7 @@ public sealed class ErpModule : ISurfaceModule
         long PrivilegeId = 0,
         int? Attach = null,
         bool ConfirmWrites = false);
-    private sealed record ErpPeriodLogBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpPeriodLogBody(long Id = 0, string? Code = null, bool ConfirmWrites = false, string? YearMonth = null);
     private sealed record ErpOplAutoplanBody(bool ConfirmWrites = false);
     private sealed record ErpOplSeedDemoBody(bool ConfirmWrites = false);
     private sealed record ErpOplClearDemoBody(bool ConfirmWrites = false);
@@ -23545,7 +23676,7 @@ public sealed class ErpModule : ISurfaceModule
         long CompanyId = 0,
         bool ConfirmWrites = false);
     private sealed record ErpConcurrencyStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
-    private sealed record ErpSettlementOpenDocsBody(bool ConfirmWrites = false);
+    private sealed record ErpSettlementOpenDocsBody(bool ConfirmWrites = false, string? DocType = null, long CounterpartyId = 0);
     private sealed record ErpDashboardBody(bool ConfirmWrites = false);
     private sealed record ErpCommandCenterBody(bool ConfirmWrites = false);
     private sealed record ErpCcKpiTilesBody(bool ConfirmWrites = false);
@@ -23864,7 +23995,7 @@ public sealed class ErpModule : ISurfaceModule
         IReadOnlyList<decimal>? LineUnit = null,
         IReadOnlyList<decimal>? LineVatRate = null,
         IReadOnlyList<string>? LineDetail = null);
-    private sealed record ErpInvoiceListBody(bool ConfirmWrites = false);
+    private sealed record ErpInvoiceListBody(bool ConfirmWrites = false, string? From = null, string? To = null, string? Status = null, string? Q = null);
     private sealed record ErpInvoiceFromOrderBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpIntegrityScanBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
