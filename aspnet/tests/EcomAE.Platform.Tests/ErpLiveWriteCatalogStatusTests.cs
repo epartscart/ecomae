@@ -72,6 +72,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/purchases/create",
         "/erp/suppliers/sync",
         "/erp/gl-journals/sync-unposted",
+        "/erp/gl-journals/post-sales",
     ];
 
     [Fact]

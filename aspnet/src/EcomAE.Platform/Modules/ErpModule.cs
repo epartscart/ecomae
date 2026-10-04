@@ -3392,22 +3392,7 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpSuppliersSync, HandleSupplierSyncAsync).DisableAntiforgery();
 
-        endpoints.MapPost(EcomAeRoutes.ErpGlPostSales, async (
-            HttpContext context,
-            ErpGlPostSalesBody? body,
-            ILegacySessionValidator validator,
-            IErpGlPostSalesDryRun dryRun,
-            CancellationToken cancellationToken) =>
-        {
-            var session = await validator.ValidateAsync(context, cancellationToken);
-            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
-            {
-                return Unauthorized("Admin ERP capability required for GL post-sales dry-run.");
-            }
-            body ??= new ErpGlPostSalesBody(null, null, false);
-            var result = dryRun.Evaluate(new ErpGlPostSalesRequest(body.DateFromUnix, body.DateToUnix, body.ConfirmWrites));
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
-        });
+        endpoints.MapPost(EcomAeRoutes.ErpGlPostSales, HandleGlPostSalesAsync).DisableAntiforgery();
 
         endpoints.MapPost(EcomAeRoutes.ErpGlSyncUnposted, HandleGlSyncUnpostedAsync).DisableAntiforgery();
 
@@ -20171,6 +20156,52 @@ public sealed class ErpModule : ISurfaceModule
             }
 
             return ("Supplier created", (object)new { id });
+        });
+    }
+
+    private static async Task<IResult> HandleGlPostSalesAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpGlPostSalesDryRun dryRun,
+        IErpGlPostSalesWriteService writes,
+        TimeProvider clock,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpGlPostSalesBody>(context, cancellationToken) ?? new(null, null, false);
+        var confirm = body.ConfirmWrites;
+        long? from = body.DateFromUnix;
+        long? to = body.DateToUnix;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            var now = clock.GetUtcNow();
+            var f = form["date_from"].ToString();
+            var t = form["date_to"].ToString();
+            from = f.Length > 0 ? ErpFinanceAjaxReadService.FromUnix(f, now) : from;
+            to = t.Length > 0 ? ErpFinanceAjaxReadService.ToUnix(t, now) : to;
+        }
+
+        var request = new ErpGlPostSalesRequest(from, to, false);
+        var validated = dryRun.Evaluate(request);
+        if (!confirm || validated.ValidationCode != "ok")
+        {
+            return Results.Ok(validated.ToPayload(SessionPayload(session)));
+        }
+
+        var nowUtc = clock.GetUtcNow();
+        var dateFrom = from is > 0 ? from.Value : new DateTimeOffset(nowUtc.Year, nowUtc.Month, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
+        var dateTo = to is > 0 ? to.Value : nowUtc.ToUnixTimeSeconds();
+        return await ExecuteErpWriteAsync(session, async () =>
+        {
+            var n = await writes.PostAsync(dateFrom, dateTo, session.UserId, cancellationToken);
+            return ("Posted " + n + " sales journal(s) to GL", (object)new { posted = n });
         });
     }
 
