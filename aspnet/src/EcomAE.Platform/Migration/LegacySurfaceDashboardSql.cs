@@ -7666,7 +7666,7 @@ public const string SelectCpOpsGuidesStats = """
 
     /// <summary>ERP fiscal periods peek — PHP epc_erp_periods (period_close). note/checklist omitted.</summary>
     public const string SelectErpFiscalPeriods = """
-        SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
+        SELECT `id`, IFNULL(`year_month`,'') AS `year_month`, IFNULL(`status`,'') AS status,
                CASE WHEN IFNULL(`status`,'') IN ('soft_close','locked') THEN 1 ELSE 0 END AS soft_closed,
                CASE WHEN IFNULL(`status`,'') = 'locked' THEN 1 ELSE 0 END AS locked,
                IFNULL(`updated_at`,0) AS time_updated
@@ -7677,7 +7677,7 @@ public const string SelectCpOpsGuidesStats = """
 
     /// <summary>Opened fiscal period. note is a short excerpt. checklist_json omitted. Writes stay on this page.</summary>
     public const string SelectErpFiscalPeriodDetail = """
-        SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
+        SELECT `id`, IFNULL(`year_month`,'') AS `year_month`, IFNULL(`status`,'') AS status,
                CASE WHEN IFNULL(`status`,'') IN ('soft_close','locked') THEN 1 ELSE 0 END AS soft_closed,
                CASE WHEN IFNULL(`status`,'') = 'locked' THEN 1 ELSE 0 END AS locked,
                IFNULL(`closed_by`,0) AS closed_by, IFNULL(`closed_at`,0) AS closed_at,
@@ -7692,7 +7692,7 @@ public const string SelectCpOpsGuidesStats = """
 
     /// <summary>Other fiscal periods with the same status. note and checklist_json omitted.</summary>
     public const string SelectErpFiscalPeriodStatusSiblings = """
-        SELECT `id`, IFNULL(`year_month`,'') AS year_month, IFNULL(`status`,'') AS status,
+        SELECT `id`, IFNULL(`year_month`,'') AS `year_month`, IFNULL(`status`,'') AS status,
                CASE WHEN IFNULL(`status`,'') IN ('soft_close','locked') THEN 1 ELSE 0 END AS soft_closed,
                CASE WHEN IFNULL(`status`,'') = 'locked' THEN 1 ELSE 0 END AS locked,
                IFNULL(`updated_at`,0) AS time_updated
