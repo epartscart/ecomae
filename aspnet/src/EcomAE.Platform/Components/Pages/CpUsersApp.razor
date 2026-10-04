@@ -258,9 +258,9 @@
             regenerateFields();
         </script>
     }
-    else
+    else if (_list is not null)
     {
-        var l = _list!;
+        var l = _list;
         @* ---- user_manager.php twin ---- *@
         <PhpCpModulePageHeader Title="Users"
                                Subtitle="PHP user_manager twin: filter, sort and page the users table; open a row for the user.php editor (profile fields, groups, balance, comment)."

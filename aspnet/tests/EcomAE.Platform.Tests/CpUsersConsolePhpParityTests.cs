@@ -9,6 +9,16 @@ namespace EcomAE.Platform.Tests;
 public sealed class CpUsersConsolePhpParityTests
 {
     [Fact]
+    public void CpUsersApp_ListBranchToleratesPreLoadRender()
+    {
+        // Blazor renders once when OnInitializedAsync first yields: _isAdmin is already true
+        // while Users.ListAsync is still pending, so the list branch must not dereference a null _list.
+        var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpUsersApp.razor"));
+        Assert.Contains("else if (_list is not null)", text, StringComparison.Ordinal);
+        Assert.DoesNotContain("_list!", text, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void CpUsersApp_IsLiveUserManagerAndUserEditorTwin()
     {
         var text = File.ReadAllText(FindRepoFile("aspnet/src/EcomAE.Platform/Components/Pages/CpUsersApp.razor"));
