@@ -4028,8 +4028,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.Contains("ActionExcerpt", razor, StringComparison.Ordinal);
         Assert.Contains("TimeClosed", razor, StringComparison.Ordinal);
         Assert.Contains("same-status siblings", razor, StringComparison.OrdinalIgnoreCase);
-        Assert.Contains("NCR update writes stay here", razor, StringComparison.Ordinal);
+        Assert.Contains("NCR create and update writes stay here", razor, StringComparison.Ordinal);
         Assert.Contains("/erp/quality/ncr-update", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Order create/record remains Classic", razor, StringComparison.Ordinal);
+        Assert.DoesNotContain("Order create/record stays Classic", razor, StringComparison.Ordinal);
         Assert.Contains("qv=orders&amp;order_id=", razor, StringComparison.Ordinal);
         Assert.Contains("qv=plans&amp;plan_id=", razor, StringComparison.Ordinal);
         Assert.Contains("epc-erp-kpi", razor, StringComparison.Ordinal);
@@ -4042,7 +4044,10 @@ public sealed class ErpRecordOpenPhpParityTests
         Assert.DoesNotContain("ASP.NET", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("/php-reference/", razor, StringComparison.Ordinal);
         Assert.DoesNotContain("AspNetPrimaryHref(_phpTab)\">Open", razor, StringComparison.Ordinal);
-        Assert.DoesNotContain("company_id", razor, StringComparison.Ordinal);
+        var companyField = "<input type=\"hidden\" name=\"company_id\" value=\"@_companyId.ToString(CultureInfo.InvariantCulture)\" />";
+        Assert.Equal(
+            razor.Split(companyField).Length - 1,
+            razor.Split("company_id").Length - 1);
 
         Assert.Equal("/erp/quality-app?qv=ncr&ncr_id=24#erp-row-24",
             ErpRecordOpen.Href("/erp/quality-app?qv=ncr", "ncr_id", 24));
