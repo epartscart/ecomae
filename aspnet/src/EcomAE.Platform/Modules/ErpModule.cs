@@ -483,10 +483,8 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgBomSave, HandleMfgBomSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoCreate, HandleMfgWoCreateAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoIssue, async (HttpContext context, ErpMfgWoIssueBody? body, ILegacySessionValidator validator, IErpMfgWoIssueDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgWoIssueRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoComplete, async (HttpContext context, ErpMfgWoCompleteBody? body, ILegacySessionValidator validator, IErpMfgWoCompleteDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpMfgWoCompleteRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoIssue, HandleMfgWoIssueAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxMfgWoComplete, HandleMfgWoCompleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpPayrollGenerate, HandlePayrollGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollGenerate, HandlePayrollGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPayrollApprove, async (
@@ -16326,6 +16324,95 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleMfgWoIssueAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMfgWoIssueDryRun dryRun,
+        IErpMfgWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing work-order issue.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var woId = AmlLong(fields, "wo_id", "id", "woId");
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpMfgWoIssueRequest(woId, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.IssueMaterialsAsync(woId, session.UserId, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/production-overview-app",
+            result.Ok,
+            result.Message,
+            new
+            {
+                ok = result.Ok,
+                writes = result.Ok ? 1 : 0,
+                phpAuthoritative = false,
+                message = result.Message,
+                work_order_id = result.WorkOrderId,
+                material_cost = result.MaterialCost,
+                issued = result.Issued.Select(l => new { component_item_id = l.ComponentItemId, qty = l.Qty, unit_cost = l.UnitCost }),
+                session = SessionPayload(session),
+            });
+    }
+
+    private static async Task<IResult> HandleMfgWoCompleteAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpMfgWoCompleteDryRun dryRun,
+        IErpMfgWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/cp/production-overview-app", "Admin ERP capability required for manufacturing work-order complete.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var woId = AmlLong(fields, "wo_id", "id", "woId");
+        var qtyProduced = AmlDec(fields, "qty_produced", "qtyProduced");
+        var labour = fields.TryGetValue("labour_cost", out var lv) || fields.TryGetValue("labourCost", out lv)
+            ? AmlDec(fields, "labour_cost", "labourCost")
+            : -1m;
+        var overhead = fields.TryGetValue("overhead_cost", out var ov) || fields.TryGetValue("overheadCost", out ov)
+            ? AmlDec(fields, "overhead_cost", "overheadCost")
+            : -1m;
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpMfgWoCompleteRequest(woId, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var result = await writes.CompleteAsync(woId, qtyProduced, session.UserId, labour, overhead, cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/cp/production-overview-app",
+            result.Ok,
+            result.Message,
+            new
+            {
+                ok = result.Ok,
+                writes = result.Ok ? 1 : 0,
+                phpAuthoritative = false,
+                message = result.Message,
+                work_order_id = result.WorkOrderId,
+                qty_produced = result.QtyProduced,
+                material_cost = result.MaterialCost,
+                labour_cost = result.LabourCost,
+                overhead_cost = result.OverheadCost,
+                total_cost = result.TotalCost,
+                unit_cost = result.UnitCost,
+                session = SessionPayload(session),
+            });
     }
 
     private static async Task<IResult> HandleBosComplianceAddObligationAsync(
