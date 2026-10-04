@@ -62,6 +62,9 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/shortcut-list",
         "/erp/ajax/inv-scan-lookup",
         "/erp/ajax/erp-global-search",
+        "/erp/ajax/command-center",
+        "/erp/ajax/cc-kpi-tiles",
+        "/erp/ajax/cc-approval-queue",
     ];
 
     [Fact]

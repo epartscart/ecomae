@@ -151,12 +151,9 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSettlementOpenDocs, HandleSettlementOpenDocsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDashboard, async (HttpContext context, ErpDashboardBody? body, ILegacySessionValidator validator, IErpDashboardDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDashboardRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCommandCenter, async (HttpContext context, ErpCommandCenterBody? body, ILegacySessionValidator validator, IErpCommandCenterDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpCommandCenterRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCcKpiTiles, async (HttpContext context, ErpCcKpiTilesBody? body, ILegacySessionValidator validator, IErpCcKpiTilesDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpCcKpiTilesRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCcApprovalQueue, async (HttpContext context, ErpCcApprovalQueueBody? body, ILegacySessionValidator validator, IErpCcApprovalQueueDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpCcApprovalQueueRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCommandCenter, HandleCommandCenterAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCcKpiTiles, HandleCcKpiTilesAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCcApprovalQueue, HandleCcApprovalQueueAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodList, HandlePeriodListAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodChecklist, HandlePeriodChecklistAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodSummary, HandlePeriodSummaryAsync).DisableAntiforgery();
@@ -20366,6 +20363,108 @@ public sealed class ErpModule : ISurfaceModule
             log = r.Rows,
             session = SessionPayload(session),
         });
+    }
+
+    private static async Task<IResult> HandleCcKpiTilesAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCcKpiTilesDryRun dryRun,
+        IErpCommandCenterReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (confirm, _, from, to) = await ReadCcBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCcKpiTilesRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.KpiTilesAsync(from, to, cancellationToken);
+        return Results.Ok(new { ok = r.Result.Succeeded, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = r.Result.Code, message = r.Result.Message, tiles = r.Rows, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCcApprovalQueueAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCcApprovalQueueDryRun dryRun,
+        IErpCommandCenterReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (confirm, _, _, _) = await ReadCcBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCcApprovalQueueRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.ApprovalQueueAsync(cancellationToken);
+        return Results.Ok(new { ok = r.Result.Succeeded, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = r.Result.Code, message = r.Result.Message, queue = r.Rows, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCommandCenterAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCommandCenterDryRun dryRun,
+        IErpCommandCenterReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (confirm, role, from, to) = await ReadCcBodyAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCommandCenterRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.CommandCenterAsync(role, from, to, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            kpi_tiles = r.KpiTiles,
+            approval_queue = r.ApprovalQueue,
+            widgets = r.Widgets,
+            quick_actions = r.QuickActions,
+            period = r.Period,
+            generated_at = r.GeneratedAt,
+            session = SessionPayload(session),
+        });
+    }
+
+    private sealed record ErpCcBody(bool ConfirmWrites = false, string? Role = null, string? DateFrom = null, string? DateTo = null);
+
+    private static async Task<(bool Confirm, string Role, string? From, string? To)> ReadCcBodyAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpCcBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites; var role = body.Role ?? string.Empty; var from = body.DateFrom; var to = body.DateTo;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            role = LiveWriteFormBinder.Text(form, "role");
+            from = LiveWriteFormBinder.Text(form, "date_from", "dateFrom");
+            to = LiveWriteFormBinder.Text(form, "date_to", "dateTo");
+        }
+
+        return (confirm, role, from, to);
     }
 
     private static async Task<IResult> HandleSettlementOpenDocsAsync(
