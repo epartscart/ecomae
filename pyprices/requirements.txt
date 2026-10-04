@@ -7,7 +7,6 @@ multivolumefile==0.2.3
 mysql-connector-python==8.0.28
 openpyxl==3.1.2
 patool==1.12
-pkg_resources==0.0.0
 price-parser==0.3.4
 protobuf==3.19.6
 psutil==5.9.5
