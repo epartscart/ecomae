@@ -848,6 +848,15 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMenuEditorService, EcomAE.Platf
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentEditorService, EcomAE.Platform.Cp.CpContentEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpUserEditorService, EcomAE.Platform.Cp.CpUserEditorService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPricesUploadWriteService, EcomAE.Platform.Cp.CpPricesUploadWriteService>();
+builder.Services.AddHttpClient(EcomAE.Platform.Cp.PriceImport.CpPriceRemoteSources.HttpClientName)
+    .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromMinutes(10));
+builder.Services.AddHttpClient(EcomAE.Platform.Cp.PriceImport.CpPriceRemoteSources.InsecureHttpClientName)
+    .ConfigureHttpClient(client => client.Timeout = TimeSpan.FromMinutes(10))
+    .ConfigurePrimaryHttpMessageHandler(EcomAE.Platform.Cp.PriceImport.CpPriceRemoteSources.CreateInsecureHandler);
+builder.Services.AddScoped<EcomAE.Platform.Cp.PriceImport.ICpPriceRemoteSources, EcomAE.Platform.Cp.PriceImport.CpPriceRemoteSources>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.PriceImport.ICpPriceImportService, EcomAE.Platform.Cp.PriceImport.CpPriceImportService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.PriceImport.ICpPriceDeployApiService, EcomAE.Platform.Cp.PriceImport.CpPriceDeployApiService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.PriceImport.ICpPriceCronService, EcomAE.Platform.Cp.PriceImport.CpPriceCronService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPartsAgentWriteService, EcomAE.Platform.Cp.CpPartsAgentWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsOperatorsDeskService, EcomAE.Platform.Cp.CpSmsOperatorsDeskService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPartsAgentDeskService, EcomAE.Platform.Cp.CpPartsAgentDeskService>();

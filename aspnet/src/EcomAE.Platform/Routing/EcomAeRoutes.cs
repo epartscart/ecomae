@@ -1362,6 +1362,18 @@ public static class EcomAeRoutes
     public const string CpMultivendorVendorCodeSave = "/cp/multivendor/vendor-code/save";
     /// <summary>PHP <c>ajax_epc_storefront_storage_toggle</c> / <c>epc_ssf_set_toggle</c>. <c>confirmWrites=true</c> UPDATEs storefront_temp_disabled. Schema-ensure stay Classic.</summary>
     public const string CpPricesStorefrontStorageToggle = "/cp/prices/storefront-storage/toggle";
+    /// <summary>PHP <c>for_pyprices/upload_file.php</c> + pyprices <c>local_path</c> task (and the CP wizard, <c>channel=wizard</c>). Admin + CSRF + <c>confirmWrites=1</c>; imports via <c>ICpPriceImportService</c>.</summary>
+    public const string CpPricesUploadFile = "/cp/prices/upload-file";
+    /// <summary>PHP <c>add_new_task.php</c> + pyprices FTP / e-mail / URL "update now". Admin + CSRF + <c>confirmWrites=1</c>.</summary>
+    public const string CpPricesUpdateNow = "/cp/prices/update-now";
+    /// <summary>PHP <c>ajax_epc_price_upload_history.php</c> list / download / download_latest / download_skipped / download_errors (GET, admin).</summary>
+    public const string CpPricesUploadHistory = "/cp/prices/upload-history";
+    /// <summary>PHP <c>for_cron/create_edit_cron_task.php</c> + <c>cron_tasks_actions.php</c> (list / save / delete). Admin + CSRF.</summary>
+    public const string CpPricesCronTasks = "/cp/prices/cron-tasks";
+    /// <summary>PHP <c>for_cron/cron_crutch.php?key=tech_key</c> + <c>cron_task_executor.php</c>: run schedules due this minute.</summary>
+    public const string CpPricesCronTick = "/cp/prices/cron-tick";
+    /// <summary>PHP <c>epc-upload-uae-prices.php</c> deploy / automation API (<c>key</c> = config.php tech_key).</summary>
+    public const string CpPricesDeployApi = "/api/prices/deploy-upload";
     /// <summary>PHP logistics groups add_group / del. <c>confirmWrites=true</c> writes via <c>ICpStorageGroupWriteService</c>.</summary>
     public const string CpStoragesGroups = "/cp/storages/groups";
     /// <summary>PHP <c>storage.php</c> create / edit. <c>confirmWrites=true</c> writes via <c>ICpStorageWriteService</c>.</summary>
