@@ -184,8 +184,8 @@ public sealed class ErpPeriodLockReopenWriteService : IErpPeriodLockReopenWriteS
         return new DateTimeOffset(year, month, 1, 0, 0, 0, TimeSpan.Zero).ToUnixTimeSeconds();
     }
 
-    private static async Task<IReadOnlyList<ErpPeriodChecklistItem>> ChecklistAsync(
-        DbConnection connection, DbTransaction tx, string yearMonth, CancellationToken ct)
+    internal static async Task<IReadOnlyList<ErpPeriodChecklistItem>> ChecklistAsync(
+        DbConnection connection, DbTransaction? tx, string yearMonth, CancellationToken ct)
     {
         var start = MonthStartUnix(yearMonth);
         var end = MonthEndUnix(yearMonth);
@@ -217,7 +217,7 @@ public sealed class ErpPeriodLockReopenWriteService : IErpPeriodLockReopenWriteS
     }
 
     /// <summary>PHP wraps each checklist query in try/catch — a missing table counts as 0.</summary>
-    private static async Task<long> CountAsync(DbConnection connection, DbTransaction tx, string sql, CancellationToken ct, params object?[] args)
+    private static async Task<long> CountAsync(DbConnection connection, DbTransaction? tx, string sql, CancellationToken ct, params object?[] args)
     {
         try
         {
@@ -251,7 +251,7 @@ public sealed class ErpPeriodLockReopenWriteService : IErpPeriodLockReopenWriteS
             null, ct).ConfigureAwait(false);
     }
 
-    private static async Task<string> EnsurePeriodAsync(DbConnection connection, DbTransaction tx, string yearMonth, long now, CancellationToken ct)
+    internal static async Task<string> EnsurePeriodAsync(DbConnection connection, DbTransaction? tx, string yearMonth, long now, CancellationToken ct)
     {
         var status = await ErpDb.StringAsync(
             connection, tx, ErpDb.Positional("SELECT `status` FROM `epc_erp_periods` WHERE `year_month` = ? LIMIT 1"), ct, yearMonth).ConfigureAwait(false);
@@ -283,7 +283,7 @@ public sealed class ErpPeriodLockReopenWriteService : IErpPeriodLockReopenWriteS
             ct,
             yearMonth, action, oldStatus, newStatus, adminId, note, now);
 
-    private static async Task<bool> SchemaReadyAsync(DbConnection connection, CancellationToken ct)
+    internal static async Task<bool> SchemaReadyAsync(DbConnection connection, CancellationToken ct)
         => await ColumnExistsAsync(connection, "epc_erp_periods", "checklist_json", ct).ConfigureAwait(false)
            && await ColumnExistsAsync(connection, "epc_erp_period_close_log", "action", ct).ConfigureAwait(false)
            && await ColumnExistsAsync(connection, "epc_erp_fiscal_locks", "lock_date", ct).ConfigureAwait(false);

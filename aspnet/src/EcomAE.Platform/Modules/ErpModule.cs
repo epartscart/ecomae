@@ -157,12 +157,9 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpCcKpiTilesRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCcApprovalQueue, async (HttpContext context, ErpCcApprovalQueueBody? body, ILegacySessionValidator validator, IErpCcApprovalQueueDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpCcApprovalQueueRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodList, async (HttpContext context, ErpPeriodListBody? body, ILegacySessionValidator validator, IErpPeriodListDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPeriodListRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodChecklist, async (HttpContext context, ErpPeriodChecklistBody? body, ILegacySessionValidator validator, IErpPeriodChecklistDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPeriodChecklistRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodSummary, async (HttpContext context, ErpPeriodSummaryBody? body, ILegacySessionValidator validator, IErpPeriodSummaryDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPeriodSummaryRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodList, HandlePeriodListAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodChecklist, HandlePeriodChecklistAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPeriodSummary, HandlePeriodSummaryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFxRevaluationPreview, async (HttpContext context, ILegacySessionValidator validator, IErpFxRevaluationPreviewDryRun dryRun, IErpFxRevaluationWriteService writes, CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -19651,6 +19648,137 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, run_id = written.Id, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandlePeriodListAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPeriodListDryRun dryRun,
+        IErpPeriodReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPeriodListBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPeriodListRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.ListAsync(24, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = r.Result.Writes,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            periods = r.Periods.Select(p => new { id = p.Id, year_month = p.YearMonth, year = p.Year, month = p.Month, status = p.Status, closed_by = p.ClosedBy, closed_at = p.ClosedAt, locked_by = p.LockedBy, locked_at = p.LockedAt, note = p.Note, checklist = p.Checklist, created_at = p.CreatedAt, updated_at = p.UpdatedAt }),
+            session = SessionPayload(session),
+        });
+    }
+
+    private static async Task<IResult> HandlePeriodChecklistAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPeriodChecklistDryRun dryRun,
+        IErpPeriodReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPeriodChecklistBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        var yearMonth = body.YearMonth;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            yearMonth = form.ContainsKey("year_month") || form.ContainsKey("yearMonth") ? LiveWriteFormBinder.Text(form, "year_month", "yearMonth") : null;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPeriodChecklistRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.ChecklistAsync(yearMonth, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            year_month = r.YearMonth,
+            checklist = r.Checklist.Select(i => new { id = i.Id, label = i.Label, count = i.Count, severity = i.Severity, help = i.Help }),
+            session = SessionPayload(session),
+        });
+    }
+
+    private static async Task<IResult> HandlePeriodSummaryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPeriodSummaryDryRun dryRun,
+        IErpPeriodReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPeriodSummaryBody>(context, cancellationToken) ?? new();
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPeriodSummaryRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await reads.SummaryAsync(cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = 0,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            current_period = r.CurrentPeriod,
+            current_status = r.CurrentStatus,
+            fiscal_lock_date = r.FiscalLockDate,
+            open_periods = r.OpenPeriods,
+            soft_close_periods = r.SoftClosePeriods,
+            locked_periods = r.LockedPeriods,
+            checklist_blockers = r.ChecklistBlockers,
+            checklist_warnings = r.ChecklistWarnings,
+            checklist = r.Checklist.Select(i => new { id = i.Id, label = i.Label, count = i.Count, severity = i.Severity, help = i.Help }),
+            session = SessionPayload(session),
+        });
+    }
+
     private static async Task<IResult> HandleFinAllocRunAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -23265,7 +23393,7 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpCcKpiTilesBody(bool ConfirmWrites = false);
     private sealed record ErpCcApprovalQueueBody(bool ConfirmWrites = false);
     private sealed record ErpPeriodListBody(bool ConfirmWrites = false);
-    private sealed record ErpPeriodChecklistBody(bool ConfirmWrites = false);
+    private sealed record ErpPeriodChecklistBody(bool ConfirmWrites = false, string? YearMonth = null);
     private sealed record ErpPeriodSummaryBody(bool ConfirmWrites = false);
     private sealed record ErpFxRevaluationPreviewBody(bool ConfirmWrites = false, string? AsOf = null);
     private sealed record ErpBosComplianceFetchBody(bool ConfirmWrites = false);

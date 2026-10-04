@@ -31,6 +31,9 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/fin-fx-revalue",
         "/erp/ajax/fin-alloc-run",
         "/erp/ajax/fin-accrual-save",
+        "/erp/ajax/period-list",
+        "/erp/ajax/period-checklist",
+        "/erp/ajax/period-summary",
     ];
 
     [Fact]
