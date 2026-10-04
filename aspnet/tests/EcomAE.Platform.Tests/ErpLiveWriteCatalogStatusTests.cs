@@ -61,6 +61,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/save-template",
         "/erp/ajax/shortcut-list",
         "/erp/ajax/inv-scan-lookup",
+        "/erp/ajax/erp-global-search",
     ];
 
     [Fact]
