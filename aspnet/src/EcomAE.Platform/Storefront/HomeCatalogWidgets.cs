@@ -474,7 +474,8 @@ public static class HomeCatalogWidgets
                 var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
                 if (live is not null)
                 {
-                    return WriteJson(StatusCodes.Status200OK, live, noStore: false, cacheSeconds: 3600);
+                    var cache = live.Value.Status is >= 200 and < 300 ? 3600 : 0;
+                    return WriteJson(live.Value.Status, live.Value.Body, noStore: false, cacheSeconds: cache);
                 }
             }
 
@@ -689,7 +690,7 @@ public static class HomeCatalogWidgets
         return items;
     }
 
-    private static async Task<string?> TryLiveUmapiAsync(
+    private static async Task<(int Status, string Body)?> TryLiveUmapiAsync(
         IHttpClientFactory httpClientFactory,
         string action,
         string section,
@@ -739,11 +740,7 @@ public static class HomeCatalogWidgets
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             request.Headers.TryAddWithoutValidation("X-App-Key", DefaultUmapiKey);
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
-            if (!response.IsSuccessStatusCode)
-            {
-                return null;
-            }
-
+            var status = (int)response.StatusCode;
             var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
             if (string.IsNullOrWhiteSpace(body) || body[0] is not ('[' or '{'))
             {
@@ -751,12 +748,19 @@ public static class HomeCatalogWidgets
             }
 
             using var doc = JsonDocument.Parse(body);
-            if (action == "manufacturers" && doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+            if (status is < 200 or >= 300)
             {
-                return data.GetRawText();
+                // PHP forwards the catalog JSON and its HTTP status when the offline cache is empty.
+                var forward = status is >= 400 and < 600 ? status : StatusCodes.Status502BadGateway;
+                return (forward, body);
             }
 
-            return body;
+            if (action == "manufacturers" && doc.RootElement.ValueKind == JsonValueKind.Object && doc.RootElement.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+            {
+                return (StatusCodes.Status200OK, data.GetRawText());
+            }
+
+            return (StatusCodes.Status200OK, body);
         }
         catch (Exception ex) when (ex is HttpRequestException or TaskCanceledException or JsonException)
         {
