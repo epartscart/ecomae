@@ -1206,6 +1206,7 @@ public sealed class ErpModule : ISurfaceModule
                     total_vat = invoice.TotalVat,
                     total_incl_vat = invoice.TotalInclVat,
                     ledger_id = invoice.LedgerId,
+                    gl_journal_id = invoice.GlJournalId,
                 });
             });
         });
