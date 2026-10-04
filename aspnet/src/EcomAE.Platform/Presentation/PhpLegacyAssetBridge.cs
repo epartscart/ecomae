@@ -227,6 +227,8 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_ecomae_home_sections.css"),
                      ("/platform-assets/epc_ecomae_home_3d.css",
                          "content/general_pages/epc_ecomae_home_3d.css"),
+                     ("/platform-assets/epc_ecomae_home_plain.css",
+                         "content/general_pages/epc_ecomae_home_plain.css"),
                      ("/platform-assets/epc_ecomae_home_3d.js",
                          "content/general_pages/epc_ecomae_home_3d.js"),
                      ("/platform-assets/epc_ecomae_marketing_lifeos_film.css",
