@@ -1300,6 +1300,8 @@ app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Exact /en/ /ar/ /me/ /ru/ homes → same storefront as / (browser URL stays /en/).
 app.UseMiddleware<LangHomeFallbackMiddleware>();
+// Bare / on www.ecomae.com and www.epartscart.com (nginx classic-entry proxy, in-process).
+app.UseMiddleware<PublicHomeRewriteMiddleware>();
 // Industry package slugs (/gaming, /gold, /kontakty) + tax /shop/erp → dedicated apps.
 app.UseMiddleware<IndustryStorefrontSlugMiddleware>();
 // Explicit routing after host gates so any future Path rewrites before this line re-match.
@@ -1335,11 +1337,45 @@ app.MapGet(EcomAeRoutes.ReleaseIdentity, (IHostEnvironment environment) =>
     });
 });
 
-// robots.txt advertises /sitemap.xml; PHP child maps remain authoritative under sitemap-index.php.
-app.MapGet(EcomAeRoutes.SitemapXml, () =>
+// Public sitemap + robots. Do not 302 to sitemap-index.php — that PHP file is not an ASP.NET route.
+app.MapGet("/robots.txt", (HttpContext context) =>
+    Results.Text(StorefrontPublicSeo.RobotsTxt(context.Request.Host.Host), "text/plain; charset=utf-8"));
+
+app.MapGet(EcomAeRoutes.SitemapXml, async (
+    HttpContext context,
+    ISurfaceDashboardSummaryReporter dashboards,
+    CancellationToken cancellationToken) =>
 {
-    var response = Results.Redirect(StorefrontPublicSeo.PhpSitemapIndex, permanent: false);
-    return response;
+    var host = context.Request.Host.Host ?? string.Empty;
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    IEnumerable<string> paths;
+    if (StorefrontPublicSeo.IsEcomaeMarketingHost(host))
+    {
+        paths = StorefrontPublicSeo.EcomaeMarketingSitemapPaths;
+    }
+    else
+    {
+        var parts = await dashboards.ListStorefrontSitemapPartsAsync(2000, cancellationToken).ConfigureAwait(false);
+        var list = new List<string> { "/", "/en/" };
+        foreach (var (brand, article) in parts)
+        {
+            if (string.IsNullOrWhiteSpace(brand) || string.IsNullOrWhiteSpace(article))
+            {
+                continue;
+            }
+
+            list.Add("/en/parts/"
+                     + Uri.EscapeDataString(brand.Trim().ToUpperInvariant())
+                     + "/"
+                     + Uri.EscapeDataString(article.Trim()));
+        }
+
+        paths = list;
+    }
+
+    return Results.Content(
+        StorefrontPublicSeo.SitemapUrlset(origin, paths),
+        "application/xml; charset=utf-8");
 });
 
 app.MapGet(EcomAeRoutes.MigrationStatus, (IMigrationParityReporter reporter) => Results.Ok(reporter.BuildReport()));

@@ -5,7 +5,7 @@ public static class EcomAeRoutes
     public const string Health = "/health";
     public const string Readiness = "/ready";
     public const string ReleaseIdentity = "/migration/release";
-    /// <summary>Public SEO entry advertised in robots.txt; redirects to PHP sitemap-index.php.</summary>
+    /// <summary>Public SEO sitemap. ASP.NET emits a urlset (marketing paths or part CHPU). Not a redirect to sitemap-index.php.</summary>
     public const string SitemapXml = "/sitemap.xml";
     public const string MigrationStatus = "/migration/status";
     public const string MigrationSchema = "/migration/schema";
