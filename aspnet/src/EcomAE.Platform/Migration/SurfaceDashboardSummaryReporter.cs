@@ -3690,7 +3690,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
                 if (rows.Count > 0)
                 {
-                    rows = await ApplyCustomerMarkupToOffersAsync(connection, rows, cancellationToken).ConfigureAwait(false);
+                    rows = await PresentStorefrontWarehouseOffersAsync(connection, rows, cancellationToken).ConfigureAwait(false);
                     return new(normalized, rows, rows.Count, "database", string.Empty);
                 }
             }
@@ -3721,6 +3721,77 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         }
 
         return new(normalized, [], 0, "database", string.Empty);
+    }
+
+    public async Task<IReadOnlyList<(string Brand, string Article)>> ListStorefrontSitemapPartsAsync(
+        int limit,
+        CancellationToken cancellationToken = default)
+    {
+        var safeLimit = Math.Clamp(limit, 1, 2000);
+        if (!_connections.IsConfigured || TryGetUnboundTenantShopMessage(out _))
+        {
+            return [];
+        }
+
+        try
+        {
+            await using var connection = await OpenStorefrontShopAsync(cancellationToken).ConfigureAwait(false);
+            var meta = await LoadStorefrontStorageMetaByPriceIdAsync(connection, cancellationToken).ConfigureAwait(false);
+            var hidden = meta.Where(kv => !StorefrontWarehouseOfferPolicy.IsPublicStorage(kv.Value.Hidden, kv.Value.Paused))
+                .Select(kv => kv.Key)
+                .ToHashSet();
+            await using var command = connection.CreateCommand();
+            command.CommandTimeout = 8;
+            command.CommandText = """
+                SELECT UPPER(TRIM(d.`manufacturer`)) AS brand,
+                       d.`article` AS article,
+                       d.`price_id` AS price_id
+                FROM `shop_docpart_prices_data` d
+                WHERE IFNULL(d.`exist`, 0) > 0
+                  AND TRIM(IFNULL(d.`manufacturer`, '')) <> ''
+                  AND TRIM(IFNULL(d.`article`, '')) <> ''
+                GROUP BY UPPER(TRIM(d.`manufacturer`)), d.`article`, d.`price_id`
+                ORDER BY brand ASC, d.`article` ASC
+                LIMIT @limit
+                """;
+            AddParameter(command, "@limit", safeLimit);
+            var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+            var rows = new List<(string Brand, string Article)>();
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var priceId = Convert.ToInt32(reader["price_id"] is DBNull ? 0 : reader["price_id"], CultureInfo.InvariantCulture);
+                if (priceId > 0 && hidden.Contains(priceId))
+                {
+                    continue;
+                }
+
+                var brand = Convert.ToString(reader["brand"] is DBNull ? string.Empty : reader["brand"], CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+                var article = PriceLookupRequest.NormalizeArticle(
+                    Convert.ToString(reader["article"] is DBNull ? string.Empty : reader["article"], CultureInfo.InvariantCulture) ?? string.Empty);
+                if (brand.Length == 0 || article.Length == 0)
+                {
+                    continue;
+                }
+
+                if (!seen.Add(brand + "|" + article))
+                {
+                    continue;
+                }
+
+                rows.Add((brand, article));
+                if (rows.Count >= safeLimit)
+                {
+                    break;
+                }
+            }
+
+            return rows;
+        }
+        catch
+        {
+            return [];
+        }
     }
 
     public async Task<StorefrontPartStockProbeResult> ProbeStorefrontPartStockAsync(
@@ -4349,7 +4420,7 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     /// PHP <c>epc_cross_load_stock_for_references</c> — batch IN on normalized article norms
     /// (not per-row N+1). Cap keeps CHPU cross-search under the ~1–3s paint budget.
     /// </summary>
-    private static async Task<List<StorefrontCrossStockDigest>> LoadStorefrontCrossStockAsync(
+    private async Task<List<StorefrontCrossStockDigest>> LoadStorefrontCrossStockAsync(
         DbConnection connection,
         IReadOnlyList<StorefrontCrossRefDigest> references,
         CancellationToken cancellationToken)
@@ -4448,10 +4519,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
         }
 
-        return best.Values
+        var raw = best.Values
             .OrderBy(s => s.Brand, StringComparer.OrdinalIgnoreCase)
             .ThenBy(s => s.Article, StringComparer.OrdinalIgnoreCase)
             .ToList();
+        return await PresentStorefrontCrossStockAsync(connection, raw, cancellationToken).ConfigureAwait(false);
     }
 
     /// <summary>
@@ -5082,6 +5154,271 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
     }
 
     /// <summary>
+    /// PHP office-storage bunch: drop hidden / paused suppliers, then caption + extra days,
+    /// then customer markup. Article SQL stays unfiltered.
+    /// </summary>
+    private async Task<List<StorefrontPartOfferDigest>> PresentStorefrontWarehouseOffersAsync(
+        DbConnection connection,
+        List<StorefrontPartOfferDigest> rows,
+        CancellationToken cancellationToken)
+    {
+        if (rows.Count == 0)
+        {
+            return rows;
+        }
+
+        var presented = await ApplyStorefrontWarehouseFactsAsync(connection, rows, cancellationToken).ConfigureAwait(false);
+        if (presented.Count == 0)
+        {
+            return presented;
+        }
+
+        return await ApplyCustomerMarkupToOffersAsync(connection, presented, cancellationToken).ConfigureAwait(false);
+    }
+
+    private async Task<List<StorefrontCrossStockDigest>> PresentStorefrontCrossStockAsync(
+        DbConnection connection,
+        List<StorefrontCrossStockDigest> stock,
+        CancellationToken cancellationToken)
+    {
+        if (stock.Count == 0)
+        {
+            return stock;
+        }
+
+        var asOffers = stock.Select(s => new StorefrontPartOfferDigest(
+            s.PriceId,
+            string.Empty,
+            s.Brand,
+            s.ArticleNorm,
+            s.Article,
+            s.Name,
+            s.Price,
+            (int)Math.Round(s.Qty, MidpointRounding.AwayFromZero),
+            string.Empty,
+            s.Delivery)).ToList();
+        var presented = await PresentStorefrontWarehouseOffersAsync(connection, asOffers, cancellationToken).ConfigureAwait(false);
+        var byKey = presented.ToDictionary(
+            o => o.Manufacturer.Trim().ToUpperInvariant() + "|" + PriceLookupRequest.NormalizeArticle(o.Article),
+            o => o,
+            StringComparer.OrdinalIgnoreCase);
+        var kept = new List<StorefrontCrossStockDigest>(presented.Count);
+        foreach (var item in stock)
+        {
+            var key = item.Brand.Trim().ToUpperInvariant() + "|" + PriceLookupRequest.NormalizeArticle(
+                string.IsNullOrWhiteSpace(item.ArticleNorm) ? item.Article : item.ArticleNorm);
+            if (!byKey.TryGetValue(key, out var offer))
+            {
+                continue;
+            }
+
+            var days = StorefrontWarehouseOfferPolicy.DeliveryDays(offer.TimeToExe, 0);
+            kept.Add(item with
+            {
+                Price = offer.Price,
+                PricePurchase = offer.PricePurchase,
+                Markup = offer.Markup,
+                Qty = offer.Exist,
+                Delivery = days.ToString(CultureInfo.InvariantCulture),
+                Warehouse = offer.WarehouseCaption,
+                StorageId = offer.StorageId,
+                PriceId = offer.PriceId
+            });
+        }
+
+        return kept;
+    }
+
+    private async Task<List<StorefrontPartOfferDigest>> ApplyStorefrontWarehouseFactsAsync(
+        DbConnection connection,
+        List<StorefrontPartOfferDigest> rows,
+        CancellationToken cancellationToken)
+    {
+        var meta = await LoadStorefrontStorageMetaByPriceIdAsync(connection, cancellationToken).ConfigureAwait(false);
+        var manager = await UserSeesFullWarehouseNameAsync(connection, ResolveRequestUserId(), cancellationToken).ConfigureAwait(false);
+        var kept = new List<StorefrontPartOfferDigest>(rows.Count);
+        foreach (var row in rows)
+        {
+            if (row.PriceId > 0 && meta.TryGetValue(row.PriceId, out var storage))
+            {
+                if (!StorefrontWarehouseOfferPolicy.IsPublicStorage(storage.Hidden, storage.Paused))
+                {
+                    continue;
+                }
+
+                var caption = StorefrontWarehouseOfferPolicy.Caption(manager, storage.Name, storage.ShortName);
+                var days = StorefrontWarehouseOfferPolicy.DeliveryDays(row.TimeToExe, storage.AdditionalTimeHours);
+                var term = days.ToString(CultureInfo.InvariantCulture);
+                kept.Add(row with
+                {
+                    StorageId = storage.StorageId,
+                    OfficeId = storage.OfficeId > 0 ? storage.OfficeId : row.OfficeId,
+                    Storage = caption,
+                    WarehouseCaption = caption,
+                    TimeToExe = term,
+                    TimeToExeGuaranteed = term,
+                    Probability = storage.Probability > 0 ? storage.Probability : row.Probability
+                });
+                continue;
+            }
+
+            var fallback = FirstWarehouseLabel(row.PriceList, row.Storage);
+            kept.Add(row with
+            {
+                Storage = string.IsNullOrWhiteSpace(row.Storage) ? fallback : row.Storage.Trim(),
+                WarehouseCaption = string.IsNullOrWhiteSpace(row.WarehouseCaption) ? fallback : row.WarehouseCaption
+            });
+        }
+
+        return kept;
+    }
+
+    private static string FirstWarehouseLabel(string? priceList, string? storage)
+    {
+        var list = (priceList ?? string.Empty).Trim();
+        if (list.Length > 0 && list != "—")
+        {
+            return list;
+        }
+
+        var stor = (storage ?? string.Empty).Trim();
+        return stor is "" or "—" ? string.Empty : stor;
+    }
+
+    private async Task<bool> UserSeesFullWarehouseNameAsync(
+        DbConnection connection,
+        int userId,
+        CancellationToken cancellationToken)
+    {
+        if (userId <= 0)
+        {
+            return false;
+        }
+
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT IFNULL(`users`,'') AS users
+                FROM `shop_offices`
+                LIMIT 40
+                """;
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var users = Convert.ToString(reader["users"] is DBNull ? string.Empty : reader["users"], CultureInfo.InvariantCulture);
+                if (StorefrontWarehouseOfferPolicy.OfficeUsersContain(users, userId))
+                {
+                    return true;
+                }
+            }
+        }
+        catch
+        {
+            // offices optional
+        }
+
+        return false;
+    }
+
+    private sealed record StorefrontStorageMeta(
+        int StorageId,
+        int OfficeId,
+        string Name,
+        string ShortName,
+        bool Hidden,
+        bool Paused,
+        int AdditionalTimeHours,
+        int Probability);
+
+    private async Task<Dictionary<int, StorefrontStorageMeta>> LoadStorefrontStorageMetaByPriceIdAsync(
+        DbConnection connection,
+        CancellationToken cancellationToken)
+    {
+        var byStorage = new Dictionary<int, (int OfficeId, int AdditionalHours)>();
+        try
+        {
+            await using var map = connection.CreateCommand();
+            map.CommandText = """
+                SELECT `storage_id`, `office_id`, IFNULL(`additional_time`,0) AS additional_time
+                FROM `shop_offices_storages_map`
+                ORDER BY `office_id` ASC, `storage_id` ASC
+                LIMIT 2000
+                """;
+            await using var reader = await map.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var sid = Convert.ToInt32(reader["storage_id"] is DBNull ? 0 : reader["storage_id"], CultureInfo.InvariantCulture);
+                if (sid <= 0 || byStorage.ContainsKey(sid))
+                {
+                    continue;
+                }
+
+                byStorage[sid] = (
+                    Convert.ToInt32(reader["office_id"] is DBNull ? 0 : reader["office_id"], CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader["additional_time"] is DBNull ? 0 : reader["additional_time"], CultureInfo.InvariantCulture));
+            }
+        }
+        catch
+        {
+            // map optional
+        }
+
+        var byPrice = new Dictionary<int, StorefrontStorageMeta>();
+        try
+        {
+            await using var cmd = connection.CreateCommand();
+            cmd.CommandText = """
+                SELECT `id`,
+                       IFNULL(`name`,'') AS name,
+                       IFNULL(`short_name`,'') AS short_name,
+                       IFNULL(`hidden`,0) AS hidden,
+                       IFNULL(`storefront_temp_disabled`,0) AS paused,
+                       IFNULL(`connection_options`,'') AS connection_options
+                FROM `shop_storages`
+                WHERE `interface_type` = 2
+                ORDER BY `id` ASC
+                LIMIT 500
+                """;
+            await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var sid = Convert.ToInt32(reader["id"], CultureInfo.InvariantCulture);
+                var opts = Convert.ToString(reader["connection_options"] is DBNull ? string.Empty : reader["connection_options"], CultureInfo.InvariantCulture) ?? string.Empty;
+                var priceId = (int)PriceIdFromConnectionOptions(opts);
+                if (priceId <= 0 || byPrice.ContainsKey(priceId))
+                {
+                    continue;
+                }
+
+                byStorage.TryGetValue(sid, out var mapRow);
+                var probability = 0;
+                var prob = Regex.Match(opts, "\"probability\"\\s*:\\s*\"?(\\d+)", RegexOptions.CultureInvariant);
+                if (prob.Success && int.TryParse(prob.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var p))
+                {
+                    probability = p;
+                }
+
+                byPrice[priceId] = new StorefrontStorageMeta(
+                    sid,
+                    mapRow.OfficeId,
+                    Convert.ToString(reader["name"] is DBNull ? string.Empty : reader["name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToString(reader["short_name"] is DBNull ? string.Empty : reader["short_name"], CultureInfo.InvariantCulture) ?? string.Empty,
+                    Convert.ToInt32(reader["hidden"] is DBNull ? 0 : reader["hidden"], CultureInfo.InvariantCulture) != 0,
+                    Convert.ToInt32(reader["paused"] is DBNull ? 0 : reader["paused"], CultureInfo.InvariantCulture) != 0,
+                    mapRow.AdditionalHours,
+                    probability);
+            }
+        }
+        catch
+        {
+            // storages optional — leave offers unlabeled rather than failing the search
+        }
+
+        return byPrice;
+    }
+
+    /// <summary>
     /// PHP <c>prices_enclosure</c>: raw <c>shop_docpart_prices_data.price</c> is purchase;
     /// customer sell = purchase × (1 + markup) from <c>shop_offices_storages_map</c>.
     /// </summary>
@@ -5162,14 +5499,15 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             return 0;
         }
 
-        if (cookies.TryGetValue("user_id", out var user) && int.TryParse(user, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid) && uid > 0)
+        // Storefront login writes u_id (PHP DP_User). user_id / admin_u_id are the other session cookies.
+        foreach (var cookieName in new[] { "u_id", "user_id", "admin_u_id" })
         {
-            return uid;
-        }
-
-        if (cookies.TryGetValue("admin_u_id", out var admin) && int.TryParse(admin, NumberStyles.Integer, CultureInfo.InvariantCulture, out var aid) && aid > 0)
-        {
-            return aid;
+            if (cookies.TryGetValue(cookieName, out var raw)
+                && int.TryParse(raw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid)
+                && uid > 0)
+            {
+                return uid;
+            }
         }
 
         return 0;

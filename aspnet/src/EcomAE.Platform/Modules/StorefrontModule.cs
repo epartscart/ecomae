@@ -589,9 +589,12 @@ public sealed class StorefrontModule : ISurfaceModule
                 qty = access.PricesVisible ? (decimal?)r.Qty : null,
                 exist = access.PricesVisible ? r.Qty : (r.Qty > 0 ? 1m : 0m),
                 delivery = access.PricesVisible ? r.Delivery : "",
-                warehouse = access.PricesVisible ? r.Warehouse : "**",
-                storage_id = access.PricesVisible ? r.StorageId : 0,
+                warehouse = access.PricesVisible ? r.Warehouse : "",
+                storage_caption = r.Warehouse,
+                storage_id = r.StorageId,
                 price_id = access.PricesVisible ? r.PriceId : 0,
+                price_purchase = access.PricesVisible ? r.PricePurchase : 0m,
+                markup = access.PricesVisible ? r.Markup : 0,
                 prices_visible = access.PricesVisible
             }).ToList();
             return Results.Ok(new
