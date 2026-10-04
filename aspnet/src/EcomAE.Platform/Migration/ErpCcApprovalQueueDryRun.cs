@@ -8,7 +8,7 @@ public sealed class ErpCcApprovalQueueDryRun : IErpCcApprovalQueueDryRun
     {
         ArgumentNullException.ThrowIfNull(request);
         if (request.ConfirmWrites)
-            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes requested but live ASP.NET cc_approval_queue is not implemented; PHP ajax_erp.php remains authoritative.", request);
+            return Refuse("dry-run-confirm-refused","confirm_writes_refused","confirm_writes reached the dry-run evaluator; the live ASP.NET cc_approval_queue read is selected by the route handler when confirmation is set.", request);
         
         return new("dry-run-validated",0,true,false,true,"ok",true,
             ["ajax_erp.php?action=cc_approval_queue (NOT executed)"],
