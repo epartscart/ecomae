@@ -82,7 +82,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
     private static readonly HashSet<string> InTypes =
         ["opening", "purchase_in", "transfer_in", "return_in", "adjustment"];
     private static readonly HashSet<string> MovementTypes =
-        ["opening", "purchase_in", "sale_out", "transfer_in", "transfer_out", "adjustment", "return_in", "return_out"];
+        ["opening", "purchase_in", "sale_out", "transfer_in", "transfer_out", "adjustment", "return_in", "return_out", "mfg_issue", "mfg_receipt"];
 
     private readonly IErpWriteConnectionFactory _connections;
 
@@ -897,7 +897,7 @@ public sealed class ErpInventoryMovementWriteService : IErpInventoryMovementWrit
         return cols;
     }
 
-    private static async Task<long> RecordMovementCoreAsync(
+    internal static async Task<long> RecordMovementCoreAsync(
         DbConnection connection,
         ErpInventoryMovementWriteRequest request,
         string type,

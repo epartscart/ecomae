@@ -86,6 +86,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/aml-report-generate",
         "/erp/ajax/aml-seed-rules",
         "/erp/ajax/invoice-from-order",
+        "/erp/ajax/mfg-wo-issue",
+        "/erp/ajax/mfg-wo-complete",
     ];
 
     [Fact]
