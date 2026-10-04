@@ -56,6 +56,20 @@
             <label>Note <input name="note" maxlength="512" /></label>
             <button type="submit">Soft-close month</button>
         </form>
+        <form method="post" action="/erp/periods/lock" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+            <label>Year-month <input type="month" name="year_month" required /></label>
+            <label>Note <input name="note" maxlength="512" /></label>
+            <button type="submit">Lock month</button>
+        </form>
+        <form method="post" action="/erp/periods/reopen" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
+            <input type="hidden" name="confirmWrites" value="true" />
+            <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
+            <label>Year-month <input type="month" name="year_month" required /></label>
+            <label>Note <input name="note" maxlength="512" /></label>
+            <button type="submit">Reopen month</button>
+        </form>
         <form method="post" action="/erp/fiscal/set-lock" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 1rem">
             <input type="hidden" name="confirmWrites" value="true" />
             <input type="hidden" name="returnUrl" value="@OpenedReturnHref" />
