@@ -195,4 +195,72 @@ public sealed record CpPriceListConfig(
             Text("encoding"),
             Text("separator"));
     }
+
+    /// <summary>
+    /// Wizard column map (PHP price-list settings that <c>ajax_5_import_csv_to_db.php</c> reads).
+    /// Only keys present in <paramref name="fields"/> are written.
+    /// </summary>
+    public static async Task<int> SaveLayoutAsync(DbConnection connection, long priceId, IReadOnlyDictionary<string, string> fields, CancellationToken cancellationToken)
+    {
+        if (priceId <= 0 || fields.Count == 0)
+        {
+            return 0;
+        }
+
+        var sets = new List<string>();
+        var values = new List<object?>();
+        void IntCol(string key, string column)
+        {
+            if (!fields.TryGetValue(key, out var raw))
+            {
+                return;
+            }
+
+            if (!int.TryParse(raw.Trim(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value))
+            {
+                return;
+            }
+
+            sets.Add("`" + column + "` = ?");
+            values.Add(value);
+        }
+
+        void TextCol(string key, string column, int max)
+        {
+            if (!fields.TryGetValue(key, out var raw))
+            {
+                return;
+            }
+
+            var text = raw.Trim();
+            sets.Add("`" + column + "` = ?");
+            values.Add(text.Length <= max ? text : text[..max]);
+        }
+
+        IntCol("strings_to_left", "strings_to_left");
+        IntCol("manufacturer_col", "manufacturer_col");
+        IntCol("article_col", "article_col");
+        IntCol("name_col", "name_col");
+        IntCol("exist_col", "exist_col");
+        IntCol("price_col", "price_col");
+        IntCol("time_to_exe_col", "time_to_exe_col");
+        IntCol("storage_col", "storage_col");
+        IntCol("min_order_col", "min_order_col");
+        IntCol("clean_before", "clean_before");
+        TextCol("encoding", "encoding", 16);
+        TextCol("separator", "separator", 8);
+        TextCol("file_name_substring", "file_name_substring", 255);
+        if (sets.Count == 0)
+        {
+            return 0;
+        }
+
+        values.Add(priceId);
+        return await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `shop_docpart_prices` SET " + string.Join(", ", sets) + " WHERE `id` = ?"),
+            cancellationToken,
+            values.ToArray()).ConfigureAwait(false);
+    }
 }

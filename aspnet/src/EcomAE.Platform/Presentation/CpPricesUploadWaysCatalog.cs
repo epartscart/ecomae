@@ -36,7 +36,7 @@ public static class CpPricesUploadWaysCatalog
         new("cron", "Scheduled cron", "auto", "/cp/prices-upload-app?way=cron", "fa-clock-o", "cron",
             "Auto FTP / e-mail / URL jobs from the price-list manager."),
         new("wizard", "Classic wizard", "wizard", "/cp/shop/prices/upload", "fa-magic", "wizard",
-            "PHP ajax_1→7 pipeline for one configured list."),
+            "Column map + file posted to /cp/prices/upload-file (channel=wizard)."),
         new("multivendor", "Multi-vendor", "mv", "/cp/shop/prices/multivendor", "fa-sitemap", "mv",
             "One Excel/CSV → warehouse + price list per vendor."),
         new("vendor", "Vendor portal", "vendor", "/vendor/upload", "fa-truck", "vendor",
@@ -46,7 +46,7 @@ public static class CpPricesUploadWaysCatalog
         new("edit", "Manual grid edit", "edit", "/cp/prices-edit-app", "fa-pencil", "edit",
             "Edit warehouse rows after upload. Not a file ingest."),
         new("api", "Deploy / Treelax API", "api", "/cp/prices-upload-app?way=api", "fa-plug", "api",
-            "Automation POST (tech_key + file). No CP file picker."),
+            "POST /api/prices/deploy-upload with tech_key and price_file."),
     ];
 
     public static string EditListHref(long priceId)

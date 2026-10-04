@@ -9,9 +9,12 @@
 @layout Layout.PhpChromeLayout
 @using System.Globalization
 @using EcomAE.Platform.Auth
+@using EcomAE.Platform.Cp
 @using EcomAE.Platform.Migration
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
 @inject ILegacySessionValidator Sessions
+@inject ICpCsrfGuard Csrf
 @inject ISurfaceDashboardSummaryReporter Dashboards
 @inject IHttpContextAccessor Http
 
@@ -103,11 +106,60 @@
             </div>
         }
 
+        @if (_isAdmin && _view == "wizard")
+        {
+            <h2 style="margin:0 0 .55rem;font-size:1.05rem;">Column-mapping wizard</h2>
+            <form method="post" action="@EcomAeRoutes.CpPricesUploadFile" enctype="multipart/form-data" class="epc-prices-complete">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                <input type="hidden" name="channel" value="wizard" />
+                <input type="hidden" name="returnUrl" value="@WizardReturn" />
+                <label>Price list id <input type="number" name="price_id" min="1" required value="@(_detail?.Id.ToString(CultureInfo.InvariantCulture) ?? "")" style="width:7rem" /></label>
+                <label>Skip rows <input type="number" name="strings_to_left" min="0" value="1" style="width:5rem" /></label>
+                <label>Brand col <input type="number" name="manufacturer_col" min="0" value="1" style="width:4rem" /></label>
+                <label>Article col <input type="number" name="article_col" min="1" value="2" style="width:4rem" /></label>
+                <label>Name col <input type="number" name="name_col" min="0" value="3" style="width:4rem" /></label>
+                <label>Qty col <input type="number" name="exist_col" min="0" value="4" style="width:4rem" /></label>
+                <label>Price col <input type="number" name="price_col" min="1" value="5" style="width:4rem" /></label>
+                <label>Days col <input type="number" name="time_to_exe_col" min="0" value="6" style="width:4rem" /></label>
+                <label>Encoding <input type="text" name="encoding" value="auto" style="width:6rem" /></label>
+                <label>Separator <input type="text" name="separator" value=";" maxlength="8" style="width:4rem" /></label>
+                <label>File name contains <input type="text" name="file_name_substring" value="@(_detail?.FileNameSubstring ?? "")" style="width:8rem" /></label>
+                <label class="epc-price-action epc-price-action--pc">Price file
+                    <input type="file" name="price_file" accept=".csv,.txt,.xls,.xlsx" required />
+                </label>
+                <button type="submit">Import with this column map</button>
+            </form>
+            <p class="help-block">Same column numbers as PHP ajax_5: 1-based file columns saved on the list, then the file is imported. Header rows are skipped.</p>
+        }
+
+        @if (_isAdmin && _way == "cron")
+        {
+            <h2 style="margin:0 0 .55rem;font-size:1.05rem;">Scheduled update</h2>
+            <form method="post" action="@EcomAeRoutes.CpPricesCronTasks" class="epc-prices-complete">
+                <input type="hidden" name="confirmWrites" value="true" />
+                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                <input type="hidden" name="action" value="save" />
+                <input type="hidden" name="returnUrl" value="/cp/prices-upload-app?way=cron" />
+                <label>Price list ids <input type="text" name="prices" required placeholder="9104,9106" style="width:10rem" /></label>
+                <label>Active
+                    <select name="active"><option value="1" selected>yes</option><option value="0">no</option></select>
+                </label>
+                <label>Days <input type="text" name="days" value="1,2,3,4,5,6,7" style="width:10rem" /></label>
+                <label>Time <input type="text" name="time" value="08:15" placeholder="HH:MM" style="width:6rem" /></label>
+                <button type="submit">Save schedule</button>
+            </form>
+            <p class="help-block">The minute job is GET /cp/prices/cron-tick?key=tech_key&amp;wait=1. It imports every linked FTP, e-mail or URL list that is due.</p>
+        }
+
         @if (_view == "guide")
         {
             <div class="epc-prices-note">
-                Upload guide: PC file, FTP, e-mail, URL, cron, classic wizard, multi-vendor, vendor portal, review, and APIs.
-                Live import still posts to PHP pyprices (<code>cutoverAllowed=false</code>).
+                Upload guide: <a href="/cp/guides-app?g=prices-upload">/cp/guides-app?g=prices-upload</a>.
+                PC and the column wizard post to <code>/cp/prices/upload-file</code>.
+                FTP, e-mail and URL post to <code>/cp/prices/update-now</code>.
+                Schedules post to <code>/cp/prices/cron-tasks</code>; the minute tick is <code>/cp/prices/cron-tick?key=</code>.
+                Deploy API is <code>POST /api/prices/deploy-upload</code> (tech_key + price_file).
             </div>
         }
         else if (_view == "multivendor")
@@ -172,7 +224,11 @@
                     <dt>Encoding / separator</dt><dd>@(string.IsNullOrWhiteSpace(_detail.Encoding) ? "UTF-8" : _detail.Encoding) / @(string.IsNullOrWhiteSpace(_detail.Separator) ? ";" : _detail.Separator)</dd>
                 </dl>
                 <div class="epc-price-actions" style="margin-top:.75rem;">
-                    <form method="post" action="@CpPricesUploadWaysCatalog.PhpUploadFileAction" enctype="multipart/form-data">
+                    <form method="post" action="@EcomAeRoutes.CpPricesUploadFile" enctype="multipart/form-data">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                        <input type="hidden" name="channel" value="pc" />
+                        <input type="hidden" name="returnUrl" value="/cp/prices-upload-app" />
                         <input type="hidden" name="price_id" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
                         <label class="epc-price-action epc-price-action--pc">
                             <i class="fa fa-desktop"></i> PC file
@@ -185,14 +241,20 @@
                         <input type="hidden" name="returnUrl" value="/cp/prices-upload-app" />
                         <button type="submit" class="epc-price-action">Complete</button>
                     </form>
-                    <a class="epc-price-action epc-price-action--ftp" href="/cp/shop/prices/price?price_id=@_detail.Id.ToString(CultureInfo.InvariantCulture)&amp;way=ftp">FTP</a>
-                    <a class="epc-price-action epc-price-action--email" href="/cp/shop/prices/price?price_id=@_detail.Id.ToString(CultureInfo.InvariantCulture)&amp;way=email">E-mail</a>
-                    <a class="epc-price-action epc-price-action--url" href="/cp/shop/prices/price?price_id=@_detail.Id.ToString(CultureInfo.InvariantCulture)&amp;way=url">URL</a>
+                    <form method="post" action="@EcomAeRoutes.CpPricesUpdateNow" style="display:inline">
+                        <input type="hidden" name="confirmWrites" value="true" />
+                        <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                        <input type="hidden" name="price_id" value="@_detail.Id.ToString(CultureInfo.InvariantCulture)" />
+                        <input type="hidden" name="returnUrl" value="/cp/prices-upload-app" />
+                        <button type="submit" class="epc-price-action epc-price-action--ftp">FTP</button>
+                        <button type="submit" class="epc-price-action epc-price-action--email">E-mail</button>
+                        <button type="submit" class="epc-price-action epc-price-action--url">URL</button>
+                    </form>
                     <a class="epc-price-action" href="@CpPricesUploadWaysCatalog.WizardHref(_detail.Id)">Wizard</a>
                     <a class="epc-price-action" href="@CpPricesUploadWaysCatalog.ReviewHref(_detail.Id)">Review</a>
                 </div>
                 <div class="epc-prices-note">
-                    FTP password and save/create stay on the Classic twin. Complete session stamps last_updated and records_count here.
+                    PC upload and Update now write warehouse rows here. FTP host, mailbox and URL are the values saved on this list.
                 </div>
             }
         }
@@ -217,7 +279,7 @@
                 </label>
                 <button type="submit">Save storefront visibility</button>
             </form>
-            <p class="help-block" style="margin:0 0 1rem">File ingest stay Classic. This page does not invent a send.</p>
+            <p class="help-block" style="margin:0 0 1rem">File import, scheduled update and storefront visibility save on this page.</p>
         }
 
         @if (_view != "price")
@@ -268,16 +330,26 @@
                                     <td><a id="@($"records_count_{row.Id}")" href="@editHref">@row.RecordsCount.ToString(CultureInfo.InvariantCulture)</a></td>
                                     <td class="text-left">
                                         <div class="epc-price-actions">
-                                            <form method="post" action="@CpPricesUploadWaysCatalog.PhpUploadFileAction" enctype="multipart/form-data" style="display:inline;">
+                                            <form method="post" action="@EcomAeRoutes.CpPricesUploadFile" enctype="multipart/form-data" style="display:inline;">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                                                <input type="hidden" name="channel" value="pc" />
+                                                <input type="hidden" name="returnUrl" value="/cp/prices-upload-app" />
                                                 <input type="hidden" name="price_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
                                                 <label class="epc-price-action epc-price-action--pc" title="Upload from PC">
                                                     <i class="fa fa-desktop"></i> PC
                                                     <input type="file" name="@($"file_{row.Id}")" accept=".csv,.txt,.xls,.xlsx,.zip,.rar,.7z,.tar" style="display:none" onchange="this.form.submit()" />
                                                 </label>
                                             </form>
-                                            <a class="epc-price-action epc-price-action--ftp" href="@editHref">FTP</a>
-                                            <a class="epc-price-action epc-price-action--email" href="@editHref">E-mail</a>
-                                            <a class="epc-price-action epc-price-action--url" href="@editHref">URL</a>
+                                            <form method="post" action="@EcomAeRoutes.CpPricesUpdateNow" style="display:inline">
+                                                <input type="hidden" name="confirmWrites" value="true" />
+                                                <input type="hidden" name="csrf_guard_key" value="@_csrf" />
+                                                <input type="hidden" name="price_id" value="@row.Id.ToString(CultureInfo.InvariantCulture)" />
+                                                <input type="hidden" name="returnUrl" value="/cp/prices-upload-app" />
+                                                <button type="submit" class="epc-price-action epc-price-action--ftp">FTP</button>
+                                                <button type="submit" class="epc-price-action epc-price-action--email">E-mail</button>
+                                                <button type="submit" class="epc-price-action epc-price-action--url">URL</button>
+                                            </form>
                                         </div>
                                     </td>
                                     <td class="text-left">
@@ -307,13 +379,14 @@
         <div class="epc-prices-note">
             Uploaded amounts are supplier purchase. Storefront customer price = purchase + group markup
             (<code>shop_offices_storages_map</code>). Staff with <code>for_percentage</code> see purchase under the sell price.
-            File ingest stay Classic / pyprices. Complete session and storefront toggle save here.
+            PC, wizard, FTP, e-mail, URL and cron write here. Complete session and storefront toggle save here.
         </div>
     </div>
 </PhpCpDesktopChrome>
 
 @code {
     private bool _isAdmin;
+    private string _csrf = "";
     private string _way = "";
     private string _view = "";
     private string _source = "migration";
@@ -322,6 +395,11 @@
     private CpPriceListsSummary _summary = new(0, 0, 0, "migration", "");
     private IReadOnlyList<CpDocpartPriceListDigest> _lists = [];
     private CpDocpartPriceListDetail? _detail;
+
+    private string WizardReturn
+        => _detail is null
+            ? "/cp/shop/prices/upload"
+            : "/cp/shop/prices/upload?price_id=" + _detail.Id.ToString(CultureInfo.InvariantCulture);
 
     protected override async Task OnInitializedAsync()
     {
@@ -336,6 +414,10 @@
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         _isAdmin = session.Kind == LegacySessionKind.Admin && session.Capabilities.Contains("cp");
+        if (_isAdmin)
+        {
+            _csrf = await Csrf.KeyForAsync(ctx, session, ctx.RequestAborted);
+        }
 
         var path = ctx.Request.Path.Value ?? "";
         if (path.Contains("/multivendor", StringComparison.OrdinalIgnoreCase))
@@ -346,6 +428,11 @@
         else if (path.Contains("/guide", StringComparison.OrdinalIgnoreCase))
         {
             _view = "guide";
+        }
+        else if (path.Contains("/prices/upload", StringComparison.OrdinalIgnoreCase))
+        {
+            _view = "wizard";
+            _way = "wizard";
         }
         else if (path.Contains("/review", StringComparison.OrdinalIgnoreCase))
         {
@@ -375,7 +462,7 @@
         _lists = digest.Lists;
         _source = digest.Source;
 
-        if (_view == "price"
+        if ((_view is "price" or "wizard")
             && long.TryParse(ctx.Request.Query["price_id"].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var priceId)
             && priceId > 0)
         {

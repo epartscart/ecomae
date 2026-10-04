@@ -30,6 +30,7 @@ internal static class CpPriceImportEndpoints
             ILegacySessionValidator validator,
             ICpCsrfGuard csrf,
             ICpPriceImportService imports,
+            IErpWriteConnectionFactory connections,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
@@ -66,6 +67,28 @@ internal static class CpPriceImportEndpoints
             if (!input.Flag("confirmWrites", "confirm_writes"))
             {
                 return Results.Json(DryRun("Set confirmWrites=1 to import " + file.FileName + " into price list " + priceId.ToString(CultureInfo.InvariantCulture) + ".", sessionPayload(session)));
+            }
+
+            if (channel == "wizard" && connections.IsConfigured)
+            {
+                var layout = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var key in new[]
+                         {
+                             "strings_to_left", "manufacturer_col", "article_col", "name_col", "exist_col", "price_col",
+                             "time_to_exe_col", "storage_col", "min_order_col", "clean_before", "encoding", "separator", "file_name_substring",
+                         })
+                {
+                    if (form.ContainsKey(key))
+                    {
+                        layout[key] = form[key].ToString();
+                    }
+                }
+
+                if (layout.Count > 0)
+                {
+                    await using var connection = await connections.OpenAsync(cancellationToken);
+                    await CpPriceListConfig.SaveLayoutAsync(connection, priceId, layout, cancellationToken);
+                }
             }
 
             await using var content = file.OpenReadStream();
@@ -376,8 +399,13 @@ internal static class CpPriceImportEndpoints
         ["session"] = session,
     };
 
+    /// <summary>PHP ajax handlers return JSON. The operator page posts <c>returnUrl</c> and follows the flash redirect.</summary>
+    private static bool PreferJson(HttpContext context)
+        => !context.Request.HasFormContentType || string.IsNullOrWhiteSpace(context.Request.Form["returnUrl"]);
+
     private static IResult Answer(HttpContext context, bool ok, string code, string message, object session)
-        => LiveWriteFormBinder.Complete(context, ReturnUrl, ok, message, new Dictionary<string, object?>
+    {
+        var payload = new Dictionary<string, object?>
         {
             ["status"] = ok,
             ["ok"] = ok,
@@ -386,13 +414,25 @@ internal static class CpPriceImportEndpoints
             ["writes"] = 0,
             ["phpAuthoritative"] = false,
             ["session"] = session,
-        });
+        };
+        if (PreferJson(context))
+        {
+            return Results.Json(payload);
+        }
+
+        return LiveWriteFormBinder.Complete(context, ReturnUrl, ok, message, payload);
+    }
 
     private static IResult Answer(HttpContext context, CpPriceImportResult result, object session)
     {
         var payload = result.ToPayload();
         payload["phpAuthoritative"] = false;
         payload["session"] = session;
+        if (PreferJson(context))
+        {
+            return Results.Json(payload);
+        }
+
         return LiveWriteFormBinder.Complete(context, ReturnUrl, result.Succeeded, result.Message, payload, StatusCodes.Status200OK);
     }
 
