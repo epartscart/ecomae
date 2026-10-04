@@ -73,4 +73,21 @@ public sealed class ErpSupplierWriteServiceTests
         Assert.Contains("MapPost(EcomAeRoutes.ErpGlSyncUnposted, HandleGlSyncUnpostedAsync)", module);
         Assert.Contains("\"Synced \" + n + \" sub-ledger entry(ies) to GL\"", module);
     }
+
+    [Fact]
+    public void GlPostSalesMirrorsPhpSalesRecognition()
+    {
+        var src = Src("Erp/ErpGlPostSalesWriteService.cs");
+        Assert.Contains("WHERE `source_type` = 'sales' AND `source_id` = ? AND `active` = 1 LIMIT 1", src);
+        Assert.Contains("Reference = \"ORD-\" + id", src);
+        Assert.Contains("\"Sales recognition order #\" + id", src);
+        Assert.Contains("LegislationRef = \"vat-decree-8-2017\"", src);
+        Assert.DoesNotContain("CREATE TABLE", src, StringComparison.OrdinalIgnoreCase);
+        Assert.Equal("exempt", ErpGlPostSalesWriteService.SalesTreatment(new ErpDashboardReadService.TenantVat("AE", false, true, 5m), "AE", false));
+        Assert.Equal("export", ErpGlPostSalesWriteService.SalesTreatment(new ErpDashboardReadService.TenantVat("AE", true, true, 5m), "SA", false));
+        Assert.Equal("standard", ErpGlPostSalesWriteService.SalesTreatment(new ErpDashboardReadService.TenantVat("AE", true, true, 5m), "AE", false));
+        var module = Src("Modules/ErpModule.cs");
+        Assert.Contains("MapPost(EcomAeRoutes.ErpGlPostSales, HandleGlPostSalesAsync)", module);
+        Assert.Contains("\"Posted \" + n + \" sales journal(s) to GL\"", module);
+    }
 }

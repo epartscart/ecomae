@@ -259,7 +259,7 @@ public sealed class ErpDashboardReadService : IErpDashboardReadService
 
     public sealed record CustomerVatContext(string Country, string CustomerType, bool TaxExempt, string VatType);
 
-    private static async Task<CustomerVatContext> CustomerContextAsync(DbConnection c, long userId, CancellationToken ct)
+    public static async Task<CustomerVatContext> CustomerContextAsync(DbConnection c, long userId, CancellationToken ct)
     {
         if (userId <= 0)
         {
@@ -314,7 +314,7 @@ public sealed class ErpDashboardReadService : IErpDashboardReadService
         }
     }
 
-    private static async Task<List<(decimal Unit, decimal Qty)>> ItemsAsync(DbConnection c, long orderId, CancellationToken ct)
+    public static async Task<List<(decimal Unit, decimal Qty)>> ItemsAsync(DbConnection c, long orderId, CancellationToken ct)
     {
         var items = new List<(decimal, decimal)>();
         try
@@ -337,7 +337,7 @@ public sealed class ErpDashboardReadService : IErpDashboardReadService
         return items;
     }
 
-    private static async Task<TenantVat> LoadTenantVatAsync(DbConnection c, CancellationToken ct)
+    public static async Task<TenantVat> LoadTenantVatAsync(DbConnection c, CancellationToken ct)
     {
         var country = NormalizeCountry(await SettingAsync(c, "company_country_code", "AE", ct).ConfigureAwait(false));
         try

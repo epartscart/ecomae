@@ -14,7 +14,7 @@ public sealed class ErpGlPostSalesDryRun : IErpGlPostSalesDryRun
         if (request.ConfirmWrites)
         {
             return Refuse("dry-run-confirm-refused", "confirm_writes_refused",
-                "confirm_writes requested but live ASP.NET gl_post_sales is not implemented; PHP ajax_erp.php remains authoritative.",
+                "confirm_writes is handled by the live IErpGlPostSalesWriteService.PostAsync; the dry-run never executes.",
                 request);
         }
 
