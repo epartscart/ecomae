@@ -80,6 +80,10 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — named tenant homes and industries.ecomae.com
+
+Local Kestrel: bare `/` on electronicae, stylenlook, thejewellerytrend, and taxofinca (apex and www) 404'd because only epartscart.com was rewritten to `/storefront/app`. Those hosts now use the same storefront rewrite. `/cp` already redirected to the branded CP login. `industries.ecomae.com` `/` now serves the `/platform/industries` snapshot (`X-EcomAE-Industry-Showcase: directory`). The 28 `{slug}.ecomae.com` hubs were already snapshots.
+
 ### Checkpoint 2026-10-04 — storefront lang aliases and marketing industry cards
 
 Local Kestrel (www.epartscart.com / www.ecomae.com, port 5080):

@@ -33,7 +33,10 @@ public sealed class EcomaeIndustryShowcaseMiddleware
         context.Response.StatusCode = StatusCodes.Status200OK;
         context.Response.ContentType = "text/html; charset=utf-8";
         context.Response.Headers.CacheControl = "no-store";
-        context.Response.Headers["X-EcomAE-Industry-Showcase"] = "snapshot";
+        var showcaseKind = EcomaeIndustryShowcaseSnapshots.IsIndustriesDirectoryHost(context.Request.Host.Host)
+            ? "directory"
+            : "snapshot";
+        context.Response.Headers["X-EcomAE-Industry-Showcase"] = showcaseKind;
         if (HttpMethods.IsHead(context.Request.Method))
         {
             return;
