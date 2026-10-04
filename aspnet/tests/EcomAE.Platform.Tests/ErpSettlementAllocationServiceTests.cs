@@ -61,4 +61,13 @@ public sealed class ErpSettlementAllocationServiceTests
             new List<ErpOpenDocument> { new(5, "INV-5", 10, 120m, 40m) },
             0m));
     }
+
+    [Fact]
+    public void ReceiptKnockOffReChecksOutstandingAtomically()
+    {
+        var sql = ErpSettlementAllocationService.ReceiptKnockOffSql;
+        Assert.Contains("WHERE `id` = ? AND ROUND(`total_incl_vat` - `paid_amount`, 2) >= ? - 0.005", sql, StringComparison.Ordinal);
+        Assert.Equal(5, sql.Count(c => c == '?'));
+        Assert.True(sql.IndexOf("`amount_due` =", StringComparison.Ordinal) < sql.IndexOf("`paid_amount` = ROUND", StringComparison.Ordinal));
+    }
 }

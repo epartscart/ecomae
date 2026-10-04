@@ -250,20 +250,24 @@ public sealed class ErpSettlementAllocationService : IErpSettlementAllocationSer
                 continue;
             }
 
-            await ErpDb.ExecuteAsync(
+            var updated = await ErpDb.ExecuteAsync(
                 connection,
                 null,
                 // MySQL applies SET assignments left to right, so `amount_due` must be derived
-                // before `paid_amount` is raised or the payment is subtracted twice.
-                ErpDb.Positional(
-                    "UPDATE `epc_einvoice_documents` SET `amount_due` = ROUND(`total_incl_vat` - (`paid_amount` + ?), 2),"
-                    + " `paid_amount` = ROUND(`paid_amount` + ?, 2), `time_updated` = ?"
-                    + " WHERE `id` = ?"),
+                // before `paid_amount` is raised or the payment is subtracted twice. The WHERE
+                // re-checks the outstanding balance atomically so concurrent receipts cannot
+                // push `paid_amount` past `total_incl_vat`.
+                ErpDb.Positional(ReceiptKnockOffSql),
                 cancellationToken,
                 apply,
                 apply,
                 time,
-                invoiceId).ConfigureAwait(false);
+                invoiceId,
+                apply).ConfigureAwait(false);
+            if (updated == 0)
+            {
+                continue;
+            }
 
             await InsertAllocationAsync(
                 connection,
@@ -375,6 +379,12 @@ public sealed class ErpSettlementAllocationService : IErpSettlementAllocationSer
     }
 
     /// <summary>Payments already booked against a bill (PHP sums the debit supplier ledger rows).</summary>
+    /// <summary>Conditional knock-off: only applies when the invoice still has at least the applied amount outstanding.</summary>
+    public const string ReceiptKnockOffSql =
+        "UPDATE `epc_einvoice_documents` SET `amount_due` = ROUND(`total_incl_vat` - (`paid_amount` + ?), 2),"
+        + " `paid_amount` = ROUND(`paid_amount` + ?, 2), `time_updated` = ?"
+        + " WHERE `id` = ? AND ROUND(`total_incl_vat` - `paid_amount`, 2) >= ? - 0.005";
+
     private const string PaidSubquery =
         "IFNULL((SELECT SUM(a.`amount`) FROM `epc_erp_supplier_accounting` a"
         + " WHERE a.`purchase_id` = p.`id` AND a.`active` = 1 AND a.`is_credit` = 0), 0)";
@@ -418,7 +428,8 @@ public sealed class ErpSettlementAllocationService : IErpSettlementAllocationSer
         command.Transaction = transaction;
         command.CommandText = ErpDb.Positional(
             "SELECT p.`total_amount`, " + PaidSubquery + " AS paid FROM `epc_erp_purchases` p"
-            + " WHERE p.`id` = ? AND p.`supplier_id` = ? AND p.`active` = 1 LIMIT 1");
+            + " WHERE p.`id` = ? AND p.`supplier_id` = ? AND p.`active` = 1 LIMIT 1"
+            + (transaction is null ? string.Empty : " FOR UPDATE"));
         ErpDb.AddParameters(command, billId, supplierId);
 
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
