@@ -216,7 +216,7 @@
                     Fields="@QualityWorkspaceFields"
                     Lines="@QualityWorkspaceLines"
                     Tabs="@QualityWorkspaceTabs" />
-                <p class="text-muted" style="margin:.85rem 0 0">NCR create and update writes stay here. Order create/record remains Classic.</p>
+                <p class="text-muted" style="margin:.85rem 0 0">NCR create and update writes stay here. Quality order create and result recording also post from this page.</p>
                 @if (_openedSiblings.Count > 0)
                 {
                     <p class="text-muted" style="margin:1rem 0 .4rem">Same-status siblings</p>
@@ -374,7 +374,7 @@
     }
 
     <div class="epc-erp-empty" style="display:block;margin-top:12px;padding:8px 10px;border:1px solid #c5d4de;background:#f8fafc;color:#475569;font-size:12px;">
-        Source: @_source. Live: <code>qm_ncr_create</code> and <code>qm_ncr_update</code>. Open ?ncr_id= loads the corrective-action excerpt. Order create/record stays Classic.
+        Source: @_source. Live: <code>qm_ncr_create</code> and <code>qm_ncr_update</code>. Open ?ncr_id= loads the corrective-action excerpt. Quality order create and result recording post to <code>/erp/quality/order-create</code> and <code>/erp/quality/order-record</code>.
         @if (!string.IsNullOrWhiteSpace(_message)) { <span> @_message</span> }
     </div>
 </PhpErpDesktopChrome>
