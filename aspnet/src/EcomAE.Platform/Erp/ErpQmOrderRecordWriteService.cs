@@ -5,8 +5,16 @@ namespace EcomAE.Platform.Erp;
 /// <summary>Live PHP <c>epc_qm_order_record</c> twin; quality schema creation remains PHP-owned.</summary>
 public interface IErpQmOrderRecordWriteService
 {
-    Task<ErpSimpleWriteResult> RecordAsync(long orderId, IReadOnlyDictionary<long, (decimal? Number, string Text)> values, CancellationToken cancellationToken = default);
+    Task<ErpQmOrderRecordResult> RecordAsync(long orderId, IReadOnlyDictionary<long, (decimal? Number, string Text)> values, CancellationToken cancellationToken = default);
 }
+
+/// <summary>PHP <c>epc_qm_order_record</c> return shape: verdict + per-test results.</summary>
+public sealed record ErpQmOrderRecordResult(
+    ErpSimpleWriteResult Result,
+    string Verdict,
+    IReadOnlyList<ErpQmResultItem> Results);
+
+public sealed record ErpQmResultItem(long TestId, string TestName, string Result);
 
 public sealed class ErpQmOrderRecordWriteService : IErpQmOrderRecordWriteService
 {
@@ -14,10 +22,10 @@ public sealed class ErpQmOrderRecordWriteService : IErpQmOrderRecordWriteService
 
     public ErpQmOrderRecordWriteService(IErpWriteConnectionFactory connections) => _connections = connections;
 
-    public async Task<ErpSimpleWriteResult> RecordAsync(long orderId, IReadOnlyDictionary<long, (decimal? Number, string Text)> values, CancellationToken cancellationToken = default)
+    public async Task<ErpQmOrderRecordResult> RecordAsync(long orderId, IReadOnlyDictionary<long, (decimal? Number, string Text)> values, CancellationToken cancellationToken = default)
     {
-        if (orderId <= 0) return ErpSimpleWriteResult.Fail("invalid", "A quality order id is required.");
-        if (!_connections.IsConfigured) return ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured.");
+        if (orderId <= 0) return new(ErpSimpleWriteResult.Fail("invalid", "A quality order id is required."), string.Empty, Array.Empty<ErpQmResultItem>());
+        if (!_connections.IsConfigured) return new(ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured."), string.Empty, Array.Empty<ErpQmResultItem>());
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         long planId;
@@ -28,7 +36,7 @@ public sealed class ErpQmOrderRecordWriteService : IErpQmOrderRecordWriteService
             parameter.Value = orderId;
             command.Parameters.Add(parameter);
             var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-            if (scalar is null || scalar is DBNull) return ErpSimpleWriteResult.Fail("invalid", "Quality order not found.");
+            if (scalar is null || scalar is DBNull) return new(ErpSimpleWriteResult.Fail("invalid", "Quality order not found."), string.Empty, Array.Empty<ErpQmResultItem>());
             planId = Convert.ToInt64(scalar);
         }
 
@@ -46,6 +54,7 @@ public sealed class ErpQmOrderRecordWriteService : IErpQmOrderRecordWriteService
 
         await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional("DELETE FROM `epc_qm_result` WHERE `order_id`=?"), cancellationToken, orderId).ConfigureAwait(false);
         var verdict = tests.Count == 0 ? string.Empty : "pass";
+        var results = new List<ErpQmResultItem>(tests.Count);
         foreach (var test in tests)
         {
             values.TryGetValue(test.Id, out var value);
@@ -54,9 +63,10 @@ public sealed class ErpQmOrderRecordWriteService : IErpQmOrderRecordWriteService
                 : value.Number.HasValue && (!test.Min.HasValue || value.Number.Value >= test.Min.Value - 0.000000001m) && (!test.Max.HasValue || value.Number.Value <= test.Max.Value + 0.000000001m) ? "pass" : "fail";
             if (result != "pass") verdict = "fail";
             await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional("INSERT INTO `epc_qm_result` (`order_id`,`test_id`,`test_name`,`value_num`,`value_text`,`result`,`time_created`) VALUES (?,?,?,?,?,?,?)"), cancellationToken, orderId, test.Id, test.Name, value.Number, value.Text, result, DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+            results.Add(new ErpQmResultItem(test.Id, test.Name, result));
         }
 
         var writes = await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional("UPDATE `epc_qm_order` SET `status`='completed', `verdict`=? WHERE `id`=?"), cancellationToken, verdict, orderId).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Quality results recorded", orderId) with { Writes = writes };
+        return new(ErpSimpleWriteResult.Ok("Quality results recorded", orderId) with { Writes = writes }, verdict, results);
     }
 }

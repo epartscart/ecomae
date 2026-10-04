@@ -371,6 +371,7 @@ builder.Services.AddSingleton<IErpPfClearDemoDryRun, ErpPfClearDemoDryRun>();
 builder.Services.AddSingleton<IErpPfSyncOrdersDryRun, ErpPfSyncOrdersDryRun>();
 builder.Services.AddSingleton<IErpDemoSeedSalesDryRun, ErpDemoSeedSalesDryRun>();
 builder.Services.AddSingleton<IErpDemoClearSalesDryRun, ErpDemoClearSalesDryRun>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDemoSalesWriteService, EcomAE.Platform.Erp.ErpDemoSalesWriteService>();
 builder.Services.AddSingleton<IErpCtrOcrDryRun, ErpCtrOcrDryRun>();
 builder.Services.AddSingleton<IErpDocxSaveDryRun, ErpDocxSaveDryRun>();
 builder.Services.AddSingleton<IErpDocxDeleteDryRun, ErpDocxDeleteDryRun>();
