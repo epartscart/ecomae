@@ -2951,21 +2951,62 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesFromOrder, async (
             HttpContext context,
-            ErpPurchaseFromOrderBody? body,
             ILegacySessionValidator validator,
             IErpPurchaseFromOrderDryRun dryRun,
+            IErpPurchaseFromOrderAdjustWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for purchase-from-order dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/purchases-app",
+                    "Admin ERP capability required for purchase-from-order.");
             }
-            body ??= new ErpPurchaseFromOrderBody(0, 0, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpPurchaseFromOrderRequest(body.OrderId, body.SupplierId, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPurchaseFromOrderBody>(context, cancellationToken)
+                       ?? new ErpPurchaseFromOrderBody(0, 0, false);
+            var orderId = body.OrderId;
+            var supplierId = body.SupplierId;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                orderId = LiveWriteFormBinder.Long(form, "orderId", "order_id");
+                supplierId = LiveWriteFormBinder.Long(form, "supplierId", "supplier_id");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpPurchaseFromOrderRequest(orderId, supplierId, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(
+                context,
+                session,
+                "/erp/purchases-app",
+                async () =>
+                {
+                    var r = await writes.FromOrderAsync(orderId, (int)supplierId, session.UserId, cancellationToken);
+                    var message = "Purchase #" + r.PurchaseId + " created from order #" + r.OrderId
+                        + (r.InventoryLineCount > 0
+                            ? "; inventory: " + r.InventoryLineCount + " line(s)"
+                              + (r.InventoryReceiptPosted ? " received" : " (receipt pending — check warehouse link)")
+                            : string.Empty);
+                    return (message, (object)new
+                    {
+                        purchase_id = r.PurchaseId,
+                        order_id = r.OrderId,
+                        amount_ex_vat = r.AmountExVat,
+                        inventory_line_count = r.InventoryLineCount,
+                        inventory_receipt_posted = r.InventoryReceiptPosted,
+                    });
+                });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpCcySetRate, HandleCcySetRateAsync).DisableAntiforgery();
@@ -3108,21 +3149,63 @@ public sealed class ErpModule : ISurfaceModule
 
         endpoints.MapPost(EcomAeRoutes.ErpPurchasesAdjust, async (
             HttpContext context,
-            ErpPurchaseAdjustmentBody? body,
             ILegacySessionValidator validator,
             IErpPurchaseAdjustmentDryRun dryRun,
+            IErpPurchaseFromOrderAdjustWriteService writes,
             CancellationToken cancellationToken) =>
         {
             var session = await validator.ValidateAsync(context, cancellationToken);
             if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
             {
-                return Unauthorized("Admin ERP capability required for purchase adjust dry-run.");
+                return LiveWriteFormBinder.LoginRedirect(
+                    context,
+                    "/erp/login?returnUrl=/erp/purchases-app",
+                    "Admin ERP capability required for purchase adjustment.");
             }
-            body ??= new ErpPurchaseAdjustmentBody(0, 0, null, false);
-            var result = await dryRun.EvaluateAsync(
-                new ErpPurchaseAdjustmentRequest(body.PurchaseId, body.DeltaExVat, body.Note, body.ConfirmWrites),
-                cancellationToken);
-            return Results.Ok(result.ToPayload(SessionPayload(session)));
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpPurchaseAdjustmentBody>(context, cancellationToken)
+                       ?? new ErpPurchaseAdjustmentBody(0, 0, null, false);
+            var purchaseId = body.PurchaseId;
+            var delta = body.DeltaExVat;
+            var note = body.Note;
+            var reference = body.Reference;
+            var postGl = body.PostGl;
+            var confirm = body.ConfirmWrites;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                purchaseId = LiveWriteFormBinder.Long(form, "purchaseId", "purchase_id");
+                delta = LiveWriteFormBinder.Dec(form, "deltaExVat", "delta_ex_vat");
+                note = LiveWriteFormBinder.Text(form, "note");
+                reference = LiveWriteFormBinder.Text(form, "reference");
+                postGl = LiveWriteFormBinder.Flag(form, "postGl", "post_gl");
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (!confirm)
+            {
+                var result = await dryRun.EvaluateAsync(
+                    new ErpPurchaseAdjustmentRequest(purchaseId, delta, note, false),
+                    cancellationToken);
+                return Results.Ok(result.ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(
+                context,
+                session,
+                "/erp/purchases-app",
+                async () =>
+                {
+                    var r = await writes.AdjustAsync(purchaseId, delta, note, reference, postGl, session.UserId, cancellationToken);
+                    return ("Purchase adjusted", (object)new
+                    {
+                        purchase_id = r.PurchaseId,
+                        delta_ex_vat = r.DeltaExVat,
+                        new_total = r.NewTotal,
+                        ledger_id = r.LedgerId,
+                        gl_journal_id = r.GlJournalId,
+                    });
+                });
         });
 
         endpoints.MapPost(EcomAeRoutes.ErpOrderSettlement, async (
@@ -22068,7 +22151,7 @@ public sealed class ErpModule : ISurfaceModule
         long Time = 0,
         bool PostGl = false);
     private sealed record ErpFiscalSetLockBody(long LockDateUnix = 0, string? Note = null, bool ConfirmWrites = false);
-    private sealed record ErpPurchaseAdjustmentBody(long PurchaseId, decimal DeltaExVat, string? Note = null, bool ConfirmWrites = false);
+    private sealed record ErpPurchaseAdjustmentBody(long PurchaseId, decimal DeltaExVat, string? Note = null, bool ConfirmWrites = false, string? Reference = null, bool PostGl = false);
     private sealed record ErpOrderSettlementBody(
         long OrderId = 0,
         decimal Amount = 0,

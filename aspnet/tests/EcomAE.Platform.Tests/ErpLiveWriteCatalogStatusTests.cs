@@ -24,6 +24,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/invoice-save",
         "/erp/ajax/einvoice-submit",
         "/erp/ajax/opening-post-batch",
+        "/erp/purchases/from-order",
+        "/erp/purchases/adjust",
     ];
 
     [Fact]
