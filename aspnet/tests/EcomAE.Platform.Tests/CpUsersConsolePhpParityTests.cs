@@ -1,4 +1,5 @@
 using EcomAE.Platform.Cp;
+using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using Xunit;
 
@@ -95,6 +96,32 @@ public sealed class CpUsersConsolePhpParityTests
         Assert.Equal("0", CpUserEditorService.UsersColumn(slim, "time_last_visit", "0"));
         Assert.Equal("0", CpUserEditorService.UsersColumn(slim, "reg_variant", "0"));
         Assert.Equal("0", CpUserEditorService.UsersColumn(slim, "admin_created", "0"));
+    }
+
+    [Fact]
+    public void SelectCpUsers_UsesZeroWhenTimestampColumnsAreAbsent()
+    {
+        var slim = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "user_id", "email", "phone", "unlocked",
+        };
+        var sql = LegacySurfaceDashboardSql.SelectCpUsersForColumns(slim);
+        Assert.Contains("`email`", sql, StringComparison.Ordinal);
+        Assert.Contains("`phone`", sql, StringComparison.Ordinal);
+        Assert.Contains("`unlocked`", sql, StringComparison.Ordinal);
+        Assert.Contains("0 AS `time_registered`", sql, StringComparison.Ordinal);
+        Assert.Contains("0 AS `time_last_visit`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain(", `time_registered`,", sql, StringComparison.Ordinal);
+        Assert.Contains("ORDER BY `user_id` DESC", sql, StringComparison.Ordinal);
+        Assert.Contains("LIMIT @limit", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("DELETE", sql, StringComparison.OrdinalIgnoreCase);
+
+        var full = LegacySurfaceDashboardSql.SelectCpUsersForColumns(new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "user_id", "email", "phone", "unlocked", "time_registered", "time_last_visit",
+        });
+        Assert.Contains("`time_registered`, `time_last_visit`", full, StringComparison.Ordinal);
+        Assert.DoesNotContain("0 AS `time_registered`", full, StringComparison.Ordinal);
     }
 
     [Fact]

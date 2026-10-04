@@ -1283,6 +1283,20 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 : "");
     }
 
+    private static async Task<HashSet<string>> TableColumnsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW COLUMNS FROM `" + table + "`";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            columns.Add(reader.GetString(0));
+        }
+
+        return columns;
+    }
+
     private static bool HasColumn(System.Data.Common.DbDataReader reader, string name)
     {
         for (var i = 0; i < reader.FieldCount; i++)
@@ -1307,8 +1321,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var userColumns = await TableColumnsAsync(connection, "users", cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectCpUsers;
+            command.CommandText = LegacySurfaceDashboardSql.SelectCpUsersForColumns(userColumns);
             AddParameter(command, "@limit", safeLimit);
             var rows = new List<CpUserDigest>();
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);

@@ -678,6 +678,42 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// PHP <c>epc_dl_customers</c>: keep columns this <c>users</c> table has.
+    /// Missing <c>time_registered</c> and <c>time_last_visit</c> are <c>0</c>, not a query error.
+    /// </summary>
+    public static string SelectCpUsersForColumns(IReadOnlySet<string> columns)
+    {
+        static bool Has(IReadOnlySet<string> cols, string name)
+        {
+            if (cols.Contains(name))
+            {
+                return true;
+            }
+
+            foreach (var column in cols)
+            {
+                if (string.Equals(column, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static string Field(IReadOnlySet<string> cols, string name, string whenMissing)
+            => Has(cols, name) ? "`" + name + "`" : whenMissing;
+
+        return "SELECT `user_id`, "
+            + Field(columns, "email", "'' AS `email`") + ", "
+            + Field(columns, "phone", "'' AS `phone`") + ", "
+            + Field(columns, "unlocked", "0 AS `unlocked`") + ", "
+            + Field(columns, "time_registered", "0 AS `time_registered`") + ", "
+            + Field(columns, "time_last_visit", "0 AS `time_last_visit`")
+            + " FROM `users` ORDER BY `user_id` DESC LIMIT @limit";
+    }
+
     /// <summary>PHP <c>users/usermanager/user</c> core row.</summary>
     public const string SelectCpUserById = """
         SELECT `user_id`, `email`, `email_confirmed`, `phone`, `phone_confirmed`,
