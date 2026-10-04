@@ -80,6 +80,18 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — CP users list
+
+Not complete.
+
+- Signed-in www.epartscart.com `/cp/users-app` is **200** and lists the two accounts already in `docpart.users` (`operator@local.test`, `prices@local.test`). A missing `reg_fields` table and missing `users` columns (`reg_variant`, `time_registered`, `time_last_visit`, `admin_created`) no longer abort the list. Those cells stay empty (`0`, `—`, `never`, `No`). Balances come from `shop_users_accounting` when that table exists. No users were inserted.
+- `/cp` home was already the command centre. The JSON digest `/cp/users` still returns `source: database-error` because it selects `time_registered`. Other signed-in CP pages are not in this checkpoint.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5001 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, the rest of authenticated CP (including `/cp/users` JSON), every tenant CP page, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — Power BI row datasets
 
 Not complete.
