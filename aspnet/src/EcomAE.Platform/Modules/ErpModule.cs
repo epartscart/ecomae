@@ -671,10 +671,101 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpIntegrityScanRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityApplyFks, async (HttpContext context, ErpIntegrityApplyFksBody? body, ILegacySessionValidator validator, IErpIntegrityApplyFksDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpIntegrityApplyFksRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFaCreateAsset, async (HttpContext context, ErpFaCreateAssetBody? body, ILegacySessionValidator validator, IErpFaCreateAssetDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpFaCreateAssetRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFaRunDepreciation, async (HttpContext context, ErpFaRunDepreciationBody? body, ILegacySessionValidator validator, IErpFaRunDepreciationDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpFaRunDepreciationRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFaCreateAsset, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpFaCreateAssetDryRun dryRun,
+            IErpFixedAssetWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fixed-assets-app", "Admin ERP capability required for fixed-asset registration.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFaCreateAssetBody>(context, cancellationToken) ?? new();
+            var confirm = body.ConfirmWrites;
+            var input = new ErpFaCreateAssetInput
+            {
+                AssetCode = body.AssetCode ?? string.Empty, Name = body.Name ?? string.Empty, CategoryId = body.CategoryId, AcquisitionDate = body.AcquisitionDate,
+                Cost = body.Cost, SalvageValue = body.SalvageValue, UsefulLifeMonths = body.UsefulLifeMonths, DepreciationMethod = body.DepreciationMethod,
+                AccumulatedDepreciation = body.AccumulatedDepreciation, Location = body.Location ?? string.Empty, TrackingId = body.TrackingId ?? string.Empty,
+                SerialNo = body.SerialNo ?? string.Empty, OpeningBatchId = body.OpeningBatchId, Note = body.Note ?? string.Empty,
+                Extended = body.Extended ?? new Dictionary<string, string>(StringComparer.Ordinal),
+            };
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                var ext = new Dictionary<string, string>(StringComparer.Ordinal);
+                foreach (var key in ErpFixedAssetWriteService.ExtendedStrings.Keys.Concat(ErpFixedAssetWriteService.ExtendedInts).Concat(ErpFixedAssetWriteService.ExtendedDecimals).Concat(ErpFixedAssetWriteService.ExtendedDates).Append("asset_type"))
+                {
+                    if (form.ContainsKey(key))
+                    {
+                        ext[key] = form[key].ToString();
+                    }
+                }
+
+                input = new ErpFaCreateAssetInput
+                {
+                    AssetCode = LiveWriteFormBinder.Text(form, "asset_code"), Name = LiveWriteFormBinder.Text(form, "name"), CategoryId = LiveWriteFormBinder.Long(form, "category_id"),
+                    AcquisitionDate = LiveWriteFormBinder.Text(form, "acquisition_date"), Cost = LiveWriteFormBinder.Dec(form, "cost"), SalvageValue = LiveWriteFormBinder.Dec(form, "salvage_value"),
+                    UsefulLifeMonths = form.ContainsKey("useful_life_months") ? LiveWriteFormBinder.Int(form, "useful_life_months") : 60,
+                    DepreciationMethod = LiveWriteFormBinder.Text(form, "depreciation_method"), AccumulatedDepreciation = LiveWriteFormBinder.Dec(form, "accumulated_depreciation"),
+                    Location = LiveWriteFormBinder.Text(form, "location"), TrackingId = LiveWriteFormBinder.Text(form, "tracking_id"), SerialNo = LiveWriteFormBinder.Text(form, "serial_no"),
+                    OpeningBatchId = LiveWriteFormBinder.Long(form, "opening_batch_id"), Note = LiveWriteFormBinder.Text(form, "note"), Extended = ext,
+                };
+            }
+
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpFaCreateAssetRequest(0, input.AssetCode, false)).ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(context, session, "/erp/fixed-assets-app", async () =>
+            {
+                var id = await writes.CreateAssetAsync(input, session.UserId, cancellationToken);
+                return ("Fixed asset registered", (object)new { id });
+            });
+        }).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFaRunDepreciation, async (
+            HttpContext context,
+            ILegacySessionValidator validator,
+            IErpFaRunDepreciationDryRun dryRun,
+            IErpFixedAssetWriteService writes,
+            CancellationToken cancellationToken) =>
+        {
+            var session = await validator.ValidateAsync(context, cancellationToken);
+            if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+            {
+                return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fixed-assets-app", "Admin ERP capability required for depreciation run.");
+            }
+
+            var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFaRunDepreciationBody>(context, cancellationToken) ?? new();
+            var confirm = body.ConfirmWrites;
+            var period = body.PeriodMonth;
+            var note = body.Note ?? string.Empty;
+            if (context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+                period = form.ContainsKey("period_month") ? form["period_month"].ToString() : null;
+                note = LiveWriteFormBinder.Text(form, "note");
+            }
+
+            period = string.IsNullOrWhiteSpace(period) ? DateTime.UtcNow.ToString("yyyy-MM", System.Globalization.CultureInfo.InvariantCulture) : period;
+            if (!confirm)
+            {
+                return Results.Ok(dryRun.Evaluate(new ErpFaRunDepreciationRequest(0, period, false)).ToPayload(SessionPayload(session)));
+            }
+
+            return await ExecuteErpWriteAsync(context, session, "/erp/fixed-assets-app", async () =>
+            {
+                var r = await writes.RunDepreciationAsync(period, note, session.UserId, cancellationToken);
+                return (ErpFixedAssetWriteService.PostedMessage(r.Total), (object)new { run_id = r.RunId, total = r.Total, assets = r.Assets, gl_journal_id = r.GlJournalId });
+            });
+        }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningCreateBatch, HandleOpeningCreateBatchAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddCoaLine, HandleOpeningAddCoaLineAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxOpeningAddInvLine, HandleOpeningAddInvLineAsync).DisableAntiforgery();
@@ -23778,8 +23869,11 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpAiQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpIntegrityScanBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpIntegrityApplyFksBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpFaCreateAssetBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpFaRunDepreciationBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpFaCreateAssetBody(
+        string? AssetCode = null, string? Name = null, long CategoryId = 0, string? AcquisitionDate = null, decimal Cost = 0, decimal SalvageValue = 0,
+        int UsefulLifeMonths = 60, string? DepreciationMethod = null, decimal AccumulatedDepreciation = 0, string? Location = null, string? TrackingId = null,
+        string? SerialNo = null, long OpeningBatchId = 0, string? Note = null, Dictionary<string, string>? Extended = null, bool ConfirmWrites = false);
+    private sealed record ErpFaRunDepreciationBody(string? PeriodMonth = null, string? Note = null, bool ConfirmWrites = false);
     private sealed record ErpOpeningCreateBatchBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOpeningAddCoaLineBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOpeningAddInvLineBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
