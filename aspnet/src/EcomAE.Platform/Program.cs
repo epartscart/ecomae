@@ -913,6 +913,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractStatusWriteService, E
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpContractSaveWriteService, EcomAE.Platform.Erp.ErpContractSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowStatusWriteService, EcomAE.Platform.Erp.ErpWorkflowStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowCreateWriteService, EcomAE.Platform.Erp.ErpWorkflowCreateWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpWorkflowWriteService, EcomAE.Platform.Erp.ErpWorkflowWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseStatusWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseStatusWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCaseSaveWriteService, EcomAE.Platform.Erp.ErpCollectionsCaseSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCollectionsCasePromiseWriteService, EcomAE.Platform.Erp.ErpCollectionsCasePromiseWriteService>();

@@ -1782,10 +1782,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAiAssistantQuery, async (HttpContext context, ErpAiAssistantQueryBody? body, ILegacySessionValidator validator, IErpAiAssistantQueryDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAiAssistantQueryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowSave, async (HttpContext context, ErpWorkflowSaveBody? body, ILegacySessionValidator validator, IErpWorkflowSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpWorkflowSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowRun, async (HttpContext context, ErpWorkflowRunBody? body, ILegacySessionValidator validator, IErpWorkflowRunDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpWorkflowRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowSave, HandleWorkflowSaveAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowRun, HandleWorkflowRunAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationActivate, async (HttpContext context, ErpAutomationActivateBody? body, ILegacySessionValidator validator, IErpAutomationActivateDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpAutomationActivateRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAutomationDeactivate, HandleAutomationDeactivateAsync).DisableAntiforgery();
@@ -20327,6 +20325,130 @@ public sealed class ErpModule : ISurfaceModule
         });
     }
 
+    private static async Task<IResult> HandleWorkflowSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWorkflowSaveDryRun dryRun,
+        IErpWorkflowWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var input = new ErpWorkflowSaveInput(0, null, null, null, null, false, Array.Empty<ErpWorkflowStepInput>());
+        var confirm = false;
+        var json = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWorkflowSaveBody>(context, cancellationToken);
+        if (json is not null)
+        {
+            input = new ErpWorkflowSaveInput(
+                json.Id,
+                json.Name,
+                json.Description,
+                json.TriggerType,
+                json.TriggerConfig,
+                json.Active,
+                (json.Steps ?? []).Select(s => new ErpWorkflowStepInput(s.StepType, s.ActionType, s.Label, s.Config, s.OnFailure, s.RetryCount)).ToList());
+            confirm = json.ConfirmWrites;
+        }
+
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            var steps = new List<ErpWorkflowStepInput>();
+            for (var i = 0; ; i++)
+            {
+                var prefix = "steps[" + i.ToString(System.Globalization.CultureInfo.InvariantCulture) + "]";
+                var hasAny = form.Keys.Any(k => k.StartsWith(prefix, StringComparison.Ordinal));
+                if (!hasAny)
+                {
+                    break;
+                }
+
+                int.TryParse(form[prefix + "[retry_count]"], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var retry);
+                steps.Add(new ErpWorkflowStepInput(
+                    form[prefix + "[step_type]"],
+                    form[prefix + "[action_type]"],
+                    form[prefix + "[label]"],
+                    form[prefix + "[config]"],
+                    form[prefix + "[on_failure]"],
+                    retry));
+            }
+
+            long.TryParse(form["id"], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out var formId);
+            input = new ErpWorkflowSaveInput(
+                formId,
+                form["name"],
+                form["description"],
+                form["trigger_type"],
+                form["trigger_config"],
+                string.Equals(form["active"], "1", StringComparison.Ordinal) || string.Equals(form["active"], "true", StringComparison.OrdinalIgnoreCase),
+                steps);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpWorkflowSaveRequest(input.Id, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(session, async () =>
+        {
+            var result = await writes.SaveAsync(input, session.UserId, cancellationToken);
+            return ("Workflow saved", (object)new { id = result.WorkflowId });
+        });
+    }
+
+    private static async Task<IResult> HandleWorkflowRunAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpWorkflowRunDryRun dryRun,
+        IErpWorkflowWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var json = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpWorkflowRunBody>(context, cancellationToken);
+        var id = json?.Id ?? 0;
+        var confirm = json?.ConfirmWrites ?? false;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            long.TryParse(form["id"], System.Globalization.NumberStyles.Integer, System.Globalization.CultureInfo.InvariantCulture, out id);
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpWorkflowRunRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        return await ExecuteErpWriteAsync(session, async () =>
+        {
+            var result = await writes.RunAsync(id, session.UserId, cancellationToken);
+            return ("Run " + result.Status, (object)new
+            {
+                run_id = result.RunId,
+                status = result.Status,
+                duration_ms = result.DurationMs,
+                steps = result.Steps.Select(s => new
+                {
+                    step_order = s.StepOrder,
+                    action_type = s.ActionType,
+                    status = s.Status,
+                    duration_ms = s.DurationMs,
+                    output = s.Output,
+                }).ToList(),
+            });
+        });
+    }
+
     private static async Task<IResult> HandleSupplierSyncAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -25685,8 +25807,25 @@ public sealed class ErpModule : ISurfaceModule
     private sealed record ErpJwSeedSampleDataBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpAiAssistantQueryBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPrintDesignerSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpWorkflowSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpWorkflowRunBody(bool ConfirmWrites = false);
+    private sealed record ErpWorkflowSaveBody(
+        long Id = 0,
+        string? Name = null,
+        string? Description = null,
+        string? TriggerType = null,
+        string? TriggerConfig = null,
+        bool Active = false,
+        bool ConfirmWrites = false,
+        List<ErpWorkflowStepBody>? Steps = null);
+
+    private sealed record ErpWorkflowStepBody(
+        string? StepType = null,
+        string? ActionType = null,
+        string? Label = null,
+        string? Config = null,
+        string? OnFailure = null,
+        int RetryCount = 0);
+
+    private sealed record ErpWorkflowRunBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpAutomationActivateBody(bool ConfirmWrites = false);
     private sealed record ErpAutomationDeactivateBody(bool ConfirmWrites = false);
     private sealed record ErpAutomationInstallTemplateBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);

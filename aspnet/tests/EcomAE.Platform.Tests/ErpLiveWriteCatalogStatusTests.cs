@@ -73,6 +73,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/suppliers/sync",
         "/erp/gl-journals/sync-unposted",
         "/erp/gl-journals/post-sales",
+        "/erp/ajax/workflow-save",
+        "/erp/ajax/workflow-run",
     ];
 
     [Fact]
