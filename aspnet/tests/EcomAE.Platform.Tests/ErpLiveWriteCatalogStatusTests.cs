@@ -74,6 +74,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/integrity-apply-fks",
         "/erp/ajax/hrt-review-finalize",
         "/erp/ajax/costm-close-run",
+        "/erp/ajax/bos-compliance-fetch",
         "/erp/ajax/cc-approval-queue",
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",

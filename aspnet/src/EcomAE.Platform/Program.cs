@@ -453,6 +453,7 @@ builder.Services.AddSingleton<IErpIntegrityApplyFksDryRun, ErpIntegrityApplyFksD
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpIntegrityService, EcomAE.Platform.Erp.ErpIntegrityService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpHrtReviewWriteService, EcomAE.Platform.Erp.ErpHrtReviewWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCostmCloseWriteService, EcomAE.Platform.Erp.ErpCostmCloseWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceFetchService, EcomAE.Platform.Erp.ErpBosComplianceFetchService>();
 builder.Services.AddSingleton<IErpFaCreateAssetDryRun, ErpFaCreateAssetDryRun>();
 builder.Services.AddSingleton<IErpFaRunDepreciationDryRun, ErpFaRunDepreciationDryRun>();
 builder.Services.AddSingleton<IErpOpeningCreateBatchDryRun, ErpOpeningCreateBatchDryRun>();
