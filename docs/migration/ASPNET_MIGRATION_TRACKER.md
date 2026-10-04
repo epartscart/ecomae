@@ -80,6 +80,18 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-04 — Power BI row datasets
+
+Not complete.
+
+- Anonymous calls to `/epc-api/v1/powerbi/kpis`, `orders`, `sales`, `stock`, `gl`, and `metrics` stay 401 `missing_api_key`. An unknown key stays 401 `invalid_api_key`.
+- A `read:erp` key no longer gets 503 `erp_unavailable`. `kpis` returns 500 `internal_error` when `shop_orders` is missing, because PHP does not catch `epc_erp_dashboard`. `orders` returns 200 with `orders_unavailable` and no rows. `sales` and `stock` return 200 with the missing-table message and no rows. `metrics` returns 200 with `bi_query_failed` and no rows. `gl` returns 200 with the non-zero trial-balance lines already stored on `epc_erp_coa_accounts` and `epc_erp_gl_lines`. No rows were inserted.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5000 passed, 0 failed. Filtered `PublicAnonymousPageParityTests`: 49 passed.
+
+Still open: new-account OAuth provisioning, authenticated CP, every tenant CP page, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — keyed ERP dashboard summary
 
 Not complete.
