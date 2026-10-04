@@ -10649,10 +10649,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinPeriodsGenerate, HandleFinPeriodsGenerateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinFxRevalue, HandleFinFxRevalueAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocSave, HandleFinAllocSaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocRun, async (HttpContext context, ErpFinAllocRunBody? body, ILegacySessionValidator validator, IErpFinAllocRunDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpFinAllocRunRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAccrualSave, async (HttpContext context, ErpFinAccrualSaveBody? body, ILegacySessionValidator validator, IErpFinAccrualSaveDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpFinAccrualSaveRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAllocRun, HandleFinAllocRunAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxFinAccrualSave, HandleFinAccrualSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCollHoldSet, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -19653,6 +19651,107 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, run_id = written.Id, id = written.Id, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleFinAllocRunAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFinAllocRunDryRun dryRun,
+        IErpFinAllocRunWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fin-advanced-app", "Admin ERP capability required for allocation run.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFinAllocRunBody>(context, cancellationToken) ?? new();
+        var ruleId = body.RuleId;
+        var amount = body.Amount;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            ruleId = LiveWriteFormBinder.Long(form, "rule_id", "ruleId");
+            amount = ParseDecimal(LiveWriteFormBinder.Text(form, "amount"));
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpFinAllocRunRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.RunAsync(new ErpFinAllocRunWriteRequest(ruleId, amount), cancellationToken);
+        var r = written.Result;
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fin-advanced-app",
+            r.Succeeded,
+            r.Message,
+            new { ok = r.Succeeded, writes = r.Writes, phpAuthoritative = false, validation_code = r.Code, message = r.Message, run_id = r.Id, id = r.Id, lines = written.Lines.ToDictionary(l => l.Key, l => l.Value), session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleFinAccrualSaveAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpFinAccrualSaveDryRun dryRun,
+        IErpFinAccrualSaveWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/fin-advanced-app", "Admin ERP capability required for accrual save.");
+        }
+
+        var body = await LiveWriteFormBinder.ReadJsonOrDefaultAsync<ErpFinAccrualSaveBody>(context, cancellationToken) ?? new();
+        var id = body.Id;
+        var code = body.Code;
+        var description = body.Description;
+        var total = body.TotalAmount;
+        var periods = body.Periods;
+        var startFy = body.StartFy;
+        var startPeriod = body.StartPeriod;
+        var confirm = body.ConfirmWrites;
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken);
+            id = LiveWriteFormBinder.Long(form, "id");
+            code = LiveWriteFormBinder.Text(form, "code");
+            description = LiveWriteFormBinder.Text(form, "description");
+            total = ParseDecimal(LiveWriteFormBinder.Text(form, "total_amount", "totalAmount"));
+            periods = form.ContainsKey("periods") ? LiveWriteFormBinder.Int(form, "periods") : 1;
+            startFy = LiveWriteFormBinder.Int(form, "start_fy", "startFy");
+            startPeriod = form.ContainsKey("start_period") || form.ContainsKey("startPeriod") ? LiveWriteFormBinder.Int(form, "start_period", "startPeriod") : 1;
+            confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+        }
+
+        var companyHint = 0L;
+        if (context.Request.Query.TryGetValue("company", out var companyQ)
+            && long.TryParse(companyQ.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsedCompany))
+        {
+            companyHint = parsedCompany;
+        }
+
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpFinAccrualSaveRequest(id, code, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.SaveAsync(
+            new ErpFinAccrualSaveWriteRequest(id, code, description, total, periods, startFy, startPeriod, companyHint),
+            cancellationToken);
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/fin-advanced-app",
+            written.Succeeded,
+            written.Message,
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static decimal ParseDecimal(string? text)
+        => decimal.TryParse((text ?? string.Empty).Trim(), NumberStyles.Any, CultureInfo.InvariantCulture, out var v) ? v : 0m;
+
     private static async Task<IResult> HandleFinAllocSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -22727,8 +22826,8 @@ public sealed class ErpModule : ISurfaceModule
         string? Basis = null,
         int? Active = null,
         bool ConfirmWrites = false);
-    private sealed record ErpFinAllocRunBody(bool ConfirmWrites = false);
-    private sealed record ErpFinAccrualSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpFinAllocRunBody(bool ConfirmWrites = false, long RuleId = 0, decimal Amount = 0);
+    private sealed record ErpFinAccrualSaveBody(long Id = 0, string? Code = null, string? Description = null, decimal TotalAmount = 0, int Periods = 1, int StartFy = 0, int StartPeriod = 1, bool ConfirmWrites = false);
     private sealed record ErpCollHoldSetBody(
         long CustomerId = 0,
         bool ConfirmWrites = false,
