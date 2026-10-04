@@ -135,6 +135,80 @@ public static class EpcPublicApiV1
             },
         }, Pretty);
 
+    /// <summary>
+    /// PHP <c>epc_api_v1_handle_erp_dashboard</c> success body. Uses the supplied dashboard
+    /// dictionary; does not fill missing KPIs with sample figures.
+    /// </summary>
+    public static string DashboardSummaryJson(string siteKey, IReadOnlyDictionary<string, object?> dash)
+    {
+        var from = Unix(dash, "date_from");
+        var to = Unix(dash, "date_to");
+        var payload = new Dictionary<string, object?>
+        {
+            ["ok"] = true,
+            ["tenant_site_key"] = siteKey,
+            ["period"] = new Dictionary<string, object?>
+            {
+                ["from"] = Iso(from),
+                ["to"] = Iso(to),
+            },
+            ["kpis"] = new Dictionary<string, object?>
+            {
+                ["order_count"] = OrderCount(dash),
+                ["revenue_ex_vat"] = PhpMoney(dash, "revenue_ex_vat"),
+                ["profit_ex_vat"] = PhpMoney(dash, "profit_ex_vat"),
+                ["receivable_due_orders"] = PhpMoney(dash, "receivable_due_orders"),
+                ["customer_ledger_balance"] = PhpMoney(dash, "customer_ledger_balance"),
+                ["payable_balance"] = PhpMoney(dash, "payable_balance"),
+                ["cash_bank_total"] = PhpMoney(dash, "cash_bank_total"),
+                ["vat_net_payable"] = PhpMoney(dash, "vat_net_payable"),
+                ["vat_net_status"] = dash.TryGetValue("vat_net_status", out var status) && status is not null
+                    ? Convert.ToString(status, CultureInfo.InvariantCulture) ?? ""
+                    : "",
+            },
+        };
+        return JsonSerializer.Serialize(payload, Pretty);
+    }
+
+    private static long Unix(IReadOnlyDictionary<string, object?> dash, string key)
+    {
+        if (!dash.TryGetValue(key, out var raw) || raw is null)
+        {
+            return 0;
+        }
+
+        return Convert.ToInt64(raw, CultureInfo.InvariantCulture);
+    }
+
+    private static int OrderCount(IReadOnlyDictionary<string, object?> dash)
+    {
+        if (!dash.TryGetValue("order_count", out var raw) || raw is null)
+        {
+            return 0;
+        }
+
+        return Convert.ToInt32(raw, CultureInfo.InvariantCulture);
+    }
+
+    private static object PhpMoney(IReadOnlyDictionary<string, object?> dash, string key)
+    {
+        if (!dash.TryGetValue(key, out var raw) || raw is null)
+        {
+            return 0;
+        }
+
+        var rounded = Math.Round(Convert.ToDecimal(raw, CultureInfo.InvariantCulture), 2, MidpointRounding.AwayFromZero);
+        if (rounded == decimal.Truncate(rounded))
+        {
+            return decimal.ToInt64(rounded);
+        }
+
+        return (double)rounded;
+    }
+
+    private static string Iso(long unix)
+        => DateTimeOffset.FromUnixTimeSeconds(unix).UtcDateTime.ToString("yyyy-MM-dd'T'HH:mm:ss", CultureInfo.InvariantCulture) + "+00:00";
+
     public static string? RequiredScope(string route)
         => RouteScopes.TryGetValue(route, out var scope) ? scope : null;
 

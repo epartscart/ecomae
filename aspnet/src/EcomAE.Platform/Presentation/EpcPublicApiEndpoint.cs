@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Erp;
 
 namespace EcomAE.Platform.Presentation;
 
@@ -18,6 +19,7 @@ public static class EpcPublicApiEndpoint
     public static async Task<IResult> Handle(
         HttpContext context,
         ITenantDbConnectionFactory connections,
+        IErpDashboardReadService dashboard,
         CancellationToken cancellationToken)
     {
         var route = EpcPublicApiV1.RouteOf(context.Request.Path.Value);
@@ -75,8 +77,12 @@ public static class EpcPublicApiEndpoint
                 return ApiJson(200, PowerBiCatalogJson(auth.SiteKey));
             }
 
-            if (route.Equals("erp/dashboard-summary", StringComparison.OrdinalIgnoreCase)
-                || (EpcPublicApiV1.IsPowerBiRoute(route) && !route.Equals("powerbi/catalog", StringComparison.OrdinalIgnoreCase)))
+            if (route.Equals("erp/dashboard-summary", StringComparison.OrdinalIgnoreCase))
+            {
+                return await DashboardSummaryAsync(connections, dashboard, auth, cancellationToken).ConfigureAwait(false);
+            }
+
+            if (EpcPublicApiV1.IsPowerBiRoute(route) && !route.Equals("powerbi/catalog", StringComparison.OrdinalIgnoreCase))
             {
                 return ApiJson(503, EpcPublicApiV1.ErrorJson("erp_unavailable", "ERP helpers not available on this stack."));
             }
@@ -232,6 +238,35 @@ public static class EpcPublicApiEndpoint
         Add(command, "@bare", bare);
         var mode = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) as string;
         return string.IsNullOrWhiteSpace(mode) ? "full" : mode;
+    }
+
+    private static async Task<IResult> DashboardSummaryAsync(
+        ITenantDbConnectionFactory connections,
+        IErpDashboardReadService dashboard,
+        AuthHold auth,
+        CancellationToken cancellationToken)
+    {
+        var tenantDb = await OpenTenantAsync(connections, auth.SiteKey, cancellationToken).ConfigureAwait(false);
+        if (tenantDb.Error is not null)
+        {
+            return tenantDb.Error;
+        }
+
+        await using var connection = tenantDb.Connection!;
+        try
+        {
+            var read = await dashboard.DashboardOnConnectionAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (!read.Result.Succeeded)
+            {
+                return ApiJson(500, EpcPublicApiV1.ErrorJson("internal_error", "API request failed."));
+            }
+
+            return ApiJson(200, EpcPublicApiV1.DashboardSummaryJson(auth.SiteKey, read.Data));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            return ApiJson(500, EpcPublicApiV1.ErrorJson("internal_error", "API request failed."));
+        }
     }
 
     private static async Task<IResult> OrdersAsync(

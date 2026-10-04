@@ -245,5 +245,42 @@ public sealed class PublicAnonymousPageParityTests
         Assert.Contains("missing_api_key", missing, StringComparison.Ordinal);
         Assert.Contains("Send X-API-Key header", missing, StringComparison.Ordinal);
         Assert.NotNull(EpcPublicApiV1.OpenApiPath());
+        Assert.Equal("read:erp", EpcPublicApiV1.RequiredScope("erp/dashboard-summary"));
+        Assert.True(EpcPublicApiV1.IsKeyedRoute("erp/dashboard-summary"));
+    }
+
+    [Fact]
+    public void EpcApiV1_DashboardSummaryJsonMatchesPhpEnvelope()
+    {
+        var json = EpcPublicApiV1.DashboardSummaryJson("tenant_demo", new Dictionary<string, object?>
+        {
+            ["date_from"] = 1759276800L,
+            ["date_to"] = 1759363199L,
+            ["order_count"] = 3L,
+            ["revenue_ex_vat"] = 12.5m,
+            ["profit_ex_vat"] = 2.25m,
+            ["receivable_due_orders"] = 1m,
+            ["customer_ledger_balance"] = 4.5m,
+            ["payable_balance"] = 0m,
+            ["cash_bank_total"] = 100.1m,
+            ["vat_net_payable"] = -0.5m,
+            ["vat_net_status"] = "recoverable_from_fta",
+            ["kpi_tiles"] = new[] { "omit-me" },
+            ["approval_queue"] = new[] { "omit-me" },
+        });
+        Assert.Contains("\"ok\": true", json, StringComparison.Ordinal);
+        Assert.Contains("\"tenant_site_key\": \"tenant_demo\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"from\": \"2025-10-01T00:00:00+00:00\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"to\": \"2025-10-01T23:59:59+00:00\"", json, StringComparison.Ordinal);
+        Assert.Contains("\"order_count\": 3", json, StringComparison.Ordinal);
+        Assert.Contains("\"revenue_ex_vat\": 12.5", json, StringComparison.Ordinal);
+        Assert.Contains("\"profit_ex_vat\": 2.25", json, StringComparison.Ordinal);
+        Assert.Contains("\"payable_balance\": 0", json, StringComparison.Ordinal);
+        Assert.Contains("\"cash_bank_total\": 100.1", json, StringComparison.Ordinal);
+        Assert.Contains("\"vat_net_payable\": -0.5", json, StringComparison.Ordinal);
+        Assert.Contains("\"vat_net_status\": \"recoverable_from_fta\"", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("kpi_tiles", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("approval_queue", json, StringComparison.Ordinal);
+        Assert.DoesNotContain("omit-me", json, StringComparison.Ordinal);
     }
 }
