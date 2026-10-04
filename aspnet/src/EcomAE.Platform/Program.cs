@@ -1068,6 +1068,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodLockReopenWriteService,
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodReadService, EcomAE.Platform.Erp.ErpPeriodReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinanceAjaxReadService, EcomAE.Platform.Erp.ErpFinanceAjaxReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCommandCenterReadService, EcomAE.Platform.Erp.ErpCommandCenterReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDashboardReadService, EcomAE.Platform.Erp.ErpDashboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShortcutReadService, EcomAE.Platform.Erp.ErpShortcutReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryScanReadService, EcomAE.Platform.Erp.ErpInventoryScanReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlobalSearchReadService, EcomAE.Platform.Erp.ErpGlobalSearchReadService>();
