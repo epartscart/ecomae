@@ -41,6 +41,8 @@ public sealed class ErpBosVatRefundStatusWriteService : IErpBosVatRefundStatusWr
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureVatRefundsAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

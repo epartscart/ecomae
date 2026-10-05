@@ -48,6 +48,8 @@ public sealed class ErpPrjaRecognitionWriteService : IErpPrjaRecognitionWriteSer
         var asOf = request.AsOf > 0 ? request.AsOf : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureProjectAccountingAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await RequiredTablesExistAsync(connection, cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Project accounting tables are not provisioned.");

@@ -60,6 +60,8 @@ public sealed class ErpBosVatRefundSaveWriteService : IErpBosVatRefundSaveWriteS
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureVatRefundsAsync(connection, cancellationToken).ConfigureAwait(false);
         var country = await ResolveCountryAsync(connection, cancellationToken).ConfigureAwait(false);
         var scheme = SchemeFor(country);
         var storedCountry = string.IsNullOrWhiteSpace(scheme.Country) ? country : scheme.Country;
