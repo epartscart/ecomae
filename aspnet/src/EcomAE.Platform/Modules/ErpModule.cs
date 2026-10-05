@@ -1330,10 +1330,8 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAgendaSave, HandleAgendaSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxKbSave, HandleKbSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxMultiEntitySave, HandleMultiEntitySaveAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSaveDeclaration, async (HttpContext context, ErpCsSaveDeclarationBody? body, ILegacySessionValidator validator, IErpCsSaveDeclarationDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCsSaveDeclarationRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSubmitDeclaration, async (HttpContext context, ErpCsSubmitDeclarationBody? body, ILegacySessionValidator validator, IErpCsSubmitDeclarationDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCsSubmitDeclarationRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSaveDeclaration, HandleCsSaveDeclarationAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSubmitDeclaration, HandleCsSubmitDeclarationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsDeleteDeclaration, HandleCsDeleteDeclarationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsListDeclarations, HandleCsListDeclarationsAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsImportDeclarationPdf, async (HttpContext context, ErpCsImportDeclarationPdfBody? body, ILegacySessionValidator validator, IErpCsImportDeclarationPdfDryRun dryRun, CancellationToken cancellationToken) =>
@@ -25501,6 +25499,109 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, expires_at = written.Succeeded ? written.Id : 0, session = SessionPayload(session) });
     }
 
+    private static async Task<IResult> HandleCsSaveDeclarationAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCsSaveDeclarationDryRun dryRun,
+        IErpCsDeclarationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCsSaveDeclarationRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        try
+        {
+            var saved = await writes.SaveDeclarationAsync(fields, (int)session.UserId, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                writes = 1,
+                phpAuthoritative = false,
+                validation_code = "ok",
+                message = saved.Message,
+                id = saved.Id,
+                redirect = saved.Redirect,
+                session = SessionPayload(session),
+            });
+        }
+        catch (ErpWriteException ex)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                surface = "erp",
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "invalid",
+                message = ex.Message,
+                session = SessionPayload(session),
+            });
+        }
+    }
+
+    private static async Task<IResult> HandleCsSubmitDeclarationAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCsSubmitDeclarationDryRun dryRun,
+        IErpCsDeclarationWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var id = 0L;
+        if (fields.TryGetValue("id", out var idText))
+        {
+            long.TryParse(idText, NumberStyles.Integer, CultureInfo.InvariantCulture, out id);
+        }
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCsSubmitDeclarationRequest(id, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        try
+        {
+            await writes.SubmitDeclarationAsync(id, cancellationToken);
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                writes = 1,
+                phpAuthoritative = false,
+                validation_code = "ok",
+                message = "Declaration submitted",
+                session = SessionPayload(session),
+            });
+        }
+        catch (ErpWriteException ex)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                surface = "erp",
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "invalid",
+                message = ex.Message,
+                session = SessionPayload(session),
+            });
+        }
+    }
+
     private static async Task<IResult> HandleCsDeleteDeclarationAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -25518,6 +25619,9 @@ public sealed class ErpModule : ISurfaceModule
         var id = body.Id;
         var code = body.Code;
         var confirm = body.ConfirmWrites;
+        var delFrom = "";
+        var delTo = "";
+        var delCategory = "";
         if (context.Request.HasFormContentType)
         {
             var form = await context.Request.ReadFormAsync(cancellationToken);
@@ -25526,7 +25630,9 @@ public sealed class ErpModule : ISurfaceModule
             {
                 code = LiveWriteFormBinder.Text(form, "code");
             }
-
+            delFrom = LiveWriteFormBinder.Text(form, "from");
+            delTo = LiveWriteFormBinder.Text(form, "to");
+            delCategory = LiveWriteFormBinder.Text(form, "category");
             confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
         }
 
@@ -25536,12 +25642,16 @@ public sealed class ErpModule : ISurfaceModule
         }
 
         var written = await writes.DeleteAsync(id, cancellationToken);
+        var from = delFrom.Length > 0 ? delFrom : DateTimeOffset.UtcNow.ToString("yyyy-MM-01", CultureInfo.InvariantCulture);
+        var to = delTo.Length > 0 ? delTo : DateTimeOffset.UtcNow.ToString("yyyy-MM-dd", CultureInfo.InvariantCulture);
+        var redirect = "/erp?area=custom_shipping&tab=custom_shipping&from=" + Uri.EscapeDataString(from) + "&to=" + Uri.EscapeDataString(to)
+            + (delCategory.Length > 0 ? "&cs_view=list&cs_category=" + Uri.EscapeDataString(delCategory) : "");
         return LiveWriteFormBinder.Complete(
             context,
             "/cp/carriers-app",
             written.Succeeded,
             written.Message,
-            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+            new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, redirect, session = SessionPayload(session) });
     }
 
     private sealed record OnPremisesHealthBody(
