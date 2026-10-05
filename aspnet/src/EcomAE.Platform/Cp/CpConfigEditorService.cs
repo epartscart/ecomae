@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -297,6 +298,10 @@ public sealed class CpConfigEditorService : ICpConfigEditorService
             }
 
             return new(result, fileOk ? "config.php" : "database-defaults", message, path, fileOk);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], "database", message, path, fileOk);
         }
         catch (DbException ex)
         {

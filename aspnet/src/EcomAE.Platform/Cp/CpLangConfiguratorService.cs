@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Cp;
@@ -85,6 +86,10 @@ public sealed class CpLangConfiguratorService : ICpLangConfiguratorService
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             var rows = await ReadLanguagesAsync(connection, cancellationToken).ConfigureAwait(false);
             return new(rows, multilang, writable, "lang_languages", message);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], multilang, writable, "lang_languages", message);
         }
         catch (DbException ex)
         {
@@ -180,6 +185,10 @@ public sealed class CpLangConfiguratorService : ICpLangConfiguratorService
             }
 
             return new(rows, languages, total, page, pageSize, "lang_text_strings", string.Empty);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], [], 0, page, pageSize, "database", string.Empty);
         }
         catch (DbException ex)
         {

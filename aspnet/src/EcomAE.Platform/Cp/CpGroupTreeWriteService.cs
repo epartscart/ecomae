@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Net;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 using Microsoft.AspNetCore.Http;
 
 namespace EcomAE.Platform.Cp;
@@ -342,20 +344,9 @@ public sealed class CpGroupTreeWriteService : ICpGroupTreeWriteService
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             var rows = new List<CpGroupTreeRow>();
+            var translations = await TableExistsAsync(connection, "lang_text_strings_translation", cancellationToken).ConfigureAwait(false);
             await using var cmd = connection.CreateCommand();
-            cmd.CommandText = """
-                SELECT g.`id`, IFNULL(tv.`value`, IFNULL(g.`value`,'')) AS caption, IFNULL(g.`value`,'') AS value_key,
-                       IFNULL(td.`value`, '') AS description, IFNULL(g.`description`,'') AS description_key,
-                       IFNULL(g.`parent`,0) AS parent, IFNULL(g.`level`,1) AS level, IFNULL(g.`count`,0) AS child_count,
-                       IFNULL(g.`order`,0) AS sort_order, IFNULL(g.`unblocked`,0) AS unblocked, IFNULL(g.`for_guests`,0) AS for_guests,
-                       IFNULL(g.`for_registrated`,0) AS for_registrated, IFNULL(g.`for_backend`,0) AS for_backend,
-                       IFNULL(g.`for_percentage`,0) AS for_percentage
-                FROM `groups` g
-                LEFT JOIN `lang_text_strings_translation` tv ON tv.`str_key` = g.`value` AND tv.`lang_code` = 'en'
-                LEFT JOIN `lang_text_strings_translation` td ON td.`str_key` = g.`description` AND td.`lang_code` = 'en'
-                ORDER BY g.`order` ASC, g.`level` ASC, g.`id` ASC
-                LIMIT 400
-                """;
+            cmd.CommandText = GroupTreeSelectSql(translations);
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -378,10 +369,50 @@ public sealed class CpGroupTreeWriteService : ICpGroupTreeWriteService
 
             return new(rows, "database", string.Empty);
         }
-        catch (System.Data.Common.DbException ex)
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], "database", string.Empty);
+        }
+        catch (DbException ex)
         {
             return new([], "database-error", ex.Message);
         }
+    }
+
+    /// <summary>PHP group tree. Without the translation table, <c>groups.value</c> is the caption.</summary>
+    public static string GroupTreeSelectSql(bool translations)
+    {
+        var caption = translations
+            ? "IFNULL(tv.`value`, IFNULL(g.`value`,''))"
+            : "IFNULL(g.`value`,'')";
+        var description = translations
+            ? "IFNULL(td.`value`, '')"
+            : "IFNULL(g.`description`,'')";
+        var joins = translations
+            ? """
+                LEFT JOIN `lang_text_strings_translation` tv ON tv.`str_key` = g.`value` AND tv.`lang_code` = 'en'
+                LEFT JOIN `lang_text_strings_translation` td ON td.`str_key` = g.`description` AND td.`lang_code` = 'en'
+                """
+            : string.Empty;
+        return "SELECT g.`id`, " + caption + " AS caption, IFNULL(g.`value`,'') AS value_key, "
+            + description + " AS description, IFNULL(g.`description`,'') AS description_key, "
+            + """
+            IFNULL(g.`parent`,0) AS parent, IFNULL(g.`level`,1) AS level, IFNULL(g.`count`,0) AS child_count,
+            IFNULL(g.`order`,0) AS sort_order, IFNULL(g.`unblocked`,0) AS unblocked, IFNULL(g.`for_guests`,0) AS for_guests,
+            IFNULL(g.`for_registrated`,0) AS for_registrated, IFNULL(g.`for_backend`,0) AS for_backend,
+            IFNULL(g.`for_percentage`,0) AS for_percentage
+            FROM `groups` g
+            """
+            + joins
+            + " ORDER BY g.`order` ASC, g.`level` ASC, g.`id` ASC LIMIT 400";
+    }
+
+    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW TABLES LIKE '" + table + "'";
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is not null and not DBNull;
     }
 
     private static string Normalize(string? raw, int max)

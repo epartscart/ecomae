@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -234,6 +235,10 @@ public sealed class CpReturnsDeskService : ICpReturnsDeskService
 
             return new CpReturnsList(true, "", automation.Report, rows, statuses);
         }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new CpReturnsList(true, string.Empty, [], [], []);
+        }
         catch (DbException ex)
         {
             return CpReturnsList.Unavailable(ex.Message);
@@ -420,6 +425,10 @@ public sealed class CpReturnsDeskService : ICpReturnsDeskService
             }
 
             return new CpReturnsSetup(true, "", automation.Report, reasons, statuses, flags);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new CpReturnsSetup(true, string.Empty, [], [], [], []);
         }
         catch (DbException ex)
         {

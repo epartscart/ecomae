@@ -1,3 +1,4 @@
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Migration;
 using Xunit;
 
@@ -37,5 +38,23 @@ public sealed class CpMissingSchemaTests
         Assert.Contains("`is_frontend`", full, StringComparison.Ordinal);
         Assert.Contains("`control_available`", full, StringComparison.Ordinal);
         Assert.DoesNotContain("0 AS `is_frontend`", full, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void GroupTreeSelectSql_UsesGroupValueWhenTranslationsAreAbsent()
+    {
+        var slim = CpGroupTreeWriteService.GroupTreeSelectSql(false);
+        Assert.Contains("FROM `groups` g", slim, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(g.`value`,'') AS caption", slim, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(g.`description`,'') AS description", slim, StringComparison.Ordinal);
+        Assert.DoesNotContain("lang_text_strings_translation", slim, StringComparison.Ordinal);
+        Assert.DoesNotContain("DELETE", slim, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("INSERT", slim, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("UPDATE", slim, StringComparison.OrdinalIgnoreCase);
+
+        var translated = CpGroupTreeWriteService.GroupTreeSelectSql(true);
+        Assert.Contains("LEFT JOIN `lang_text_strings_translation` tv", translated, StringComparison.Ordinal);
+        Assert.Contains("LEFT JOIN `lang_text_strings_translation` td", translated, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(tv.`value`, IFNULL(g.`value`,'')) AS caption", translated, StringComparison.Ordinal);
     }
 }

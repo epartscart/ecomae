@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -89,6 +90,10 @@ public sealed class CpSearchTabEditorService : ICpSearchTabEditorService
             }
 
             return new(rows, "shop_docpart_search_tabs", string.Empty);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], "database", string.Empty);
         }
         catch (DbException ex)
         {
