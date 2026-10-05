@@ -1284,6 +1284,8 @@ app.UseMiddleware<BlockchainVerifyJsonMiddleware>();
 app.UseMiddleware<EcomaeIndustryShowcaseMiddleware>();
 // Public /erp-demo, tenant /brochure-cp, and marketing /shop (storefront demo) before /shop/* product redirects.
 app.UseMiddleware<PublicAnonymousPagesMiddleware>();
+// Tenant CP ajax posts → the existing procurement dispatcher and ERP ajax endpoint, before a browse redirect.
+app.UseMiddleware<CpLegacyPhpAjaxLinkMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/* (503 when serving deactivated).
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 // Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home). Skipped when PHP serving off.

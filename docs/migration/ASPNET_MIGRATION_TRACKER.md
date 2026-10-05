@@ -80,6 +80,17 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP links into procurement and ERP stay on those engines
+
+Not complete.
+
+- Same storefront and API comparison: 112 files, 109 mapped. The three unmapped files stay an include, an include, and the ERP finance ajax script.
+- Control Panel shop, users, and requests ajax is 75 files. 48 are mapped. 27 stay unmapped. The previous checkpoint had 44 mapped and 31 unmapped. The four new mappings are the procurement script and endpoint, and the ERP script and endpoint.
+- A broader scan of `cp/content` ajax is 110 files, 61 mapped, 49 unmapped.
+- A direct hit on `ajax_procurement.php` or `ajax_erp.php` is `No access`, matching the `_ASTEXE_` guard. Those scripts are includes. They do not post a second purchase or journal.
+- A POST to `ajax_procurement_endpoint.php` is rewritten to `/cp/procurement/ajax` before any browse redirect. That dispatcher already calls the ERP write services for supplier, purchase, payment, settlement, and adjustment. A POST to `ajax_erp_endpoint.php` is rewritten to `/content/general_pages/ajax_epc_erp.php`, the ERP ajax endpoint. Neither path is redirected to a browse page.
+- Still open in the 27: CRM ajax, crosses lookup that calls out, both customer-mgmt ajax pairs, document control, live currency rates, the orders detail pane, OMS, order pay/refund, the price-import writers `ajax_1` through `ajax_5` and `ajax_7`, commerce and multivendor ingest, pyprices health, the prices ajax init include, price review, quote alt options, and SAO `ajax_exec_action.php`.
+
 ### Checkpoint 2026-10-05 — CP catalogue product limits and Yandex YML export
 
 Not complete.

@@ -1292,6 +1292,13 @@ public static class PhpSurfaceLinkMap
         }
 
         var value = pathAndQuery.Trim();
+        // Procurement and ERP ajax posts are answered by the existing engines. A browse redirect
+        // would drop the JSON the Control Panel page is waiting for.
+        if (CpLegacyPhpAjaxLinks.StaysOnAjax(value))
+        {
+            return false;
+        }
+
         // Lowercase /cp/shop/orders and /cp/shop/payments/payments are the URLs staff
         // actually open. Uppercase /CP/ already remaps. Single-segment ASP.NET routes
         // (/cp/orders, /cp/users, /cp/login) stay put.

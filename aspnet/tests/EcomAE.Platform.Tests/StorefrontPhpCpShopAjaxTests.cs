@@ -6,6 +6,7 @@ using System.Text.Json;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 using EcomAE.Platform.Storefront;
 using Microsoft.AspNetCore.Builder;
@@ -244,6 +245,10 @@ public sealed class StorefrontPhpCpShopAjaxTests
             Assert.Equal("Access denied", posGuest.Json.RootElement.GetProperty("message").GetString());
             var posScript = await SendAsync(client, StorefrontPhpAjax.CpPosPath, Form(("action", "search_products")), staff);
             Assert.Equal("No access", posScript.Body);
+            var procurementScript = await SendAsync(client, CpLegacyPhpAjaxLinks.ProcurementScript, Form(("action", "create_supplier")), staff);
+            Assert.Equal("No access", procurementScript.Body);
+            var erpScript = await SendAsync(client, CpLegacyPhpAjaxLinks.ErpScript, Form(("action", "create_supplier")), staff);
+            Assert.Equal("No access", erpScript.Body);
             var sale = await SendAsync(client, StorefrontPhpAjax.CpPosEndpointPath, Form(("action", "complete_sale"), ("lines", "[]")), staff);
             Assert.Equal(StorefrontPhpAjax.CompleteSaleNotPosted, sale.Json.RootElement.GetProperty("message").GetString());
             Assert.False(sale.Json.RootElement.GetProperty("status").GetBoolean());

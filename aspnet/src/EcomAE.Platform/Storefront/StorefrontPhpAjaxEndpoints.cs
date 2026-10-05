@@ -7,6 +7,7 @@ using EcomAE.Platform.Cp.PriceImport;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
+using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
@@ -318,6 +319,17 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpYmlExportPath, ["GET", "POST"], CpYmlExportAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.ProcurementScript, ["GET", "POST"], CpGuardedScriptAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.ErpScript, ["GET", "POST"], CpGuardedScriptAsync)
+            .DisableAntiforgery().AllowAnonymous();
+    }
+
+    private static Task<IResult> CpGuardedScriptAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        _ = context;
+        _ = cancellationToken;
+        return Task.FromResult<IResult>(Results.Text("No access", "text/html; charset=utf-8"));
     }
 
     private static IResult LicenseApiAsync()
