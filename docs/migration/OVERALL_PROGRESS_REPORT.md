@@ -1,6 +1,8 @@
 # Overall progress report — PHP → ASP.NET Core
 
-**As of:** 2026-09-29 (target reframed: **100% ASP.NET / 0 PHP**; PHP-primary = parity gate only)
+**Objective since 2026-10-05:** ECOM AE is an enterprise ERP + BOS + CRM platform. "100% ASP.NET / 0 PHP" is not the product objective and is not acceptance. Read `ASPNET_MIGRATION_TRACKER.md` and `ERP_COMPLETION_DIRECTIVE.md` (0/15 ERP processes accepted). The scorecard below is the 2026-09-29 migration inventory. It is unchanged by the plan update.
+
+**As of:** 2026-09-29 (historical meter: **100% ASP.NET / 0 PHP** as a decommission target only; PHP-primary = parity gate)
 **Locks:** `cutoverAllowed=false` · `readyForPhpRemoval=false` · interactive ASP.NET complete **0**
 **Path board:** `GET /migration/aspnet-zero-php-path` · `docs/migration/ASPNET_ZERO_PHP_PATH.md`
 

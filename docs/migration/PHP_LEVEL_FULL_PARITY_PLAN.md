@@ -1,6 +1,6 @@
 # PHP-level full parity plan (CP / ERP / BOS / frontend)
 
-**Goal:** Bring ASP.NET presentation and functionality in line with live PHP for Control Panel, ERP, BOS, and storefront — design, style, presentation, and every module — without breaking live tenants and without broad nginx cutover.
+**Goal:** PHP-level parity is the minimum. Bring ASP.NET presentation and functionality in line with live PHP for Control Panel, ERP, BOS, and storefront — design, style, presentation, and every module — without breaking live tenants and without broad nginx cutover. The product objective is an enterprise ERP + BOS + CRM platform benchmarked against Dynamics 365, SAP S/4HANA / Sales Cloud, and Oracle Fusion ERP / SCM. That benchmark, the Devin (ERP) and Cursor (BOS, Control Panel, CRM, storefront, marketing, tenants) split, and the rule against a second business engine are recorded in `ASPNET_MIGRATION_TRACKER.md`. This file does not accept any process. Interactive completion in the inventory below remains **0**.
 
 **Hard rules**
 - PHP remains authoritative for product chrome on live hosts until dual-sample parity + human `RELEASE_OWNER_APPROVAL.md`.

@@ -4,8 +4,18 @@ Industry-agnostic ERP + CRM + e-commerce, multi-tenant, worldwide tax, with
 SAP / Oracle / Dynamics 365-class functionality — additive on top of the
 existing ecomae platform, tenant-isolated and entitlement-gated.
 
-**Test status:** 840 automated tests passing, 0 failing (run
-`bash tests/erp_advanced/run_all.sh`).
+**How to read this file (2026-10-05):** the checkmarks below are the historical
+PHP `tests/erp_advanced` inventory described in this document (840 tests
+claimed at the time it was written). They are not ASP.NET enterprise
+acceptance, not production evidence, and not a claim that ERP or BOS is
+complete. The acceptance board is `docs/migration/ERP_COMPLETION_DIRECTIVE.md`
+(**0/15** processes accepted). The current benchmark matrix is
+`docs/migration/ASPNET_MIGRATION_TRACKER.md`. ECOM AE is an enterprise ERP +
+BOS + CRM platform. PHP removal is not the objective.
+
+**Test status recorded in this file:** 840 automated tests passing, 0 failing (run
+`bash tests/erp_advanced/run_all.sh`). That command is the PHP suite named
+here. It was not re-run for the 2026-10-05 plan update.
 
 ---
 

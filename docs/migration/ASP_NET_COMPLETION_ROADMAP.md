@@ -1,8 +1,8 @@
 # ASP.NET Core completion roadmap
 
-**Status:** ERP-first completion plan; tenant-wide Super ERP promotion follows ERP acceptance
+**Status:** ERP acceptance remains open (0/15). Devin owns ERP. Cursor owns BOS, Control Panel, CRM, storefront/frontend, marketing, and tenants. The product objective is enterprise ERP + BOS + CRM, benchmarked against Dynamics 365, SAP, and Oracle Fusion. PHP parity is the minimum. See `ASPNET_MIGRATION_TRACKER.md`.
 **Authoritative reference:** the PHP/PHP-FPM application remains the behavioural,
-visual, security, deployment, and rollback reference until every exit gate passes.
+visual, security, deployment, and rollback reference until every exit gate passes. It is not the final enterprise standard.
 
 ## What the percentages mean
 
@@ -110,6 +110,12 @@ The ERP home must be a role-aware workspace, not one unrestricted executive page
   three-way match, and AP actions.
 * **Custom role:** an administrator-configured combination of areas, KPI cards,
   actions, company/site scope, approval limit, and effective dates.
+
+The 2026-10-05 enterprise plan also requires Finance Manager, Accountant, and
+Warehouse Manager workspaces on the ERP side, and CEO, CFO, Sales, Purchasing,
+Operations, and Management workspaces on the BOS side. Those workspaces are
+not accepted. They read ERP. They do not keep a second ledger. No production
+evidence for them is recorded in this roadmap.
 
 Power BI is part of the ERP workspace acceptance gate: reports must be embedded
 inside the tenant ERP shell when a validated URL/token configuration exists,

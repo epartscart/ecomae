@@ -2,7 +2,17 @@
 
 Tracks adherence to `PROJECT_ARCHITECTURE_INSTRUCTIONS.md` (Enterprise BOS Cloud Platform Technology & Architecture Instructions) — the **canonical project law**.
 
-This is a **compliance tracker**, not a claim that production already runs the full target stack.
+This is a **compliance tracker**, not a claim that production already runs the full target stack. BOS is not complete.
+
+## Product objective and surface ownership (2026-10-05)
+
+ECOM AE is an enterprise ERP + BOS + CRM platform. Removing PHP is not the objective. The functional and visual benchmark is Dynamics 365 Finance & Operations / Sales, SAP S/4HANA / Sales Cloud, and Oracle Fusion ERP / SCM. The seeded matrix and the acceptance rule (not accepted) live in `ASPNET_MIGRATION_TRACKER.md`. ERP process gates stay in `ERP_COMPLETION_DIRECTIVE.md` (0/15 accepted).
+
+Devin owns ERP, the transactional system of record. Cursor owns BOS, Control Panel, CRM, storefront/frontend, marketing, and tenants. Cursor's current PHP-parity baseline is draft PR #1970, `cursor/cp-frontend-parity-4911`, tip `08373de0f5840065d53d150436b680a915ab56be`. That branch is the minimum, not enterprise completion.
+
+BOS is a business-operations control tower: CRM, Customer 360, Supplier 360, executive dashboards, approvals, tasks, exceptions, KPIs, notifications, analytics, cross-company visibility, and AI recommendations. CRM is benchmarked against Dynamics 365 Sales and SAP Sales Cloud through lead, qualification, account and contact, opportunity, activity, quotation, and approval. Order, fulfillment, invoice, and collection are ERP transactions. Control Panel remains the control plane for tenant configuration, users, roles, permissions, subscriptions, deployment, monitoring, localization, and platform admin.
+
+Do not create a second business engine. BOS, CRM, and the Control Panel call shared domain services, APIs, and workflows. One transaction has one source of truth, one authorization model, one workflow engine, one audit trail, one accounting result, and one API contract. Role screens may differ. The technology table below still assigns business logic to ASP.NET Core, AI to Python, and the ledger to the application database.
 
 ## Superseded / interim docs (do not follow for ownership)
 
