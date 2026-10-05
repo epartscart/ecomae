@@ -85,7 +85,7 @@
         {
             <section aria-label="Legal entity records">
                 <h2>@_view.Context.ActiveCompanyLabel</h2>
-                @if (_view.CompanyRows.Count == 0)
+                @if (_view.CompanyRows.Count == 0 && _view.Unread.Count == 0)
                 {
                     <p class="epc-attn__empty">No records are stored against this legal entity.</p>
                 }
