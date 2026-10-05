@@ -80,6 +80,22 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Customer option, reviews, and VIN messages
+
+Not complete.
+
+- `ajax_set_user_option.php`, `ajax_set_my_city.php`, `ajax_add_evaluation.php`, `ajax_get_product_evaluations.php`, `ajax_get_product_general_mark.php`, `content/requests/ajax_get_message.php`, `content/requests/ajax_send_message.php`, and `ajax_check_order_not_authorized.php` now answer on ASP.NET. The retired guest-order script returns an empty body. A city cookie is `my_city=12` and the body is `1`. `selected_manufacturer` stores the raw value for user 7 and session 12. A missing `users_options` table says the options are not in this database. A category key without `shop_catalogue_categories` says the categories are not in this database and inserts nothing.
+- A guest review is `4088`. A stored review keeps `a &lt;b&gt; &amp; &quot;`. A second review from the same user is `4089`. The list without `users_profiles` says profiles are not in this database. A hidden name is `4091`. Marks 4 and 5 return `general_mark` `5`. A sort other than `asc` or `desc` is an empty body.
+- Another user’s VIN thread is `Forbidden` code 501. `manager=1` without an admin session is 501. The owner’s messages are a JSON array. A customer send sets `viewed` to 0. An admin session with `type` 1 sends `is_customer` 0 and sets `viewed_customer` to 0. No mail was sent. `epc_erp_order_fulfillment` is not called.
+- `StorefrontPhpCustomerTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2.
+- Catalogue product list, count, and page ajax, pickup timing, ucats product scripts, demand ajax, and garage model lookup still 404. The garage model lookup calls ucats. ucats HTTP was not called.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5049 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, catalogue product-list ajax, ucats and demand ajax, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Type-1 checkout order detail copy
 
 Not complete.
