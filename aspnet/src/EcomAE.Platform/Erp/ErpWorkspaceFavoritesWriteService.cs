@@ -65,6 +65,7 @@ public sealed class ErpWorkspaceFavoritesWriteService : IErpWorkspaceFavoritesWr
 
         var createdAt = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpLazySchema.EnsureUserShortcutsAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

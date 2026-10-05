@@ -14,7 +14,7 @@ namespace EcomAE.Platform.Erp;
 /// and refuses a duplicate declaration_number (verbatim PHP exception messages).
 /// Returns the full parsed payload so the caller can review auto-filled fields before saving.
 /// </summary>
-public interface IErpCsPdfImportService
+public interface IErpCsPdfImportWriteService
 {
     Task<ErpCsPdfImportResult> ImportAsync(byte[] binary, string originalName, string typeHint, long excludeId, CancellationToken cancellationToken = default);
 }
@@ -41,12 +41,12 @@ public sealed record ErpCsPdfImportResult(
     bool PdftotextAvailable,
     string PdftotextPath);
 
-public sealed class ErpCsPdfImportService : IErpCsPdfImportService
+public sealed class ErpCsPdfImportWriteService : IErpCsPdfImportWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IWebHostEnvironment _env;
 
-    public ErpCsPdfImportService(IErpWriteConnectionFactory connections, IWebHostEnvironment env)
+    public ErpCsPdfImportWriteService(IErpWriteConnectionFactory connections, IWebHostEnvironment env)
     {
         _connections = connections;
         _env = env;

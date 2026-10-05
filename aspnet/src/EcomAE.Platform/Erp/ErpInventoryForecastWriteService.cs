@@ -50,6 +50,8 @@ public sealed class ErpInventoryForecastWriteService : IErpInventoryForecastWrit
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureInventoryForecastAsync(connection, cancellationToken).ConfigureAwait(false);
         decimal avgDaily = 0;
         await using (var demand = connection.CreateCommand())
         {

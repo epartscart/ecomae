@@ -31,6 +31,8 @@ public sealed class ErpLandedCostWriteService : IErpLandedCostWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureLandedCostAsync(connection, cancellationToken).ConfigureAwait(false);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         var status = await ErpDb.StringAsync(connection, transaction,
             ErpDb.Positional("SELECT `status` FROM `epc_landed_cost_sheets` WHERE `id`=? FOR UPDATE"),

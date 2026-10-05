@@ -55,6 +55,8 @@ public sealed class ErpHrLeaveRequestWriteService : IErpHrLeaveRequestWriteServi
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureHrLeaveAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

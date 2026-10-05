@@ -71,6 +71,8 @@ public sealed class ErpInsClaimAddWriteService : IErpInsClaimAddWriteService
         var settledAmt = decimal.Round(settledAmount, 2, MidpointRounding.AwayFromZero);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureInsuranceAsync(connection, cancellationToken).ConfigureAwait(false);
         if (id > 0)
         {
             await ErpDb.ExecuteAsync(

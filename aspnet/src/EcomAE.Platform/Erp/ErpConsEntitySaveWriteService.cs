@@ -65,6 +65,8 @@ public sealed class ErpConsEntitySaveWriteService : IErpConsEntitySaveWriteServi
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureConsEntitiesAsync(connection, cancellationToken).ConfigureAwait(false);
         if (home == 1)
         {
             await ErpDb.ExecuteAsync(

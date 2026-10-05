@@ -25501,7 +25501,7 @@ public sealed class ErpModule : ISurfaceModule
         HttpContext context,
         ILegacySessionValidator validator,
         IErpCsImportDeclarationPdfDryRun dryRun,
-        IErpCsPdfImportService importer,
+        IErpCsPdfImportWriteService importer,
         CancellationToken cancellationToken)
     {
         var session = await validator.ValidateAsync(context, cancellationToken);

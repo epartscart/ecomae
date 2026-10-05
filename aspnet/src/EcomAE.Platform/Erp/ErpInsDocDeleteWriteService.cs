@@ -30,6 +30,8 @@ public sealed class ErpInsDocDeleteWriteService : IErpInsDocDeleteWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureInsuranceAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

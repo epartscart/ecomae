@@ -44,6 +44,8 @@ public sealed class ErpConsDeleteWriteService : IErpConsDeleteWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureConsEntitiesAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional(sql), cancellationToken, id);
         return ErpSimpleWriteResult.Ok(okMessage, id);
     }

@@ -73,6 +73,8 @@ public sealed class ErpMultiCurrencyGlWriteService : IErpMultiCurrencyGlWriteSer
         var src = Clip(string.IsNullOrWhiteSpace(source) ? "manual" : source, 64);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureFxRatesAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

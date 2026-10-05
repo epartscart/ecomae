@@ -14,7 +14,7 @@ public sealed class ErpCsPdfImportPhpParityTests
     [Fact]
     public void CsPdfImportService_PortAnchorPhpContracts()
     {
-        var service = RepoFile("src/EcomAE.Platform/Erp/ErpCsPdfImportService.cs");
+        var service = RepoFile("src/EcomAE.Platform/Erp/ErpCsPdfImportWriteService.cs");
         Assert.Contains("Upload must be a PDF file", service);
         Assert.Contains("PDF exceeds 15 MB limit", service);
         Assert.Contains("Could not extract any text from the PDF.", service);
