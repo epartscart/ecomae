@@ -266,6 +266,30 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpStorageTogglePath, ["GET", "POST"], CpStorageToggleAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpPricePreviewPath, ["GET", "POST"], CpPricePreviewAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpCompletePriceSessionPath, ["GET", "POST"], CpCompletePriceSessionAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpPaymentsPath, ["GET", "POST"], CpPaymentsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpPaymentsEndpointPath, ["GET", "POST"], CpPaymentsEndpointAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpPriceDiagnosticsPath, ["GET", "POST"], CpPriceDiagnosticsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpPricesSendPath, ["GET", "POST"], CpPricesSendAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpChannelsPath, ["GET", "POST"], CpChannelsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpLogisticsPath, ["GET", "POST"], CpLogisticsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpAccessoryPhotosPath, ["GET", "POST"], CpAccessoryPhotosAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpPriceHistoryPath, ["GET", "POST"], CpPriceHistoryAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpDemandCsvPath, ["GET", "POST"], CpDemandCsvAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpPartsAgentPath, ["GET", "POST"], CpPartsAgentAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static IResult LicenseApiAsync()
@@ -2797,6 +2821,256 @@ public static class StorefrontPhpAjaxEndpoints
                     token).ConfigureAwait(false);
             },
             new StorefrontPhpAjax.ToggleBody(false, StorefrontPhpAjax.NoDbConnect, null, null));
+
+    private static Task<IResult> CpPricePreviewAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PricePreviewAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "price_id", token).ConfigureAwait(false)),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+
+    private static Task<IResult> CpCompletePriceSessionAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var config = PhpConfig(context);
+        var tech = config.TryGetValue("tech_key", out var key) ? key : string.Empty;
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.CompletePriceSessionAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                context.Request.Query["key"].ToString(),
+                tech,
+                StorefrontPhpAjax.PhpInt(context.Request.Query["price_id"].ToString()),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.SessionResult(0, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpPaymentsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PaymentsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "handler", token).ConfigureAwait(false),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "system_id", token).ConfigureAwait(false)),
+                await OptionalPostedAsync(context, "parameters_values", token).ConfigureAwait(false),
+                false,
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, "No database"));
+
+    private static Task<IResult> CpPaymentsEndpointAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) =>
+            {
+                if (!HttpMethods.IsPost(context.Request.Method))
+                {
+                    return new StorefrontPhpAjax.FlagBody(false, "No action");
+                }
+
+                var action = await OptionalPostedAsync(context, "action", token).ConfigureAwait(false);
+                if (string.IsNullOrEmpty(action))
+                {
+                    return new StorefrontPhpAjax.FlagBody(false, "No action");
+                }
+
+                return await StorefrontPhpAjax.PaymentsAsync(
+                    connection,
+                    context.Request.Cookies["admin_session"],
+                    context.Request.Cookies["admin_u_id"],
+                    null,
+                    action,
+                    await OptionalPostedAsync(context, "handler", token).ConfigureAwait(false),
+                    StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "system_id", token).ConfigureAwait(false)),
+                    await OptionalPostedAsync(context, "parameters_values", token).ConfigureAwait(false),
+                    true,
+                    token).ConfigureAwait(false);
+            },
+            new StorefrontPhpAjax.FlagBody(false, "Database connection failed"));
+
+    private static Task<IResult> CpPriceDiagnosticsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var config = PhpConfig(context);
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PriceDiagnosticsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                config,
+                root,
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpPricesSendAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PricesSendAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await FieldAsync(context, "request_object", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.CodedJson(503, new StorefrontPhpAjax.FlagBody(false, "DB connect error")));
+
+    private static Task<IResult> CpChannelsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.ChannelsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "channel_code", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "code", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "enabled", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "channel", token).ConfigureAwait(false),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "marketplace_order_id", token).ConfigureAwait(false)),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, "Database unavailable"));
+
+    private static Task<IResult> CpLogisticsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.LogisticsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "carrier_code", token).ConfigureAwait(false),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "order_id", token).ConfigureAwait(false)),
+                await OptionalPostedAsync(context, "weight_kg", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, "Database unavailable"));
+
+    private static Task<IResult> CpAccessoryPhotosAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.AccessoryPhotosAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "listing_id", token).ConfigureAwait(false)),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "photo_id", token).ConfigureAwait(false)),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.PhotoBody(false, "No database"));
+
+    private static Task<IResult> CpPriceHistoryAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PriceHistoryAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "price_id", token).ConfigureAwait(false)),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+
+    private static Task<IResult> CpDemandCsvAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.DemandCsvAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "country", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "file_full_path", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.CodedJson(503, new StorefrontPhpAjax.FlagBody(false, "No DB connect")));
+
+    private static Task<IResult> CpPartsAgentAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PartsAgentAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "session_id", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, "No DB connect"));
 
     private static IReadOnlyDictionary<string, string> PhpConfig(HttpContext context)
     {
