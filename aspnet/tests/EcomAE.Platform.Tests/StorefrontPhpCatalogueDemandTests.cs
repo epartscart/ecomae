@@ -348,7 +348,7 @@ public sealed class StorefrontPhpCatalogueDemandTests
             await drop.ExecuteNonQueryAsync();
         }
 
-        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" + database + "'"));
     }
 
     [Fact]
@@ -526,7 +526,7 @@ public sealed class StorefrontPhpCatalogueDemandTests
             await drop.ExecuteNonQueryAsync();
         }
 
-        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" + database + "'"));
     }
 
     [Fact]
@@ -596,7 +596,7 @@ public sealed class StorefrontPhpCatalogueDemandTests
             await drop.ExecuteNonQueryAsync();
         }
 
-        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" + database + "'"));
     }
 
     [Fact]
@@ -692,7 +692,7 @@ public sealed class StorefrontPhpCatalogueDemandTests
             await drop.ExecuteNonQueryAsync();
         }
 
-        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" + database + "'"));
     }
 
     [Fact]
@@ -938,7 +938,7 @@ public sealed class StorefrontPhpCatalogueDemandTests
             await drop.ExecuteNonQueryAsync();
         }
 
-        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME = '" + database + "'"));
     }
 
     private static string Md5(string raw)
