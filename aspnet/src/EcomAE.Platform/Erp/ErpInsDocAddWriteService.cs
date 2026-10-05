@@ -58,6 +58,8 @@ public sealed class ErpInsDocAddWriteService : IErpInsDocAddWriteService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureInsuranceAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_ins_documents", "policy_id", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_ins_documents", "file_path", cancellationToken).ConfigureAwait(false))
         {
