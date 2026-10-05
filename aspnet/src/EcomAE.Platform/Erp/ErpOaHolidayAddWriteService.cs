@@ -51,6 +51,8 @@ public sealed class ErpOaHolidayAddWriteService : IErpOaHolidayAddWriteService
         var calendarId = request.CalendarId < 0 ? 0 : request.CalendarId;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureOrgAdminAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_oa_holiday", "holiday_date", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_oa_holiday", "name", cancellationToken).ConfigureAwait(false))
         {

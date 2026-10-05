@@ -51,6 +51,8 @@ public sealed class ErpOaPartySaveWriteService : IErpOaPartySaveWriteService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureOrgAdminAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_oa_party", "name", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_oa_party", "party_type", cancellationToken).ConfigureAwait(false))
         {
