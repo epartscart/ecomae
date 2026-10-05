@@ -80,6 +80,20 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Shop ajax and catalogue cart stock
+
+Not complete.
+
+- `ajax_add_to_notepad.php`, `ajax_operations_cars.php`, `ajax_checkout_create.php`, `ajax_get_order_messages.php`, `ajax_send_message.php`, `ajax_create_operation.php`, `ajax_check_items_returns.php`, `ajax_get_article_list.php`, and `ajax_check_for_order.php` now answer on ASP.NET. Guest notepad is `2063`. Another user’s car is `2064` or `No Access`. A saved notepad line stores the HTML-encoded article and a comment that starts with `4225`. Garage search, check, active, and delete write only that user’s rows. Empty garage HTML is `5609`. Checkout without the agreement cookie is `4492. 4471`. A checked type-2 line becomes an order and leaves the unchecked cart line. Staff email and `epc_erp_order_fulfillment` are not called. Order messages for another user are `Forbidden` code 501. Send returns plain `true` and stores the encoded text. A balance top-up inserts an inactive income row. Amount 0, a guest, another user’s order, and an already paid order are refused. Returns counts match the seeded rows. An empty article list returns the recent query plus names `4194`, `4195`, and `4196`. A missing stat table says the queries are not in this database and the list is empty. Check-for-order toggles the flag. A type-1 add with the PHP hash reserves warehouse stock, a later increase and decrease move that same detail, and delete releases it. A type-1 add with no hash is code `35` message `4462` and does not change stock.
+- `StorefrontPhpShopTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2.
+- Type-1 quantity increase does not search other offices. Type-1 add stores the catalogue caption and does not run the Russian property-map manufacturer/article SQL. Article search returns a clear message when `shop_properties_values_text` is absent. Checkout email, staff message email, gateway capture, and a successful order-pay insert were not proved. `get_table_cars` is a short table, not the full PHP button markup.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5048 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, other-office catalogue stock, checkout email, ERP fulfillment from checkout, gateway capture, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — SKU media lookup and type-2 cart writes
 
 Not complete.
