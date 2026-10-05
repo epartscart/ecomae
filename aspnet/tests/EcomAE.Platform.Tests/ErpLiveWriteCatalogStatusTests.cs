@@ -82,6 +82,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/cs-save-declaration",
         "/erp/ajax/cs-submit-declaration",
         "/erp/ajax/cs-delete-declaration",
+        "/erp/ajax/jw-seed-sample-data",
         "/erp/ajax/opl-create-pos",
         "/erp/ajax/opl-autoplan",
         "/erp/ajax/pm-listing-save",
