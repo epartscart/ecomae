@@ -6278,20 +6278,48 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapGet(EcomAeRoutes.ErpExternalReportingXlsx, (HttpContext context, ErpExternalReportingFormService forms, CancellationToken cancellationToken) => forms.XlsxAsync(context, cancellationToken));
         endpoints.MapPost(EcomAeRoutes.ErpExternalReportingImport, (HttpContext context, ErpExternalReportingFormService forms, CancellationToken cancellationToken) => forms.ImportAsync(context, cancellationToken)).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpExternalReportingIntake, (HttpContext context, ErpExternalReportingFormService forms, CancellationToken cancellationToken) => forms.IntakeAsync(context, cancellationToken)).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentBootstrap, async (HttpContext context, ErpOrderFulfillmentBootstrapBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentBootstrapDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentBootstrapRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentStatus, async (HttpContext context, ErpOrderFulfillmentStatusBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentStatusDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentStatusRequest(body.Id, body.TargetStatus, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentSync, async (HttpContext context, ErpOrderFulfillmentSyncBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentSyncDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentSyncRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentPostPo, async (HttpContext context, ErpOrderFulfillmentPostPoBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentPostPoDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentPostPoRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentPostSales, async (HttpContext context, ErpOrderFulfillmentPostSalesBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentPostSalesDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentPostSalesRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentAutoPost, async (HttpContext context, ErpOrderFulfillmentAutoPostBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentAutoPostDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentAutoPostRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentSwapSupplier, async (HttpContext context, ErpOrderFulfillmentSwapSupplierBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentSwapSupplierDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentSwapSupplierRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentBootstrap, (HttpContext context, ErpOrderFulfillmentBootstrapBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentBootstrapDryRun dryRun, IErpOrderFulfillmentWriteService writes, CancellationToken cancellationToken) =>
+            HandleOrderFulfillmentAsync(context, validator, body?.ConfirmWrites == true,
+                writes,
+                (session) => Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentBootstrapRequest(false)).ToPayload(session)),
+                async (adminId) => await writes.BootstrapAsync(FulfillmentOrderId(context, body?.Id ?? 0), adminId, cancellationToken),
+                cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentStatus, (HttpContext context, ErpOrderFulfillmentStatusBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentStatusDryRun dryRun, IErpOrderFulfillmentWriteService writes, CancellationToken cancellationToken) =>
+            HandleOrderFulfillmentAsync(context, validator, body?.ConfirmWrites == true,
+                writes,
+                (session) => Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentStatusRequest(FulfillmentOrderId(context, body?.Id ?? 0), null, false)).ToPayload(session)),
+                async (adminId) => await writes.StatusAsync(FulfillmentOrderId(context, body?.Id ?? 0), adminId, cancellationToken),
+                cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentSync, (HttpContext context, ErpOrderFulfillmentSyncBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentSyncDryRun dryRun, IErpOrderFulfillmentWriteService writes, CancellationToken cancellationToken) =>
+            HandleOrderFulfillmentAsync(context, validator, body?.ConfirmWrites == true,
+                writes,
+                (session) => Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentSyncRequest(false)).ToPayload(session)),
+                async (adminId) => await writes.SyncAsync(FulfillmentOrderId(context, body?.Id ?? 0), adminId, cancellationToken),
+                cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentPostPo, (HttpContext context, ErpOrderFulfillmentPostPoBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentPostPoDryRun dryRun, IErpOrderFulfillmentWriteService writes, CancellationToken cancellationToken) =>
+            HandleOrderFulfillmentAsync(context, validator, body?.ConfirmWrites == true,
+                writes,
+                (session) => Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentPostPoRequest(FulfillmentPoId(context, body?.Id ?? 0), null, false)).ToPayload(session)),
+                async (adminId) => await writes.PostPoInvoiceAsync(FulfillmentPoId(context, body?.Id ?? 0), adminId, cancellationToken),
+                cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentPostSales, (HttpContext context, ErpOrderFulfillmentPostSalesBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentPostSalesDryRun dryRun, IErpOrderFulfillmentWriteService writes, CancellationToken cancellationToken) =>
+            HandleOrderFulfillmentAsync(context, validator, body?.ConfirmWrites == true,
+                writes,
+                (session) => Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentPostSalesRequest(FulfillmentOrderId(context, body?.Id ?? 0), null, false)).ToPayload(session)),
+                async (adminId) => await writes.PostSalesInvoiceAsync(FulfillmentOrderId(context, body?.Id ?? 0), adminId, cancellationToken),
+                cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentAutoPost, (HttpContext context, ErpOrderFulfillmentAutoPostBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentAutoPostDryRun dryRun, IErpOrderFulfillmentWriteService writes, CancellationToken cancellationToken) =>
+            HandleOrderFulfillmentAsync(context, validator, body?.ConfirmWrites == true,
+                writes,
+                (session) => Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentAutoPostRequest(false)).ToPayload(session)),
+                async (adminId) => await writes.AutoPostAsync(FulfillmentOrderId(context, body?.Id ?? 0), adminId, cancellationToken),
+                cancellationToken)).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxOrderFulfillmentSwapSupplier, (HttpContext context, ErpOrderFulfillmentSwapSupplierBody? body, ILegacySessionValidator validator, IErpOrderFulfillmentSwapSupplierDryRun dryRun, IErpOrderFulfillmentWriteService writes, CancellationToken cancellationToken) =>
+            HandleOrderFulfillmentAsync(context, validator, body?.ConfirmWrites == true,
+                writes,
+                (session) => Results.Ok(dryRun.Evaluate(new ErpOrderFulfillmentSwapSupplierRequest(FulfillmentOrderId(context, body?.Id ?? 0), null, false)).ToPayload(session)),
+                async (adminId) => await writes.SwapLineSupplierAsync(FulfillmentOrderId(context, body?.Id ?? 0), (body?.OrderItemId ?? 0) > 0 ? body!.OrderItemId : FulfillmentFormLong(context, "order_item_id", "orderItemId"), (body?.NewStorageId ?? 0) > 0 ? body!.NewStorageId : FulfillmentFormLong(context, "new_storage_id", "newStorageId"), adminId, cancellationToken),
+                cancellationToken)).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmSave, HandlePmSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmToggle, HandlePmToggleAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPmBudgetSave, HandlePmBudgetSaveAsync).DisableAntiforgery();
@@ -19319,6 +19347,65 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = result.Ok, writes = result.Writes, phpAuthoritative = false, message = result.Message, res = new { id = result.Id, gross = result.Gross, discount = result.Discount, net = result.Net, tax = result.Tax, total = result.Total }, session = SessionPayload(session) });
     }
 
+    private static long FulfillmentFormLong(HttpContext context, string snake, string camel)
+    {
+        if (!context.Request.HasFormContentType) return 0;
+        if (context.Request.Form.TryGetValue(snake, out var v) && long.TryParse(v.ToString(), out var n)) return n;
+        if (context.Request.Form.TryGetValue(camel, out var v2) && long.TryParse(v2.ToString(), out var n2)) return n2;
+        return 0;
+    }
+
+    private static long FulfillmentOrderId(HttpContext context, long bodyId)
+    {
+        var n = FulfillmentFormLong(context, "order_id", "orderId");
+        return n > 0 ? n : bodyId;
+    }
+
+    private static long FulfillmentPoId(HttpContext context, long bodyId)
+    {
+        var n = FulfillmentFormLong(context, "po_id", "poId");
+        return n > 0 ? n : bodyId;
+    }
+
+
+    private static async Task<IResult> HandleOrderFulfillmentAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        bool confirmWrites,
+        IErpOrderFulfillmentWriteService writes,
+        Func<object, IResult> dryRun,
+        Func<int, Task<ErpFulfillmentResult>> action,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/app", "Admin ERP capability required for order fulfillment.");
+        }
+        context.Items["ecomae.session"] = session;
+        if (!confirmWrites)
+        {
+            return dryRun(SessionPayload(session));
+        }
+        var adminId = (int)session.UserId;
+        context.Items["ecomae.fulfillment.admin"] = adminId;
+        ErpFulfillmentResult result;
+        try
+        {
+            result = await action(adminId).ConfigureAwait(false);
+        }
+        catch (ErpWriteException ex)
+        {
+            result = ErpFulfillmentResult.Fail(ex.Message);
+        }
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/app",
+            result.Ok,
+            result.Message,
+            new { ok = result.Ok, writes = result.Writes, phpAuthoritative = false, message = result.Message, res = result.Payload, session = SessionPayload(session) });
+    }
+
     private static async Task<IResult> HandlePmListingSaveAsync(
         HttpContext context,
         ILegacySessionValidator validator,
@@ -25476,13 +25563,13 @@ public sealed class ErpModule : ISurfaceModule
         bool ConfirmWrites = false);
     private sealed record ErpEinvoicePollAspBody(bool ConfirmWrites = false);
     private sealed record ErpExternalReportingFetchBody(string? Action = "fetch", string? ReportKey = null, bool ConfirmWrites = false);
-    private sealed record ErpOrderFulfillmentBootstrapBody(bool ConfirmWrites = false);
-    private sealed record ErpOrderFulfillmentStatusBody(long Id, string? TargetStatus = null, bool ConfirmWrites = false);
-    private sealed record ErpOrderFulfillmentSyncBody(bool ConfirmWrites = false);
+    private sealed record ErpOrderFulfillmentBootstrapBody(long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpOrderFulfillmentStatusBody(long Id = 0, string? TargetStatus = null, bool ConfirmWrites = false);
+    private sealed record ErpOrderFulfillmentSyncBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpOrderFulfillmentPostPoBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpOrderFulfillmentPostSalesBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
-    private sealed record ErpOrderFulfillmentAutoPostBody(bool ConfirmWrites = false);
-    private sealed record ErpOrderFulfillmentSwapSupplierBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
+    private sealed record ErpOrderFulfillmentAutoPostBody(long Id = 0, bool ConfirmWrites = false);
+    private sealed record ErpOrderFulfillmentSwapSupplierBody(long Id = 0, long OrderItemId = 0, long NewStorageId = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
     private sealed record ErpPmToggleBody(long Id = 0, bool ConfirmWrites = false);
     private sealed record ErpPmBudgetSaveBody(long Id = 0, string? Code = null, bool ConfirmWrites = false);
