@@ -95,6 +95,7 @@ public sealed class CpLegacyPhpAjaxLinkTests
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.CrmEndpoint, out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.CustomerEndpoint, out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.DocumentEndpoint, out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.SaoExec, out _));
     }
 
     [Fact]
@@ -102,5 +103,6 @@ public sealed class CpLegacyPhpAjaxLinkTests
     {
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.ProcurementEndpoint, out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.ErpEndpoint + "?action=dashboard", out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.SaoExec, out _));
     }
 }

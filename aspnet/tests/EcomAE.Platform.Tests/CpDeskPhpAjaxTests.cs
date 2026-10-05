@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
+using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Cp;
 using EcomAE.Platform.Cp.PriceImport;
 using EcomAE.Platform.Data;
@@ -182,7 +183,89 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
-    private static async Task<ProbeHost> StartAsync(string connectionString)
+    [Fact]
+    public async Task SaoExec_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var configRoot = Path.Combine(Path.GetTempPath(), "ecomae-sao-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(configRoot);
+        File.WriteAllText(Path.Combine(configRoot, "config.php"), """
+            <?php
+            class DP_Config {
+            public $tech_key = 'local-tech';
+            }
+            """);
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configRoot, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var wrong = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.SaoExec + "?key=nope&order_item_id=12&sao_action_id=3", null, string.Empty);
+                Assert.Equal(StorefrontPhpAjax.OrderItemWrongKey, wrong.Json.RootElement.GetProperty("message").GetString());
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.SaoExec + "?key=local-tech&order_item_id=12&sao_action_id=3", null, string.Empty);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnect, offline.Body);
+            }
+
+            await using var host = await StartAsync(connectionString, configRoot);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var staff = "admin_session=admin-token; admin_u_id=9";
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.SaoExec + "?key=local-tech&order_item_id=12&sao_action_id=3", null, staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.SaoExec + "?key=local-tech&order_item_id=12&sao_action_id=3&csrf_guard_key=admin-csrf", null, staff);
+            Assert.Equal(StorefrontPhpAjax.SaoActionsMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'shop_sao%'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_orders_items (id INT NOT NULL PRIMARY KEY, t2_storage_id INT NOT NULL, sao_state INT NOT NULL, sao_message VARCHAR(255) NOT NULL DEFAULT '')");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_orders_items (id, t2_storage_id, sao_state) VALUES (12, 4, 8)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_storages (id INT NOT NULL PRIMARY KEY, interface_type INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_storages (id, interface_type) VALUES (4, 2)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_sao_states_types_link (id INT NOT NULL PRIMARY KEY, interface_type_id INT NOT NULL, state_id INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_sao_states_types_link (id, interface_type_id, state_id) VALUES (5, 2, 8)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_sao_states_types_actions_link (id INT NOT NULL PRIMARY KEY, state_type_id INT NOT NULL, action_id INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_sao_states_types_actions_link (id, state_type_id, action_id) VALUES (1, 5, 3)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_sao_actions (id INT NOT NULL PRIMARY KEY, script VARCHAR(255) NOT NULL, name VARCHAR(255) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_sao_actions (id, script, name) VALUES (3, 'do.php', 'Do')");
+
+            var blocked = await SendAsync(client, CpLegacyPhpAjaxLinks.SaoExec + "?key=local-tech&order_item_id=12&sao_action_id=9&csrf_guard_key=admin-csrf", null, staff);
+            Assert.False(blocked.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal("12", blocked.Json.RootElement.GetProperty("order_item_id").GetString());
+            Assert.Equal(StorefrontPhpAjax.SaoAlreadyDone, blocked.Json.RootElement.GetProperty("sao_action_message").GetString());
+            var refused = await SendAsync(client, CpLegacyPhpAjaxLinks.SaoExec + "?key=local-tech&order_item_id=12&sao_action_id=3&csrf_guard_key=admin-csrf", null, staff);
+            Assert.False(refused.Json.RootElement.GetProperty("status").GetBoolean(), refused.Body);
+            Assert.Equal(StorefrontPhpAjax.SaoScriptNotExecuted, refused.Json.RootElement.GetProperty("sao_action_message").GetString());
+            Assert.Equal(string.Empty, await ScalarAsync(connectionString, "SELECT sao_message FROM shop_orders_items WHERE id = 12"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+            if (Directory.Exists(configRoot))
+            {
+                Directory.Delete(configRoot, true);
+            }
+        }
+    }
+
+    private static async Task<ProbeHost> StartAsync(string connectionString, string? configRoot = null, bool configured = true)
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
@@ -190,7 +273,11 @@ public sealed class CpDeskPhpAjaxTests
         listener.Stop();
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:" + port.ToString(CultureInfo.InvariantCulture));
-        builder.Services.AddSingleton<ITenantDbConnectionFactory>(new FixedConnections(connectionString));
+        builder.Services.AddSingleton<ITenantDbConnectionFactory>(configured ? new FixedConnections(connectionString) : new UnconfiguredConnections());
+        if (!string.IsNullOrEmpty(configRoot))
+        {
+            builder.Services.Configure<PhpReferenceOptions>(options => options.PhpDocRoot = configRoot);
+        }
         builder.Services.AddSingleton<IErpWriteConnectionFactory>(new WriteConnections(connectionString));
         builder.Services.AddSingleton<IErpEinvoiceProfileWriteService>(sp => new ErpEinvoiceProfileWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpDocumentControlWriteService>(sp => new CpDocumentControlWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
@@ -354,6 +441,23 @@ public sealed class CpDeskPhpAjaxTests
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             return connection;
         }
+    }
+
+    private sealed class UnconfiguredConnections : ITenantDbConnectionFactory
+    {
+        public bool IsConfigured => false;
+
+        public Task<DbConnection> OpenAsync(string? databaseName, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Database was called.");
+
+        public Task<DbConnection> OpenAsync(string? databaseName, string? userName, string? password, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Database was called.");
+
+        public Task<DbConnection> OpenForTenantAsync(TenantContext? tenant, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Database was called.");
+
+        public Task<DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("Database was called.");
     }
 
     private sealed class FixedConnections : ITenantDbConnectionFactory

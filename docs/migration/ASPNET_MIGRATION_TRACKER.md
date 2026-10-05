@@ -87,11 +87,23 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 66 of 75 (88%) | OMS, pay and refund, commerce and multivendor ingest, the prices init include, price review, crosses lookup, and SAO |
-| Broader `cp/content` ajax | 79 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 67 of 75 (89%) | OMS, pay and refund, commerce and multivendor ingest, the prices init include, price review, and crosses lookup |
+| Broader `cp/content` ajax | 80 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 9 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: finish the 8 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-05 — SAO exec checks the tech key and does not run supplier scripts
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 67 are mapped. 8 stay unmapped. The previous checkpoint had 66 mapped and 9 unmapped. The broader `cp/content` ajax scan is 80 of 110 mapped.
+- `ajax_exec_action.php` with a key other than `tech_key` returns status false and “Wrong key” before the database is opened.
+- With the tech key and no database, the body is `No DB connect`.
+- With the tech key and no CSRF value, the message is `Error! CSRF 1`. A missing SAO table says “SAO actions are not in this database.” and does not create `shop_sao%`.
+- Action 9, which is not linked to the item state, returns the PHP message “Данное действие уже выполненно другим менеджером.”
+- Action 3 is linked, and the answer is status false and “Supplier action script was not executed.” `sao_message` stays empty. The supplier PHP file is not loaded.
+- OMS, pay and refund, commerce ingest, multivendor ingest, the prices init include, price review, and crosses lookup stay open.
 
 ### Checkpoint 2026-10-05 — CRM, customer, and document ajax use the existing writers
 

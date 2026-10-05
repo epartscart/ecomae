@@ -357,6 +357,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.OrdersDetailPane, ["GET", "POST"], CpOrdersDetailPaneAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.SaoExec, ["GET", "POST"], CpSaoExecAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3163,6 +3165,37 @@ public static class StorefrontPhpAjaxEndpoints
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.FlagBody(false, "No DB connect"));
+
+    private static Task<IResult> CpSaoExecAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var key = context.Request.Query["key"].ToString();
+        if (!StorefrontPhpAjax.TechKeyEquals(PhpConfig(context), key))
+        {
+            return Task.FromResult(Php(new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.OrderItemWrongKey)));
+        }
+
+        var orderItemId = context.Request.Query["order_item_id"].ToString();
+        var actionId = context.Request.Query["sao_action_id"].ToString();
+        string? csrf = context.Request.Query.ContainsKey("csrf_guard_key")
+            ? context.Request.Query["csrf_guard_key"].ToString()
+            : null;
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.SaoExecAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                csrf,
+                orderItemId,
+                actionId,
+                token),
+            StorefrontPhpAjax.NoDbConnect);
+    }
 
     private static Task<IResult> CpOrdersDetailPaneAsync(
         HttpContext context,
