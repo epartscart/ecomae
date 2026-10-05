@@ -244,6 +244,28 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpOrderItemObjectPath, ["GET", "POST"], CpOrderItemObjectAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpSaveStringDescriptionPath, ["GET", "POST"], CpSaveStringDescriptionAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpSetUsedFoundPath, ["GET", "POST"], CpSetUsedFoundAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpDeleteUnusedStringsPath, ["GET", "POST"], CpDeleteUnusedStringsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpCreateStringPath, ["GET", "POST"], CpCreateStringAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpSaveTranslationPath, ["GET", "POST"], CpSaveTranslationAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpSearchUsedFoundPath, ["GET", "POST"], CpSearchUsedFoundAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpContentAliasPath, ["GET", "POST"], CpContentAliasAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpManufacturersPath, ["GET", "POST"], CpManufacturersAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpStorageGroupsPath, ["GET", "POST"], CpStorageGroupsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpReturnActionPath, ["GET", "POST"], CpReturnActionAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpStorageTogglePath, ["GET", "POST"], CpStorageToggleAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static IResult LicenseApiAsync()
@@ -2511,6 +2533,270 @@ public static class StorefrontPhpAjaxEndpoints
                 token),
             StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
     }
+
+    private static Task<IResult> CpSaveStringDescriptionAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (StorefrontPhpAjax.EditorRestricted(PhpConfig(context)))
+        {
+            return Task.FromResult(Php(new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.LangRestricted)));
+        }
+
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.SaveStringDescriptionAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "str_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "str_key", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "value", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "value", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpSetUsedFoundAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (StorefrontPhpAjax.EditorRestricted(PhpConfig(context)))
+        {
+            return Task.FromResult(Php(new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.LangRestricted)));
+        }
+
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.SetUsedFoundAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "str_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "str_key", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "used_found", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "used_found", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpDeleteUnusedStringsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (StorefrontPhpAjax.EditorRestricted(PhpConfig(context)))
+        {
+            return Task.FromResult(Php(new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.LangRestricted)));
+        }
+
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.DeleteUnusedStringsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpCreateStringAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (StorefrontPhpAjax.EditorRestricted(PhpConfig(context)))
+        {
+            return Task.FromResult(Php(new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.LangRestricted)));
+        }
+
+        var config = PhpConfig(context);
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.CreateStringAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                config,
+                await HasFieldAsync(context, "description", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "description", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "same", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "same", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "is_error", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "is_error", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "is_custom", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "is_custom", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "used_found", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "used_found", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpSaveTranslationAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.SaveTranslationAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                StorefrontPhpAjax.EditorRestricted(PhpConfig(context)),
+                await HasFieldAsync(context, "str_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "str_key", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "lang_code", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "lang_code", token).ConfigureAwait(false),
+                await HasFieldAsync(context, "value", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "value", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+
+    private static Task<IResult> CpSearchUsedFoundAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (StorefrontPhpAjax.EditorRestricted(PhpConfig(context)))
+        {
+            return Task.FromResult(Php(new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.LangRestricted)));
+        }
+
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.SearchUsedFoundAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpContentAliasAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var config = PhpConfig(context);
+        var secret = config.TryGetValue("secret_succession", out var configured) ? configured : string.Empty;
+        if (!string.Equals(secret, context.Request.Query["code"].ToString(), StringComparison.Ordinal))
+        {
+            return Task.FromResult(Php(new StorefrontPhpAjax.FlagBody(false, "Forbidden")));
+        }
+
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.ContentAliasAsync(
+                connection,
+                context.Request.Query["alias"].ToString(),
+                context.Request.Query["content_id"].ToString(),
+                context.Request.Query["parent"].ToString(),
+                context.Request.Query["is_frontend"].ToString(),
+                token),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+    }
+
+    private static Task<IResult> CpManufacturersAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.ManufacturersAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await FieldAsync(context, "request_object", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.ManufacturerBody(false, "No DB connect", [], []));
+
+    private static Task<IResult> CpStorageGroupsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.StorageGroupsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await FieldAsync(context, "request_object", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.GroupsDb));
+
+    private static Task<IResult> CpReturnActionAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.ReturnActionAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "return_id", token).ConfigureAwait(false)),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "status_id", token).ConfigureAwait(false)),
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "line_id", token).ConfigureAwait(false)),
+                await OptionalPostedAsync(context, "decide", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.ReturnDb));
+
+    private static Task<IResult> CpStorageToggleAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) =>
+            {
+                var enabledRaw = await OptionalPostedAsync(context, "storefront_enabled", token).ConfigureAwait(false);
+                var enabled = !string.IsNullOrEmpty(enabledRaw) && !string.Equals(enabledRaw, "0", StringComparison.Ordinal);
+                return await StorefrontPhpAjax.StorageToggleAsync(
+                    connection,
+                    context.Request.Cookies["admin_session"],
+                    context.Request.Cookies["admin_u_id"],
+                    await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "action", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "entity_type", token).ConfigureAwait(false),
+                    StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "entity_id", token).ConfigureAwait(false)),
+                    enabled,
+                    token).ConfigureAwait(false);
+            },
+            new StorefrontPhpAjax.ToggleBody(false, StorefrontPhpAjax.NoDbConnect, null, null));
 
     private static IReadOnlyDictionary<string, string> PhpConfig(HttpContext context)
     {

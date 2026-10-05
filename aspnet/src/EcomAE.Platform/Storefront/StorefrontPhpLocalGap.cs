@@ -36,6 +36,17 @@ public static partial class StorefrontPhpAjax
     public const string CpSetStringSamePath = "/cp/content/lang/ajax_set_same.php";
     public const string CpCategoryTemplatesPath = "/cp/content/shop/catalogue/categories_templates/ajax_templates_actions.php";
     public const string CpOrderItemObjectPath = "/cp/content/shop/sao/ajax_get_order_item_object.php";
+    public const string CpSaveStringDescriptionPath = "/cp/content/lang/ajax_save_string_description.php";
+    public const string CpSetUsedFoundPath = "/cp/content/lang/ajax_set_used_found.php";
+    public const string CpDeleteUnusedStringsPath = "/cp/content/lang/ajax_delete_not_used_found.php";
+    public const string CpCreateStringPath = "/cp/content/lang/ajax_create_new_string.php";
+    public const string CpSaveTranslationPath = "/cp/content/lang/ajax_save_string_translation.php";
+    public const string CpSearchUsedFoundPath = "/cp/content/lang/ajax_search_used_found.php";
+    public const string CpContentAliasPath = "/cp/content/content/ajax_check_alias.php";
+    public const string CpManufacturersPath = "/cp/content/shop/manufacturers_synonyms/ajax_operations.php";
+    public const string CpStorageGroupsPath = "/cp/content/shop/logistics/groups/ajax_operations.php";
+    public const string CpReturnActionPath = "/cp/content/shop/returns/ajax/ajax_return_action.php";
+    public const string CpStorageTogglePath = "/cp/content/shop/prices_upload/ajax_epc_storefront_storage_toggle.php";
 
     public const string CrossbaseUnavailable = "Cross-reference lookup did not return usable data";
     public const string FitmentMissingArticle = "/* epartscross: missing article */";
