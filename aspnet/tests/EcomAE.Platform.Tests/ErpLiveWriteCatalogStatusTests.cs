@@ -103,6 +103,7 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/upload-attachment",
         "/erp/ajax/delete-attachment",
         "/erp/ajax/einvoice-poll-asp",
+        "/erp/ajax/einvoice-create",
         "/erp/ajax/cc-approval-queue",
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",
