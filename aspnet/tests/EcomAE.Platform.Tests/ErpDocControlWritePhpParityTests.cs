@@ -22,7 +22,12 @@ public sealed class ErpDocControlWritePhpParityTests
     public void Catalog_Rows_AreLiveGated()
     {
         var catalog = File.ReadAllText(RepoFile("src", "EcomAE.Platform", "Migration", "SurfacePayloadContractCatalog.cs"));
-        foreach (var route in new[] { "/erp/ajax/sync-einvoice-seller", "/erp/ajax/docx-run-reminders" })
+        foreach (var route in new[]
+                 {
+                     "/erp/ajax/sync-einvoice-seller", "/erp/ajax/docx-run-reminders",
+                     "/erp/ajax/document-upload", "/erp/ajax/document-delete", "/erp/ajax/upload-logo",
+                     "/erp/ajax/upload-attachment", "/erp/ajax/delete-attachment",
+                 })
         {
             var i = catalog.IndexOf("\"" + route + "\"", StringComparison.Ordinal);
             Assert.True(i > 0, route + " missing from catalog");
@@ -37,6 +42,11 @@ public sealed class ErpDocControlWritePhpParityTests
         var module = File.ReadAllText(RepoFile("src", "EcomAE.Platform", "Modules", "ErpModule.cs"));
         Assert.Contains("EcomAeRoutes.ErpAjaxSyncEinvoiceSeller, HandleSyncEinvoiceSellerAsync", module, StringComparison.Ordinal);
         Assert.Contains("EcomAeRoutes.ErpAjaxDocxRunReminders, HandleDocxRunRemindersAsync", module, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpAjaxDocumentUpload, HandleDocumentUploadAsync", module, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpAjaxDocumentDelete, HandleDocumentDeleteAsync", module, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpAjaxUploadLogo, HandleUploadLogoAsync", module, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpAjaxUploadAttachment, HandleUploadAttachmentAsync", module, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpAjaxDeleteAttachment, HandleDeleteAttachmentAsync", module, StringComparison.Ordinal);
         Assert.Contains("IErpDocControlWriteService", module, StringComparison.Ordinal);
     }
 
@@ -62,5 +72,24 @@ public sealed class ErpDocControlWritePhpParityTests
         Assert.Contains("owner_email", service, StringComparison.Ordinal);
         // Company resolution as PHP epc_erp_active_company_id.
         Assert.Contains("ErpFinAdvancedCompany.ResolveAsync", service, StringComparison.Ordinal);
+        // epc_erp_document_upload / epc_dc_save_attachment / epc_dc_delete_attachment / upload_logo anchors
+        Assert.Contains("epc_erp_documents", service, StringComparison.Ordinal);
+        Assert.Contains("epc_document_attachments", service, StringComparison.Ordinal);
+        Assert.Contains("epc_erp_documents", service, StringComparison.Ordinal);
+        Assert.Contains("epc_doc_attachments", service, StringComparison.Ordinal);
+        Assert.Contains("epc_doc", service, StringComparison.Ordinal);
+        Assert.Contains("File type not allowed", service, StringComparison.Ordinal);
+        Assert.Contains("File too large (max 25 MB)", service, StringComparison.Ordinal);
+        Assert.Contains("does not match", service, StringComparison.Ordinal);
+        Assert.Contains("Document uploaded", service, StringComparison.Ordinal);
+        Assert.Contains("Document deleted", service, StringComparison.Ordinal);
+        Assert.Contains("Logo must be PNG, JPG, or WebP", service, StringComparison.Ordinal);
+        Assert.Contains("Logo uploaded", service, StringComparison.Ordinal);
+        Assert.Contains("Document attached", service, StringComparison.Ordinal);
+        Assert.Contains("Attachment removed", service, StringComparison.Ordinal);
+        Assert.Contains("Attachment not found", service, StringComparison.Ordinal);
+        Assert.Contains("php_flag engine off", service, StringComparison.Ordinal);
+        Assert.Contains("document_upload", service, StringComparison.Ordinal);
+        Assert.Contains("document_delete", service, StringComparison.Ordinal);
     }
 }

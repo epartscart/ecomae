@@ -1032,18 +1032,13 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveContact, HandleSaveContactAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncContacts, HandleSyncContactsAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocumentUpload, async (HttpContext context, ErpDocumentUploadBody? body, ILegacySessionValidator validator, IErpDocumentUploadDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDocumentUploadRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocumentDelete, async (HttpContext context, ErpDocumentDeleteBody? body, ILegacySessionValidator validator, IErpDocumentDeleteDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,false); return Results.Ok(dryRun.Evaluate(new ErpDocumentDeleteRequest(body.Id, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocumentUpload, HandleDocumentUploadAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocumentDelete, HandleDocumentDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveCompany, HandleSaveCompanyAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSaveTemplate, HandleSaveTemplateAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxUploadLogo, async (HttpContext context, ErpUploadLogoBody? body, ILegacySessionValidator validator, IErpUploadLogoDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpUploadLogoRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxUploadAttachment, async (HttpContext context, ErpUploadAttachmentBody? body, ILegacySessionValidator validator, IErpUploadAttachmentDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpUploadAttachmentRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxDeleteAttachment, async (HttpContext context, ErpDeleteAttachmentBody? body, ILegacySessionValidator validator, IErpDeleteAttachmentDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDeleteAttachmentRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxUploadLogo, HandleUploadLogoAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxUploadAttachment, HandleUploadAttachmentAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxDeleteAttachment, HandleDeleteAttachmentAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncEinvoiceSeller, HandleSyncEinvoiceSellerAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxExpenseReportSave, async (
             HttpContext context,
@@ -21558,6 +21553,190 @@ public sealed class ErpModule : ISurfaceModule
             results = new { @checked = r.Checked, sent = r.Sent, skipped = r.Skipped, details = r.Details.Select(d => new { doc_id = d.DocId, recipient = d.Recipient, threshold = d.Threshold, days_left = d.DaysLeft, covered = d.Covered }) },
             session = SessionPayload(session)
         });
+    }
+
+    private static async Task<EcomAE.Platform.Erp.ErpUploadFilePayload?> ReadUploadAsync(HttpRequest request, string field, CancellationToken cancellationToken)
+    {
+        if (!request.HasFormContentType)
+        {
+            return null;
+        }
+
+        var form = await request.ReadFormAsync(cancellationToken);
+        var file = form.Files.GetFile(field);
+        if (file is null || file.Length == 0)
+        {
+            return null;
+        }
+
+        var ms = new MemoryStream();
+        await file.CopyToAsync(ms, cancellationToken);
+        ms.Position = 0;
+        return new EcomAE.Platform.Erp.ErpUploadFilePayload(file.FileName, file.ContentType, file.Length, ms);
+    }
+
+    private static string FormText(HttpRequest request, IReadOnlyDictionary<string, string> fields, string key, string fallback = "")
+        => fields.TryGetValue(key, out var v) && !string.IsNullOrWhiteSpace(v)
+            ? v
+            : request.HasFormContentType && request.Form.TryGetValue(key, out var fv) ? fv.ToString() : fallback;
+
+    private static async Task<IResult> HandleDocumentUploadAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpDocumentUploadDryRun dryRun,
+        IErpDocControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpDocumentUploadRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        // PHP: $_FILES['document_file'] ?? $_FILES['file']
+        var file = await ReadUploadAsync(context.Request, "document_file", cancellationToken)
+            ?? await ReadUploadAsync(context.Request, "file", cancellationToken);
+        if (file is null)
+        {
+            return Results.Ok(new { ok = false, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "No file uploaded", session = SessionPayload(session) });
+        }
+
+        await using var _ = file.Content;
+        var written = await writes.DocumentUploadAsync(
+            new EcomAE.Platform.Erp.ErpDocumentUploadRequest(
+                FormText(context.Request, fields, "entity_type", "purchase"),
+                AmlLong(fields, "entity_id"),
+                FormText(context.Request, fields, "doc_category", "general"),
+                FormText(context.Request, fields, "notes"),
+                FormText(context.Request, fields, "version_note"),
+                session.UserId,
+                file),
+            cancellationToken);
+        return Results.Ok(new { ok = written.Succeeded, surface = "erp", writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleDocumentDeleteAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpDocumentDeleteDryRun dryRun,
+        IErpDocControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpDocumentDeleteRequest(0, false)).ToPayload(SessionPayload(session)));
+        }
+
+        // PHP: epc_erp_user_can_access — the route already requires an admin session with the erp capability.
+        var docId = AmlLong(fields, "doc_id");
+        var written = await writes.DocumentDeleteAsync(docId, cancellationToken);
+        return Results.Ok(new { ok = written.Succeeded, surface = "erp", writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleUploadLogoAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpUploadLogoDryRun dryRun,
+        IErpDocControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpUploadLogoRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var file = await ReadUploadAsync(context.Request, "logo", cancellationToken);
+        if (file is null)
+        {
+            return Results.Ok(new { ok = false, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "No logo file", session = SessionPayload(session) });
+        }
+
+        await using var _ = file.Content;
+        var r = await writes.UploadLogoAsync(file, cancellationToken);
+        return Results.Ok(new { ok = r.Result.Succeeded, surface = "erp", writes = r.Result.Writes, phpAuthoritative = false, validation_code = r.Result.Code, message = r.Result.Message, logo_path = r.LogoPath, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleUploadAttachmentAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpUploadAttachmentDryRun dryRun,
+        IErpDocControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpUploadAttachmentRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var file = await ReadUploadAsync(context.Request, "file", cancellationToken);
+        if (file is null)
+        {
+            return Results.Ok(new { ok = false, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "No file uploaded", session = SessionPayload(session) });
+        }
+
+        await using var _ = file.Content;
+        var written = await writes.SaveAttachmentAsync(
+            new EcomAE.Platform.Erp.ErpAttachmentSaveRequest(
+                FormText(context.Request, fields, "entity_type", "order"),
+                AmlLong(fields, "entity_id"),
+                FormText(context.Request, fields, "doc_category", "supplier_invoice"),
+                FormText(context.Request, fields, "supplier_name"),
+                FormText(context.Request, fields, "reference_no"),
+                FormText(context.Request, fields, "notes"),
+                session.UserId,
+                file),
+            cancellationToken);
+        return Results.Ok(new { ok = written.Succeeded, surface = "erp", writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleDeleteAttachmentAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpDeleteAttachmentDryRun dryRun,
+        IErpDocControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpDeleteAttachmentRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var written = await writes.DeleteAttachmentAsync(AmlLong(fields, "id"), cancellationToken);
+        return Results.Ok(new { ok = written.Succeeded, surface = "erp", writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, id = written.Id, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleCcKpiTilesAsync(
