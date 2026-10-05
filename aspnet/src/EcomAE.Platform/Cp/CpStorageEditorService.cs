@@ -201,10 +201,10 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
 
             name = reader.GetString(0);
             shortName = reader.GetString(1);
-            currency = Convert.ToInt32(reader.GetValue(2), CultureInfo.InvariantCulture);
-            interfaceType = Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture);
-            hidden = Convert.ToInt32(reader.GetValue(4), CultureInfo.InvariantCulture);
-            bgLineColor = Convert.ToInt32(reader.GetValue(5), CultureInfo.InvariantCulture);
+            currency = StorageInt(reader.GetValue(2));
+            interfaceType = StorageInt(reader.GetValue(3));
+            hidden = StorageInt(reader.GetValue(4));
+            bgLineColor = StorageInt(reader.GetValue(5));
             usersJson = reader.GetString(6);
             optionsJson = reader.GetString(7);
         }
@@ -528,28 +528,28 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
         try
         {
             var groups = new List<long>();
+            var all = new List<(long Id, long Parent)>();
             await using (var cmd = connection.CreateCommand())
             {
                 cmd.CommandText = "SELECT `id`, IFNULL(`parent`,0) FROM `groups`";
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-                var all = new List<(long Id, long Parent)>();
                 while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     all.Add((Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture), Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture)));
                 }
+            }
 
-                var root = await ErpDb.LongAsync(connection, null, "SELECT IFNULL(MIN(`id`),0) FROM `groups` WHERE `for_backend` = 1", cancellationToken).ConfigureAwait(false);
-                if (root > 0)
+            var root = await ErpDb.LongAsync(connection, null, "SELECT IFNULL(MIN(`id`),0) FROM `groups` WHERE `for_backend` = 1", cancellationToken).ConfigureAwait(false);
+            if (root > 0)
+            {
+                var queue = new Queue<long>();
+                queue.Enqueue(root);
+                while (queue.Count > 0)
                 {
-                    var queue = new Queue<long>();
-                    queue.Enqueue(root);
-                    while (queue.Count > 0)
-                    {
-                        var g = queue.Dequeue();
-                        if (groups.Contains(g)) continue;
-                        groups.Add(g);
-                        foreach (var child in all.Where(x => x.Parent == g)) queue.Enqueue(child.Id);
-                    }
+                    var g = queue.Dequeue();
+                    if (groups.Contains(g)) continue;
+                    groups.Add(g);
+                    foreach (var child in all.Where(x => x.Parent == g)) queue.Enqueue(child.Id);
                 }
             }
 
@@ -558,11 +558,17 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
                 return list;
             }
 
+            var profiles = await TableExistsAsync(connection, "users_profiles", cancellationToken).ConfigureAwait(false);
+            var surname = profiles
+                ? "IFNULL((SELECT p.`data_value` FROM `users_profiles` p WHERE p.`user_id` = u.`user_id` AND p.`data_key` = 'surname' LIMIT 1),'')"
+                : "''";
+            var given = profiles
+                ? "IFNULL((SELECT p.`data_value` FROM `users_profiles` p WHERE p.`user_id` = u.`user_id` AND p.`data_key` = 'name' LIMIT 1),'')"
+                : "''";
             await using var users = connection.CreateCommand();
             users.CommandText = ErpDb.Positional(
                 "SELECT DISTINCT u.`user_id`, IFNULL(u.`email`,''), IFNULL(u.`phone`,''), " +
-                "IFNULL((SELECT p.`data_value` FROM `users_profiles` p WHERE p.`user_id` = u.`user_id` AND p.`data_key` = 'surname' LIMIT 1),''), " +
-                "IFNULL((SELECT p.`data_value` FROM `users_profiles` p WHERE p.`user_id` = u.`user_id` AND p.`data_key` = 'name' LIMIT 1),'') " +
+                surname + ", " + given + " " +
                 "FROM `users` u WHERE u.`user_id` IN (SELECT b.`user_id` FROM `users_groups_bind` b WHERE b.`group_id` IN (" + string.Join(",", Enumerable.Repeat("?", groups.Count)) + ")) ORDER BY u.`user_id`");
             ErpDb.AddParameters(users, groups.Cast<object?>().ToArray());
             await using var ur = await users.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -580,6 +586,26 @@ public sealed class CpStorageEditorService : ICpStorageEditorService
         }
 
         return list;
+    }
+
+    /// <summary>PHP intval. An empty varchar such as <c>bg_line_color</c> is 0, not a format error.</summary>
+    public static int StorageInt(object? value)
+    {
+        if (value is null or DBNull)
+        {
+            return 0;
+        }
+
+        var text = Convert.ToString(value, CultureInfo.InvariantCulture)?.Trim() ?? string.Empty;
+        return int.TryParse(text, NumberStyles.Integer, CultureInfo.InvariantCulture, out var number) ? number : 0;
+    }
+
+    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW TABLES LIKE '" + table + "'";
+        var found = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return found is not null and not DBNull;
     }
 
     private static int Ordinal(DbDataReader reader, string name)

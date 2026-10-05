@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -145,10 +146,9 @@ public sealed class CpOfficeEditorService : ICpOfficeEditorService
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             if (officeId > 0)
             {
+                var columns = await TableColumnsAsync(connection, "shop_offices", cancellationToken).ConfigureAwait(false);
                 await using var cmd = connection.CreateCommand();
-                cmd.CommandText = ErpDb.Positional(
-                    "SELECT IFNULL(`caption`,''), IFNULL(`country`,''), IFNULL(`region`,''), IFNULL(`city`,''), IFNULL(`address`,''), IFNULL(`description`,''), IFNULL(`timetable`,''), " +
-                    "IFNULL(`phone`,''), IFNULL(`email`,''), IFNULL(`coordinates`,''), IFNULL(`users`,'') FROM `shop_offices` WHERE `id` = ? LIMIT 1");
+                cmd.CommandText = ErpDb.Positional(OfficeSelectSql(columns));
                 ErpDb.AddParameters(cmd, officeId);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -378,6 +378,39 @@ public sealed class CpOfficeEditorService : ICpOfficeEditorService
         }));
     }
 
+    /// <summary>PHP office editor columns. A slim <c>shop_offices</c> table still opens the row; missing fields stay empty.</summary>
+    public static string OfficeSelectSql(IReadOnlySet<string> columns)
+    {
+        var parts = new List<string>();
+        foreach (var item in CpOfficeEditor.TranslatedItems)
+        {
+            parts.Add(TextColumn(columns, item));
+        }
+
+        parts.Add(TextColumn(columns, "phone"));
+        parts.Add(TextColumn(columns, "email"));
+        parts.Add(TextColumn(columns, "coordinates"));
+        parts.Add(TextColumn(columns, "users"));
+        return "SELECT " + string.Join(", ", parts) + " FROM `shop_offices` WHERE `id` = ? LIMIT 1";
+    }
+
+    private static string TextColumn(IReadOnlySet<string> columns, string name)
+        => columns.Contains(name) ? "IFNULL(`" + name + "`,'')" : "''";
+
+    private static async Task<HashSet<string>> TableColumnsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW COLUMNS FROM `" + table + "`";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            columns.Add(reader.GetString(0));
+        }
+
+        return columns;
+    }
+
     private static async Task<string?> OfficeCaptionKeyAsync(DbConnection connection, long officeId, CancellationToken cancellationToken)
     {
         return await ErpDb.StringAsync(
@@ -402,12 +435,20 @@ public sealed class CpOfficeEditorService : ICpOfficeEditorService
 
             if (!cache.TryGetValue(key, out var text))
             {
-                text = await ErpDb.StringAsync(
-                    connection,
-                    null,
-                    ErpDb.Positional("SELECT `value` FROM `lang_text_strings_translation` WHERE `str_key` = ? ORDER BY `lang_code` = 'en' DESC LIMIT 1"),
-                    cancellationToken,
-                    key).ConfigureAwait(false) ?? key;
+                try
+                {
+                    text = await ErpDb.StringAsync(
+                        connection,
+                        null,
+                        ErpDb.Positional("SELECT `value` FROM `lang_text_strings_translation` WHERE `str_key` = ? ORDER BY `lang_code` = 'en' DESC LIMIT 1"),
+                        cancellationToken,
+                        key).ConfigureAwait(false) ?? key;
+                }
+                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                    text = key;
+                }
+
                 cache[key] = text;
             }
 

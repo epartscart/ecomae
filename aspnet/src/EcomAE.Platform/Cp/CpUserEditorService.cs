@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text.Json.Nodes;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -320,9 +321,9 @@ public sealed class CpUserEditorService : ICpUserEditorService
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             var translate = CpOfficeEditorService.Translator(connection, cancellationToken);
-            var fields = await RegFieldsAsync(connection, translate, cancellationToken).ConfigureAwait(false);
-            var variants = await VariantsAsync(connection, translate, cancellationToken).ConfigureAwait(false);
-            var groups = await GroupsAsync(connection, translate, cancellationToken).ConfigureAwait(false);
+            var fields = await OptionalAsync(() => RegFieldsAsync(connection, translate, cancellationToken)).ConfigureAwait(false);
+            var variants = await OptionalAsync(() => VariantsAsync(connection, translate, cancellationToken)).ConfigureAwait(false);
+            var groups = await OptionalAsync(() => GroupsAsync(connection, translate, cancellationToken)).ConfigureAwait(false);
             if (userId <= 0)
             {
                 return Empty(0, fields, variants, groups);
@@ -335,10 +336,10 @@ public sealed class CpUserEditorService : ICpUserEditorService
             bool phoneOk;
             bool unlocked;
             string comment;
+            var userColumns = await TableColumnsAsync(connection, "users", cancellationToken).ConfigureAwait(false);
             await using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = ErpDb.Positional(
-                    "SELECT `reg_variant`, IFNULL(`email`,''), `email_confirmed`, IFNULL(`phone`,''), `phone_confirmed`, `unlocked`, IFNULL(`comment`,'') FROM `users` WHERE `user_id` = ? LIMIT 1");
+                cmd.CommandText = ErpDb.Positional(UserOpenSelectSql(userColumns));
                 ErpDb.AddParameters(cmd, userId);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -355,10 +356,22 @@ public sealed class CpUserEditorService : ICpUserEditorService
                 comment = reader.GetString(6);
             }
 
-            var balance = await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT " + BalanceSql + " FROM `users` WHERE `user_id` = ?"), cancellationToken, userId).ConfigureAwait(false);
-            var profile = new Dictionary<string, string>(StringComparer.Ordinal);
-            await using (var cmd = connection.CreateCommand())
+            var balance = 0m;
+            if (await TableExistsAsync(connection, "shop_users_accounting", cancellationToken).ConfigureAwait(false))
             {
+                try
+                {
+                    balance = await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT " + BalanceSql + " FROM `users` WHERE `user_id` = ?"), cancellationToken, userId).ConfigureAwait(false);
+                }
+                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                }
+            }
+
+            var profile = new Dictionary<string, string>(StringComparer.Ordinal);
+            if (await TableExistsAsync(connection, "users_profiles", cancellationToken).ConfigureAwait(false))
+            {
+                await using var cmd = connection.CreateCommand();
                 cmd.CommandText = ErpDb.Positional("SELECT `data_key`, IFNULL(`data_value`,'') FROM `users_profiles` WHERE `user_id` = ?");
                 ErpDb.AddParameters(cmd, userId);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -369,8 +382,9 @@ public sealed class CpUserEditorService : ICpUserEditorService
             }
 
             var groupIds = new List<long>();
-            await using (var cmd = connection.CreateCommand())
+            if (await TableExistsAsync(connection, "users_groups_bind", cancellationToken).ConfigureAwait(false))
             {
+                await using var cmd = connection.CreateCommand();
                 cmd.CommandText = ErpDb.Positional("SELECT `group_id` FROM `users_groups_bind` WHERE `user_id` = ? ORDER BY `group_id`");
                 ErpDb.AddParameters(cmd, userId);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -395,6 +409,25 @@ public sealed class CpUserEditorService : ICpUserEditorService
     /// <summary>PHP column when present; otherwise a literal so a slim <c>users</c> table still lists real accounts.</summary>
     public static string UsersColumn(IReadOnlySet<string> columns, string name, string whenMissing)
         => columns.Contains(name) ? "`users`.`" + name + "`" : whenMissing;
+
+    /// <summary>PHP <c>user.php</c> header. Missing registration and comment columns stay empty instead of hiding the account.</summary>
+    public static string UserOpenSelectSql(IReadOnlySet<string> columns)
+    {
+        static string text(IReadOnlySet<string> set, string name)
+            => set.Contains(name) ? "IFNULL(`" + name + "`,'')" : "''";
+
+        static string number(IReadOnlySet<string> set, string name, string fallback)
+            => set.Contains(name) ? "`" + name + "`" : fallback;
+
+        return "SELECT " + number(columns, "reg_variant", "0")
+            + ", " + text(columns, "email")
+            + ", " + number(columns, "email_confirmed", "0")
+            + ", " + text(columns, "phone")
+            + ", " + number(columns, "phone_confirmed", "0")
+            + ", " + number(columns, "unlocked", "1")
+            + ", " + text(columns, "comment")
+            + " FROM `users` WHERE `user_id` = ? LIMIT 1";
+    }
 
     private static async Task<T> OptionalAsync<T>(Func<Task<T>> load) where T : new()
     {

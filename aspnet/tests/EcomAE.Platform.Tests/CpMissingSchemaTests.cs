@@ -57,4 +57,85 @@ public sealed class CpMissingSchemaTests
         Assert.Contains("LEFT JOIN `lang_text_strings_translation` td", translated, StringComparison.Ordinal);
         Assert.Contains("IFNULL(tv.`value`, IFNULL(g.`value`,'')) AS caption", translated, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void SearchTabSelectSql_SkipsTheTranslationTableWhenItIsAbsent()
+    {
+        var slim = CpSearchTabEditorService.SearchTabSelectSql(false);
+        Assert.Contains("FROM `shop_docpart_search_tabs` t", slim, StringComparison.Ordinal);
+        Assert.Contains(", '' FROM", slim, StringComparison.Ordinal);
+        Assert.DoesNotContain("lang_text_strings_translation", slim, StringComparison.Ordinal);
+        Assert.DoesNotContain("INSERT", slim, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("UPDATE", slim, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DELETE", slim, StringComparison.OrdinalIgnoreCase);
+
+        var translated = CpSearchTabEditorService.SearchTabSelectSql(true);
+        Assert.Contains("lang_text_strings_translation", translated, StringComparison.Ordinal);
+        Assert.Contains("x.`lang_code` = ?", translated, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void OfficeSelectSql_SkipsColumnsThisTenantDoesNotHave()
+    {
+        var slim = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "id", "caption", "country", "city", "address", "phone", "email", "users",
+        };
+        var sql = CpOfficeEditorService.OfficeSelectSql(slim);
+        Assert.Contains("IFNULL(`caption`,'')", sql, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`city`,'')", sql, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`email`,'')", sql, StringComparison.Ordinal);
+        Assert.Contains("''", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`region`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`description`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`timetable`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`coordinates`", sql, StringComparison.Ordinal);
+        Assert.Contains("FROM `shop_offices` WHERE `id` = ?", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("INSERT", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("UPDATE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DELETE", sql, StringComparison.OrdinalIgnoreCase);
+
+        var full = CpOfficeEditorService.OfficeSelectSql(new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "caption", "country", "region", "city", "address", "description", "timetable", "phone", "email", "coordinates", "users",
+        });
+        Assert.Contains("IFNULL(`region`,'')", full, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`coordinates`,'')", full, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UserOpenSelectSql_SkipsRegistrationColumnsThisTenantDoesNotHave()
+    {
+        var slim = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "user_id", "email", "phone", "password", "email_confirmed", "phone_confirmed", "unlocked", "name",
+        };
+        var sql = CpUserEditorService.UserOpenSelectSql(slim);
+        Assert.Contains("IFNULL(`email`,'')", sql, StringComparison.Ordinal);
+        Assert.Contains("`email_confirmed`", sql, StringComparison.Ordinal);
+        Assert.Contains("`unlocked`", sql, StringComparison.Ordinal);
+        Assert.Contains("FROM `users` WHERE `user_id` = ?", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`reg_variant`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`comment`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("users_profiles", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("INSERT", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("UPDATE", sql, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DELETE", sql, StringComparison.OrdinalIgnoreCase);
+
+        var full = CpUserEditorService.UserOpenSelectSql(new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "reg_variant", "email", "email_confirmed", "phone", "phone_confirmed", "unlocked", "comment",
+        });
+        Assert.Contains("`reg_variant`", full, StringComparison.Ordinal);
+        Assert.Contains("IFNULL(`comment`,'')", full, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void StorageInt_TreatsAnEmptyStringAsZero()
+    {
+        Assert.Equal(0, CpStorageEditorService.StorageInt(""));
+        Assert.Equal(0, CpStorageEditorService.StorageInt(DBNull.Value));
+        Assert.Equal(784, CpStorageEditorService.StorageInt(784));
+        Assert.Equal(2, CpStorageEditorService.StorageInt("2"));
+    }
 }
