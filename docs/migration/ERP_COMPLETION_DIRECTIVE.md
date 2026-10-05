@@ -56,22 +56,29 @@ percentage reaches 95% or 100%.
 functional ERP ajax route is a live PHP twin behind `confirmWrites` + session
 csrf_guard_key, and a consolidated O2C+P2P cycle ran end-to-end on the
 throwaway DB (`evidence/write-dryruns/erp-consolidated-cycle-2026-10-05.md`).
-Remaining deltas are acceptance-side evidence (isolation, rollback, UAT,
-production), not missing routes.
+Sixteen end-to-end business-cycle rehearsals ran live on the throwaway DB
+with SQL corroboration and zero residue (`evidence/write-dryruns/erp-*-cycle-2026-10-05.md`):
+O2C+P2P consolidated, inventory receipt/issue, period lock/reopen, WMS
+transfer, fixed-asset depreciation, payroll, treasury (petty cash, bank
+transfer, payment batch), e-invoice credit note, PO lifecycle, contacts
+sync, HR expense, RFQ award, delivery note, opening-balance batch,
+workspace writes. One real defect found and fixed (payment-batch status
+param binding). Remaining deltas are acceptance-side evidence (isolation,
+rollback, UAT, production), not missing routes.
 
 | Process | Functional | UI/UX | Reports | Writes | Testing | Accepted |
 |---|---:|---:|---:|---:|---:|---:|
 | Foundation (shared shell/workspace/permissions) | 90% | 75% | n/a | n/a | 60% | No |
-| Order-to-Cash (B2) | 85% | 65% | 40% | 85% | 40% (cycle proven locally; isolation/rollback/UAT pending) | No |
-| Procure-to-Pay (B3) | 85% | 70% | 45% | 85% | 65% (18 verified, 1 open) | No |
-| Inventory/WMS (B4) | 75% | 65% | 40% | 70% | 50% (12 verified, 13 open) | No |
-| Finance/GL (B5) | 75% | 60% | 40% | 75% | 15% (journals proven in cycle; period/idempotency fixtures partial) | No |
-| AR/AP | 70% | 60% | 40% | 70% | 20% (open-balance + knock-off proven) | No |
-| Treasury (B7) | 60% | 55% | 30% | 60% | 10% | No |
-| Tax/E-Invoice (B8) | 75% | 60% | 40% | 70% | 10% (PINT-AE issue/poll/credit-note live) | No |
-| Fixed Assets | 40% | 30% | 10% | 40% | 0% | No |
+| Order-to-Cash (B2) | 85% | 65% | 40% | 85% | 45% (cycle proven locally; isolation/rollback/UAT pending) | No |
+| Procure-to-Pay (B3) | 85% | 70% | 45% | 85% | 70% (PO lifecycle + RFQ award cycles proven) | No |
+| Inventory/WMS (B4) | 75% | 65% | 40% | 70% | 55% (receipt/issue + transfer cycles proven) | No |
+| Finance/GL (B5) | 75% | 60% | 40% | 75% | 25% (period lock/reopen + opening batch cycles proven) | No |
+| AR/AP | 70% | 60% | 40% | 70% | 25% (open-balance + knock-off + contacts sync proven) | No |
+| Treasury (B7) | 60% | 55% | 30% | 60% | 30% (bank import/reconcile + petty cash + batch cycles proven) | No |
+| Tax/E-Invoice (B8) | 75% | 60% | 40% | 70% | 15% (PINT-AE issue/poll/credit-note live + cycle proven) | No |
+| Fixed Assets | 40% | 30% | 10% | 40% | 15% (depreciation cycle proven) | No |
 | CRM | 65% | 60% | 30% | 55% | 0% | No |
-| HR/Payroll | 40% | 40% | 20% | 35% | 0% | No |
+| HR/Payroll | 40% | 40% | 20% | 35% | 20% (payroll + expense claim cycles proven) | No |
 | Reporting/IFRS (B6) | 60% | 65% | 55% | n/a | 0% (no fixture) | No |
 | Jewellery (BJ) | 70% | 60% | 40% | 60% | 25% (seed/lifecycle live; acceptance gates open) | No |
 | Fit-Out (BF) | 65% | 60% | 45% | 55% | 0% (no fixture) | No |
