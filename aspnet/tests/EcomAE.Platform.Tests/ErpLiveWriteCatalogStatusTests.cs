@@ -93,6 +93,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/pf-seed-demo",
         "/erp/ajax/pf-clear-demo",
         "/erp/ajax/pf-sync-orders",
+        "/erp/ajax/ai-query",
+        "/erp/ajax/ai-assistant-query",
         "/erp/ajax/cc-approval-queue",
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",
