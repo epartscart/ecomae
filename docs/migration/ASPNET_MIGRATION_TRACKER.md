@@ -80,6 +80,21 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Ucats access control
+
+Not complete.
+
+- `/content/shop/ucats/ucats_auth_control.php` now answers on ASP.NET. The include does not call ucats. A page URL that contains `ucats` counts the client IP in `shop_ucats_auth_control`.
+- With no `bot_ips` table the body is “Bot addresses are not in this database.” and the auth table is not created. With `bot_ips` present and the auth table absent, the body is “Ucats access control is not in this database.” and the table is still not created.
+- After both tables exist, the first call inserts `user_id` 0 and `queries_count` 1. The next call increments to 2. Count 101 returns `Forbidden` and stays 101. Count 100 increments to 101. A bot range that covers the client IP returns `Forbidden` and inserts nothing. A row older than a day stays at count 7 and a new row is inserted at count 1.
+- `UcatsAuthControl_WritesOnThrowawayDatabase_ThenDropped` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2. No `epc_erp%` table was created. `epc_erp_order_fulfillment` is not called.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5053 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Remaining ucats pages
 
 Not complete.
