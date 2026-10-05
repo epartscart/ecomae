@@ -58,6 +58,10 @@ public sealed partial class ErpGlobalSearchReadService : IErpGlobalSearchReadSer
         var records = new List<IReadOnlyDictionary<string, object?>>();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureInsuranceAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureTicketsAsync(connection, cancellationToken).ConfigureAwait(false);
         var companyId = await ErpFinAdvancedCompany.ResolveAsync(connection, companyHint, cancellationToken).ConfigureAwait(false);
         var like = "%" + q.Replace("%", "\\%", StringComparison.Ordinal).Replace("_", "\\_", StringComparison.Ordinal) + "%";
         var numericId = long.TryParse(q, NumberStyles.Integer, CultureInfo.InvariantCulture, out var n) ? n : -1L;

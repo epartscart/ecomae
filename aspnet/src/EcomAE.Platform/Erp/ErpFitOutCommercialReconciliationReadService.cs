@@ -53,6 +53,8 @@ public sealed class ErpFitOutCommercialReconciliationReadService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureProjectAccountingAsync(connection, cancellationToken).ConfigureAwait(false);
         try
         {
             var contractValue = await SumAsync(
