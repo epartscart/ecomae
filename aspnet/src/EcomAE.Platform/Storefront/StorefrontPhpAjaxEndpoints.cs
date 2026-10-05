@@ -93,6 +93,30 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.GuestOrderLookupPath, ["GET", "POST"], GuestOrderLookupAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CatalogueCountPath, ["GET", "POST"], CatalogueCountAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CatalogueListPath, ["GET", "POST"], CatalogueListAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CataloguePagePath, ["GET", "POST"], CataloguePageAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.PickupTimingPath, ["GET", "POST"], PickupTimingAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DemandMetaPath, ["GET", "POST"], DemandMetaAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DemandShowcasePath, ["GET", "POST"], DemandShowcaseAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DemandByCountryPath, ["GET", "POST"], DemandByCountryAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DemandCardPath, ["GET", "POST"], DemandCardAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DemandTagsPath, ["GET", "POST"], DemandTagsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DemandVehiclesPath, ["GET", "POST"], DemandVehiclesAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.GarageMarkModelsPath, ["GET", "POST"], GarageMarkModelsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.GarageModelTypesPath, ["GET", "POST"], GarageModelTypesAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -725,6 +749,210 @@ public static class StorefrontPhpAjaxEndpoints
     private static IResult GuestOrderLookupAsync()
         => Results.Text(string.Empty, "text/html; charset=utf-8");
 
+    private static Task<IResult> CatalogueCountAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, ct) => await StorefrontPhpAjax.CatalogueCountAsync(
+                connection,
+                await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false),
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static Task<IResult> CatalogueListAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, ct) => await StorefrontPhpAjax.CatalogueListAsync(
+                connection,
+                await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false),
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static Task<IResult> CataloguePageAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IStorefrontPriceAccess priceAccess,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, ct) =>
+            {
+                var access = await priceAccess.ResolveAsync(context, ct).ConfigureAwait(false);
+                return await StorefrontPhpAjax.CataloguePageAsync(
+                    connection,
+                    await FieldAsync(context, "propucts_request", ct).ConfigureAwait(false),
+                    access.PricesVisible,
+                    ct).ConfigureAwait(false);
+            },
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static Task<IResult> PickupTimingAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, ct) =>
+            {
+                var look = await StorefrontPhpAjax.ReadSessionAsync(connection, context.Request.Cookies["session"], ct).ConfigureAwait(false);
+                return await StorefrontPhpAjax.PickupTimingAsync(
+                    connection,
+                    look,
+                    await FieldAsync(context, "office_id", ct).ConfigureAwait(false),
+                    ct).ConfigureAwait(false);
+            },
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static Task<IResult> DemandMetaAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => DemandAsync(context, connections, cancellationToken, StorefrontPhpAjax.DemandMetaAsync);
+
+    private static Task<IResult> DemandShowcaseAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => DemandAsync(context, connections, cancellationToken, async (connection, userId, admin, ct) =>
+            await StorefrontPhpAjax.DemandShowcaseAsync(
+                connection,
+                userId,
+                admin,
+                await OptionalFieldAsync(context, "limit", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "reseed", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> DemandByCountryAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => DemandAsync(context, connections, cancellationToken, async (connection, userId, admin, ct) =>
+            await StorefrontPhpAjax.DemandByCountryAsync(
+                connection,
+                userId,
+                admin,
+                await FieldAsync(context, "country", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "limit", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "seed", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> DemandCardAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => DemandAsync(context, connections, cancellationToken, async (connection, userId, admin, ct) =>
+            await StorefrontPhpAjax.DemandCardAsync(
+                connection,
+                userId,
+                admin,
+                await OptionalFieldAsync(context, "brand", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "article", ct).ConfigureAwait(false),
+                await FieldAsync(context, "country", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "seed", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> DemandTagsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => DemandAsync(context, connections, cancellationToken, async (connection, userId, admin, ct) =>
+            await StorefrontPhpAjax.DemandTagsAsync(
+                connection,
+                userId,
+                admin,
+                await FieldAsync(context, "country", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> DemandVehiclesAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => DemandAsync(context, connections, cancellationToken, async (connection, userId, admin, ct) =>
+            await StorefrontPhpAjax.DemandVehiclesAsync(
+                connection,
+                userId,
+                admin,
+                await FieldAsync(context, "action", ct).ConfigureAwait(false),
+                await FieldAsync(context, "country", ct).ConfigureAwait(false),
+                await FieldAsync(context, "job_id", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "limit", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "batch", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "seed", ct).ConfigureAwait(false),
+                await OptionalFieldAsync(context, "require_stock", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static IResult GarageMarkModelsAsync()
+        => Php(StorefrontPhpAjax.GarageUcatsUnavailable());
+
+    private static IResult GarageModelTypesAsync()
+        => Php(StorefrontPhpAjax.GarageUcatsUnavailable());
+
+    private static async Task<IResult> DemandAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken,
+        Func<System.Data.Common.DbConnection, int, bool, CancellationToken, Task<object>> body)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Php(StorefrontPhpAjax.DemandAuth());
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var look = await StorefrontPhpAjax.ReadSessionAsync(connection, context.Request.Cookies["session"], cancellationToken).ConfigureAwait(false);
+            var admin = await StorefrontPhpAjax.DemandAdminAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                cancellationToken).ConfigureAwait(false);
+            if (look.UserId <= 0 && !admin)
+            {
+                return Php(StorefrontPhpAjax.DemandAuth());
+            }
+
+            return Php(await body(connection, look.UserId, admin, cancellationToken).ConfigureAwait(false));
+        }
+        catch (Exception)
+        {
+            return Php(StorefrontPhpAjax.DemandDatabaseUnavailable());
+        }
+    }
+
+    private static async Task<string?> OptionalFieldAsync(HttpContext context, string name, CancellationToken cancellationToken)
+    {
+        if (context.Request.Query.ContainsKey(name))
+        {
+            return await FieldAsync(context, name, cancellationToken).ConfigureAwait(false);
+        }
+
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            if (form.ContainsKey(name))
+            {
+                return form[name].ToString();
+            }
+        }
+
+        return null;
+    }
+
     private static Task<IResult> SetUserOptionAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
@@ -891,6 +1119,11 @@ public static class StorefrontPhpAjaxEndpoints
             var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
             await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
             var payload = await body(connection, cancellationToken).ConfigureAwait(false);
+            if (payload is StorefrontPhpAjax.RawHttp raw)
+            {
+                return Results.Text(raw.Body, raw.ContentType);
+            }
+
             return payload is string text ? Plain(text) : Php(payload);
         }
         catch (Exception)
