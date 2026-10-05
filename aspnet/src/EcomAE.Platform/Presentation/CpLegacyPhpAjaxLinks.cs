@@ -41,11 +41,17 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(UsersCustomerScript, StringComparison.OrdinalIgnoreCase)
             || path.Equals(DocumentScript, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PricePackSetup, StringComparison.OrdinalIgnoreCase)
-            || path.Equals(PriceEnableKeys, StringComparison.OrdinalIgnoreCase);
+            || path.Equals(PriceExtract, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(PriceEnableKeys, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(PypricesHealth, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(OrdersDetailPane, StringComparison.OrdinalIgnoreCase);
     }
 
     public const string PricePackSetup = "/cp/content/shop/prices_upload/ajax_1_prepare_tmp_dir.php";
+    public const string PriceExtract = "/cp/content/shop/prices_upload/ajax_2_extract_files.php";
     public const string PriceEnableKeys = "/cp/content/shop/prices_upload/ajax_7_enable_keys.php";
+    public const string PypricesHealth = "/cp/content/shop/prices_upload/ajax_epc_pyprices_health.php";
+    public const string OrdersDetailPane = "/cp/content/shop/order_process/ajax_epc_orders_detail_pane.php";
 
     public static bool TryRewrite(string? method, PathString path, string? action, out PathString target, out bool operatorPost)
     {

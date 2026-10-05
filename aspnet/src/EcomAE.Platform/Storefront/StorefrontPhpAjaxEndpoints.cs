@@ -335,6 +335,12 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.PriceEnableKeys, ["GET", "POST"], CpPriceEnableKeysAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.PriceExtract, ["GET", "POST"], CpPriceExtractAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.PypricesHealth, ["GET", "POST"], CpPypricesHealthAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.OrdersDetailPane, ["GET", "POST"], CpOrdersDetailPaneAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -954,7 +960,7 @@ public static class StorefrontPhpAjaxEndpoints
             var payload = await body(connection, csrf, cancellationToken).ConfigureAwait(false);
             if (payload is StorefrontPhpAjax.RawHttp raw)
             {
-                return Results.Text(raw.Body, raw.ContentType);
+                return Results.Text(raw.Body, raw.ContentType, statusCode: raw.StatusCode);
             }
 
             if (payload is string text)
@@ -2925,6 +2931,66 @@ public static class StorefrontPhpAjaxEndpoints
             new StorefrontPhpAjax.FlagBody(false, "No DB connect"));
     }
 
+    private static Task<IResult> CpPriceExtractAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var config = PhpConfig(context);
+        var tech = config.TryGetValue("tech_key", out var key) ? key : string.Empty;
+        config.TryGetValue("backend_dir", out var backend);
+        config.TryGetValue("tmp_dir_prices_upload", out var tmp);
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PriceExtractAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                context.Request.Query["key"].ToString(),
+                tech,
+                root,
+                backend,
+                tmp,
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, "No DB connect"));
+    }
+
+    private static Task<IResult> CpPypricesHealthAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PypricesHealthAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, "No DB connect"));
+
+    private static Task<IResult> CpOrdersDetailPaneAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.OrdersDetailPaneAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                StorefrontPhpAjax.PhpInt(context.Request.Query["order_id"].ToString()),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.RawHttp("<div class=\"epc-scp-orders-detail__empty\"><p>Database unavailable</p></div>", "text/html; charset=utf-8", StatusCodes.Status502BadGateway));
+
     private static Task<IResult> CpPriceEnableKeysAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
@@ -3549,7 +3615,7 @@ public static class StorefrontPhpAjaxEndpoints
 
         if (payload is StorefrontPhpAjax.RawHttp raw)
         {
-            return Results.Text(raw.Body, raw.ContentType);
+            return Results.Text(raw.Body, raw.ContentType, statusCode: raw.StatusCode);
         }
 
         return payload is string text ? Plain(text) : Php(payload);

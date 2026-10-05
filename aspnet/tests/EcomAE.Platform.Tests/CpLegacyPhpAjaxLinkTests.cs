@@ -72,6 +72,8 @@ public sealed class CpLegacyPhpAjaxLinkTests
         Assert.Equal(EcomAeRoutes.CpQuoteAltOptions, target.Value);
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.QuoteAltOptions, out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.PricePackSetup, out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.PriceExtract, out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.OrdersDetailPane, out _));
     }
 
     [Fact]

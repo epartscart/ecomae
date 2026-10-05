@@ -80,11 +80,21 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — price extract, pyprices health, and the orders detail pane
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 59 are mapped. 16 stay unmapped. The previous checkpoint had 56 mapped and 19 unmapped. The broader `cp/content` ajax scan is 72 of 110 mapped.
+- Price upload step 2 extracts a zip in `cp/tmp/prices_upload_files`, deletes the archive, and returns `packs_count` 1 with one success. Entries are written by file name inside that folder. A rar uses the same archive reader. Excel conversion and the CSV import are still open.
+- Pyprices health, with an admin session and CSRF, returns `critical` true and “pyprices unavailable”. The pyprices service was not called.
+- The orders detail pane without an admin session is HTTP 403 and “Access denied”. A missing orders table says “Orders are not in this database.” Order 12 renders `data-order-id="12"`. The HTML is the order id, not the full OMS console. The table is dropped again so `complete_sale` still creates no `shop_orders`.
+- These three URLs are not redirected to a browse page.
+
 ### Checkpoint 2026-10-05 — currency, quote options, and price-upload steps 1 and 7
 
 Not complete.
 
-- Control Panel shop, users, and requests ajax is 75 files. 56 are mapped. 19 stay unmapped. The previous checkpoint had 48 mapped and 27 unmapped.
+- Control Panel shop, users, and requests ajax is 75 files. 56 are mapped. 19 stay unmapped. The previous checkpoint had 48 mapped and 27 unmapped. The broader `cp/content` ajax scan is 69 of 110 mapped.
 - A direct hit on the CRM, customer-management, and document-control include scripts is `No access`. Their standalone endpoints are still open. Customer advances and e-invoice creation stay on the ERP engine.
 - `ajax_currency_live_rates.php?action=preview` and `schedule_get` reach the existing live-rate reader. `apply`, `schedule_save`, and `schedule_run_now` reach the existing writer. The dedicated `/cp/currencies/*` routes still require `confirmWrites=true`. The old page button is the operator confirm, so that post is allowed through the same writer. An unknown action is `bad_action`.
 - Quote alternative options reach `/cp/quote-requests/alt-options`. A GET or POST with `quote_id` and `line_id` uses that reader.

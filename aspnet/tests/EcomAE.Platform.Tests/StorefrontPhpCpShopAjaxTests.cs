@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.IO.Compression;
 using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
@@ -272,6 +273,38 @@ public sealed class StorefrontPhpCpShopAjaxTests
             Assert.Equal(1, keys.Json.RootElement.GetProperty("result").GetInt32());
             var keysGuest = await SendAsync(client, CpLegacyPhpAjaxLinks.PriceEnableKeys, null, string.Empty);
             Assert.Equal("Forbidden", keysGuest.Json.RootElement.GetProperty("message").GetString());
+            var uploadDir = Path.Combine(configRoot, "cp", "tmp", "prices_upload_files");
+            Directory.CreateDirectory(uploadDir);
+            var zipPath = Path.Combine(uploadDir, "pads.zip");
+            using (var zip = ZipFile.Open(zipPath, ZipArchiveMode.Create))
+            {
+                var entry = zip.CreateEntry("pads.csv");
+                await using var stream = entry.Open();
+                await using var writer = new StreamWriter(stream);
+                await writer.WriteAsync("article,price\n0986,12.50");
+            }
+
+            var extracted = await SendAsync(client, CpLegacyPhpAjaxLinks.PriceExtract + "?key=local-tech", null, string.Empty);
+            Assert.True(extracted.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(1, extracted.Json.RootElement.GetProperty("packs_count").GetInt32());
+            Assert.Equal(1, extracted.Json.RootElement.GetProperty("packs_successfully_extracted").GetInt32());
+            Assert.Equal(0, extracted.Json.RootElement.GetProperty("packs_error").GetInt32());
+            Assert.False(File.Exists(zipPath));
+            Assert.Contains("0986", await File.ReadAllTextAsync(Path.Combine(uploadDir, "pads.csv")), StringComparison.Ordinal);
+            var health = await SendAsync(client, CpLegacyPhpAjaxLinks.PypricesHealth, Form(("csrf_guard_key", "admin-csrf")), staff);
+            Assert.False(health.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.True(health.Json.RootElement.GetProperty("critical").GetBoolean());
+            Assert.Equal("pyprices unavailable", health.Json.RootElement.GetProperty("message").GetString());
+            var detailGuest = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersDetailPane + "?order_id=12", null, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, detailGuest.Status);
+            Assert.Contains("Access denied", detailGuest.Body, StringComparison.Ordinal);
+            var detailMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersDetailPane + "?order_id=12", null, staff);
+            Assert.Contains(StorefrontPhpAjax.OrdersMissing, detailMissing.Body, StringComparison.Ordinal);
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_orders (id INT NOT NULL PRIMARY KEY, status INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_orders (id, status) VALUES (12, 1)");
+            var detail = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersDetailPane + "?order_id=12", null, staff);
+            Assert.Contains("data-order-id=\"12\"", detail.Body, StringComparison.Ordinal);
+            await ExecuteAsync(connectionString, "DROP TABLE shop_orders");
             var sale = await SendAsync(client, StorefrontPhpAjax.CpPosEndpointPath, Form(("action", "complete_sale"), ("lines", "[]")), staff);
             Assert.Equal(StorefrontPhpAjax.CompleteSaleNotPosted, sale.Json.RootElement.GetProperty("message").GetString());
             Assert.False(sale.Json.RootElement.GetProperty("status").GetBoolean());

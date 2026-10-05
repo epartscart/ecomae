@@ -1,5 +1,6 @@
 using System.Data.Common;
 using System.Globalization;
+using System.IO.Compression;
 using System.Net;
 using System.Text;
 using System.Text.Json;
@@ -7,6 +8,9 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
+using SharpCompress.Archives;
+using SharpCompress.Common;
+using SharpCompress.Readers;
 
 namespace EcomAE.Platform.Storefront;
 
@@ -2478,6 +2482,225 @@ public static partial class StorefrontPhpAjax
         catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
         {
             return new JsonObject { ["result"] = 0, ["message"] = PriceRowsMissing };
+        }
+    }
+
+    public static Task<object> PriceExtractAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? postedKey,
+        string expectedKey,
+        string docRoot,
+        string? backend,
+        string? tmpRelative,
+        CancellationToken cancellationToken)
+        => PriceTechOrAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            postedKey,
+            expectedKey,
+            _ => Task.FromResult(ExtractPricePacks(docRoot, backend, tmpRelative)),
+            cancellationToken);
+
+    public static Task<object> PypricesHealthAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        CancellationToken cancellationToken)
+        => WithCpAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            () => new FlagBody(false, "Forbidden"),
+            (_, _) => Task.FromResult<object>(new JsonObject
+            {
+                ["status"] = false,
+                ["critical"] = true,
+                ["message"] = "pyprices unavailable",
+                ["html"] = "<p>pyprices unavailable</p>"
+            }),
+            cancellationToken);
+
+    public static async Task<object> OrdersDetailPaneAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        int orderId,
+        CancellationToken cancellationToken)
+    {
+        var denied = await StaffAsync(
+            connection,
+            adminSession,
+            adminUser,
+            new RawHttp("<div class=\"epc-scp-orders-detail__empty\"><p>Access denied</p></div>", "text/html; charset=utf-8", StatusCodes.Status403Forbidden),
+            cancellationToken).ConfigureAwait(false);
+        if (denied is not null)
+        {
+            return denied;
+        }
+
+        if (orderId <= 0)
+        {
+            return new RawHttp("<div class=\"epc-scp-orders-detail__empty\"><p>Select an order</p></div>", "text/html; charset=utf-8");
+        }
+
+        try
+        {
+            var found = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `shop_orders` WHERE `id` = ?"),
+                cancellationToken,
+                orderId).ConfigureAwait(false);
+            if (found == 0)
+            {
+                return new RawHttp("<div class=\"epc-scp-orders-detail__empty\"><p>Order not found</p></div>", "text/html; charset=utf-8");
+            }
+
+            return new RawHttp(
+                "<div class=\"epc-scp-orders-detail\" data-order-id=\"" + orderId.ToString(CultureInfo.InvariantCulture) + "\"><p>Order " + orderId.ToString(CultureInfo.InvariantCulture) + "</p></div>",
+                "text/html; charset=utf-8");
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new RawHttp("<div class=\"epc-scp-orders-detail__empty\"><p>" + OrdersMissing + "</p></div>", "text/html; charset=utf-8");
+        }
+    }
+
+    private static async Task<object> PriceTechOrAdminAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? postedKey,
+        string expectedKey,
+        Func<CancellationToken, Task<object>> body,
+        CancellationToken cancellationToken)
+    {
+        if (string.Equals(expectedKey, postedKey ?? string.Empty, StringComparison.Ordinal) && expectedKey.Length > 0)
+        {
+            return await body(cancellationToken).ConfigureAwait(false);
+        }
+
+        var denied = await StaffAsync(connection, adminSession, adminUser, new FlagBody(false, "Forbidden"), cancellationToken).ConfigureAwait(false);
+        if (denied is not null)
+        {
+            return denied;
+        }
+
+        return await WithCpAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            () => new FlagBody(false, "Forbidden"),
+            (_, token) => body(token),
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static object ExtractPricePacks(string docRoot, string? backend, string? tmpRelative)
+    {
+        var folder = string.IsNullOrWhiteSpace(backend) ? "cp" : backend.Trim().Trim('/');
+        var relative = string.IsNullOrWhiteSpace(tmpRelative) ? "/tmp/prices_upload_files" : tmpRelative.Trim();
+        if (!relative.StartsWith('/'))
+        {
+            relative = "/" + relative;
+        }
+
+        var dir = Path.Combine(string.IsNullOrWhiteSpace(docRoot) ? Path.GetTempPath() : docRoot, folder + relative.Replace('/', Path.DirectorySeparatorChar));
+        if (!Directory.Exists(dir))
+        {
+            return new FlagBody(false, "Price upload folder is not ready.");
+        }
+
+        var packs = 0;
+        var errors = 0;
+        var extracted = 0;
+        foreach (var path in Directory.EnumerateFiles(dir))
+        {
+            var name = Path.GetFileName(path);
+            var ext = Path.GetExtension(name);
+            if (!ext.Equals(".zip", StringComparison.OrdinalIgnoreCase) && !ext.Equals(".rar", StringComparison.OrdinalIgnoreCase))
+            {
+                continue;
+            }
+
+            packs++;
+            try
+            {
+                ExtractOneArchive(path, dir);
+                File.Delete(path);
+                extracted++;
+            }
+            catch (Exception ex) when (ex is InvalidDataException or IOException or ArchiveException or NotSupportedException)
+            {
+                errors++;
+            }
+        }
+
+        return new JsonObject
+        {
+            ["status"] = true,
+            ["packs_count"] = packs,
+            ["packs_error"] = errors,
+            ["packs_successfully_extracted"] = extracted
+        };
+    }
+
+    private static void ExtractOneArchive(string archivePath, string directory)
+    {
+        if (Path.GetExtension(archivePath).Equals(".zip", StringComparison.OrdinalIgnoreCase))
+        {
+            using var zip = ZipFile.OpenRead(archivePath);
+            foreach (var entry in zip.Entries)
+            {
+                var name = Path.GetFileName(entry.FullName.Replace('\\', '/'));
+                if (name.Length == 0 || entry.FullName.EndsWith('/'))
+                {
+                    continue;
+                }
+
+                var destination = Path.GetFullPath(Path.Combine(directory, name));
+                if (!destination.StartsWith(Path.GetFullPath(directory) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+                {
+                    throw new InvalidDataException("Archive entry leaves the price upload folder.");
+                }
+
+                entry.ExtractToFile(destination, overwrite: true);
+            }
+
+            return;
+        }
+
+        using var archive = ArchiveFactory.OpenArchive(archivePath, new ReaderOptions());
+        foreach (var entry in archive.Entries)
+        {
+            if (entry.IsDirectory)
+            {
+                continue;
+            }
+
+            var name = Path.GetFileName((entry.Key ?? string.Empty).Replace('\\', '/'));
+            if (name.Length == 0)
+            {
+                continue;
+            }
+
+            var destination = Path.GetFullPath(Path.Combine(directory, name));
+            if (!destination.StartsWith(Path.GetFullPath(directory) + Path.DirectorySeparatorChar, StringComparison.Ordinal))
+            {
+                throw new InvalidDataException("Archive entry leaves the price upload folder.");
+            }
+
+            using var output = File.Create(destination);
+            using var input = entry.OpenEntryStream();
+            input.CopyTo(output);
         }
     }
 

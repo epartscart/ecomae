@@ -654,7 +654,7 @@ public static partial class StorefrontPhpAjax
             bunch.TreelaxCatalogue,
             bunch.NestedBunches?.Select(MapBunch).ToList() ?? []);
 
-    public sealed record RawHttp(string Body, string ContentType);
+    public sealed record RawHttp(string Body, string ContentType, int StatusCode = 200);
 
     public sealed record CsrfDecision(bool Ok, string Message, int UserId, int SessionRecordId)
     {
