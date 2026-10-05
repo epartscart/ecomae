@@ -1,10 +1,14 @@
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Auth;
+using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp.PriceImport;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Services;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Storefront;
 
@@ -46,6 +50,14 @@ public static class StorefrontPhpAjaxEndpoints
         endpoints.MapMethods(StorefrontPhpAjax.PartInfoPath, ["GET", "POST"], PartInfoAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.ProductsOfBunch2Path, ["GET", "POST"], Bunch2Async)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.SkuMediaPublicPath, ["GET", "POST"], SkuMediaAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.AddToBasketPath, ["GET", "POST"], AddToBasketAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ChangeCountPath, ["GET", "POST"], ChangeCountAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DeleteCartPath, ["GET", "POST"], DeleteCartAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
 
@@ -251,6 +263,153 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             (connection, ct) => StorefrontPhpAjax.ProductsOfBunch2Async(connection, article, officeId, storageId, query, 0, groupId, access.PricesVisible, ct),
             StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> SkuMediaAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var action = await FieldAsync(context, "action", cancellationToken).ConfigureAwait(false);
+        if (action.Length == 0)
+        {
+            action = "lookup";
+        }
+
+        if (!string.Equals(action, "lookup", StringComparison.Ordinal))
+        {
+            return Php(StorefrontPhpAjax.SkuMediaUnknownAction());
+        }
+
+        var brand = await BrandAsync(context, cancellationToken).ConfigureAwait(false);
+        var article = await FieldAsync(context, "article", cancellationToken).ConfigureAwait(false);
+        _ = int.TryParse(await FieldAsync(context, "product_id", cancellationToken).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var productId);
+        if (!connections.IsConfigured)
+        {
+            return Php(StorefrontPhpAjax.SkuMediaNoDatabase());
+        }
+
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, ct) => StorefrontPhpAjax.SkuMediaLookupAsync(connection, brand, article, productId, ct),
+            StorefrontPhpAjax.SkuMediaNoDatabase()).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> AddToBasketAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IStorefrontPriceAccess priceAccess,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var session = await StorefrontPhpAjax.ReadSessionAsync(connection, context.Request.Cookies["session"], cancellationToken).ConfigureAwait(false);
+            if (session.MissingTable)
+            {
+                return Php(new StorefrontPhpAjax.CartWriteBody(false, null, StorefrontPhpAjax.SessionsMissing, null, null, null, null, null, null, null));
+            }
+
+            var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+            var products = await FieldAsync(context, "product_objects", cancellationToken).ConfigureAwait(false);
+            var payload = await StorefrontPhpAjax.AddToBasketAsync(
+                connection,
+                session.UserId,
+                session.SessionRecordId,
+                access.PricesVisible,
+                products,
+                ExpectedTechKey(context),
+                cancellationToken).ConfigureAwait(false);
+            return payload is string text ? Plain(text) : Php(payload);
+        }
+        catch (Exception)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+    }
+
+    private static async Task<IResult> ChangeCountAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IStorefrontPriceAccess priceAccess,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Php(StorefrontPhpAjax.ChangeCountNoDatabase());
+        }
+
+        var request = await FieldAsync(context, "request_object", cancellationToken).ConfigureAwait(false);
+        if (StorefrontPhpAjax.RequestHasTechKey(request, emptyCounts: false))
+        {
+            var accepted = StorefrontPhpAjax.TechKeyAccepted(ExpectedTechKey(context), StorefrontPhpAjax.RequestTechKey(request));
+            return await WithDbAsync(
+                context,
+                connections,
+                cancellationToken,
+                (connection, ct) => StorefrontPhpAjax.ChangeCountAsync(connection, 0, 0, true, request, true, accepted, ct),
+                StorefrontPhpAjax.ChangeCountNoDatabase()).ConfigureAwait(false);
+        }
+
+        return await WithSessionAsync(context, connections, cancellationToken, async (connection, csrf, ct) =>
+        {
+            var access = await priceAccess.ResolveAsync(context, ct).ConfigureAwait(false);
+            return await StorefrontPhpAjax.ChangeCountAsync(
+                connection,
+                csrf.UserId,
+                csrf.SessionRecordId,
+                access.PricesVisible,
+                request,
+                false,
+                false,
+                ct).ConfigureAwait(false);
+        }).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> DeleteCartAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        var request = await FieldAsync(context, "request_object", cancellationToken).ConfigureAwait(false);
+        if (StorefrontPhpAjax.RequestHasTechKey(request, emptyCounts: true))
+        {
+            var accepted = StorefrontPhpAjax.TechKeyAccepted(ExpectedTechKey(context), StorefrontPhpAjax.RequestTechKey(request));
+            return await WithDbAsync(
+                context,
+                connections,
+                cancellationToken,
+                (connection, ct) => StorefrontPhpAjax.DeleteCartAsync(connection, 0, 0, request, true, accepted, ct),
+                StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
+        }
+
+        return await WithSessionAsync(context, connections, cancellationToken, (connection, csrf, ct) =>
+            StorefrontPhpAjax.DeleteCartAsync(connection, csrf.UserId, csrf.SessionRecordId, request, false, false, ct)).ConfigureAwait(false);
+    }
+
+    private static string ExpectedTechKey(HttpContext context)
+    {
+        var options = context.RequestServices.GetService<IOptions<PhpReferenceOptions>>();
+        if (options is null)
+        {
+            return string.Empty;
+        }
+
+        var config = CpPhpConfig.Read(options.Value);
+        return config.TryGetValue("tech_key", out var key) ? key : string.Empty;
     }
 
     private static Task<IResult> CartAsync(
