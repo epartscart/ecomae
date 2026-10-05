@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP catalogue, SEO, HR, modules
+
+Not complete.
+
+- Signed-in www.epartscart.com `/cp/product-catalogue-app` is **200** with zero products, published, unpublished, and categories. `shop_catalogue_products` is absent, so the page no longer prints that MySQL error. `/cp/seo-app` is **200** with source `database` and zero content counts (`content` is absent). `/cp/hr-overview-app` is **200** and says there are no HR records (`epc_erp_hr_records` is absent). `/cp/modules` is **200** `source: database`, count 0. `is_frontend` is not a column and the `modules` table has no rows. No rows were inserted.
+- www.electronicae.com, www.stylenlook.com, www.thejewellerytrend.com, and www.taxofinca.com `/cp/login` stay **200**. The epartscart admin session does not open those hosts' catalogue pages (**302** to `/cp/login`). They are not in `epc_portal_tenants`. No accounts were created.
+- Every in-repo www.ecomae.com marketing snapshot path probed this pass was already **200**. VIN `email.png` and `op_*.png` are still not in the repo.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5004 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, the rest of authenticated CP, signed-in CP on the other named shops, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-04 — CP users JSON digest
 
 Not complete.
