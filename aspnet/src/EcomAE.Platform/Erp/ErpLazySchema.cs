@@ -448,4 +448,70 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Calendar holidays'",
             ct);
     }
+
+    /// <summary>epc_cft_forecast + epc_cft_line + epc_cft_instrument + epc_cft_instr_event (epc_erp_cash_treasury.php ensure_schema)</summary>
+    public static async Task EnsureCashTreasuryAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_forecast` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "`opening_balance` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`currency` varchar(8) NOT NULL DEFAULT ''," +
+            "`notes` text," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cash flow forecasts'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_line` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`forecast_id` int(11) NOT NULL DEFAULT 0," +
+            "`due_date` varchar(16) NOT NULL DEFAULT ''," +
+            "`direction` varchar(4) NOT NULL DEFAULT 'in'," +
+            "`amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`category` varchar(80) NOT NULL DEFAULT ''," +
+            "`source` varchar(120) NOT NULL DEFAULT ''," +
+            "`notes` varchar(255) NOT NULL DEFAULT ''," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_forecast` (`forecast_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cash flow forecast lines'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_instrument` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`ref` varchar(60) NOT NULL DEFAULT ''," +
+            "`type` varchar(12) NOT NULL DEFAULT 'lc'," +
+            "`beneficiary` varchar(180) NOT NULL DEFAULT ''," +
+            "`applicant` varchar(180) NOT NULL DEFAULT ''," +
+            "`bank` varchar(180) NOT NULL DEFAULT ''," +
+            "`amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`currency` varchar(8) NOT NULL DEFAULT ''," +
+            "`issue_date` varchar(16) NOT NULL DEFAULT ''," +
+            "`expiry_date` varchar(16) NOT NULL DEFAULT ''," +
+            "`status` varchar(16) NOT NULL DEFAULT 'draft'," +
+            "`notes` text," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bank instruments (LC/BG/SBLC)'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_instr_event` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`instrument_id` int(11) NOT NULL DEFAULT 0," +
+            "`event_type` varchar(24) NOT NULL DEFAULT ''," +
+            "`detail` varchar(255) NOT NULL DEFAULT ''," +
+            "`amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_instrument` (`instrument_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bank instrument events'",
+            ct);
+    }
 }
