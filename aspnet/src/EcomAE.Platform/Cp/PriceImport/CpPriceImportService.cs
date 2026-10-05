@@ -92,6 +92,12 @@ public interface ICpPriceImportService
     /// <summary>Imports an uploaded file (<c>pc</c>, <c>wizard</c>, <c>api</c>, <c>api_reupload</c>).</summary>
     Task<CpPriceImportResult> ImportUploadAsync(CpPriceImportRequest request, CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// PHP <c>ajax_5_import_csv_to_db.php</c>. CSV and TXT already in the wizard folder go through
+    /// <see cref="CpPriceImportService"/>, the same writer as <c>channel=wizard</c>.
+    /// </summary>
+    Task<CpPriceImportResult> ImportWizardDirectoryAsync(long priceId, string directory, bool? cleanBefore, long uploadedBy, CancellationToken cancellationToken = default);
+
     /// <summary>Fetches and imports lists from their own FTP / e-mail / URL source (PHP "update now" and cron).</summary>
     Task<IReadOnlyList<CpPriceImportResult>> ImportRemoteAsync(IReadOnlyList<long> priceIds, long uploadedBy, CancellationToken cancellationToken = default);
 }
@@ -238,6 +244,122 @@ public sealed class CpPriceImportService : ICpPriceImportService
             }
 
             return await FinishAsync(connection, task, request.ExtraStats, cancellationToken).ConfigureAwait(false);
+        }
+        finally
+        {
+            await ReleaseLockAsync(connection, list.Id, CancellationToken.None).ConfigureAwait(false);
+            DeleteDirectory(task.Root);
+        }
+    }
+
+    public async Task<CpPriceImportResult> ImportWizardDirectoryAsync(
+        long priceId,
+        string directory,
+        bool? cleanBefore,
+        long uploadedBy,
+        CancellationToken cancellationToken = default)
+    {
+        if (priceId <= 0)
+        {
+            return CpPriceImportResult.Fail("invalid", "A price list id is required.", priceId, "wizard");
+        }
+
+        if (string.IsNullOrWhiteSpace(directory) || !Directory.Exists(directory))
+        {
+            return CpPriceImportResult.Fail("folder", "Price upload folder is not ready.", priceId, "wizard");
+        }
+
+        if (!_connections.IsConfigured)
+        {
+            return CpPriceImportResult.Fail("db", "TenantRegistry DB is not configured.", priceId, "wizard");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        CpPriceListConfig? list;
+        try
+        {
+            list = await CpPriceListConfig.LoadAsync(connection, priceId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return CpPriceImportResult.Fail("invalid", "Price lists are not in this database.", priceId, "wizard");
+        }
+
+        if (list is null)
+        {
+            return CpPriceImportResult.Fail("not_found", "No such price", priceId, "wizard");
+        }
+
+        if (cleanBefore is bool replace)
+        {
+            list = list with { CleanBefore = replace };
+        }
+
+        await CpPriceUploadHistory.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        var task = new ImportTask(list, "wizard", NewWorkDirectory());
+        if (!await TryLockAsync(connection, list.Id, cancellationToken).ConfigureAwait(false))
+        {
+            return CpPriceImportResult.Fail("busy", "Price list ID " + list.Id.ToString(CultureInfo.InvariantCulture) + " is already being updated. Wait until the running update finishes.", list.Id, "wizard");
+        }
+
+        var sources = new List<string>();
+        try
+        {
+            Directory.CreateDirectory(task.FilesDirectory);
+            foreach (var path in Directory.EnumerateFiles(directory).OrderBy(path => path, StringComparer.Ordinal))
+            {
+                var name = Path.GetFileName(path);
+                if (name.Equals("index.html", StringComparison.OrdinalIgnoreCase))
+                {
+                    continue;
+                }
+
+                var extension = PriceFileReader.ExtensionOf(name);
+                if (extension != "csv" && extension != "txt")
+                {
+                    continue;
+                }
+
+                File.Copy(path, UniquePath(task.FilesDirectory, name), overwrite: false);
+                sources.Add(path);
+            }
+
+            var archivedName = sources.Count == 0 ? string.Empty : Path.GetFileName(sources[0]);
+            task.HistoryId = await CpPriceUploadHistory.SaveAsync(
+                connection,
+                new CpPriceHistoryRow(
+                    list.Id,
+                    list.Name,
+                    CpPriceUploadHistory.UploadSourceForChannel("wizard"),
+                    DefaultSourceRef("wizard", list.Id),
+                    archivedName,
+                    string.Empty,
+                    archivedName.Length == 0 || !File.Exists(sources[0]) ? 0 : new FileInfo(sources[0]).Length,
+                    "pending",
+                    uploadedBy),
+                cancellationToken).ConfigureAwait(false);
+            task.Validation.AddRange(list.Validate("wizard"));
+            if (task.Validation.Count == 0)
+            {
+                await ImportFilesAsync(connection, task, cancellationToken).ConfigureAwait(false);
+            }
+
+            var result = await FinishAsync(connection, task, null, cancellationToken).ConfigureAwait(false);
+            foreach (var path in sources)
+            {
+                try
+                {
+                    File.Delete(path);
+                }
+                catch (IOException)
+                {
+                }
+                catch (UnauthorizedAccessException)
+                {
+                }
+            }
+
+            return result;
         }
         finally
         {

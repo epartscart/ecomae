@@ -6,6 +6,7 @@ using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
+using EcomAE.Platform.Cp.PriceImport;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using SharpCompress.Archives;
@@ -2751,6 +2752,61 @@ public static partial class StorefrontPhpAjax
             token => PrepareCsvAsync(connection, docRoot, backend, tmpRelative, priceId, token),
             cancellationToken,
             PricePrepareDenied);
+
+    public static Task<object> PriceImportCsvAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? postedKey,
+        string expectedKey,
+        string docRoot,
+        string? backend,
+        string? tmpRelative,
+        int priceId,
+        ICpPriceImportService imports,
+        bool? cleanBefore,
+        long uploadedBy,
+        CancellationToken cancellationToken)
+        => PriceTechOrAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            postedKey,
+            expectedKey,
+            async token =>
+            {
+                if (!TryPriceWorkDir(docRoot, backend, tmpRelative, out var dir))
+                {
+                    return new JsonObject { ["result"] = 0, ["message"] = "Price upload folder is not ready." };
+                }
+
+                CpPriceImportResult result;
+                try
+                {
+                    result = await imports.ImportWizardDirectoryAsync(priceId, dir, cleanBefore, uploadedBy, token).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (ex is DbException or IOException or InvalidOperationException)
+                {
+                    return new JsonObject { ["result"] = 0, ["message"] = "Price import did not finish." };
+                }
+
+                if (result.Code is "folder" or "invalid" or "not_found" or "busy" or "db")
+                {
+                    return new JsonObject { ["result"] = 0, ["message"] = result.Message };
+                }
+
+                return new JsonObject
+                {
+                    ["result"] = 1,
+                    ["records_handled"] = result.RowsImported,
+                    ["records_in_db"] = result.RowsInDb,
+                    ["rows_skipped"] = result.RowsSkipped,
+                    ["history_id"] = result.HistoryId,
+                };
+            },
+            cancellationToken);
 
     private static object ExcelConvert(string docRoot, string? backend, string? tmpRelative)
     {

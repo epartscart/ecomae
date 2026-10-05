@@ -87,11 +87,19 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 61 of 75 after the steps below (81%) | CRM, customer, and document endpoints, OMS, pay and refund, price import step 5, commerce and multivendor ingest, the prices init include, price review, crosses lookup, and SAO |
-| Broader `cp/content` ajax | 74 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 62 of 75 (83%) | CRM, customer, and document endpoints, OMS, pay and refund, commerce and multivendor ingest, the prices init include, price review, crosses lookup, and SAO |
+| Broader `cp/content` ajax | 75 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 16 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: finish the 13 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-05 — price CSV import uses the existing writer
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 62 are mapped. 13 stay unmapped. The previous checkpoint had 61 mapped and 14 unmapped. The broader `cp/content` ajax scan is 75 of 110 mapped.
+- Step 5, `ajax_5_import_csv_to_db.php`, calls `ICpPriceImportService.ImportWizardDirectoryAsync`. A missing price-list table says “Price lists are not in this database.” With `initiator=js` and `clean_before` present, the old row for price 4 is replaced by article `0986`. The CSV is deleted after the import. A caller who is not an admin and has no tech key is `Forbidden`.
+- Commerce ingest, multivendor ingest, the prices init include, and price review stay open.
 
 ### Checkpoint 2026-10-05 — price Excel stop and CSV cleanup
 

@@ -4,8 +4,11 @@ using System.Net;
 using System.Net.Http.Headers;
 using System.Net.Sockets;
 using System.Text.Json;
+using System.Data.Common;
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp.PriceImport;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Migration;
 using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Services;
@@ -310,6 +313,57 @@ public sealed class StorefrontPhpCpShopAjaxTests
             var prepareGuest = await SendAsync(client, CpLegacyPhpAjaxLinks.PricePrepareCsv + "?price_id=4", null, string.Empty);
             Assert.Equal(StorefrontPhpAjax.PricePrepareDenied, prepareGuest.Json.RootElement.GetProperty("message").GetString());
             await ExecuteAsync(connectionString, "DROP TABLE shop_docpart_prices");
+            var importMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.PriceImportCsv + "?key=local-tech&price_id=4&initiator=js&clean_before=1", null, string.Empty);
+            Assert.Equal(0, importMissing.Json.RootElement.GetProperty("result").GetInt32());
+            Assert.Equal(StorefrontPhpAjax.PriceListsMissing, importMissing.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_docpart_prices (
+                  id INT NOT NULL PRIMARY KEY,
+                  name VARCHAR(255) NOT NULL DEFAULT '',
+                  load_mode INT NOT NULL DEFAULT 1,
+                  strings_to_left INT NOT NULL DEFAULT 0,
+                  manufacturer_col INT NOT NULL DEFAULT 0,
+                  article_col INT NOT NULL DEFAULT 0,
+                  name_col INT NOT NULL DEFAULT 0,
+                  exist_col INT NOT NULL DEFAULT 0,
+                  price_col INT NOT NULL DEFAULT 0,
+                  time_to_exe_col INT NOT NULL DEFAULT 0,
+                  storage_col INT NOT NULL DEFAULT 0,
+                  min_order_col INT NOT NULL DEFAULT 0,
+                  clean_before VARCHAR(8) NOT NULL DEFAULT '0',
+                  encoding VARCHAR(64) NOT NULL DEFAULT 'UTF-8',
+                  `separator` VARCHAR(8) NOT NULL DEFAULT ';',
+                  last_updated BIGINT NOT NULL DEFAULT 0
+                )
+                """);
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_prices (id, name, strings_to_left, manufacturer_col, article_col, price_col, clean_before, `separator`, encoding) VALUES (4, 'Pads', 0, 1, 2, 3, '0', ';', 'UTF-8')");
+            await ExecuteAsync(connectionString, "DROP TABLE IF EXISTS shop_docpart_prices_data");
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_docpart_prices_data (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  price_id INT NOT NULL,
+                  manufacturer VARCHAR(255) NOT NULL DEFAULT '',
+                  article VARCHAR(255) NOT NULL DEFAULT '',
+                  article_show VARCHAR(255) NOT NULL DEFAULT '',
+                  name VARCHAR(255) NOT NULL DEFAULT '',
+                  exist INT NOT NULL DEFAULT 0,
+                  price DECIMAL(15,2) NOT NULL DEFAULT 0,
+                  time_to_exe INT NOT NULL DEFAULT 0,
+                  storage VARCHAR(255) NOT NULL DEFAULT '',
+                  min_order INT NOT NULL DEFAULT 0
+                )
+                """);
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_prices_data (price_id, manufacturer, article, article_show, name, exist, price) VALUES (4, 'OLD', 'OLD', 'OLD', 'Old', 1, 1.00)");
+            await File.WriteAllTextAsync(Path.Combine(uploadDir, "pads.csv"), "BOSCH;0986;12.50\n");
+            var priceImported = await SendAsync(client, CpLegacyPhpAjaxLinks.PriceImportCsv + "?key=local-tech&price_id=4&initiator=js&clean_before=1", null, string.Empty);
+            Assert.Equal(1, priceImported.Json.RootElement.GetProperty("result").GetInt32());
+            Assert.Equal(1, priceImported.Json.RootElement.GetProperty("records_handled").GetInt32());
+            Assert.Equal("0986", await ScalarAsync(connectionString, "SELECT article FROM shop_docpart_prices_data WHERE price_id = 4"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_prices_data WHERE price_id = 4 AND article = 'OLD'"));
+            Assert.False(File.Exists(Path.Combine(uploadDir, "pads.csv")));
+            var importGuest = await SendAsync(client, CpLegacyPhpAjaxLinks.PriceImportCsv + "?price_id=4&initiator=js&clean_before=1", null, string.Empty);
+            Assert.Equal("Forbidden", importGuest.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "DROP TABLE shop_docpart_prices");
             var health = await SendAsync(client, CpLegacyPhpAjaxLinks.PypricesHealth, Form(("csrf_guard_key", "admin-csrf")), staff);
             Assert.False(health.Json.RootElement.GetProperty("status").GetBoolean());
             Assert.True(health.Json.RootElement.GetProperty("critical").GetBoolean());
@@ -482,6 +536,14 @@ public sealed class StorefrontPhpCpShopAjaxTests
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:" + port.ToString(CultureInfo.InvariantCulture));
         builder.Services.AddSingleton<ITenantDbConnectionFactory>(new FixedConnections(connectionString));
+        builder.Services.AddSingleton<IErpWriteConnectionFactory>(new WriteConnections(connectionString));
+        builder.Services.AddSingleton<ICpPriceRemoteSources, IdleRemote>();
+        builder.Services.AddSingleton<ICpPriceImportService>(sp => new CpPriceImportService(
+            sp.GetRequiredService<IErpWriteConnectionFactory>(),
+            sp.GetRequiredService<ICpPriceRemoteSources>(),
+            () => new Dictionary<string, string>(StringComparer.Ordinal),
+            Path.Combine(configRoot, "files"),
+            Path.Combine(configRoot, "work")));
         builder.Services.AddSingleton<IStorefrontPriceAccess>(new GuestPrices());
         builder.Services.AddSingleton(ReporterStub.Create());
         builder.Services.Configure<PhpReferenceOptions>(options => options.PhpDocRoot = configRoot);
@@ -518,6 +580,34 @@ public sealed class StorefrontPhpCpShopAjaxTests
             => ValueTask.FromResult(new StorefrontPriceAccessResult(StorefrontPriceAccessState.Guest, false, "**", string.Empty, string.Empty));
 
         public IReadOnlyList<StorefrontPartOfferDigest> RedactOffers(IReadOnlyList<StorefrontPartOfferDigest> offers) => offers;
+    }
+
+    private sealed class WriteConnections : IErpWriteConnectionFactory
+    {
+        private readonly string _connectionString;
+
+        public WriteConnections(string connectionString) => _connectionString = connectionString;
+
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(_connectionString);
+            await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return connection;
+        }
+    }
+
+    private sealed class IdleRemote : ICpPriceRemoteSources
+    {
+        public Task DownloadUrlAsync(Uri url, string destinationPath, ICollection<string> messages, CancellationToken cancellationToken)
+            => throw new InvalidOperationException("URL download was called.");
+
+        public Task<IReadOnlyList<string>> FetchFtpAsync(CpPriceListConfig list, Func<string, bool> wanted, string targetDirectory, ICollection<string> messages, CancellationToken cancellationToken)
+            => throw new InvalidOperationException("FTP download was called.");
+
+        public Task<IReadOnlyList<CpPriceMailMessage>> FetchMailAsync(CpPriceMailSettings settings, string sender, bool markSeen, CancellationToken cancellationToken)
+            => throw new InvalidOperationException("Email download was called.");
     }
 
     private sealed class FixedConnections : ITenantDbConnectionFactory

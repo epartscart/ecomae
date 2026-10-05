@@ -341,6 +341,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.PricePrepareCsv, ["GET", "POST"], CpPricePrepareCsvAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.PriceImportCsv, ["GET", "POST"], CpPriceImportCsvAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.PypricesHealth, ["GET", "POST"], CpPypricesHealthAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.OrdersDetailPane, ["GET", "POST"], CpOrdersDetailPaneAsync)
@@ -2987,6 +2989,34 @@ public static class StorefrontPhpAjaxEndpoints
                 tmp,
                 StorefrontPhpAjax.PhpInt(context.Request.Query["price_id"].ToString()),
                 token));
+
+    private static Task<IResult> CpPriceImportCsvAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpPriceImportService imports,
+        CancellationToken cancellationToken)
+    {
+        var initiator = context.Request.Query["initiator"].ToString();
+        bool? cleanBefore = string.Equals(initiator, "js", StringComparison.Ordinal) && context.Request.Query.ContainsKey("clean_before")
+            ? true
+            : null;
+        return PriceFolderStepAsync(context, connections, cancellationToken, (connection, session, user, csrf, key, tech, root, backend, tmp, token) =>
+            StorefrontPhpAjax.PriceImportCsvAsync(
+                connection,
+                session,
+                user,
+                csrf,
+                key,
+                tech,
+                root,
+                backend,
+                tmp,
+                StorefrontPhpAjax.PhpInt(context.Request.Query["price_id"].ToString()),
+                imports,
+                cleanBefore,
+                string.Equals(tech, key, StringComparison.Ordinal) && tech.Length > 0 ? 0 : StorefrontPhpAjax.PhpInt(user),
+                token));
+    }
 
     private static Task<IResult> PriceFolderStepAsync(
         HttpContext context,
