@@ -1758,8 +1758,7 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxJwSeedSampleData, async (HttpContext context, ErpJwSeedSampleDataBody? body, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpJwSeedSampleDataRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxJwSeedSampleData, HandleJwSeedSampleDataAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxAiAssistantQuery, HandleAiAssistantQueryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowSave, HandleWorkflowSaveAsync).DisableAntiforgery();
@@ -25497,6 +25496,51 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, expires_at = written.Succeeded ? written.Id : 0, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleJwSeedSampleDataAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpJwSeedSampleDataDryRun dryRun,
+        IErpJwSeedWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpJwSeedSampleDataRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var seeded = await writes.SeedAsync((int)session.UserId, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = true,
+            surface = "erp",
+            writes = 1,
+            phpAuthoritative = false,
+            validation_code = "ok",
+            message = "Sample data seeded",
+            seeded = new
+            {
+                warehouses = seeded.Warehouses,
+                items = seeded.Items,
+                suppliers = seeded.Suppliers,
+                customers = seeded.Customers,
+                purchases = seeded.Purchases,
+                sales = seeded.Sales,
+                repairs = seeded.Repairs,
+                gl_entries = seeded.GlEntries,
+                compliance = seeded.Compliance,
+                errors = seeded.Errors,
+            },
+            session = SessionPayload(session),
+        });
     }
 
     private static async Task<IResult> HandleCsSaveDeclarationAsync(
