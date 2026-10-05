@@ -62,6 +62,8 @@ public sealed class ErpCftInstrumentStatusWriteService : IErpCftInstrumentStatus
         var detail = request.Detail ?? string.Empty;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureCashTreasuryAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_cft_instrument", "status", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_cft_instr_event", "event_type", cancellationToken).ConfigureAwait(false))
         {

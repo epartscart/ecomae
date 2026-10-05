@@ -53,6 +53,8 @@ public sealed class ErpCftForecastSaveWriteService : IErpCftForecastSaveWriteSer
         var notes = request.Notes ?? string.Empty;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureCashTreasuryAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_cft_forecast", "name", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Cash forecast table is not provisioned");

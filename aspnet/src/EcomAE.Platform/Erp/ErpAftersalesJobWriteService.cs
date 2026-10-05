@@ -68,6 +68,8 @@ public sealed class ErpAftersalesJobWriteService : IErpAftersalesJobWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureAftersalesAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_as_jobs", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "After-sales job tables are not provisioned");
@@ -137,6 +139,8 @@ public sealed class ErpAftersalesJobWriteService : IErpAftersalesJobWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureAftersalesAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_as_jobs", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_as_job_lines", cancellationToken).ConfigureAwait(false))
         {
@@ -196,6 +200,8 @@ public sealed class ErpAftersalesJobWriteService : IErpAftersalesJobWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureAftersalesAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_as_jobs", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "After-sales job tables are not provisioned");

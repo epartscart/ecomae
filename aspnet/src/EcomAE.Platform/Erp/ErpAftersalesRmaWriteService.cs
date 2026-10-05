@@ -71,6 +71,8 @@ public sealed class ErpAftersalesRmaWriteService : IErpAftersalesRmaWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureAftersalesAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_as_rma", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_as_rma_lines", cancellationToken).ConfigureAwait(false))
         {
@@ -153,6 +155,8 @@ public sealed class ErpAftersalesRmaWriteService : IErpAftersalesRmaWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureAftersalesAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_as_rma", cancellationToken).ConfigureAwait(false)
             || !await TableExistsAsync(connection, "epc_as_rma_lines", cancellationToken).ConfigureAwait(false))
         {

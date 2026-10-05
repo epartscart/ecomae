@@ -66,6 +66,8 @@ public sealed class ErpCftLineAddWriteService : IErpCftLineAddWriteService
         var amount = Math.Abs(request.Amount);
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureCashTreasuryAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_cft_forecast", "name", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_cft_line", "due_date", cancellationToken).ConfigureAwait(false))
         {

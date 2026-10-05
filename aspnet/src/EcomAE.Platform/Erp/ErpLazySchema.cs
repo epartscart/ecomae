@@ -385,6 +385,93 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User dashboard shortcuts'",
             ct);
 
+    /// <summary>epc_as_jobs + epc_as_job_lines + epc_as_rma + epc_as_rma_lines + epc_as_warranty (epc_erp_aftersales.php ensure_schema)</summary>
+    public static async Task EnsureAftersalesAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_jobs` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`job_no` varchar(40) NOT NULL DEFAULT ''," +
+            "`customer_id` int(11) NOT NULL DEFAULT 0," +
+            "`asset_ref` varchar(120) DEFAULT NULL," +
+            "`complaint` text," +
+            "`status` varchar(16) NOT NULL DEFAULT 'open'," +
+            "`under_warranty` tinyint(1) NOT NULL DEFAULT 0," +
+            "`parts_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`labour_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`tax_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`grand_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Service / repair jobs'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_job_lines` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`job_id` int(11) NOT NULL," +
+            "`line_type` varchar(10) NOT NULL DEFAULT 'part'," +
+            "`description` varchar(190) DEFAULT NULL," +
+            "`item_id` int(11) NOT NULL DEFAULT 0," +
+            "`qty` decimal(14,4) NOT NULL DEFAULT 0.0000," +
+            "`unit_price` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`tax_percent` decimal(7,3) NOT NULL DEFAULT 0.000," +
+            "`chargeable` tinyint(1) NOT NULL DEFAULT 1," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_job` (`job_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Service job parts/labour lines'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_rma` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`rma_no` varchar(40) NOT NULL DEFAULT ''," +
+            "`customer_id` int(11) NOT NULL DEFAULT 0," +
+            "`source_type` varchar(40) NOT NULL DEFAULT 'sales_order'," +
+            "`source_id` int(11) NOT NULL DEFAULT 0," +
+            "`reason` varchar(190) DEFAULT NULL," +
+            "`disposition` varchar(20) NOT NULL DEFAULT 'pending'," +
+            "`status` varchar(16) NOT NULL DEFAULT 'open'," +
+            "`refund_amount` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`restock` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_customer` (`customer_id`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Return merchandise authorisations'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_rma_lines` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`rma_id` int(11) NOT NULL," +
+            "`item_id` int(11) NOT NULL," +
+            "`qty` decimal(14,4) NOT NULL DEFAULT 0.0000," +
+            "`unit_price` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`condition_note` varchar(190) DEFAULT NULL," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_rma` (`rma_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='RMA return lines'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_warranty` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`item_id` int(11) NOT NULL DEFAULT 0," +
+            "`serial_no` varchar(80) DEFAULT NULL," +
+            "`customer_id` int(11) NOT NULL DEFAULT 0," +
+            "`source_type` varchar(40) NOT NULL DEFAULT 'sales_order'," +
+            "`source_id` int(11) NOT NULL DEFAULT 0," +
+            "`start_date` int(11) NOT NULL DEFAULT 0," +
+            "`months` int(11) NOT NULL DEFAULT 0," +
+            "`expires_at` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_serial` (`serial_no`)," +
+            "KEY `x_item` (`item_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Warranty register'",
+            ct);
+    }
+
     /// <summary>epc_oa_party + epc_oa_address + epc_oa_contact + epc_oa_calendar + epc_oa_holiday (epc_erp_orgadmin.php ensure_schema)</summary>
     public static async Task EnsureOrgAdminAsync(DbConnection c, CancellationToken ct)
     {
@@ -504,6 +591,72 @@ internal static class ErpLazySchema
             "`role_id` int(11) NOT NULL DEFAULT 0," +
             "PRIMARY KEY (`company_id`,`user_id`,`role_id`)" +
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User -> role'",
+            ct);
+    }
+
+    /// <summary>epc_cft_forecast + epc_cft_line + epc_cft_instrument + epc_cft_instr_event (epc_erp_cash_treasury.php ensure_schema)</summary>
+    public static async Task EnsureCashTreasuryAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_forecast` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "`opening_balance` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`currency` varchar(8) NOT NULL DEFAULT ''," +
+            "`notes` text," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cash flow forecasts'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_line` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`forecast_id` int(11) NOT NULL DEFAULT 0," +
+            "`due_date` varchar(16) NOT NULL DEFAULT ''," +
+            "`direction` varchar(4) NOT NULL DEFAULT 'in'," +
+            "`amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`category` varchar(80) NOT NULL DEFAULT ''," +
+            "`source` varchar(120) NOT NULL DEFAULT ''," +
+            "`notes` varchar(255) NOT NULL DEFAULT ''," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_forecast` (`forecast_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Cash flow forecast lines'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_instrument` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`ref` varchar(60) NOT NULL DEFAULT ''," +
+            "`type` varchar(12) NOT NULL DEFAULT 'lc'," +
+            "`beneficiary` varchar(180) NOT NULL DEFAULT ''," +
+            "`applicant` varchar(180) NOT NULL DEFAULT ''," +
+            "`bank` varchar(180) NOT NULL DEFAULT ''," +
+            "`amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`currency` varchar(8) NOT NULL DEFAULT ''," +
+            "`issue_date` varchar(16) NOT NULL DEFAULT ''," +
+            "`expiry_date` varchar(16) NOT NULL DEFAULT ''," +
+            "`status` varchar(16) NOT NULL DEFAULT 'draft'," +
+            "`notes` text," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bank instruments (LC/BG/SBLC)'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_cft_instr_event` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`instrument_id` int(11) NOT NULL DEFAULT 0," +
+            "`event_type` varchar(24) NOT NULL DEFAULT ''," +
+            "`detail` varchar(255) NOT NULL DEFAULT ''," +
+            "`amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_instrument` (`instrument_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bank instrument events'",
             ct);
     }
 }
