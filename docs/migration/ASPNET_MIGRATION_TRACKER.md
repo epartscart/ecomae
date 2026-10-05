@@ -80,6 +80,22 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Type-1 checkout order detail copy
+
+Not complete.
+
+- A type-1 checkout copies the catalogue line onto `shop_orders_items`: product id 9, manufacturer `BOSCH`, article `C110X`, article show `C110-X`, name `Pad`, count 4, `t2_price_purchase` 0. `sao_state` and `sao_robot` store storage id 8, the value PHP binds for type 1. `t2_product_json` is copied.
+- Each `shop_carts_details` row is copied onto `shop_orders_items_details`. Record 1 keeps `count_reserved` 2 and purchase `4.00`. Records 3 and 4 keep `count_reserved` 1 and purchase `6.00` (warehouse `price_purchase` times the currency rate). `count_issued` and `count_canceled` are 0. PHP does not update `shop_storages_data` at checkout, so exist and reserved stay at the cart reservation. The checked cart and the copied detail ids are deleted. The unchecked `Keep` line stays. `paid` stays 0.
+- While `shop_orders_items_details` is absent, checkout returns “4492. Order item details are not in this database.”, rolls the order back, and leaves the cart and the stock reservation. No detail row is invented.
+- The order email logs are `FAILED after retry` and `FAILED`. No log says sent. No SMTP server and no live host were called. `epc_erp_order_fulfillment` is not called, and no `epc_erp%` table was created.
+- `StorefrontPhpShopTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5048 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Other-office stock, catalogue captions, and unpaid order mail
 
 Not complete.
