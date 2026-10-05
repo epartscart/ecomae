@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP search tab, office, warehouse, and user detail opens
+
+Not complete.
+
+- Signed-in www.epartscart.com. `/cp/search-tabs-app?tab_id=1` is **200** and says the tab was not found, then that there are no search tabs (`shop_docpart_search_tabs` and `lang_text_strings_translation` are absent). `/cp/offices-app?office_id=1` is **200** and edits Dubai HQ (UAE, Dubai, Al Quoz 3). Region, coordinates, description, and working hours stay empty because those columns are absent. `/cp/offices-app?office_id=new` and `/cp/storages-app?storage_id=new` are **200** and list operator@local.test. `/cp/storages-app?storage_id=1` is **200** for Sharjah Industrial 6 warehouse. An empty `bg_line_color` is 0, the same as PHP `intval`. `/cp/users-app?user_id=1` is **200** for operator@local.test. `reg_variant`, `comment`, registration tables, and `users_profiles` are absent, so those fields stay empty. No rows were inserted.
+- `confirmWrites=true` saves, price upload, and catalogue writes were not posted. `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- www.electronicae.com, www.stylenlook.com, www.thejewellerytrend.com, and www.taxofinca.com are still not in `epc_portal_tenants`. No accounts were created. In-repo marketing snapshots were already **200**.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5009 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, Control Panel saves that write rows, the web tracker connection, jewellery enablement, signed-in CP on the other named shops, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — CP data transfer, packs, KKT, growth, page builder, prices send, RMA, SAO, WMS
 
 Not complete.
