@@ -87,6 +87,66 @@ public static partial class StorefrontPhpAjax
     public const string QuoteAlreadyInCart = "One or more items are already in your cart at this price — adjust the cart and try again";
     public const string QuoteAcceptFailed = "Could not complete acceptance";
     public const string ToMarksLocalFailure = "NULL\n";
+    public const string ReturnsLoadPath = "/content/shop/returns/ajax/ajax_load_returns_data.php";
+    public const string WorkshopPublicPath = "/content/shop/workshop/ajax_workshop_public.php";
+    public const string GarageManagerPath = "/content/shop/workshop/ajax_garage_manager.php";
+    public const string ContactsPath = "/content/users/ajax_contacts_works.php";
+    public const string LoginSendCodePath = "/modules/login/code/frontAjax/ajax_sendCode.php";
+    public const string LoginCheckCodePath = "/modules/login/code/frontAjax/ajax_checkCode.php";
+    public const string BulkUploadPath = "/content/shop/bulk_upload/ajax_process.php";
+    public const string VendorIngestPath = "/content/shop/vendor/ajax_vendor_ingest.php";
+    public const string UCatalogApiPath = "/api/UCatalog/api.php";
+    public const string OrderItemsMissing = "Order items are not in this database.";
+    public const string ReturnStatusesMissing = "Return statuses are not in this database.";
+    public const string ReturnsHeaderMissing = "Returns are not in this database.";
+    public const string ReturnsNoStatus = "4572.";
+    public const string ReturnsDuplicate = "4571";
+    public const string ReturnsForbidden = "Forbidden";
+    public const string WorkshopUnavailable = "Service temporarily unavailable";
+    public const string WorkshopRequired = "Name, phone, plate, and complaint are required.";
+    public const string WorkshopUnknown = "Unknown action";
+    public const string WorkshopNoJob = "No job found for that reference.";
+    public const string WorkshopBooked = "Service request received. Keep your job number for tracking.";
+    public const string GarageDenied = "Access denied — garage staff login required";
+    public const string GarageCsrf = "CSRF failed — refresh and retry";
+    public const string GarageCreated = "Job card created";
+    public const string GarageInvalid = "Invalid job or status";
+    public const string ContactsNotLoggedIn = "4689";
+    public const string ContactsBadInput = "4690";
+    public const string ContactsCsrf = "4691";
+    public const string ContactsRegexp = "4692";
+    public const string ContactsDuplicate = "4693";
+    public const string ContactsEmpty = "3342";
+    public const string ContactsLock = "4694";
+    public const string ContactsMissingContact = "4695";
+    public const string ContactsNotifyFailed = "4697";
+    public const string RegistrationFieldsMissing = "Registration fields are not in this database.";
+    public const string UserAccountsMissing = "User accounts are not in this database.";
+    public const string UserProfilesMissing = "User profiles are not in this database.";
+    public const string CustomerGroupsMissing = "Customer groups are not in this database.";
+    public const string LoginUnknownMethod = "5648";
+    public const string LoginNotifyFailed = "4697";
+    public const string LoginBadContact = "5649";
+    public const string LoginExpired = "5642";
+    public const string LoginMismatch = "5643";
+    public const string LoginNoAttempts = "4003";
+    public const string BulkLogin = "Please log in first.";
+    public const string BulkProfile = "Select customer price profile.";
+    public const string BulkHistory = "History update data is invalid.";
+    public const string BulkNoWarehouses = "No price-list warehouses are available for your location.";
+    public const string BulkFileRequired = "Upload file is required.";
+    public const string BulkPartRequired = "Part number is required.";
+    public const string BulkWarehousesMissing = "Price-list warehouses are not in this database.";
+    public const string VendorSignIn = "Please sign in";
+    public const string VendorAccountsMissing = "Vendor accounts are not in this database.";
+    public const string VendorNotApproved = "Vendor account not approved for upload";
+    public const string VendorToken = "Invalid security token — refresh and try again";
+    public const string VendorChooseFile = "Choose a CSV or Excel file";
+    public const string VendorBadType = "Allowed types: CSV, XLS, XLSX";
+    public const string VendorTooLarge = "File too large (max 12 MB)";
+    public const string VendorImportFailed = "Import failed";
+    public const string UCatalogForbidden403 = "Forbidden 403";
+    public const string UCatalogListFailure = "<h5>2096</h5>";
     public const string UcatsAccessControlMissing = "Ucats access control is not in this database.";
     public const string BotAddressesMissing = "Bot addresses are not in this database.";
     public const string UcatsForbidden = "Forbidden";
@@ -113,6 +173,21 @@ public static partial class StorefrontPhpAjax
         "/content/shop/ucats/to/cars_models.php",
         "/content/shop/ucats/to/cars_models_types.php",
         "/content/shop/ucats/to/parts_list.php"
+    ];
+
+    public static readonly string[] UCatalogDirectPaths =
+    [
+        "/api/UCatalog/get_marks.php",
+        "/api/UCatalog/get_models.php",
+        "/api/UCatalog/get_modifications.php",
+        "/api/UCatalog/get_types.php",
+        "/api/UCatalog/get_tree.php",
+        "/api/UCatalog/get_parts.php",
+        "/api/UCatalog/get_info.php",
+        "/api/UCatalog/get_info_html.php",
+        "/api/UCatalog/add_garage.php",
+        "/api/UCatalog/get_notepad.php",
+        "/api/UCatalog/add_notepad.php"
     ];
 
     public static readonly string[] UcatsProductPaths =

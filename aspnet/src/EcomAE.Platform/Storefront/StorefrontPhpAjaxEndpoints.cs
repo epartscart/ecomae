@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Text.Json;
+using System.Text.RegularExpressions;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Cp.PriceImport;
@@ -153,6 +154,29 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.ToMarksPath, ["GET", "POST"], ToMarksAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ReturnsLoadPath, ["GET", "POST"], ReturnsLoadAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.WorkshopPublicPath, ["GET", "POST"], WorkshopPublicAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.GarageManagerPath, ["GET", "POST"], GarageManagerAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ContactsPath, ["GET", "POST"], ContactsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.LoginSendCodePath, ["GET", "POST"], LoginSendCodeAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.LoginCheckCodePath, ["GET", "POST"], LoginCheckCodeAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.BulkUploadPath, ["GET", "POST"], BulkUploadAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.VendorIngestPath, ["GET", "POST"], VendorIngestAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.UCatalogApiPath, ["GET", "POST"], UCatalogApiAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        foreach (var path in StorefrontPhpAjax.UCatalogDirectPaths)
+        {
+            endpoints.MapMethods(path, ["GET", "POST"], UCatalogDirectAsync)
+                .DisableAntiforgery().AllowAnonymous();
+        }
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -1076,6 +1100,377 @@ public static class StorefrontPhpAjaxEndpoints
                 QueryRaw(context, "parent_id"),
                 token),
             StorefrontPhpAjax.NoDbConnect);
+
+    private static Task<IResult> ReturnsLoadAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            async (connection, _, token) => await StorefrontPhpAjax.LoadReturnsAsync(
+                connection,
+                ExpectedTechKey(context),
+                await FieldAsync(context, "tech_key", token).ConfigureAwait(false),
+                await ReturnLinesAsync(context, token).ConfigureAwait(false),
+                await FieldAsync(context, "user_id", token).ConfigureAwait(false),
+                await FieldAsync(context, "total_sum", token).ConfigureAwait(false),
+                token).ConfigureAwait(false));
+
+    private static Task<IResult> WorkshopPublicAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.WorkshopPublicAsync(
+                connection,
+                await FieldAsync(context, "action", token).ConfigureAwait(false),
+                await FieldAsync(context, "customer_name", token).ConfigureAwait(false),
+                await WorkshopPhoneAsync(context, token).ConfigureAwait(false),
+                await FieldAsync(context, "plate", token).ConfigureAwait(false),
+                await FieldAsync(context, "complaint", token).ConfigureAwait(false),
+                await FieldAsync(context, "customer_email", token).ConfigureAwait(false),
+                await FieldAsync(context, "vin", token).ConfigureAwait(false),
+                await FieldAsync(context, "make", token).ConfigureAwait(false),
+                await FieldAsync(context, "model", token).ConfigureAwait(false),
+                await FieldAsync(context, "year", token).ConfigureAwait(false),
+                await FieldAsync(context, "odometer", token).ConfigureAwait(false),
+                await FieldAsync(context, "ref", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.WorkshopUnavailable));
+
+    private static Task<IResult> GarageManagerAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.GarageManagerAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                await FieldAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                await FieldAsync(context, "action", token).ConfigureAwait(false),
+                await FieldAsync(context, "customer_name", token).ConfigureAwait(false),
+                await FieldAsync(context, "customer_phone", token).ConfigureAwait(false),
+                await FieldAsync(context, "plate", token).ConfigureAwait(false),
+                await FieldAsync(context, "complaint", token).ConfigureAwait(false),
+                await FieldAsync(context, "customer_email", token).ConfigureAwait(false),
+                await FieldAsync(context, "vin", token).ConfigureAwait(false),
+                await FieldAsync(context, "make", token).ConfigureAwait(false),
+                await FieldAsync(context, "model", token).ConfigureAwait(false),
+                await FieldAsync(context, "year", token).ConfigureAwait(false),
+                await FieldAsync(context, "odometer", token).ConfigureAwait(false),
+                await FieldAsync(context, "job_id", token).ConfigureAwait(false),
+                await FieldAsync(context, "status", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.DatabaseUnavailable));
+
+    private static Task<IResult> ContactsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) =>
+            {
+                var hasType = await HasFieldAsync(context, "type", token).ConfigureAwait(false);
+                var hasAction = await HasFieldAsync(context, "action", token).ConfigureAwait(false);
+                var hasCsrf = await HasFieldAsync(context, "csrf_guard_key", token).ConfigureAwait(false);
+                var hasContact = await HasFieldAsync(context, "contact", token).ConfigureAwait(false);
+                return await StorefrontPhpAjax.ContactsAsync(
+                    connection,
+                    context.Request.Cookies["session"],
+                    context.Request.Cookies["u_id"],
+                    hasType ? await FieldAsync(context, "type", token).ConfigureAwait(false) : null,
+                    hasAction ? await FieldAsync(context, "action", token).ConfigureAwait(false) : null,
+                    hasCsrf ? await FieldAsync(context, "csrf_guard_key", token).ConfigureAwait(false) : null,
+                    hasContact ? await FieldAsync(context, "contact", token).ConfigureAwait(false) : null,
+                    hasType,
+                    hasAction,
+                    hasCsrf,
+                    token).ConfigureAwait(false);
+            },
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static async Task<IResult> LoginSendCodeAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var body = await JsonFieldsAsync(context, cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.SendLoginCodeAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                body.TryGetValue("csrf_guard_key", out var csrf) ? csrf : null,
+                body.GetValueOrDefault("method"),
+                body.GetValueOrDefault("contact"),
+                token),
+            StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> LoginCheckCodeAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var body = await JsonFieldsAsync(context, cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.CheckLoginCodeAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                body.TryGetValue("csrf_guard_key", out var csrf) ? csrf : null,
+                body.GetValueOrDefault("code"),
+                token),
+            StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
+    }
+
+    private static Task<IResult> BulkUploadAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) =>
+            {
+                var file = await PostedFileAsync(context, "bulk_file", token).ConfigureAwait(false);
+                return await StorefrontPhpAjax.BulkUploadAsync(
+                    connection,
+                    context.Request.Cookies["session"],
+                    context.Request.Cookies["u_id"],
+                    context.Request.Cookies["admin_session"],
+                    context.Request.Cookies["admin_u_id"],
+                    await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                    await FieldAsync(context, "action", token).ConfigureAwait(false),
+                    await FieldAsync(context, "upload_id", token).ConfigureAwait(false),
+                    await FieldAsync(context, "summary", token).ConfigureAwait(false),
+                    await FieldAsync(context, "rows", token).ConfigureAwait(false),
+                    await FieldAsync(context, "article", token).ConfigureAwait(false),
+                    file.HasFile,
+                    token).ConfigureAwait(false);
+            },
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+
+    private static Task<IResult> VendorIngestAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) =>
+            {
+                var file = await PostedFileAsync(context, "price_file", token).ConfigureAwait(false);
+                return await StorefrontPhpAjax.VendorIngestAsync(
+                    connection,
+                    context.Request.Cookies["session"],
+                    context.Request.Cookies["u_id"],
+                    await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                    file.HasFile,
+                    file.Name,
+                    file.Size,
+                    token).ConfigureAwait(false);
+            },
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.DatabaseUnavailable));
+
+    private static Task<IResult> UCatalogApiAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!UCatalogCookie(context.Request.Cookies["UCatalog"]))
+        {
+            return Task.FromResult(Results.Text(StorefrontPhpAjax.UCatalogForbidden403, "text/html; charset=utf-8"));
+        }
+
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.UCatalogApiAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                await FieldAsync(context, "request_object", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            StorefrontPhpAjax.NoDbConnect);
+    }
+
+    private static IResult UCatalogDirectAsync()
+        => Results.Text(StorefrontPhpAjax.UcatsNoAccess, "text/html; charset=utf-8");
+
+    private static bool UCatalogCookie(string? cookie)
+    {
+        if (string.IsNullOrWhiteSpace(cookie))
+        {
+            return false;
+        }
+
+        var text = cookie.Trim();
+        var index = 0;
+        if (text[0] is '+' or '-')
+        {
+            index++;
+        }
+
+        var end = index;
+        while (end < text.Length && char.IsDigit(text[end]))
+        {
+            end++;
+        }
+
+        return end > index && int.TryParse(text[..end], NumberStyles.Integer, CultureInfo.InvariantCulture, out var value) && value == 1;
+    }
+
+    private static async Task<string> WorkshopPhoneAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var customerPhone = await FieldAsync(context, "customer_phone", cancellationToken).ConfigureAwait(false);
+        if (customerPhone.Length > 0)
+        {
+            return customerPhone;
+        }
+
+        return await FieldAsync(context, "phone", cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<IReadOnlyList<StorefrontPhpAjax.ReturnLine>> ReturnLinesAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var lines = new SortedDictionary<int, (int ItemId, int ReasonId, string Comment, string Count)>();
+        if (!HttpMethods.IsPost(context.Request.Method) || !context.Request.HasFormContentType)
+        {
+            return [];
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+        foreach (var key in form.Keys)
+        {
+            var match = Regex.Match(key, @"^items\[(\d+)\]\[(item_id|reason_id|comment|count)\]$");
+            if (!match.Success)
+            {
+                continue;
+            }
+
+            var index = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture);
+            lines.TryGetValue(index, out var line);
+            var value = form[key].ToString();
+            line = match.Groups[2].Value switch
+            {
+                "item_id" => line with { ItemId = int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) ? id : 0 },
+                "reason_id" => line with { ReasonId = int.TryParse(value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var reason) ? reason : 0 },
+                "comment" => line with { Comment = value },
+                _ => line with { Count = value }
+            };
+            lines[index] = line;
+        }
+
+        return lines.Values.Select(line => new StorefrontPhpAjax.ReturnLine(line.ItemId, line.ReasonId, line.Comment ?? string.Empty, line.Count ?? string.Empty)).ToList();
+    }
+
+    private static async Task<bool> HasFieldAsync(HttpContext context, string name, CancellationToken cancellationToken)
+    {
+        if (context.Request.Query.ContainsKey(name))
+        {
+            return true;
+        }
+
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            return form.ContainsKey(name);
+        }
+
+        return false;
+    }
+
+    private static async Task<string?> OptionalPostedAsync(HttpContext context, string name, CancellationToken cancellationToken)
+    {
+        if (context.Request.Query.ContainsKey(name))
+        {
+            return context.Request.Query[name].ToString();
+        }
+
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            if (form.ContainsKey(name))
+            {
+                return form[name].ToString();
+            }
+        }
+
+        return null;
+    }
+
+    private static async Task<(bool HasFile, string Name, long Size)> PostedFileAsync(HttpContext context, string name, CancellationToken cancellationToken)
+    {
+        if (!HttpMethods.IsPost(context.Request.Method) || !context.Request.HasFormContentType)
+        {
+            return (false, string.Empty, 0);
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+        var file = form.Files.GetFile(name);
+        if (file is null)
+        {
+            return (false, string.Empty, 0);
+        }
+
+        return (true, file.FileName, file.Length);
+    }
+
+    private static async Task<Dictionary<string, string>> JsonFieldsAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (context.Request.ContentType is null || context.Request.ContentType.Contains("json", StringComparison.OrdinalIgnoreCase) != true)
+        {
+            return fields;
+        }
+
+        using var reader = new StreamReader(context.Request.Body);
+        var text = await reader.ReadToEndAsync(cancellationToken).ConfigureAwait(false);
+        if (string.IsNullOrWhiteSpace(text))
+        {
+            return fields;
+        }
+
+        using var document = JsonDocument.Parse(text);
+        if (document.RootElement.ValueKind != JsonValueKind.Object)
+        {
+            return fields;
+        }
+
+        foreach (var property in document.RootElement.EnumerateObject())
+        {
+            fields[property.Name] = property.Value.ValueKind == JsonValueKind.String
+                ? property.Value.GetString() ?? string.Empty
+                : property.Value.ToString();
+        }
+
+        return fields;
+    }
 
     private static async Task<IResult> ToMarksAsync(
         HttpContext context,
