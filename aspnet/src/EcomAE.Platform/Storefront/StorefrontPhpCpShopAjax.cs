@@ -2380,6 +2380,107 @@ public static partial class StorefrontPhpAjax
     [System.Text.RegularExpressions.GeneratedRegex("[^a-zA-Z0-9А-Яа-яёЁ]+")]
     private static partial System.Text.RegularExpressions.Regex RegexArticle();
 
+    public static async Task<object> PricePackSetupAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? postedKey,
+        string expectedKey,
+        string docRoot,
+        string? backend,
+        CancellationToken cancellationToken)
+    {
+        if (!string.Equals(expectedKey, postedKey ?? string.Empty, StringComparison.Ordinal) || expectedKey.Length == 0)
+        {
+            var denied = await StaffAsync(connection, adminSession, adminUser, new FlagBody(false, "Forbidden"), cancellationToken).ConfigureAwait(false);
+            if (denied is not null)
+            {
+                return denied;
+            }
+
+            var gated = await WithCpAdminAsync(
+                connection,
+                adminSession,
+                adminUser,
+                csrf,
+                () => new FlagBody(false, "Forbidden"),
+                (_, _) => Task.FromResult<object>(ClearPackSetup(docRoot, backend)),
+                cancellationToken).ConfigureAwait(false);
+            return gated;
+        }
+
+        return ClearPackSetup(docRoot, backend);
+    }
+
+    public static async Task<object> PriceEnableKeysAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? postedKey,
+        string expectedKey,
+        CancellationToken cancellationToken)
+    {
+        if (!string.Equals(expectedKey, postedKey ?? string.Empty, StringComparison.Ordinal) || expectedKey.Length == 0)
+        {
+            var denied = await StaffAsync(connection, adminSession, adminUser, new FlagBody(false, "Forbidden"), cancellationToken).ConfigureAwait(false);
+            if (denied is not null)
+            {
+                return denied;
+            }
+
+            return await WithCpAdminAsync(
+                connection,
+                adminSession,
+                adminUser,
+                csrf,
+                () => new FlagBody(false, "Forbidden"),
+                (_, token) => EnablePriceKeysAsync(connection, token),
+                cancellationToken).ConfigureAwait(false);
+        }
+
+        return await EnablePriceKeysAsync(connection, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static object ClearPackSetup(string docRoot, string? backend)
+    {
+        var folder = string.IsNullOrWhiteSpace(backend) ? "cp" : backend.Trim().Trim('/');
+        var dir = Path.Combine(string.IsNullOrWhiteSpace(docRoot) ? Path.GetTempPath() : docRoot, folder, "tmp", "pack_setup");
+        Directory.CreateDirectory(dir);
+        foreach (var entry in Directory.EnumerateFileSystemEntries(dir))
+        {
+            if (string.Equals(Path.GetFileName(entry), "index.html", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            if (Directory.Exists(entry))
+            {
+                Directory.Delete(entry, true);
+            }
+            else
+            {
+                File.Delete(entry);
+            }
+        }
+
+        return new RawHttp(string.Empty, "text/html; charset=utf-8");
+    }
+
+    private static async Task<object> EnablePriceKeysAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ErpDb.ExecuteAsync(connection, null, "ALTER TABLE `shop_docpart_prices_data` ENABLE KEYS", cancellationToken).ConfigureAwait(false);
+            return new JsonObject { ["result"] = 1 };
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new JsonObject { ["result"] = 0, ["message"] = PriceRowsMissing };
+        }
+    }
+
     public static async Task<object> CatalogueProductsAsync(
         DbConnection connection,
         string? adminSession,

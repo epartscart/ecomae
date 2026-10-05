@@ -46,6 +46,35 @@ public sealed class CpLegacyPhpAjaxLinkTests
     }
 
     [Fact]
+    public void CurrencyPreview_ReachesTheExistingLiveRateReader()
+    {
+        var rewritten = CpLegacyPhpAjaxLinks.TryRewrite(HttpMethods.Get, CpLegacyPhpAjaxLinks.CurrencyRates, "preview", out var target, out var operatorPost);
+        Assert.True(rewritten);
+        Assert.False(operatorPost);
+        Assert.Equal(EcomAeRoutes.CpCurrenciesLivePreview, target.Value);
+    }
+
+    [Fact]
+    public void CurrencyApply_ReachesTheExistingWriter_AsTheOperatorButton()
+    {
+        var rewritten = CpLegacyPhpAjaxLinks.TryRewrite(HttpMethods.Post, CpLegacyPhpAjaxLinks.CurrencyRates, "apply", out var target, out var operatorPost);
+        Assert.True(rewritten);
+        Assert.True(operatorPost);
+        Assert.Equal(EcomAeRoutes.CpCurrenciesLiveApply, target.Value);
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.CurrencyRates, out _));
+    }
+
+    [Fact]
+    public void QuoteAltOptions_ReachTheExistingReader()
+    {
+        var rewritten = CpLegacyPhpAjaxLinks.TryRewrite(HttpMethods.Get, CpLegacyPhpAjaxLinks.QuoteAltOptions, null, out var target, out _);
+        Assert.True(rewritten);
+        Assert.Equal(EcomAeRoutes.CpQuoteAltOptions, target.Value);
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.QuoteAltOptions, out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.PricePackSetup, out _));
+    }
+
+    [Fact]
     public void Endpoints_AreNotRedirectedToABrowsePage()
     {
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.ProcurementEndpoint, out _));

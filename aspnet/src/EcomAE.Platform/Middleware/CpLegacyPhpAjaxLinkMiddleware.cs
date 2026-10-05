@@ -15,13 +15,28 @@ public sealed class CpLegacyPhpAjaxLinkMiddleware
         _next = next;
     }
 
-    public Task InvokeAsync(HttpContext context)
+    public async Task InvokeAsync(HttpContext context)
     {
-        if (CpLegacyPhpAjaxLinks.TryRewritePost(context.Request.Method, context.Request.Path, out var target))
+        var action = context.Request.Query["action"].ToString();
+        if (action.Length == 0
+            && HttpMethods.IsPost(context.Request.Method)
+            && context.Request.HasFormContentType
+            && string.Equals(context.Request.Path.Value, CpLegacyPhpAjaxLinks.CurrencyRates, StringComparison.OrdinalIgnoreCase))
         {
+            var form = await context.Request.ReadFormAsync(context.RequestAborted).ConfigureAwait(false);
+            action = form["action"].ToString();
+        }
+
+        if (CpLegacyPhpAjaxLinks.TryRewrite(context.Request.Method, context.Request.Path, action, out var target, out var operatorPost))
+        {
+            if (operatorPost)
+            {
+                context.Items[CpLegacyPhpAjaxLinks.OperatorPostItem] = true;
+            }
+
             context.Request.Path = target;
         }
 
-        return _next(context);
+        await _next(context).ConfigureAwait(false);
     }
 }

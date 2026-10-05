@@ -80,6 +80,17 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — currency, quote options, and price-upload steps 1 and 7
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 56 are mapped. 19 stay unmapped. The previous checkpoint had 48 mapped and 27 unmapped.
+- A direct hit on the CRM, customer-management, and document-control include scripts is `No access`. Their standalone endpoints are still open. Customer advances and e-invoice creation stay on the ERP engine.
+- `ajax_currency_live_rates.php?action=preview` and `schedule_get` reach the existing live-rate reader. `apply`, `schedule_save`, and `schedule_run_now` reach the existing writer. The dedicated `/cp/currencies/*` routes still require `confirmWrites=true`. The old page button is the operator confirm, so that post is allowed through the same writer. An unknown action is `bad_action`.
+- Quote alternative options reach `/cp/quote-requests/alt-options`. A GET or POST with `quote_id` and `line_id` uses that reader.
+- Price upload step 1, with tech key `local-tech`, clears `cp/tmp/pack_setup` and leaves `index.html`. Step 7 returns result 0 and “Price rows are not in this database.” when the table is absent, and result 1 after `ENABLE KEYS` when it exists. A call without the tech key or an admin session is `Forbidden`. Steps 2 through 5 are still open.
+- These ajax URLs are not redirected to a browse page. No second FX table and no second price-import engine were added.
+
 ### Checkpoint 2026-10-05 — CP links into procurement and ERP stay on those engines
 
 Not complete.
