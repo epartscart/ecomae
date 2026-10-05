@@ -80,6 +80,20 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Storefront PHP search and header ajax
+
+Not complete.
+
+- PHP part-search and desktop header URLs that were 404 now return JSON: warehouse offers, article brands, cross search, office/storage bunches, products of one bunch, cart info, unread order/return messages, and unread VIN requests. An empty article is “Empty article”. Guests do not receive warehouse price, quantity, storage, or term. Cross-search stock uses the `**` mask. A missing table returns a clear message. Header calls follow PHP CSRF (`Error! CSRF 1` and `Error! CSRF 4`).
+- `StorefrontPhpAjaxTests` creates a database, counts cart total 20.00, one unread order message, and one unread VIN request, serves the cart and warehouse URLs from a local test host, then drops that database. No `docpart` rows were written. A blocked guest cart is not deleted.
+- `ajax_getManufacturersList.php`, the prices and cross-server manufacturer lists, `ajax_getAnalogsList.php`, `ajax_asynchron.php`, `ajax_get_info.php`, and `ajax_getProductsOfBunch2.php` are still not routed.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5040 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, the remaining part-search ajax files, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — New-account OAuth and named-shop host resolution
 
 Not complete.
