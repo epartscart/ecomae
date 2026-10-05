@@ -601,4 +601,43 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Bank instrument events'",
             ct);
     }
+
+    /// <summary>epc_wht_code + epc_wht_txn (epc_erp_withholding.php ensure_schema)</summary>
+    public static async Task EnsureWithholdingAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_wht_code` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(40) NOT NULL DEFAULT ''," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "`rate` decimal(8,4) NOT NULL DEFAULT 0.0000," +
+            "`account` varchar(60) NOT NULL DEFAULT ''," +
+            "`active` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Withholding tax codes'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_wht_txn` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`code_id` int(11) NOT NULL DEFAULT 0," +
+            "`vendor` varchar(180) NOT NULL DEFAULT ''," +
+            "`doc_ref` varchar(80) NOT NULL DEFAULT ''," +
+            "`txn_date` varchar(16) NOT NULL DEFAULT ''," +
+            "`base_amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`wht_amount` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`rate` decimal(8,4) NOT NULL DEFAULT 0.0000," +
+            "`certificate_no` varchar(60) NOT NULL DEFAULT ''," +
+            "`status` varchar(16) NOT NULL DEFAULT 'accrued'," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)," +
+            "KEY `x_code` (`code_id`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Withholding tax transactions'",
+            ct);
+    }
 }

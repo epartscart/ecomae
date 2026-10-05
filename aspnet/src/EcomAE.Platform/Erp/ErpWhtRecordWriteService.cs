@@ -54,6 +54,8 @@ public sealed class ErpWhtRecordWriteService : IErpWhtRecordWriteService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureWithholdingAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_wht_code", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_wht_code", "rate", cancellationToken).ConfigureAwait(false))
         {
