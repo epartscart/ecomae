@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — New-account OAuth and named-shop host resolution
+
+Not complete.
+
+- PHP `epc_oauth_complete_login` provisions a storefront or CP user on first sign-in. `OAuthAccountProvision` does the same. `OAuthAccountProvisionTests` creates a database and drops it. A locked user is refused. An existing unconfirmed storefront user is confirmed in place. An existing CP user needs a backend group. A new storefront user and a new CP user are inserted. Signup disabled (Super CP, industries, `allow_provision` false) inserts nothing. An empty or non-email address is refused. A missing `users` table returns “Accounts are not in this database.” No `docpart` rows were written. This environment has no `epc_oauth_config`, so a live Google browser return was not run.
+- `ecomae.epc_portal_tenants` has no row for www.electronicae.com, www.stylenlook.com, www.thejewellerytrend.com, www.taxofinca.com, or industries.ecomae.com. No accounts were created and no portal rows were inserted. PHP already names those four shops and binds them to shared `docpart` when no dedicated database is stored. ASP.NET now does that bind. A dedicated registry database still wins. `industries.ecomae.com` `/cp` and `/erp` use platform `ecomae`. That host is not a Super CP host. `CpTenantHostResolutionTests` signed in on a throwaway database that stood in for the resolved name, then dropped it. `docpart.users` stayed 2 and `ecomae.users` stayed 2.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5033 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Price upload, catalogue writes, and groups-tree delete
 
 Not complete.
