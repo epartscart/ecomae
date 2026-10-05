@@ -33,6 +33,20 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.VinInfoPath, ["GET", "POST"], VinAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ManufacturersListPath, ["GET", "POST"], ManufacturersAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ManufacturersFromPricesPath, ["GET", "POST"], ManufacturersFromPricesAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ManufacturersFromCrossServerPath, ["GET", "POST"], ManufacturersFromCrossAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.AnalogsListPath, ["GET", "POST"], AnalogsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.AsynchronPath, ["GET", "POST"], AsynchronAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.PartInfoPath, ["GET", "POST"], PartInfoAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ProductsOfBunch2Path, ["GET", "POST"], Bunch2Async)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -126,6 +140,119 @@ public static class StorefrontPhpAjaxEndpoints
         return Php(StorefrontPhpAjax.ProductsOfBunch(result, access.PricesVisible));
     }
 
+    private static Task<IResult> ManufacturersAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(context, connections, cancellationToken, async (connection, ct) =>
+        {
+            _ = int.TryParse(await FieldAsync(context, "storage_id", ct).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var storageId);
+            var query = await FieldAsync(context, "query", ct).ConfigureAwait(false);
+            return await StorefrontPhpAjax.ManufacturersFromStorageAsync(connection, query, storageId, ct).ConfigureAwait(false);
+        }, StorefrontPhpAjax.DatabaseUnavailableManufacturers(0));
+
+    private static Task<IResult> ManufacturersFromPricesAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(context, connections, cancellationToken, async (connection, ct) =>
+        {
+            var query = await FieldAsync(context, "query", ct).ConfigureAwait(false);
+            var bunches = await FieldAsync(context, "office_storage_bunches", ct).ConfigureAwait(false);
+            _ = int.TryParse(await FieldAsync(context, "group_id", ct).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var groupId);
+            return await StorefrontPhpAjax.ManufacturersFromPricesAsync(connection, query, bunches, groupId, ct).ConfigureAwait(false);
+        }, StorefrontPhpAjax.DatabaseUnavailableManufacturers(StorefrontPhpAjax.PricesStorageLabel));
+
+    private static Task<IResult> ManufacturersFromCrossAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(context, connections, cancellationToken, async (connection, ct) =>
+            await StorefrontPhpAjax.ManufacturersFromCrossServerAsync(connection, await FieldAsync(context, "query", ct).ConfigureAwait(false), ct).ConfigureAwait(false),
+            StorefrontPhpAjax.DatabaseUnavailableManufacturers(StorefrontPhpAjax.CrossStorageLabel));
+
+    private static async Task<IResult> AnalogsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var search = await FieldAsync(context, "search_object", cancellationToken).ConfigureAwait(false);
+        if (StorefrontPhpAjax.AnalogsArticleEmpty(search))
+        {
+            return Php(StorefrontPhpAjax.AnalogsEmptyArticle());
+        }
+
+        if (!connections.IsConfigured)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        return await WithDbAsync(context, connections, cancellationToken, (connection, ct) =>
+            StorefrontPhpAjax.AnalogsListAsync(connection, search, ct), StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> AsynchronAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IStorefrontPriceAccess priceAccess,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        var request = await FieldAsync(context, "request_object", cancellationToken).ConfigureAwait(false);
+        var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var outcome = await StorefrontPhpAjax.AsynchronAsync(connection, request, access.PricesVisible, cancellationToken).ConfigureAwait(false);
+            return outcome.PlainText ? Plain(Convert.ToString(outcome.Payload, CultureInfo.InvariantCulture) ?? StorefrontPhpAjax.NoDbConnect) : Php(outcome.Payload);
+        }
+        catch (Exception)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+    }
+
+    private static IResult PartInfoAsync(HttpContext context)
+    {
+        var referer = context.Request.Headers.Referer.ToString();
+        if (!StorefrontPhpAjax.RefererAllowed(referer, context.Request.Host.Host))
+        {
+            return Plain("Forbidden 403");
+        }
+
+        return Php(StorefrontPhpAjax.PartInfoUnconfigured());
+    }
+
+    private static async Task<IResult> Bunch2Async(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IStorefrontPriceAccess priceAccess,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        var article = await FieldAsync(context, "article", cancellationToken).ConfigureAwait(false);
+        _ = int.TryParse(await FieldAsync(context, "office_id", cancellationToken).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var officeId);
+        _ = int.TryParse(await FieldAsync(context, "storage_id", cancellationToken).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var storageId);
+        _ = int.TryParse(await FieldAsync(context, "group_id", cancellationToken).ConfigureAwait(false), NumberStyles.Integer, CultureInfo.InvariantCulture, out var groupId);
+        var query = await FieldAsync(context, "query", cancellationToken).ConfigureAwait(false);
+        var access = await priceAccess.ResolveAsync(context, cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, ct) => StorefrontPhpAjax.ProductsOfBunch2Async(connection, article, officeId, storageId, query, 0, groupId, access.PricesVisible, ct),
+            StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
+    }
+
     private static Task<IResult> CartAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
@@ -153,6 +280,41 @@ public static class StorefrontPhpAjaxEndpoints
         CancellationToken cancellationToken)
         => WithSessionAsync(context, connections, cancellationToken, (connection, csrf, ct) =>
             StorefrontPhpAjax.VinUnreadAsync(connection, csrf.UserId, ct));
+
+    private static async Task<IResult> WithDbAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken,
+        Func<System.Data.Common.DbConnection, CancellationToken, Task<object>> body,
+        object fallback)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Fallback(fallback);
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var payload = await body(connection, cancellationToken).ConfigureAwait(false);
+            return payload is string text ? Plain(text) : Php(payload);
+        }
+        catch (Exception)
+        {
+            return Fallback(fallback);
+        }
+    }
+
+    private static IResult Fallback(object fallback)
+        => fallback is string text ? Plain(text) : Php(fallback);
+
+    private static IResult Plain(string text)
+        => Results.Text(
+            text,
+            string.Equals(text, StorefrontPhpAjax.NoDbConnect, StringComparison.Ordinal)
+                ? "application/json; charset=utf-8"
+                : "text/plain; charset=utf-8");
 
     private static async Task<IResult> WithSessionAsync(
         HttpContext context,

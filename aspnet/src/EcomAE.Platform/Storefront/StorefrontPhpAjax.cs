@@ -9,7 +9,7 @@ namespace EcomAE.Platform.Storefront;
 /// <summary>
 /// PHP JSON for the public storefront ajax files the desktop and part search still call.
 /// </summary>
-public static class StorefrontPhpAjax
+public static partial class StorefrontPhpAjax
 {
     public const string WarehouseOffersPath = "/content/shop/docpart/ajax_epc_warehouse_offers.php";
     public const string ArticleBrandsPath = "/content/shop/docpart/ajax_epc_article_brands.php";
@@ -19,6 +19,22 @@ public static class StorefrontPhpAjax
     public const string CartInfoPath = "/content/shop/order_process/ajax_get_cart_info.php";
     public const string UnreadMessagesPath = "/content/shop/order_process/ajax_get_cnt_not_viewed_msg.php";
     public const string VinInfoPath = "/content/requests/ajax_get_vin_info.php";
+    public const string ManufacturersListPath = "/content/shop/docpart/ajax_getManufacturersList.php";
+    public const string ManufacturersFromPricesPath = "/content/shop/docpart/ajax_getManufacturersListFromPrices.php";
+    public const string ManufacturersFromCrossServerPath = "/content/shop/docpart/ajax_getManufacturersListFromCrossServer.php";
+    public const string AnalogsListPath = "/content/shop/docpart/ajax_getAnalogsList.php";
+    public const string AsynchronPath = "/content/shop/docpart/ajax_asynchron.php";
+    public const string PartInfoPath = "/content/shop/docpart/ajax_get_info.php";
+    public const string ProductsOfBunch2Path = "/content/shop/docpart/ajax_getProductsOfBunch2.php";
+    public const string NoDbConnect = "No DB connect";
+    public const string StorageHandlerManufacturersError = "Storage handler error (get manufacturers)";
+    public const string StorageHandlerError = "Storage handler error";
+    public const string PricesStorageLabel = "Прайс-листы";
+    public const string CrossStorageLabel = "Сервер кроссов";
+    /// <summary>lang_text_strings has no row for this id in this database.</summary>
+    public const string EmptyStoragesStringKey = "4192";
+    /// <summary>lang_text_strings has no row for this id in this database.</summary>
+    public const string UnknownActionStringKey = "4193";
 
     public const string SensitiveMask = "**";
 
@@ -141,6 +157,7 @@ public static class StorefrontPhpAjax
     {
         if (userId <= 0 && !pricesVisible)
         {
+            await ClearBlockedGuestCartAsync(connection, sessionRecordId, cancellationToken).ConfigureAwait(false);
             return new CartBody(string.Empty, 0);
         }
 
@@ -213,6 +230,62 @@ public static class StorefrontPhpAjax
         catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
         {
             return new VinBody(false, "VIN requests are not in this database.", null, 0);
+        }
+    }
+
+    /// <summary>PHP <c>epc_storefront_clear_guest_cart</c>: delete this session's guest rows, then the cart.</summary>
+    private static async Task ClearBlockedGuestCartAsync(
+        DbConnection connection,
+        int sessionRecordId,
+        CancellationToken cancellationToken)
+    {
+        if (sessionRecordId <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            var ids = new List<int>();
+            await using (var command = connection.CreateCommand())
+            {
+                command.CommandText = ErpDb.Positional("SELECT `id` FROM `shop_carts` WHERE `user_id` = 0 AND `session_id` = ?");
+                ErpDb.AddParameters(command, sessionRecordId);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    ids.Add(reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (ids.Count == 0)
+            {
+                return;
+            }
+
+            var placeholders = string.Join(",", Enumerable.Repeat("?", ids.Count));
+            try
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("DELETE FROM `shop_carts_details` WHERE `cart_record_id` IN (" + placeholders + ")"),
+                    cancellationToken,
+                    ids.Cast<object>().ToArray()).ConfigureAwait(false);
+            }
+            catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+            {
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `shop_carts` WHERE `user_id` = 0 AND `session_id` = ?"),
+                cancellationToken,
+                sessionRecordId).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
         }
     }
 
