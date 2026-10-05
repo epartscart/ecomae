@@ -90,12 +90,12 @@ public sealed class ErpPaymentBatchStatusWriteService : IErpPaymentBatchStatusWr
         long batchId,
         CancellationToken cancellationToken)
     {
-        await using var command = connection.CreateCommand();
-        command.CommandText = ErpDb.Positional(
-            "SELECT `status` FROM `epc_erp_payment_batches` WHERE `id`=? LIMIT 1");
-        Add(command, batchId);
-        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-        return value is null or DBNull ? null : Convert.ToString(value);
+        return await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `status` FROM `epc_erp_payment_batches` WHERE `id`=? LIMIT 1"),
+            cancellationToken,
+            batchId).ConfigureAwait(false);
     }
 
     private static async Task TrySyncProcessCaseAsync(
@@ -131,12 +131,5 @@ public sealed class ErpPaymentBatchStatusWriteService : IErpPaymentBatchStatusWr
         catch (DbException)
         {
         }
-    }
-
-    private static void Add(DbCommand command, object value)
-    {
-        var parameter = command.CreateParameter();
-        parameter.Value = value;
-        command.Parameters.Add(parameter);
     }
 }
