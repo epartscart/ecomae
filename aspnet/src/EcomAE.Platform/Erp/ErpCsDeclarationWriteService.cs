@@ -76,7 +76,7 @@ public sealed class ErpCsDeclarationWriteService : IErpCsDeclarationWriteService
         "box_48", "box_48a", "box_48b", "box_48c", "box_49", "box_50", "box_51", "box_52",
     };
 
-    private static readonly Dictionary<string, string[]> DeclarationTypes = new(StringComparer.Ordinal)
+    internal static readonly Dictionary<string, string[]> DeclarationTypes = new(StringComparer.Ordinal)
     {
         ["import"] =
         [
@@ -619,7 +619,7 @@ public sealed class ErpCsDeclarationWriteService : IErpCsDeclarationWriteService
     }
 
     /// <summary>PHP epc_cs_assert_unique_declaration_number.</summary>
-    private static async Task AssertUniqueDeclarationNumberAsync(DbConnection connection, string declNo, long excludeId, CancellationToken cancellationToken)
+    internal static async Task AssertUniqueDeclarationNumberAsync(DbConnection connection, string declNo, long excludeId, CancellationToken cancellationToken)
     {
         if (declNo.Length == 0)
         {
