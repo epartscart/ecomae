@@ -47,6 +47,8 @@ public sealed class ErpAftersalesWarrantyWriteService : IErpAftersalesWarrantyWr
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureAftersalesAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_as_warranty", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "After-sales warranty tables are not provisioned");
