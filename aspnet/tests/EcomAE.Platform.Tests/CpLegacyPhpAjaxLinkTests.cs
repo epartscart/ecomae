@@ -78,6 +78,26 @@ public sealed class CpLegacyPhpAjaxLinkTests
     }
 
     [Fact]
+    public async Task CrmPost_ReachesTheExistingCrmWriter_AsTheOperatorButton()
+    {
+        var context = new DefaultHttpContext();
+        context.Request.Method = HttpMethods.Post;
+        context.Request.Path = CpLegacyPhpAjaxLinks.CrmEndpoint;
+        context.Request.ContentType = "application/x-www-form-urlencoded";
+        var body = System.Text.Encoding.UTF8.GetBytes("action=save_lead&company=Acme");
+        context.Request.Body = new MemoryStream(body);
+        context.Request.ContentLength = body.Length;
+        var middleware = new CpLegacyPhpAjaxLinkMiddleware(_ => Task.CompletedTask);
+        await middleware.InvokeAsync(context);
+        Assert.Equal(EcomAeRoutes.CpCrmAction, context.Request.Path.Value);
+        Assert.True(context.Items.ContainsKey(CpLegacyPhpAjaxLinks.OperatorPostItem));
+        Assert.Equal("XMLHttpRequest", context.Request.Headers["X-Requested-With"].ToString());
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.CrmEndpoint, out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.CustomerEndpoint, out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.DocumentEndpoint, out _));
+    }
+
+    [Fact]
     public void Endpoints_AreNotRedirectedToABrowsePage()
     {
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.ProcurementEndpoint, out _));

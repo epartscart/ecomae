@@ -3,7 +3,9 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp;
 using EcomAE.Platform.Cp.PriceImport;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Migration;
@@ -330,6 +332,14 @@ public static class StorefrontPhpAjaxEndpoints
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.UsersCustomerScript, ["GET", "POST"], CpGuardedScriptAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.DocumentScript, ["GET", "POST"], CpGuardedScriptAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.CrmEndpoint, ["GET", "POST"], CpCrmEndpointAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.CustomerEndpoint, ["GET", "POST"], CpCustomerMgmtAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.UsersCustomerEndpoint, ["GET", "POST"], CpCustomerMgmtAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.DocumentEndpoint, ["GET", "POST"], CpDocumentControlAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.PricePackSetup, ["GET", "POST"], CpPricePackSetupAsync)
             .DisableAntiforgery().AllowAnonymous();
@@ -2910,6 +2920,94 @@ public static class StorefrontPhpAjaxEndpoints
                 StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "price_id", token).ConfigureAwait(false)),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+
+    private static Task<IResult> CpCrmEndpointAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.CrmEndpointGateAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                context.Request.Method,
+                token),
+            new StorefrontPhpAjax.FlagBody(false, "Database connection failed"));
+
+    private static async Task<IResult> CpCustomerMgmtAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IErpEinvoiceProfileWriteService buyers,
+        IErpCashWriteService cash,
+        CancellationToken cancellationToken)
+    {
+        var action = await OptionalPostedAsync(context, "action", cancellationToken).ConfigureAwait(false) ?? string.Empty;
+        var userId = StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "user_id", cancellationToken).ConfigureAwait(false));
+        var amountText = await OptionalPostedAsync(context, "amount", cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.CustomerMgmtAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                context.Request.Method,
+                action,
+                userId,
+                await OptionalPostedAsync(context, "buyer_name", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "company", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "address_line1", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "city", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "phone", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "email", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "trn", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "country_code", token).ConfigureAwait(false),
+                amountText,
+                buyers,
+                cash,
+                token),
+            new StorefrontPhpAjax.FlagBody(false, "Database connection failed")).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpDocumentControlAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpDocumentControlWriteService documents,
+        CancellationToken cancellationToken)
+    {
+        var action = await OptionalPostedAsync(context, "action", cancellationToken).ConfigureAwait(false) ?? string.Empty;
+        IReadOnlySet<string> posted = new HashSet<string>(StringComparer.Ordinal);
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            posted = form.Keys.ToHashSet(StringComparer.Ordinal);
+        }
+
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.DocumentControlAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                context.Request.Method,
+                action,
+                StorefrontPhpAjax.PhpInt(await OptionalPostedAsync(context, "expected_version", token).ConfigureAwait(false)),
+                await OptionalPostedAsync(context, "legal_name", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "code", token).ConfigureAwait(false),
+                await OptionalPostedAsync(context, "title", token).ConfigureAwait(false),
+                posted,
+                documents,
+                token),
+            new StorefrontPhpAjax.FlagBody(false, "Database connection failed")).ConfigureAwait(false);
+    }
 
     private static Task<IResult> CpPricePackSetupAsync(
         HttpContext context,

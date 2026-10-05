@@ -18,10 +18,13 @@ public sealed class CpLegacyPhpAjaxLinkMiddleware
     public async Task InvokeAsync(HttpContext context)
     {
         var action = context.Request.Query["action"].ToString();
+        var path = context.Request.Path.Value ?? string.Empty;
+        var readsPostedAction = path.Equals(CpLegacyPhpAjaxLinks.CurrencyRates, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(CpLegacyPhpAjaxLinks.CrmEndpoint, StringComparison.OrdinalIgnoreCase);
         if (action.Length == 0
             && HttpMethods.IsPost(context.Request.Method)
             && context.Request.HasFormContentType
-            && string.Equals(context.Request.Path.Value, CpLegacyPhpAjaxLinks.CurrencyRates, StringComparison.OrdinalIgnoreCase))
+            && readsPostedAction)
         {
             var form = await context.Request.ReadFormAsync(context.RequestAborted).ConfigureAwait(false);
             action = form["action"].ToString();
@@ -32,6 +35,10 @@ public sealed class CpLegacyPhpAjaxLinkMiddleware
             if (operatorPost)
             {
                 context.Items[CpLegacyPhpAjaxLinks.OperatorPostItem] = true;
+                if (!context.Request.Headers.ContainsKey("X-Requested-With"))
+                {
+                    context.Request.Headers["X-Requested-With"] = "XMLHttpRequest";
+                }
             }
 
             context.Request.Path = target;

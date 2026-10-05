@@ -16,9 +16,13 @@ public static class CpLegacyPhpAjaxLinks
     public const string CurrencyRates = "/cp/content/shop/finance/ajax_currency_live_rates.php";
     public const string QuoteAltOptions = "/cp/content/shop/quote_requests/ajax_epc_quote_alt_options.php";
     public const string CrmScript = "/cp/content/shop/crm/ajax_crm.php";
+    public const string CrmEndpoint = "/cp/content/shop/crm/ajax_crm_endpoint.php";
     public const string CustomerScript = "/cp/content/shop/customer_mgmt/ajax_customer_mgmt.php";
+    public const string CustomerEndpoint = "/cp/content/shop/customer_mgmt/ajax_customer_mgmt_endpoint.php";
     public const string UsersCustomerScript = "/cp/content/users/ajax_customer_mgmt.php";
+    public const string UsersCustomerEndpoint = "/cp/content/users/ajax_customer_mgmt_endpoint.php";
     public const string DocumentScript = "/cp/content/shop/document_control/ajax_document_control.php";
+    public const string DocumentEndpoint = "/cp/content/shop/document_control/ajax_document_control_endpoint.php";
     public const string OperatorPostItem = "EcomAE.CpPhpOperatorPost";
 
     public static bool IsGuardedScript(PathString path)
@@ -40,6 +44,10 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(CustomerScript, StringComparison.OrdinalIgnoreCase)
             || path.Equals(UsersCustomerScript, StringComparison.OrdinalIgnoreCase)
             || path.Equals(DocumentScript, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(CrmEndpoint, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(CustomerEndpoint, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(UsersCustomerEndpoint, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(DocumentEndpoint, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PricePackSetup, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PriceExtract, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PriceExcelConvert, StringComparison.OrdinalIgnoreCase)
@@ -71,6 +79,13 @@ public static class CpLegacyPhpAjaxLinks
         if (Equals(path, QuoteAltOptions) && (HttpMethods.IsGet(method ?? string.Empty) || HttpMethods.IsPost(method ?? string.Empty)))
         {
             target = EcomAeRoutes.CpQuoteAltOptions;
+            return true;
+        }
+
+        if (HttpMethods.IsPost(method ?? string.Empty) && Equals(path, CrmEndpoint) && !string.IsNullOrWhiteSpace(action))
+        {
+            target = EcomAeRoutes.CpCrmAction;
+            operatorPost = true;
             return true;
         }
 

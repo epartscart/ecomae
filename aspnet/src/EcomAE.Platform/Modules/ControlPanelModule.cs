@@ -2750,6 +2750,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 : await CpCrmActionInput.FromJsonAsync(context, cancellationToken);
             var key = input.Text("action");
             var confirm = input.Flag("confirmWrites", "confirm_writes");
+            if (context.Items.ContainsKey(CpLegacyPhpAjaxLinks.OperatorPostItem))
+            {
+                confirm = true;
+            }
+
             var canonical = key.StartsWith("crm_", StringComparison.Ordinal) ? key.Substring(4) : key;
             var sessionPayload = SessionPayload(session);
 

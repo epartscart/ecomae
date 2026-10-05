@@ -78,6 +78,7 @@ public sealed class CpCrmLeadSaveWriteTests
         var module = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Modules/ControlPanelModule.cs"));
         Assert.Contains("ICpCrmWriteService", module, StringComparison.Ordinal);
         Assert.Contains("SaveLeadAsync", module, StringComparison.Ordinal);
+        Assert.Contains("CpLegacyPhpAjaxLinks.OperatorPostItem", module, StringComparison.Ordinal);
         Assert.Contains("DeleteLeadAsync", module, StringComparison.Ordinal);
         Assert.Contains("cutoverAllowed = false", module, StringComparison.Ordinal);
         var service = File.ReadAllText(Path.Combine(FindRepoRoot(), "aspnet/src/EcomAE.Platform/Cp/CpCrmWriteService.cs"));

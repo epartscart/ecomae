@@ -87,11 +87,23 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 62 of 75 (83%) | CRM, customer, and document endpoints, OMS, pay and refund, commerce and multivendor ingest, the prices init include, price review, crosses lookup, and SAO |
-| Broader `cp/content` ajax | 75 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 66 of 75 (88%) | OMS, pay and refund, commerce and multivendor ingest, the prices init include, price review, crosses lookup, and SAO |
+| Broader `cp/content` ajax | 79 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 13 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: finish the 9 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-05 — CRM, customer, and document ajax use the existing writers
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 66 are mapped. 9 stay unmapped. The previous checkpoint had 62 mapped and 13 unmapped. The broader `cp/content` ajax scan is 79 of 110 mapped.
+- A POST to `ajax_crm_endpoint.php` with an action is rewritten to `/cp/crm/action`. The old page button is the operator confirm, so that post is allowed through the existing CRM writer. The response is JSON. A GET with no action is “No action”. A guest is “Access denied”.
+- `save_customer` on both customer endpoints uses the existing buyer-profile writer, then upserts `users_profiles`. A missing buyer table says “Buyer profiles are not in this database.” Country `ae` and TRN `100-200` store `AE` and `100200`.
+- `customer_advance` calls the existing cash settlement with entry kind `advance`, income true, and `PostGl` false. A missing accounting table says “Customer accounting is not in this database.” Amount `25.50` is stored as income 1.
+- `einvoice_create` returns “E-invoice was not posted” and does not create `epc_einvoice_documents` or `epc_erp%`.
+- `save_company` and `save_template` use the existing document writer. A missing company table says the table is missing and does not create it. An empty template code is “Template code required”. Logo, attachments, and seller sync stay on the classic messages.
+- OMS, pay and refund, commerce ingest, multivendor ingest, the prices init include, price review, crosses lookup, and SAO stay open.
 
 ### Checkpoint 2026-10-05 — price CSV import uses the existing writer
 
