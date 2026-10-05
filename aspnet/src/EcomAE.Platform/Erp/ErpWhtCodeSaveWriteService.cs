@@ -58,6 +58,8 @@ public sealed class ErpWhtCodeSaveWriteService : IErpWhtCodeSaveWriteService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureWithholdingAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await TableExistsAsync(connection, "epc_wht_code", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_wht_code", "code", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_wht_code", "name", cancellationToken).ConfigureAwait(false))
