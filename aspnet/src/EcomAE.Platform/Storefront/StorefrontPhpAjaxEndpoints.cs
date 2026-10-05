@@ -128,6 +128,15 @@ public static class StorefrontPhpAjaxEndpoints
             endpoints.MapMethods(path, ["GET", "POST"], UcatsAjaxAsync)
                 .DisableAntiforgery().AllowAnonymous();
         }
+
+        foreach (var path in StorefrontPhpAjax.UcatsFragmentPaths)
+        {
+            endpoints.MapMethods(path, ["GET", "POST"], UcatsFragmentAsync)
+                .DisableAntiforgery().AllowAnonymous();
+        }
+
+        endpoints.MapMethods(StorefrontPhpAjax.UcatsCataloguesPath, ["GET", "POST"], UcatsCataloguesAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -913,6 +922,22 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static IResult UcatsAjaxAsync()
         => Results.Text(StorefrontPhpAjax.UcatsLocalFailure, "application/json; charset=utf-8");
+
+    private static IResult UcatsFragmentAsync()
+        => Results.Text(StorefrontPhpAjax.UcatsNoAccess, "text/html; charset=utf-8");
+
+    private static IResult UcatsCataloguesAsync(HttpContext context)
+    {
+        var options = context.RequestServices.GetService<IOptions<PhpReferenceOptions>>();
+        if (options is null)
+        {
+            return Results.Text(StorefrontPhpAjax.UcatsConfigMissing, "text/html; charset=utf-8");
+        }
+
+        return Results.Text(
+            StorefrontPhpAjax.UcatsCatalogues(CpPhpConfig.Read(options.Value)),
+            "text/html; charset=utf-8");
+    }
 
     private static async Task<IResult> DemandAsync(
         HttpContext context,

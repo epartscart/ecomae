@@ -60,6 +60,33 @@ public static partial class StorefrontPhpAjax
     public const string GarageMarkModelsPath = "/content/shop/docpart/garage/to_link/ajax_get_mark_models.php";
     public const string GarageModelTypesPath = "/content/shop/docpart/garage/to_link/ajax_get_models_types.php";
     public const string UcatsLocalFailure = "null";
+    public const string UcatsNoAccess = "No access";
+    public const string UcatsConfigMissing = "Configuration not loaded.";
+    public const string UcatsCataloguesPath = "/content/shop/ucats/catalogues.php";
+
+    public static readonly string[] UcatsFragmentPaths =
+    [
+        "/content/shop/ucats/oil/product.php",
+        "/content/shop/ucats/oil/avtoximiya.php",
+        "/content/shop/ucats/akb/product.php",
+        "/content/shop/ucats/akb/akb.php",
+        "/content/shop/ucats/disky/product.php",
+        "/content/shop/ucats/disky/disky.php",
+        "/content/shop/ucats/shiny/product.php",
+        "/content/shop/ucats/shiny/shiny.php",
+        "/content/shop/ucats/accessories/product.php",
+        "/content/shop/ucats/accessories/cars.php",
+        "/content/shop/ucats/accessories/cars_models.php",
+        "/content/shop/ucats/accessories/vybor_tovara.php",
+        "/content/shop/ucats/kolpaki/product.php",
+        "/content/shop/ucats/kolpaki/kolpaki.php",
+        "/content/shop/ucats/bolty_gayki_prostavki/product.php",
+        "/content/shop/ucats/bolty_gayki_prostavki/bolty_gayki_prostavki.php",
+        "/content/shop/ucats/to/cars.php",
+        "/content/shop/ucats/to/cars_models.php",
+        "/content/shop/ucats/to/cars_models_types.php",
+        "/content/shop/ucats/to/parts_list.php"
+    ];
 
     public static readonly string[] UcatsProductPaths =
     [

@@ -527,6 +527,76 @@ public sealed class StorefrontPhpCatalogueDemandTests
         Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
     }
 
+    [Fact]
+    public async Task UcatsPages_LocalFailureWithoutHttp_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        Assert.DoesNotContain("Database=docpart", connectionString, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            foreach (var path in StorefrontPhpAjax.UcatsFragmentPaths)
+            {
+                foreach (var method in new[] { HttpMethod.Get, HttpMethod.Post })
+                {
+                    var page = await SendAsync(client, method, path + "?tovar=4&car_name=Toyota&car_id=1", Form(("tovar", "4")), string.Empty);
+                    Assert.Equal(StorefrontPhpAjax.UcatsNoAccess, page.Body);
+                    Assert.Contains("html", page.ContentType, StringComparison.OrdinalIgnoreCase);
+                    Assert.DoesNotContain("Toyota", page.Body, StringComparison.Ordinal);
+                    Assert.DoesNotContain("<h1>", page.Body, StringComparison.Ordinal);
+                    Assert.DoesNotContain("search_tab_car", page.Body, StringComparison.Ordinal);
+                }
+            }
+
+            var catalogues = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.UcatsCataloguesPath, null, string.Empty);
+            Assert.Equal(StorefrontPhpAjax.UcatsConfigMissing, catalogues.Body);
+            Assert.DoesNotContain("4585", catalogues.Body, StringComparison.Ordinal);
+            Assert.Equal(StorefrontPhpAjax.UcatsConfigMissing, StorefrontPhpAjax.UcatsCatalogues(new Dictionary<string, string>()));
+            Assert.Equal(string.Empty, StorefrontPhpAjax.UcatsCatalogues(new Dictionary<string, string> { ["tech_key"] = "local" }));
+            var shiny = StorefrontPhpAjax.UcatsCatalogues(new Dictionary<string, string>
+            {
+                ["ucats_shiny"] = "1",
+                ["ucats_oil"] = string.Empty
+            });
+            Assert.Contains("section-title\">4584", shiny, StringComparison.Ordinal);
+            Assert.Contains("href=\"/shop/katalogi-ucats/shiny\"", shiny, StringComparison.Ordinal);
+            Assert.Contains("new-cat-block-tires", shiny, StringComparison.Ordinal);
+            Assert.Contains("navbar-inverse\">4585", shiny, StringComparison.Ordinal);
+            Assert.DoesNotContain("/shop/katalogi-ucats/avtoximiya", shiny, StringComparison.Ordinal);
+            Assert.DoesNotContain("4590", shiny, StringComparison.Ordinal);
+            Assert.DoesNotContain("BOSCH", shiny, StringComparison.Ordinal);
+
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `docpart`.`users`"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `ecomae`.`users`"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+    }
+
     private static string RequestJson(int categoryId, int blockType, string search)
         => "{\"category_id\":" + categoryId.ToString(CultureInfo.InvariantCulture)
             + ",\"properties_list\":[],\"product_block_type\":" + blockType.ToString(CultureInfo.InvariantCulture)
