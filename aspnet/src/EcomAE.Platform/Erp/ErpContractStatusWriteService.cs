@@ -1,7 +1,7 @@
 namespace EcomAE.Platform.Erp;
 
 /// <summary>
-/// Live PHP <c>epc_ctr_set_status</c> twin. Schema ensure, sign, and OCR stay PHP.
+/// Live PHP <c>epc_ctr_set_status</c> twin (schema-ensured like PHP).
 /// </summary>
 public interface IErpContractStatusWriteService
 {
@@ -41,6 +41,7 @@ public sealed class ErpContractStatusWriteService : IErpContractStatusWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpContractSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,
