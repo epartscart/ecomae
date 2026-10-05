@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP search tab, language, settings, office, and user saves
+
+Not complete.
+
+- Signed-in www.epartscart.com `confirmWrites=true`. `/cp/search-tabs/write` is **400** “Search tabs are not in this database.” `/cp/lang/create-string` and `/cp/lang/save-translation` are **400** “Language tables are not in this database.” `/cp/config-items/write` redirects with “Settings cannot be saved because config items are not in this database.” A dry-run search-tab post stays **200** and writes nothing.
+- `CpWriteThrowawayDbTests` creates a database, saves search tab 7 as disabled, an office caption “Probe HQ”, and user email `saved@local.test` while `users_profiles` and group bindings are absent, then drops that database. No `docpart` rows were inserted. Price upload, catalogue writes, and the groups-tree save were not posted.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled. The other named shops are still not in `epc_portal_tenants`. No accounts were created.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5012 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, price upload, catalogue writes, the groups-tree save, the web tracker connection, jewellery enablement, signed-in CP on the other named shops, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — CP search tab, office, warehouse, and user detail opens
 
 Not complete.
