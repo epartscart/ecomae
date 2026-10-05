@@ -16,7 +16,15 @@ namespace EcomAE.Platform.Erp;
 public interface IErpInvoiceFromOrderWriteService
 {
     Task<ErpInvoiceFromOrderResult> ConvertAsync(long orderId, int adminId, CancellationToken cancellationToken = default);
+    Task<ErpEinvoiceCreateResult> CreateDocumentAsync(long orderId, IReadOnlyDictionary<string, bool>? transactionFlags, int adminId, CancellationToken cancellationToken = default);
 }
+
+public sealed record ErpEinvoiceCreateResult(
+    long OrderId,
+    long DocumentId,
+    string InvoiceNumber,
+    bool ValidationOk,
+    decimal AdvanceVatCredit);
 
 public sealed record ErpInvoiceFromOrderResult(
     long OrderId,
@@ -419,6 +427,255 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             glJournalId);
     }
 
+    /// <summary>
+    /// PHP <c>einvoice_create</c> ajax case: <c>epc_einvoice_build_from_order</c> +
+    /// <c>epc_einvoice_save_document</c>. Writes the e-invoice document, lines, and 'created'
+    /// event plus the advance-VAT adjustment inside one transaction — no settlement, GL,
+    /// sales-order marker, or audit entry (those belong to the so_to_invoice conversion path).
+    /// Operator-supplied transaction flags merge into the computed flag set exactly like the
+    /// PHP POST `transaction_flags`/`flag_*` inputs feeding <c>epc_order_vat_transaction_flags</c>.
+    /// </summary>
+    public async Task<ErpEinvoiceCreateResult> CreateDocumentAsync(long orderId, IReadOnlyDictionary<string, bool>? transactionFlags, int adminId, CancellationToken cancellationToken = default)
+    {
+        if (!_connections.IsConfigured)
+        {
+            throw new ErpWriteException("No database");
+        }
+        if (orderId <= 0)
+        {
+            throw new ErpWriteException("Order not found");
+        }
+
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        await _advanceVat.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var order = await LoadOrderAsync(connection, null, orderId, cancellationToken).ConfigureAwait(false)
+            ?? throw new ErpWriteException("Order not found");
+
+        var exclusions = await ExcludedItemStatusesAsync(connection, cancellationToken).ConfigureAwait(false);
+        var items = await LoadItemsAsync(connection, orderId, exclusions, cancellationToken).ConfigureAwait(false);
+        if (items.Count == 0)
+        {
+            throw new ErpWriteException("Order has no billable lines");
+        }
+
+        var tax = await ErpDashboardReadService.LoadTenantVatAsync(connection, cancellationToken).ConfigureAwait(false);
+        var customer = await ErpDashboardReadService.CustomerContextAsync(connection, order.UserId, cancellationToken).ConfigureAwait(false);
+        var seller = await LoadSellerProfileAsync(connection, cancellationToken).ConfigureAwait(false);
+
+        var destination = ErpDashboardReadService.DestinationCountry(order.HowGetJson, customer.Country);
+        if (destination.Length == 0)
+        {
+            destination = "AE";
+        }
+
+        var flags = transactionFlags is null
+            ? new Dictionary<string, bool>(StringComparer.Ordinal)
+            : new Dictionary<string, bool>(transactionFlags, StringComparer.Ordinal);
+        var exports = destination != "AE";
+        if (exports)
+        {
+            flags["exports"] = true;
+        }
+        var deemedSupply = flags.TryGetValue("deemed_supply", out var ds) && ds;
+        var transactionTypeCode = BuildTransactionTypeCode(flags);
+        var (supplyCategory, supplyRate) = SupplyCategoryWithFlags(destination, flags, tax.RatePercent);
+        var inclusive = string.Equals(
+            ErpDashboardReadService.DisplayMode(customer.VatType),
+            "inclusive",
+            StringComparison.Ordinal)
+            && supplyRate > 0m;
+
+        var buyer = await LoadBuyerAsync(connection, order, customer.Country, destination, exports, cancellationToken, deemedSupply).ConfigureAwait(false);
+
+        var lines = new List<ErpInvoiceFromOrderLine>();
+        var lineNo = 0;
+        var subtotal = 0m;
+        var totalVat = 0m;
+        foreach (var item in items)
+        {
+            lineNo++;
+            var line = ComputeOrderLine(
+                item.UnitPrice,
+                item.Quantity,
+                supplyCategory,
+                supplyRate,
+                inclusive,
+                tax.SalesEnabled,
+                lineNo,
+                item.Name,
+                item.Description,
+                "G");
+            lines.Add(line);
+            subtotal += line.LineNet;
+            totalVat += line.TaxAmount;
+        }
+
+        var courier = CourierLine(order, lineNo + 1, supplyCategory, supplyRate, tax.SalesEnabled);
+        if (courier is not null)
+        {
+            lines.Add(courier);
+            subtotal += courier.LineNet;
+            totalVat += courier.TaxAmount;
+        }
+
+        subtotal = Round2(subtotal);
+        totalVat = Round2(totalVat);
+        var totalIncl = Round2(subtotal + totalVat);
+
+        var paid = Round2(await ErpDb.DecimalAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT IFNULL(SUM(`amount`),0) FROM `shop_users_accounting` WHERE `active` = 1 AND `income` = 0 AND `order_id` = ?"),
+            cancellationToken,
+            orderId).ConfigureAwait(false));
+        var amountDue = Math.Max(0m, Round2(totalIncl - paid));
+
+        var issueDate = order.Time;
+        var dueDays = ParseInt(await EinvoicingSettingAsync(connection, "default_payment_due_days", "7", cancellationToken).ConfigureAwait(false), 7);
+        var dueDate = issueDate + ((long)dueDays * 86400);
+        var paymentMeans = await EinvoicingSettingAsync(connection, "payment_means_code", "30", cancellationToken).ConfigureAwait(false);
+        var paymentTerms = await EinvoicingSettingAsync(connection, "payment_terms", "Within 7 days", cancellationToken).ConfigureAwait(false);
+        var bankAccount = await EinvoicingSettingAsync(connection, "seller_bank_account", string.Empty, cancellationToken).ConfigureAwait(false);
+
+        var errors = ValidateTaxInvoice(seller, buyer, lines, subtotal, totalVat, tax.VatRegistered);
+        if (errors.Count > 0)
+        {
+            throw new ErpWriteException("Tax invoice validation failed: " + string.Join("; ", errors));
+        }
+
+        var taxBreakdownJson = SerializeTaxBreakdown(supplyCategory, subtotal, supplyRate, totalVat);
+        var uuid = Guid.NewGuid().ToString("D");
+
+        // PHP allocates the invoice number before building the XML (no PLACEHOLDER swap needed).
+        var invoiceNumber = await NextEinvoiceNumberAsync(connection, cancellationToken).ConfigureAwait(false);
+        var xml = BuildInvoiceXml(
+            uuid,
+            invoiceNumber,
+            issueDate,
+            dueDate,
+            paymentMeans,
+            bankAccount,
+            seller,
+            buyer,
+            lines,
+            subtotal,
+            totalVat,
+            totalIncl,
+            paid,
+            amountDue,
+            supplyCategory,
+            supplyRate);
+
+        long documentId;
+        decimal advanceVatCredit;
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_einvoice_documents` (`uuid`, `invoice_number`, `order_id`, `user_id`, `doc_category`,"
+                    + " `invoice_type_code`, `issue_date`, `payment_due_date`, `vat_point_date`, `currency_code`,"
+                    + " `vat_currency_code`, `transaction_type_code`, `payment_means_code`, `payment_terms`, `bank_account`,"
+                    + " `seller_json`, `buyer_json`, `subtotal_ex_vat`, `total_vat`, `total_incl_vat`, `paid_amount`,"
+                    + " `rounding_amount`, `amount_due`, `tax_breakdown_json`, `status`, `validation_ok`,"
+                    + " `validation_errors_json`, `xml_content`, `time_created`, `time_updated`, `admin_id`)"
+                    + " VALUES (?,?,?,?,'tax_invoice','380',?,?,?,'AED','AED',?,?,?,?,?,?,?,?,?,?,0,?,?,'validated',1,'[]',?,?,?,?)"),
+                cancellationToken,
+                uuid,
+                invoiceNumber,
+                orderId,
+                order.UserId,
+                issueDate,
+                dueDate,
+                issueDate,
+                transactionTypeCode,
+                paymentMeans,
+                paymentTerms,
+                bankAccount,
+                JsonSerializer.Serialize(seller),
+                JsonSerializer.Serialize(buyer),
+                subtotal,
+                totalVat,
+                totalIncl,
+                paid,
+                amountDue,
+                taxBreakdownJson,
+                xml,
+                now,
+                now,
+                adminId).ConfigureAwait(false);
+            documentId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+
+            foreach (var line in lines)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    transaction,
+                    ErpDb.Positional(
+                        "INSERT INTO `epc_einvoice_lines` (`document_id`, `line_no`, `item_name`, `item_description`, `item_type`,"
+                        + " `quantity`, `uom_code`, `unit_price`, `line_net`, `tax_category`, `tax_rate`, `tax_amount`,"
+                        + " `gross_amount`, `vat_line_aed`, `line_amount_aed`) VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)"),
+                    cancellationToken,
+                    documentId,
+                    line.LineNo,
+                    line.ItemName,
+                    line.ItemDescription,
+                    line.ItemType,
+                    line.Quantity,
+                    line.UomCode,
+                    line.UnitPrice,
+                    line.LineNet,
+                    line.TaxCategory,
+                    line.TaxRate,
+                    line.TaxAmount,
+                    line.GrossAmount,
+                    line.TaxAmount,
+                    line.GrossAmount).ConfigureAwait(false);
+            }
+
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(
+                    "INSERT INTO `epc_einvoice_events` (`document_id`, `event_type`, `status`, `message`, `payload_json`,"
+                    + " `time_created`) VALUES (?, 'created', 'validated', 'Document validated against mandatory fields', ?, ?)"),
+                cancellationToken,
+                documentId,
+                JsonSerializer.Serialize(new { errors = Array.Empty<string>() }),
+                now).ConfigureAwait(false);
+
+            advanceVatCredit = await ApplyAdvanceVatAdjustmentAsync(
+                connection,
+                transaction,
+                documentId,
+                orderId,
+                order.UserId,
+                totalVat,
+                issueDate,
+                tax,
+                cancellationToken).ConfigureAwait(false);
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw new ErpWriteException("E-invoice creation failed and was rolled back: " + ex.Message);
+        }
+        catch
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            throw;
+        }
+
+        return new ErpEinvoiceCreateResult(orderId, documentId, invoiceNumber, true, advanceVatCredit);
+    }
+
     private static async Task<LegacyOrderRow?> LoadOrderAsync(
         DbConnection connection,
         DbTransaction? transaction,
@@ -629,11 +886,15 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
 
     /// <summary>PHP <c>epc_einvoice_build_transaction_code</c>.</summary>
     public static string BuildTransactionTypeCode(bool exports)
+        => BuildTransactionTypeCode(new Dictionary<string, bool>(StringComparer.Ordinal) { ["exports"] = exports });
+
+    /// <summary>PHP <c>epc_einvoice_build_transaction_code</c>: 8-bit flag string in FlagOrder.</summary>
+    public static string BuildTransactionTypeCode(IReadOnlyDictionary<string, bool> flags)
     {
         var code = new char[8];
         for (var i = 0; i < FlagOrder.Length; i++)
         {
-            code[i] = FlagOrder[i] == "exports" && exports ? '1' : '0';
+            code[i] = flags.TryGetValue(FlagOrder[i], out var on) && on ? '1' : '0';
         }
 
         return new string(code);
@@ -644,6 +905,24 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
         => exports || ErpDashboardReadService.NormalizeCountry(buyerCountry) != "AE"
             ? ("Z", 0m)
             : ("S", tenantRate);
+
+    /// <summary>PHP <c>epc_uae_vat_supply_tax_category</c>: exports/non-AE → Z, margin_scheme → M, else S at tenant rate.</summary>
+    public static (string Category, decimal Rate) SupplyCategoryWithFlags(string buyerCountry, IReadOnlyDictionary<string, bool> flags, decimal tenantRate)
+    {
+        if (flags.TryGetValue("exports", out var e) && e)
+        {
+            return ("Z", 0m);
+        }
+        if (ErpDashboardReadService.NormalizeCountry(buyerCountry) != "AE")
+        {
+            return ("Z", 0m);
+        }
+        if (flags.TryGetValue("margin_scheme", out var m) && m)
+        {
+            return ("M", 0m);
+        }
+        return ("S", tenantRate);
+    }
 
     /// <summary>
     /// PHP <c>epc_einvoice_validate_document</c> (tax-invoice mode) plus the einvoice checks of
@@ -740,7 +1019,8 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
         string customerCountry,
         string destination,
         bool exports,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        bool deemedSupply = false)
     {
         var raw = new Dictionary<string, string>(StringComparer.Ordinal)
         {
@@ -802,11 +1082,13 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
 
         var tin = raw["tin"].Length > 0 ? raw["tin"] : TinFromTrn(raw["trn"]);
         var storedEndpoint = raw["peppol_endpoint"].Length > 0 ? raw["peppol_endpoint"] : PeppolEndpoint(tin, ElectronicScheme);
-        var endpoint = exports
-            ? EndpointExports
-            : raw["buyer_onboarded"] == "1" && storedEndpoint.Length > 0
-                ? storedEndpoint
-                : EndpointNotOnboarded;
+        var endpoint = deemedSupply
+            ? EndpointDeemedSupply
+            : exports
+                ? EndpointExports
+                : raw["buyer_onboarded"] == "1" && storedEndpoint.Length > 0
+                    ? storedEndpoint
+                    : EndpointNotOnboarded;
 
         var how = ParseHowGet(order.HowGetJson);
         var shipAddress = HowText(how, "address");
@@ -912,7 +1194,7 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
     /// <c>epc_uae_vat_advance</c>, then credit up to the invoice VAT against unadjusted advances —
     /// all inside the conversion transaction.
     /// </summary>
-    private async Task ApplyAdvanceVatAdjustmentAsync(
+    private async Task<decimal> ApplyAdvanceVatAdjustmentAsync(
         DbConnection connection,
         DbTransaction transaction,
         long documentId,
@@ -1017,6 +1299,8 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
                 documentId,
                 orderId).ConfigureAwait(false);
         }
+
+        return credit;
     }
 
     /// <summary>
@@ -1044,6 +1328,29 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             cancellationToken,
             year).ConfigureAwait(false);
         return "EINV-" + year.ToString(CultureInfo.InvariantCulture) + "-" + seq.ToString(CultureInfo.InvariantCulture).PadLeft(5, '0');
+    }
+
+    /// <summary>PHP <c>epc_einvoice_next_number</c>: max numeric suffix over existing EINV-YYYY-* documents + 1.</summary>
+    private static async Task<string> NextEinvoiceNumberAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var year = DateTimeOffset.UtcNow.Year;
+        var prefix = "EINV-" + year.ToString(CultureInfo.InvariantCulture) + "-";
+        var last = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `invoice_number` FROM `epc_einvoice_documents` WHERE `invoice_number` LIKE ? ORDER BY `id` DESC LIMIT 1"),
+            cancellationToken,
+            prefix + "%").ConfigureAwait(false);
+        var n = 1;
+        if (last is not null)
+        {
+            var match = System.Text.RegularExpressions.Regex.Match(last, "-(\\d+)$");
+            if (match.Success)
+            {
+                n = int.Parse(match.Groups[1].Value, CultureInfo.InvariantCulture) + 1;
+            }
+        }
+        return prefix + n.ToString(CultureInfo.InvariantCulture).PadLeft(5, '0');
     }
 
     /// <summary>Prior committed conversion by order linkage or by the linked ERP sales order.</summary>

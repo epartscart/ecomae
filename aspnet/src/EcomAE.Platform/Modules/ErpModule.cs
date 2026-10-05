@@ -5923,8 +5923,7 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreate, async (HttpContext context, ErpEinvoiceCreateBody? body, ILegacySessionValidator validator, IErpEinvoiceCreateDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpEinvoiceCreateRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceCreate, HandleEinvoiceCreateAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoiceSaveSeller, async (
             HttpContext context,
             ILegacySessionValidator validator,
@@ -21552,6 +21551,107 @@ public sealed class ErpModule : ISurfaceModule
             results = new { @checked = r.Checked, sent = r.Sent, skipped = r.Skipped, details = r.Details.Select(d => new { doc_id = d.DocId, recipient = d.Recipient, threshold = d.Threshold, days_left = d.DaysLeft, covered = d.Covered }) },
             session = SessionPayload(session)
         });
+    }
+
+    private static readonly string[] EinvoiceFlagKeys =
+        ["free_zone", "deemed_supply", "margin_scheme", "summary_invoice", "continuous_supply", "agent_billing", "ecommerce", "exports"];
+
+    private static async Task<IResult> HandleEinvoiceCreateAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpEinvoiceCreateDryRun dryRun,
+        IErpInvoiceFromOrderWriteService writeService,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        var orderId = 0L;
+        if (fields.TryGetValue("order_id", out var orderIdText))
+        {
+            long.TryParse(orderIdText, NumberStyles.Integer, CultureInfo.InvariantCulture, out orderId);
+        }
+        if (orderId <= 0 && fields.TryGetValue("orderId", out var orderIdCamel))
+        {
+            long.TryParse(orderIdCamel, NumberStyles.Integer, CultureInfo.InvariantCulture, out orderId);
+        }
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpEinvoiceCreateRequest(orderId, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var flags = new Dictionary<string, bool>(StringComparer.Ordinal);
+        if (fields.TryGetValue("transaction_flags", out var flagsJson) && flagsJson.Length > 0)
+        {
+            try
+            {
+                var parsed = JsonSerializer.Deserialize<Dictionary<string, JsonElement>>(flagsJson);
+                if (parsed is not null)
+                {
+                    foreach (var (key, value) in parsed)
+                    {
+                        flags[key] = value.ValueKind switch
+                        {
+                            JsonValueKind.True => true,
+                            JsonValueKind.False => false,
+                            JsonValueKind.Number => value.GetDouble() != 0,
+                            JsonValueKind.String => value.GetString() is { Length: > 0 } s && s != "0",
+                            _ => false,
+                        };
+                    }
+                }
+            }
+            catch (JsonException)
+            {
+            }
+        }
+        foreach (var key in EinvoiceFlagKeys)
+        {
+            if (fields.TryGetValue("flag_" + key, out var flagValue) && flagValue is { Length: > 0 } fv && fv != "0")
+            {
+                flags[key] = true;
+            }
+        }
+
+        try
+        {
+            var created = await writeService.CreateDocumentAsync(orderId, flags, (int)session.UserId, cancellationToken);
+            var message = "E-invoice generated and validated";
+            if (created.AdvanceVatCredit > 0m)
+            {
+                message += " Advance VAT credited: " + created.AdvanceVatCredit.ToString("0.00", CultureInfo.InvariantCulture) + " AED.";
+            }
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                writes = 1,
+                phpAuthoritative = false,
+                validation_code = "ok",
+                message,
+                document_id = created.DocumentId,
+                invoice_number = created.InvoiceNumber,
+                redirect = "/erp/?area=tax&tab=einvoice&einv_section=view&einv_doc=" + created.DocumentId.ToString(CultureInfo.InvariantCulture),
+                session = SessionPayload(session),
+            });
+        }
+        catch (ErpWriteException ex)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                surface = "erp",
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "invalid",
+                message = ex.Message,
+                session = SessionPayload(session),
+            });
+        }
     }
 
     private static async Task<IResult> HandleEinvoicePollAspAsync(
