@@ -471,4 +471,68 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Warranty register'",
             ct);
     }
+
+    /// <summary>epc_oa_party + epc_oa_address + epc_oa_contact + epc_oa_calendar + epc_oa_holiday (epc_erp_orgadmin.php ensure_schema)</summary>
+    public static async Task EnsureOrgAdminAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_oa_party` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`party_type` varchar(16) NOT NULL DEFAULT 'organization'," +
+            "`name` varchar(190) NOT NULL DEFAULT ''," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Global address book parties'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_oa_address` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`party_id` int(11) NOT NULL DEFAULT 0," +
+            "`purpose` varchar(16) NOT NULL DEFAULT 'business'," +
+            "`line1` varchar(255) NOT NULL DEFAULT ''," +
+            "`city` varchar(120) NOT NULL DEFAULT ''," +
+            "`state` varchar(120) NOT NULL DEFAULT ''," +
+            "`postcode` varchar(40) NOT NULL DEFAULT ''," +
+            "`country` varchar(60) NOT NULL DEFAULT ''," +
+            "`is_primary` tinyint(1) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_party` (`party_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Party postal addresses'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_oa_contact` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`party_id` int(11) NOT NULL DEFAULT 0," +
+            "`contact_type` varchar(12) NOT NULL DEFAULT 'email'," +
+            "`value` varchar(190) NOT NULL DEFAULT ''," +
+            "`is_primary` tinyint(1) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_party` (`party_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Party electronic contacts'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_oa_calendar` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(40) NOT NULL DEFAULT ''," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "`working_days` varchar(20) NOT NULL DEFAULT '1,2,3,4,5'," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `x_company_code` (`company_id`,`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Working calendars'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_oa_holiday` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`calendar_id` int(11) NOT NULL DEFAULT 0," +
+            "`holiday_date` varchar(10) NOT NULL DEFAULT ''," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `x_cal_date` (`calendar_id`,`holiday_date`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Calendar holidays'",
+            ct);
+    }
 }
