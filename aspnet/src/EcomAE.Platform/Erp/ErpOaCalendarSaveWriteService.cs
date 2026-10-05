@@ -53,6 +53,8 @@ public sealed class ErpOaCalendarSaveWriteService : IErpOaCalendarSaveWriteServi
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureOrgAdminAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_oa_calendar", "code", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_oa_calendar", "working_days", cancellationToken).ConfigureAwait(false))
         {

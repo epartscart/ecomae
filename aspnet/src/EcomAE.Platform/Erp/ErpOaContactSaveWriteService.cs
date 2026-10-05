@@ -55,6 +55,8 @@ public sealed class ErpOaContactSaveWriteService : IErpOaContactSaveWriteService
         var primary = request.IsPrimary is > 0 ? 1 : 0;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureOrgAdminAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_oa_contact", "contact_type", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_oa_contact", "value", cancellationToken).ConfigureAwait(false))
         {
