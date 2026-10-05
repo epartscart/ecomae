@@ -147,7 +147,7 @@ public static partial class StorefrontPhpAjax
         }
     }
 
-    /// <summary>PHP <c>ajax_change_count_need.php</c>. Type 1 moves stock only on existing cart details.</summary>
+    /// <summary>PHP <c>ajax_change_count_need.php</c>. Type 1 reserves existing details, then other customer offices.</summary>
     public static async Task<object> ChangeCountAsync(
         DbConnection connection,
         int userId,
@@ -156,7 +156,8 @@ public static partial class StorefrontPhpAjax
         string? requestObjectJson,
         bool techKeyPath,
         bool techKeyAccepted,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? cityCookie = null)
     {
         if (techKeyPath && !techKeyAccepted)
         {
@@ -197,7 +198,7 @@ public static partial class StorefrontPhpAjax
 
             if (line.ProductType == 1)
             {
-                return await ChangeType1Async(connection, cartId, countNeed, cancellationToken).ConfigureAwait(false);
+                return await ChangeType1Async(connection, cartId, countNeed, userId, cityCookie, cancellationToken).ConfigureAwait(false);
             }
 
             if (line.ProductType != 2)
@@ -565,13 +566,13 @@ public static partial class StorefrontPhpAjax
                 }
             }
 
-            string name;
-            await using (var catalogue = connection.CreateCommand())
+            var caption = await CatalogueCaptionAsync(connection, productId, cancellationToken).ConfigureAwait(false);
+            if (caption is null)
             {
-                catalogue.CommandText = ErpDb.Positional("SELECT IFNULL(`caption`,'') FROM `shop_catalogue_products` WHERE `id` = ? LIMIT 1");
-                ErpDb.AddParameters(catalogue, productId);
-                name = Convert.ToString(await catalogue.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
+                return CartFail(null, CatalogueProductsMissing);
             }
+
+            var (name, manufacturer, article, articleShow) = caption.Value;
 
             var groupId = 0;
             await using (var group = connection.CreateCommand())
@@ -638,9 +639,9 @@ public static partial class StorefrontPhpAjax
                         `t2_time_to_exe`, `t2_time_to_exe_guaranteed`, `t2_storage`, `t2_min_order`,
                         `t2_probability`, `t2_markup`, `t2_price_purchase`, `t2_office_id`, `t2_storage_id`,
                         `t2_product_json`, `t2_json_params`
-                    ) VALUES (1, ?, ?, ?, ?, ?, ?, '', '', '', ?, ?, ?, '', ?, 1, 100, ?, 0, ?, ?, ?, '')
+                    ) VALUES (1, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, '', ?, 1, 100, ?, 0, ?, ?, ?, '')
                     """);
-                ErpDb.AddParameters(insert, productId, priceText, countNeed, userId, now, sessionId, name, exist, JsonText(product, "time_to_exe"), storageId, markup, officeId, storageId, product.GetRawText());
+                ErpDb.AddParameters(insert, productId, priceText, countNeed, userId, now, sessionId, manufacturer, article, articleShow, name, exist, JsonText(product, "time_to_exe"), storageId, markup, officeId, storageId, product.GetRawText());
                 await insert.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
 
@@ -673,16 +674,7 @@ public static partial class StorefrontPhpAjax
         }
         catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
         {
-            var message = ex.Message.Contains("shop_catalogue_products", StringComparison.OrdinalIgnoreCase)
-                ? CatalogueProductsMissing
-                : ex.Message.Contains("shop_storages_data", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("shop_currencies", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("shop_storages", StringComparison.OrdinalIgnoreCase)
-                    ? WarehouseStockMissing
-                    : ex.Message.Contains("shop_carts_details", StringComparison.OrdinalIgnoreCase)
-                        ? CartDetailsMissing
-                        : ex.Message.Contains("users_groups_bind", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("shop_offices_storages_map", StringComparison.OrdinalIgnoreCase)
-                            ? "Office storage markups are not in this database."
-                            : CartMissing;
-            return CartFail(null, message);
+            return CartFail(null, Type1Missing(ex));
         }
     }
 
@@ -690,14 +682,26 @@ public static partial class StorefrontPhpAjax
         DbConnection connection,
         int cartId,
         int countNeed,
+        int userId,
+        string? cityCookie,
         CancellationToken cancellationToken)
     {
         int current;
+        int productId;
+        decimal price;
         await using (var cart = connection.CreateCommand())
         {
-            cart.CommandText = ErpDb.Positional("SELECT `count_need` FROM `shop_carts` WHERE `id` = ?");
+            cart.CommandText = ErpDb.Positional("SELECT `count_need`, `product_id`, `price` FROM `shop_carts` WHERE `id` = ?");
             ErpDb.AddParameters(cart, cartId);
-            current = Convert.ToInt32(await cart.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) ?? 0, CultureInfo.InvariantCulture);
+            await using var reader = await cart.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return CartFail("cart_item_not_found", CartStringNotFound);
+            }
+
+            current = reader.IsDBNull(0) ? 0 : Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture);
+            productId = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture);
+            price = reader.IsDBNull(2) ? 0 : Convert.ToDecimal(reader.GetValue(2), CultureInfo.InvariantCulture);
         }
 
         if (current == countNeed)
@@ -762,6 +766,23 @@ public static partial class StorefrontPhpAjax
                     {
                         return new CartWriteBody(true, null, null, null, countNeed, cartId, null, null, null, null);
                     }
+                }
+            }
+
+            if (left > 0)
+            {
+                try
+                {
+                    left = await ReserveOtherOfficesAsync(connection, cartId, productId, price, left, userId, cityCookie, cancellationToken).ConfigureAwait(false);
+                }
+                catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                    return CartFail(null, Type1Missing(ex));
+                }
+
+                if (left == 0)
+                {
+                    return new CartWriteBody(true, null, null, null, countNeed, cartId, null, null, null, null);
                 }
             }
 
@@ -878,6 +899,275 @@ public static partial class StorefrontPhpAjax
                 : CartDetailsMissing;
             return CartFail(null, message);
         }
+    }
+
+    private static string Type1Missing(Exception ex)
+    {
+        var message = ex.Message;
+        if (message.Contains("shop_properties_values_text", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_properties_values_list", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_line_lists_items", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_categories_properties_map", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("lang_text_strings", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("category_id", StringComparison.OrdinalIgnoreCase))
+        {
+            return CatalogueArticlePropertiesMissing;
+        }
+
+        if (message.Contains("shop_catalogue_products", StringComparison.OrdinalIgnoreCase))
+        {
+            return CatalogueProductsMissing;
+        }
+
+        if (message.Contains("users_groups_bind", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_offices_storages_map", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("additional_time", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Office storage markups are not in this database.";
+        }
+
+        if (message.Contains("shop_geo", StringComparison.OrdinalIgnoreCase) || message.Contains("shop_offices", StringComparison.OrdinalIgnoreCase))
+        {
+            return "Customer offices are not in this database.";
+        }
+
+        if (message.Contains("shop_storages_data", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_currencies", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_storages", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("arrival_time", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("product_id", StringComparison.OrdinalIgnoreCase))
+        {
+            return WarehouseStockMissing;
+        }
+
+        if (message.Contains("shop_carts_details", StringComparison.OrdinalIgnoreCase))
+        {
+            return CartDetailsMissing;
+        }
+
+        return CartMissing;
+    }
+
+    /// <summary>PHP <c>changeCountType1</c> sections 2.1 (in stock) and 2.2 (expected).</summary>
+    private static async Task<int> ReserveOtherOfficesAsync(
+        DbConnection connection,
+        int cartId,
+        int productId,
+        decimal price,
+        int left,
+        int userId,
+        string? cityCookie,
+        CancellationToken cancellationToken)
+    {
+        var offices = await CustomerOfficesAsync(connection, cityCookie, cancellationToken).ConfigureAwait(false);
+        var groupId = await FirstGroupAsync(connection, userId, cancellationToken).ConfigureAwait(false);
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        left = await ReserveOfficeSuppliesAsync(connection, cartId, productId, price, left, offices, groupId, now, inStock: true, cancellationToken).ConfigureAwait(false);
+        if (left == 0)
+        {
+            return 0;
+        }
+
+        return await ReserveOfficeSuppliesAsync(connection, cartId, productId, price, left, offices, groupId, now, inStock: false, cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<int> ReserveOfficeSuppliesAsync(
+        DbConnection connection,
+        int cartId,
+        int productId,
+        decimal price,
+        int left,
+        IReadOnlyList<int> offices,
+        int groupId,
+        long now,
+        bool inStock,
+        CancellationToken cancellationToken)
+    {
+        foreach (var officeId in offices)
+        {
+            if (left <= 0)
+            {
+                break;
+            }
+
+            var storages = await OfficeStoragesAsync(connection, officeId, cancellationToken).ConfigureAwait(false);
+            foreach (var storage in storages)
+            {
+                if (left <= 0)
+                {
+                    break;
+                }
+
+                if (inStock && storage.AdditionalTime > 0)
+                {
+                    continue;
+                }
+
+                var supplies = await OfficeSuppliesAsync(connection, officeId, storage.StorageId, groupId, productId, price, now, inStock, cancellationToken).ConfigureAwait(false);
+                foreach (var supply in supplies)
+                {
+                    if (left <= 0)
+                    {
+                        break;
+                    }
+
+                    var take = left <= supply.Exist ? left : supply.Exist;
+                    if (take <= 0)
+                    {
+                        continue;
+                    }
+
+                    await using (var reserve = connection.CreateCommand())
+                    {
+                        reserve.CommandText = ErpDb.Positional("UPDATE `shop_storages_data` SET `exist` = `exist` - ?, `reserved` = `reserved` + ? WHERE `id` = ?");
+                        ErpDb.AddParameters(reserve, take, take, supply.Id);
+                        await reserve.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    await using (var detail = connection.CreateCommand())
+                    {
+                        detail.CommandText = ErpDb.Positional(
+                            "INSERT INTO `shop_carts_details` (`cart_record_id`, `office_id`, `storage_id`, `storage_record_id`, `count_reserved`, `price_purchase`) VALUES (?,?,?,?,?,?)");
+                        ErpDb.AddParameters(detail, cartId, officeId, storage.StorageId, supply.Id, take, supply.PricePurchase);
+                        await detail.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    await UpdateCountByAsync(connection, cartId, take, cancellationToken).ConfigureAwait(false);
+                    left -= take;
+                }
+            }
+        }
+
+        return left;
+    }
+
+    private static async Task<List<int>> CustomerOfficesAsync(DbConnection connection, string? cityCookie, CancellationToken cancellationToken)
+    {
+        object? geoId = null;
+        if (!string.IsNullOrWhiteSpace(cityCookie) && int.TryParse(cityCookie, NumberStyles.Integer, CultureInfo.InvariantCulture, out var cookieGeo))
+        {
+            geoId = cookieGeo;
+        }
+        else
+        {
+            await using var min = connection.CreateCommand();
+            min.CommandText = "SELECT MIN(`id`) FROM `shop_geo`";
+            var scalar = await min.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            if (scalar is not null and not DBNull)
+            {
+                geoId = Convert.ToInt32(scalar, CultureInfo.InvariantCulture);
+            }
+        }
+
+        var offices = new List<int>();
+        if (geoId is not null)
+        {
+            await using var mapped = connection.CreateCommand();
+            mapped.CommandText = ErpDb.Positional("SELECT `office_id` FROM `shop_offices_geo_map` WHERE `geo_id` = ?");
+            ErpDb.AddParameters(mapped, geoId);
+            await using var reader = await mapped.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                offices.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
+            }
+        }
+
+        if (offices.Count > 0)
+        {
+            return offices;
+        }
+
+        await using var first = connection.CreateCommand();
+        first.CommandText = "SELECT `id` FROM `shop_offices` ORDER BY `id` LIMIT 1";
+        var office = await first.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        if (office is not null and not DBNull)
+        {
+            offices.Add(Convert.ToInt32(office, CultureInfo.InvariantCulture));
+        }
+
+        return offices;
+    }
+
+    private static async Task<int> FirstGroupAsync(DbConnection connection, int userId, CancellationToken cancellationToken)
+    {
+        await using var group = connection.CreateCommand();
+        group.CommandText = ErpDb.Positional("SELECT `group_id` FROM `users_groups_bind` WHERE `user_id` = ? ORDER BY `id` LIMIT 1");
+        ErpDb.AddParameters(group, userId);
+        var scalar = await group.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return scalar is null or DBNull ? 0 : Convert.ToInt32(scalar, CultureInfo.InvariantCulture);
+    }
+
+    private static async Task<List<(int StorageId, int AdditionalTime)>> OfficeStoragesAsync(
+        DbConnection connection,
+        int officeId,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<(int StorageId, int AdditionalTime)>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional("SELECT DISTINCT `storage_id`, `additional_time` FROM `shop_offices_storages_map` WHERE `office_id` = ?");
+        ErpDb.AddParameters(command, officeId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add((
+                Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture)));
+        }
+
+        return rows;
+    }
+
+    private static async Task<List<(int Id, int Exist, decimal PricePurchase)>> OfficeSuppliesAsync(
+        DbConnection connection,
+        int officeId,
+        int storageId,
+        int groupId,
+        int productId,
+        decimal price,
+        long now,
+        bool inStock,
+        CancellationToken cancellationToken)
+    {
+        var rows = new List<(int Id, int Exist, decimal PricePurchase)>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = inStock
+            ? ErpDb.Positional(
+                """
+                SELECT * FROM (
+                    SELECT `id`, `exist`, `price` AS `price_purchase`,
+                        `price` + `price` * (SELECT `markup` / 100 FROM `shop_offices_storages_map` WHERE `office_id` = ? AND `storage_id` = ? AND `group_id` = ? AND `min_point` <= `shop_storages_data`.`price` AND `max_point` > `shop_storages_data`.`price`) AS `customer_price`
+                    FROM `shop_storages_data`
+                    WHERE `product_id` = ? AND `arrival_time` < ? AND `exist` > 0 AND `storage_id` = ?
+                ) AS `storage_data` WHERE `customer_price` = ?
+                """)
+            : ErpDb.Positional(
+                """
+                SELECT * FROM (
+                    SELECT `id`, `exist`, `price` AS `price_purchase`,
+                        `price` + `price` * (SELECT `markup` / 100 FROM `shop_offices_storages_map` WHERE `office_id` = ? AND `storage_id` = ? AND `group_id` = ? AND `min_point` <= `shop_storages_data`.`price` AND `max_point` > `shop_storages_data`.`price`) AS `customer_price`
+                    FROM `shop_storages_data`
+                    WHERE `product_id` = ? AND `exist` > 0 AND `storage_id` = ?
+                ) AS `storage_data` WHERE `customer_price` = ?
+                """);
+        if (inStock)
+        {
+            ErpDb.AddParameters(command, officeId, storageId, groupId, productId, now, storageId, price);
+        }
+        else
+        {
+            ErpDb.AddParameters(command, officeId, storageId, groupId, productId, storageId, price);
+        }
+
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            rows.Add((
+                Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture),
+                reader.IsDBNull(2) ? 0 : Convert.ToDecimal(reader.GetValue(2), CultureInfo.InvariantCulture)));
+        }
+
+        return rows;
     }
 
     private static async Task UpdateCountByAsync(DbConnection connection, int cartId, int delta, CancellationToken cancellationToken)

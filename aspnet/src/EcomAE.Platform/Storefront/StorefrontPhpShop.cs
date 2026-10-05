@@ -166,7 +166,9 @@ public static partial class StorefrontPhpAjax
         {
             var message = ex.Message.Contains("shop_docpart_garage_orders", StringComparison.OrdinalIgnoreCase)
                 ? GarageOrdersMissing
-                : GarageMissing;
+                : ex.Message.Contains("shop_docpart_cars", StringComparison.OrdinalIgnoreCase)
+                    ? "Car marks are not in this database."
+                    : GarageMissing;
             return new GarageAnswer { Status = false, Message = message };
         }
     }
@@ -179,7 +181,8 @@ public static partial class StorefrontPhpAjax
         string? howGet,
         string? phone,
         string? email,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? requestHost = null)
     {
         if (userId > 0)
         {
@@ -459,6 +462,7 @@ public static partial class StorefrontPhpAjax
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
             await LinkActiveGarageAsync(connection, userId, orderId, cancellationToken).ConfigureAwait(false);
+            await LogCheckoutEmailsAsync(connection, orderId, userId, emailStored, requestHost, cancellationToken).ConfigureAwait(false);
             return new ShopStatus(true, "4493: " + orderId.ToString(CultureInfo.InvariantCulture), null, (int)orderId);
         }
         catch (ShopStop ex)
@@ -531,7 +535,8 @@ public static partial class StorefrontPhpAjax
         string? returnIdText,
         string? text,
         bool manager,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string? requestHost = null)
     {
         if (manager)
         {
@@ -562,7 +567,17 @@ public static partial class StorefrontPhpAjax
             }
 
             var rows = await insert.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-            return rows == 1 ? "true" : "false";
+            if (rows != 1)
+            {
+                return "false";
+            }
+
+            if (string.IsNullOrEmpty(returnIdText))
+            {
+                await LogStaffMessageEmailAsync(connection, orderIdText, requestHost, cancellationToken).ConfigureAwait(false);
+            }
+
+            return "true";
         }
         catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
         {
@@ -774,7 +789,7 @@ public static partial class StorefrontPhpAjax
 
             try
             {
-                await ProbeCatalogueArticlesAsync(connection, cancellationToken).ConfigureAwait(false);
+                await AppendCatalogueArticlesAsync(connection, value, list, seen, cancellationToken).ConfigureAwait(false);
             }
             catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
             {
@@ -964,20 +979,37 @@ public static partial class StorefrontPhpAjax
         int orderId,
         CancellationToken cancellationToken)
     {
-        var rows = new List<(string Caption, string Year, string Vin, string Model)>();
+        var rows = new List<(int Id, string Caption, int MarkId, string Model, string Vin, string Year, int Link)>();
         await using (var command = connection.CreateCommand())
         {
-            command.CommandText = ErpDb.Positional(
-                "SELECT `caption`, `year`, `vin`, `model` FROM `shop_docpart_garage` WHERE `user_id` = ?");
-            ErpDb.AddParameters(command, customerId);
+            if (orderId > 0)
+            {
+                command.CommandText = ErpDb.Positional(
+                    """
+                    SELECT `id`, `caption`, `mark_id`, `model`, `vin`, `year`,
+                           (SELECT COUNT(*) FROM `shop_docpart_garage_orders` WHERE `order_id` = ? AND `garage_id` = `shop_docpart_garage`.`id`)
+                    FROM `shop_docpart_garage` WHERE `user_id` = ?
+                    """);
+                ErpDb.AddParameters(command, orderId, customerId);
+            }
+            else
+            {
+                command.CommandText = ErpDb.Positional(
+                    "SELECT `id`, `caption`, `mark_id`, `model`, `vin`, `year`, 0 FROM `shop_docpart_garage` WHERE `user_id` = ?");
+                ErpDb.AddParameters(command, customerId);
+            }
+
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 rows.Add((
-                    reader.IsDBNull(0) ? string.Empty : reader.GetString(0),
-                    Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty,
-                    reader.IsDBNull(2) ? string.Empty : reader.GetString(2),
-                    reader.IsDBNull(3) ? string.Empty : reader.GetString(3)));
+                    Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(1) ? string.Empty : reader.GetString(1),
+                    reader.IsDBNull(2) ? 0 : Convert.ToInt32(reader.GetValue(2), CultureInfo.InvariantCulture),
+                    reader.IsDBNull(3) ? string.Empty : reader.GetString(3),
+                    reader.IsDBNull(4) ? string.Empty : reader.GetString(4),
+                    Convert.ToString(reader.GetValue(5), CultureInfo.InvariantCulture) ?? string.Empty,
+                    reader.IsDBNull(6) ? 0 : Convert.ToInt32(reader.GetValue(6), CultureInfo.InvariantCulture)));
             }
         }
 
@@ -996,18 +1028,49 @@ public static partial class StorefrontPhpAjax
         html.Append("<th>630</th><th>4044</th><th>VIN</th><th></th></tr>");
         foreach (var row in rows)
         {
+            var mark = row.MarkId > 0 ? await CarMarkAsync(connection, row.MarkId, cancellationToken).ConfigureAwait(false) : string.Empty;
+            var markModel = mark;
+            if (row.Model.Length > 0)
+            {
+                if (markModel.Length > 0)
+                {
+                    markModel += " - ";
+                }
+
+                markModel += row.Model;
+            }
+
             html.Append("<tr>");
             if (orderId > 0)
             {
-                html.Append("<td></td>");
+                var color = row.Link > 0 ? "#66bf05" : "#a9a9a9";
+                var flag = row.Link > 0 ? 0 : 1;
+                html.Append("<td><a style=\"color:").Append(color)
+                    .Append("; font-size: 16px;\" onclick=\"check_car(").Append(flag.ToString(CultureInfo.InvariantCulture))
+                    .Append(", ").Append(row.Id.ToString(CultureInfo.InvariantCulture))
+                    .Append(");\"><i class=\"fa fa-check\" aria-hidden=\"true\"></i></a></td>");
             }
 
-            html.Append("<td><div>").Append(row.Caption).Append("</div><div>").Append(row.Model).Append("</div></td><td>")
-                .Append(row.Year).Append("</td><td>").Append(row.Vin).Append("</td><td></td></tr>");
+            html.Append("<td><div>").Append(row.Caption).Append("</div><div>").Append(markModel).Append("</div></td><td>")
+                .Append(row.Year).Append("</td><td>").Append(row.Vin)
+                .Append("</td><td style=\"text-align:right;\"><a onclick=\"edit_car(")
+                .Append(row.Id.ToString(CultureInfo.InvariantCulture))
+                .Append(");\" class=\"btn btn-ar btn-primary\" title=\"2270\"><i class=\"far fa-edit\"></i></a><a class=\"btn btn-ar btn-primary\" href=\"javascript:void(0);\" onclick=\"delete_car(")
+                .Append(row.Id.ToString(CultureInfo.InvariantCulture))
+                .Append(");\" title=\"2224\"><i class=\"fa fa-trash\"></i></a></td></tr>");
         }
 
         html.Append("</table>");
         return html.ToString();
+    }
+
+    private static async Task<string> CarMarkAsync(DbConnection connection, int markId, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional("SELECT `caption` FROM `shop_docpart_cars` WHERE `id` = ? LIMIT 1");
+        ErpDb.AddParameters(command, markId);
+        var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture) ?? string.Empty;
     }
 
     public static async Task<object?> OrderOwnedAsync(
@@ -1171,11 +1234,293 @@ public static partial class StorefrontPhpAjax
         await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
     }
 
-    private static async Task ProbeCatalogueArticlesAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task AppendCatalogueArticlesAsync(
+        DbConnection connection,
+        string value,
+        List<ArticleHit> list,
+        HashSet<string> seen,
+        CancellationToken cancellationToken)
+    {
+        var lang = await WorkLangAsync(connection, cancellationToken).ConfigureAwait(false);
+        await using (var articles = connection.CreateCommand())
+        {
+            articles.CommandText = ErpDb.Positional(
+                """
+                SELECT `product_id`, `value` FROM `shop_properties_values_text`
+                WHERE `property_id` IN (
+                    SELECT `id` FROM `shop_categories_properties_map`
+                    WHERE `value` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `lang_code` = 'ru' AND `value` = 'Артикул')
+                      AND `property_type_id` = 3)
+                  AND `value` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` LIKE ?)
+                LIMIT 50
+                """);
+            ErpDb.AddParameters(articles, value + "%");
+            var hits = new List<(int ProductId, string Value)>();
+            await using (var reader = await articles.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+            {
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    hits.Add((
+                        Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                        Text(reader, 1)));
+                }
+            }
+
+            foreach (var hit in hits)
+            {
+                var manufacturer = await CatalogueManufacturerAsync(connection, hit.ProductId, cancellationToken).ConfigureAwait(false);
+                var caption = await CatalogueProductCaptionAsync(connection, hit.ProductId, cancellationToken).ConfigureAwait(false);
+                AddHit(
+                    list,
+                    seen,
+                    await TranslateStrAsync(connection, hit.Value, lang, cancellationToken).ConfigureAwait(false),
+                    await TranslateStrAsync(connection, manufacturer, lang, cancellationToken).ConfigureAwait(false),
+                    await TranslateStrAsync(connection, caption, lang, cancellationToken).ConfigureAwait(false));
+            }
+        }
+
+        var words = value.Split(' ', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries)
+            .Where(word => word.Length >= 3)
+            .ToList();
+        await using var names = connection.CreateCommand();
+        if (words.Count == 0)
+        {
+            names.CommandText = "SELECT `id`, `caption` FROM `shop_catalogue_products` LIMIT 50";
+        }
+        else
+        {
+            names.CommandText = ErpDb.Positional(
+                "SELECT `id`, `caption` FROM `shop_catalogue_products` WHERE "
+                + string.Join(" AND ", words.Select(_ => "`caption` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `lang_code` = ? AND `value` LIKE ?)"))
+                + " LIMIT 50");
+            var args = new List<object>();
+            foreach (var word in words)
+            {
+                args.Add(lang);
+                args.Add("%" + word + "%");
+            }
+
+            ErpDb.AddParameters(names, args.ToArray());
+        }
+
+        var products = new List<(int Id, string Caption)>();
+        await using (var reader = await names.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        {
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                products.Add((Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture), Text(reader, 1)));
+            }
+        }
+
+        foreach (var product in products)
+        {
+            var articleKey = await CatalogueArticleKeyAsync(connection, product.Id, cancellationToken).ConfigureAwait(false);
+            if (string.IsNullOrEmpty(articleKey))
+            {
+                continue;
+            }
+
+            var manufacturer = await CatalogueManufacturerAsync(connection, product.Id, cancellationToken).ConfigureAwait(false);
+            AddHit(
+                list,
+                seen,
+                await TranslateStrAsync(connection, articleKey, lang, cancellationToken).ConfigureAwait(false),
+                await TranslateStrAsync(connection, manufacturer, lang, cancellationToken).ConfigureAwait(false),
+                await TranslateStrAsync(connection, product.Caption, lang, cancellationToken).ConfigureAwait(false));
+        }
+    }
+
+    private static async Task<string> CatalogueManufacturerAsync(DbConnection connection, int productId, CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        command.CommandText = "SELECT `product_id` FROM `shop_properties_values_text` WHERE 1 = 0";
-        await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        command.CommandText = ErpDb.Positional(
+            """
+            SELECT `value` FROM `shop_line_lists_items` WHERE `id` = (
+                SELECT `value` FROM `shop_properties_values_list` WHERE `product_id` = ? AND `property_id` = (
+                    SELECT `id` FROM `shop_categories_properties_map`
+                    WHERE `category_id` = (SELECT `category_id` FROM `shop_catalogue_products` WHERE `id` = ?)
+                      AND `value` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `lang_code` = 'ru' AND `value` = 'Производитель')
+                      AND `property_type_id` = 5))
+            """);
+        ErpDb.AddParameters(command, productId, productId);
+        var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private static async Task<string> CatalogueProductCaptionAsync(DbConnection connection, int productId, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional("SELECT `caption` FROM `shop_catalogue_products` WHERE `id` = ?");
+        ErpDb.AddParameters(command, productId);
+        var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private static async Task<string> CatalogueArticleKeyAsync(DbConnection connection, int productId, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            """
+            SELECT `value` FROM `shop_properties_values_text` WHERE `property_id` = (
+                SELECT `id` FROM `shop_categories_properties_map`
+                WHERE `category_id` = (SELECT `category_id` FROM `shop_catalogue_products` WHERE `id` = ?)
+                  AND `value` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `lang_code` = 'ru' AND `value` = 'Артикул')
+                  AND `property_type_id` = 3) AND `product_id` = ?
+            """);
+        ErpDb.AddParameters(command, productId, productId);
+        var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private static async Task<(string Name, string Manufacturer, string Article, string ArticleShow)?> CatalogueCaptionAsync(
+        DbConnection connection,
+        int productId,
+        CancellationToken cancellationToken)
+    {
+        string rawName;
+        string rawManufacturer;
+        string rawArticle;
+        await using (var catalogue = connection.CreateCommand())
+        {
+            catalogue.CommandText = ErpDb.Positional(
+                """
+                SELECT `caption` AS `name`,
+                (SELECT `value` FROM `shop_line_lists_items` WHERE `id` = (SELECT `value` FROM `shop_properties_values_list` WHERE `product_id` = ? AND `property_id` = (SELECT `id` FROM `shop_categories_properties_map` WHERE `category_id` = (SELECT `category_id` FROM `shop_catalogue_products` WHERE `id` = ? LIMIT 1) AND `value` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` IN ('Производитель', 'Manufacturer')) AND `property_type_id` = 5 LIMIT 1) LIMIT 1) LIMIT 1) AS `manufacturer`,
+                (SELECT `value` FROM `shop_properties_values_text` WHERE `property_id` = (SELECT `id` FROM `shop_categories_properties_map` WHERE `category_id` = (SELECT `category_id` FROM `shop_catalogue_products` WHERE `id` = ? LIMIT 1) AND `value` IN (SELECT `str_key` FROM `lang_text_strings_translation` WHERE `value` IN ('Артикул', 'Article')) AND `property_type_id` = 3 LIMIT 1) AND `product_id` = ?) AS `article`
+                FROM `shop_catalogue_products` WHERE `id` = ?
+                """);
+            ErpDb.AddParameters(catalogue, productId, productId, productId, productId, productId);
+            await using var reader = await catalogue.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            rawName = Text(reader, 0);
+            rawManufacturer = Text(reader, 1);
+            rawArticle = Text(reader, 2);
+        }
+
+        var lang = await WorkLangAsync(connection, cancellationToken).ConfigureAwait(false);
+        var name = (await TranslateStrAsync(connection, rawName, lang, cancellationToken).ConfigureAwait(false)).Trim();
+        var manufacturer = (await TranslateStrAsync(connection, rawManufacturer, lang, cancellationToken).ConfigureAwait(false)).Trim().ToUpperInvariant();
+        var articleText = await TranslateStrAsync(connection, rawArticle, lang, cancellationToken).ConfigureAwait(false);
+        var articleShow = articleText.Trim();
+        var article = Regex.Replace(articleText, "[^0-9A-Za-zА-Яа-яЁё]+", string.Empty).ToUpperInvariant();
+        return (name, manufacturer, article, articleShow);
+    }
+
+    private static async Task<string> WorkLangAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `lang_code` FROM `lang_languages` WHERE `is_default` = 1 LIMIT 1";
+            var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            var code = scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture) ?? string.Empty;
+            return code.Length == 0 ? "en" : code;
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return "en";
+        }
+    }
+
+    private static async Task<string> TranslateStrAsync(
+        DbConnection connection,
+        string? key,
+        string lang,
+        CancellationToken cancellationToken)
+    {
+        if (string.IsNullOrWhiteSpace(key))
+        {
+            return string.Empty;
+        }
+
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT `value` FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = (SELECT IFNULL(`same`, ?) FROM `lang_text_strings` WHERE `str_key` = ?)");
+        ErpDb.AddParameters(command, key, lang, key);
+        var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return scalar is null or DBNull ? string.Empty : Convert.ToString(scalar, CultureInfo.InvariantCulture) ?? string.Empty;
+    }
+
+    private static string AdminNotifyEmail(string? host)
+    {
+        var bare = (host ?? string.Empty).Trim().ToLowerInvariant();
+        var colon = bare.IndexOf(':');
+        if (colon >= 0)
+        {
+            bare = bare[..colon];
+        }
+
+        if (bare.StartsWith("www.", StringComparison.Ordinal))
+        {
+            bare = bare[4..];
+        }
+
+        if (bare.Length == 0)
+        {
+            bare = "localhost";
+        }
+
+        return "admin@" + bare;
+    }
+
+    private static async Task LogCheckoutEmailsAsync(
+        DbConnection connection,
+        long orderId,
+        int userId,
+        string emailNotAuth,
+        string? requestHost,
+        CancellationToken cancellationToken)
+    {
+        var admin = AdminNotifyEmail(requestHost);
+        var customer = userId > 0 ? "user #" + userId.ToString(CultureInfo.InvariantCulture) : emailNotAuth.Trim();
+        await LogOrderNotificationAsync(connection, orderId, "Order email to admin " + admin + ": FAILED after retry", cancellationToken).ConfigureAwait(false);
+        await LogOrderNotificationAsync(connection, orderId, "Order email to customer (" + customer + "): FAILED", cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task LogStaffMessageEmailAsync(
+        DbConnection connection,
+        string? orderIdText,
+        string? requestHost,
+        CancellationToken cancellationToken)
+    {
+        if (!long.TryParse(orderIdText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var orderId) || orderId <= 0)
+        {
+            return;
+        }
+
+        await LogOrderNotificationAsync(
+            connection,
+            orderId,
+            "Order message email to admin " + AdminNotifyEmail(requestHost) + ": FAILED",
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task LogOrderNotificationAsync(
+        DbConnection connection,
+        long orderId,
+        string text,
+        CancellationToken cancellationToken)
+    {
+        if (orderId <= 0)
+        {
+            return;
+        }
+
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional(
+                "INSERT INTO `shop_orders_logs` (`order_id`, `time`, `user_id`, `is_manager`, `text`, `is_robot`) VALUES (?, ?, 0, 0, ?, 1)");
+            ErpDb.AddParameters(command, orderId, DateTimeOffset.UtcNow.ToUnixTimeSeconds(), text);
+            await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+        }
     }
 
     private static async Task<string?> ActivePaySystemAsync(

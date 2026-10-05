@@ -129,6 +129,18 @@ public sealed class StorefrontPhpShopTests
             var linked = await PostJsonAsync(client, StorefrontPhpAjax.GarageCarsPath, userForm("user-key", ("request_object", "{\"action\":\"check_car\",\"car_id\":4,\"user_id\":7,\"order_id\":99}")), user);
             Assert.Equal(1, linked.RootElement.GetProperty("flag").GetInt32());
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_garage_orders WHERE order_id=99 AND garage_id=4"));
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_cars (id, caption) VALUES (3, 'Toyota')");
+            await ExecuteAsync(connectionString, "UPDATE shop_docpart_garage SET mark_id=3 WHERE id=4");
+            using (var linkedTable = new HttpRequestMessage(HttpMethod.Post, StorefrontPhpAjax.GarageCarsPath))
+            {
+                linkedTable.Headers.TryAddWithoutValidation("Cookie", user);
+                linkedTable.Content = new FormUrlEncodedContent(userForm("user-key", ("request_object", "{\"action\":\"get_table_cars\",\"car_id\":4,\"customer_id\":7,\"order_id\":99}")));
+                var linkedBody = await (await client.SendAsync(linkedTable)).Content.ReadAsStringAsync();
+                Assert.Contains("onclick=\"check_car(0, 4);\"", linkedBody, StringComparison.Ordinal);
+                Assert.Contains("color:#66bf05", linkedBody, StringComparison.Ordinal);
+                Assert.Contains("<th>5608</th>", linkedBody, StringComparison.Ordinal);
+            }
+
             var unlinked = await PostJsonAsync(client, StorefrontPhpAjax.GarageCarsPath, userForm("user-key", ("request_object", "{\"action\":\"check_car\",\"car_id\":4,\"user_id\":7,\"order_id\":99}")), user);
             Assert.Equal(0, unlinked.RootElement.GetProperty("flag").GetInt32());
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_garage_orders WHERE order_id=99"));
@@ -151,6 +163,21 @@ public sealed class StorefrontPhpShopTests
                 var tableBody = await (await client.SendAsync(table)).Content.ReadAsStringAsync();
                 Assert.Contains("Daily", tableBody, StringComparison.Ordinal);
                 Assert.Contains("VIN123", tableBody, StringComparison.Ordinal);
+                Assert.Contains("Toyota - Corolla", tableBody, StringComparison.Ordinal);
+                Assert.Contains("<th>630</th><th>4044</th><th>VIN</th>", tableBody, StringComparison.Ordinal);
+                Assert.Contains("onclick=\"edit_car(4);\" class=\"btn btn-ar btn-primary\" title=\"2270\"", tableBody, StringComparison.Ordinal);
+                Assert.Contains("onclick=\"delete_car(4);\" title=\"2224\"", tableBody, StringComparison.Ordinal);
+                Assert.DoesNotContain("<th>5608</th>", tableBody, StringComparison.Ordinal);
+                Assert.DoesNotContain("5609", tableBody, StringComparison.Ordinal);
+            }
+
+            using (var openTable = new HttpRequestMessage(HttpMethod.Post, StorefrontPhpAjax.GarageCarsPath))
+            {
+                openTable.Headers.TryAddWithoutValidation("Cookie", user);
+                openTable.Content = new FormUrlEncodedContent(userForm("user-key", ("request_object", "{\"action\":\"get_table_cars\",\"car_id\":4,\"customer_id\":7,\"order_id\":99}")));
+                var openBody = await (await client.SendAsync(openTable)).Content.ReadAsStringAsync();
+                Assert.Contains("onclick=\"check_car(1, 4);\"", openBody, StringComparison.Ordinal);
+                Assert.Contains("color:#a9a9a9", openBody, StringComparison.Ordinal);
             }
 
             var blocked = await PostJsonAsync(
@@ -175,6 +202,9 @@ public sealed class StorefrontPhpShopTests
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts WHERE t2_name='Buy'"));
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts WHERE t2_name='Keep'"));
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_garage_orders WHERE order_id=" + orderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_logs WHERE order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + " AND text='Order email to admin admin@127.0.0.1: FAILED after retry' AND is_robot=1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_logs WHERE order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + " AND text='Order email to customer (user #7): FAILED' AND is_robot=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_logs WHERE text LIKE '%: sent%'"));
 
             var forbiddenMessages = await GetJsonAsync(client, StorefrontPhpAjax.OrderMessagesPath + "?order_id=" + orderId.ToString(CultureInfo.InvariantCulture), other);
             Assert.Equal("Forbidden", forbiddenMessages.RootElement.GetProperty("message").GetString());
@@ -199,6 +229,7 @@ public sealed class StorefrontPhpShopTests
             }
 
             Assert.Equal("a &lt;b&gt; &amp; &quot;", await ScalarAsync(connectionString, "SELECT text FROM shop_orders_messages WHERE order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + " ORDER BY id DESC LIMIT 1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_logs WHERE order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + " AND text='Order message email to admin admin@127.0.0.1: FAILED' AND is_robot=1"));
             var before = await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_messages");
             using (var alienSend = new HttpRequestMessage(HttpMethod.Get, StorefrontPhpAjax.SendMessagePath + "?order_id=" + orderId.ToString(CultureInfo.InvariantCulture) + "&text=nope&csrf_guard_key=other-key"))
             {
@@ -229,6 +260,22 @@ public sealed class StorefrontPhpShopTests
             Assert.False(wrongUser.RootElement.GetProperty("user").GetBoolean());
             var paid = await PostJsonAsync(client, StorefrontPhpAjax.CreateOperationPath, userForm("user-key", ("request_object", "{\"amount\":10,\"order_id\":41}")), user);
             Assert.Equal("Forbidden", paid.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "INSERT INTO shop_orders (id, user_id, session_id, time, successfully_created, status, paid, how_get, how_get_json, phone_not_auth, email_not_auth, office_id) VALUES (90, 7, 0, 1, 1, 2, 0, 1, '{}', '', '', 4)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_orders_items (id, order_id, product_type, price, count_need, product_id, status, t2_manufacturer, t2_article, t2_article_show, t2_name, t2_exist, t2_time_to_exe, t2_time_to_exe_guaranteed, t2_storage, t2_min_order, t2_probability, t2_markup, t2_price_purchase, t2_office_id, t2_storage_id, t2_product_json, sao_state, sao_robot, t2_json_params) VALUES (90, 90, 2, 15.00, 1, 0, 3, '', '', '', 'Due', 1, '', '', '', 1, 100, '0', 4.00, 4, 8, '', 0, 0, '')");
+            var partial = await PostJsonAsync(client, StorefrontPhpAjax.CreateOperationPath, userForm("user-key", ("request_object", "{\"amount\":5,\"order_id\":90,\"pay_handler\":\"not_a_gateway\"}")), user);
+            Assert.Equal("Forbidden", partial.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_users_accounting WHERE operation_code=4"));
+            var over = await PostJsonAsync(client, StorefrontPhpAjax.CreateOperationPath, userForm("user-key", ("request_object", "{\"amount\":20,\"order_id\":90}")), user);
+            Assert.Equal("Forbidden", over.RootElement.GetProperty("message").GetString());
+            var orderPay = await PostJsonAsync(client, StorefrontPhpAjax.CreateOperationPath, userForm("user-key", ("request_object", "{\"amount\":15,\"order_id\":90,\"pay_handler\":\"not_a_gateway\"}")), user);
+            Assert.True(orderPay.RootElement.GetProperty("result").GetBoolean());
+            Assert.False(orderPay.RootElement.GetProperty("pay_system").GetBoolean());
+            var orderPayId = orderPay.RootElement.GetProperty("operation").GetInt32();
+            Assert.Equal("4", await ScalarAsync(connectionString, "SELECT operation_code FROM shop_users_accounting WHERE id=" + orderPayId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT active FROM shop_users_accounting WHERE id=" + orderPayId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT income FROM shop_users_accounting WHERE id=" + orderPayId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("90", await ScalarAsync(connectionString, "SELECT pay_orders FROM shop_users_accounting WHERE id=" + orderPayId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT paid FROM shop_orders WHERE id=90"));
 
             var returns = await PostJsonAsync(client, StorefrontPhpAjax.ReturnsCheckPath, userForm("user-key", ("items_id", "10,11")), user);
             Assert.True(returns.RootElement.GetProperty("status").GetBoolean());
@@ -261,6 +308,82 @@ public sealed class StorefrontPhpShopTests
             Assert.Equal(0, back.RootElement.GetProperty("records")[0].GetProperty("checked_for_order").GetInt32());
 
             var hash = Type1Hash(9, 1, 8, "1", "10.00", string.Empty);
+            var missingCaption = await PostJsonAsync(
+                client,
+                StorefrontPhpAjax.AddToBasketPath,
+                new Dictionary<string, string>
+                {
+                    ["product_objects"] = "[{\"product_type\":1,\"product_id\":9,\"office_id\":1,\"storage_id\":8,\"storage_record_id\":\"1\",\"price\":\"10.00\",\"count_need\":2,\"exist\":7,\"time_to_exe\":\"1\",\"time_to_exe_guaranteed\":\"2\",\"check_hash\":\"" + hash + "\"}]"
+                },
+                user);
+            Assert.False(missingCaption.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(StorefrontPhpAjax.CatalogueArticlePropertiesMissing, missingCaption.RootElement.GetProperty("message").GetString());
+            Assert.DoesNotContain("doesn't exist", missingCaption.RootElement.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
+            Assert.Equal("5", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts WHERE product_type=1"));
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE lang_text_strings (
+                  str_key VARCHAR(64) NOT NULL PRIMARY KEY,
+                  same VARCHAR(8) NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE lang_text_strings_translation (
+                  str_key VARCHAR(64) NOT NULL,
+                  lang_code VARCHAR(8) NOT NULL,
+                  value VARCHAR(255) NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_categories_properties_map (
+                  id INT NOT NULL PRIMARY KEY,
+                  category_id INT NOT NULL,
+                  value VARCHAR(64) NOT NULL,
+                  property_type_id INT NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_properties_values_text (
+                  product_id INT NOT NULL,
+                  property_id INT NOT NULL,
+                  value VARCHAR(64) NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_properties_values_list (
+                  product_id INT NOT NULL,
+                  property_id INT NOT NULL,
+                  value INT NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_line_lists_items (
+                  id INT NOT NULL PRIMARY KEY,
+                  value VARCHAR(64) NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, "UPDATE shop_catalogue_products SET category_id=3 WHERE id=9");
+            await ExecuteAsync(connectionString, """
+                INSERT INTO lang_text_strings (str_key, same) VALUES
+                ('k_art', NULL), ('k_mfr', NULL), ('k_sku', NULL), ('k_bosch', NULL), ('Pad', NULL)
+                """);
+            await ExecuteAsync(connectionString, """
+                INSERT INTO lang_text_strings_translation (str_key, lang_code, value) VALUES
+                ('k_art', 'ru', 'Артикул'), ('k_art', 'en', 'Article'),
+                ('k_mfr', 'ru', 'Производитель'), ('k_mfr', 'en', 'Manufacturer'),
+                ('k_sku', 'en', 'C110-X'), ('k_sku', 'ru', 'C110-X'),
+                ('k_bosch', 'en', 'Bosch'), ('Pad', 'en', 'Pad')
+                """);
+            await ExecuteAsync(connectionString, "INSERT INTO shop_categories_properties_map (id, category_id, value, property_type_id) VALUES (1, 3, 'k_art', 3), (2, 3, 'k_mfr', 5)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_properties_values_text (product_id, property_id, value) VALUES (9, 1, 'k_sku')");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_properties_values_list (product_id, property_id, value) VALUES (9, 2, 15)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_line_lists_items (id, value) VALUES (15, 'k_bosch')");
+
+            var catalogued = await PostJsonAsync(client, StorefrontPhpAjax.ArticleListPath, userForm("user-key", ("request_object", "{\"value\":\"C110\"}")), user);
+            Assert.False(catalogued.RootElement.TryGetProperty("status", out _));
+            Assert.Contains(catalogued.RootElement.GetProperty("list").EnumerateArray(), row => row.GetProperty("article").GetString() == "C110-X" && row.GetProperty("manufacturer").GetString() == "Bosch" && row.GetProperty("name").GetString() == "Pad");
+
             var added = await PostJsonAsync(
                 client,
                 StorefrontPhpAjax.AddToBasketPath,
@@ -274,6 +397,9 @@ public sealed class StorefrontPhpShopTests
             Assert.Equal("3", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
             Assert.Equal("2", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
             Assert.Equal("Pad", await ScalarAsync(connectionString, "SELECT t2_name FROM shop_carts WHERE product_type=1"));
+            Assert.Equal("BOSCH", await ScalarAsync(connectionString, "SELECT t2_manufacturer FROM shop_carts WHERE product_type=1"));
+            Assert.Equal("C110X", await ScalarAsync(connectionString, "SELECT t2_article FROM shop_carts WHERE product_type=1"));
+            Assert.Equal("C110-X", await ScalarAsync(connectionString, "SELECT t2_article_show FROM shop_carts WHERE product_type=1"));
             var type1Id = await ScalarAsync(connectionString, "SELECT id FROM shop_carts WHERE product_type=1");
             Assert.Equal("2", await ScalarAsync(connectionString, "SELECT count_reserved FROM shop_carts_details WHERE cart_record_id=" + type1Id));
             Assert.Equal("10.00", await ScalarAsync(connectionString, "SELECT CAST(price AS CHAR) FROM shop_carts_details WHERE cart_record_id=" + type1Id));
@@ -301,6 +427,52 @@ public sealed class StorefrontPhpShopTests
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts_details WHERE cart_record_id=" + type1Id));
             Assert.Equal("5", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
+
+            var again = await PostJsonAsync(
+                client,
+                StorefrontPhpAjax.AddToBasketPath,
+                new Dictionary<string, string>
+                {
+                    ["product_objects"] = "[{\"product_type\":1,\"product_id\":9,\"office_id\":1,\"storage_id\":8,\"storage_record_id\":\"1\",\"price\":\"10.00\",\"count_need\":2,\"exist\":7,\"time_to_exe\":\"1\",\"time_to_exe_guaranteed\":\"2\",\"check_hash\":\"" + hash + "\"}]"
+                },
+                user);
+            Assert.True(again.RootElement.GetProperty("status").GetBoolean());
+            var officeCart = await ScalarAsync(connectionString, "SELECT id FROM shop_carts WHERE product_type=1");
+            await ExecuteAsync(connectionString, "UPDATE shop_storages_data SET exist=0 WHERE id=1");
+            await ExecuteAsync(connectionString, "ALTER TABLE shop_storages_data ADD COLUMN product_id INT NOT NULL DEFAULT 0, ADD COLUMN arrival_time INT NOT NULL DEFAULT 0");
+            await ExecuteAsync(connectionString, "ALTER TABLE shop_offices_storages_map ADD COLUMN additional_time INT NOT NULL DEFAULT 0");
+            await ExecuteAsync(connectionString, "UPDATE shop_storages_data SET product_id=9 WHERE id=1");
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_geo (id INT NOT NULL PRIMARY KEY)
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_offices (id INT NOT NULL PRIMARY KEY)
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_offices_geo_map (geo_id INT NOT NULL, office_id INT NOT NULL)
+                """);
+            await ExecuteAsync(connectionString, "INSERT INTO shop_geo (id) VALUES (1)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_offices (id) VALUES (2)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_offices_geo_map (geo_id, office_id) VALUES (1, 2)");
+            await ExecuteAsync(connectionString, "INSERT INTO users_groups_bind (user_id, group_id) VALUES (7, 1)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_offices_storages_map (office_id, storage_id, group_id, min_point, max_point, markup, additional_time) VALUES (2, 9, 1, 0, 1000, 0, 0), (2, 10, 1, 0, 1000, 0, 0)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_storages_data (id, storage_id, price, price_purchase, exist, reserved, product_id, arrival_time) VALUES (3, 9, 10.00, 6.00, 1, 0, 9, 1), (4, 10, 10.00, 6.00, 1, 0, 9, 2000000000)");
+            var toppedUp = await PostJsonAsync(client, StorefrontPhpAjax.ChangeCountPath, userForm("user-key", ("request_object", "{\"id\":" + officeCart + ",\"count_need\":4}")), user);
+            Assert.True(toppedUp.RootElement.GetProperty("status").GetBoolean(), toppedUp.RootElement.TryGetProperty("message", out var officeMessage) ? officeMessage.GetString() : toppedUp.RootElement.ToString());
+            Assert.Equal(4, toppedUp.RootElement.GetProperty("count_need").GetInt32());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=3"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=3"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=4"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=4"));
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT office_id FROM shop_carts_details WHERE storage_record_id=3"));
+            Assert.Equal("9", await ScalarAsync(connectionString, "SELECT storage_id FROM shop_carts_details WHERE storage_record_id=3"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT count_reserved FROM shop_carts_details WHERE storage_record_id=3"));
+            Assert.Equal("10.00", await ScalarAsync(connectionString, "SELECT CAST(price_purchase AS CHAR) FROM shop_carts_details WHERE storage_record_id=3"));
+            Assert.Equal("0.00", await ScalarAsync(connectionString, "SELECT CAST(price AS CHAR) FROM shop_carts_details WHERE storage_record_id=3"));
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT office_id FROM shop_carts_details WHERE storage_record_id=4"));
+            Assert.Equal("10", await ScalarAsync(connectionString, "SELECT storage_id FROM shop_carts_details WHERE storage_record_id=4"));
 
             var activated = await PostJsonAsync(client, StorefrontPhpAjax.GarageCarsPath, userForm("user-key", ("request_object", "{\"action\":\"active_car\",\"car_id\":4,\"user_id\":7}")), user);
             Assert.True(activated.RootElement.GetProperty("status").GetBoolean());
@@ -363,7 +535,12 @@ public sealed class StorefrontPhpShopTests
           note VARCHAR(64) NOT NULL,
           active INT NOT NULL,
           year INT NOT NULL,
-          model VARCHAR(64) NOT NULL
+          model VARCHAR(64) NOT NULL,
+          mark_id INT NOT NULL DEFAULT 0
+        );
+        CREATE TABLE shop_docpart_cars (
+          id INT NOT NULL PRIMARY KEY,
+          caption VARCHAR(64) NOT NULL
         );
         CREATE TABLE shop_docpart_garage_notepad (
           id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
@@ -396,7 +573,8 @@ public sealed class StorefrontPhpShopTests
         );
         CREATE TABLE shop_catalogue_products (
           id INT NOT NULL PRIMARY KEY,
-          caption VARCHAR(64) NOT NULL
+          caption VARCHAR(64) NOT NULL,
+          category_id INT NOT NULL DEFAULT 0
         );
         CREATE TABLE shop_storages (
           id INT NOT NULL PRIMARY KEY,
@@ -448,7 +626,7 @@ public sealed class StorefrontPhpShopTests
           storage_id INT NOT NULL,
           storage_record_id INT NOT NULL,
           count_reserved INT NOT NULL,
-          price DECIMAL(12,2) NOT NULL,
+          price DECIMAL(12,2) NOT NULL DEFAULT 0,
           price_purchase DECIMAL(12,2) NOT NULL
         );
         CREATE TABLE users_groups_bind (
@@ -551,6 +729,15 @@ public sealed class StorefrontPhpShopTests
           handler VARCHAR(64) NOT NULL,
           active INT NOT NULL,
           anable INT NOT NULL
+        );
+        CREATE TABLE shop_orders_logs (
+          id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+          order_id INT NOT NULL,
+          time INT NOT NULL,
+          user_id INT NOT NULL,
+          is_manager INT NOT NULL,
+          text TEXT NOT NULL,
+          is_robot INT NOT NULL
         );
         """;
 

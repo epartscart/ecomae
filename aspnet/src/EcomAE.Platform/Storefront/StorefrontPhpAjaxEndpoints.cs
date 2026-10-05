@@ -373,7 +373,7 @@ public static class StorefrontPhpAjaxEndpoints
                 context,
                 connections,
                 cancellationToken,
-                (connection, ct) => StorefrontPhpAjax.ChangeCountAsync(connection, 0, 0, true, request, true, accepted, ct),
+                (connection, ct) => StorefrontPhpAjax.ChangeCountAsync(connection, 0, 0, true, request, true, accepted, ct, context.Request.Cookies["my_city"]),
                 StorefrontPhpAjax.ChangeCountNoDatabase()).ConfigureAwait(false);
         }
 
@@ -388,7 +388,8 @@ public static class StorefrontPhpAjaxEndpoints
                 request,
                 false,
                 false,
-                ct).ConfigureAwait(false);
+                ct,
+                context.Request.Cookies["my_city"]).ConfigureAwait(false);
         }).ConfigureAwait(false);
     }
 
@@ -478,7 +479,8 @@ public static class StorefrontPhpAjaxEndpoints
                     context.Request.Cookies["how_get"],
                     phone,
                     email,
-                    ct).ConfigureAwait(false);
+                    ct,
+                    context.Request.Host.Host).ConfigureAwait(false);
             });
 
     private static async Task<IResult> OrderMessagesAsync(
@@ -547,7 +549,7 @@ public static class StorefrontPhpAjaxEndpoints
             connections,
             cancellationToken,
             Plain(StorefrontPhpAjax.NoDbConnect),
-            (connection, csrf, ct) => StorefrontPhpAjax.SendOrderMessageAsync(connection, csrf.UserId, orderId, returnId, text, false, ct)).ConfigureAwait(false);
+            (connection, csrf, ct) => StorefrontPhpAjax.SendOrderMessageAsync(connection, csrf.UserId, orderId, returnId, text, false, ct, context.Request.Host.Host)).ConfigureAwait(false);
     }
 
     private static Task<IResult> CreateOperationAsync(
