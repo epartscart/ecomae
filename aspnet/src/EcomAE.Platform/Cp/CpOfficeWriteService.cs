@@ -1,7 +1,9 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Net;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -236,6 +238,38 @@ public sealed class CpOfficeWriteService : ICpOfficeWriteService
     public static string SanitizeField(string? raw)
         => WebUtility.HtmlEncode((raw ?? string.Empty).Trim());
 
+    /// <summary>Columns PHP writes on <c>shop_offices</c>, in save order. Absent columns are left out.</summary>
+    public static IReadOnlyList<string> OfficeWritableColumns(IReadOnlySet<string> columns)
+    {
+        var names = new[]
+        {
+            "caption", "country", "region", "city", "address", "phone", "email", "coordinates", "description", "users", "timetable",
+        };
+        return names.Where(columns.Contains).ToArray();
+    }
+
+    public static string OfficeWriteSql(IReadOnlySet<string> columns, bool create)
+    {
+        var names = OfficeWritableColumns(columns);
+        if (names.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        if (create)
+        {
+            return "INSERT INTO `shop_offices` ("
+                + string.Join(", ", names.Select(name => "`" + name + "`"))
+                + ") VALUES ("
+                + string.Join(",", names.Select(_ => "?"))
+                + ")";
+        }
+
+        return "UPDATE `shop_offices` SET "
+            + string.Join(", ", names.Select(name => "`" + name + "` = ?"))
+            + " WHERE `id` = ?";
+    }
+
     public static string NextStrKey(string? domainPath, int createdCount)
         => DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture)
            + "_"
@@ -268,57 +302,72 @@ public sealed class CpOfficeWriteService : ICpOfficeWriteService
         var lang = NormalizeLang(request.LangCode);
         var description = create ? "OFFICE CREATING" : "OFFICE EDITING";
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        string captionKey;
-        string countryKey;
-        string regionKey;
-        string cityKey;
-        string addressKey;
-        string descriptionKey;
-        string timetableKey;
+        HashSet<string> columns;
         try
         {
-            captionKey = await RequireTranslationAsync(connection, transaction, request.CaptionLangStrId, caption, lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
-            countryKey = await RequireTranslationAsync(connection, transaction, request.CountryLangStrId, SanitizeField(request.Country), lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
-            regionKey = await RequireTranslationAsync(connection, transaction, request.RegionLangStrId, SanitizeField(request.Region), lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
-            cityKey = await RequireTranslationAsync(connection, transaction, request.CityLangStrId, SanitizeField(request.City), lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
-            addressKey = await RequireTranslationAsync(connection, transaction, request.AddressLangStrId, SanitizeField(request.Address), lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
-            descriptionKey = await RequireTranslationAsync(connection, transaction, request.DescriptionLangStrId, SanitizeField(request.Description), lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
-            timetableKey = await RequireTranslationAsync(connection, transaction, request.TimetableLangStrId, SanitizeField(request.Timetable), lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
+            columns = await TableColumnsAsync(connection, "shop_offices", cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Offices are not in this database.");
+        }
 
-            var phone = SanitizeField(request.Phone);
-            var email = SanitizeField(request.Email);
-            var coordinates = SanitizeField(request.Coordinates);
-            if (create)
+        var sql = OfficeWriteSql(columns, create);
+        if (sql.Length == 0 || !columns.Contains("caption"))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Offices are not in this database.");
+        }
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            var translations = await TableExistsAsync(connection, transaction, "lang_text_strings", cancellationToken).ConfigureAwait(false);
+            var values = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
             {
-                await ErpDb.ExecuteAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional(
-                        """
-                        INSERT INTO `shop_offices`
-                        (`caption`, `country`, `region`, `city`, `address`, `phone`, `email`, `coordinates`, `description`, `users`, `timetable`)
-                        VALUES (?,?,?,?,?,?,?,?,?,?,?)
-                        """),
-                    cancellationToken,
-                    captionKey, countryKey, regionKey, cityKey, addressKey, phone, email, coordinates, descriptionKey, users.Json, timetableKey)
-                    .ConfigureAwait(false);
+                ["caption"] = caption,
+                ["country"] = SanitizeField(request.Country),
+                ["region"] = SanitizeField(request.Region),
+                ["city"] = SanitizeField(request.City),
+                ["address"] = SanitizeField(request.Address),
+                ["phone"] = SanitizeField(request.Phone),
+                ["email"] = SanitizeField(request.Email),
+                ["coordinates"] = SanitizeField(request.Coordinates),
+                ["description"] = SanitizeField(request.Description),
+                ["users"] = users.Json,
+                ["timetable"] = SanitizeField(request.Timetable),
+            };
+            if (translations)
+            {
+                async Task TranslateAsync(string name, string? langStrId)
+                {
+                    if (!columns.Contains(name))
+                    {
+                        return;
+                    }
+
+                    values[name] = await RequireTranslationAsync(connection, transaction, langStrId, values[name], lang, request.DomainPath, description, cancellationToken).ConfigureAwait(false);
+                }
+
+                await TranslateAsync("caption", request.CaptionLangStrId).ConfigureAwait(false);
+                await TranslateAsync("country", request.CountryLangStrId).ConfigureAwait(false);
+                await TranslateAsync("region", request.RegionLangStrId).ConfigureAwait(false);
+                await TranslateAsync("city", request.CityLangStrId).ConfigureAwait(false);
+                await TranslateAsync("address", request.AddressLangStrId).ConfigureAwait(false);
+                await TranslateAsync("description", request.DescriptionLangStrId).ConfigureAwait(false);
+                await TranslateAsync("timetable", request.TimetableLangStrId).ConfigureAwait(false);
             }
-            else
+
+            var args = OfficeWritableColumns(columns).Select(name => (object?)values[name]).ToList();
+            if (!create)
             {
-                await ErpDb.ExecuteAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional(
-                        """
-                        UPDATE `shop_offices`
-                        SET `caption` = ?, `country` = ?, `region` = ?, `city` = ?, `address` = ?,
-                            `phone` = ?, `email` = ?, `coordinates` = ?, `description` = ?, `users` = ?, `timetable` = ?
-                        WHERE `id` = ?
-                        """),
-                    cancellationToken,
-                    captionKey, countryKey, regionKey, cityKey, addressKey, phone, email, coordinates, descriptionKey, users.Json, timetableKey, request.OfficeId)
-                    .ConfigureAwait(false);
+                args.Add(request.OfficeId);
+            }
+
+            var rows = await ErpDb.ExecuteAsync(connection, transaction, ErpDb.Positional(sql), cancellationToken, args.ToArray()).ConfigureAwait(false);
+            if (!create && rows <= 0)
+            {
+                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+                return ErpSimpleWriteResult.Fail("not_found", "Office was not updated.");
             }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -328,7 +377,12 @@ public sealed class CpOfficeWriteService : ICpOfficeWriteService
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Fail("invalid", ex.Message);
         }
-        catch (System.Data.Common.DbException)
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Offices are not in this database.");
+        }
+        catch (DbException)
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Fail("invalid", create ? "Could not create the office." : "Could not save the office.");
@@ -340,6 +394,29 @@ public sealed class CpOfficeWriteService : ICpOfficeWriteService
         return id > 0
             ? new ErpSimpleWriteResult(true, "ok", create ? "Office created." : "Office saved.", id, 1)
             : ErpSimpleWriteResult.Fail("invalid", "Could not create the office.");
+    }
+
+    private static async Task<HashSet<string>> TableColumnsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW COLUMNS FROM `" + table + "`";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            columns.Add(reader.GetString(0));
+        }
+
+        return columns;
+    }
+
+    private static async Task<bool> TableExistsAsync(DbConnection connection, DbTransaction? transaction, string table, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "SHOW TABLES LIKE '" + table.Replace("'", "''", StringComparison.Ordinal) + "'";
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is not null and not DBNull;
     }
 
     private async Task<string> RequireTranslationAsync(

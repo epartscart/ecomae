@@ -131,6 +131,47 @@ public sealed class CpMissingSchemaTests
     }
 
     [Fact]
+    public void OfficeWriteSql_SkipsColumnsThisTenantDoesNotHave()
+    {
+        var slim = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "id", "caption", "country", "city", "address", "phone", "email", "users",
+        };
+        var update = CpOfficeWriteService.OfficeWriteSql(slim, create: false);
+        Assert.Contains("`caption` = ?", update, StringComparison.Ordinal);
+        Assert.Contains("`city` = ?", update, StringComparison.Ordinal);
+        Assert.Contains("WHERE `id` = ?", update, StringComparison.Ordinal);
+        Assert.DoesNotContain("`region`", update, StringComparison.Ordinal);
+        Assert.DoesNotContain("`coordinates`", update, StringComparison.Ordinal);
+        Assert.DoesNotContain("`timetable`", update, StringComparison.Ordinal);
+        Assert.DoesNotContain("DELETE", update, StringComparison.OrdinalIgnoreCase);
+
+        var insert = CpOfficeWriteService.OfficeWriteSql(slim, create: true);
+        Assert.StartsWith("INSERT INTO `shop_offices`", insert, StringComparison.Ordinal);
+        Assert.DoesNotContain("`region`", insert, StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public void UserUpdateSql_SkipsRegistrationColumnsThisTenantDoesNotHave()
+    {
+        var slim = new HashSet<string>(StringComparer.OrdinalIgnoreCase)
+        {
+            "user_id", "email", "phone", "password", "email_confirmed", "phone_confirmed", "unlocked", "name",
+        };
+        var sql = CpUserWriteService.UserUpdateSql(slim, withPassword: false);
+        Assert.Contains("`email` = ?", sql, StringComparison.Ordinal);
+        Assert.Contains("`unlocked` = ?", sql, StringComparison.Ordinal);
+        Assert.Contains("WHERE `user_id` = ?", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`reg_variant`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("`password`", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("users_profiles", sql, StringComparison.Ordinal);
+        Assert.DoesNotContain("DELETE", sql, StringComparison.OrdinalIgnoreCase);
+
+        var withPassword = CpUserWriteService.UserUpdateSql(slim, withPassword: true);
+        Assert.Contains("`password` = ?", withPassword, StringComparison.Ordinal);
+    }
+
+    [Fact]
     public void StorageInt_TreatsAnEmptyStringAsZero()
     {
         Assert.Equal(0, CpStorageEditorService.StorageInt(""));

@@ -400,10 +400,15 @@ public sealed class CpConfigEditorService : ICpConfigEditorService
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Fail("invalid", ex.Message);
         }
-        catch (DbException ex)
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Fail("db", ex.Message);
+            return ErpSimpleWriteResult.Fail("invalid", "Settings cannot be saved because config items are not in this database.");
+        }
+        catch (DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save settings.");
         }
         catch (IOException ex)
         {
