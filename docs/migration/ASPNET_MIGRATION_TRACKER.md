@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP data transfer, packs, KKT, growth, page builder, prices send, RMA, SAO, WMS
+
+Not complete.
+
+- Signed-in www.epartscart.com, all **200**, no MySQL banner. `/cp/data-transfer-app` lists Dubai HQ and the four groups; catalogue categories are empty (`shop_catalogue_categories` is absent). `/cp/prices-send-app` lists `prices@local.test` and `operator@local.test` with empty names (`users_profiles` is absent). `/cp/industry-packs-app`, `/cp/marketing-growth-app`, `/cp/page-builder-app`, `/cp/returns-rma-app`, and `/cp/warehouse-wms-app` show zero counts and no records. `/cp/kkt-app` opens the cashier form with empty devices (`shop_kkt_devices` is absent). `/cp/sao-app` says no SAO states are defined (`shop_sao_states` is absent). No rows were inserted.
+- A rescan of 86 signed-in menu links found no missing-table banner. `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- www.electronicae.com, www.stylenlook.com, www.thejewellerytrend.com, and www.taxofinca.com are still not in `epc_portal_tenants`. No accounts were created. In-repo marketing snapshots were already **200**.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5005 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, CP writes, the web tracker connection, jewellery enablement, signed-in CP on the other named shops, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — CP groups, settings, languages, payments, statistics, returns, search tabs
 
 Not complete.
