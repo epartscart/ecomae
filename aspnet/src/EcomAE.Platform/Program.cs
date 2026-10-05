@@ -1091,6 +1091,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodReadService, EcomAE.Pla
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinanceAjaxReadService, EcomAE.Platform.Erp.ErpFinanceAjaxReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCommandCenterReadService, EcomAE.Platform.Erp.ErpCommandCenterReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDashboardReadService, EcomAE.Platform.Erp.ErpDashboardReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAiReadService, EcomAE.Platform.Erp.ErpAiReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpShortcutReadService, EcomAE.Platform.Erp.ErpShortcutReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpInventoryScanReadService, EcomAE.Platform.Erp.ErpInventoryScanReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpGlobalSearchReadService, EcomAE.Platform.Erp.ErpGlobalSearchReadService>();

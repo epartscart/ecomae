@@ -651,8 +651,7 @@ public sealed class ErpModule : ISurfaceModule
         });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceList, HandleInvoiceListAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInvoiceFromOrder, HandleInvoiceFromOrderAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxAiQuery, async (HttpContext context, ErpAiQueryBody? body, ILegacySessionValidator validator, IErpAiQueryDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAiQueryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAiQuery, HandleAiQueryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityScan, HandleIntegrityScanAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxIntegrityApplyFks, HandleIntegrityApplyFksAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxFaCreateAsset, async (
@@ -1769,8 +1768,7 @@ public sealed class ErpModule : ISurfaceModule
         }).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxJwSeedSampleData, async (HttpContext context, ErpJwSeedSampleDataBody? body, ILegacySessionValidator validator, IErpJwSeedSampleDataDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpJwSeedSampleDataRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxAiAssistantQuery, async (HttpContext context, ErpAiAssistantQueryBody? body, ILegacySessionValidator validator, IErpAiAssistantQueryDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpAiAssistantQueryRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxAiAssistantQuery, HandleAiAssistantQueryAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxPrintDesignerSave, HandlePrintDesignerSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowSave, HandleWorkflowSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxWorkflowRun, HandleWorkflowRunAsync).DisableAntiforgery();
@@ -21443,6 +21441,62 @@ public sealed class ErpModule : ISurfaceModule
 
         var r = await reads.DashboardAsync(from, to, cancellationToken);
         return Results.Ok(new { ok = r.Result.Succeeded, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = r.Result.Code, message = r.Result.Message, data = r.Data, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleAiQueryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAiQueryDryRun dryRun,
+        IErpAiReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpAiQueryRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var now = DateTimeOffset.UtcNow;
+        var from = ErpFinanceAjaxReadService.FromUnix(AmlText(fields, "date_from", "dateFrom"), now);
+        var to = ErpFinanceAjaxReadService.ToUnix(AmlText(fields, "date_to", "dateTo"), now);
+        var r = await reads.BosAiAnswerAsync(AmlText(fields, "q", "question"), from, to, cancellationToken);
+        return Results.Ok(new { ok = r.Ok, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = r.Ok ? "ok" : "failed", message = "ok", answer = r.Message, kind = r.Kind, data = r.Data, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleAiAssistantQueryAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpAiAssistantQueryDryRun dryRun,
+        IErpAiReadService reads,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpAiAssistantQueryRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        var question = AmlText(fields, "question", "q");
+        if (question.Trim().Length == 0)
+        {
+            return Results.Ok(new { ok = false, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = "invalid", message = "No question provided", session = SessionPayload(session) });
+        }
+
+        var hostIndustry = StorefrontIndustryHostResolver.ResolveIndustryCode(context.Request.Host.Host);
+        var r = await reads.AssistantQueryAsync(question, hostIndustry, cancellationToken);
+        return Results.Ok(new { ok = r.Ok, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = r.Ok ? "ok" : "failed", message = "OK", answer = r.Message, type = r.Type, data = r.Data, session = SessionPayload(session) });
     }
 
     private static async Task<IResult> HandleCcKpiTilesAsync(
