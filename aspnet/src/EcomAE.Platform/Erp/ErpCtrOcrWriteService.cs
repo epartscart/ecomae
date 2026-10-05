@@ -41,6 +41,7 @@ public sealed class ErpCtrOcrWriteService : IErpCtrOcrWriteService
 
         var text = request.Text ?? "";
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpContractSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_contracts", "ocr_text", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Contracts table is not provisioned");

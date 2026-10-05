@@ -79,6 +79,7 @@ public sealed class ErpContractSaveWriteService : IErpContractSaveWriteService
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpContractSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             if (id > 0)
             {
                 await ErpDb.ExecuteAsync(

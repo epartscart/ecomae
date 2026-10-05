@@ -52,6 +52,7 @@ public sealed class ErpCtrSignWriteService : IErpCtrSignWriteService
         var email = request.SignerEmail ?? "";
         var ip = request.Ip ?? "";
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpContractSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_contracts", "body_text", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_contract_signatures", "signature_hash", cancellationToken).ConfigureAwait(false))
         {
