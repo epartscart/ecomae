@@ -1044,8 +1044,7 @@ public sealed class ErpModule : ISurfaceModule
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpUploadAttachmentRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDeleteAttachment, async (HttpContext context, ErpDeleteAttachmentBody? body, ILegacySessionValidator validator, IErpDeleteAttachmentDryRun dryRun, CancellationToken cancellationToken) =>
         { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpDeleteAttachmentRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncEinvoiceSeller, async (HttpContext context, ErpSyncEinvoiceSellerBody? body, ILegacySessionValidator validator, IErpSyncEinvoiceSellerDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpSyncEinvoiceSellerRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxSyncEinvoiceSeller, HandleSyncEinvoiceSellerAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxExpenseReportSave, async (
             HttpContext context,
             ErpExpenseReportSaveBody? body,
@@ -10536,8 +10535,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrOcr, HandleCtrOcrAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxSave, HandleDocxSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxDelete, HandleDocxDeleteAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxRunReminders, async (HttpContext context, ErpDocxRunRemindersBody? body, ILegacySessionValidator validator, IErpDocxRunRemindersDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpDocxRunRemindersRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxDocxRunReminders, HandleDocxRunRemindersAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsSave, HandleInsSaveAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDelete, HandleInsDeleteAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxInsDocAdd, HandleInsDocAddAsync).DisableAntiforgery();
@@ -21497,6 +21495,69 @@ public sealed class ErpModule : ISurfaceModule
         var hostIndustry = StorefrontIndustryHostResolver.ResolveIndustryCode(context.Request.Host.Host);
         var r = await reads.AssistantQueryAsync(question, hostIndustry, cancellationToken);
         return Results.Ok(new { ok = r.Ok, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = r.Ok ? "ok" : "failed", message = "OK", answer = r.Message, type = r.Type, data = r.Data, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleSyncEinvoiceSellerAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpSyncEinvoiceSellerDryRun dryRun,
+        IErpDocControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpSyncEinvoiceSellerRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        try
+        {
+            var written = await writes.SyncSellerFromEinvoiceAsync((int)AmlLong(fields, "expected_version"), cancellationToken);
+            return Results.Ok(new { ok = written.Succeeded, surface = "erp", writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
+        }
+        catch (EcomAE.Platform.Erp.ErpWriteException conflict)
+        {
+            return Results.Ok(new { ok = false, surface = "erp", writes = 0, phpAuthoritative = false, validation_code = "conflict", message = conflict.Message, session = SessionPayload(session) });
+        }
+    }
+
+    private static async Task<IResult> HandleDocxRunRemindersAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpDocxRunRemindersDryRun dryRun,
+        IErpDocControlWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpDocxRunRemindersRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await writes.RunRemindersAsync(context.Request.Host.Host, cancellationToken);
+        return Results.Ok(new
+        {
+            ok = r.Result.Succeeded,
+            surface = "erp",
+            writes = r.Result.Writes,
+            phpAuthoritative = false,
+            validation_code = r.Result.Code,
+            message = r.Result.Message,
+            results = new { @checked = r.Checked, sent = r.Sent, skipped = r.Skipped, details = r.Details.Select(d => new { doc_id = d.DocId, recipient = d.Recipient, threshold = d.Threshold, days_left = d.DaysLeft, covered = d.Covered }) },
+            session = SessionPayload(session)
+        });
     }
 
     private static async Task<IResult> HandleCcKpiTilesAsync(
