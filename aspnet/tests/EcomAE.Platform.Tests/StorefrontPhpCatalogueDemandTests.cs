@@ -1,6 +1,8 @@
 using System.Globalization;
 using System.Linq;
 using System.Net;
+using System.Security.Cryptography;
+using System.Text;
 using System.Net.Sockets;
 using System.Text.Json;
 using EcomAE.Platform.Data;
@@ -692,6 +694,255 @@ public sealed class StorefrontPhpCatalogueDemandTests
 
         Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
     }
+
+    [Fact]
+    public async Task QuotesTreeAndToMarks_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        Assert.DoesNotContain("Database=docpart", connectionString, StringComparison.OrdinalIgnoreCase);
+        var product = "{\"product_type\":2,\"manufacturer\":\"BOSCH\",\"article\":\"0986\",\"article_show\":\"0986\",\"name\":\"Pad\",\"exist\":4,\"price\":12.5,\"time_to_exe\":1,\"time_to_exe_guaranteed\":2,\"storage\":\"SHJ\",\"min_order\":1,\"probability\":80,\"office_id\":4,\"storage_id\":8,\"price_purchase\":10,\"markup\":2,\"json_params\":\"\"}";
+        var hash = Md5("BOSCH09860986Pad412.512SHJ180481022");
+        var signed = "session=user-token; u_id=7";
+        try
+        {
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+
+            var missingSession = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAddPath, Form(("product_objects", "[" + product + ",\"check_hash\":\"" + hash + "\"}]")), signed);
+            Assert.Equal(StorefrontPhpAjax.SessionsMissing, missingSession.Json.RootElement.GetProperty("message").GetString());
+            Assert.DoesNotContain("doesn't exist", missingSession.Body, StringComparison.OrdinalIgnoreCase);
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE sessions (
+                  id INT NOT NULL PRIMARY KEY,
+                  session VARCHAR(64) NOT NULL,
+                  user_id INT NOT NULL,
+                  csrf_guard_key VARCHAR(64) NOT NULL DEFAULT ''
+                )
+                """);
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, csrf_guard_key) VALUES (12, 'user-token', 7, 'csrf-1')");
+            var guest = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAddPath, Form(("product_objects", "[]")), string.Empty);
+            Assert.False(guest.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal("auth", guest.Json.RootElement.GetProperty("code").GetString());
+            Assert.Equal(StorefrontPhpAjax.GuestAuthMessage, guest.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(StorefrontPhpAjax.GuestLoginUrl, guest.Json.RootElement.GetProperty("login_url").GetString());
+
+            var missingQuotes = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAddPath, Form(("product_objects", "[" + product.TrimEnd('}') + ",\"check_hash\":\"" + hash + "\"}]")), signed);
+            Assert.Equal(StorefrontPhpAjax.QuotesMissing, missingQuotes.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_quote_requests'"));
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_quote_requests (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  user_id INT NOT NULL,
+                  session_id INT NOT NULL,
+                  status VARCHAR(32) NOT NULL,
+                  time_created INT NOT NULL,
+                  time_updated INT NOT NULL,
+                  time_submitted INT NULL,
+                  customer_note TEXT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_quote_items (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  quote_id INT NOT NULL,
+                  product_type INT NOT NULL,
+                  product_object_json TEXT NOT NULL,
+                  count_need INT NOT NULL,
+                  quoted_price DECIMAL(12,4) NULL,
+                  quoted_time_to_exe INT NULL,
+                  offer_alternative INT NULL,
+                  alt_manufacturer VARCHAR(64) NULL,
+                  alt_article VARCHAR(64) NULL,
+                  alt_article_show VARCHAR(64) NULL,
+                  alt_name VARCHAR(255) NULL,
+                  alt_count_need INT NULL,
+                  alt_quoted_price DECIMAL(12,4) NULL,
+                  alt_storage_id INT NULL
+                )
+                """);
+
+            var type1 = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAddPath, Form(("product_objects", "[{\"product_type\":1}]")), signed);
+            Assert.Equal(StorefrontPhpAjax.QuoteType2Only, type1.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_quote_requests"));
+
+            var bad = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAddPath, Form(("product_objects", "[" + product.TrimEnd('}') + ",\"check_hash\":\"nope\"}]")), signed);
+            Assert.Equal("35", bad.Json.RootElement.GetProperty("code").GetString());
+            Assert.Equal(StorefrontPhpAjax.QuoteHashFailed, bad.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_quote_requests"));
+
+            var line = product.TrimEnd('}') + ",\"check_hash\":\"" + hash + "\"}";
+            var added = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAddPath, Form(("product_objects", "[" + line + "]")), signed);
+            Assert.True(added.Json.RootElement.GetProperty("status").GetBoolean());
+            var quoteId = added.Json.RootElement.GetProperty("quote_id").GetInt64();
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_quote_items WHERE quote_id = " + quoteId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("7", await ScalarAsync(connectionString, "SELECT user_id FROM shop_quote_requests WHERE id = " + quoteId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("draft", await ScalarAsync(connectionString, "SELECT status FROM shop_quote_requests WHERE id = " + quoteId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT count_need FROM shop_quote_items WHERE quote_id = " + quoteId.ToString(CultureInfo.InvariantCulture)));
+
+            var again = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAddPath, Form(("product_objects", "[" + line + "]")), signed);
+            Assert.Equal(quoteId, again.Json.RootElement.GetProperty("quote_id").GetInt64());
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_quote_items WHERE quote_id = " + quoteId.ToString(CultureInfo.InvariantCulture)));
+
+            var manualMissing = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteManualPath, Form(("manufacturer", ""), ("article", "0986")), signed);
+            Assert.Equal(StorefrontPhpAjax.QuoteBrandRequired, manualMissing.Json.RootElement.GetProperty("message").GetString());
+            var manual = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteManualPath, Form(("manufacturer", "bosch & co"), ("article", "09-86"), ("count_need", "2")), signed);
+            Assert.True(manual.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(quoteId, manual.Json.RootElement.GetProperty("quote_id").GetInt64());
+            var manualJson = await ScalarAsync(connectionString, "SELECT product_object_json FROM shop_quote_items WHERE quote_id = " + quoteId.ToString(CultureInfo.InvariantCulture) + " ORDER BY id DESC LIMIT 1");
+            Assert.Contains("BOSCH &amp; CO", manualJson, StringComparison.Ordinal);
+            Assert.Contains("\"article\":\"0986\"", manualJson, StringComparison.Ordinal);
+            Assert.Contains("\"check_hash\":\"manual\"", manualJson, StringComparison.Ordinal);
+            Assert.Contains("\"epc_manual_quote\":1", manualJson, StringComparison.Ordinal);
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT count_need FROM shop_quote_items WHERE quote_id = " + quoteId.ToString(CultureInfo.InvariantCulture) + " ORDER BY id DESC LIMIT 1"));
+
+            await ExecuteAsync(connectionString, "INSERT INTO shop_quote_requests (id, user_id, session_id, status, time_created, time_updated) VALUES (90, 7, 0, 'draft', 1, 1)");
+            var emptySubmit = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteSubmitPath, Form(("quote_id", "90"), ("customer_note", " later ")), signed);
+            Assert.Equal(StorefrontPhpAjax.QuoteNeedLine, emptySubmit.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("draft", await ScalarAsync(connectionString, "SELECT status FROM shop_quote_requests WHERE id = 90"));
+
+            var submitted = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteSubmitPath, Form(("quote_id", quoteId.ToString(CultureInfo.InvariantCulture)), ("customer_note", " please ")), signed);
+            Assert.True(submitted.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.False(submitted.Json.RootElement.TryGetProperty("quote_id", out _));
+            Assert.Equal("submitted", await ScalarAsync(connectionString, "SELECT status FROM shop_quote_requests WHERE id = " + quoteId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("please", await ScalarAsync(connectionString, "SELECT customer_note FROM shop_quote_requests WHERE id = " + quoteId.ToString(CultureInfo.InvariantCulture)));
+            var againSubmit = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteSubmitPath, Form(("quote_id", quoteId.ToString(CultureInfo.InvariantCulture))), signed);
+            Assert.Equal(StorefrontPhpAjax.QuoteNotDraft, againSubmit.Json.RootElement.GetProperty("message").GetString());
+
+            var invalid = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAcceptPath, Form(("quote_id", "0")), signed);
+            Assert.Equal(StorefrontPhpAjax.QuoteInvalid, invalid.Json.RootElement.GetProperty("message").GetString());
+            var acceptProduct = "{\"product_type\":2,\"manufacturer\":\"BOSCH\",\"article\":\"0986\",\"article_show\":\"0986\",\"name\":\"Pad\",\"exist\":4,\"price\":12.5,\"time_to_exe\":1,\"time_to_exe_guaranteed\":2,\"storage\":\"SHJ\",\"min_order\":1,\"probability\":80,\"office_id\":4,\"storage_id\":8,\"price_purchase\":10,\"markup\":2,\"json_params\":\"\",\"count_need\":1}";
+            await ExecuteAsync(connectionString, "INSERT INTO shop_quote_requests (id, user_id, session_id, status, time_created, time_updated) VALUES (91, 7, 0, 'quoted', 1, 1), (92, 7, 0, 'quoted', 1, 1)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_quote_items (quote_id, product_type, product_object_json, count_need, quoted_price, quoted_time_to_exe) VALUES (91, 2, '" + acceptProduct + "', 1, 0, 3), (92, 2, '" + acceptProduct + "', 1, 15, 3)");
+            var incomplete = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAcceptPath, Form(("quote_id", "91")), signed);
+            Assert.Equal(StorefrontPhpAjax.QuoteIncomplete, incomplete.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("quoted", await ScalarAsync(connectionString, "SELECT status FROM shop_quote_requests WHERE id = 91"));
+            var noCart = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAcceptPath, Form(("quote_id", "92")), signed);
+            Assert.Equal(StorefrontPhpAjax.QuoteAcceptFailed, noCart.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("quoted", await ScalarAsync(connectionString, "SELECT status FROM shop_quote_requests WHERE id = 92"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_carts'"));
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_carts (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  product_type INT NULL,
+                  price DECIMAL(12,4) NULL,
+                  count_need INT NULL,
+                  time INT NULL,
+                  user_id INT NULL,
+                  session_id INT NULL,
+                  t2_manufacturer VARCHAR(64) NULL,
+                  t2_article VARCHAR(64) NULL,
+                  t2_article_show VARCHAR(64) NULL,
+                  t2_name VARCHAR(255) NULL,
+                  t2_exist INT NULL,
+                  t2_time_to_exe INT NULL,
+                  t2_time_to_exe_guaranteed INT NULL,
+                  t2_storage VARCHAR(64) NULL,
+                  t2_min_order INT NULL,
+                  t2_probability INT NULL,
+                  t2_markup DECIMAL(12,4) NULL,
+                  t2_price_purchase DECIMAL(12,4) NULL,
+                  t2_office_id INT NULL,
+                  t2_storage_id INT NULL,
+                  t2_product_json TEXT NULL,
+                  t2_json_params TEXT NULL
+                )
+                """);
+            var accepted = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAcceptPath, Form(("quote_id", "92")), signed);
+            Assert.True(accepted.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal("accepted", await ScalarAsync(connectionString, "SELECT status FROM shop_quote_requests WHERE id = 92"));
+            Assert.Equal("15.0000", await ScalarAsync(connectionString, "SELECT price FROM shop_carts"));
+            Assert.Equal("3", await ScalarAsync(connectionString, "SELECT t2_time_to_exe FROM shop_carts"));
+            Assert.Equal("3", await ScalarAsync(connectionString, "SELECT t2_time_to_exe_guaranteed FROM shop_carts"));
+            Assert.Equal("BOSCH", await ScalarAsync(connectionString, "SELECT t2_manufacturer FROM shop_carts"));
+            Assert.Equal("0986", await ScalarAsync(connectionString, "SELECT t2_article FROM shop_carts"));
+            Assert.Equal("7", await ScalarAsync(connectionString, "SELECT user_id FROM shop_carts"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT session_id FROM shop_carts"));
+            Assert.Contains(Md5("BOSCH09860986Pad41533SHJ180481022"), await ScalarAsync(connectionString, "SELECT t2_product_json FROM shop_carts"), StringComparison.Ordinal);
+
+            await ExecuteAsync(connectionString, "INSERT INTO shop_quote_requests (id, user_id, session_id, status, time_created, time_updated) VALUES (93, 7, 0, 'quoted', 1, 1)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_quote_items (quote_id, product_type, product_object_json, count_need, quoted_price, quoted_time_to_exe) VALUES (93, 2, '" + acceptProduct + "', 1, 15, 3)");
+            var duplicate = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.QuoteAcceptPath, Form(("quote_id", "93")), signed);
+            Assert.Equal("already", duplicate.Json.RootElement.GetProperty("code").GetString());
+            Assert.Equal(StorefrontPhpAjax.QuoteAlreadyInCart, duplicate.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("quoted", await ScalarAsync(connectionString, "SELECT status FROM shop_quote_requests WHERE id = 93"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts"));
+
+            var missingTree = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.TreeBrunchPath + "?tree_list_id=3&parent_id=0", null, string.Empty);
+            Assert.Equal(StorefrontPhpAjax.TreeListsMissing, missingTree.Body);
+            Assert.DoesNotContain("doesn't exist", missingTree.Body, StringComparison.OrdinalIgnoreCase);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_tree_lists_items (
+                  id INT NOT NULL PRIMARY KEY,
+                  tree_list_id INT NOT NULL,
+                  parent INT NOT NULL,
+                  value VARCHAR(64) NOT NULL,
+                  `count` INT NOT NULL,
+                  `order` INT NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                INSERT INTO shop_tree_lists_items (id, tree_list_id, parent, value, `count`, `order`) VALUES
+                (1, 3, 0, 'Pads', 2, 2),
+                (2, 3, 0, 'Rotors', 0, 1),
+                (3, 3, 1, 'Front', 0, 1)
+                """);
+            var brunch = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.TreeBrunchPath + "?tree_list_id=3&parent_id=0&int_2=4", null, string.Empty);
+            Assert.Equal(JsonValueKind.Null, brunch.Json.RootElement.GetProperty("int_1").ValueKind);
+            Assert.Equal(4, brunch.Json.RootElement.GetProperty("int_2").GetInt32());
+            Assert.Equal("2", brunch.Json.RootElement.GetProperty("data")[0].GetProperty("id").GetString());
+            Assert.Equal("Rotors", brunch.Json.RootElement.GetProperty("data")[0].GetProperty("value").GetString());
+            Assert.Equal("0", brunch.Json.RootElement.GetProperty("data")[0].GetProperty("webix_kids").GetString());
+            Assert.Equal("Pads", brunch.Json.RootElement.GetProperty("data")[1].GetProperty("value").GetString());
+            Assert.Equal("2", brunch.Json.RootElement.GetProperty("data")[1].GetProperty("webix_kids").GetString());
+            var child = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.TreeBrunchPath + "?tree_list_id=3&parent_id=1", null, string.Empty);
+            Assert.Equal("Front", child.Json.RootElement.GetProperty("data")[0].GetProperty("value").GetString());
+            var loader = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.TreeAsyncPath + "?tree_list_id=3&parent_id=0", null, string.Empty);
+            Assert.Equal("0", loader.Json.RootElement.GetProperty("parent").GetString());
+            Assert.False(loader.Json.RootElement.GetProperty("data")[0].TryGetProperty("webix_kids", out _));
+            Assert.Equal("2", loader.Json.RootElement.GetProperty("data")[1].GetProperty("webix_kids").GetString());
+
+            var noCsrf = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.ToMarksPath, null, signed);
+            Assert.Equal("Error! CSRF 1", noCsrf.Json.RootElement.GetProperty("message").GetString());
+            var marks = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.ToMarksPath + "?csrf_guard_key=csrf-1", null, signed);
+            Assert.Equal(StorefrontPhpAjax.ToMarksLocalFailure, marks.Body);
+            Assert.DoesNotContain("search_tab_car", marks.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Toyota", marks.Body, StringComparison.Ordinal);
+
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `docpart`.`users`"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `ecomae`.`users`"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+    }
+
+    private static string Md5(string raw)
+        => Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(raw))).ToLowerInvariant();
 
     private static string RequestJson(int categoryId, int blockType, string search)
         => "{\"category_id\":" + categoryId.ToString(CultureInfo.InvariantCulture)

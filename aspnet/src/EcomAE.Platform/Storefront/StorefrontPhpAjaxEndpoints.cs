@@ -139,6 +139,20 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.UcatsAuthControlPath, ["GET", "POST"], UcatsAuthControlAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.QuoteAddPath, ["GET", "POST"], QuoteAddAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.QuoteManualPath, ["GET", "POST"], QuoteManualAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.QuoteSubmitPath, ["GET", "POST"], QuoteSubmitAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.QuoteAcceptPath, ["GET", "POST"], QuoteAcceptAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.TreeBrunchPath, ["GET", "POST"], TreeBrunchAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.TreeAsyncPath, ["GET", "POST"], TreeAsyncAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ToMarksPath, ["GET", "POST"], ToMarksAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -940,6 +954,179 @@ public static class StorefrontPhpAjaxEndpoints
             StorefrontPhpAjax.UcatsCatalogues(CpPhpConfig.Read(options.Value)),
             "text/html; charset=utf-8");
     }
+
+    private static async Task<IResult> QuoteAddAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var products = await FieldAsync(context, "product_objects", cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.AddToQuoteAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                products,
+                ExpectedTechKey(context),
+                token),
+            new StorefrontPhpAjax.QuoteBody(false, Message: StorefrontPhpAjax.QuoteDbMessage)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> QuoteManualAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var manufacturer = await FieldAsync(context, "manufacturer", cancellationToken).ConfigureAwait(false);
+        var article = await FieldAsync(context, "article", cancellationToken).ConfigureAwait(false);
+        var articleShow = await FieldAsync(context, "article_show", cancellationToken).ConfigureAwait(false);
+        var name = await FieldAsync(context, "name", cancellationToken).ConfigureAwait(false);
+        var count = await FieldAsync(context, "count_need", cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.AddManualQuoteAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                manufacturer,
+                article,
+                articleShow,
+                name,
+                count,
+                token),
+            new StorefrontPhpAjax.QuoteBody(false, Message: StorefrontPhpAjax.QuoteDbMessage)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> QuoteSubmitAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var quoteId = await FieldAsync(context, "quote_id", cancellationToken).ConfigureAwait(false);
+        var note = await FieldAsync(context, "customer_note", cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.SubmitQuoteAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                quoteId,
+                note,
+                token),
+            new StorefrontPhpAjax.QuoteBody(false, Message: StorefrontPhpAjax.QuoteDbMessage)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> QuoteAcceptAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var quoteId = await FieldAsync(context, "quote_id", cancellationToken).ConfigureAwait(false);
+        var techKey = ExpectedTechKey(context);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.AcceptQuoteAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                quoteId,
+                techKey,
+                token),
+            new StorefrontPhpAjax.QuoteBody(false, Message: StorefrontPhpAjax.QuoteDbMessage)).ConfigureAwait(false);
+    }
+
+    private static Task<IResult> TreeBrunchAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.TreeBrunchAsync(
+                connection,
+                QueryInt(context, "tree_list_id"),
+                QueryInt(context, "parent_id"),
+                QueryInt(context, "int_1"),
+                QueryInt(context, "int_2"),
+                QueryInt(context, "int_3"),
+                token),
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static Task<IResult> TreeAsyncAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.TreeAsyncAsync(
+                connection,
+                QueryRaw(context, "tree_list_id"),
+                QueryRaw(context, "parent_id"),
+                token),
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static async Task<IResult> ToMarksAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Results.Text(StorefrontPhpAjax.NoDbConnect, "text/html; charset=utf-8");
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var posted = await FieldAsync(context, "csrf_guard_key", cancellationToken).ConfigureAwait(false);
+            var csrf = await StorefrontPhpAjax.ReadCsrfAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Query.ContainsKey("csrf_guard_key") || (context.Request.HasFormContentType && context.Request.Form.ContainsKey("csrf_guard_key"))
+                    ? posted
+                    : null,
+                cancellationToken).ConfigureAwait(false);
+            if (!csrf.Ok
+                || !string.Equals(context.Request.Cookies["u_id"], csrf.UserId.ToString(CultureInfo.InvariantCulture), StringComparison.Ordinal))
+            {
+                return Php(StorefrontPhpAjax.CsrfFailure(csrf.Ok ? "Error! CSRF 3.1" : csrf.Message));
+            }
+
+            return Results.Text(StorefrontPhpAjax.ToMarksLocalFailure, "text/html; charset=utf-8");
+        }
+        catch (Exception)
+        {
+            return Results.Text(StorefrontPhpAjax.NoDbConnect, "text/html; charset=utf-8");
+        }
+    }
+
+    private static int? QueryInt(HttpContext context, string name)
+    {
+        if (!context.Request.Query.ContainsKey(name))
+        {
+            return null;
+        }
+
+        return int.TryParse(context.Request.Query[name].ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var value)
+            ? value
+            : 0;
+    }
+
+    private static string? QueryRaw(HttpContext context, string name)
+        => context.Request.Query.ContainsKey(name) ? context.Request.Query[name].ToString() : null;
 
     private static Task<IResult> UcatsAuthControlAsync(
         HttpContext context,
