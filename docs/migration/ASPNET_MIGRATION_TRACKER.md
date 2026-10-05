@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Remaining part-search ajax and blocked guest cart
+
+Not complete.
+
+- `ajax_getManufacturersList.php`, the prices list, the cross-server list, `ajax_getAnalogsList.php`, `ajax_asynchron.php`, `ajax_get_info.php`, and `ajax_getProductsOfBunch2.php` now answer on ASP.NET. An empty analogs request is `result` 0, `check` 1, and an empty list. A throwaway price row returns `BOSCH` / `Pad`. The local cross table returns `BOSCH` and analog `0987` / `MANN`. A missing price or cross table returns a clear message. A supplier storage returns “Storage handler error (get manufacturers)”. Bunch 2 with office 0 hides the guest price. Another office returns “Storage handler error”. A foreign referer is `Forbidden 403`. With ucats part info off, including an image path, the body is `{"result":0}`. ucats and supplier HTTP were not called. Async messages `4192` and `4193` are the string keys because `lang_text_strings` is absent. A blocked guest cart deletes that session’s cart and detail rows and leaves the other rows. The empty-cart words for string 4494 are not in this database, so the sum stays blank.
+- `StorefrontPhpPartSearchTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5044 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Storefront PHP search and header ajax
 
 Not complete.
