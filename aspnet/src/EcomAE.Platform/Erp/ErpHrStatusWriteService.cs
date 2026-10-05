@@ -72,6 +72,7 @@ public sealed class ErpHrStatusWriteService : IErpHrStatusWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpHrExpenseSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional(sql), cancellationToken, next, id);
         return ErpSimpleWriteResult.Ok(messagePrefix + next, id);
     }

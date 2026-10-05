@@ -41,6 +41,7 @@ public sealed class ErpSubscriptionStatusWriteService : IErpSubscriptionStatusWr
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpSubscriptionSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,

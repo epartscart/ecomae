@@ -36,6 +36,7 @@ public sealed class ErpSubGenerateWriteService : IErpSubGenerateWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpSubscriptionSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_subscriptions", "next_bill_date", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_erp_sub_invoices", "subscription_id", cancellationToken).ConfigureAwait(false))
         {
