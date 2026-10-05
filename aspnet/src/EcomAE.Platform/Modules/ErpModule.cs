@@ -1334,8 +1334,7 @@ public sealed class ErpModule : ISurfaceModule
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsSubmitDeclaration, HandleCsSubmitDeclarationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsDeleteDeclaration, HandleCsDeleteDeclarationAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCsListDeclarations, HandleCsListDeclarationsAsync).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxCsImportDeclarationPdf, async (HttpContext context, ErpCsImportDeclarationPdfBody? body, ILegacySessionValidator validator, IErpCsImportDeclarationPdfDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(0,null,false); return Results.Ok(dryRun.Evaluate(new ErpCsImportDeclarationPdfRequest(body.Id, body.Code, body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxCsImportDeclarationPdf, HandleCsImportDeclarationPdfAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutList, HandleShortcutListAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxShortcutAdd, async (
             HttpContext context,
@@ -25496,6 +25495,154 @@ public sealed class ErpModule : ISurfaceModule
             written.Succeeded,
             written.Message,
             new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, expires_at = written.Succeeded ? written.Id : 0, session = SessionPayload(session) });
+    }
+
+    private static async Task<IResult> HandleCsImportDeclarationPdfAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpCsImportDeclarationPdfDryRun dryRun,
+        IErpCsPdfImportService importer,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpCsImportDeclarationPdfRequest(0, null, false)).ToPayload(SessionPayload(session)));
+        }
+
+        try
+        {
+            if (!context.Request.HasFormContentType)
+            {
+                throw new ErpWriteException("No PDF file uploaded");
+            }
+            var file = context.Request.Form.Files.GetFile("declaration_pdf");
+            if (file is null || file.Length == 0)
+            {
+                throw new ErpWriteException("No PDF file uploaded");
+            }
+            byte[] binary;
+            await using (var stream = file.OpenReadStream())
+            {
+                using var ms = new MemoryStream();
+                await stream.CopyToAsync(ms, cancellationToken);
+                binary = ms.ToArray();
+            }
+
+            fields.TryGetValue("declaration_type_hint", out var typeHint);
+            var excludeId = 0L;
+            if (fields.TryGetValue("exclude_id", out var exRaw))
+            {
+                long.TryParse(exRaw, out excludeId);
+            }
+
+            var parsed = await importer.ImportAsync(binary, file.FileName, typeHint ?? string.Empty, excludeId, cancellationToken).ConfigureAwait(false);
+
+            // PHP epc_cs_apply_parsed_to_form_data
+            var manualOnly = new HashSet<string>(StringComparer.Ordinal)
+            {
+                "supplier_detail", "supplier_code_customs", "ld_po_number", "lc_dc_number",
+                "srv_number", "d365_po_reference", "d365_so_reference", "customer_ref",
+                "customer_country", "import_reexport_declaration_ref",
+                "document_expiry_date", "remarks",
+            };
+            var form = new Dictionary<string, object?>(StringComparer.Ordinal);
+            foreach (var kv in parsed.Core)
+            {
+                if (manualOnly.Contains(kv.Key)) continue;
+                form[kv.Key] = kv.Value;
+            }
+            form["box_data"] = new Dictionary<string, object?>(StringComparer.Ordinal)
+            {
+                ["boxes"] = parsed.Boxes,
+                ["box_45_lines"] = parsed.Box45Lines,
+                ["box_54_lines"] = parsed.Box54Lines,
+                ["box_45_fields"] = parsed.Box45,
+            };
+            var autofillKeys = new List<string>(parsed.AutofillKeys);
+            if (parsed.Core.GetValueOrDefault("invoice_term", "").Length > 0)
+            {
+                form["shipping_terms_inco"] = parsed.Core["invoice_term"];
+                if (!autofillKeys.Contains("shipping_terms_inco")) autofillKeys.Add("shipping_terms_inco");
+            }
+            if (parsed.Core.GetValueOrDefault("invoice_value", "").Length > 0)
+            {
+                form["invoice_amount_aed"] = parsed.Core["invoice_amount_aed"];
+                if (!autofillKeys.Contains("invoice_amount_aed")) autofillKeys.Add("invoice_amount_aed");
+            }
+            if (parsed.Core.GetValueOrDefault("customs_inspection_required", "").Length > 0)
+            {
+                form["custom_inspection"] = parsed.Core["customs_inspection_required"];
+            }
+            if (autofillKeys.Contains("box_06") && !autofillKeys.Contains("company")) autofillKeys.Add("company");
+            form["pdf_autofill_keys"] = autofillKeys;
+            form["line_items"] = parsed.LineItems;
+
+            var message = parsed.ParseWarning.Length > 0
+                ? parsed.ParseWarning + " Review highlighted fields before saving."
+                : "PDF parsed — review auto-filled fields";
+
+            return Results.Ok(new
+            {
+                ok = true,
+                surface = "erp",
+                writes = 1,
+                phpAuthoritative = false,
+                validation_code = "ok",
+                message,
+                parsed = new
+                {
+                    boxes = parsed.Boxes,
+                    box_45 = parsed.Box45,
+                    box_45_lines = parsed.Box45Lines,
+                    box_54_lines = parsed.Box54Lines,
+                    line_items = parsed.LineItems,
+                    core = parsed.Core,
+                    autofill_keys = parsed.AutofillKeys,
+                    declaration_type = parsed.DeclarationType,
+                    category = parsed.Category,
+                    text_preview = parsed.TextPreview,
+                    boxes_mapped = parsed.BoxesMapped,
+                    text_valid = parsed.TextValid,
+                    parse_warning = parsed.ParseWarning,
+                    partial = parsed.Partial,
+                },
+                form,
+                boxes_mapped = parsed.BoxesMapped,
+                declaration_type = parsed.DeclarationType,
+                category = parsed.Category,
+                line_items_count = parsed.LineItems.Count,
+                parse_warning = parsed.ParseWarning,
+                partial = parsed.Partial,
+                pdftotext_available = parsed.PdftotextAvailable,
+                pdftotext_path = parsed.PdftotextPath,
+                pdftotext_diag_url = "/epc-custom-shipping-pdf-test.php?token=epartscart-deploy-2026",
+                pdf_token = parsed.PdfToken,
+                pdf_preview_url = parsed.PdfPreviewUrl,
+                pdf_file_name = parsed.PdfFileName,
+                declaration_number = parsed.DeclarationNumber,
+                session = SessionPayload(session),
+            });
+        }
+        catch (ErpWriteException ex)
+        {
+            return Results.Ok(new
+            {
+                ok = false,
+                surface = "erp",
+                writes = 0,
+                phpAuthoritative = false,
+                validation_code = "invalid",
+                message = ex.Message,
+                session = SessionPayload(session),
+            });
+        }
     }
 
     private static async Task<IResult> HandleJwSeedSampleDataAsync(
