@@ -64,6 +64,8 @@ public sealed class ErpRbacPrivSaveWriteService : IErpRbacPrivSaveWriteService
         var name = request.Name ?? string.Empty;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureRbacAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_rbac_privilege", "code", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_rbac_privilege", "access_level", cancellationToken).ConfigureAwait(false))
         {
