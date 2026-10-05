@@ -59,6 +59,29 @@ public static partial class StorefrontPhpAjax
     public const string DemandVehiclesPath = "/content/shop/docpart/ajax_epc_demand_country_vehicles.php";
     public const string GarageMarkModelsPath = "/content/shop/docpart/garage/to_link/ajax_get_mark_models.php";
     public const string GarageModelTypesPath = "/content/shop/docpart/garage/to_link/ajax_get_models_types.php";
+    public const string UcatsLocalFailure = "null";
+
+    public static readonly string[] UcatsProductPaths =
+    [
+        "/content/shop/ucats/oil/ajax_get_products.php",
+        "/content/shop/ucats/akb/ajax_get_products.php",
+        "/content/shop/ucats/disky/ajax_get_products.php",
+        "/content/shop/ucats/shiny/ajax_get_products.php",
+        "/content/shop/ucats/accessories/ajax_get_products.php",
+        "/content/shop/ucats/kolpaki/ajax_get_products.php",
+        "/content/shop/ucats/bolty_gayki_prostavki/ajax_get_products.php"
+    ];
+
+    public static readonly string[] UcatsGroupFieldPaths =
+    [
+        "/content/shop/ucats/oil/ajax_get_group_fields.php",
+        "/content/shop/ucats/akb/ajax_get_group_fields.php",
+        "/content/shop/ucats/disky/ajax_get_group_fields.php",
+        "/content/shop/ucats/shiny/ajax_get_group_fields.php",
+        "/content/shop/ucats/accessories/ajax_get_group_fields.php",
+        "/content/shop/ucats/kolpaki/ajax_get_group_fields.php",
+        "/content/shop/ucats/bolty_gayki_prostavki/ajax_get_group_fields.php"
+    ];
     public const string UserOptionsMissing = "User options are not in this database.";
     public const string CatalogueCategoriesMissing = "Catalogue categories are not in this database.";
     public const string ProductEvaluationsMissing = "Product evaluations are not in this database.";

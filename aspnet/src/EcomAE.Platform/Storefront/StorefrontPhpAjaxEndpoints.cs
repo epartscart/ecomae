@@ -117,6 +117,17 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.GarageModelTypesPath, ["GET", "POST"], GarageModelTypesAsync)
             .DisableAntiforgery().AllowAnonymous();
+        foreach (var path in StorefrontPhpAjax.UcatsProductPaths)
+        {
+            endpoints.MapMethods(path, ["GET", "POST"], UcatsAjaxAsync)
+                .DisableAntiforgery().AllowAnonymous();
+        }
+
+        foreach (var path in StorefrontPhpAjax.UcatsGroupFieldPaths)
+        {
+            endpoints.MapMethods(path, ["GET", "POST"], UcatsAjaxAsync)
+                .DisableAntiforgery().AllowAnonymous();
+        }
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -899,6 +910,9 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static IResult GarageModelTypesAsync()
         => Php(StorefrontPhpAjax.GarageUcatsUnavailable());
+
+    private static IResult UcatsAjaxAsync()
+        => Results.Text(StorefrontPhpAjax.UcatsLocalFailure, "application/json; charset=utf-8");
 
     private static async Task<IResult> DemandAsync(
         HttpContext context,

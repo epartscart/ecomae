@@ -763,11 +763,7 @@ public static partial class StorefrontPhpAjax
             return Text("Product request is empty.");
         }
 
-        if (request.Properties is { Count: > 0 })
-        {
-            return Text(CataloguePropertyFiltersMissing);
-        }
-
+        var filter = BuildPropertyFilter(request.Properties);
         List<int>? searchIds = null;
         var search = SearchText(request.SearchString);
         if (search.Length > 0)
@@ -802,6 +798,21 @@ public static partial class StorefrontPhpAjax
             return Text(CatalogueProductsMissing);
         }
 
+        foreach (var table in filter.Tables.Distinct(StringComparer.Ordinal))
+        {
+            try
+            {
+                if (!await TableExistsAsync(connection, table, cancellationToken).ConfigureAwait(false))
+                {
+                    return Text(CataloguePropertyFiltersMissing);
+                }
+            }
+            catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+            {
+                return Text(CataloguePropertyFiltersMissing);
+            }
+        }
+
         if (listOnly)
         {
             return new RawHttp(string.Empty, "text/html; charset=utf-8");
@@ -811,12 +822,18 @@ public static partial class StorefrontPhpAjax
         {
             try
             {
-                var count = await CountProductsAsync(connection, categoryId, publishedOnly, searchIds, cancellationToken).ConfigureAwait(false);
+                var count = await CountProductsAsync(connection, categoryId, publishedOnly, searchIds, filter, cancellationToken).ConfigureAwait(false);
                 return new RawHttp(count.ToString(CultureInfo.InvariantCulture), "text/plain; charset=utf-8");
+            }
+            catch (CatalogueFail ex)
+            {
+                return Text(ex.Message);
             }
             catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
             {
-                return Text(CatalogueProductsMissing);
+                return Text(filter.ExtraWhere.Length > 0 || filter.Having.Length > 0
+                    ? CataloguePropertyFiltersMissing
+                    : CatalogueProductsMissing);
             }
         }
 
@@ -828,11 +845,17 @@ public static partial class StorefrontPhpAjax
         List<CatalogueRow> rows;
         try
         {
-            rows = await PageProductsAsync(connection, categoryId, publishedOnly, searchIds, from, take, cancellationToken).ConfigureAwait(false);
+            rows = await PageProductsAsync(connection, categoryId, publishedOnly, searchIds, filter, from, take, cancellationToken).ConfigureAwait(false);
+        }
+        catch (CatalogueFail ex)
+        {
+            return Text(ex.Message);
         }
         catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
         {
-            return Text(CatalogueProductsMissing);
+            return Text(filter.ExtraWhere.Length > 0 || filter.Having.Length > 0
+                ? CataloguePropertyFiltersMissing
+                : CatalogueProductsMissing);
         }
 
         if (rows.Count == 0)
@@ -915,11 +938,22 @@ public static partial class StorefrontPhpAjax
         int categoryId,
         bool publishedOnly,
         List<int>? searchIds,
+        CatalogueFilter filter,
         CancellationToken cancellationToken)
     {
         await using var command = connection.CreateCommand();
-        var where = ProductWhere(categoryId, publishedOnly, searchIds, out var args);
-        command.CommandText = "SELECT COUNT(DISTINCT `id`) FROM `shop_catalogue_products` " + where;
+        var where = ProductWhere(categoryId, publishedOnly, searchIds, filter, out var args);
+        if (filter.Having.Length > 0)
+        {
+            var priced = await PriceSelectAsync(connection, where, filter.Having, args, cancellationToken).ConfigureAwait(false);
+            command.CommandText = "SELECT COUNT(DISTINCT `id`) FROM (" + priced.Sql + ") AS `all`";
+            args = priced.Args;
+        }
+        else
+        {
+            command.CommandText = "SELECT COUNT(DISTINCT `shop_catalogue_products`.`id`) FROM `shop_catalogue_products` " + where;
+        }
+
         if (args.Count > 0)
         {
             ErpDb.AddParameters(command, args.ToArray());
@@ -934,15 +968,29 @@ public static partial class StorefrontPhpAjax
         int categoryId,
         bool publishedOnly,
         List<int>? searchIds,
+        CatalogueFilter filter,
         int from,
         int take,
         CancellationToken cancellationToken)
     {
         var rows = new List<CatalogueRow>();
         await using var command = connection.CreateCommand();
-        var where = ProductWhere(categoryId, publishedOnly, searchIds, out var args);
-        command.CommandText = "SELECT `id`, `caption`, `alias`, `category_id` FROM `shop_catalogue_products` " + where
-            + " ORDER BY `id` ASC LIMIT " + from.ToString(CultureInfo.InvariantCulture) + ", " + take.ToString(CultureInfo.InvariantCulture);
+        var where = ProductWhere(categoryId, publishedOnly, searchIds, filter, out var args);
+        var limit = " ORDER BY `id` ASC LIMIT " + from.ToString(CultureInfo.InvariantCulture) + ", " + take.ToString(CultureInfo.InvariantCulture);
+        if (filter.Having.Length > 0)
+        {
+            var priced = await PriceSelectAsync(connection, where, filter.Having, args, cancellationToken).ConfigureAwait(false);
+            command.CommandText = "SELECT p.`id`, p.`caption`, p.`alias`, p.`category_id` FROM `shop_catalogue_products` p INNER JOIN (SELECT DISTINCT `id` FROM ("
+                + priced.Sql
+                + ") AS `priced`) keep ON keep.`id` = p.`id` ORDER BY p.`id` ASC LIMIT "
+                + from.ToString(CultureInfo.InvariantCulture) + ", " + take.ToString(CultureInfo.InvariantCulture);
+            args = priced.Args;
+        }
+        else
+        {
+            command.CommandText = "SELECT `id`, `caption`, `alias`, `category_id` FROM `shop_catalogue_products` " + where + limit;
+        }
+
         if (args.Count > 0)
         {
             ErpDb.AddParameters(command, args.ToArray());
@@ -971,35 +1019,397 @@ public static partial class StorefrontPhpAjax
         return rows;
     }
 
-    private static string ProductWhere(int categoryId, bool publishedOnly, List<int>? searchIds, out List<object> args)
+    private static string ProductWhere(int categoryId, bool publishedOnly, List<int>? searchIds, CatalogueFilter filter, out List<object> args)
     {
         var parts = new List<string>();
         args = [];
         if (categoryId > 0 && searchIds is null)
         {
-            parts.Add("`category_id` = ?");
+            parts.Add("`shop_catalogue_products`.`category_id` = ?");
             args.Add(categoryId);
         }
 
         if (publishedOnly)
         {
-            parts.Add("`published_flag` = 1");
+            parts.Add("`shop_catalogue_products`.`published_flag` = 1");
         }
 
         if (searchIds is not null)
         {
             if (searchIds.Count == 0)
             {
-                parts.Add("`id` IN (0)");
+                parts.Add("`shop_catalogue_products`.`id` IN (0)");
             }
             else
             {
-                parts.Add("`id` IN (" + string.Join(",", searchIds.Select(id => id.ToString(CultureInfo.InvariantCulture))) + ")");
+                parts.Add("`shop_catalogue_products`.`id` IN (" + string.Join(",", searchIds.Select(id => id.ToString(CultureInfo.InvariantCulture))) + ")");
             }
+        }
+
+        if (filter.ExtraWhere.Length > 0)
+        {
+            parts.Add(filter.ExtraWhere);
+            args.AddRange(filter.Args);
         }
 
         return parts.Count == 0 ? string.Empty : "WHERE " + string.Join(" AND ", parts);
     }
+
+    private static CatalogueFilter BuildPropertyFilter(List<JsonElement>? properties)
+    {
+        if (properties is null || properties.Count == 0)
+        {
+            return CatalogueFilter.None;
+        }
+
+        var clauses = new List<string>();
+        var args = new List<object>();
+        var tables = new List<string>();
+        var having = new StringBuilder();
+        foreach (var property in properties)
+        {
+            if (property.ValueKind != JsonValueKind.Object)
+            {
+                continue;
+            }
+
+            if (property.TryGetProperty("property_id", out var propertyId) && PropertyIdIsPrice(propertyId))
+            {
+                if (TryRange(property, out var minNeed, out var minValue, out var maxNeed, out var maxValue)
+                    && (minNeed > minValue || maxNeed < maxValue))
+                {
+                    if (having.Length > 0)
+                    {
+                        having.Append(" AND ");
+                    }
+
+                    having.Append("(`customer_price` >= ");
+                    having.Append(minNeed.ToString(CultureInfo.InvariantCulture));
+                    having.Append(" AND `customer_price` < ");
+                    having.Append((maxNeed + 1m).ToString(CultureInfo.InvariantCulture));
+                    having.Append(')');
+                    tables.Add("shop_storages_data");
+                    tables.Add("shop_offices_storages_map");
+                    tables.Add("shop_storages");
+                }
+
+                continue;
+            }
+
+            if (!TryTypeId(property, out var typeId))
+            {
+                continue;
+            }
+
+            if (typeId is 1 or 2)
+            {
+                if (!TryRange(property, out var minNeed, out var minValue, out var maxNeed, out var maxValue)
+                    || (minNeed == minValue && maxNeed == maxValue))
+                {
+                    continue;
+                }
+            }
+
+            switch (typeId)
+            {
+                case 1:
+                    AddRangeClause(clauses, args, tables, property, "shop_properties_values_int");
+                    break;
+                case 2:
+                    AddRangeClause(clauses, args, tables, property, "shop_properties_values_float");
+                    break;
+                case 4:
+                    AddBoolClause(clauses, args, tables, property);
+                    break;
+                case 5:
+                    AddListClause(clauses, args, tables, property);
+                    break;
+                case 6:
+                    AddTreeClause(clauses, args, tables, property);
+                    break;
+            }
+        }
+
+        return new CatalogueFilter
+        {
+            ExtraWhere = string.Join(" AND ", clauses),
+            Args = args,
+            Having = having.ToString(),
+            Tables = tables
+        };
+    }
+
+    private static void AddRangeClause(List<string> clauses, List<object> args, List<string> tables, JsonElement property, string table)
+    {
+        if (!TryRange(property, out var minNeed, out _, out var maxNeed, out _))
+        {
+            return;
+        }
+
+        clauses.Add("( (SELECT `value` FROM " + table + " WHERE product_id = `shop_catalogue_products`.id AND `property_id` = ?) >= ? AND (SELECT `value` FROM " + table + " WHERE product_id = `shop_catalogue_products`.id AND `property_id` = ?) <= ? )");
+        var propertyId = PropertyArg(property);
+        args.Add(propertyId);
+        args.Add(minNeed);
+        args.Add(propertyId);
+        args.Add(maxNeed);
+        tables.Add(table);
+    }
+
+    private static void AddBoolClause(List<string> clauses, List<object> args, List<string> tables, JsonElement property)
+    {
+        var trueChecked = property.TryGetProperty("true_checked", out var trueValue) && PhpTruthy(trueValue);
+        var falseChecked = property.TryGetProperty("false_checked", out var falseValue) && PhpTruthy(falseValue);
+        if ((!trueChecked && !falseChecked) || (trueChecked && falseChecked))
+        {
+            return;
+        }
+
+        clauses.Add("(SELECT `value` FROM shop_properties_values_bool WHERE product_id = `shop_catalogue_products`.id AND `property_id` = ?) = ?");
+        args.Add(PropertyArg(property));
+        args.Add(trueChecked ? 1 : 0);
+        tables.Add("shop_properties_values_bool");
+    }
+
+    private static void AddListClause(List<string> clauses, List<object> args, List<string> tables, JsonElement property)
+    {
+        if (!property.TryGetProperty("list_options", out var options) || options.ValueKind != JsonValueKind.Array)
+        {
+            return;
+        }
+
+        if (!property.TryGetProperty("list_type", out var listTypeElement) || !TryDecimal(listTypeElement, out var listType))
+        {
+            return;
+        }
+
+        var joiner = listType == 1m ? "OR" : listType == 2m ? "AND" : string.Empty;
+        if (joiner.Length == 0)
+        {
+            return;
+        }
+
+        var parts = new List<string>();
+        foreach (var option in options.EnumerateArray())
+        {
+            if (option.ValueKind != JsonValueKind.Object
+                || !option.TryGetProperty("value", out var flag)
+                || !PhpTruthy(flag))
+            {
+                continue;
+            }
+
+            parts.Add("(`shop_catalogue_products`.id IN (SELECT `product_id` FROM shop_properties_values_list WHERE product_id = `shop_catalogue_products`.id AND `property_id` = ? AND value = ?))");
+            args.Add(PropertyArg(property));
+            args.Add(option.TryGetProperty("id", out var optionId) ? JsonArg(optionId) : DBNull.Value);
+        }
+
+        if (parts.Count == 0)
+        {
+            return;
+        }
+
+        clauses.Add("(" + string.Join(" " + joiner + " ", parts) + ")");
+        tables.Add("shop_properties_values_list");
+    }
+
+    private static void AddTreeClause(List<string> clauses, List<object> args, List<string> tables, JsonElement property)
+    {
+        var level = property.TryGetProperty("current_level", out var levelElement) && TryDecimal(levelElement, out var levelValue) ? levelValue : -1m;
+        var current = property.TryGetProperty("current_value", out var valueElement) && TryDecimal(valueElement, out var currentValue) ? currentValue : -1m;
+        if (level == 1m && current == 0m)
+        {
+            return;
+        }
+
+        if (!property.TryGetProperty("current_value", out valueElement))
+        {
+            return;
+        }
+
+        clauses.Add("( SELECT `value` FROM `shop_properties_values_tree_list` WHERE product_id = `shop_catalogue_products`.id AND `property_id` = ? AND value = ? LIMIT 1) ");
+        args.Add(PropertyArg(property));
+        args.Add(JsonArg(valueElement));
+        tables.Add("shop_properties_values_tree_list");
+    }
+
+    private static async Task<(string Sql, List<object> Args)> PriceSelectAsync(
+        DbConnection connection,
+        string where,
+        string having,
+        List<object> whereArgs,
+        CancellationToken cancellationToken)
+    {
+        var offices = await PriceOfficesAsync(connection, cancellationToken).ConfigureAwait(false);
+        if (offices.Count == 0)
+        {
+            throw new CatalogueFail(CataloguePropertyFiltersMissing);
+        }
+
+        var arms = new List<string>();
+        var args = new List<object>();
+        foreach (var officeId in offices)
+        {
+            List<int> storages;
+            try
+            {
+                storages = await PriceStorageIdsAsync(connection, officeId, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+            {
+                throw new CatalogueFail(CataloguePropertyFiltersMissing);
+            }
+
+            var inList = storages.Count == 0
+                ? "0"
+                : string.Join(",", storages.Select(id => id.ToString(CultureInfo.InvariantCulture)));
+            args.AddRange(whereArgs);
+            arms.Add(
+                "SELECT `shop_catalogue_products`.`id`, `shop_storages_data`.`price` AS `customer_price` FROM `shop_catalogue_products` LEFT OUTER JOIN `shop_storages_data` ON `shop_catalogue_products`.`id` = `shop_storages_data`.`product_id` AND `shop_storages_data`.`storage_id` IN ("
+                + inList
+                + ") AND `exist` > 0 AND `price` > 0 "
+                + where
+                + " HAVING "
+                + having);
+        }
+
+        return (string.Join(" UNION ", arms), args);
+    }
+
+    private static async Task<List<int>> PriceOfficesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var offices = new List<int>();
+        if (await TableExistsAsync(connection, "shop_geo", cancellationToken).ConfigureAwait(false)
+            && await TableExistsAsync(connection, "shop_offices_geo_map", cancellationToken).ConfigureAwait(false))
+        {
+            long geoId = 0;
+            await using (var geo = connection.CreateCommand())
+            {
+                geo.CommandText = "SELECT MIN(`id`) FROM `shop_geo`";
+                var value = await geo.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                if (value is not null and not DBNull)
+                {
+                    geoId = Convert.ToInt64(value, CultureInfo.InvariantCulture);
+                }
+            }
+
+            if (geoId > 0)
+            {
+                await using var map = connection.CreateCommand();
+                map.CommandText = ErpDb.Positional("SELECT `office_id` FROM `shop_offices_geo_map` WHERE `geo_id` = ?");
+                ErpDb.AddParameters(map, geoId);
+                await using var reader = await map.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    offices.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
+                }
+            }
+        }
+
+        if (offices.Count == 0)
+        {
+            await using var office = connection.CreateCommand();
+            office.CommandText = "SELECT `id` FROM `shop_offices` ORDER BY `id` LIMIT 1";
+            var value = await office.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            if (value is not null and not DBNull)
+            {
+                offices.Add(Convert.ToInt32(value, CultureInfo.InvariantCulture));
+            }
+        }
+
+        return offices;
+    }
+
+    private static async Task<List<int>> PriceStorageIdsAsync(DbConnection connection, int officeId, CancellationToken cancellationToken)
+    {
+        var ids = new List<int>();
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional(
+            "SELECT DISTINCT `storage_id` FROM `shop_offices_storages_map` WHERE `office_id` = ? AND `storage_id` IN (SELECT `id` FROM `shop_storages` WHERE `interface_type` = 1)");
+        ErpDb.AddParameters(command, officeId);
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            ids.Add(Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture));
+        }
+
+        return ids;
+    }
+
+    private static bool PropertyIdIsPrice(JsonElement propertyId)
+        => propertyId.ValueKind == JsonValueKind.String
+            && string.Equals(propertyId.GetString(), "price", StringComparison.Ordinal);
+
+    private static object PropertyArg(JsonElement property)
+        => property.TryGetProperty("property_id", out var propertyId) ? JsonArg(propertyId) : DBNull.Value;
+
+    private static object JsonArg(JsonElement element)
+        => element.ValueKind switch
+        {
+            JsonValueKind.Number when element.TryGetInt64(out var number) => number,
+            JsonValueKind.Number => element.GetDecimal(),
+            JsonValueKind.String => element.GetString() ?? string.Empty,
+            JsonValueKind.True => 1,
+            JsonValueKind.False => 0,
+            _ => DBNull.Value
+        };
+
+    private static bool TryTypeId(JsonElement property, out int typeId)
+    {
+        typeId = 0;
+        if (!property.TryGetProperty("property_type_id", out var element) || !TryDecimal(element, out var value))
+        {
+            return false;
+        }
+
+        if (value != decimal.Truncate(value) || value is not (1m or 2m or 4m or 5m or 6m))
+        {
+            return false;
+        }
+
+        typeId = (int)value;
+        return true;
+    }
+
+    private static bool TryRange(JsonElement property, out decimal minNeed, out decimal minValue, out decimal maxNeed, out decimal maxValue)
+    {
+        minNeed = 0;
+        minValue = 0;
+        maxNeed = 0;
+        maxValue = 0;
+        return property.TryGetProperty("min_need", out var minNeedElement) && TryDecimal(minNeedElement, out minNeed)
+            && property.TryGetProperty("min_value", out var minValueElement) && TryDecimal(minValueElement, out minValue)
+            && property.TryGetProperty("max_need", out var maxNeedElement) && TryDecimal(maxNeedElement, out maxNeed)
+            && property.TryGetProperty("max_value", out var maxValueElement) && TryDecimal(maxValueElement, out maxValue);
+    }
+
+    private static bool TryDecimal(JsonElement element, out decimal value)
+    {
+        if (element.ValueKind == JsonValueKind.Number && element.TryGetDecimal(out value))
+        {
+            return true;
+        }
+
+        if (element.ValueKind == JsonValueKind.String
+            && decimal.TryParse(element.GetString(), NumberStyles.Float, CultureInfo.InvariantCulture, out value))
+        {
+            return true;
+        }
+
+        value = 0;
+        return false;
+    }
+
+    private static bool PhpTruthy(JsonElement element)
+        => element.ValueKind switch
+        {
+            JsonValueKind.True => true,
+            JsonValueKind.False or JsonValueKind.Null or JsonValueKind.Undefined => false,
+            JsonValueKind.Number => element.TryGetDecimal(out var number) && number != 0,
+            JsonValueKind.String => element.GetString() is { Length: > 0 } text && !string.Equals(text, "0", StringComparison.Ordinal),
+            JsonValueKind.Array => element.GetArrayLength() > 0,
+            JsonValueKind.Object => true,
+            _ => false
+        };
 
     private static async Task<List<int>> SearchIdsAsync(DbConnection connection, string search, CancellationToken cancellationToken)
     {
@@ -1926,6 +2336,19 @@ public static partial class StorefrontPhpAjax
         public CatalogueFail(string message) : base(message)
         {
         }
+    }
+
+    private sealed class CatalogueFilter
+    {
+        public static CatalogueFilter None { get; } = new();
+
+        public string ExtraWhere { get; init; } = string.Empty;
+
+        public List<object> Args { get; init; } = [];
+
+        public string Having { get; init; } = string.Empty;
+
+        public List<string> Tables { get; init; } = [];
     }
 
     private sealed record CatalogueRequest(

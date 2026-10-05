@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Text.Json;
@@ -348,10 +349,201 @@ public sealed class StorefrontPhpCatalogueDemandTests
         Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
     }
 
+    [Fact]
+    public async Task CataloguePropertyFiltersAndUcatsAjax_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        Assert.DoesNotContain("Database=docpart", connectionString, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            foreach (var path in StorefrontPhpAjax.UcatsProductPaths.Concat(StorefrontPhpAjax.UcatsGroupFieldPaths))
+            {
+                foreach (var method in new[] { HttpMethod.Get, HttpMethod.Post })
+                {
+                    var ucats = await SendAsync(client, method, path, Form(("products_query", "{\"brand\":\"BOSCH\"}"), ("group", "5")), string.Empty);
+                    Assert.Equal("null", ucats.Body);
+                    Assert.Contains("json", ucats.ContentType, StringComparison.OrdinalIgnoreCase);
+                    Assert.DoesNotContain("[", ucats.Body, StringComparison.Ordinal);
+                    Assert.DoesNotContain("BOSCH", ucats.Body, StringComparison.Ordinal);
+                    Assert.DoesNotContain("status", ucats.Body, StringComparison.OrdinalIgnoreCase);
+                }
+            }
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_catalogue_products (
+                  id INT NOT NULL PRIMARY KEY,
+                  category_id INT NOT NULL,
+                  caption VARCHAR(255) NOT NULL,
+                  alias VARCHAR(255) NOT NULL,
+                  published_flag TINYINT NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                INSERT INTO shop_catalogue_products (id, category_id, caption, alias, published_flag) VALUES
+                (1, 3, 'Pad A', 'pad-a', 1),
+                (2, 3, 'Pad B', 'pad-b', 1),
+                (9, 3, 'Hidden', 'hidden', 0),
+                (10, 3, 'Pad Dry', 'pad-dry', 1),
+                (11, 4, 'Other', 'other', 1)
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_offices (
+                  id INT NOT NULL PRIMARY KEY,
+                  city VARCHAR(64) NOT NULL,
+                  address VARCHAR(255) NOT NULL,
+                  timetable VARCHAR(255) NOT NULL,
+                  phone VARCHAR(64) NOT NULL
+                )
+                """);
+            await ExecuteAsync(connectionString, "INSERT INTO shop_offices (id, city, address, timetable, phone) VALUES (4, 'Dubai', 'Al Quoz', '9-6', '050')");
+
+            var plain = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestJson(3, 1, string.Empty))), string.Empty);
+            Assert.Equal("3", plain.Body);
+
+            var intFilter = RangeProperty(1, 11, 10, 0, 30, 100);
+            var missingInt = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, intFilter))), string.Empty);
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, missingInt.Body);
+            Assert.DoesNotContain("doesn't exist", missingInt.Body, StringComparison.OrdinalIgnoreCase);
+            var missingList = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueListPath, Form(("propucts_request", RequestWith(3, 1, intFilter))), string.Empty);
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, missingList.Body);
+            Assert.Equal("5", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_catalogue_products"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_properties_values_int (product_id INT NOT NULL, property_id INT NOT NULL, value INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_properties_values_int (product_id, property_id, value) VALUES (1, 11, 5), (2, 11, 20)");
+            var intCount = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, intFilter))), string.Empty);
+            Assert.Equal("1", intCount.Body);
+            var intPage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, intFilter))), string.Empty);
+            Assert.Contains("Pad B", intPage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad A", intPage.Body, StringComparison.Ordinal);
+            var fullInt = RangeProperty(1, 11, 0, 0, 100, 100);
+            Assert.Equal("3", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, fullInt))), string.Empty)).Body);
+            Assert.Equal(string.Empty, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueListPath, Form(("propucts_request", RequestWith(3, 1, intFilter))), string.Empty)).Body);
+
+            var floatFilter = RangeProperty(2, 12, 5, 0, 12, 100);
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, floatFilter))), string.Empty)).Body);
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_properties_values_float (product_id INT NOT NULL, property_id INT NOT NULL, value DECIMAL(10,2) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_properties_values_float (product_id, property_id, value) VALUES (1, 12, 1.50), (2, 12, 9.50)");
+            Assert.Equal("1", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, floatFilter))), string.Empty)).Body);
+            var floatPage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, floatFilter))), string.Empty);
+            Assert.Contains("Pad B", floatPage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad A", floatPage.Body, StringComparison.Ordinal);
+
+            var boolFilter = "{\"property_type_id\":4,\"property_id\":13,\"true_checked\":true,\"false_checked\":false}";
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, boolFilter))), string.Empty)).Body);
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_properties_values_bool (product_id INT NOT NULL, property_id INT NOT NULL, value TINYINT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_properties_values_bool (product_id, property_id, value) VALUES (1, 13, 1), (2, 13, 0)");
+            Assert.Equal("1", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, boolFilter))), string.Empty)).Body);
+            var boolPage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, boolFilter))), string.Empty);
+            Assert.Contains("Pad A", boolPage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad B", boolPage.Body, StringComparison.Ordinal);
+            var bothBool = "{\"property_type_id\":4,\"property_id\":13,\"true_checked\":true,\"false_checked\":true}";
+            Assert.Equal("3", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, bothBool))), string.Empty)).Body);
+
+            var listFilter = "{\"property_type_id\":5,\"property_id\":14,\"list_type\":1,\"list_options\":[{\"id\":4,\"value\":false},{\"id\":8,\"value\":true}]}";
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, listFilter))), string.Empty)).Body);
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_properties_values_list (product_id INT NOT NULL, property_id INT NOT NULL, value INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_properties_values_list (product_id, property_id, value) VALUES (1, 14, 4), (1, 14, 8), (2, 14, 8)");
+            Assert.Equal("2", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, listFilter))), string.Empty)).Body);
+            var listPage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, listFilter))), string.Empty);
+            Assert.Contains("Pad A", listPage.Body, StringComparison.Ordinal);
+            Assert.Contains("Pad B", listPage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad Dry", listPage.Body, StringComparison.Ordinal);
+            var listAnd = "{\"property_type_id\":5,\"property_id\":14,\"list_type\":2,\"list_options\":[{\"id\":4,\"value\":true},{\"id\":8,\"value\":true}]}";
+            Assert.Equal("1", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, listAnd))), string.Empty)).Body);
+            var andPage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, listAnd))), string.Empty);
+            Assert.Contains("Pad A", andPage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad B", andPage.Body, StringComparison.Ordinal);
+            var listNone = "{\"property_type_id\":5,\"property_id\":14,\"list_type\":1,\"list_options\":[{\"id\":4,\"value\":false},{\"id\":8,\"value\":false}]}";
+            Assert.Equal("3", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, listNone))), string.Empty)).Body);
+
+            var treeAll = "{\"property_type_id\":6,\"property_id\":15,\"current_level\":1,\"current_value\":0}";
+            Assert.Equal("3", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, treeAll))), string.Empty)).Body);
+            var treeFilter = "{\"property_type_id\":6,\"property_id\":15,\"current_level\":2,\"current_value\":7}";
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, treeFilter))), string.Empty)).Body);
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_properties_values_tree_list (product_id INT NOT NULL, property_id INT NOT NULL, value INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_properties_values_tree_list (product_id, property_id, value) VALUES (1, 15, 3), (2, 15, 7)");
+            Assert.Equal("1", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, treeFilter))), string.Empty)).Body);
+            var treePage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, treeFilter))), string.Empty);
+            Assert.Contains("Pad B", treePage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad A", treePage.Body, StringComparison.Ordinal);
+
+            var priceWide = "{\"property_id\":\"price\",\"min_need\":0,\"min_value\":0,\"max_need\":100,\"max_value\":100}";
+            Assert.Equal("3", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, priceWide))), string.Empty)).Body);
+            var priceFilter = "{\"property_id\":\"price\",\"min_need\":10,\"min_value\":0,\"max_need\":30,\"max_value\":100}";
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty)).Body);
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_storages_data (id INT NOT NULL PRIMARY KEY, product_id INT NOT NULL, storage_id INT NOT NULL, price DECIMAL(10,2) NOT NULL, exist INT NOT NULL, reserved INT NOT NULL)");
+            await ExecuteAsync(connectionString, """
+                INSERT INTO shop_storages_data (id, product_id, storage_id, price, exist, reserved) VALUES
+                (1, 1, 8, 15.00, 3, 0),
+                (2, 2, 8, 50.00, 2, 0),
+                (3, 2, 9, 20.00, 5, 0),
+                (4, 10, 8, 12.00, 0, 0),
+                (5, 11, 8, 12.00, 5, 0)
+                """);
+            Assert.Equal(StorefrontPhpAjax.CataloguePropertyFiltersMissing, (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty)).Body);
+            Assert.Equal("5", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_catalogue_products"));
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_storages (id INT NOT NULL PRIMARY KEY, interface_type INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_storages (id, interface_type) VALUES (8, 1), (9, 2)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_offices_storages_map (office_id INT NOT NULL, storage_id INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_offices_storages_map (office_id, storage_id) VALUES (4, 8), (4, 9)");
+            Assert.Equal("1", (await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CatalogueCountPath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty)).Body);
+            var pricePage = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.CataloguePagePath, Form(("propucts_request", RequestWith(3, 1, priceFilter))), string.Empty);
+            Assert.Contains("Pad A", pricePage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad B", pricePage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Pad Dry", pricePage.Body, StringComparison.Ordinal);
+            Assert.DoesNotContain("Other", pricePage.Body, StringComparison.Ordinal);
+            Assert.Equal("3", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id = 1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id = 1"));
+
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `docpart`.`users`"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `ecomae`.`users`"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+    }
+
     private static string RequestJson(int categoryId, int blockType, string search)
         => "{\"category_id\":" + categoryId.ToString(CultureInfo.InvariantCulture)
             + ",\"properties_list\":[],\"product_block_type\":" + blockType.ToString(CultureInfo.InvariantCulture)
             + ",\"productsPerPage\":10,\"needPagesCount\":1,\"startFrom\":0,\"page_style\":1,\"search_string\":\"" + search + "\"}";
+
+    private static string RequestWith(int categoryId, int blockType, string property)
+        => "{\"category_id\":" + categoryId.ToString(CultureInfo.InvariantCulture)
+            + ",\"properties_list\":[" + property + "],\"product_block_type\":" + blockType.ToString(CultureInfo.InvariantCulture)
+            + ",\"productsPerPage\":10,\"needPagesCount\":1,\"startFrom\":0,\"page_style\":1,\"search_string\":\"\"}";
+
+    private static string RangeProperty(int typeId, int propertyId, int minNeed, int minValue, int maxNeed, int maxValue)
+        => "{\"property_type_id\":" + typeId.ToString(CultureInfo.InvariantCulture)
+            + ",\"property_id\":" + propertyId.ToString(CultureInfo.InvariantCulture)
+            + ",\"min_need\":" + minNeed.ToString(CultureInfo.InvariantCulture)
+            + ",\"min_value\":" + minValue.ToString(CultureInfo.InvariantCulture)
+            + ",\"max_need\":" + maxNeed.ToString(CultureInfo.InvariantCulture)
+            + ",\"max_value\":" + maxValue.ToString(CultureInfo.InvariantCulture) + "}";
 
     private static Dictionary<string, string> Form(params (string Key, string Value)[] fields)
     {
