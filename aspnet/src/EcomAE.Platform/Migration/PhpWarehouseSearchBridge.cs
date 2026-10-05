@@ -367,6 +367,11 @@ public sealed class PhpWarehouseSearchBridge
         int timeoutSeconds = 8)
         where T : class
     {
+        if (IsCurrentRequest(path))
+        {
+            return null;
+        }
+
         var targets = BuildRequestTargets(path, query);
         if (targets.Count == 0)
         {
@@ -440,6 +445,11 @@ public sealed class PhpWarehouseSearchBridge
         int timeoutSeconds = 45)
         where T : class
     {
+        if (IsCurrentRequest(path))
+        {
+            return null;
+        }
+
         var targets = BuildRequestTargets(path, new Dictionary<string, string?>());
         if (targets.Count == 0)
         {
@@ -505,6 +515,13 @@ public sealed class PhpWarehouseSearchBridge
                 client.Dispose();
             }
         }
+    }
+
+    private bool IsCurrentRequest(string path)
+    {
+        var current = _httpContextAccessor?.HttpContext?.Request.Path.Value ?? string.Empty;
+        return current.Length > 0
+            && string.Equals(current, path, StringComparison.OrdinalIgnoreCase);
     }
 
     private void ApplyTargetHeaders(HttpRequestMessage request, BridgeTarget target)
