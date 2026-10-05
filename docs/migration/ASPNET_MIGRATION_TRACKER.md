@@ -80,6 +80,19 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP groups, settings, languages, payments, statistics, returns, search tabs
+
+Not complete.
+
+- Signed-in www.epartscart.com `/cp/groups-app` is **200** and lists the four stored groups (Administrators, Guests, Retail customers, Wholesale). `lang_text_strings_translation` is absent, so captions come from `groups.value`. `/cp/config-items-app` is **200**, source `database`, 0 groups (`config_groups` absent). `/cp/languages-app` is **200** with no installed languages and 0 strings (`lang_languages` absent). `/cp/payment-gateways-app` is **200** with Active default None and region totals 0 (`shop_payment_systems` absent). `/cp/statistics-app` is **200** with query counts 0 (`shop_stat_article_queries` absent). `/cp/returns-app` is **200** and says there are no return requests (`shop_orders_items_statuses_ref` absent). `/cp/search-tabs-app` is **200** and says there are no search tabs (`shop_docpart_search_tabs` absent). No rows were inserted.
+- www.electronicae.com, www.stylenlook.com, www.thejewellerytrend.com, and www.taxofinca.com `/cp/login` stay **200**. The epartscart admin session does not open `/cp/groups-app` there (**302** to `/cp/login`). They are not in `epc_portal_tenants`. No accounts were created.
+- Menu pages that still print a missing-table error: `/cp/data-transfer-app`, `/cp/industry-packs-app`, `/cp/kkt-app`, `/cp/marketing-growth-app`, `/cp/page-builder-app`, `/cp/prices-send-app`, `/cp/returns-rma-app`, `/cp/sao-app`, `/cp/warehouse-wms-app`. In-repo marketing snapshots were already **200**. VIN `email.png` and `op_*.png` are still not in the repo.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5005 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, the rest of authenticated CP (the menu pages above, writes, jewellery industry gate), signed-in CP on the other named shops, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — CP catalogue, SEO, HR, modules
 
 Not complete.
