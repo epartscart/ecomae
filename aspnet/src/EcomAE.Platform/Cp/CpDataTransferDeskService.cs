@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -156,6 +157,18 @@ public sealed class CpDataTransferDeskService : ICpDataTransferDeskService
     }
 
     private static async Task<IReadOnlyList<CpDataTransferCategory>> LoadCategoriesAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            return await LoadCategoriesCoreAsync(connection, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return [];
+        }
+    }
+
+    private static async Task<IReadOnlyList<CpDataTransferCategory>> LoadCategoriesCoreAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         var rows = new List<(long Id, long ParentId, int Level, string Caption, bool Published)>();
         await using (var cmd = connection.CreateCommand())

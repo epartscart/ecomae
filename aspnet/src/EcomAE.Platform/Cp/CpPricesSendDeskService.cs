@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -22,7 +23,7 @@ public sealed class CpPricesSendDeskService : ICpPricesSendDeskService
     }
 
     /// <summary>PHP user list SQL: WHERE clause + bound values from the cookie filter (exact matches only).</summary>
-    public static (string Where, object?[] Args) BuildUserWhere(CpPricesSendUserFilter filter)
+    public static (string Where, object?[] Args) BuildUserWhere(CpPricesSendUserFilter filter, bool profiles = true)
     {
         var parts = new List<string>();
         var args = new List<object?>();
@@ -46,28 +47,48 @@ public sealed class CpPricesSendDeskService : ICpPricesSendDeskService
 
         if (filter.Cellphone.Length > 0)
         {
-            parts.Add("IF((SELECT COUNT(`users_profiles`.`user_id`) FROM `users_profiles` WHERE `users_profiles`.`data_key` = 'cellphone' AND `users_profiles`.`data_value` = ? AND `users_profiles`.`user_id` = `users`.`user_id`) = 1, 1, 0) = 1");
-            args.Add(filter.Cellphone);
+            if (!profiles)
+            {
+                parts.Add("1 = 0");
+            }
+            else
+            {
+                parts.Add("IF((SELECT COUNT(`users_profiles`.`user_id`) FROM `users_profiles` WHERE `users_profiles`.`data_key` = 'cellphone' AND `users_profiles`.`data_value` = ? AND `users_profiles`.`user_id` = `users`.`user_id`) = 1, 1, 0) = 1");
+                args.Add(filter.Cellphone);
+            }
         }
 
         if (filter.Surname.Length > 0)
         {
-            parts.Add("IF((SELECT COUNT(`users_profiles`.`user_id`) FROM `users_profiles` WHERE `users_profiles`.`data_key` = 'surname' AND `users_profiles`.`data_value` = ? AND `users_profiles`.`user_id` = `users`.`user_id`) = 1, 1, 0) = 1");
-            args.Add(filter.Surname);
+            if (!profiles)
+            {
+                parts.Add("1 = 0");
+            }
+            else
+            {
+                parts.Add("IF((SELECT COUNT(`users_profiles`.`user_id`) FROM `users_profiles` WHERE `users_profiles`.`data_key` = 'surname' AND `users_profiles`.`data_value` = ? AND `users_profiles`.`user_id` = `users`.`user_id`) = 1, 1, 0) = 1");
+                args.Add(filter.Surname);
+            }
         }
 
         return (parts.Count == 0 ? string.Empty : " WHERE " + string.Join(" AND ", parts), args.ToArray());
     }
 
-    public static string UsersSql(CpPricesSendUserFilter filter, CpPricesSendUserSort sort)
+    public static string UsersSql(CpPricesSendUserFilter filter, CpPricesSendUserSort sort, bool profiles = true)
     {
-        var (where, _) = BuildUserWhere(filter);
+        var (where, _) = BuildUserWhere(filter, profiles);
         var field = Array.IndexOf(CpPricesSendUserSort.Fields, sort.Field) >= 0 ? sort.Field : "user_id";
+        var fio = profiles
+            ? "TRIM(CONCAT(IFNULL((SELECT `data_value` FROM `users_profiles` WHERE `data_key` = 'surname' AND `user_id` = `users`.`user_id` LIMIT 1),''), ' ', "
+              + "IFNULL((SELECT `data_value` FROM `users_profiles` WHERE `data_key` = 'name' AND `user_id` = `users`.`user_id` LIMIT 1),''), ' ', "
+              + "IFNULL((SELECT `data_value` FROM `users_profiles` WHERE `data_key` = 'patronymic' AND `user_id` = `users`.`user_id` LIMIT 1),''))) AS `fio` "
+            : "'' AS `fio` ";
+        var profileJoin = profiles
+            ? "INNER JOIN `users_profiles` ON `users`.`user_id` = `users_profiles`.`user_id` "
+            : string.Empty;
         return "SELECT DISTINCT `users`.`user_id` AS `user_id`, IFNULL(`users`.`email`,'') AS `email`, IFNULL(`users`.`email_confirmed`,0) AS `email_confirmed`, "
-               + "TRIM(CONCAT(IFNULL((SELECT `data_value` FROM `users_profiles` WHERE `data_key` = 'surname' AND `user_id` = `users`.`user_id` LIMIT 1),''), ' ', "
-               + "IFNULL((SELECT `data_value` FROM `users_profiles` WHERE `data_key` = 'name' AND `user_id` = `users`.`user_id` LIMIT 1),''), ' ', "
-               + "IFNULL((SELECT `data_value` FROM `users_profiles` WHERE `data_key` = 'patronymic' AND `user_id` = `users`.`user_id` LIMIT 1),''))) AS `fio` "
-               + "FROM `users` INNER JOIN `users_profiles` ON `users`.`user_id` = `users_profiles`.`user_id` "
+               + fio
+               + "FROM `users` " + profileJoin
                + "INNER JOIN `users_groups_bind` ON `users_groups_bind`.`user_id` = `users`.`user_id`"
                + where
                + " ORDER BY `" + field + "` " + (sort.Ascending ? "ASC" : "DESC") + " LIMIT 2000";
@@ -107,10 +128,11 @@ public sealed class CpPricesSendDeskService : ICpPricesSendDeskService
             }
 
             var userRows = new List<(long Id, string Email, bool Confirmed, string Fio)>();
-            var (_, args) = BuildUserWhere(filter);
+            var profiles = await TableExistsAsync(connection, "users_profiles", cancellationToken).ConfigureAwait(false);
+            var (_, args) = BuildUserWhere(filter, profiles);
             await using (var cmd = connection.CreateCommand())
             {
-                cmd.CommandText = ErpDb.Positional(UsersSql(filter, sort));
+                cmd.CommandText = ErpDb.Positional(UsersSql(filter, sort, profiles));
                 ErpDb.AddParameters(cmd, args);
                 await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -194,8 +216,9 @@ public sealed class CpPricesSendDeskService : ICpPricesSendDeskService
             var catalogueStorages = storages.Where(s => s.InterfaceType == 1).ToArray();
 
             var flat = new List<(long Id, long Parent, string Value)>();
-            await using (var cmd = connection.CreateCommand())
+            try
             {
+                await using var cmd = connection.CreateCommand();
                 cmd.CommandText = "SELECT `id`, IFNULL(`parent`,0), IFNULL(`value`,''), IFNULL(`alias`,'') FROM `shop_catalogue_categories` ORDER BY `level`, `order`, `id`";
                 await using var r = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
                 while (await r.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -208,6 +231,10 @@ public sealed class CpPricesSendDeskService : ICpPricesSendDeskService
                         alias.Length > 0 ? alias : value));
                 }
             }
+            catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+            {
+                flat.Clear();
+            }
 
             for (var i = 0; i < flat.Count; i++)
             {
@@ -215,10 +242,21 @@ public sealed class CpPricesSendDeskService : ICpPricesSendDeskService
             }
 
             var labels = new Dictionary<string, string>(StringComparer.Ordinal);
-            foreach (var (key, fallback) in CpPricesSendLabels.Defaults)
+            try
             {
-                var text = await translate(key).ConfigureAwait(false);
-                labels[key] = text == key ? fallback : text;
+                foreach (var (key, fallback) in CpPricesSendLabels.Defaults)
+                {
+                    var text = await translate(key).ConfigureAwait(false);
+                    labels[key] = text == key ? fallback : text;
+                }
+            }
+            catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+            {
+                labels.Clear();
+                foreach (var (key, fallback) in CpPricesSendLabels.Defaults)
+                {
+                    labels[key] = fallback;
+                }
             }
 
             return new CpPricesSendDesk(true, string.Empty, filter, sort, groups, users, offices, storages, catalogueStorages, BuildTree(flat), labels);
@@ -286,5 +324,13 @@ public sealed class CpPricesSendDeskService : ICpPricesSendDeskService
         {
             return [];
         }
+    }
+
+    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW TABLES LIKE '" + table + "'";
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is not null and not DBNull;
     }
 }

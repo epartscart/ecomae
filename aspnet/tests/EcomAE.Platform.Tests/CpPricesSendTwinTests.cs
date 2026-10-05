@@ -59,7 +59,21 @@ public sealed class CpPricesSendTwinTests
         var sql = CpPricesSendDeskService.UsersSql(CpPricesSendUserFilter.Empty, new CpPricesSendUserSort("fio", true));
         Assert.Contains("ORDER BY", sql, StringComparison.Ordinal);
         Assert.Contains("ASC", sql, StringComparison.Ordinal);
+        Assert.Contains("INNER JOIN `users_profiles`", sql, StringComparison.Ordinal);
         Assert.DoesNotContain("`drop`", CpPricesSendDeskService.UsersSql(CpPricesSendUserFilter.Empty, CpPricesSendUserSort.Normalize("drop", "desc")), StringComparison.Ordinal);
+
+        var slim = CpPricesSendDeskService.UsersSql(CpPricesSendUserFilter.Empty, new CpPricesSendUserSort("user_id", false), profiles: false);
+        Assert.Contains("'' AS `fio`", slim, StringComparison.Ordinal);
+        Assert.Contains("INNER JOIN `users_groups_bind`", slim, StringComparison.Ordinal);
+        Assert.DoesNotContain("users_profiles", slim, StringComparison.Ordinal);
+        Assert.DoesNotContain("INSERT", slim, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("UPDATE", slim, StringComparison.OrdinalIgnoreCase);
+        Assert.DoesNotContain("DELETE", slim, StringComparison.OrdinalIgnoreCase);
+
+        var blocked = CpPricesSendDeskService.BuildUserWhere(new CpPricesSendUserFilter("", -1, "", "050", "Ali"), profiles: false);
+        Assert.Contains("1 = 0", blocked.Where, StringComparison.Ordinal);
+        Assert.DoesNotContain("users_profiles", blocked.Where, StringComparison.Ordinal);
+        Assert.DoesNotContain(blocked.Args, a => a is string v && v.Contains("Ali", StringComparison.Ordinal));
     }
 
     [Fact]

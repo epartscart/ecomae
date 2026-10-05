@@ -9435,6 +9435,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var summary = new CpIndustryPacksSummary(packCount, activePacks, assignments, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var summary = new CpIndustryPacksSummary(0, 0, 0, "database", string.Empty);
+            return new(summary, [], 0, "database", string.Empty);
+        }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
@@ -12896,6 +12901,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var summary = new CpPageBuilderSummary(layouts, published, draft, sites, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var summary = new CpPageBuilderSummary(0, 0, 0, 0, "database", string.Empty);
+            return new(summary, [], 0, "database", string.Empty);
+        }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
@@ -13930,6 +13940,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var summary = new CpMarketingGrowthSummary(tasks, done, kpis, reviews, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var summary = new CpMarketingGrowthSummary(0, 0, 0, 0, "database", string.Empty);
+            return new(summary, [], 0, "database", string.Empty);
+        }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
@@ -14787,6 +14802,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var summary = new CpWarehouseWmsSummary(locations, lps, waves, openWork, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var summary = new CpWarehouseWmsSummary(0, 0, 0, 0, "database", string.Empty);
+            return new(summary, [], 0, "database", string.Empty);
+        }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
@@ -15055,6 +15075,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var summary = new CpReturnsRmaSummary(rmas, open, warranties, items, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var summary = new CpReturnsRmaSummary(0, 0, 0, 0, "database", string.Empty);
+            return new(summary, [], 0, "database", string.Empty);
         }
         catch (Exception ex)
         {
