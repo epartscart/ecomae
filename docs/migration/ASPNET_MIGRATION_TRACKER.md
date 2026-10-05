@@ -80,6 +80,21 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — SKU media lookup and type-2 cart writes
+
+Not complete.
+
+- `ajax_epc_sku_media_public.php`, `ajax_add_to_basket.php`, `ajax_change_count_need.php`, and `ajax_delete_cart_record.php` now answer on ASP.NET. Unknown SKU action is `Unknown action`. A missing SKU table says “SKU media is not in this database.” No `epc_sku_*` tables are created and UMAPI is not called. A stored photo and spec return the PHP URL and `12 mm`. A type-2 add stores `BOSCH` / `0986` / `Pad` and returns `{status:true}`. Duplicate, below-cost, and a bad hash stop before another insert. A blocked guest cannot add or change quantity. Quantity follows the PHP same-count, not-enough, and minimum-order codes. The translated sentences are not in this database, so messages `4467`, `4468`, and `4469` stay the string keys. Delete of another user’s line is `Alien cart`. A type-2 delete removes only `shop_carts`. Catalogue type 1 does not write `shop_storages_data`.
+- `/ru/parts/{brand}/{article}`, `/ar/parts/...`, and `/me/parts/...` were already 200 on this branch. This pass did not re-port language prefixes.
+- `StorefrontPhpCartTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2.
+- Notepad, garage cars, checkout create, order messages, send message, finance create, returns check, article list, and check-for-order are still not routed. Checkout and finance were left alone.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5047 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, the remaining shop ajax URLs, catalogue cart stock, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Remaining part-search ajax and blocked guest cart
 
 Not complete.
