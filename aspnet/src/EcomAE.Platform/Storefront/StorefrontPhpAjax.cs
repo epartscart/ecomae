@@ -39,6 +39,20 @@ public static partial class StorefrontPhpAjax
     public const string ReturnsCheckPath = "/content/shop/order_process/ajax_check_items_returns.php";
     public const string ArticleListPath = "/content/shop/docpart/ajax_get_article_list.php";
     public const string CheckForOrderPath = "/content/shop/order_process/ajax_check_for_order.php";
+    public const string SetUserOptionPath = "/content/users/ajax_set_user_option.php";
+    public const string SetMyCityPath = "/modules/shop/geo/ajax_set_my_city.php";
+    public const string AddEvaluationPath = "/content/shop/catalogue/evaluations/ajax_add_evaluation.php";
+    public const string ProductEvaluationsPath = "/content/shop/catalogue/evaluations/ajax_get_product_evaluations.php";
+    public const string ProductMarkPath = "/content/shop/catalogue/evaluations/ajax_get_product_general_mark.php";
+    public const string VinMessagesPath = "/content/requests/ajax_get_message.php";
+    public const string VinSendMessagePath = "/content/requests/ajax_send_message.php";
+    public const string GuestOrderLookupPath = "/content/shop/order_process/ajax_check_order_not_authorized.php";
+    public const string UserOptionsMissing = "User options are not in this database.";
+    public const string CatalogueCategoriesMissing = "Catalogue categories are not in this database.";
+    public const string ProductEvaluationsMissing = "Product evaluations are not in this database.";
+    public const string VinRequestsMissing = "VIN requests are not in this database.";
+    public const string VinMessagesMissing = "VIN messages are not in this database.";
+    public const string AdminSessionsMissing = "Admin sessions are not in this database.";
     public const string CatalogueProductsMissing = "Catalogue products are not in this database.";
     public const string WarehouseStockMissing = "Warehouse stock is not in this database.";
     public const string CartDetailsMissing = "Cart details are not in this database.";
@@ -441,6 +455,8 @@ public static partial class StorefrontPhpAjax
             bunch.ProtocolVersion,
             bunch.TreelaxCatalogue,
             bunch.NestedBunches?.Select(MapBunch).ToList() ?? []);
+
+    public sealed record RawHttp(string Body, string ContentType);
 
     public sealed record CsrfDecision(bool Ok, string Message, int UserId, int SessionRecordId)
     {

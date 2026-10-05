@@ -77,6 +77,22 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CheckForOrderPath, ["GET", "POST"], CheckForOrderAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.SetUserOptionPath, ["GET", "POST"], SetUserOptionAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.SetMyCityPath, ["GET", "POST"], SetMyCityAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.AddEvaluationPath, ["GET", "POST"], AddEvaluationAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ProductEvaluationsPath, ["GET", "POST"], ProductEvaluationsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ProductMarkPath, ["GET", "POST"], ProductMarkAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.VinMessagesPath, ["GET", "POST"], VinMessagesAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.VinSendMessagePath, ["GET", "POST"], VinSendMessageAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.GuestOrderLookupPath, ["GET", "POST"], GuestOrderLookupAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -672,6 +688,11 @@ public static class StorefrontPhpAjaxEndpoints
             }
 
             var payload = await body(connection, csrf, cancellationToken).ConfigureAwait(false);
+            if (payload is StorefrontPhpAjax.RawHttp raw)
+            {
+                return Results.Text(raw.Body, raw.ContentType);
+            }
+
             if (payload is string text)
             {
                 return text.Length == 0
@@ -700,6 +721,130 @@ public static class StorefrontPhpAjaxEndpoints
         var config = CpPhpConfig.Read(options.Value);
         return config.TryGetValue("tech_key", out var key) ? key : string.Empty;
     }
+
+    private static IResult GuestOrderLookupAsync()
+        => Results.Text(string.Empty, "text/html; charset=utf-8");
+
+    private static Task<IResult> SetUserOptionAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            async (connection, csrf, ct) => await StorefrontPhpAjax.SetUserOptionAsync(
+                connection,
+                csrf.UserId,
+                csrf.SessionRecordId,
+                await FieldAsync(context, "key", ct).ConfigureAwait(false),
+                await FieldAsync(context, "value", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static async Task<IResult> SetMyCityAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var geoId = await FieldAsync(context, "geo_id", cancellationToken).ConfigureAwait(false);
+        return await ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            (_, _, _) =>
+            {
+                context.Response.Cookies.Append("my_city", geoId, new CookieOptions
+                {
+                    Path = "/",
+                    Expires = DateTimeOffset.UtcNow.AddSeconds(9999999),
+                    HttpOnly = false,
+                    Secure = false
+                });
+                return Task.FromResult<object>(new StorefrontPhpAjax.RawHttp("1", "text/html; charset=utf-8"));
+            }).ConfigureAwait(false);
+    }
+
+    private static Task<IResult> AddEvaluationAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            async (connection, csrf, ct) => await StorefrontPhpAjax.AddEvaluationAsync(
+                connection,
+                csrf.UserId,
+                await FieldAsync(context, "evaluation_object", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> ProductEvaluationsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            async (connection, _, ct) => await StorefrontPhpAjax.ProductEvaluationsAsync(
+                connection,
+                await FieldAsync(context, "evaluation_query", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> ProductMarkAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            async (connection, _, ct) => await StorefrontPhpAjax.ProductMarkAsync(
+                connection,
+                await FieldAsync(context, "product_id", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> VinMessagesAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Php(new StorefrontPhpAjax.VinConnectDenied(false, StorefrontPhpAjax.NoDbConnectChange, "no_db_connect")),
+            async (connection, csrf, ct) => await StorefrontPhpAjax.VinMessagesAsync(
+                connection,
+                csrf.UserId,
+                await FieldAsync(context, "vin_id", ct).ConfigureAwait(false),
+                await FieldAsync(context, "manager", ct).ConfigureAwait(false),
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> VinSendMessageAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Php(new StorefrontPhpAjax.OptionBody(false, StorefrontPhpAjax.NoDbConnect)),
+            async (connection, csrf, ct) => await StorefrontPhpAjax.VinSendMessageAsync(
+                connection,
+                csrf.UserId,
+                await FieldAsync(context, "vin_id", ct).ConfigureAwait(false),
+                await FieldAsync(context, "text", ct).ConfigureAwait(false),
+                await FieldAsync(context, "manager", ct).ConfigureAwait(false),
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                ct).ConfigureAwait(false));
 
     private static Task<IResult> CartAsync(
         HttpContext context,
