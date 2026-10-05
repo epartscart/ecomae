@@ -337,6 +337,10 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.PriceExtract, ["GET", "POST"], CpPriceExtractAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.PriceExcelConvert, ["GET", "POST"], CpPriceExcelConvertAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.PricePrepareCsv, ["GET", "POST"], CpPricePrepareCsvAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.PypricesHealth, ["GET", "POST"], CpPypricesHealthAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.OrdersDetailPane, ["GET", "POST"], CpOrdersDetailPaneAsync)
@@ -2951,6 +2955,63 @@ public static class StorefrontPhpAjaxEndpoints
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
                 context.Request.Query["key"].ToString(),
+                tech,
+                root,
+                backend,
+                tmp,
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, "No DB connect"));
+    }
+
+    private static Task<IResult> CpPriceExcelConvertAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => PriceFolderStepAsync(context, connections, cancellationToken, (connection, session, user, csrf, key, tech, root, backend, tmp, token) =>
+            StorefrontPhpAjax.PriceExcelConvertAsync(connection, session, user, csrf, key, tech, root, backend, tmp, token));
+
+    private static Task<IResult> CpPricePrepareCsvAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => PriceFolderStepAsync(context, connections, cancellationToken, (connection, session, user, csrf, key, tech, root, backend, tmp, token) =>
+            StorefrontPhpAjax.PricePrepareCsvAsync(
+                connection,
+                session,
+                user,
+                csrf,
+                key,
+                tech,
+                root,
+                backend,
+                tmp,
+                StorefrontPhpAjax.PhpInt(context.Request.Query["price_id"].ToString()),
+                token));
+
+    private static Task<IResult> PriceFolderStepAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken,
+        Func<System.Data.Common.DbConnection, string?, string?, string?, string, string, string, string?, string?, CancellationToken, Task<object>> body)
+    {
+        var config = PhpConfig(context);
+        var tech = config.TryGetValue("tech_key", out var key) ? key : string.Empty;
+        config.TryGetValue("backend_dir", out var backend);
+        config.TryGetValue("tmp_dir_prices_upload", out var tmp);
+        var root = context.RequestServices.GetService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot ?? string.Empty;
+        var session = context.Request.Cookies["admin_session"];
+        var user = context.Request.Cookies["admin_u_id"];
+        var postedKey = context.Request.Query["key"].ToString();
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await body(
+                connection,
+                session,
+                user,
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                postedKey,
                 tech,
                 root,
                 backend,

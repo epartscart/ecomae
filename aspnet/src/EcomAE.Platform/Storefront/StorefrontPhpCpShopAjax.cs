@@ -2581,14 +2581,15 @@ public static partial class StorefrontPhpAjax
         string? postedKey,
         string expectedKey,
         Func<CancellationToken, Task<object>> body,
-        CancellationToken cancellationToken)
+        CancellationToken cancellationToken,
+        string deniedMessage = "Forbidden")
     {
         if (string.Equals(expectedKey, postedKey ?? string.Empty, StringComparison.Ordinal) && expectedKey.Length > 0)
         {
             return await body(cancellationToken).ConfigureAwait(false);
         }
 
-        var denied = await StaffAsync(connection, adminSession, adminUser, new FlagBody(false, "Forbidden"), cancellationToken).ConfigureAwait(false);
+        var denied = await StaffAsync(connection, adminSession, adminUser, new FlagBody(false, deniedMessage), cancellationToken).ConfigureAwait(false);
         if (denied is not null)
         {
             return denied;
@@ -2599,7 +2600,7 @@ public static partial class StorefrontPhpAjax
             adminSession,
             adminUser,
             csrf,
-            () => new FlagBody(false, "Forbidden"),
+            () => new FlagBody(false, deniedMessage),
             (_, token) => body(token),
             cancellationToken).ConfigureAwait(false);
     }
@@ -2702,6 +2703,155 @@ public static partial class StorefrontPhpAjax
             using var input = entry.OpenEntryStream();
             input.CopyTo(output);
         }
+    }
+
+    public const string ExcelConvertNote = "Convert this Excel file to CSV before import. <a href=\"https://intask.pro/\" target=\"_blank\" style=\"text-decoration:underline;font-weight:bold;color:#33C;\">intask.pro</a>";
+    public const string PricePrepareDenied = "Forbibben";
+
+    public static Task<object> PriceExcelConvertAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? postedKey,
+        string expectedKey,
+        string docRoot,
+        string? backend,
+        string? tmpRelative,
+        CancellationToken cancellationToken)
+        => PriceTechOrAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            postedKey,
+            expectedKey,
+            _ => Task.FromResult(ExcelConvert(docRoot, backend, tmpRelative)),
+            cancellationToken);
+
+    public static Task<object> PricePrepareCsvAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? postedKey,
+        string expectedKey,
+        string docRoot,
+        string? backend,
+        string? tmpRelative,
+        int priceId,
+        CancellationToken cancellationToken)
+        => PriceTechOrAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            postedKey,
+            expectedKey,
+            token => PrepareCsvAsync(connection, docRoot, backend, tmpRelative, priceId, token),
+            cancellationToken,
+            PricePrepareDenied);
+
+    private static object ExcelConvert(string docRoot, string? backend, string? tmpRelative)
+    {
+        if (!TryPriceWorkDir(docRoot, backend, tmpRelative, out var dir))
+        {
+            return new FlagBody(false, "Price upload folder is not ready.");
+        }
+
+        foreach (var path in Directory.EnumerateFiles(dir))
+        {
+            var ext = Path.GetExtension(path);
+            if (ext.Equals(".xls", StringComparison.OrdinalIgnoreCase) || ext.Equals(".xlsx", StringComparison.OrdinalIgnoreCase))
+            {
+                return new JsonObject { ["result"] = 0, ["message"] = ExcelConvertNote };
+            }
+        }
+
+        return new JsonObject { ["result"] = 1 };
+    }
+
+    private static async Task<object> PrepareCsvAsync(
+        DbConnection connection,
+        string docRoot,
+        string? backend,
+        string? tmpRelative,
+        int priceId,
+        CancellationToken cancellationToken)
+    {
+        if (!TryPriceWorkDir(docRoot, backend, tmpRelative, out var dir))
+        {
+            return new FlagBody(false, "Price upload folder is not ready.");
+        }
+
+        var separator = ";";
+        var encoding = "UTF-8";
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `separator`, `encoding` FROM `shop_docpart_prices` WHERE `id` = " + priceId.ToString(CultureInfo.InvariantCulture) + " LIMIT 1";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                if (!reader.IsDBNull(0) && reader.GetString(0).Length > 0)
+                {
+                    separator = reader.GetString(0);
+                }
+
+                if (!reader.IsDBNull(1) && reader.GetString(1).Length > 0)
+                {
+                    encoding = reader.GetString(1);
+                }
+            }
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new JsonObject { ["result"] = 0, ["message"] = PriceListsMissing };
+        }
+
+        foreach (var path in Directory.EnumerateFiles(dir))
+        {
+            var name = Path.GetFileName(path).ToLowerInvariant();
+            if (!name.EndsWith(".csv", StringComparison.Ordinal) && !name.EndsWith(".txt", StringComparison.Ordinal))
+            {
+                continue;
+            }
+
+            var bytes = await File.ReadAllBytesAsync(path, cancellationToken).ConfigureAwait(false);
+            var text = encoding == "Windows-1251 (ANSI)"
+                ? Windows1251().GetString(bytes)
+                : Encoding.UTF8.GetString(bytes);
+            if (separator != ";")
+            {
+                text = text.Replace(";", ",", StringComparison.Ordinal);
+                text = separator == "\\t"
+                    ? text.Replace("\t", ";", StringComparison.Ordinal)
+                    : text.Replace(separator, ";", StringComparison.Ordinal);
+            }
+
+            await File.WriteAllTextAsync(path, text, new UTF8Encoding(encoderShouldEmitUTF8Identifier: false), cancellationToken).ConfigureAwait(false);
+        }
+
+        return new JsonObject { ["result"] = 1 };
+    }
+
+    private static Encoding Windows1251()
+    {
+        Encoding.RegisterProvider(CodePagesEncodingProvider.Instance);
+        return Encoding.GetEncoding(1251);
+    }
+
+    private static bool TryPriceWorkDir(string docRoot, string? backend, string? tmpRelative, out string dir)
+    {
+        var folder = string.IsNullOrWhiteSpace(backend) ? "cp" : backend.Trim().Trim('/');
+        var relative = string.IsNullOrWhiteSpace(tmpRelative) ? "/tmp/prices_upload_files" : tmpRelative.Trim();
+        if (!relative.StartsWith('/'))
+        {
+            relative = "/" + relative;
+        }
+
+        dir = Path.Combine(string.IsNullOrWhiteSpace(docRoot) ? Path.GetTempPath() : docRoot, folder + relative.Replace('/', Path.DirectorySeparatorChar));
+        return Directory.Exists(dir);
     }
 
     public static async Task<object> CatalogueProductsAsync(

@@ -80,6 +80,28 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Non-ERP coverage plan — 2026-10-05
+
+ERP posting stays on the ERP engine. This plan is the other surfaces. A surface is not 100% while a PHP action, field, or page the operator still opens is unanswered, redirected to a browse shell, or only a digest.
+
+| Surface | Measured now | Still short of the PHP reference |
+| --- | --- | --- |
+| Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
+| Control Panel shop, users, and requests ajax | 61 of 75 after the steps below (81%) | CRM, customer, and document endpoints, OMS, pay and refund, price import step 5, commerce and multivendor ingest, the prices init include, price review, crosses lookup, and SAO |
+| Broader `cp/content` ajax | 74 of 110 | Control, content, and menu ajax outside the 75 |
+| Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
+
+Next build order on this branch, excluding ERP journals: finish the 16 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-05 — price Excel stop and CSV cleanup
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 61 are mapped. 14 stay unmapped. The previous checkpoint had 59 mapped and 16 unmapped. The broader `cp/content` ajax scan is 74 of 110 mapped.
+- Step 3 does not read the workbook. An `.xlsx` or `.xls` file returns result 0 and the `intask.pro` conversion note. A folder with only CSV returns result 1.
+- Step 4 with a comma separator rewrites `a;b,c` to `a;b;c`. A missing price-list table says “Price lists are not in this database.” A caller who is not an admin and has no tech key gets the PHP spelling `Forbibben`.
+- Step 5, the CSV import into the price table, is still open.
+
 ### Checkpoint 2026-10-05 — price extract, pyprices health, and the orders detail pane
 
 Not complete.

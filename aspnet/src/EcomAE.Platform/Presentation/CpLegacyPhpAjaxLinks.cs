@@ -42,6 +42,8 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(DocumentScript, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PricePackSetup, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PriceExtract, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(PriceExcelConvert, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(PricePrepareCsv, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PriceEnableKeys, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PypricesHealth, StringComparison.OrdinalIgnoreCase)
             || path.Equals(OrdersDetailPane, StringComparison.OrdinalIgnoreCase);
@@ -49,6 +51,8 @@ public static class CpLegacyPhpAjaxLinks
 
     public const string PricePackSetup = "/cp/content/shop/prices_upload/ajax_1_prepare_tmp_dir.php";
     public const string PriceExtract = "/cp/content/shop/prices_upload/ajax_2_extract_files.php";
+    public const string PriceExcelConvert = "/cp/content/shop/prices_upload/ajax_3_excel_convert.php";
+    public const string PricePrepareCsv = "/cp/content/shop/prices_upload/ajax_4_prepare_csv.php";
     public const string PriceEnableKeys = "/cp/content/shop/prices_upload/ajax_7_enable_keys.php";
     public const string PypricesHealth = "/cp/content/shop/prices_upload/ajax_epc_pyprices_health.php";
     public const string OrdersDetailPane = "/cp/content/shop/order_process/ajax_epc_orders_detail_pane.php";
