@@ -80,6 +80,18 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Price upload, catalogue writes, and groups-tree delete
+
+Not complete.
+
+- `CpRow3ThrowawayTests` creates a database and drops it. PC file import and the wizard column layout wrote article 0986 / brand BOSCH. FTP, email, and URL updates returned the PHP validation messages and did not download. A cron schedule opened a launch and finished it. The deploy API listed the probe list and uploaded “Deploy probe”. After the price-list table was dropped, those channels said the lists or schedules are not in this database. Catalogue min-limit 2.50 saved, template “Pads” was created and deleted, and a missing catalogue table returned a clear message. The groups save deleted Wholesale, which was not in the posted tree, and kept Guests, Retail customers, and Administrators. A missing `groups` table returned “Groups are not in this database.” No `docpart` rows were inserted or wiped.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled. The other named shops are still not in `epc_portal_tenants`. No accounts were created.
+- This checkpoint did not edit ERP posting. Devin's #1971–#1983 stay merged. `pf_seed`, `pf_clear`, `pf_sync-orders`, `opl_create_pos`, and `opl_autoplan` stay with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5013 passed, 0 failed.
+
+Still open: new-account OAuth provisioning, the web tracker connection, jewellery enablement, signed-in CP on the other named shops, production deploy, missing VIN `email.png` and `op_*.png`, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — CP search tab, language, settings, office, and user saves
 
 Not complete.
