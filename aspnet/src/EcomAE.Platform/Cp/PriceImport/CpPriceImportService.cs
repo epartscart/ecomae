@@ -6,6 +6,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Cp.PriceImport;
@@ -180,7 +181,16 @@ public sealed class CpPriceImportService : ICpPriceImportService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var list = await CpPriceListConfig.LoadAsync(connection, request.PriceId, cancellationToken).ConfigureAwait(false);
+        CpPriceListConfig? list;
+        try
+        {
+            list = await CpPriceListConfig.LoadAsync(connection, request.PriceId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return CpPriceImportResult.Fail("invalid", "Price lists are not in this database.", request.PriceId, channel);
+        }
+
         if (list is null)
         {
             return CpPriceImportResult.Fail("not_found", "No such price", request.PriceId, channel);
@@ -259,7 +269,17 @@ public sealed class CpPriceImportService : ICpPriceImportService
         {
             foreach (var id in ids)
             {
-                var list = await CpPriceListConfig.LoadAsync(connection, id, cancellationToken).ConfigureAwait(false);
+                CpPriceListConfig? list;
+                try
+                {
+                    list = await CpPriceListConfig.LoadAsync(connection, id, cancellationToken).ConfigureAwait(false);
+                }
+                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                    results.Add(CpPriceImportResult.Fail("invalid", "Price lists are not in this database.", id));
+                    continue;
+                }
+
                 if (list is null)
                 {
                     results.Add(CpPriceImportResult.Fail("not_found", "Прайс-лист с ID " + id.ToString(CultureInfo.InvariantCulture) + " не найден", id));

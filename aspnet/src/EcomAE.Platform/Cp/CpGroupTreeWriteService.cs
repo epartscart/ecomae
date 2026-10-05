@@ -326,7 +326,12 @@ public sealed class CpGroupTreeWriteService : ICpGroupTreeWriteService
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Fail("invalid", ex.Message);
         }
-        catch (System.Data.Common.DbException)
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Groups are not in this database.");
+        }
+        catch (DbException)
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Fail("invalid", "Could not save groups.");
