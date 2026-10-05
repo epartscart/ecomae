@@ -385,6 +385,93 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User dashboard shortcuts'",
             ct);
 
+    /// <summary>epc_as_jobs + epc_as_job_lines + epc_as_rma + epc_as_rma_lines + epc_as_warranty (epc_erp_aftersales.php ensure_schema)</summary>
+    public static async Task EnsureAftersalesAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_jobs` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`job_no` varchar(40) NOT NULL DEFAULT ''," +
+            "`customer_id` int(11) NOT NULL DEFAULT 0," +
+            "`asset_ref` varchar(120) DEFAULT NULL," +
+            "`complaint` text," +
+            "`status` varchar(16) NOT NULL DEFAULT 'open'," +
+            "`under_warranty` tinyint(1) NOT NULL DEFAULT 0," +
+            "`parts_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`labour_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`tax_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`grand_total` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Service / repair jobs'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_job_lines` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`job_id` int(11) NOT NULL," +
+            "`line_type` varchar(10) NOT NULL DEFAULT 'part'," +
+            "`description` varchar(190) DEFAULT NULL," +
+            "`item_id` int(11) NOT NULL DEFAULT 0," +
+            "`qty` decimal(14,4) NOT NULL DEFAULT 0.0000," +
+            "`unit_price` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`tax_percent` decimal(7,3) NOT NULL DEFAULT 0.000," +
+            "`chargeable` tinyint(1) NOT NULL DEFAULT 1," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_job` (`job_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Service job parts/labour lines'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_rma` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`rma_no` varchar(40) NOT NULL DEFAULT ''," +
+            "`customer_id` int(11) NOT NULL DEFAULT 0," +
+            "`source_type` varchar(40) NOT NULL DEFAULT 'sales_order'," +
+            "`source_id` int(11) NOT NULL DEFAULT 0," +
+            "`reason` varchar(190) DEFAULT NULL," +
+            "`disposition` varchar(20) NOT NULL DEFAULT 'pending'," +
+            "`status` varchar(16) NOT NULL DEFAULT 'open'," +
+            "`refund_amount` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`restock` tinyint(1) NOT NULL DEFAULT 1," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_customer` (`customer_id`)," +
+            "KEY `x_status` (`status`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Return merchandise authorisations'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_rma_lines` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`rma_id` int(11) NOT NULL," +
+            "`item_id` int(11) NOT NULL," +
+            "`qty` decimal(14,4) NOT NULL DEFAULT 0.0000," +
+            "`unit_price` decimal(14,2) NOT NULL DEFAULT 0.00," +
+            "`condition_note` varchar(190) DEFAULT NULL," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_rma` (`rma_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='RMA return lines'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_as_warranty` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`item_id` int(11) NOT NULL DEFAULT 0," +
+            "`serial_no` varchar(80) DEFAULT NULL," +
+            "`customer_id` int(11) NOT NULL DEFAULT 0," +
+            "`source_type` varchar(40) NOT NULL DEFAULT 'sales_order'," +
+            "`source_id` int(11) NOT NULL DEFAULT 0," +
+            "`start_date` int(11) NOT NULL DEFAULT 0," +
+            "`months` int(11) NOT NULL DEFAULT 0," +
+            "`expires_at` int(11) NOT NULL DEFAULT 0," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_serial` (`serial_no`)," +
+            "KEY `x_item` (`item_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Warranty register'",
+            ct);
+    }
+
     /// <summary>epc_oa_party + epc_oa_address + epc_oa_contact + epc_oa_calendar + epc_oa_holiday (epc_erp_orgadmin.php ensure_schema)</summary>
     public static async Task EnsureOrgAdminAsync(DbConnection c, CancellationToken ct)
     {
