@@ -59,6 +59,24 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.DeleteCartPath, ["GET", "POST"], DeleteCartAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.NotepadPath, ["GET", "POST"], NotepadAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.GarageCarsPath, ["GET", "POST"], GarageCarsAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CheckoutCreatePath, ["GET", "POST"], CheckoutCreateAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.OrderMessagesPath, ["GET", "POST"], OrderMessagesAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.SendMessagePath, ["GET", "POST"], SendMessageAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CreateOperationPath, ["GET", "POST"], CreateOperationAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ReturnsCheckPath, ["GET", "POST"], ReturnsCheckAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.ArticleListPath, ["GET", "POST"], ArticleListAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CheckForOrderPath, ["GET", "POST"], CheckForOrderAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -398,6 +416,275 @@ public static class StorefrontPhpAjaxEndpoints
 
         return await WithSessionAsync(context, connections, cancellationToken, (connection, csrf, ct) =>
             StorefrontPhpAjax.DeleteCartAsync(connection, csrf.UserId, csrf.SessionRecordId, request, false, false, ct)).ConfigureAwait(false);
+    }
+
+    private static Task<IResult> NotepadAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            async (connection, csrf, ct) => await StorefrontPhpAjax.AddToNotepadAsync(
+                connection,
+                csrf.UserId,
+                await FieldAsync(context, "garage", ct).ConfigureAwait(false),
+                await FieldAsync(context, "product", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> GarageCarsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Php(new StorefrontPhpAjax.GarageAnswer { Status = false, Message = StorefrontPhpAjax.NoDbConnect }),
+            async (connection, csrf, ct) =>
+            {
+                var payload = await StorefrontPhpAjax.GarageCarsAsync(
+                    connection,
+                    csrf.UserId,
+                    await FieldAsync(context, "request_object", ct).ConfigureAwait(false),
+                    ct).ConfigureAwait(false);
+                return payload is string html ? html : payload;
+            });
+
+    private static Task<IResult> CheckoutCreateAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Php(new StorefrontPhpAjax.ShopStatus(false, StorefrontPhpAjax.NoDbConnect, null, null)),
+            async (connection, csrf, ct) =>
+            {
+                var phone = context.Request.HasFormContentType && context.Request.Form.ContainsKey("phone_not_auth")
+                    ? await FieldAsync(context, "phone_not_auth", ct).ConfigureAwait(false)
+                    : null;
+                var email = context.Request.HasFormContentType && context.Request.Form.ContainsKey("email_not_auth")
+                    ? await FieldAsync(context, "email_not_auth", ct).ConfigureAwait(false)
+                    : null;
+                return await StorefrontPhpAjax.CheckoutCreateAsync(
+                    connection,
+                    csrf.UserId,
+                    csrf.SessionRecordId,
+                    context.Request.Cookies["users_agreement"],
+                    context.Request.Cookies["how_get"],
+                    phone,
+                    email,
+                    ct).ConfigureAwait(false);
+            });
+
+    private static async Task<IResult> OrderMessagesAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        var manager = !string.IsNullOrEmpty(context.Request.Query["manager"]);
+        var orderId = context.Request.Query["order_id"].ToString();
+        var returnId = context.Request.Query["return_id"].ToString();
+        if (manager)
+        {
+            return Php(new StorefrontPhpAjax.NumericDenied(false, "Forbidden", 501));
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var session = await StorefrontPhpAjax.ReadSessionAsync(connection, context.Request.Cookies["session"], cancellationToken).ConfigureAwait(false);
+            var access = await StorefrontPhpAjax.OrderOwnedAsync(connection, session.UserId, orderId, returnId, cancellationToken).ConfigureAwait(false);
+            if (access is not null)
+            {
+                return Php(access);
+            }
+        }
+        catch (Exception)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        return await ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            (connection, csrf, ct) => StorefrontPhpAjax.OrderMessagesAsync(connection, csrf.UserId, orderId, returnId, false, ct)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> SendMessageAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Plain(StorefrontPhpAjax.NoDbConnect);
+        }
+
+        var manager = !string.IsNullOrEmpty(context.Request.Query["manager"]);
+        if (manager)
+        {
+            return Php(new StorefrontPhpAjax.NumericDenied(false, "Forbidden", 501));
+        }
+
+        var orderId = context.Request.Query["order_id"].ToString();
+        var returnId = context.Request.Query["return_id"].ToString();
+        var text = context.Request.Query["text"].ToString();
+        return await ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Plain(StorefrontPhpAjax.NoDbConnect),
+            (connection, csrf, ct) => StorefrontPhpAjax.SendOrderMessageAsync(connection, csrf.UserId, orderId, returnId, text, false, ct)).ConfigureAwait(false);
+    }
+
+    private static Task<IResult> CreateOperationAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Php(new StorefrontPhpAjax.FinanceResult { Result = false, Message = StorefrontPhpAjax.NoDbConnectChange }),
+            async (connection, csrf, ct) => await StorefrontPhpAjax.CreateOperationAsync(
+                connection,
+                csrf.UserId,
+                await FieldAsync(context, "request_object", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static Task<IResult> ReturnsCheckAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Php(new StorefrontPhpAjax.ReturnsBody { Status = false, Message = "DB connect error", Code = 502 }),
+            async (connection, _, ct) => await StorefrontPhpAjax.CheckReturnsAsync(
+                connection,
+                await FieldAsync(context, "items_id", ct).ConfigureAwait(false),
+                ct).ConfigureAwait(false));
+
+    private static async Task<IResult> ArticleListAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Php(new StorefrontPhpAjax.ShopStatus(false, StorefrontPhpAjax.NoDbConnect, null, null));
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var session = await StorefrontPhpAjax.ReadSessionAsync(connection, context.Request.Cookies["session"], cancellationToken).ConfigureAwait(false);
+            var payload = await StorefrontPhpAjax.ArticleListAsync(
+                connection,
+                session.UserId,
+                context.Request.Cookies["shop_stat"],
+                await FieldAsync(context, "request_object", cancellationToken).ConfigureAwait(false),
+                cancellationToken).ConfigureAwait(false);
+            return Php(payload);
+        }
+        catch (Exception)
+        {
+            return Php(new StorefrontPhpAjax.ShopStatus(false, StorefrontPhpAjax.NoDbConnect, null, null));
+        }
+    }
+
+    private static async Task<IResult> CheckForOrderAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var missing = new StorefrontPhpAjax.CheckForOrderBody(false, StorefrontPhpAjax.NoDbConnect, "no_db_connect", null);
+        if (!connections.IsConfigured)
+        {
+            return Php(missing);
+        }
+
+        var request = await FieldAsync(context, "request_object", cancellationToken).ConfigureAwait(false);
+        if (StorefrontPhpAjax.RequestHasTechKey(request, emptyCounts: false))
+        {
+            var accepted = StorefrontPhpAjax.TechKeyAccepted(ExpectedTechKey(context), StorefrontPhpAjax.RequestTechKey(request));
+            return await WithDbAsync(
+                context,
+                connections,
+                cancellationToken,
+                (connection, ct) => StorefrontPhpAjax.CheckForOrderAsync(connection, 0, 0, request, true, accepted, ct),
+                missing).ConfigureAwait(false);
+        }
+
+        return await ShopCsrfAsync(
+            context,
+            connections,
+            cancellationToken,
+            Php(missing),
+            (connection, csrf, ct) => StorefrontPhpAjax.CheckForOrderAsync(connection, csrf.UserId, csrf.SessionRecordId, request, false, false, ct)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> ShopCsrfAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken,
+        IResult noDatabase,
+        Func<System.Data.Common.DbConnection, StorefrontPhpAjax.CsrfDecision, CancellationToken, Task<object>> body)
+    {
+        if (!connections.IsConfigured)
+        {
+            return noDatabase;
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var posted = await FieldAsync(context, "csrf_guard_key", cancellationToken).ConfigureAwait(false);
+            var session = context.Request.Cookies["session"];
+            var csrf = await StorefrontPhpAjax.ReadCsrfAsync(
+                connection,
+                session,
+                context.Request.Query.ContainsKey("csrf_guard_key") || (context.Request.HasFormContentType && context.Request.Form.ContainsKey("csrf_guard_key"))
+                    ? posted
+                    : null,
+                cancellationToken).ConfigureAwait(false);
+            if (!csrf.Ok)
+            {
+                return Php(StorefrontPhpAjax.CsrfFailure(csrf.Message));
+            }
+
+            var payload = await body(connection, csrf, cancellationToken).ConfigureAwait(false);
+            if (payload is string text)
+            {
+                return text.Length == 0
+                    || text is "true" or "false"
+                    || string.Equals(text, StorefrontPhpAjax.NoDbConnect, StringComparison.Ordinal)
+                    ? Plain(text)
+                    : Results.Text(text, "text/html; charset=utf-8");
+            }
+
+            return Php(payload);
+        }
+        catch (Exception)
+        {
+            return noDatabase;
+        }
     }
 
     private static string ExpectedTechKey(HttpContext context)

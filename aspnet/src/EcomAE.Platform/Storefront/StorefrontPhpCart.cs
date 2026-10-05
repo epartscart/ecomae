@@ -121,7 +121,7 @@ public static partial class StorefrontPhpAjax
                 var productType = JsonInt(product, "product_type");
                 if (productType == 1)
                 {
-                    return CartFail(CatalogueReserveCode, CatalogueReserve);
+                    return await InsertType1Async(connection, product, userId, sessionId, techKey, cancellationToken).ConfigureAwait(false);
                 }
 
                 if (productType != 2)
@@ -147,7 +147,7 @@ public static partial class StorefrontPhpAjax
         }
     }
 
-    /// <summary>PHP <c>ajax_change_count_need.php</c> type-2 quantity JSON. Type 1 does not move warehouse stock.</summary>
+    /// <summary>PHP <c>ajax_change_count_need.php</c>. Type 1 moves stock only on existing cart details.</summary>
     public static async Task<object> ChangeCountAsync(
         DbConnection connection,
         int userId,
@@ -197,7 +197,7 @@ public static partial class StorefrontPhpAjax
 
             if (line.ProductType == 1)
             {
-                return CartFail(CatalogueReserveCode, CatalogueReserve);
+                return await ChangeType1Async(connection, cartId, countNeed, cancellationToken).ConfigureAwait(false);
             }
 
             if (line.ProductType != 2)
@@ -271,19 +271,27 @@ public static partial class StorefrontPhpAjax
             foreach (var id in ids)
             {
                 var line = await ReadCountLineAsync(connection, id, cancellationToken).ConfigureAwait(false);
-                if (line is null || line.ProductType == 1)
+                if (line is null)
                 {
-                    return CartFail(CatalogueReserveCode, CatalogueReserve);
+                    return new CartWriteBody(false, "sql_error", "SQL Error", null, null, null, null, null, null, null);
+                }
+
+                if (line.ProductType == 1)
+                {
+                    var released = await ReleaseType1Async(connection, id, cancellationToken).ConfigureAwait(false);
+                    if (released is not null)
+                    {
+                        return released;
+                    }
+
+                    continue;
                 }
 
                 if (line.ProductType != 2)
                 {
                     return new CartWriteBody(false, "sql_error", "SQL Error", null, null, null, null, null, null, null);
                 }
-            }
 
-            foreach (var id in ids)
-            {
                 await using var delete = connection.CreateCommand();
                 delete.CommandText = ErpDb.Positional("DELETE FROM `shop_carts` WHERE `id` = ?");
                 ErpDb.AddParameters(delete, id);
@@ -504,6 +512,380 @@ public static partial class StorefrontPhpAjax
 
         await UpdateCountAsync(connection, cartId, countNeed, cancellationToken).ConfigureAwait(false);
         return new CartWriteBody(true, null, null, null, countNeed, cartId, null, null, null, null);
+    }
+
+    private static async Task<object> InsertType1Async(
+        DbConnection connection,
+        JsonElement product,
+        int userId,
+        int sessionId,
+        string? techKey,
+        CancellationToken cancellationToken)
+    {
+        var productId = JsonInt(product, "product_id");
+        var officeId = JsonInt(product, "office_id");
+        var storageId = JsonInt(product, "storage_id");
+        var storageRecordText = JsonText(product, "storage_record_id");
+        var priceText = JsonText(product, "price");
+        var countNeed = JsonInt(product, "count_need");
+        if (countNeed <= 0)
+        {
+            countNeed = 1;
+        }
+
+        var clientHash = JsonText(product, "check_hash").Trim();
+        var computed = Convert.ToHexString(MD5.HashData(Encoding.UTF8.GetBytes(
+            productId.ToString(CultureInfo.InvariantCulture)
+            + officeId.ToString(CultureInfo.InvariantCulture)
+            + storageId.ToString(CultureInfo.InvariantCulture)
+            + storageRecordText
+            + priceText
+            + (techKey ?? string.Empty)))).ToLowerInvariant();
+        if (!string.Equals(computed, clientHash, StringComparison.Ordinal))
+        {
+            return CartFail("35", CartStringHash);
+        }
+
+        if (!int.TryParse(storageRecordText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var storageRecordId))
+        {
+            storageRecordId = 0;
+        }
+
+        try
+        {
+            await using (var already = connection.CreateCommand())
+            {
+                already.CommandText = ErpDb.Positional(
+                    "SELECT COUNT(*) FROM `shop_carts_details` WHERE `cart_record_id` IN (SELECT `id` FROM `shop_carts` WHERE `product_id` = ? AND `price` = ? AND `user_id` = ? AND `session_id` = ?) AND `storage_record_id` = ?");
+                ErpDb.AddParameters(already, productId, priceText, userId, sessionId, storageRecordId);
+                var count = Convert.ToInt32(await already.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) ?? 0, CultureInfo.InvariantCulture);
+                if (count > 0)
+                {
+                    return new CartWriteBody(false, "already", null, null, null, null, null, null, null, null);
+                }
+            }
+
+            string name;
+            await using (var catalogue = connection.CreateCommand())
+            {
+                catalogue.CommandText = ErpDb.Positional("SELECT IFNULL(`caption`,'') FROM `shop_catalogue_products` WHERE `id` = ? LIMIT 1");
+                ErpDb.AddParameters(catalogue, productId);
+                name = Convert.ToString(await catalogue.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+
+            var groupId = 0;
+            await using (var group = connection.CreateCommand())
+            {
+                group.CommandText = ErpDb.Positional("SELECT `group_id` FROM `users_groups_bind` WHERE `user_id` = ? ORDER BY `id` LIMIT 1");
+                ErpDb.AddParameters(group, userId);
+                var scalar = await group.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                if (scalar is not null and not DBNull)
+                {
+                    groupId = Convert.ToInt32(scalar, CultureInfo.InvariantCulture);
+                }
+            }
+
+            var markup = 0m;
+            await using (var markupCommand = connection.CreateCommand())
+            {
+                markupCommand.CommandText = ErpDb.Positional(
+                    "SELECT `markup` FROM `shop_offices_storages_map` WHERE `office_id` = ? AND `storage_id` = ? AND `group_id` = ? AND `min_point` <= ? AND `max_point` > ? LIMIT 1");
+                ErpDb.AddParameters(markupCommand, officeId, storageId, groupId, priceText, priceText);
+                var scalar = await markupCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                if (scalar is not null and not DBNull)
+                {
+                    markup = Convert.ToDecimal(scalar, CultureInfo.InvariantCulture);
+                }
+            }
+
+            decimal priceNotMarkup = 0;
+            decimal pricePurchase = 0;
+            var exist = JsonInt(product, "exist");
+            await using (var stock = connection.CreateCommand())
+            {
+                stock.CommandText = ErpDb.Positional(
+                    """
+                    SELECT `price` * (SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (SELECT `currency` FROM `shop_storages` WHERE `id` = `shop_storages_data`.`storage_id`)) AS `price`,
+                           `price` AS `price_not_markup`,
+                           `price_purchase` * (SELECT `rate` FROM `shop_currencies` WHERE `iso_code` = (SELECT `currency` FROM `shop_storages` WHERE `id` = `shop_storages_data`.`storage_id`)) AS `price_purchase`,
+                           `exist`
+                    FROM `shop_storages_data` WHERE `id` = ?
+                    """);
+                ErpDb.AddParameters(stock, storageRecordId);
+                await using var reader = await stock.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return CartFail(null, WarehouseStockMissing);
+                }
+
+                priceNotMarkup = reader.IsDBNull(1) ? 0 : Convert.ToDecimal(reader.GetValue(1), CultureInfo.InvariantCulture);
+                var purchased = reader.IsDBNull(2) ? 0m : Convert.ToDecimal(reader.GetValue(2), CultureInfo.InvariantCulture);
+                var sell = reader.IsDBNull(0) ? 0m : Convert.ToDecimal(reader.GetValue(0), CultureInfo.InvariantCulture);
+                pricePurchase = purchased > 0 ? purchased : sell;
+            }
+
+            await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            long cartId;
+            await using (var insert = connection.CreateCommand())
+            {
+                insert.Transaction = transaction;
+                insert.CommandText = ErpDb.Positional(
+                    """
+                    INSERT INTO `shop_carts` (
+                        `product_type`, `product_id`, `price`, `count_need`, `user_id`, `time`, `session_id`,
+                        `t2_manufacturer`, `t2_article`, `t2_article_show`, `t2_name`, `t2_exist`,
+                        `t2_time_to_exe`, `t2_time_to_exe_guaranteed`, `t2_storage`, `t2_min_order`,
+                        `t2_probability`, `t2_markup`, `t2_price_purchase`, `t2_office_id`, `t2_storage_id`,
+                        `t2_product_json`, `t2_json_params`
+                    ) VALUES (1, ?, ?, ?, ?, ?, ?, '', '', '', ?, ?, ?, '', ?, 1, 100, ?, 0, ?, ?, ?, '')
+                    """);
+                ErpDb.AddParameters(insert, productId, priceText, countNeed, userId, now, sessionId, name, exist, JsonText(product, "time_to_exe"), storageId, markup, officeId, storageId, product.GetRawText());
+                await insert.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            await using (var idCommand = connection.CreateCommand())
+            {
+                idCommand.Transaction = transaction;
+                idCommand.CommandText = "SELECT LAST_INSERT_ID()";
+                cartId = Convert.ToInt64(await idCommand.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false), CultureInfo.InvariantCulture);
+            }
+
+            await using (var reserve = connection.CreateCommand())
+            {
+                reserve.Transaction = transaction;
+                reserve.CommandText = ErpDb.Positional("UPDATE `shop_storages_data` SET `exist` = (`exist` - ?), `reserved` = (`reserved` + ?) WHERE `id` = ?");
+                ErpDb.AddParameters(reserve, countNeed, countNeed, storageRecordId);
+                await reserve.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            await using (var detail = connection.CreateCommand())
+            {
+                detail.Transaction = transaction;
+                detail.CommandText = ErpDb.Positional(
+                    "INSERT INTO `shop_carts_details` (`cart_record_id`, `office_id`, `storage_id`, `storage_record_id`, `count_reserved`, `price`, `price_purchase`) VALUES (?,?,?,?,?,?,?)");
+                ErpDb.AddParameters(detail, cartId, officeId, storageId, storageRecordId, countNeed, priceNotMarkup, pricePurchase);
+                await detail.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new CartWriteBody(true, null, null, null, null, null, null, null, null, null);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var message = ex.Message.Contains("shop_catalogue_products", StringComparison.OrdinalIgnoreCase)
+                ? CatalogueProductsMissing
+                : ex.Message.Contains("shop_storages_data", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("shop_currencies", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("shop_storages", StringComparison.OrdinalIgnoreCase)
+                    ? WarehouseStockMissing
+                    : ex.Message.Contains("shop_carts_details", StringComparison.OrdinalIgnoreCase)
+                        ? CartDetailsMissing
+                        : ex.Message.Contains("users_groups_bind", StringComparison.OrdinalIgnoreCase) || ex.Message.Contains("shop_offices_storages_map", StringComparison.OrdinalIgnoreCase)
+                            ? "Office storage markups are not in this database."
+                            : CartMissing;
+            return CartFail(null, message);
+        }
+    }
+
+    private static async Task<object> ChangeType1Async(
+        DbConnection connection,
+        int cartId,
+        int countNeed,
+        CancellationToken cancellationToken)
+    {
+        int current;
+        await using (var cart = connection.CreateCommand())
+        {
+            cart.CommandText = ErpDb.Positional("SELECT `count_need` FROM `shop_carts` WHERE `id` = ?");
+            ErpDb.AddParameters(cart, cartId);
+            current = Convert.ToInt32(await cart.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) ?? 0, CultureInfo.InvariantCulture);
+        }
+
+        if (current == countNeed)
+        {
+            return CartFail("the_same_count", CartStringSameCount);
+        }
+
+        if (countNeed > current)
+        {
+            var left = countNeed - current;
+            await using (var details = connection.CreateCommand())
+            {
+                details.CommandText = ErpDb.Positional("SELECT `id`, `storage_record_id`, `count_reserved` FROM `shop_carts_details` WHERE `cart_record_id` = ?");
+                ErpDb.AddParameters(details, cartId);
+                var rows = new List<(int Id, int StorageId, int Reserved)>();
+                await using (var reader = await details.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                    {
+                        rows.Add((
+                            Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                            Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture),
+                            Convert.ToInt32(reader.GetValue(2), CultureInfo.InvariantCulture)));
+                    }
+                }
+
+                foreach (var row in rows)
+                {
+                    if (left <= 0)
+                    {
+                        break;
+                    }
+
+                    int exist;
+                    await using var stock = connection.CreateCommand();
+                    stock.CommandText = ErpDb.Positional("SELECT `exist` FROM `shop_storages_data` WHERE `id` = ?");
+                    ErpDb.AddParameters(stock, row.StorageId);
+                    exist = Convert.ToInt32(await stock.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) ?? 0, CultureInfo.InvariantCulture);
+                    if (exist == 0)
+                    {
+                        continue;
+                    }
+
+                    var take = left <= exist ? left : exist;
+                    await using (var reserve = connection.CreateCommand())
+                    {
+                        reserve.CommandText = ErpDb.Positional("UPDATE `shop_storages_data` SET `exist` = `exist` - ?, `reserved` = `reserved` + ? WHERE `id` = ?");
+                        ErpDb.AddParameters(reserve, take, take, row.StorageId);
+                        await reserve.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    await using (var detail = connection.CreateCommand())
+                    {
+                        detail.CommandText = ErpDb.Positional("UPDATE `shop_carts_details` SET `count_reserved` = `count_reserved` + ? WHERE `id` = ?");
+                        ErpDb.AddParameters(detail, take, row.Id);
+                        await detail.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                    }
+
+                    await UpdateCountByAsync(connection, cartId, take, cancellationToken).ConfigureAwait(false);
+                    left -= take;
+                    if (left == 0)
+                    {
+                        return new CartWriteBody(true, null, null, null, countNeed, cartId, null, null, null, null);
+                    }
+                }
+            }
+
+            int stored;
+            await using (var read = connection.CreateCommand())
+            {
+                read.CommandText = ErpDb.Positional("SELECT `count_need` FROM `shop_carts` WHERE `id` = ?");
+                ErpDb.AddParameters(read, cartId);
+                stored = Convert.ToInt32(await read.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false) ?? current, CultureInfo.InvariantCulture);
+            }
+
+            return new CartWriteBody(false, "not_enough", CartStringNotEnough, null, stored, cartId, null, null, null, null);
+        }
+
+        var minus = current - countNeed;
+        await using (var details = connection.CreateCommand())
+        {
+            details.CommandText = ErpDb.Positional("SELECT `id`, `storage_record_id`, `count_reserved` FROM `shop_carts_details` WHERE `cart_record_id` = ? ORDER BY `id` DESC");
+            ErpDb.AddParameters(details, cartId);
+            var rows = new List<(int Id, int StorageId, int Reserved)>();
+            await using (var reader = await details.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+            {
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add((
+                        Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader.GetValue(2), CultureInfo.InvariantCulture)));
+                }
+            }
+
+            foreach (var row in rows)
+            {
+                var cancel = row.Reserved >= minus ? minus : row.Reserved;
+                var deleteRow = row.Reserved == cancel;
+                await using (var stock = connection.CreateCommand())
+                {
+                    stock.CommandText = ErpDb.Positional("UPDATE `shop_storages_data` SET `exist` = `exist` + ?, `reserved` = `reserved` - ? WHERE `id` = ?");
+                    ErpDb.AddParameters(stock, cancel, cancel, row.StorageId);
+                    await stock.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                if (deleteRow)
+                {
+                    await using var remove = connection.CreateCommand();
+                    remove.CommandText = ErpDb.Positional("DELETE FROM `shop_carts_details` WHERE `id` = ?");
+                    ErpDb.AddParameters(remove, row.Id);
+                    await remove.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                }
+                else
+                {
+                    await using var detail = connection.CreateCommand();
+                    detail.CommandText = ErpDb.Positional("UPDATE `shop_carts_details` SET `count_reserved` = `count_reserved` - ? WHERE `id` = ?");
+                    ErpDb.AddParameters(detail, cancel, row.Id);
+                    await detail.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                await UpdateCountByAsync(connection, cartId, -cancel, cancellationToken).ConfigureAwait(false);
+                minus -= cancel;
+                if (minus == 0)
+                {
+                    return new CartWriteBody(true, null, null, null, countNeed, cartId, null, null, null, null);
+                }
+            }
+        }
+
+        return new CartWriteBody(false, "not_enough", CartStringNotEnough, null, countNeed, cartId, null, null, null, null);
+    }
+
+    private static async Task<object?> ReleaseType1Async(DbConnection connection, int cartId, CancellationToken cancellationToken)
+    {
+        try
+        {
+            var rows = new List<(int Id, int StorageId, int Reserved)>();
+            await using (var details = connection.CreateCommand())
+            {
+                details.CommandText = ErpDb.Positional("SELECT `id`, `storage_record_id`, `count_reserved` FROM `shop_carts_details` WHERE `cart_record_id` = ?");
+                ErpDb.AddParameters(details, cartId);
+                await using var reader = await details.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    rows.Add((
+                        Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                        Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture),
+                        reader.IsDBNull(2) ? 0 : Convert.ToInt32(reader.GetValue(2), CultureInfo.InvariantCulture)));
+                }
+            }
+
+            foreach (var row in rows)
+            {
+                await using (var stock = connection.CreateCommand())
+                {
+                    stock.CommandText = ErpDb.Positional("UPDATE `shop_storages_data` SET `exist` = `exist` + ?, `reserved` = `reserved` - ? WHERE `id` = ?");
+                    ErpDb.AddParameters(stock, row.Reserved, row.Reserved, row.StorageId);
+                    await stock.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+                }
+
+                await using var remove = connection.CreateCommand();
+                remove.CommandText = ErpDb.Positional("DELETE FROM `shop_carts_details` WHERE `id` = ?");
+                ErpDb.AddParameters(remove, row.Id);
+                await remove.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            }
+
+            await using var delete = connection.CreateCommand();
+            delete.CommandText = ErpDb.Positional("DELETE FROM `shop_carts` WHERE `id` = ?");
+            ErpDb.AddParameters(delete, cartId);
+            var deleted = await delete.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            return deleted == 1 ? null : new CartWriteBody(false, "sql_error", "SQL Error", null, null, null, null, null, null, null);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var message = ex.Message.Contains("shop_storages_data", StringComparison.OrdinalIgnoreCase)
+                ? WarehouseStockMissing
+                : CartDetailsMissing;
+            return CartFail(null, message);
+        }
+    }
+
+    private static async Task UpdateCountByAsync(DbConnection connection, int cartId, int delta, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = ErpDb.Positional("UPDATE `shop_carts` SET `count_need` = `count_need` + ? WHERE `id` = ?");
+        ErpDb.AddParameters(command, delta, cartId);
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task UpdateCountAsync(DbConnection connection, int cartId, int countNeed, CancellationToken cancellationToken)

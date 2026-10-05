@@ -30,6 +30,24 @@ public static partial class StorefrontPhpAjax
     public const string AddToBasketPath = "/content/shop/order_process/ajax_add_to_basket.php";
     public const string ChangeCountPath = "/content/shop/order_process/ajax_change_count_need.php";
     public const string DeleteCartPath = "/content/shop/order_process/ajax_delete_cart_record.php";
+    public const string NotepadPath = "/content/shop/docpart/garage/ajax_add_to_notepad.php";
+    public const string GarageCarsPath = "/content/shop/docpart/garage/ajax_operations_cars.php";
+    public const string CheckoutCreatePath = "/content/shop/order_process/ajax_checkout_create.php";
+    public const string OrderMessagesPath = "/content/shop/messager/ajax_get_order_messages.php";
+    public const string SendMessagePath = "/content/shop/messager/ajax_send_message.php";
+    public const string CreateOperationPath = "/content/shop/finance/ajax_create_operation.php";
+    public const string ReturnsCheckPath = "/content/shop/order_process/ajax_check_items_returns.php";
+    public const string ArticleListPath = "/content/shop/docpart/ajax_get_article_list.php";
+    public const string CheckForOrderPath = "/content/shop/order_process/ajax_check_for_order.php";
+    public const string CatalogueProductsMissing = "Catalogue products are not in this database.";
+    public const string WarehouseStockMissing = "Warehouse stock is not in this database.";
+    public const string CartDetailsMissing = "Cart details are not in this database.";
+    public const string OrdersMissing = "Orders are not in this database.";
+    public const string OrderMessagesMissing = "Order messages are not in this database.";
+    public const string AccountingMissing = "Accounting is not in this database.";
+    public const string GarageMissing = "Garage cars are not in this database.";
+    public const string ArticleQueriesMissing = "Article queries are not in this database.";
+    public const string ReturnsMissing = "Return items are not in this database.";
     public const string NoDbConnect = "No DB connect";
     public const string NoDbConnectChange = "No DB Connect";
     public const string SkuMediaMissing = "SKU media is not in this database.";
@@ -44,6 +62,7 @@ public static partial class StorefrontPhpAjax
     /// <summary>lang_text_strings has no row for these cart ids in this database.</summary>
     public const string CartStringIncorrectSession = "4460";
     public const string CartStringIncorrectData = "4461";
+    public const string CartStringHash = "4462";
     public const string CartStringUnknownType = "4464";
     public const string CartStringForbidden = "4465";
     public const string CartStringNotFound = "4466";

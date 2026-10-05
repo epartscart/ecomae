@@ -224,8 +224,8 @@ public sealed class StorefrontPhpCartTests
 
             var catalogue = (StorefrontPhpAjax.CartWriteBody)await StorefrontPhpAjax.AddToBasketAsync(
                 connection, 7, 0, true, Product("0986", "12.50", "10.00", type: 1), string.Empty, CancellationToken.None);
-            Assert.Equal(StorefrontPhpAjax.CatalogueReserveCode, catalogue.Code);
-            Assert.Equal(StorefrontPhpAjax.CatalogueReserve, catalogue.Message);
+            Assert.Equal("35", catalogue.Code);
+            Assert.Equal(StorefrontPhpAjax.CartStringHash, catalogue.Message);
             Assert.Equal("5", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
 
@@ -313,10 +313,12 @@ public sealed class StorefrontPhpCartTests
             await ExecuteAsync(connectionString, "INSERT INTO shop_carts_details (cart_record_id, storage_record_id, count_reserved) VALUES (" + type1Id + ", 1, 1)");
             var type1 = (StorefrontPhpAjax.CartWriteBody)await StorefrontPhpAjax.DeleteCartAsync(
                 connection, 0, 11, Delete(type1Id), false, false, CancellationToken.None);
-            Assert.Equal(StorefrontPhpAjax.CatalogueReserveCode, type1.Code);
-            Assert.Equal(type1Id, await ScalarAsync(connectionString, "SELECT id FROM shop_carts WHERE t2_name='CAT'"));
-            Assert.Equal("5", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
-            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
+            Assert.True(type1.Status);
+            Assert.Equal("ok", type1.Code);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts WHERE t2_name='CAT'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts_details WHERE cart_record_id=" + type1Id));
+            Assert.Equal("6", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
 
             var alienId = await ScalarAsync(connectionString, "SELECT id FROM shop_carts WHERE user_id=9");
             var alien = (StorefrontPhpAjax.CartWriteBody)await StorefrontPhpAjax.DeleteCartAsync(
@@ -409,8 +411,8 @@ public sealed class StorefrontPhpCartTests
             Assert.Equal(dropId, dropJson.RootElement.GetProperty("records_to_del")[0].GetInt32().ToString(CultureInfo.InvariantCulture));
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts WHERE id=" + dropId));
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts_details WHERE cart_record_id=" + dropId));
-            Assert.Equal("5", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
-            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("6", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
         }
         finally
         {
