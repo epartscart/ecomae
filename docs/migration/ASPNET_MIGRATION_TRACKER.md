@@ -80,6 +80,24 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Other-office stock, catalogue captions, and unpaid order mail
+
+Not complete.
+
+- A type-1 increase that the current cart detail cannot cover now follows PHP sections 2.1 and 2.2. In-stock supply id 3 is reserved first. Expected supply id 4, with a future arrival time, is reserved second. Both new detail rows are office 2. The stored purchase is warehouse price `10.00`. The detail `price` stays `0.00` because that PHP insert does not write it.
+- A type-1 add while `shop_properties_values_text` is absent returns “Catalogue article properties are not in this database.” and does not change stock. With the Russian property map seeded, the add stores manufacturer `BOSCH`, article `C110X`, article show `C110-X`, and name `Pad`. Article search `C110` returns catalogue row `C110-X` / `Bosch` / `Pad`. Search `S56` before that table exists still returns the clear message plus the price and standard rows already found.
+- Checkout writes `Order email to admin admin@127.0.0.1: FAILED after retry` and `Order email to customer (user #7): FAILED`. A customer order message still returns plain `true` and writes `Order message email to admin admin@127.0.0.1: FAILED`. No log says sent. No SMTP server and no live host were called. `epc_erp_order_fulfillment` is not called.
+- Paying order 90 for 15 inserts operation code `4_income_for_direct_pay`, income 1, active 0, `pay_orders` `90`. `pay_system` is false when the requested handler is not configured. `shop_orders.paid` stays 0. A partial amount and an amount above the debt are `Forbidden`.
+- `get_table_cars` for a customer with no cars stays `5609`. The owned car table includes `edit_car(4)` title `2270`, `delete_car(4)` title `2224`, and `Toyota - Corolla`. A linked order uses `check_car(0, 4)`; after unlink it uses `check_car(1, 4)`.
+- `StorefrontPhpShopTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2.
+- The proved checkout order was still type 2, so a type-1 order detail copy was not written.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5048 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a type-1 order detail copy, a delivered SMTP message, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Shop ajax and catalogue cart stock
 
 Not complete.
