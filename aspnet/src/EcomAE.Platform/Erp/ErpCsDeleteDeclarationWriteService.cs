@@ -4,7 +4,7 @@ namespace EcomAE.Platform.Erp;
 
 /// <summary>
 /// Live PHP <c>epc_cs_delete_declaration</c> / ajax <c>cs_delete_declaration</c> twin.
-/// DELETE line items then the declaration row. PDF unlink, LGP, and schema ensure stay PHP.
+/// DELETE line items then the declaration row, unlinking the staged PDF file as PHP does.
 /// Does not CREATE tables.
 /// </summary>
 public interface IErpCsDeleteDeclarationWriteService
@@ -22,10 +22,12 @@ public sealed class ErpCsDeleteDeclarationWriteService : IErpCsDeleteDeclaration
     public const string TableMissing = "Custom shipping tables are not provisioned";
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly Microsoft.AspNetCore.Hosting.IWebHostEnvironment _env;
 
-    public ErpCsDeleteDeclarationWriteService(IErpWriteConnectionFactory connections)
+    public ErpCsDeleteDeclarationWriteService(IErpWriteConnectionFactory connections, Microsoft.AspNetCore.Hosting.IWebHostEnvironment env)
     {
         _connections = connections;
+        _env = env;
     }
 
     public async Task<ErpSimpleWriteResult> DeleteAsync(
@@ -49,13 +51,22 @@ public sealed class ErpCsDeleteDeclarationWriteService : IErpCsDeleteDeclaration
             return ErpSimpleWriteResult.Fail("invalid", TableMissing);
         }
 
-        var found = await ErpDb.StringAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT `category` FROM `epc_custom_shipping_declarations` WHERE `id` = ? LIMIT 1"),
-            cancellationToken,
-            id).ConfigureAwait(false);
-        if (found is null)
+        var hasPdfColumn = await ColumnExistsAsync(connection, "epc_custom_shipping_declarations", "pdf_file_path", cancellationToken).ConfigureAwait(false);
+        string? category = null;
+        string? pdfPath = null;
+        await using (var findCmd = connection.CreateCommand())
+        {
+            findCmd.CommandText = ErpDb.Positional("SELECT `category`" + (hasPdfColumn ? ", `pdf_file_path`" : string.Empty) + " FROM `epc_custom_shipping_declarations` WHERE `id` = ? LIMIT 1");
+            ErpDb.AddParameters(findCmd, id);
+            await using var reader = await findCmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                category = reader.IsDBNull(0) ? null : reader.GetString(0);
+                pdfPath = hasPdfColumn && !reader.IsDBNull(1) ? reader.GetString(1) : null;
+            }
+        }
+
+        if (category is null)
         {
             return ErpSimpleWriteResult.Fail("invalid", NotFound);
         }
@@ -67,6 +78,19 @@ public sealed class ErpCsDeleteDeclarationWriteService : IErpCsDeleteDeclaration
             ErpDb.Positional("DELETE FROM `epc_custom_shipping_declaration_items` WHERE `declaration_id` = ?"),
             cancellationToken,
             id).ConfigureAwait(false);
+        // PHP unlinks the attached PDF copy only when it lives under content/files/epc_custom_shipping_pdfs.
+        if (!string.IsNullOrEmpty(pdfPath))
+        {
+            var rel = pdfPath.Replace('\\', '/').TrimStart('/');
+            if (rel.Contains("content/files/epc_custom_shipping_pdfs/", StringComparison.Ordinal))
+            {
+                var full = Path.Combine(Presentation.PhpLegacyAssetBridge.FindRepoRoot(_env), rel.Replace('/', Path.DirectorySeparatorChar));
+                if (File.Exists(full))
+                {
+                    File.Delete(full);
+                }
+            }
+        }
         await ErpDb.ExecuteAsync(
             connection,
             transaction,
