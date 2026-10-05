@@ -6225,8 +6225,7 @@ public sealed class ErpModule : ISurfaceModule
                     session = SessionPayload(session),
                 });
         });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoicePollAsp, async (HttpContext context, ErpEinvoicePollAspBody? body, ILegacySessionValidator validator, IErpEinvoicePollAspDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpEinvoicePollAspRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxEinvoicePollAsp, HandleEinvoicePollAspAsync).DisableAntiforgery();
         endpoints.MapGet(EcomAeRoutes.ErpTaxExternalReporting, async (
             HttpContext context,
             string? country,
@@ -21551,6 +21550,43 @@ public sealed class ErpModule : ISurfaceModule
             validation_code = r.Result.Code,
             message = r.Result.Message,
             results = new { @checked = r.Checked, sent = r.Sent, skipped = r.Skipped, details = r.Details.Select(d => new { doc_id = d.DocId, recipient = d.Recipient, threshold = d.Threshold, days_left = d.DaysLeft, covered = d.Covered }) },
+            session = SessionPayload(session)
+        });
+    }
+
+    private static async Task<IResult> HandleEinvoicePollAspAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpEinvoicePollAspDryRun dryRun,
+        IErpEinvoiceAspPollService pollService,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return Unauthorized("Admin ERP capability required.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new EcomAE.Platform.Migration.ErpEinvoicePollAspRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var r = await pollService.PollAsync(cancellationToken);
+        var message = string.Format(
+            CultureInfo.InvariantCulture,
+            "Polled {0} · accepted {1} · rejected {2} · still pending {3} · errors {4}",
+            r.Polled, r.Accepted, r.Rejected, r.Pending, r.Errors);
+        return Results.Ok(new
+        {
+            ok = true,
+            surface = "erp",
+            writes = r.Polled,
+            phpAuthoritative = false,
+            validation_code = "ok",
+            message,
+            results = new { polled = r.Polled, accepted = r.Accepted, rejected = r.Rejected, pending = r.Pending, errors = r.Errors },
             session = SessionPayload(session)
         });
     }
