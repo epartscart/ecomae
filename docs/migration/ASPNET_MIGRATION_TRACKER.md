@@ -80,6 +80,23 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP order ajax and license refusal
+
+Not complete.
+
+- Compared PHP ajax and API files under `content/shop`, `content/users`, `content/requests`, `modules`, and `api` with ASP.NET path constants and `MapMethods` routes: 112 files, 97 already mapped, 15 still unmapped. The Control Panel copies under `cp/content` are a separate 75 files. Ten of those PHP URLs were unmapped because the dry-run twins at `/cp/orders/*` are not the PHP URL.
+- `ajax_add_comment_to_log.php`, `ajax_set_orders_viewed.php`, `ajax_get_orders_info.php`, `ajax_get_cnt_for_paid_orders.php`, and `ajax_delete_orders.php` now answer on `/cp/content/shop/order_process/`. A missing sessions table says admin sessions are not in this database. CSRF 1, 3.1, and 4 match PHP. A missing log table is named and is not created. The posted comment stores user 9, `is_manager` 1, and the encoded text. Viewed flag 1 is written for order 4 and the response message is the PHP `UPDATE` text. The unviewed count is `1`. The paid-status count is `2`. Deleting a paid order is `3481` and writes nothing. Deleting unpaid order 4 removes that order and its child rows. A missing items table rolls the delete back.
+- `ajax_set_user_comment.php` stores `desk & co` on user 7 after the `comment` column exists. `ajax_get_users_autocomplete.php` returns `ID 0, 3233` and `ID 7, E-mail: nora@local.test, Телефон: 050, Nora`. Missing registration fields and user profiles are named and are not created.
+- `ajax_get_returns_info.php` returns status 0 for a customer. An admin count is `2` open returns, then `1` after closed caption `3798`. `ajax_check_product_alias.php` returns `false` for a taken alias and `true` for the same product. `ajax_set_users_vin_viewed.php` sets VIN 3 viewed and refuses a non-integer list with `SQL error`.
+- `/api/create_license.php` is HTTP 403, “License API disabled”. No license file was created.
+- `CpOrderAjax_OnThrowawayDatabase_ThenDropped` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2. No `epc_erp%` table was created. `epc_erp_order_fulfillment` is not called. The `/cp/orders/*` dry-run routes were not changed.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5056 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, PHP source, and the platform-host full ERP mirror. Contact and login-code rows are not stored, and vendor price rows are not written, because those PHP successes depend on an HTTP call that was not made. Fifteen storefront ajax and API files are still unmapped, including ucats, Laximo, and supplier proxies whose only success path is an external HTTP call. Sixty-five other Control Panel ajax files are still unmapped.
+
 ### Checkpoint 2026-10-05 — Returns, workshop, contacts, and UCatalog
 
 Not complete.
