@@ -2173,6 +2173,8 @@ public static class EcomAeRoutes
     public const string OnPremisesHealthCheckPack = "/erp/on-premises/health-check-pack-dry-run";
     public const string Bos = "/bos";
     public const string BosApp = "/bos/app";
+    /// <summary>BOS attention shell. Tenant-scoped reads of ERP and CRM rows. Not the Super-CP fleet.</summary>
+    public const string Attention = "/attention";
     public const string BosParity = "/bos/parity";
     public const string BosFleetSummary = "/bos/fleet-summary";
     /// <summary>BOS fleet summary Blazor KPI UI (JSON digest remains <see cref="BosFleetSummary"/>).</summary>

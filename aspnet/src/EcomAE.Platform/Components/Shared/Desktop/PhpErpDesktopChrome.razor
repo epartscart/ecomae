@@ -90,6 +90,7 @@
             </a>
             <nav class="epc-erp-topbar__nav epc-erp-topbar__nav--compact" aria-label="ERP topbar">
                 <a href="@ErpHomeHref">Dashboard</a>
+                <a href="/attention">Attention</a>
                 <a href="/erp/guide-app">Guide</a>
                 <a href="/erp/approvals-app">Approvals</a>
                 @if (IsAdmin)
@@ -249,6 +250,7 @@
                         </div>
                         <div class="epc-module-visual-frame__scope">@_companyLabel · @_industryLabel</div>
                     </div>
+                    <OperatingNavigationContextBar Surface="erp" />
                     <div class="epc-erp-content-body">
                         <!--epc-cp-main-begin-->
                         @ChildContent
