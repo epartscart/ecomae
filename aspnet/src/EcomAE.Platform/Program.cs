@@ -457,6 +457,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpBosComplianceFetchService, Ec
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOplPlanningWriteService, EcomAE.Platform.Erp.ErpOplPlanningWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPmListingSaveWriteService, EcomAE.Platform.Erp.ErpPmListingSaveWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpRtlPosSaleWriteService, EcomAE.Platform.Erp.ErpRtlPosSaleWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Erp.IErpOrderFulfillmentWriteService, EcomAE.Platform.Erp.ErpOrderFulfillmentWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCsDeclarationsReadService, EcomAE.Platform.Erp.ErpCsDeclarationsReadService>();
 builder.Services.AddSingleton<IErpFaCreateAssetDryRun, ErpFaCreateAssetDryRun>();
 builder.Services.AddSingleton<IErpFaRunDepreciationDryRun, ErpFaRunDepreciationDryRun>();
