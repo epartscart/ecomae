@@ -137,6 +137,8 @@ public static class StorefrontPhpAjaxEndpoints
 
         endpoints.MapMethods(StorefrontPhpAjax.UcatsCataloguesPath, ["GET", "POST"], UcatsCataloguesAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.UcatsAuthControlPath, ["GET", "POST"], UcatsAuthControlAsync)
+            .DisableAntiforgery().AllowAnonymous();
     }
 
     private static async Task<IResult> WarehouseAsync(
@@ -937,6 +939,37 @@ public static class StorefrontPhpAjaxEndpoints
         return Results.Text(
             StorefrontPhpAjax.UcatsCatalogues(CpPhpConfig.Read(options.Value)),
             "text/html; charset=utf-8");
+    }
+
+    private static Task<IResult> UcatsAuthControlAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.UcatsAuthControlAsync(
+                connection,
+                context.Request.Path + context.Request.QueryString,
+                ClientIp(context),
+                token),
+            StorefrontPhpAjax.NoDbConnect);
+
+    private static string ClientIp(HttpContext context)
+    {
+        var address = context.Connection.RemoteIpAddress;
+        if (address is null)
+        {
+            return string.Empty;
+        }
+
+        if (address.IsIPv4MappedToIPv6)
+        {
+            address = address.MapToIPv4();
+        }
+
+        return address.ToString();
     }
 
     private static async Task<IResult> DemandAsync(

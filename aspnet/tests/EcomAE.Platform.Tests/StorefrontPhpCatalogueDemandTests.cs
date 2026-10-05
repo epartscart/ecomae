@@ -597,6 +597,102 @@ public sealed class StorefrontPhpCatalogueDemandTests
         Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
     }
 
+    [Fact]
+    public async Task UcatsAuthControl_WritesOnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        Assert.DoesNotContain("Database=docpart", connectionString, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var missingBots = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.UcatsAuthControlPath, Form(("x", "1")), string.Empty);
+            Assert.Equal(StorefrontPhpAjax.BotAddressesMissing, missingBots.Body);
+            Assert.DoesNotContain("doesn't exist", missingBots.Body, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_ucats_auth_control'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'bot_ips'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE bot_ips (id INT NOT NULL PRIMARY KEY, `from` VARCHAR(64) NOT NULL, `to` VARCHAR(64) NOT NULL)");
+            var missingAuth = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.UcatsAuthControlPath, null, string.Empty);
+            Assert.Equal(StorefrontPhpAjax.UcatsAccessControlMissing, missingAuth.Body);
+            Assert.DoesNotContain("doesn't exist", missingAuth.Body, StringComparison.OrdinalIgnoreCase);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_ucats_auth_control'"));
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_ucats_auth_control (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  time INT NOT NULL,
+                  ip VARCHAR(64) NOT NULL,
+                  user_id INT NOT NULL,
+                  queries_count INT NOT NULL
+                )
+                """);
+            var first = await SendAsync(client, HttpMethod.Post, StorefrontPhpAjax.UcatsAuthControlPath, Form(("x", "1")), string.Empty);
+            Assert.Equal(string.Empty, first.Body);
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_ucats_auth_control"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT user_id FROM shop_ucats_auth_control"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT queries_count FROM shop_ucats_auth_control"));
+            var ip = await ScalarAsync(connectionString, "SELECT ip FROM shop_ucats_auth_control");
+            Assert.False(string.IsNullOrWhiteSpace(ip));
+            var storedTime = long.Parse(await ScalarAsync(connectionString, "SELECT time FROM shop_ucats_auth_control"), CultureInfo.InvariantCulture);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            Assert.InRange(storedTime, now - 30, now + 5);
+
+            Assert.Equal(string.Empty, (await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.UcatsAuthControlPath, null, string.Empty)).Body);
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT queries_count FROM shop_ucats_auth_control"));
+
+            await ExecuteAsync(connectionString, "UPDATE shop_ucats_auth_control SET queries_count = 101");
+            var blocked = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.UcatsAuthControlPath, null, string.Empty);
+            Assert.Equal(StorefrontPhpAjax.UcatsForbidden, blocked.Body);
+            Assert.Equal("101", await ScalarAsync(connectionString, "SELECT queries_count FROM shop_ucats_auth_control"));
+
+            await ExecuteAsync(connectionString, "UPDATE shop_ucats_auth_control SET queries_count = 100");
+            Assert.Equal(string.Empty, (await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.UcatsAuthControlPath, null, string.Empty)).Body);
+            Assert.Equal("101", await ScalarAsync(connectionString, "SELECT queries_count FROM shop_ucats_auth_control"));
+
+            await ExecuteAsync(connectionString, "DELETE FROM shop_ucats_auth_control");
+            await ExecuteAsync(connectionString, "INSERT INTO bot_ips (id, `from`, `to`) VALUES (1, '" + ip + "', '" + ip + "')");
+            var bot = await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.UcatsAuthControlPath, null, string.Empty);
+            Assert.Equal(StorefrontPhpAjax.UcatsForbidden, bot.Body);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_ucats_auth_control"));
+
+            await ExecuteAsync(connectionString, "DELETE FROM bot_ips");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_ucats_auth_control (time, ip, user_id, queries_count) VALUES (" + (now - 90000).ToString(CultureInfo.InvariantCulture) + ", '" + ip + "', 0, 7)");
+            Assert.Equal(string.Empty, (await SendAsync(client, HttpMethod.Get, StorefrontPhpAjax.UcatsAuthControlPath, null, string.Empty)).Body);
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_ucats_auth_control"));
+            Assert.Equal("7", await ScalarAsync(connectionString, "SELECT queries_count FROM shop_ucats_auth_control WHERE time < " + (now - 80000).ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT queries_count FROM shop_ucats_auth_control WHERE time > " + (now - 80000).ToString(CultureInfo.InvariantCulture)));
+
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `docpart`.`users`"));
+            Assert.Equal("2", await ScalarAsync(admin, "SELECT COUNT(*) FROM `ecomae`.`users`"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+
+        Assert.Equal("0", await ScalarAsync(admin, "SELECT COUNT(*) FROM information_schema.SCHEMATA WHERE SCHEMA_NAME LIKE 'ecomae_cpw_%'"));
+    }
+
     private static string RequestJson(int categoryId, int blockType, string search)
         => "{\"category_id\":" + categoryId.ToString(CultureInfo.InvariantCulture)
             + ",\"properties_list\":[],\"product_block_type\":" + blockType.ToString(CultureInfo.InvariantCulture)

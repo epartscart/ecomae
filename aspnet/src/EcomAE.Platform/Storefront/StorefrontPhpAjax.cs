@@ -63,6 +63,10 @@ public static partial class StorefrontPhpAjax
     public const string UcatsNoAccess = "No access";
     public const string UcatsConfigMissing = "Configuration not loaded.";
     public const string UcatsCataloguesPath = "/content/shop/ucats/catalogues.php";
+    public const string UcatsAuthControlPath = "/content/shop/ucats/ucats_auth_control.php";
+    public const string UcatsAccessControlMissing = "Ucats access control is not in this database.";
+    public const string BotAddressesMissing = "Bot addresses are not in this database.";
+    public const string UcatsForbidden = "Forbidden";
 
     public static readonly string[] UcatsFragmentPaths =
     [
