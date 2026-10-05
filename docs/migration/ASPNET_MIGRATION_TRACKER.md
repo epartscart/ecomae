@@ -80,6 +80,25 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Local proxy failures, license activate, and CP ajax
+
+Not complete.
+
+- Same storefront and API comparison as the previous checkpoint: PHP files under `content/shop`, `content/users`, `content/requests`, `modules`, and `api` whose name contains `ajax`, that live in an `ajax` directory, or that live under `api`. 112 files. Path constants and quoted `.php` route strings, after comments are removed, now map 109. Three stay unmapped on purpose: `/api/UCatalog/ucatalog_index.php` (include), `/content/shop/returns/ajax/helper.php` (include), and `/content/shop/finance/epc_erp_modules_ajax.php` (ERP, not ported).
+- The same Control Panel set under `cp/content/shop`, `cp/content/users`, and `cp/content/requests` whose file name contains `ajax` is still 75 files. 14 are mapped. 61 stay unmapped. The previous checkpoint had 10 mapped and 65 unmapped. Four of the new mappings are in that 75: unread order messages, VIN count, category templates, and the order-item object.
+- Six language-editor ajax files under `cp/content/lang` are now mapped and were outside that 75. A broader scan of `cp/content` files whose name contains `ajax` is 110 files, 20 mapped, 90 unmapped. That broader scan is not a replacement for the 75.
+- `/api/crossbase_status.php` returns `connected` false and “Cross-reference lookup did not return usable data”. `/api/epartscross_fitment.js.php` returns the missing-article or temporarily-unavailable comment. `/api/epc_ai_parts_expert.php` answers bootstrap, CSRF, and a local stock search, and says cross-reference and catalog fitment are temporarily unavailable. `/api/epc_parts_agent.php` answers hello, an empty chat, the VIN failure sentence, and a missing session. `/api/laximo_proxy.php` returns the credentials sentence unless `epc_laximo_catalogs` already has fresh rows. `/api/prices/upload_price.php` returns `2056`, `2060`, the no-file sentence, or `2058`, and does not create `shop_docpart_prices_data`. No ucats, SMTP, notify, Laximo, crossbase, or supplier HTTP call was made.
+- `/api/ajax_get_prices_settings.php` returns `Forbidden` without the tech key and redacts database and mail passwords. `/api/v1/price/lookup.php` returns `missing_api_key`, `invalid_key_format`, or `invalid_api_key`, then one AED offer and `calls_today` 1. `/api/v1/licenses/activate.php` stores status `active` and fingerprint `fp-one`, then `signing_unavailable` because no signing key is configured. A second fingerprint is `already_activated`. `/api/v1/on-premises/health.php` names a missing license table, then writes one health-log row. No signature was invented.
+- `/content/shop/catalogue/ajax_epc_sku_media.php` names missing admin sessions, returns `Unauthorized` and `CSRF mismatch`, stores brand `BOSCH`, then deletes the profile. `/content/users/ajax_epc_tax_exempt_upload.php` stores `pending_review` on `users_profiles` for a wholesale account. That is a profile flag, not a second tax engine.
+- The ten Control Panel ajax URLs above answer on the PHP path. Unread count is `2` and the returns query is `1`. VIN unviewed count is `1`. Multilang is `No access`, `OFF`, or `ON`. Language flags store `is_error` 1, `is_custom` 1, and `same` `en`, then NULL. Restricted mode cancels the write. Category template `Pads` is created and deleted. The order-item object returns status `Ordered` and action `Send`. A missing table is named and is not invented except where PHP itself runs `CREATE TABLE IF NOT EXISTS` before the action (`epc_sku_*`, `epc_onprem_*`, `epc_api_clients`).
+- `LocalGap_OnThrowawayDatabase_ThenDropped` created that database and dropped it. After the suite, `SHOW DATABASES LIKE 'ecomae_cpw_%'` was 0. `docpart.users` stayed 2 and `ecomae.users` stayed 2. No `epc_erp%` table was created. `epc_erp_order_fulfillment` is not called. The `/cp/orders/*` dry-run routes were not changed. ERP posting was not edited.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5057 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, PHP source, and the platform-host full ERP mirror. Three storefront files stay unmapped (the UCatalog include, the returns helper, and the ERP modules ajax). Sixty-one Control Panel ajax files in the shop, users, and requests set stay unmapped. Agent chat is not the full PHP stock and catalog tree. Laximo SOAP is not called. The price-import curl is not performed.
+
 ### Checkpoint 2026-10-05 — CP order ajax and license refusal
 
 Not complete.
