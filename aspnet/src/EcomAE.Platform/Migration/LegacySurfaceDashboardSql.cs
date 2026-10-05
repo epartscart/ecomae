@@ -1275,6 +1275,43 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// PHP modules list. Columns this <c>modules</c> table does not have are literals
+    /// (<c>is_frontend</c> and <c>control_available</c> as 0) so an empty slim table still loads.
+    /// </summary>
+    public static string SelectCpModulesForColumns(IReadOnlySet<string> columns)
+    {
+        static bool Has(IReadOnlySet<string> cols, string name)
+        {
+            if (cols.Contains(name))
+            {
+                return true;
+            }
+
+            foreach (var column in cols)
+            {
+                if (string.Equals(column, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static string Field(IReadOnlySet<string> cols, string name, string whenMissing)
+            => Has(cols, name) ? "`" + name + "`" : whenMissing;
+
+        var caption = Has(columns, "caption") ? "IFNULL(`caption`, '') AS caption" : "'' AS `caption`";
+        var where = Has(columns, "is_prototype") ? " WHERE `is_prototype` = 0" : string.Empty;
+        return "SELECT `id`, " + caption + ", "
+            + Field(columns, "activated", "0 AS `activated`") + ", "
+            + Field(columns, "is_frontend", "0 AS `is_frontend`") + ", "
+            + Field(columns, "is_prototype", "0 AS `is_prototype`") + ", "
+            + Field(columns, "control_available", "0 AS `control_available`")
+            + " FROM `modules`" + where + " ORDER BY `id` ASC LIMIT @limit";
+    }
+
     /// <summary>Opened module. Body is a short excerpt; full HTML and data JSON omitted.</summary>
     public const string SelectCpModulesDetail = """
         SELECT m.`id`, IFNULL(m.`caption`, '') AS caption, m.`activated`, m.`is_frontend`,

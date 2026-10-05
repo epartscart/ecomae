@@ -3087,8 +3087,9 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
         try
         {
             await using var connection = await OpenTenantShopAsync(cancellationToken).ConfigureAwait(false);
+            var moduleColumns = await TableColumnsAsync(connection, "modules", cancellationToken).ConfigureAwait(false);
             await using var command = connection.CreateCommand();
-            command.CommandText = LegacySurfaceDashboardSql.SelectCpModules;
+            command.CommandText = LegacySurfaceDashboardSql.SelectCpModulesForColumns(moduleColumns);
             AddParameter(command, "@limit", safeLimit);
             var rows = new List<CpModuleDigest>();
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -3104,6 +3105,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], 0, "database", string.Empty);
         }
         catch (Exception ex)
         {
@@ -9117,6 +9122,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var summary = new CpHrOverviewSummary(active, leave, payroll, attendance, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var summary = new CpHrOverviewSummary(0, 0, 0, 0, "database", string.Empty);
+            return new(summary, [], 0, "database", string.Empty);
+        }
         catch (Exception ex)
         {
             var err = empty with { Source = "database-error", Message = ex.Message };
@@ -12979,6 +12989,11 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
 
             var summary = new CpProductCatalogueSummary(products, published, unpublished, categories, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var summary = new CpProductCatalogueSummary(0, 0, 0, 0, "database", string.Empty);
+            return new(summary, [], 0, "database", string.Empty);
         }
         catch (Exception ex)
         {
@@ -21453,27 +21468,14 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
                 }
             }
 
-            var rows = new List<CpSeoRowDigest>
-            {
-                new("url_count", urlCount.ToString(CultureInfo.InvariantCulture)),
-                new("indexed_ready", indexedReady.ToString(CultureInfo.InvariantCulture)),
-                new("robots_indexable", robotsIndexable.ToString(CultureInfo.InvariantCulture)),
-                new("pages_with_description", withDescription.ToString(CultureInfo.InvariantCulture)),
-                new("home_title_tag", string.IsNullOrWhiteSpace(homeTitle) || homeTitle == "0" ? "(empty — ASP.NET HomeMetaDescription used)" : homeTitle),
-                new("home_description_tag", string.IsNullOrWhiteSpace(homeDescription) || homeDescription == "0" ? "(empty — ASP.NET HomeMetaDescription used)" : homeDescription),
-                new("aspnet_chpu_seo", "PHP-parity title/description/keywords + Product JSON-LD on /en/parts/{BRAND}/{ARTICLE}"),
-                new("aspnet_home_seo", "canonical + OG + hreflang + JSON-LD via /storefront/app body fallback"),
-                new("sitemap_xml", "/sitemap.xml → PHP sitemap-index (warehouse shards)"),
-                new("sitemap_pages", "see /cp/sitemap-app"),
-                new("ping_jobs", pingJobs.ToString(CultureInfo.InvariantCulture) + " (warm/ping remain PHP cron)"),
-                new("warm_jobs", warmJobs.ToString(CultureInfo.InvariantCulture)),
-            };
-            if (rows.Count > safeLimit)
-            {
-                rows = rows.Take(safeLimit).ToList();
-            }
-
+            var rows = SeoDigestRows(urlCount, indexedReady, robotsIndexable, withDescription, homeTitle, homeDescription, pingJobs, warmJobs, safeLimit);
             var summary = new CpSeoSummary(urlCount, indexedReady, pingJobs, warmJobs, "database", string.Empty);
+            return new(summary, rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            var rows = SeoDigestRows(0, 0, 0, 0, string.Empty, string.Empty, 0, 0, safeLimit);
+            var summary = new CpSeoSummary(0, 0, 0, 0, "database", string.Empty);
             return new(summary, rows, rows.Count, "database", string.Empty);
         }
         catch (Exception ex)
@@ -21481,6 +21483,40 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             var err = empty with { Source = "database-error", Message = ex.Message };
             return new(err, [], 0, "database-error", ex.Message);
         }
+    }
+
+    private static List<CpSeoRowDigest> SeoDigestRows(
+        int urlCount,
+        int indexedReady,
+        int robotsIndexable,
+        int withDescription,
+        string homeTitle,
+        string homeDescription,
+        int pingJobs,
+        int warmJobs,
+        int safeLimit)
+    {
+        var rows = new List<CpSeoRowDigest>
+        {
+            new("url_count", urlCount.ToString(CultureInfo.InvariantCulture)),
+            new("indexed_ready", indexedReady.ToString(CultureInfo.InvariantCulture)),
+            new("robots_indexable", robotsIndexable.ToString(CultureInfo.InvariantCulture)),
+            new("pages_with_description", withDescription.ToString(CultureInfo.InvariantCulture)),
+            new("home_title_tag", string.IsNullOrWhiteSpace(homeTitle) || homeTitle == "0" ? "(empty — ASP.NET HomeMetaDescription used)" : homeTitle),
+            new("home_description_tag", string.IsNullOrWhiteSpace(homeDescription) || homeDescription == "0" ? "(empty — ASP.NET HomeMetaDescription used)" : homeDescription),
+            new("aspnet_chpu_seo", "PHP-parity title/description/keywords + Product JSON-LD on /en/parts/{BRAND}/{ARTICLE}"),
+            new("aspnet_home_seo", "canonical + OG + hreflang + JSON-LD via /storefront/app body fallback"),
+            new("sitemap_xml", "/sitemap.xml → PHP sitemap-index (warehouse shards)"),
+            new("sitemap_pages", "see /cp/sitemap-app"),
+            new("ping_jobs", pingJobs.ToString(CultureInfo.InvariantCulture) + " (warm/ping remain PHP cron)"),
+            new("warm_jobs", warmJobs.ToString(CultureInfo.InvariantCulture)),
+        };
+        if (rows.Count > safeLimit)
+        {
+            rows = rows.Take(safeLimit).ToList();
+        }
+
+        return rows;
     }
 
 
@@ -24952,6 +24988,10 @@ public sealed class SurfaceDashboardSummaryReporter : ISurfaceDashboardSummaryRe
             }
 
             return new(rows, rows.Count, "database", string.Empty);
+        }
+        catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], 0, "database", string.Empty);
         }
         catch (Exception ex)
         {
