@@ -10530,12 +10530,9 @@ public sealed class ErpModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfSeedDemo, async (HttpContext context, ErpPfSeedDemoBody? body, ILegacySessionValidator validator, IErpPfSeedDemoDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPfSeedDemoRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfClearDemo, async (HttpContext context, ErpPfClearDemoBody? body, ILegacySessionValidator validator, IErpPfClearDemoDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPfClearDemoRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
-        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfSyncOrders, async (HttpContext context, ErpPfSyncOrdersBody? body, ILegacySessionValidator validator, IErpPfSyncOrdersDryRun dryRun, CancellationToken cancellationToken) =>
-        { var session = await validator.ValidateAsync(context, cancellationToken); if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp")) return Unauthorized("Admin ERP capability required."); body ??= new(false); return Results.Ok(dryRun.Evaluate(new ErpPfSyncOrdersRequest(body.ConfirmWrites)).ToPayload(SessionPayload(session))); });
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfSeedDemo, HandlePfSeedDemoAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfClearDemo, HandlePfClearDemoAsync).DisableAntiforgery();
+        endpoints.MapPost(EcomAeRoutes.ErpAjaxPfSyncOrders, HandlePfSyncOrdersAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDemoSeedSales, HandleDemoSeedSalesAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxDemoClearSales, HandleDemoClearSalesAsync).DisableAntiforgery();
         endpoints.MapPost(EcomAeRoutes.ErpAjaxCtrOcr, HandleCtrOcrAsync).DisableAntiforgery();
@@ -24622,6 +24619,121 @@ public sealed class ErpModule : ISurfaceModule
             new { ok = res.Ok, writes = res.Writes, phpAuthoritative = false, message = res.Message, cleared = res.Cleared, session = SessionPayload(session) });
     }
 
+
+    /// <summary>PHP ajax <c>pf_seed_demo</c> twin: epc_pf_seed_demo — seeds demo staff, processes, cases + finance tasks.</summary>
+    private static async Task<IResult> HandlePfSeedDemoAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPfSeedDemoDryRun dryRun,
+        IErpPfDemoSyncWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/command-center-app", "Admin ERP capability required for process-flow seeding.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPfSeedDemoRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        ErpPfDemoSyncResult res;
+        try
+        {
+            res = await writes.SeedDemoAsync((int)session.UserId, cancellationToken);
+        }
+        catch (ErpWriteException ex)
+        {
+            res = ErpPfDemoSyncResult.Fail(ex.Message);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/command-center-app",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Writes, phpAuthoritative = false, message = res.Message, res = res.Payload, session = SessionPayload(session) });
+    }
+
+    /// <summary>PHP ajax <c>pf_clear_demo</c> twin: epc_pf_clear_demo — removes all [PF-DEMO]-tagged rows.</summary>
+    private static async Task<IResult> HandlePfClearDemoAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPfClearDemoDryRun dryRun,
+        IErpPfDemoSyncWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/command-center-app", "Admin ERP capability required for process-flow clearing.");
+        }
+
+        var (_, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPfClearDemoRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        ErpPfDemoSyncResult res;
+        try
+        {
+            res = await writes.ClearDemoAsync(cancellationToken);
+        }
+        catch (ErpWriteException ex)
+        {
+            res = ErpPfDemoSyncResult.Fail(ex.Message);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/command-center-app",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Writes, phpAuthoritative = false, message = res.Message, res = res.Payload, session = SessionPayload(session) });
+    }
+
+    /// <summary>PHP ajax <c>pf_sync_orders</c> twin: epc_pf_sync_all_tasks — backfills order/PO/payment/expense cases.</summary>
+    private static async Task<IResult> HandlePfSyncOrdersAsync(
+        HttpContext context,
+        ILegacySessionValidator validator,
+        IErpPfSyncOrdersDryRun dryRun,
+        IErpPfDemoSyncWriteService writes,
+        CancellationToken cancellationToken)
+    {
+        var session = await validator.ValidateAsync(context, cancellationToken);
+        if (session.Kind != LegacySessionKind.Admin || !session.Capabilities.Contains("erp"))
+        {
+            return LiveWriteFormBinder.LoginRedirect(context, "/erp/login?returnUrl=/erp/command-center-app", "Admin ERP capability required for process-flow sync.");
+        }
+
+        var (fields, confirm) = await ReadAmlFieldsAsync(context, cancellationToken);
+        if (!confirm)
+        {
+            return Results.Ok(dryRun.Evaluate(new ErpPfSyncOrdersRequest(false)).ToPayload(SessionPayload(session)));
+        }
+
+        var limit = (int)AmlLong(fields, "limit", "max", "count");
+        ErpPfDemoSyncResult res;
+        try
+        {
+            res = await writes.SyncTasksAsync((int)session.UserId, limit, cancellationToken);
+        }
+        catch (ErpWriteException ex)
+        {
+            res = ErpPfDemoSyncResult.Fail(ex.Message);
+        }
+
+        return LiveWriteFormBinder.Complete(
+            context,
+            "/erp/command-center-app",
+            res.Ok,
+            res.Message,
+            new { ok = res.Ok, writes = res.Writes, phpAuthoritative = false, message = res.Message, res = res.Payload, session = SessionPayload(session) });
+    }
 
     /// <summary>PHP ajax <c>integrity_scan</c> twin: epc_erp_integrity_scan — read-only orphan scan.</summary>
     private static async Task<IResult> HandleIntegrityScanAsync(
