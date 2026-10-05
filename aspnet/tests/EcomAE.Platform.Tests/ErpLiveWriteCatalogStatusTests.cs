@@ -95,6 +95,8 @@ public sealed class ErpLiveWriteCatalogStatusTests
         "/erp/ajax/pf-sync-orders",
         "/erp/ajax/ai-query",
         "/erp/ajax/ai-assistant-query",
+        "/erp/ajax/docx-run-reminders",
+        "/erp/ajax/sync-einvoice-seller",
         "/erp/ajax/cc-approval-queue",
         "/erp/ajax/dashboard",
         "/erp/suppliers/create",
