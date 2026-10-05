@@ -80,6 +80,23 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Catalogue list, pickup timing, demand, and garage models
+
+Not complete.
+
+- `ajax_get_products_count.php`, `ajax_get_products_list.php`, `ajax_get_products_page.php`, `ajax_specify_office_info.php`, and the six `ajax_epc_demand_*.php` URLs now answer on ASP.NET. `ajax_get_mark_models.php` and `ajax_get_models_types.php` return `{"status":false}`. ucats HTTP was not called.
+- Category 3 with block type 1 counts `1` published product. Block type 2 counts `2`. An empty page is `<div style="text-center">4078</div>`. The tile includes `Brake Pad`, `/pads/brake-pad`, `4106`, `4111`, `4099`, `3608`, and the guest price `**`. The list URL returns an empty HTML body. Search without `str_id` says catalogue text search is not in this database. `Brake` counts `1`. `zzzz` counts `0`.
+- A guest pickup is `Session error`. An empty cart is `alert-success` / `4421` / `4447`. A storage that is not on the office map is `alert-danger` / `4422`. Exist stays 5 and reserved stays 1. Mapped storage with 48 extra hours is `alert-warning` / `4442` / `4443`.
+- A signed-out demand call is the sign-in sentence and creates no demand table. Meta creates the PHP demand tables and 7 registry countries. Showcase without `shop_docpart_prices_data` says price lists are not in this database and seeds 0. The default card seeds `TOYOTA` / `1310154101` for Algeria, Kenya, and Sudan. Fitment vehicle count is 0 and `fitment_source` is empty. Sudan is allowed after the account is locked. Kenya says the account can only view Sudan. An admin unknown code is “Unknown country code.” A start with no stock says there are no in-stock price-list parts. After exist 4, start says “Found 1” and the vehicle list stays empty. The step says the scan is complete, product group `Piston`, and vehicles_count 0. No network vehicle list was invented.
+- `StorefrontPhpCatalogueDemandTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2. No `epc_erp%` table was created. `epc_erp_order_fulfillment` is not called.
+- ucats product and group-field scripts still 404. A posted catalogue `properties_list` says property filters are not in this database. That is not the full PHP price, int, float, bool, list, and tree query.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5050 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, ucats product scripts, catalogue property filters, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Customer option, reviews, and VIN messages
 
 Not complete.
