@@ -51,26 +51,37 @@ telemetry only, not acceptance credit: a process remains **OPEN** when any
 mandatory acceptance gate lacks direct evidence, even if its development
 percentage reaches 95% or 100%.
 
+2026-10-05 update: all 321 `ajax_erp.php` cases have live ASP.NET coverage
+(`evidence/write-dryruns/erp-ajax-case-coverage-2026-10-05.md`); every
+functional ERP ajax route is a live PHP twin behind `confirmWrites` + session
+csrf_guard_key, and a consolidated O2C+P2P cycle ran end-to-end on the
+throwaway DB (`evidence/write-dryruns/erp-consolidated-cycle-2026-10-05.md`).
+Remaining deltas are acceptance-side evidence (isolation, rollback, UAT,
+production), not missing routes.
+
 | Process | Functional | UI/UX | Reports | Writes | Testing | Accepted |
 |---|---:|---:|---:|---:|---:|---:|
-| Foundation (shared shell/workspace/permissions) | 85% | 75% | n/a | n/a | 60% | No |
-| Order-to-Cash (B2) | 70% | 65% | 40% | 60% | 35% (6 verified, 0 open gaps listed; isolation/rollback pending) | No |
-| Procure-to-Pay (B3) | 80% | 70% | 45% | 75% | 65% (18 verified, 1 open) | No |
-| Inventory/WMS (B4) | 70% | 65% | 40% | 60% | 50% (12 verified, 13 open) | No |
-| Finance/GL (B5) | 55% | 60% | 40% | 45% | 0% (5 open, no fixture) | No |
-| AR/AP | 55% | 60% | 40% | 45% | 10% | No |
-| Treasury (B7) | 45% | 55% | 30% | 40% | 0% (no fixture) | No |
-| Tax/E-Invoice (B8) | 50% | 60% | 40% | 40% | 0% (no fixture) | No |
-| Fixed Assets | 20% | 30% | 10% | 10% | 0% | No |
-| CRM | 60% | 60% | 30% | 50% | 0% | No |
-| HR/Payroll | 35% | 40% | 20% | 30% | 0% | No |
-| Reporting/IFRS (B6) | 55% | 65% | 55% | n/a | 0% (no fixture) | No |
-| Jewellery (BJ) | 60% | 60% | 40% | 50% | 20% (contract/service coverage; persistence and acceptance gates open) | No |
+| Foundation (shared shell/workspace/permissions) | 90% | 75% | n/a | n/a | 60% | No |
+| Order-to-Cash (B2) | 85% | 65% | 40% | 85% | 40% (cycle proven locally; isolation/rollback/UAT pending) | No |
+| Procure-to-Pay (B3) | 85% | 70% | 45% | 85% | 65% (18 verified, 1 open) | No |
+| Inventory/WMS (B4) | 75% | 65% | 40% | 70% | 50% (12 verified, 13 open) | No |
+| Finance/GL (B5) | 75% | 60% | 40% | 75% | 15% (journals proven in cycle; period/idempotency fixtures partial) | No |
+| AR/AP | 70% | 60% | 40% | 70% | 20% (open-balance + knock-off proven) | No |
+| Treasury (B7) | 60% | 55% | 30% | 60% | 10% | No |
+| Tax/E-Invoice (B8) | 75% | 60% | 40% | 70% | 10% (PINT-AE issue/poll/credit-note live) | No |
+| Fixed Assets | 40% | 30% | 10% | 40% | 0% | No |
+| CRM | 65% | 60% | 30% | 55% | 0% | No |
+| HR/Payroll | 40% | 40% | 20% | 35% | 0% | No |
+| Reporting/IFRS (B6) | 60% | 65% | 55% | n/a | 0% (no fixture) | No |
+| Jewellery (BJ) | 70% | 60% | 40% | 60% | 25% (seed/lifecycle live; acceptance gates open) | No |
 | Fit-Out (BF) | 65% | 60% | 45% | 55% | 0% (no fixture) | No |
-| Administration/Org settings | 60% | 65% | n/a | 50% | 10% | No |
+| Administration/Org settings | 70% | 65% | n/a | 60% | 15% | No |
 
 Formal weighted tracker headline remains **20.4% complete / 79.6% pending**
-(`ASPNET_MIGRATION_TRACKER.md`); ERP accepted-process count is **0/15**.
+(`ASPNET_MIGRATION_TRACKER.md`); ERP accepted-process count is **0/15** —
+implementation telemetry moved materially (route coverage complete) but no
+mandatory acceptance gate (isolation, rollback, UAT, production evidence) has
+new evidence, which remains blocked on server access per the blockers below.
 
 Tenant promotion is tenant-specific. The gate contract in
 `TENANT_BY_TENANT_ERP_MIGRATION_GATE.md` and its machine-readable board in
