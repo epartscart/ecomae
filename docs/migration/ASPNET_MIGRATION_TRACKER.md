@@ -80,6 +80,21 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Remaining ucats pages
+
+Not complete.
+
+- `product.php`, `cars.php`, `cars_models.php`, `cars_models_types.php`, `parts_list.php`, `vybor_tovara.php`, and the loader pages under `content/shop/ucats/` now answer on ASP.NET. Each file dies with `No access` unless the CMS has defined `_ASTEXE_`. GET and POST return that sentence. A posted `car_name=Toyota` does not appear. No product heading and no car list are rendered. ucats HTTP was not called.
+- `catalogues.php` does not call ucats. With no config it returns `Configuration not loaded.` and prints no tile. A config with no ucats flag returns an empty body. `ucats_shiny=1` prints string `4584`, href `/shop/katalogi-ucats/shiny`, and caption `4585`. An empty `ucats_oil` does not print the oil tile.
+- `ucats_auth_control.php` was not ported. That include writes `shop_ucats_auth_control`.
+- `UcatsPages_LocalFailureWithoutHttp_OnThrowawayDatabase_ThenDropped` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2. No `epc_erp%` table was created. `epc_erp_order_fulfillment` is not called.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5052 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, `ucats_auth_control.php` (it writes), PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Catalogue property filters and ucats ajax
 
 Not complete.
