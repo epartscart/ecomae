@@ -85,6 +85,7 @@ public sealed class ErpSubscriptionSaveWriteService : IErpSubscriptionSaveWriteS
         try
         {
             await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            await ErpSubscriptionSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
             if (id > 0)
             {
                 await ErpDb.ExecuteAsync(

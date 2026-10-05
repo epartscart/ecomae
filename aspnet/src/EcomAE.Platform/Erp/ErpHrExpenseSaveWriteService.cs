@@ -66,6 +66,7 @@ public sealed class ErpHrExpenseSaveWriteService : IErpHrExpenseSaveWriteService
         var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        await ErpHrExpenseSchema.EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         await ErpDb.ExecuteAsync(
             connection,
             null,
