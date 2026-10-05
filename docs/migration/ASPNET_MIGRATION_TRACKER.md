@@ -80,6 +80,22 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Catalogue property filters and ucats ajax
+
+Not complete.
+
+- A posted catalogue `properties_list` now follows `query_products_all.php` for price, int, float, bool, list, and tree when the value table exists. A missing table still says “Catalogue property filters are not in this database.” and does not invent a row.
+- Category 3 with no filter counts 3 published products. Int range 10–30 counts `1` (`Pad B`, value 20) and leaves value 5 out. The full min/max counts 3. Float range 5–12 counts `1` (`Pad B`, 9.50). Bool true only counts the value 1 product. Both bools checked counts 3. List OR of option 8 counts 2. List AND of options 4 and 8 counts 1. No checked list option counts 3. Tree “All” (level 1, value 0) counts 3 even when the tree table is absent. Tree value 7 counts 1 (`Pad B`).
+- A narrowed price range without `shop_storages_data`, and again without `shop_storages` and `shop_offices_storages_map`, says the same sentence. After those tables exist, range 10–30 counts `1` (`Pad A`, price 15, exist 3 on storage 8, `interface_type` 1). Price 50, the type-2 storage, the exist-0 row, and the other category stay out. Exist stays 3 and reserved stays 0. `customer_price` is the stock price (rate 1, markup 0), PHP’s else branch when no currency rate or markup row is applied. With no `shop_geo` table the first office is used.
+- The fourteen `content/shop/ucats/` product and group-field scripts return JSON `null`. That is `json_encode` of a failed decode when ucats is not configured. GET and POST were checked. No product or field list was invented. ucats HTTP was not called. The other ucats pages were not ported.
+- `StorefrontPhpCatalogueDemandTests` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2. No `epc_erp%` table was created. `epc_erp_order_fulfillment` is not called.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5051 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, PHP source, and the platform-host full ERP mirror.
+
 ### Checkpoint 2026-10-05 — Catalogue list, pickup timing, demand, and garage models
 
 Not complete.
