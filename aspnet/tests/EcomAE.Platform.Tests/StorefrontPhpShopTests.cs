@@ -474,6 +474,89 @@ public sealed class StorefrontPhpShopTests
             Assert.Equal("2", await ScalarAsync(connectionString, "SELECT office_id FROM shop_carts_details WHERE storage_record_id=4"));
             Assert.Equal("10", await ScalarAsync(connectionString, "SELECT storage_id FROM shop_carts_details WHERE storage_record_id=4"));
 
+            await ExecuteAsync(connectionString, "INSERT INTO shop_storages (id, currency) VALUES (9, 'AED'), (10, 'AED')");
+            var ordersBeforeCopy = await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders");
+            var missingDetails = await PostJsonAsync(
+                client,
+                StorefrontPhpAjax.CheckoutCreatePath,
+                userForm("user-key"),
+                user + "; users_agreement=yes; how_get=" + Uri.EscapeDataString("{\"mode\":1,\"office_id\":4}"));
+            Assert.False(missingDetails.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(StorefrontPhpAjax.CheckoutFailPrefix + StorefrontPhpAjax.OrderItemDetailsMissing, missingDetails.RootElement.GetProperty("message").GetString());
+            Assert.DoesNotContain("doesn't exist", missingDetails.RootElement.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
+            Assert.Equal(ordersBeforeCopy, await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_orders_items_details'"));
+            Assert.Equal(officeCart, await ScalarAsync(connectionString, "SELECT id FROM shop_carts WHERE product_type=1"));
+            Assert.Equal("3", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts_details WHERE cart_record_id=" + officeCart));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=3"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=3"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=4"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=4"));
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE shop_orders_items_details (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  order_id INT NOT NULL,
+                  order_item_id INT NOT NULL,
+                  office_id INT NOT NULL,
+                  storage_id INT NOT NULL,
+                  storage_record_id INT NOT NULL,
+                  count_reserved INT NOT NULL,
+                  count_issued INT NOT NULL,
+                  count_canceled INT NOT NULL,
+                  price_purchase DECIMAL(12,2) NOT NULL
+                )
+                """);
+            var copiedOrder = await PostJsonAsync(
+                client,
+                StorefrontPhpAjax.CheckoutCreatePath,
+                userForm("user-key"),
+                user + "; users_agreement=yes; how_get=" + Uri.EscapeDataString("{\"mode\":1,\"office_id\":4}"));
+            Assert.True(copiedOrder.RootElement.GetProperty("status").GetBoolean(), copiedOrder.RootElement.TryGetProperty("message", out var copiedMessage) ? copiedMessage.GetString() : copiedOrder.RootElement.ToString());
+            var copiedOrderId = copiedOrder.RootElement.GetProperty("order_id").GetInt32();
+            Assert.Equal("4493: " + copiedOrderId.ToString(CultureInfo.InvariantCulture), copiedOrder.RootElement.GetProperty("message").GetString());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT successfully_created FROM shop_orders WHERE id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("4", await ScalarAsync(connectionString, "SELECT office_id FROM shop_orders WHERE id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT paid FROM shop_orders WHERE id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT product_type FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("9", await ScalarAsync(connectionString, "SELECT product_id FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("BOSCH", await ScalarAsync(connectionString, "SELECT t2_manufacturer FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("C110X", await ScalarAsync(connectionString, "SELECT t2_article FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("C110-X", await ScalarAsync(connectionString, "SELECT t2_article_show FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("Pad", await ScalarAsync(connectionString, "SELECT t2_name FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("4", await ScalarAsync(connectionString, "SELECT count_need FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("0.00", await ScalarAsync(connectionString, "SELECT CAST(t2_price_purchase AS CHAR) FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("8", await ScalarAsync(connectionString, "SELECT sao_state FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("8", await ScalarAsync(connectionString, "SELECT sao_robot FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Contains("\"product_id\":9", await ScalarAsync(connectionString, "SELECT t2_product_json FROM shop_orders_items WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)), StringComparison.Ordinal);
+            Assert.Equal("3", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_items_details WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture)));
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT count_reserved FROM shop_orders_items_details WHERE storage_record_id=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT count_issued FROM shop_orders_items_details WHERE storage_record_id=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT count_canceled FROM shop_orders_items_details WHERE storage_record_id=1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT office_id FROM shop_orders_items_details WHERE storage_record_id=1"));
+            Assert.Equal("8", await ScalarAsync(connectionString, "SELECT storage_id FROM shop_orders_items_details WHERE storage_record_id=1"));
+            Assert.Equal("4.00", await ScalarAsync(connectionString, "SELECT CAST(price_purchase AS CHAR) FROM shop_orders_items_details WHERE storage_record_id=1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT count_reserved FROM shop_orders_items_details WHERE storage_record_id=3"));
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT office_id FROM shop_orders_items_details WHERE storage_record_id=3"));
+            Assert.Equal("9", await ScalarAsync(connectionString, "SELECT storage_id FROM shop_orders_items_details WHERE storage_record_id=3"));
+            Assert.Equal("6.00", await ScalarAsync(connectionString, "SELECT CAST(price_purchase AS CHAR) FROM shop_orders_items_details WHERE storage_record_id=3"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT count_reserved FROM shop_orders_items_details WHERE storage_record_id=4"));
+            Assert.Equal("10", await ScalarAsync(connectionString, "SELECT storage_id FROM shop_orders_items_details WHERE storage_record_id=4"));
+            Assert.Equal("6.00", await ScalarAsync(connectionString, "SELECT CAST(price_purchase AS CHAR) FROM shop_orders_items_details WHERE storage_record_id=4"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT exist FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=3"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT reserved FROM shop_storages_data WHERE id=4"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts WHERE id=" + officeCart));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts_details WHERE cart_record_id=" + officeCart));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_carts WHERE t2_name='Keep'"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_logs WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture) + " AND text='Order email to admin admin@127.0.0.1: FAILED after retry' AND is_robot=1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_logs WHERE order_id=" + copiedOrderId.ToString(CultureInfo.InvariantCulture) + " AND text='Order email to customer (user #7): FAILED' AND is_robot=1"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_orders_logs WHERE text LIKE '%: sent%'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+
             var activated = await PostJsonAsync(client, StorefrontPhpAjax.GarageCarsPath, userForm("user-key", ("request_object", "{\"action\":\"active_car\",\"car_id\":4,\"user_id\":7}")), user);
             Assert.True(activated.RootElement.GetProperty("status").GetBoolean());
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT active FROM shop_docpart_garage WHERE id=4"));

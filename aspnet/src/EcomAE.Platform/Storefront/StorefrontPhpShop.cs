@@ -18,6 +18,7 @@ public static partial class StorefrontPhpAjax
     public const string PaymentSystemsMissing = "Payment systems are not in this database.";
     public const string CheckoutNoMarginMessage = "Unable to place this order right now. Please refresh the page, remove any unavailable items, and try again. If the problem continues, contact support.";
     public const string CheckoutFailPrefix = "4492. ";
+    public const string OrderItemDetailsMissing = "Order item details are not in this database.";
     public const string TradePendingMessage = "Your account is registered. You can browse and add items to the cart, but checkout is available only after a manager approves your retail/wholesale profile and dealing currency.";
     public const string TradeRejectedMessage = "Your trade account registration was not approved. Please contact us if you need assistance.";
 
@@ -342,6 +343,7 @@ public static partial class StorefrontPhpAjax
             var officeExecuter = mode == 1 ? officeId : 0;
             var firstOffice = 0;
             var copied = new List<long>();
+            var copiedDetails = new List<long>();
             foreach (var line in lines)
             {
                 var purchase = line.ProductType == 2
@@ -359,8 +361,10 @@ public static partial class StorefrontPhpAjax
                     firstOffice = line.OfficeId;
                 }
 
-                var saoState = 0;
-                var saoRobot = 0;
+                // PHP binds the cart storage id into sao_state and sao_robot for type 1.
+                // Type 2 still reads the supplier start-state subqueries.
+                var saoState = line.ProductType == 1 ? line.StorageId : 0;
+                var saoRobot = line.ProductType == 1 ? line.StorageId : 0;
                 if (line.ProductType == 2)
                 {
                     saoState = await SaoValueAsync(connection, transaction, line.StorageId, robot: false, cancellationToken).ConfigureAwait(false);
@@ -418,7 +422,7 @@ public static partial class StorefrontPhpAjax
 
                 if (line.ProductType == 1)
                 {
-                    await CopyOrderDetailsAsync(connection, transaction, orderId, orderItemId, line.Id, cancellationToken).ConfigureAwait(false);
+                    copiedDetails.AddRange(await CopyOrderDetailsAsync(connection, transaction, orderId, orderItemId, line.Id, cancellationToken).ConfigureAwait(false));
                     if (officeExecuter == 0)
                     {
                         officeExecuter = await FirstDetailOfficeAsync(connection, transaction, line.Id, cancellationToken).ConfigureAwait(false);
@@ -450,14 +454,16 @@ public static partial class StorefrontPhpAjax
                 delete.CommandText = ErpDb.Positional("DELETE FROM `shop_carts` WHERE `checked_for_order` = 1 AND `id` IN (" + placeholders + ")");
                 ErpDb.AddParameters(delete, copied.Cast<object>().ToArray());
                 await delete.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                if (lines.Any(line => line.ProductType == 1))
-                {
-                    await using var details = connection.CreateCommand();
-                    details.Transaction = transaction;
-                    details.CommandText = ErpDb.Positional("DELETE FROM `shop_carts_details` WHERE `cart_record_id` IN (" + placeholders + ")");
-                    ErpDb.AddParameters(details, copied.Cast<object>().ToArray());
-                    await details.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
-                }
+            }
+
+            if (copiedDetails.Count > 0)
+            {
+                var detailPlaceholders = string.Join(",", Enumerable.Repeat("?", copiedDetails.Count));
+                await using var details = connection.CreateCommand();
+                details.Transaction = transaction;
+                details.CommandText = ErpDb.Positional("DELETE FROM `shop_carts_details` WHERE `id` IN (" + detailPlaceholders + ")");
+                ErpDb.AddParameters(details, copiedDetails.Cast<object>().ToArray());
+                await details.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
@@ -1746,7 +1752,7 @@ public static partial class StorefrontPhpAjax
         }
     }
 
-    private static async Task CopyOrderDetailsAsync(
+    private static async Task<List<long>> CopyOrderDetailsAsync(
         DbConnection connection,
         DbTransaction transaction,
         long orderId,
@@ -1754,24 +1760,26 @@ public static partial class StorefrontPhpAjax
         long cartId,
         CancellationToken cancellationToken)
     {
-        var rows = new List<(int OfficeId, int StorageId, int StorageRecordId, int Reserved)>();
+        var rows = new List<(long Id, int OfficeId, int StorageId, int StorageRecordId, int Reserved)>();
         await using (var read = connection.CreateCommand())
         {
             read.Transaction = transaction;
             read.CommandText = ErpDb.Positional(
-                "SELECT `office_id`, `storage_id`, `storage_record_id`, `count_reserved` FROM `shop_carts_details` WHERE `cart_record_id` = ?");
+                "SELECT `id`, `office_id`, `storage_id`, `storage_record_id`, `count_reserved` FROM `shop_carts_details` WHERE `cart_record_id` = ?");
             ErpDb.AddParameters(read, cartId);
             await using var reader = await read.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 rows.Add((
-                    Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture),
+                    Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture),
                     Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture),
                     Convert.ToInt32(reader.GetValue(2), CultureInfo.InvariantCulture),
-                    Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture)));
+                    Convert.ToInt32(reader.GetValue(3), CultureInfo.InvariantCulture),
+                    Convert.ToInt32(reader.GetValue(4), CultureInfo.InvariantCulture)));
             }
         }
 
+        var copied = new List<long>(rows.Count);
         foreach (var row in rows)
         {
             decimal purchase = 0;
@@ -1799,8 +1807,15 @@ public static partial class StorefrontPhpAjax
             insert.CommandText = ErpDb.Positional(
                 "INSERT INTO `shop_orders_items_details` (`order_id`, `order_item_id`, `office_id`, `storage_id`, `storage_record_id`, `count_reserved`, `count_issued`, `count_canceled`, `price_purchase`) VALUES (?,?,?,?,?,?,?,?,?)");
             ErpDb.AddParameters(insert, orderId, orderItemId, row.OfficeId, row.StorageId, row.StorageRecordId, row.Reserved, 0, 0, purchase);
-            await insert.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
+            if (await insert.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false) != 1)
+            {
+                throw new ShopStop("5682");
+            }
+
+            copied.Add(row.Id);
         }
+
+        return copied;
     }
 
     private static async Task<int> FirstDetailOfficeAsync(
@@ -1921,10 +1936,20 @@ public static partial class StorefrontPhpAjax
 
     private static string CheckoutMissing(Exception ex)
     {
-        var message = ex.Message;
+        var message = string.Empty;
+        for (var current = ex; current is not null; current = current.InnerException)
+        {
+            message += " " + current.Message;
+        }
+
         if (message.Contains("checked_for_order", StringComparison.OrdinalIgnoreCase))
         {
             return CartCheckMissing;
+        }
+
+        if (message.Contains("shop_orders_items_details", StringComparison.OrdinalIgnoreCase))
+        {
+            return OrderItemDetailsMissing;
         }
 
         if (message.Contains("shop_orders_items", StringComparison.OrdinalIgnoreCase))
@@ -1932,9 +1957,21 @@ public static partial class StorefrontPhpAjax
             return "Order items are not in this database.";
         }
 
+        if (message.Contains("shop_storages_data", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_currencies", StringComparison.OrdinalIgnoreCase)
+            || message.Contains("shop_storages", StringComparison.OrdinalIgnoreCase))
+        {
+            return WarehouseStockMissing;
+        }
+
         if (message.Contains("shop_orders", StringComparison.OrdinalIgnoreCase))
         {
             return OrdersMissing;
+        }
+
+        if (message.Contains("shop_carts_details", StringComparison.OrdinalIgnoreCase))
+        {
+            return CartDetailsMissing;
         }
 
         if (message.Contains("shop_carts", StringComparison.OrdinalIgnoreCase))
