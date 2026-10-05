@@ -71,6 +71,8 @@ public static partial class StorefrontPhpAjax
     public const string CpBulkCpPath = "/cp/content/shop/bulk_upload/ajax_bulk_cp.php";
     public const string CpPosPath = "/cp/content/shop/pos/ajax_pos.php";
     public const string CpPosEndpointPath = "/cp/content/shop/pos/ajax_pos_endpoint.php";
+    public const string CpCatalogueProductsPath = "/cp/content/shop/catalogue/ajax_operations_products.php";
+    public const string CpYmlExportPath = "/cp/content/shop/data_transfer/ajax/ajax_export_to_yml.php";
 
     public const string CrossbaseUnavailable = "Cross-reference lookup did not return usable data";
     public const string FitmentMissingArticle = "/* epartscross: missing article */";

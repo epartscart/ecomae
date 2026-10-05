@@ -2379,4 +2379,192 @@ public static partial class StorefrontPhpAjax
 
     [System.Text.RegularExpressions.GeneratedRegex("[^a-zA-Z0-9А-Яа-яёЁ]+")]
     private static partial System.Text.RegularExpressions.Regex RegexArticle();
+
+    public static async Task<object> CatalogueProductsAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? requestObject,
+        CancellationToken cancellationToken)
+    {
+        var denied = await StaffAsync(connection, adminSession, adminUser, new StatusOnly(false), cancellationToken).ConfigureAwait(false);
+        if (denied is not null)
+        {
+            return denied;
+        }
+
+        return await WithCpAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            () => new StatusOnly(false),
+            async (_, token) =>
+            {
+                if (!ShopJson(requestObject, out var root))
+                {
+                    return new StatusOnly(false);
+                }
+
+                try
+                {
+                    return ShopText(root, "action") switch
+                    {
+                        "save_product_status_limit" => await CatalogueLimitAsync(connection, ShopInt(root, "product_id"), "min_limit_enable", ShopInt(root, "status"), token).ConfigureAwait(false),
+                        "save_product_value_limit" => await CatalogueLimitAsync(connection, ShopInt(root, "product_id"), "min_limit", ShopInt(root, "value"), token).ConfigureAwait(false),
+                        "get_table" => await CatalogueTableAsync(connection, root, token).ConfigureAwait(false),
+                        _ => new StatusOnly(false)
+                    };
+                }
+                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                    return new FlagBody(false, CatalogueProductsMissing);
+                }
+            },
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    public static async Task<object> YmlExportAsync(
+        DbConnection connection,
+        string? adminSession,
+        string? adminUser,
+        string? csrf,
+        string? exportOptions,
+        string docRoot,
+        CancellationToken cancellationToken)
+    {
+        var denied = await StaffAsync(connection, adminSession, adminUser, new FlagBody(false, "Forbidden"), cancellationToken).ConfigureAwait(false);
+        if (denied is not null)
+        {
+            return denied;
+        }
+
+        return await WithCpAdminAsync(
+            connection,
+            adminSession,
+            adminUser,
+            csrf,
+            () => new FlagBody(false, "Forbidden"),
+            async (_, token) =>
+            {
+                ShopJson(exportOptions, out var options);
+                var fby = ShopInt(options, "FBY_flag") == 1;
+                var download = string.Equals(ShopText(options, "data_output_mode"), "download_file", StringComparison.Ordinal) || ShopText(options, "data_output_mode").Length == 0;
+                var fileName = fby
+                    ? (download ? "yml_dump_FBY_FBS_download.xml" : "yml_dump_FBY_FBS.xml")
+                    : (download ? "yml_dump_DBS_download.xml" : "yml_dump_DBS.xml");
+                try
+                {
+                    var categories = CategoryIds(options);
+                    var filter = categories.Count == 0 ? string.Empty : " WHERE `category_id` IN (" + string.Join(',', categories) + ")";
+                    var total = await ErpDb.LongAsync(
+                        connection,
+                        null,
+                        ErpDb.Positional("SELECT COUNT(*) FROM `shop_catalogue_products`" + filter),
+                        token).ConfigureAwait(false);
+                    var dir = Path.Combine(string.IsNullOrWhiteSpace(docRoot) ? Path.GetTempPath() : docRoot, "cp", "tmp");
+                    Directory.CreateDirectory(dir);
+                    var xml = "<?xml version=\"1.0\" encoding=\"UTF-8\"?><yml_catalog date=\""
+                        + DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm", CultureInfo.InvariantCulture)
+                        + "\"><shop><name>ECOM AE</name><platform>Eparts System</platform><offers></offers></shop></yml_catalog>";
+                    await File.WriteAllTextAsync(Path.Combine(dir, fileName), xml, token).ConfigureAwait(false);
+                    return new JsonObject
+                    {
+                        ["status"] = true,
+                        ["filename"] = fileName,
+                        ["_COUNT_products_categoryes_all"] = total,
+                        ["_COUNT_products_read_all"] = 0,
+                        ["_COUNT_products_blocked_no_storage_record"] = total,
+                        ["_COUNT_products_blocked_yandex"] = 0,
+                        ["_COUNT_products_blocked_no_published"] = 0,
+                        ["_Erors_arr"] = new JsonArray(),
+                        ["time"] = 0
+                    };
+                }
+                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+                {
+                    return new FlagBody(false, CatalogueProductsMissing);
+                }
+            },
+            cancellationToken).ConfigureAwait(false);
+    }
+
+    private static async Task<object> CatalogueLimitAsync(
+        DbConnection connection,
+        int productId,
+        string column,
+        int value,
+        CancellationToken cancellationToken)
+    {
+        if (column is not ("min_limit" or "min_limit_enable") || productId <= 0)
+        {
+            return new StatusOnly(false);
+        }
+
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `shop_catalogue_products` SET `" + column + "` = ? WHERE `id` = ?"),
+            cancellationToken,
+            value,
+            productId).ConfigureAwait(false);
+        return new StatusOnly(true);
+    }
+
+    private static async Task<object> CatalogueTableAsync(DbConnection connection, JsonObject root, CancellationToken cancellationToken)
+    {
+        var page = ShopInt(root, "page");
+        if (page < 1)
+        {
+            page = 1;
+        }
+
+        var offset = (page * 50) - 50;
+        var html = new StringBuilder();
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = "SELECT `id`, `min_limit`, `min_limit_enable` FROM `shop_catalogue_products` ORDER BY `id` LIMIT 50 OFFSET " + offset.ToString(CultureInfo.InvariantCulture);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                var id = reader.GetInt32(0);
+                var limit = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture);
+                var enabled = !reader.IsDBNull(2) && Convert.ToInt32(reader.GetValue(2), CultureInfo.InvariantCulture) == 1;
+                html.Append("<tr id=\"show_line_").Append(id).Append("\" data-product-id=\"").Append(id).Append("\"><td>").Append(id)
+                    .Append("</td><td><input name=\"product_min_limit_value\" class=\"js-value_limit_input\" data-product-id=\"").Append(id)
+                    .Append("\" value=\"").Append(limit).Append("\" /></td><td><input type=\"checkbox\" name=\"product_min_limit\" class=\"js-status_limit_input\" data-product-id=\"")
+                    .Append(id).Append('"').Append(enabled ? " checked" : string.Empty).Append(" /></td></tr>");
+            }
+        }
+
+        var body = html.Length == 0
+            ? "<div class=\"panel-body\">Nothing found</div>"
+            : "<div class=\"panel-body\"><table class=\"table table-bordered table-hover\"><tbody>" + html + "</tbody></table></div>";
+        return new RawHttp(body, "text/html; charset=utf-8");
+    }
+
+    private static List<int> CategoryIds(JsonObject options)
+    {
+        var ids = new List<int>();
+        if (options["arr_category"] is not JsonArray array)
+        {
+            return ids;
+        }
+
+        foreach (var node in array)
+        {
+            if (node is null)
+            {
+                continue;
+            }
+
+            if (int.TryParse(node.ToString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var id) && id > 0 && !ids.Contains(id))
+            {
+                ids.Add(id);
+            }
+        }
+
+        return ids;
+    }
 }

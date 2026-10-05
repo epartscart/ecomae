@@ -80,6 +80,17 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — CP catalogue product limits and Yandex YML export
+
+Not complete.
+
+- Same storefront and API comparison as the previous checkpoint: PHP files under `content/shop`, `content/users`, `content/requests`, `modules`, and `api` whose name contains `ajax`, that live in an `ajax` directory, or that live under `api`. 112 files. Path constants and quoted `.php` route strings, after comments are removed, still map 109. Three stay unmapped on purpose: `/api/UCatalog/ucatalog_index.php` (include), `/content/shop/returns/ajax/helper.php` (include), and `/content/shop/finance/epc_erp_modules_ajax.php` (ERP, not ported).
+- The same Control Panel set under `cp/content/shop`, `cp/content/users`, and `cp/content/requests` whose file name contains `ajax` is still 75 files. 44 are mapped. 31 stay unmapped. The previous checkpoint had 42 mapped and 33 unmapped. The two new mappings are catalogue product operations and the Yandex YML export.
+- A broader scan of `cp/content` files whose name contains `ajax` is 110 files, 57 mapped, 53 unmapped. The previous checkpoint had 55 mapped and 55 unmapped. Those two mappings are inside the 75, so the broader scan moved by the same two.
+- Catalogue product operations for a non-admin session are `{"status":false}` with no message. A missing products table says “Catalogue products are not in this database.” `save_product_value_limit` stores `min_limit` 3 and `save_product_status_limit` stores `min_limit_enable` 1 on product 41. The HTML is the product id and the limit input, not the full category, warehouse, and translation chrome.
+- YML export without an admin session is `Forbidden`. A missing products table uses the same catalogue sentence and writes no file. With product 41 in category 62, download mode returns `yml_dump_DBS_download.xml` and FBY create-file mode returns `yml_dump_FBY_FBS.xml`. The file is an empty `<offers>` catalog under the test `cp/tmp`. Category count is 1 and read count is 0 because office, storage, property, and image offer selection was not written. No `epc_erp%` table was created.
+- Still open in the 31: CRM ajax, crosses lookup that calls out, both customer-mgmt ajax pairs, document control, live currency rates, finance ERP ajax, the orders detail pane, OMS, order pay/refund, the price-import writers `ajax_1` through `ajax_5` and `ajax_7`, commerce and multivendor ingest, pyprices health, the prices ajax init include, price review, procurement, quote alt options, and SAO `ajax_exec_action.php`.
+
 ### Checkpoint 2026-10-05 — CP marketing, workshop, crosses, price edit, user modal, bulk history, and POS register
 
 Not complete.
