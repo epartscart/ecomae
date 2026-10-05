@@ -80,6 +80,22 @@ source deletion and PHP-FPM removal remain prohibited until
 `/migration/php-decommission-readiness` is ready and release-owner approval is
 attached.
 
+### Checkpoint 2026-10-05 — Quote lines and catalogue tree
+
+Not complete.
+
+- Compared PHP ajax and API files under `content/shop`, `content/users`, `content/requests`, `modules`, and `api` with the ASP.NET `MapMethods` routes and `StorefrontPhpAjax` path constants. Migration catalogs and the `/storefront/*` dry-run twins were not treated as the PHP URL.
+- `ajax_add_to_quote.php`, `ajax_add_to_quote_manual.php`, `ajax_quote_submit.php`, and `ajax_quote_accept.php` now answer on ASP.NET. The `/storefront/quotes/*` dry-run routes were not changed. A missing sessions table says sessions are not in this database. A guest is `auth` with `/en/users/login`. Missing quote tables say quotes are not in this database and are not created. A bad check hash is code `35` and inserts nothing. A valid type-2 line inserts user 7, status `draft`, count 1, and the next line reuses that quote. A manual `bosch & co` / `09-86` line stores `BOSCH &amp; CO`, article `0986`, and `check_hash` `manual`. Submit stores the trimmed note and status `submitted`. Accept writes the quoted price `15` and times `3` into `shop_carts` and sets the quote `accepted`. The same line again is code `already`. A missing cart table returns “Could not complete acceptance” and is not created.
+- `ajax_get_brunch_items.php` and `ajax_async_tree_loader.php` read `shop_tree_lists_items`. A missing table says catalogue tree lists are not in this database. Parent 0 returns `Rotors` then `Pads`. The async loader omits `webix_kids` when the count is 0.
+- `ajax_get_to_marks.php` checks CSRF, then its only list is a ucats HTTP call. With a valid session the body is `NULL`. No car list was invented. ucats HTTP was not called.
+- `QuotesTreeAndToMarks_OnThrowawayDatabase_ThenDropped` created that database and dropped it. No `ecomae_cpw_%` database remained. `docpart.users` stayed 2 and `ecomae.users` stayed 2. No `epc_erp%` table was created. `epc_erp_order_fulfillment` is not called.
+- `/cp/web-tracker-app` still says no tracker database connection is available. Jewellery apps stay **404** because that industry module is not enabled.
+- This checkpoint did not edit ERP posting. Devin's posting stays with Devin.
+
+`dotnet test aspnet/tests/EcomAE.Platform.Tests`: 5054 passed, 0 failed.
+
+Still open: the web tracker connection, jewellery enablement, production deploy, missing VIN `email.png` and `op_*.png`, ERP fulfillment from checkout, a delivered SMTP message, PHP source, and the platform-host full ERP mirror. Other storefront PHP URLs that this comparison still did not map include returns load, workshop public, garage manager, contacts, login codes, bulk upload, vendor ingest, and `api/UCatalog/`.
+
 ### Checkpoint 2026-10-05 — Ucats access control
 
 Not complete.
