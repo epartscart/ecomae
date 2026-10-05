@@ -76,9 +76,38 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Leave requests'",
             ct);
 
-    /// <summary>epc_erp_ins_claims + epc_erp_ins_documents (epc_erp_insurance.php)</summary>
+    /// <summary>epc_erp_ins_policies + epc_erp_ins_claims + epc_erp_ins_documents (epc_erp_insurance.php)</summary>
     public static async Task EnsureInsuranceAsync(DbConnection c, CancellationToken ct)
     {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_erp_ins_policies` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`policy_no` varchar(120) NOT NULL DEFAULT ''," +
+            "`class` varchar(40) NOT NULL DEFAULT 'other'," +
+            "`title` varchar(200) NOT NULL DEFAULT ''," +
+            "`insurer` varchar(200) NOT NULL DEFAULT ''," +
+            "`broker` varchar(200) NOT NULL DEFAULT ''," +
+            "`insured_name` varchar(200) NOT NULL DEFAULT ''," +
+            "`sum_insured` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`premium` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`deductible` decimal(18,2) NOT NULL DEFAULT 0.00," +
+            "`currency` varchar(3) NOT NULL DEFAULT 'AED'," +
+            "`start_date` int(11) NOT NULL DEFAULT 0," +
+            "`expiry_date` int(11) NOT NULL DEFAULT 0," +
+            "`reminder_days` varchar(120) NOT NULL DEFAULT '90,60,30,7'," +
+            "`contact_email` varchar(200) NOT NULL DEFAULT ''," +
+            "`status` varchar(16) NOT NULL DEFAULT 'active'," +
+            "`note` text," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "KEY `x_company` (`company_id`)," +
+            "KEY `x_class` (`class`)," +
+            "KEY `x_expiry` (`expiry_date`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Insurance policy register'",
+            ct).ConfigureAwait(false);
+
         await ErpDb.TryExecuteAsync(c,
             "CREATE TABLE IF NOT EXISTS `epc_erp_ins_claims` (" +
             "`id` int(11) NOT NULL AUTO_INCREMENT," +
@@ -295,6 +324,41 @@ internal static class ErpLazySchema
             ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Project cost/revenue/billing transactions'",
             ct).ConfigureAwait(false);
     }
+
+    /// <summary>epc_tickets (epc_erp_tickets.php)</summary>
+    public static Task EnsureTicketsAsync(DbConnection c, CancellationToken ct) =>
+        ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_tickets` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`ticket_no` varchar(32) NOT NULL DEFAULT ''," +
+            "`subject` varchar(300) NOT NULL DEFAULT ''," +
+            "`description` text," +
+            "`category` varchar(100) NOT NULL DEFAULT 'general'," +
+            "`priority` enum('low','medium','high','critical') NOT NULL DEFAULT 'medium'," +
+            "`status` enum('open','in_progress','waiting','resolved','closed') NOT NULL DEFAULT 'open'," +
+            "`client_id` int(11) NOT NULL DEFAULT 0," +
+            "`client_name` varchar(200) NOT NULL DEFAULT ''," +
+            "`assigned_to` int(11) NOT NULL DEFAULT 0," +
+            "`assigned_name` varchar(120) NOT NULL DEFAULT ''," +
+            "`sla_id` int(11) NOT NULL DEFAULT 0," +
+            "`response_deadline` datetime DEFAULT NULL," +
+            "`resolution_deadline` datetime DEFAULT NULL," +
+            "`first_response_at` datetime DEFAULT NULL," +
+            "`resolved_at` datetime DEFAULT NULL," +
+            "`escalation_level` int(11) NOT NULL DEFAULT 0," +
+            "`tags` varchar(500) NOT NULL DEFAULT ''," +
+            "`time_created` int(11) NOT NULL DEFAULT 0," +
+            "`time_updated` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `ux_ticket_no` (`ticket_no`)," +
+            "KEY `x_company` (`company_id`)," +
+            "KEY `x_status` (`status`)," +
+            "KEY `x_priority` (`priority`)," +
+            "KEY `x_assigned` (`assigned_to`)," +
+            "KEY `x_client` (`client_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Support tickets'",
+            ct);
 
     /// <summary>epc_user_shortcuts (epc_erp_shortcut_icons.php)</summary>
     public static Task EnsureUserShortcutsAsync(DbConnection c, CancellationToken ct) =>

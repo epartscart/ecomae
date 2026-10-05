@@ -40,6 +40,8 @@ public sealed partial class ErpShortcutReadService : IErpShortcutReadService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureUserShortcutsAsync(connection, cancellationToken).ConfigureAwait(false);
         var exists = await ErpDb.LongAsync(
             connection, null,
             ErpDb.Positional("SELECT COUNT(*) FROM information_schema.TABLES WHERE TABLE_SCHEMA = DATABASE() AND TABLE_NAME = 'epc_user_shortcuts'"),
