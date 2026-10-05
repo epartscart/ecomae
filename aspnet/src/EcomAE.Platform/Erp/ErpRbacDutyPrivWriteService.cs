@@ -45,6 +45,8 @@ public sealed class ErpRbacDutyPrivWriteService : IErpRbacDutyPrivWriteService
         var attach = request.Attach is null || request.Attach != 0;
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureRbacAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_rbac_duty_priv", "duty_id", cancellationToken).ConfigureAwait(false)
             || !await ColumnExistsAsync(connection, "epc_rbac_duty_priv", "privilege_id", cancellationToken).ConfigureAwait(false))
         {

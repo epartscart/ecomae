@@ -536,6 +536,64 @@ internal static class ErpLazySchema
             ct);
     }
 
+    /// <summary>epc_rbac_role + epc_rbac_duty + epc_rbac_privilege + links (epc_erp_rbac.php ensure_schema)</summary>
+    public static async Task EnsureRbacAsync(DbConnection c, CancellationToken ct)
+    {
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_rbac_role` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(60) NOT NULL DEFAULT ''," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `x_company_code` (`company_id`,`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Security roles'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_rbac_duty` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(60) NOT NULL DEFAULT ''," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `x_company_code` (`company_id`,`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Security duties'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_rbac_privilege` (" +
+            "`id` int(11) NOT NULL AUTO_INCREMENT," +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`code` varchar(60) NOT NULL DEFAULT ''," +
+            "`name` varchar(160) NOT NULL DEFAULT ''," +
+            "`access_level` varchar(8) NOT NULL DEFAULT 'read'," +
+            "PRIMARY KEY (`id`)," +
+            "UNIQUE KEY `x_company_code` (`company_id`,`code`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Security privileges'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_rbac_role_duty` (" +
+            "`role_id` int(11) NOT NULL DEFAULT 0," +
+            "`duty_id` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`role_id`,`duty_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Role -> duty'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_rbac_duty_priv` (" +
+            "`duty_id` int(11) NOT NULL DEFAULT 0," +
+            "`privilege_id` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`duty_id`,`privilege_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='Duty -> privilege'",
+            ct);
+        await ErpDb.TryExecuteAsync(c,
+            "CREATE TABLE IF NOT EXISTS `epc_rbac_user_role` (" +
+            "`company_id` int(11) NOT NULL DEFAULT 0," +
+            "`user_id` int(11) NOT NULL DEFAULT 0," +
+            "`role_id` int(11) NOT NULL DEFAULT 0," +
+            "PRIMARY KEY (`company_id`,`user_id`,`role_id`)" +
+            ") ENGINE=InnoDB DEFAULT CHARSET=utf8 COMMENT='User -> role'",
+            ct);
+    }
+
     /// <summary>epc_cft_forecast + epc_cft_line + epc_cft_instrument + epc_cft_instr_event (epc_erp_cash_treasury.php ensure_schema)</summary>
     public static async Task EnsureCashTreasuryAsync(DbConnection c, CancellationToken ct)
     {
