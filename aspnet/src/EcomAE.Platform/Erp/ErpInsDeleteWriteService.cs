@@ -34,6 +34,8 @@ public sealed class ErpInsDeleteWriteService : IErpInsDeleteWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+
+        await ErpLazySchema.EnsureInsuranceAsync(connection, cancellationToken).ConfigureAwait(false);
         if (!await ColumnExistsAsync(connection, "epc_erp_ins_policies", "policy_no", cancellationToken).ConfigureAwait(false))
         {
             return ErpSimpleWriteResult.Fail("invalid", "Insurance policy table is not provisioned");
