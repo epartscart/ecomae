@@ -1,7 +1,8 @@
 using System.Data.Common;
-using System.Globalization;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Data;
+using EcomAE.Platform.Presentation;
+using EcomAE.Platform.Services;
 using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Auth;
@@ -143,12 +144,22 @@ public static class OAuthCallbackEndpoint
         try
         {
             await using var connection = await connections.OpenAsync(target.Database, target.User, target.Password, cancellationToken).ConfigureAwait(false);
-            userId = await FindUserIdAsync(connection, profile.Email, cancellationToken).ConfigureAwait(false);
+            var account = await OAuthAccountProvision.FindOrProvisionAsync(
+                connection,
+                profile.Email,
+                profile.Name,
+                state.AuthMode == "storefront",
+                OAuthAccountProvision.AllowNewAccount(state.AuthMode, state.ReturnHost),
+                secret,
+                cancellationToken).ConfigureAwait(false);
+            userId = account.UserId;
             if (userId <= 0)
             {
-                var message = state.AuthMode == "storefront"
-                    ? "Could not sign in with this " + OAuthCallback.UcFirst(state.Provider) + " account"
-                    : "No CP access for this " + OAuthCallback.UcFirst(state.Provider) + " account on this workspace";
+                var message = !string.IsNullOrWhiteSpace(account.Message)
+                    ? account.Message
+                    : state.AuthMode == "storefront"
+                        ? "Could not sign in with this " + OAuthCallback.UcFirst(state.Provider) + " account"
+                        : "No CP access for this " + OAuthCallback.UcFirst(state.Provider) + " account on this workspace";
                 return Html(OAuthCallback.Fail(StatusCodes.Status403Forbidden, message));
             }
 
@@ -210,13 +221,13 @@ public static class OAuthCallbackEndpoint
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                return null;
+                return FallbackTarget(host);
             }
 
             var database = reader.IsDBNull(2) ? "" : reader.GetString(2).Trim();
             if (database.Length == 0)
             {
-                return null;
+                return FallbackTarget(host);
             }
 
             return new TenantDbTarget(
@@ -226,41 +237,50 @@ public static class OAuthCallbackEndpoint
         }
         catch (DbException)
         {
-            command.Parameters.Clear();
-            command.CommandText = PortalTenantSql.SelectActiveTenantByHostsMinimal;
-            Add(command, "@h0", host);
-            Add(command, "@h1", alias);
-            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
-            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            try
             {
-                return null;
-            }
+                command.Parameters.Clear();
+                command.CommandText = PortalTenantSql.SelectActiveTenantByHostsMinimal;
+                Add(command, "@h0", host);
+                Add(command, "@h1", alias);
+                await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+                if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+                {
+                    return FallbackTarget(host);
+                }
 
-            var database = reader.IsDBNull(2) ? "" : reader.GetString(2).Trim();
-            if (database.Length == 0)
+                var database = reader.IsDBNull(2) ? "" : reader.GetString(2).Trim();
+                if (database.Length == 0)
+                {
+                    return FallbackTarget(host);
+                }
+
+                return new TenantDbTarget(
+                    database,
+                    reader.IsDBNull(3) ? "" : reader.GetString(3),
+                    reader.IsDBNull(4) ? "" : reader.GetString(4));
+            }
+            catch (DbException)
             {
-                return null;
+                return FallbackTarget(host);
             }
-
-            return new TenantDbTarget(
-                database,
-                reader.IsDBNull(3) ? "" : reader.GetString(3),
-                reader.IsDBNull(4) ? "" : reader.GetString(4));
         }
     }
 
-    private static async Task<int> FindUserIdAsync(DbConnection connection, string email, CancellationToken cancellationToken)
+    /// <summary>PHP host bind when <c>epc_portal_tenants</c> has no row for this return host.</summary>
+    private static TenantDbTarget? FallbackTarget(string host)
     {
-        await using var command = connection.CreateCommand();
-        command.CommandText = LegacyAdminLoginSql.SelectUserByEmail;
-        Add(command, "@contact", email);
-        var scalar = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
-        if (scalar is null || scalar is DBNull)
+        if (PlatformHostPolicy.IsSuperCpHost(host) || EcomaeIndustryShowcaseSnapshots.IsIndustriesDirectoryHost(host))
         {
-            return 0;
+            return new TenantDbTarget("ecomae", "", "");
         }
 
-        return Convert.ToInt32(scalar, CultureInfo.InvariantCulture);
+        if (RouteTenantResolver.IsEpartsCartHost(host, null) || RouteTenantResolver.IsDegradedSharedShopHost(host))
+        {
+            return new TenantDbTarget("docpart", "", "");
+        }
+
+        return null;
     }
 
     private static async Task InsertSessionAsync(
