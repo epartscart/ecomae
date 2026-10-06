@@ -22,7 +22,11 @@ public static class StorefrontPartsCatalogues
     public const string AutoxpMissing = "AutoXP click counter is not in this database.";
     public const int AutoxpMonthlyLimit = 2000;
 
-    public sealed record CatalogueLink(string Name, string Caption, int Order, string Href);
+    public sealed record CatalogueLink(
+        [property: JsonPropertyName("name")] string Name,
+        [property: JsonPropertyName("caption")] string Caption,
+        [property: JsonPropertyName("order")] int Order,
+        [property: JsonPropertyName("href")] string Href);
 
     public sealed record Brand(
         [property: JsonPropertyName("car_id")] int CarId,

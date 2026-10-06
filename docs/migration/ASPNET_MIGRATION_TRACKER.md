@@ -93,6 +93,14 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-06 — parts catalogues keep the PHP link rules
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan stays 91 of 110. Storefront and API ajax stays 109 of 112.
+- The vehicle catalog page lists the catalogues enabled on the `parts_catalogues` search tab. Toyota with AutoXP, Ilcats, Catalogs-Parts, and Levam enabled stores four links. Ilcats becomes `https://ilcats.example/?pid=PID3&clid=CL1`. AutoXP appends id `99`. Catalogs-Parts replaces `client:;` with `client:CLIENT;`. BMW is left out because it is not in the AutoXP or Catalogs-Parts car lists. A catalogue whose show flag is off is left out.
+- Missing catalogue tables are reported and are not created. The AutoXP click script with no database says “No DB connect”. A missing click table says “AutoXP click counter is not in this database.” The first click stores 1. At 2000 the answer is 0 and the count stays 2000. A later allowed click with an https target redirects and increments. No `epc_erp%` table is created.
+
 ### Checkpoint 2026-10-06 — marketing broadcast counts recipients
 
 Not complete.
