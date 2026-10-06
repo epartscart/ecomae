@@ -87,11 +87,22 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 71 of 75 (95%) | The prices init include, price review, and crosses lookup |
-| Broader `cp/content` ajax | 84 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
+| Broader `cp/content` ajax | 85 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 4 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — cross link uses the existing cross writer
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 72 are mapped. 3 stay unmapped. The previous checkpoint had 71 mapped and 4 unmapped. The broader `cp/content` ajax scan is 85 of 110 mapped.
+- `ajax_epc_cross_cp.php` with no database says “No DB connect”. A missing sessions table says “Admin sessions are not in this database.” A guest is “Access denied”. A missing CSRF value is `Error! CSRF 1`. An unknown action is “Unknown action”.
+- `lookup_crosses` and `import_full_catalog` stay on the classic lookup and do not create `shop_docpart_articles_analogs_list`. `add_cross_link` before that table exists says “Cross links are not in this database.” and does not create it.
+- After the table exists, `add_cross_link` calls `ICpCrossWriteService.AddAsync`. Article `04465-YZZD2` / `TOYOTA` to `446610010` / `AISIN` stores both directions, `inserted` is 1, and `cp_links_for_article` is 2. The same post again is `already_linked` and the row count stays 2. The same part and brand is `same_part_same_brand`.
+- `add_cross_bulk` adds `0986AF0078` / `BOSCH` and counts the existing AISIN pair as already. The table then has 4 rows. `repair_empty_brands` stays on the classic helper and does not change that count. No `epc_erp%` table is created.
+- The prices init include and the two price-review scripts stay open. Price review remains a dry-run with writes 0.
 
 ### Checkpoint 2026-10-06 — commerce source list reads price lists; file and URL refresh stay classic
 
