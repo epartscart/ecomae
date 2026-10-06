@@ -373,6 +373,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.NotificationTest, ["GET", "POST"], CpNotificationTestAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.SocialMedia, ["GET", "POST"], CpSocialMediaAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3361,6 +3363,52 @@ public static class StorefrontPhpAjaxEndpoints
                 tests,
                 token),
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpSocialMediaAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpSocialHubWriteService social,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        var token = string.Empty;
+        if (fields.TryGetValue("csrf_token", out var posted) && posted.Length > 0)
+        {
+            token = posted;
+        }
+        else if (context.Request.Headers.TryGetValue("X-CSRF-TOKEN", out var header) && header.ToString().Length > 0)
+        {
+            token = header.ToString();
+        }
+        else if (fields.TryGetValue("csrf_guard_key", out var guard))
+        {
+            token = guard;
+        }
+
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.SocialMediaAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                token,
+                fields,
+                context.Request.Host.Host,
+                social,
+                cancel),
+            new StorefrontPhpAjax.SocialBody(false, "DB unavailable")).ConfigureAwait(false);
     }
 
     private static async Task<IResult> CpOrdersOmsAsync(

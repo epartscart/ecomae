@@ -861,6 +861,81 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task SocialMedia_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var draft = Form(("csrf_token", "admin-csrf"), ("action", "save_draft"), ("platform", "Instagram"), ("title", "Brake pads"), ("caption", "Front kit"), ("hashtags", "#parts"), ("media_url", "https://example.test/a.jpg"));
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.SocialMedia, draft, staff);
+                Assert.False(offline.Json.RootElement.GetProperty("ok").GetBoolean());
+                Assert.Equal("DB unavailable", offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, draft, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, draft, string.Empty);
+            Assert.Equal("Admin required", guest.Json.RootElement.GetProperty("message").GetString());
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, Form(("action", "save_draft"), ("title", "Brake pads")), staff);
+            Assert.Equal("CSRF failed", csrf.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, draft, staff);
+            Assert.Equal("Social drafts table is missing — schema-ensure stays Classic.", missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_social_post_drafts'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_social_post_drafts (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, site_key VARCHAR(64) NOT NULL, platform VARCHAR(32) NOT NULL, title VARCHAR(255) NOT NULL, caption TEXT NULL, hashtags TEXT NULL, media_url VARCHAR(512) NULL, status VARCHAR(32) NOT NULL, created_at BIGINT NOT NULL, updated_at BIGINT NOT NULL)");
+            var saved = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, draft, staff);
+            Assert.True(saved.Json.RootElement.GetProperty("ok").GetBoolean(), saved.Body);
+            Assert.Equal("Draft saved.", saved.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("127-0-0-1", await ScalarAsync(connectionString, "SELECT site_key FROM epc_social_post_drafts WHERE id = 1"));
+            Assert.Equal("instagram", await ScalarAsync(connectionString, "SELECT platform FROM epc_social_post_drafts WHERE id = 1"));
+            Assert.Equal("Brake pads", await ScalarAsync(connectionString, "SELECT title FROM epc_social_post_drafts WHERE id = 1"));
+            Assert.Equal("draft", await ScalarAsync(connectionString, "SELECT status FROM epc_social_post_drafts WHERE id = 1"));
+            var updated = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, Form(("csrf_token", "admin-csrf"), ("action", "save_draft"), ("id", "1"), ("platform", "instagram"), ("title", "Brake pads"), ("caption", "Rear kit")), staff);
+            Assert.True(updated.Json.RootElement.GetProperty("ok").GetBoolean(), updated.Body);
+            Assert.Equal("Rear kit", await ScalarAsync(connectionString, "SELECT caption FROM epc_social_post_drafts WHERE id = 1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_social_post_drafts"));
+            var absent = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, Form(("csrf_token", "admin-csrf"), ("action", "save_draft"), ("id", "99"), ("title", "Missing")), staff);
+            Assert.Equal("Draft not found", absent.Json.RootElement.GetProperty("message").GetString());
+            var caption = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, Form(("csrf_token", "admin-csrf"), ("action", "generate_caption"), ("platform", "instagram")), staff);
+            Assert.Equal(StorefrontPhpAjax.SocialCaptionStaysClassic, caption.Json.RootElement.GetProperty("message").GetString());
+            var publish = await SendAsync(client, CpLegacyPhpAjaxLinks.SocialMedia, Form(("csrf_token", "admin-csrf"), ("action", "publish_now")), staff);
+            Assert.Equal(StorefrontPhpAjax.SocialPublishStaysClassic, publish.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_social_post_drafts"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -897,6 +972,7 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpOmsWriteService>(sp => new CpOmsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpPricesUploadWriteService>(sp => new CpPricesUploadWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpCrossWriteService>(sp => new CpCrossWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpSocialHubWriteService>(sp => new CpSocialHubWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpSmsGateway, IdleSms>();
         builder.Services.AddSingleton<ICpCommunicationsTestService>(sp => new CpCommunicationsTestService(
             sp.GetRequiredService<IErpWriteConnectionFactory>(),

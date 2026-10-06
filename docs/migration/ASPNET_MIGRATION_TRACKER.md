@@ -88,10 +88,20 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 87 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 88 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — social draft uses the existing social writer
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 88 of 110. The previous checkpoint had 87 of 110.
+- `ajax_epc_social_media.php` with no database says “DB unavailable”. A missing sessions table says “Admin sessions are not in this database.” A guest is “Admin required”. A missing CSRF token is “CSRF failed”.
+- `save_draft` before `epc_social_post_drafts` exists says “Social drafts table is missing — schema-ensure stays Classic.” and does not create the table.
+- After the table exists, platform `Instagram`, title `Brake pads`, and caption `Front kit` store site key `127-0-0-1`, platform `instagram`, and status `draft`. Updating id 1 sets the caption to `Rear kit` and the row count stays 1. Id 99 is “Draft not found”.
+- `generate_caption` stays on the classic helper. `publish_now` stays “Publishing to Meta/TikTok stays Classic.” The draft count stays 1. No `epc_erp%` table is created.
 
 ### Checkpoint 2026-10-06 — notification test uses the existing communications writer
 
