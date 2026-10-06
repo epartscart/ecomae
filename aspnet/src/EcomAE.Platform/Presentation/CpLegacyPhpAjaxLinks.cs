@@ -59,7 +59,8 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(SaoExec, StringComparison.OrdinalIgnoreCase)
             || path.Equals(OrderPayRefund, StringComparison.OrdinalIgnoreCase)
             || path.Equals(OrdersOms, StringComparison.OrdinalIgnoreCase)
-            || path.Equals(MultivendorIngest, StringComparison.OrdinalIgnoreCase);
+            || path.Equals(MultivendorIngest, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(CommerceIngest, StringComparison.OrdinalIgnoreCase);
     }
 
     public const string PricePackSetup = "/cp/content/shop/prices_upload/ajax_1_prepare_tmp_dir.php";
@@ -74,6 +75,7 @@ public static class CpLegacyPhpAjaxLinks
     public const string OrderPayRefund = "/cp/content/shop/order_process/ajax_order_pay_refund.php";
     public const string OrdersOms = "/cp/content/shop/order_process/ajax_epc_orders_oms.php";
     public const string MultivendorIngest = "/cp/content/shop/prices_upload/ajax_epc_multivendor_ingest.php";
+    public const string CommerceIngest = "/cp/content/shop/prices_upload/ajax_epc_commerce_ingest.php";
 
     public static bool TryRewrite(string? method, PathString path, string? action, out PathString target, out bool operatorPost)
     {

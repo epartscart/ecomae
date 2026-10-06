@@ -497,6 +497,117 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task CommerceIngest_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("action", "list_sources")), staff);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnectChange, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("action", "list_sources")), staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "list_sources")), staff);
+            Assert.True(missing.Json.RootElement.GetProperty("status").GetBoolean(), missing.Body);
+            Assert.Equal(0, missing.Json.RootElement.GetProperty("count").GetInt32());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_docpart_prices'"));
+            var refreshMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_url"), ("price_id", "2")), staff);
+            Assert.Equal(StorefrontPhpAjax.CommercePricesMissing, refreshMissing.Json.RootElement.GetProperty("message").GetString());
+            var none = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_all")), staff);
+            Assert.Equal("No commerce URL-linked lists found", none.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_docpart_prices'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_prices (id INT NOT NULL PRIMARY KEY, name VARCHAR(255) NOT NULL, link VARCHAR(512) NULL, load_mode INT NOT NULL, message_header_substring TEXT NULL, last_updated BIGINT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_prices (id, name, link, load_mode, message_header_substring, last_updated) VALUES (1, 'Gulf-S', '', 1, '', 11), (3, 'Stock-L', 'ftp://files.example/s.csv', 4, '', 33), (4, 'Spare-S', 'https://example.test/s.csv', 4, '', 44), (5, 'Orphan', 'https://example.test/x.csv', 4, '', 55)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_prices (id, name, link, load_mode, message_header_substring, last_updated) VALUES (2, 'Parts.P', 'https://example.test/p.csv', 4, 'EPC_COMMERCE:{\"role\":\"purchase\",\"base\":\"PartsBook\",\"margin\":12.5}', 22)");
+            var listed = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "list_sources")), staff);
+            Assert.Equal(4, listed.Json.RootElement.GetProperty("count").GetInt32());
+            var parts = SourceNamed(listed.Json.RootElement, "Parts.P");
+            Assert.Equal("purchase", parts.GetProperty("role").GetString());
+            Assert.Equal("PartsBook", parts.GetProperty("base_name").GetString());
+            Assert.Equal(12.5, parts.GetProperty("margin_percent").GetDouble());
+            Assert.True(parts.GetProperty("has_url").GetBoolean());
+            Assert.Equal(0, parts.GetProperty("records_count").GetInt32());
+            var stock = SourceNamed(listed.Json.RootElement, "Stock-L");
+            Assert.Equal("inventory", stock.GetProperty("role").GetString());
+            Assert.False(stock.GetProperty("has_url").GetBoolean());
+            Assert.Equal("Gulf", SourceNamed(listed.Json.RootElement, "Gulf-S").GetProperty("base_name").GetString());
+            var urls = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "list_sources"), ("url_only", "1")), staff);
+            Assert.Equal(2, urls.Json.RootElement.GetProperty("count").GetInt32());
+            Assert.Equal("Parts.P", urls.Json.RootElement.GetProperty("sources")[0].GetProperty("price_name").GetString());
+            Assert.Equal("Spare-S", urls.Json.RootElement.GetProperty("sources")[1].GetProperty("price_name").GetString());
+            var required = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_url"), ("price_id", "0")), staff);
+            Assert.Equal("price_id required", required.Json.RootElement.GetProperty("message").GetString());
+            var absent = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_url"), ("price_id", "99")), staff);
+            Assert.Equal("Price list not found", absent.Json.RootElement.GetProperty("message").GetString());
+            var unlinked = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_url"), ("price_id", "1")), staff);
+            Assert.Equal("No http(s) link on this price list", unlinked.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(1, unlinked.Json.RootElement.GetProperty("price_id").GetInt32());
+            var role = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_url"), ("price_id", "5")), staff);
+            Assert.Equal("Cannot detect commerce role from list name Orphan", role.Json.RootElement.GetProperty("message").GetString());
+            var stayed = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_url"), ("price_id", "2")), staff);
+            Assert.Equal(StorefrontPhpAjax.CommerceUrlStaysClassic, stayed.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("22", await ScalarAsync(connectionString, "SELECT CAST(last_updated AS CHAR) FROM shop_docpart_prices WHERE id = 2"));
+            var refreshAll = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "refresh_all")), staff);
+            Assert.Equal(StorefrontPhpAjax.CommerceUrlStaysClassic, refreshAll.Json.RootElement.GetProperty("message").GetString());
+            Assert.False(refreshAll.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(2, refreshAll.Json.RootElement.GetProperty("total").GetInt32());
+            Assert.Equal("22", await ScalarAsync(connectionString, "SELECT CAST(last_updated AS CHAR) FROM shop_docpart_prices WHERE id = 2"));
+            Assert.Equal("44", await ScalarAsync(connectionString, "SELECT CAST(last_updated AS CHAR) FROM shop_docpart_prices WHERE id = 4"));
+            var choose = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "upload")), staff);
+            Assert.Equal(StorefrontPhpAjax.CommerceChooseFile, choose.Json.RootElement.GetProperty("message").GetString());
+            var ingest = await SendAsync(client, CpLegacyPhpAjaxLinks.CommerceIngest, Form(("csrf_guard_key", "admin-csrf"), ("source_url", "https://example.test/new.csv")), staff);
+            Assert.Equal(StorefrontPhpAjax.CommerceFileStaysClassic, ingest.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("5", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_prices"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    private static JsonElement SourceNamed(JsonElement body, string name)
+    {
+        foreach (var source in body.GetProperty("sources").EnumerateArray())
+        {
+            if (source.GetProperty("price_name").GetString() == name)
+            {
+                return source;
+            }
+        }
+
+        throw new InvalidOperationException("Missing source " + name);
+    }
+
     private static async Task<ProbeHost> StartAsync(string connectionString, string? configRoot = null, bool configured = true)
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
