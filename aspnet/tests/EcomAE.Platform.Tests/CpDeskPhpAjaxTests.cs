@@ -1329,6 +1329,160 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task WebTracker_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var dash = CpLegacyPhpAjaxLinks.WebTracker + "?action=dashboard&from=2026-10-06&to=2026-10-06";
+        var seen = DateTimeOffset.Parse("2026-10-06T12:00:00Z", CultureInfo.InvariantCulture).ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, dash, null, staff);
+                Assert.Equal(HttpStatusCode.ServiceUnavailable, offline.Status);
+                Assert.False(offline.Json.RootElement.GetProperty("ok").GetBoolean());
+                Assert.Equal("db", offline.Json.RootElement.GetProperty("error").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, dash, null, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, dash, null, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.Equal("forbidden", guest.Json.RootElement.GetProperty("error").GetString());
+            var scope = await SendAsync(client, CpLegacyPhpAjaxLinks.WebTracker + "?action=dashboard&site_key=epartscart", null, staff);
+            Assert.Equal(HttpStatusCode.Forbidden, scope.Status);
+            Assert.Equal("tenant_scope", scope.Json.RootElement.GetProperty("error").GetString());
+            var missingId = await SendAsync(client, CpLegacyPhpAjaxLinks.WebTracker + "?action=session&id=0", null, staff);
+            Assert.False(missingId.Json.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal("Missing session id.", missingId.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, dash, null, staff);
+            Assert.Equal(HttpStatusCode.InternalServerError, missing.Status);
+            Assert.Equal("query_failed", missing.Json.RootElement.GetProperty("error").GetString());
+            Assert.Equal(StorefrontPhpAjax.TrackerTablesMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('epc_web_tracker_sessions','epc_web_tracker_pageviews','epc_web_tracker_events')"));
+
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE epc_web_tracker_sessions (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  session_uid VARCHAR(64) NOT NULL DEFAULT '',
+                  site_key VARCHAR(64) NOT NULL DEFAULT '',
+                  hostname VARCHAR(120) NOT NULL DEFAULT '',
+                  user_id INT NOT NULL DEFAULT 0,
+                  is_registered TINYINT NOT NULL DEFAULT 0,
+                  first_seen_at BIGINT NOT NULL DEFAULT 0,
+                  last_seen_at BIGINT NOT NULL DEFAULT 0,
+                  pageview_count INT NOT NULL DEFAULT 0,
+                  event_count INT NOT NULL DEFAULT 0,
+                  duration_ms BIGINT NOT NULL DEFAULT 0,
+                  landing_path VARCHAR(255) NOT NULL DEFAULT '',
+                  exit_path VARCHAR(255) NOT NULL DEFAULT '',
+                  country_code VARCHAR(8) NOT NULL DEFAULT '',
+                  country_name VARCHAR(64) NOT NULL DEFAULT '',
+                  city VARCHAR(64) NOT NULL DEFAULT '',
+                  region VARCHAR(64) NOT NULL DEFAULT '',
+                  device_type VARCHAR(32) NOT NULL DEFAULT '',
+                  browser VARCHAR(40) NOT NULL DEFAULT '',
+                  os VARCHAR(40) NOT NULL DEFAULT '',
+                  ip VARCHAR(45) NOT NULL DEFAULT '',
+                  referrer_host VARCHAR(120) NOT NULL DEFAULT '',
+                  utm_source VARCHAR(64) NOT NULL DEFAULT '',
+                  utm_medium VARCHAR(64) NOT NULL DEFAULT '',
+                  utm_campaign VARCHAR(64) NOT NULL DEFAULT '',
+                  visitor_uid VARCHAR(64) NOT NULL DEFAULT ''
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE epc_web_tracker_pageviews (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  session_id INT NOT NULL,
+                  session_uid VARCHAR(64) NOT NULL DEFAULT '',
+                  site_key VARCHAR(64) NOT NULL DEFAULT '',
+                  ts BIGINT NOT NULL DEFAULT 0,
+                  path VARCHAR(255) NOT NULL DEFAULT '',
+                  `query` VARCHAR(255) NOT NULL DEFAULT '',
+                  title VARCHAR(255) NOT NULL DEFAULT '',
+                  time_on_page_ms BIGINT NOT NULL DEFAULT 0,
+                  scroll_max_pct INT NOT NULL DEFAULT 0,
+                  load_time_ms BIGINT NOT NULL DEFAULT 0
+                )
+                """);
+            await ExecuteAsync(connectionString, """
+                CREATE TABLE epc_web_tracker_events (
+                  id INT NOT NULL AUTO_INCREMENT PRIMARY KEY,
+                  session_id INT NOT NULL,
+                  session_uid VARCHAR(64) NOT NULL DEFAULT '',
+                  site_key VARCHAR(64) NOT NULL DEFAULT '',
+                  ts BIGINT NOT NULL DEFAULT 0,
+                  event_type VARCHAR(32) NOT NULL DEFAULT '',
+                  path VARCHAR(255) NOT NULL DEFAULT '',
+                  search_query VARCHAR(255) NOT NULL DEFAULT '',
+                  search_context VARCHAR(64) NOT NULL DEFAULT '',
+                  element_tag VARCHAR(32) NOT NULL DEFAULT '',
+                  element_id VARCHAR(64) NOT NULL DEFAULT '',
+                  element_text VARCHAR(255) NOT NULL DEFAULT '',
+                  element_href VARCHAR(255) NOT NULL DEFAULT '',
+                  x INT NOT NULL DEFAULT 0,
+                  y INT NOT NULL DEFAULT 0
+                )
+                """);
+            await ExecuteAsync(connectionString, "INSERT INTO epc_web_tracker_sessions (session_uid, site_key, hostname, visitor_uid, pageview_count, event_count, is_registered, duration_ms, first_seen_at, last_seen_at, landing_path, exit_path, country_code, country_name, city, device_type, browser, os) VALUES ('s1', '127_0_0_1', '127.0.0.1', 'v1', 2, 1, 0, 1500, " + seen + ", " + seen + ", '/desk/parts', '/desk/parts', 'AE', 'United Arab Emirates', 'Dubai', 'desktop', 'Chrome', 'Linux')");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_web_tracker_sessions (session_uid, site_key, hostname, visitor_uid, pageview_count, last_seen_at, first_seen_at, landing_path) VALUES ('s2', 'epartscart', 'epartscart.com', 'v2', 1, " + seen + ", " + seen + ", '/other')");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_web_tracker_pageviews (session_id, session_uid, site_key, ts, path, title) VALUES (1, 's1', '127_0_0_1', " + seen + ", '/desk/parts', 'Desk parts')");
+            var listed = await SendAsync(client, dash, null, staff);
+            Assert.True(listed.Json.RootElement.GetProperty("ok").GetBoolean(), listed.Body);
+            Assert.Equal("127_0_0_1", listed.Json.RootElement.GetProperty("site_key").GetString());
+            Assert.False(listed.Json.RootElement.GetProperty("is_super").GetBoolean());
+            Assert.Equal(1, listed.Json.RootElement.GetProperty("data").GetProperty("summary").GetProperty("sessions").GetInt64());
+            Assert.Equal("/desk/parts", listed.Json.RootElement.GetProperty("data").GetProperty("recent_sessions")[0].GetProperty("landing_path").GetString());
+            var fleet = await SendAsync(client, CpLegacyPhpAjaxLinks.WebTracker + "?action=dashboard&from=2026-10-06&to=2026-10-06", null, staff, "ecomae.com");
+            Assert.True(fleet.Json.RootElement.GetProperty("ok").GetBoolean(), fleet.Body);
+            Assert.Equal("_all", fleet.Json.RootElement.GetProperty("site_key").GetString());
+            Assert.True(fleet.Json.RootElement.GetProperty("is_super").GetBoolean());
+            Assert.Equal(2, fleet.Json.RootElement.GetProperty("data").GetProperty("summary").GetProperty("sessions").GetInt64());
+            var absent = await SendAsync(client, CpLegacyPhpAjaxLinks.WebTracker + "?action=session&id=999", null, staff);
+            Assert.Equal("Session not found.", absent.Json.RootElement.GetProperty("message").GetString());
+            var detail = await SendAsync(client, CpLegacyPhpAjaxLinks.WebTracker + "?action=session&id=1", null, staff);
+            Assert.True(detail.Json.RootElement.GetProperty("ok").GetBoolean(), detail.Body);
+            Assert.Equal("/desk/parts", detail.Json.RootElement.GetProperty("detail").GetProperty("session").GetProperty("landing_path").GetString());
+            Assert.Equal("/desk/parts", detail.Json.RootElement.GetProperty("detail").GetProperty("pageviews")[0].GetProperty("path").GetString());
+            var csv = await SendAsync(client, CpLegacyPhpAjaxLinks.WebTracker + "?action=csv&from=2026-10-06&to=2026-10-06", null, staff);
+            Assert.Equal(HttpStatusCode.OK, csv.Status);
+            Assert.Contains("Website tracker full report", csv.Body, StringComparison.Ordinal);
+            Assert.Contains("/desk/parts", csv.Body, StringComparison.Ordinal);
+            Assert.Equal("3", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('epc_web_tracker_sessions','epc_web_tracker_pageviews','epc_web_tracker_events')"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())

@@ -381,6 +381,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.MarketingBroadcast, ["GET", "POST"], CpMarketingBroadcastAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.WebTracker, ["GET", "POST"], CpWebTrackerAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPartsCatalogues.Path, ["GET", "POST"], CpPartsCataloguesAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPartsCatalogues.AutoxpClicksPath, ["GET", "POST"], CpAutoxpClicksAsync)
@@ -3527,6 +3529,44 @@ public static class StorefrontPhpAjaxEndpoints
             new StorefrontPhpAjax.BroadcastBody(false, "DB unavailable")).ConfigureAwait(false);
     }
 
+    private static async Task<IResult> CpWebTrackerAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        foreach (var name in new[] { "action", "site_key", "id", "from", "to", "device", "country", "ip", "user_id", "user_type", "browser", "path" })
+        {
+            if (context.Request.Query.TryGetValue(name, out var value) && value.Count > 0)
+            {
+                fields[name] = value.ToString();
+            }
+        }
+
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.WebTrackerAsync(
+                connection,
+                connections,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                fields,
+                context.Request.Host.Host,
+                cancel),
+            new StorefrontPhpAjax.CodedJson(503, new StorefrontPhpAjax.WebTrackerGate(false, "db"))).ConfigureAwait(false);
+    }
+
     private static Task<IResult> CpPartsCataloguesAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
@@ -4316,6 +4356,18 @@ public static class StorefrontPhpAjaxEndpoints
 
     private static IResult Emit(HttpContext? context, object payload)
     {
+        if (payload is StorefrontPhpAjax.WebTrackerCsv csv)
+        {
+            if (context is not null)
+            {
+                context.Response.Headers.ContentDisposition = "attachment; filename=\"" + csv.FileName + "\"";
+                context.Response.Headers.CacheControl = "no-store";
+                context.Response.Headers["X-Content-Type-Options"] = "nosniff";
+            }
+
+            return Results.Text(csv.Body, "text/csv; charset=utf-8");
+        }
+
         if (payload is StorefrontPhpAjax.CodedJson coded)
         {
             if (context is not null && coded.HeaderName is not null && coded.HeaderValue is not null)
