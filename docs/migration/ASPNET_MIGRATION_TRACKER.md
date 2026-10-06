@@ -88,10 +88,18 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 91 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 92 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — website tracker uses the existing dashboard builder
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 92 of 110. The previous checkpoint had 91 of 110. Storefront and API ajax stays 109 of 112.
+- `ajax_epc_web_tracker.php` with no database is HTTP 503 `{ok:false, error:"db"}`. A missing sessions table says “Admin sessions are not in this database.” A guest is HTTP 403 `forbidden`. A tenant host that posts another site key is HTTP 403 `tenant_scope`. This URL does not create `epc_web_tracker_sessions`, `epc_web_tracker_pageviews`, or `epc_web_tracker_events`.
+- When those tables are absent the answer is HTTP 500 `query_failed` and “Website tracker tables are not installed.” After the tables exist, host `127.0.0.1` counts only `site_key` `127_0_0_1` (one session, landing `/desk/parts`). Host `ecomae.com` is super and counts both sessions under `_all`. Session id 0 says “Missing session id.” A missing id says “Session not found.” The CSV starts with “Website tracker full report” and includes the landing path. No `epc_erp%` table is created.
 
 ### Checkpoint 2026-10-06 — parts catalogues keep the PHP link rules
 
