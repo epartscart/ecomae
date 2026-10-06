@@ -595,6 +595,89 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task CrossCp_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var link = "{\"action\":\"add_cross_link\",\"article\":\"04465-YZZD2\",\"manufacturer\":\"TOYOTA\",\"ref_article\":\"446610010\",\"ref_brand\":\"AISIN\"}";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.CrossCp, Form(("request_object", link)), staff);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnect, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("request_object", link)), staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", link)), string.Empty);
+            Assert.Equal("Access denied", guest.Json.RootElement.GetProperty("message").GetString());
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("request_object", link)), staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var unknown = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", "{\"action\":\"other\"}")), staff);
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+            var lookup = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", "{\"action\":\"lookup_crosses\",\"article\":\"04465-YZZD2\",\"manufacturer\":\"TOYOTA\"}")), staff);
+            Assert.Equal(StorefrontPhpAjax.CrossSearchStaysClassic, lookup.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_docpart_articles_analogs_list'"));
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", link)), staff);
+            Assert.Equal(StorefrontPhpAjax.CrossLinksMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_docpart_articles_analogs_list'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_articles_analogs_list (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, article VARCHAR(255) NOT NULL, article_search VARCHAR(255) NULL, manufacturer_article VARCHAR(255) NOT NULL, analog VARCHAR(255) NOT NULL, analog_search VARCHAR(255) NULL, manufacturer_analog VARCHAR(255) NOT NULL)");
+            var added = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", link)), staff);
+            Assert.True(added.Json.RootElement.GetProperty("status").GetBoolean(), added.Body);
+            Assert.Equal(1, added.Json.RootElement.GetProperty("inserted").GetInt32());
+            Assert.Equal(0, added.Json.RootElement.GetProperty("already").GetInt32());
+            Assert.Equal(2, added.Json.RootElement.GetProperty("cp_links_for_article").GetInt32());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_articles_analogs_list WHERE article = '04465YZZD2' AND manufacturer_article = 'TOYOTA' AND analog = '446610010' AND manufacturer_analog = 'AISIN'"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_articles_analogs_list WHERE article = '446610010' AND manufacturer_article = 'AISIN' AND analog = '04465YZZD2' AND manufacturer_analog = 'TOYOTA'"));
+            var again = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", link)), staff);
+            Assert.Equal(1, again.Json.RootElement.GetProperty("already").GetInt32());
+            Assert.Equal("already_linked", again.Json.RootElement.GetProperty("reason").GetString());
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_articles_analogs_list"));
+            var same = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", "{\"action\":\"add_cross_link\",\"article\":\"04465-YZZD2\",\"manufacturer\":\"TOYOTA\",\"ref_article\":\"04465-YZZD2\",\"ref_brand\":\"TOYOTA\"}")), staff);
+            Assert.Equal("same_part_same_brand", same.Json.RootElement.GetProperty("reason").GetString());
+            var bulk = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", "{\"action\":\"add_cross_bulk\",\"article\":\"04465-YZZD2\",\"manufacturer\":\"TOYOTA\",\"references\":[{\"article\":\"0986AF0078\",\"brand\":\"BOSCH\"},{\"article\":\"446610010\",\"brand\":\"AISIN\"}]}")), staff);
+            Assert.Equal(1, bulk.Json.RootElement.GetProperty("inserted").GetInt32());
+            Assert.Equal(1, bulk.Json.RootElement.GetProperty("already").GetInt32());
+            Assert.Equal("4", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_articles_analogs_list"));
+            var repair = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", "{\"action\":\"repair_empty_brands\",\"article\":\"04465-YZZD2\"}")), staff);
+            Assert.Equal(StorefrontPhpAjax.CrossRepairStaysClassic, repair.Json.RootElement.GetProperty("message").GetString());
+            var catalog = await SendAsync(client, CpLegacyPhpAjaxLinks.CrossCp, Form(("csrf_guard_key", "admin-csrf"), ("request_object", "{\"action\":\"import_full_catalog\",\"article\":\"04465-YZZD2\",\"manufacturer\":\"TOYOTA\"}")), staff);
+            Assert.Equal(StorefrontPhpAjax.CrossCatalogStaysClassic, catalog.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("4", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_docpart_articles_analogs_list"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -633,6 +716,7 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<IErpCashWriteService, ErpCashWriteService>();
         builder.Services.AddSingleton<ICpOmsWriteService>(sp => new CpOmsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpPricesUploadWriteService>(sp => new CpPricesUploadWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpCrossWriteService>(sp => new CpCrossWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<IStorefrontPriceAccess>(new GuestPrices());
         builder.Services.AddSingleton<ICpPriceImportService>(new IdleImports());
         builder.Services.AddSingleton(ReporterStub.Create());

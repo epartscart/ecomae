@@ -367,6 +367,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CommerceIngest, ["GET", "POST"], CpCommerceIngestAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.CrossCp, ["GET", "POST"], CpCrossCpAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3239,6 +3241,38 @@ public static class StorefrontPhpAjaxEndpoints
                 fields,
                 token),
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnectChange)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpCrossCpAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpCrossWriteService crosses,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        string? csrf = fields.ContainsKey("csrf_guard_key") ? fields["csrf_guard_key"] : null;
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.CrossCpAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                csrf,
+                fields,
+                crosses,
+                token),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect)).ConfigureAwait(false);
     }
 
     private static async Task<IResult> CpOrdersOmsAsync(
