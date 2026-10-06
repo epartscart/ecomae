@@ -722,7 +722,7 @@ public sealed class CpDeskPhpAjaxTests
 
             await using var host = await StartAsync(connectionString, configRoot);
             using var client = new HttpClient { BaseAddress = host.BaseAddress };
-            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret&is_frontend=1&s_page=0", null, staff);
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret&csrf_guard_key=admin-csrf&is_frontend=1&s_page=0", null, staff);
             Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
             await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
             await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
