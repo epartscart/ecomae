@@ -369,6 +369,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CrossCp, ["GET", "POST"], CpCrossCpAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.ContentJsonList, ["GET", "POST"], CpContentJsonListAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3271,6 +3273,58 @@ public static class StorefrontPhpAjaxEndpoints
                 csrf,
                 fields,
                 crosses,
+                token),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpContentJsonListAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var pair in context.Request.Query)
+        {
+            fields[pair.Key] = pair.Value.ToString();
+        }
+
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        var config = PhpConfig(context);
+        var secret = config.TryGetValue("secret_succession", out var configured) ? configured : string.Empty;
+        var code = fields.TryGetValue("code", out var posted) ? posted : string.Empty;
+        if (!string.Equals(secret, code, StringComparison.Ordinal))
+        {
+            return Php(new StorefrontPhpAjax.FlagBody(false, "Forbidden"));
+        }
+
+        var pageLimit = 0;
+        if (config.TryGetValue("list_page_limit", out var limitRaw)
+            && int.TryParse(limitRaw, NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+            && parsed > 0)
+        {
+            pageLimit = Math.Min(parsed, 500);
+        }
+
+        string? csrf = fields.ContainsKey("csrf_guard_key") ? fields["csrf_guard_key"] : null;
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.ContentJsonListAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                csrf,
+                fields,
+                pageLimit,
                 token),
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect)).ConfigureAwait(false);
     }

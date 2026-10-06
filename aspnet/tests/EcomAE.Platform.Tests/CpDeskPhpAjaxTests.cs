@@ -678,6 +678,97 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task ContentJsonList_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var configRoot = Path.Combine(Path.GetTempPath(), "ecomae-content-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(configRoot);
+        File.WriteAllText(Path.Combine(configRoot, "config.php"), """
+            <?php
+            class DP_Config {
+            public $secret_succession = 'local-secret';
+            public $list_page_limit = '1';
+            }
+            """);
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var first = CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret&csrf_guard_key=admin-csrf&is_frontend=1&s_page=0&content_id=1";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configRoot, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var forbidden = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=nope", null, staff);
+                Assert.Equal("Forbidden", forbidden.Json.RootElement.GetProperty("message").GetString());
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret", null, staff);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnect, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString, configRoot);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret&is_frontend=1&s_page=0", null, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret&is_frontend=1&s_page=0", null, staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, first, null, staff);
+            Assert.Equal(StorefrontPhpAjax.ContentMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'content'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE content (id INT NOT NULL PRIMARY KEY, value VARCHAR(255) NULL, level INT NOT NULL, parent INT NOT NULL, is_frontend INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO content (id, value, level, parent, is_frontend) VALUES (1, 'Home', 1, 0, 1), (2, 'About', 2, 1, 1), (3, '10', 1, 0, 1), (4, 'Backend', 1, 0, 0)");
+            await ExecuteAsync(connectionString, "CREATE TABLE lang_text_strings_translation (str_key VARCHAR(64) NOT NULL, lang_code VARCHAR(8) NOT NULL, value VARCHAR(255) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO lang_text_strings_translation (str_key, lang_code, value) VALUES ('10', 'en', 'Shop')");
+            var page = await SendAsync(client, first, null, staff);
+            Assert.True(page.Json.RootElement.GetProperty("status").GetBoolean(), page.Body);
+            Assert.Equal(2, page.Json.RootElement.GetProperty("max_level").GetInt32());
+            Assert.Equal(2, page.Json.RootElement.GetProperty("count_total_for_pagination").GetInt32());
+            Assert.Equal(3, page.Json.RootElement.GetProperty("count_total").GetInt32());
+            Assert.Equal(1, page.Json.RootElement.GetProperty("list_page_limit").GetInt32());
+            Assert.Equal(2, page.Json.RootElement.GetProperty("content").GetArrayLength());
+            Assert.Equal(1, page.Json.RootElement.GetProperty("content")[0].GetProperty("l1_id").GetInt32());
+            Assert.Equal("Home", page.Json.RootElement.GetProperty("content")[0].GetProperty("l1_value").GetString());
+            Assert.Equal(2, page.Json.RootElement.GetProperty("content")[0].GetProperty("l2_id").GetInt32());
+            Assert.Equal("About", page.Json.RootElement.GetProperty("content")[1].GetProperty("l2_value").GetString());
+            var next = await SendAsync(client, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret&csrf_guard_key=admin-csrf&is_frontend=1&s_page=1&content_id=1", null, staff);
+            Assert.Equal(1, next.Json.RootElement.GetProperty("content").GetArrayLength());
+            Assert.Equal("Shop", next.Json.RootElement.GetProperty("content")[0].GetProperty("l1_value").GetString());
+            Assert.Equal(2, next.Json.RootElement.GetProperty("max_level").GetInt32());
+            var backend = await SendAsync(client, CpLegacyPhpAjaxLinks.ContentJsonList + "?code=local-secret&csrf_guard_key=admin-csrf&is_frontend=0&s_page=0", null, staff);
+            Assert.Equal("Backend", backend.Json.RootElement.GetProperty("content")[0].GetProperty("l1_value").GetString());
+            Assert.Equal(1, backend.Json.RootElement.GetProperty("count_total").GetInt32());
+            Assert.Equal("4", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM content"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+            if (Directory.Exists(configRoot))
+            {
+                Directory.Delete(configRoot, true);
+            }
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
