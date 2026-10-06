@@ -769,6 +769,98 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task NotificationTest_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var configRoot = Path.Combine(Path.GetTempPath(), "ecomae-notify-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(configRoot);
+        File.WriteAllText(Path.Combine(configRoot, "config.php"), """
+            <?php
+            class DP_Config {
+            public $secret_succession = 'local-secret';
+            }
+            """);
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configRoot, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.NotificationTest, Form(("type", "email"), ("contact", "ops@example.test")), staff);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnect, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString, configRoot);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), string.Empty);
+            Assert.Equal("Forbidden", guest.Json.RootElement.GetProperty("message").GetString());
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("No params", missing.Json.RootElement.GetProperty("message").GetString());
+            var fax = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "fax"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("Incorrect type", fax.Json.RootElement.GetProperty("message").GetString());
+            var unavailable = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("Tenant database unavailable.", unavailable.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'reg_fields'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE reg_fields (name VARCHAR(32) NOT NULL, `regexp` VARCHAR(255) NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO reg_fields (name, `regexp`) VALUES ('email', '^desk@only$')");
+            var format = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("The contact does not match the required format.", format.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "UPDATE reg_fields SET `regexp` = '^.+@.+$' WHERE name = 'email'");
+            var noTemplate = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("Tenant database unavailable.", noTemplate.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'notifications_settings'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE notifications_settings (name VARCHAR(64) NOT NULL, email_on INT NOT NULL, sms_on INT NOT NULL, send_for_not_confirmed INT NOT NULL, email_subject VARCHAR(255) NULL, email_body TEXT NULL, sms_body TEXT NULL)");
+            var absent = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("The email test notification template is not configured.", absent.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "INSERT INTO notifications_settings (name, email_on, sms_on, send_for_not_confirmed, email_subject, email_body, sms_body) VALUES ('test_email', 0, 0, 0, '', '', '')");
+            var disabled = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("The email test notification template is disabled.", disabled.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "UPDATE notifications_settings SET email_on = 1 WHERE name = 'test_email'");
+            var direct = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("The email test notification does not allow direct test contacts.", direct.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "UPDATE notifications_settings SET send_for_not_confirmed = 1 WHERE name = 'test_email'");
+            var smtp = await SendAsync(client, CpLegacyPhpAjaxLinks.NotificationTest, Form(("csrf_guard_key", "admin-csrf"), ("type", "email"), ("contact", "ops@example.test")), staff);
+            Assert.Equal("SMTP is not fully configured — fill the e-mail group in Configuration first.", smtp.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'debug_results'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+            if (Directory.Exists(configRoot))
+            {
+                Directory.Delete(configRoot, true);
+            }
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -791,10 +883,7 @@ public sealed class CpDeskPhpAjaxTests
         var builder = WebApplication.CreateBuilder();
         builder.WebHost.UseUrls("http://127.0.0.1:" + port.ToString(CultureInfo.InvariantCulture));
         builder.Services.AddSingleton<ITenantDbConnectionFactory>(configured ? new FixedConnections(connectionString) : new UnconfiguredConnections());
-        if (!string.IsNullOrEmpty(configRoot))
-        {
-            builder.Services.Configure<PhpReferenceOptions>(options => options.PhpDocRoot = configRoot);
-        }
+        builder.Services.Configure<PhpReferenceOptions>(options => options.PhpDocRoot = configRoot ?? string.Empty);
         builder.Services.AddSingleton<IErpWriteConnectionFactory>(new WriteConnections(connectionString));
         builder.Services.AddSingleton<IErpEinvoiceProfileWriteService>(sp => new ErpEinvoiceProfileWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpDocumentControlWriteService>(sp => new CpDocumentControlWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
@@ -808,6 +897,11 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpOmsWriteService>(sp => new CpOmsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpPricesUploadWriteService>(sp => new CpPricesUploadWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpCrossWriteService>(sp => new CpCrossWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpSmsGateway, IdleSms>();
+        builder.Services.AddSingleton<ICpCommunicationsTestService>(sp => new CpCommunicationsTestService(
+            sp.GetRequiredService<IErpWriteConnectionFactory>(),
+            sp.GetRequiredService<ICpSmsGateway>(),
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()));
         builder.Services.AddSingleton<IStorefrontPriceAccess>(new GuestPrices());
         builder.Services.AddSingleton<ICpPriceImportService>(new IdleImports());
         builder.Services.AddSingleton(ReporterStub.Create());
@@ -916,6 +1010,12 @@ public sealed class CpDeskPhpAjaxTests
             await _app.StopAsync();
             await _app.DisposeAsync();
         }
+    }
+
+    private sealed class IdleSms : ICpSmsGateway
+    {
+        public Task<CpSmsSendOutcome> SendAsync(string handler, IReadOnlyDictionary<string, string> parameters, string phone, string body, CancellationToken cancellationToken = default)
+            => throw new InvalidOperationException("SMS was called");
     }
 
     private sealed class GuestPrices : IStorefrontPriceAccess

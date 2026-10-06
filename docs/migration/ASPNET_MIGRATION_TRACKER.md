@@ -88,10 +88,21 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 86 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 87 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — notification test uses the existing communications writer
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 87 of 110. The previous checkpoint had 86 of 110.
+- `ajax_test_notification.php` with no database says “No DB connect”. A missing sessions table says “Admin sessions are not in this database.” A guest is “Forbidden”. A missing CSRF value is `Error! CSRF 1`.
+- A post without `type` is “No params”. Type `fax` is “Incorrect type”.
+- `email` to `ops@example.test` before `reg_fields` exists says “Tenant database unavailable.” and does not create the table. A pattern that does not match says “The contact does not match the required format.”
+- A missing notifications table says the database is unavailable and does not create it. An empty table says “The email test notification template is not configured.” A disabled template says it is disabled. A template that refuses direct contacts says so.
+- With the template enabled and SMTP unset, the message is “SMTP is not fully configured — fill the e-mail group in Configuration first.” `debug_results` is not created. No `epc_erp%` table is created.
 
 ### Checkpoint 2026-10-06 — content parent list reads the content table
 

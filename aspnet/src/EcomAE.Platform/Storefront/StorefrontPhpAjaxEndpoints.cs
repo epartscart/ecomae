@@ -371,6 +371,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.ContentJsonList, ["GET", "POST"], CpContentJsonListAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.NotificationTest, ["GET", "POST"], CpNotificationTestAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3325,6 +3327,38 @@ public static class StorefrontPhpAjaxEndpoints
                 csrf,
                 fields,
                 pageLimit,
+                token),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpNotificationTestAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpCommunicationsTestService tests,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        string? csrf = fields.ContainsKey("csrf_guard_key") ? fields["csrf_guard_key"] : null;
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.NotificationTestAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                csrf,
+                fields,
+                tests,
                 token),
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect)).ConfigureAwait(false);
     }
