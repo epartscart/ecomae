@@ -88,10 +88,18 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 92 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 94 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — governance and free tools use the existing writers
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 94 of 110. The previous checkpoint had 92 of 110. Storefront and API ajax stays 109 of 112.
+- `ajax_platform_governance.php` with no database says “DB error”. A missing sessions table says “Admin sessions are not in this database.” A guest is HTTP 403 “Admin login required”. A tenant host is HTTP 403 “Super CP only” and the rules table is not created. Rule key `!!!` is “Invalid rule_key”. A missing rules table says “Governance-rules table is missing — schema-ensure stays Classic.” After the table exists, `auth_otp` stores active 0 and enforcement `advisory`. A missing rule says “Rule not found”. Action `seed` is HTTP 400 “Unknown action”. No `epc_erp%` table is created.
+- `ajax_epc_free_tools_admin.php` with no database says “Database connection failed”. A guest is HTTP 403 “Admin login required”. A tenant host is HTTP 403 “Super CP only”. Tool `nope` is “Unknown tool”. A missing settings table says “Free-tools settings table is missing — schema-ensure stays Classic.” Deactivating `vat` stores `disabled_tools` containing `vat`. Activating `VAT` clears that list. Usage stats before the account tables exist say “Free-tools usage tables are missing — schema-ensure stays Classic.” After one account and one save, the counts are 1. Action `send` is “Unknown action”. Audit tables are not created.
 
 ### Checkpoint 2026-10-06 — website tracker uses the existing dashboard builder
 
