@@ -936,6 +936,112 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task Integrations_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var longName = new string('N', 130);
+        var mobile = Form(("action", "save_mobile"), ("enabled", "1"), ("app_name", longName), ("bundle_id", "com.desk.app"), ("deep_link_scheme", "desk"), ("pwa_enabled", "0"));
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.Integrations, mobile, staff);
+                Assert.False(offline.Json.RootElement.GetProperty("status").GetBoolean());
+                Assert.Equal("Database connection failed", offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, mobile, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, mobile, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.Equal(StorefrontPhpAjax.IntegrationsAdminRequired, guest.Json.RootElement.GetProperty("message").GetString());
+            var unknown = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "missing")), staff);
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+            var missingTable = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, mobile, staff);
+            Assert.Contains("Mobile settings save failed", missingTable.Json.RootElement.GetProperty("message").GetString(), StringComparison.Ordinal);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_portal_site_settings'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_portal_site_settings (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, host VARCHAR(120) NOT NULL, cp_menu_json TEXT NULL, updated_at INT NOT NULL DEFAULT 0)");
+            var noRow = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, mobile, staff);
+            Assert.Equal("No epc_portal_site_settings row exists for this host yet.", noRow.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_portal_site_settings"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.columns WHERE table_schema = DATABASE() AND table_name = 'epc_portal_site_settings' AND column_name = 'integrations_json'"));
+            var smtpMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_tenant_smtp"), ("smtp_host", "mail.example.test")), staff);
+            Assert.Equal("Site settings row is missing. Schema ensure stays on the Classic twin.", smtpMissing.Json.RootElement.GetProperty("message").GetString());
+
+            await ExecuteAsync(connectionString, "INSERT INTO epc_portal_site_settings (host, updated_at) VALUES ('127.0.0.1', 1)");
+            var savedMobile = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, mobile, staff);
+            Assert.True(savedMobile.Json.RootElement.GetProperty("status").GetBoolean(), savedMobile.Body);
+            Assert.Equal("Mobile settings saved.", savedMobile.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(longName[..120], await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(integrations_json, '$.mobile.app_name')) FROM epc_portal_site_settings WHERE id = 1"));
+            Assert.Equal("true", await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(integrations_json, '$.mobile.enabled')) FROM epc_portal_site_settings WHERE id = 1"));
+            Assert.Equal("false", await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(integrations_json, '$.mobile.pwa_enabled')) FROM epc_portal_site_settings WHERE id = 1"));
+
+            var smtp = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_tenant_smtp"), ("smtp_host", "mail.example.test"), ("smtp_port", "2525"), ("smtp_encryption", "starttls"), ("smtp_password", "desk-secret"), ("from_email", "desk@example.test")), staff);
+            Assert.True(smtp.Json.RootElement.GetProperty("status").GetBoolean(), smtp.Body);
+            Assert.Equal("SMTP settings saved.", smtp.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("desk-secret", await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(integrations_json, '$.smtp.smtp_password')) FROM epc_portal_site_settings WHERE id = 1"));
+            Assert.Equal(longName[..120], await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(integrations_json, '$.mobile.app_name')) FROM epc_portal_site_settings WHERE id = 1"));
+            Assert.Equal("", await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(integrations_json, '$.smtp.smtp_encryption')) FROM epc_portal_site_settings WHERE id = 1"));
+            var kept = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_tenant_smtp"), ("smtp_host", "mail.example.test"), ("smtp_password", "")), staff);
+            Assert.True(kept.Json.RootElement.GetProperty("status").GetBoolean(), kept.Body);
+            Assert.Equal("desk-secret", await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(integrations_json, '$.smtp.smtp_password')) FROM epc_portal_site_settings WHERE id = 1"));
+
+            var badMail = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "test_tenant_smtp"), ("test_to", "not-an-email")), staff);
+            Assert.Equal("Valid test email required", badMail.Json.RootElement.GetProperty("message").GetString());
+            var off = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "test_tenant_smtp"), ("test_to", "desk@example.test")), staff);
+            Assert.Contains("Use tenant SMTP is off", off.Json.RootElement.GetProperty("message").GetString(), StringComparison.Ordinal);
+            var enabled = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_tenant_smtp"), ("use_tenant_smtp", "1"), ("smtp_host", ""), ("smtp_password", "")), staff);
+            Assert.True(enabled.Json.RootElement.GetProperty("status").GetBoolean(), enabled.Body);
+            var noHost = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "test_tenant_smtp"), ("test_to", "desk@example.test")), staff);
+            Assert.Equal("SMTP host and port are required.", noHost.Json.RootElement.GetProperty("message").GetString());
+
+            var tenantFlags = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_feature_flags"), ("site_key", "epc-demo"), ("features[email_smtp]", "1")), staff);
+            Assert.Equal(StorefrontPhpAjax.IntegrationsSuperOnly, tenantFlags.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_tenant_feature_flags'"));
+            var badKey = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_feature_flags"), ("site_key", "!!!")), staff, "ecomae.com");
+            Assert.Equal("Invalid site_key", badKey.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_tenant_feature_flags'"));
+            var flags = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_feature_flags"), ("site_key", "epc-demo"), ("features[email_smtp]", "1"), ("features[tenant_registry]", "1")), staff, "ecomae.com");
+            Assert.True(flags.Json.RootElement.GetProperty("status").GetBoolean(), flags.Body);
+            Assert.Equal("Saved " + CpTenantFeaturesWriteService.SaveableKeys.Count.ToString(CultureInfo.InvariantCulture) + " feature flags.", flags.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT enabled FROM epc_tenant_feature_flags WHERE site_key = 'epc-demo' AND feature_key = 'email_smtp'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_tenant_feature_flags WHERE feature_key = 'tenant_registry'"));
+            Assert.Equal(CpTenantFeaturesWriteService.SaveableKeys.Count.ToString(CultureInfo.InvariantCulture), await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_tenant_feature_flags"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_portal_site_settings"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -973,6 +1079,9 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpPricesUploadWriteService>(sp => new CpPricesUploadWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpCrossWriteService>(sp => new CpCrossWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpSocialHubWriteService>(sp => new CpSocialHubWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpMobileAppsWriteService>(sp => new CpMobileAppsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpTenantFeaturesWriteService>(sp => new CpTenantFeaturesWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpTenantEmailWriteService>(sp => new CpTenantEmailWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpSmsGateway, IdleSms>();
         builder.Services.AddSingleton<ICpCommunicationsTestService>(sp => new CpCommunicationsTestService(
             sp.GetRequiredService<IErpWriteConnectionFactory>(),
@@ -1024,12 +1133,20 @@ public sealed class CpDeskPhpAjaxTests
         return form;
     }
 
-    private static async Task<Sent> SendAsync(HttpClient client, string path, Dictionary<string, string>? form, string cookie)
+    private static Task<Sent> SendAsync(HttpClient client, string path, Dictionary<string, string>? form, string cookie)
+        => SendAsync(client, path, form, cookie, null);
+
+    private static async Task<Sent> SendAsync(HttpClient client, string path, Dictionary<string, string>? form, string cookie, string? hostHeader)
     {
         using var request = new HttpRequestMessage(form is null ? HttpMethod.Get : HttpMethod.Post, path);
         if (cookie.Length > 0)
         {
             request.Headers.TryAddWithoutValidation("Cookie", cookie);
+        }
+
+        if (!string.IsNullOrEmpty(hostHeader))
+        {
+            request.Headers.Host = hostHeader;
         }
 
         if (form is not null)
