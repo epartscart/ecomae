@@ -88,10 +88,20 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 90 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 91 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — marketing broadcast counts recipients
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 91 of 110. The previous checkpoint had 90 of 110.
+- `ajax_marketing_broadcast.php` with no database says “DB unavailable”. A missing sessions table says “Admin sessions are not in this database.” A guest is HTTP 403 “Forbidden”. Action `send_email` is “Unknown action”. This URL does not send a campaign.
+- A posted `audience_mode=manual` is ignored, matching the PHP query-string fields, and the all-audience count is 0 when `users` is missing. The `users` table is not created.
+- Query `audience_mode=manual` with `a@b.test,nope,c@d.test` counts 2 email addresses. WhatsApp meta `971500000001;971500000002` counts 2 phones.
+- Email template `blank` returns the catalog subject and HTML. An unknown WhatsApp template key returns the blank catalog body. `epc_marketing_broadcast_campaigns` is not created. No `epc_erp%` table is created.
 
 ### Checkpoint 2026-10-06 — portal settings use the existing writers
 
