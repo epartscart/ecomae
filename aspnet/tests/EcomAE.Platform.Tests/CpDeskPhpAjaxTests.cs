@@ -343,6 +343,79 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task OrdersOms_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "set_item_status"), ("order_id", "12")), staff);
+                Assert.Equal("DB unavailable", offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "set_item_status"), ("order_id", "12")), staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "set_item_status"), ("order_id", "12")), string.Empty);
+            Assert.Equal("Forbidden", guest.Json.RootElement.GetProperty("message").GetString());
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("action", "set_item_status"), ("order_id", "12")), staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var invalid = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "set_item_status"), ("order_id", "0")), staff);
+            Assert.Equal("Invalid order", invalid.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "set_item_status"), ("order_id", "12"), ("item_id", "4"), ("status", "2")), staff);
+            Assert.Equal(StorefrontPhpAjax.OrdersMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_orders'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_orders (id INT NOT NULL PRIMARY KEY, paid INT NOT NULL, user_id INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_orders (id, paid, user_id) VALUES (12, 1, 7)");
+            var unknown = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "nope"), ("order_id", "12")), staff);
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+            var map = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "erp_document_map"), ("order_id", "12")), staff);
+            Assert.False(map.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(StorefrontPhpAjax.OmsErpMapNotRead, map.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+
+            var items = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "set_item_status"), ("order_id", "12"), ("item_id", "4"), ("status", "2")), staff);
+            Assert.Equal(StorefrontPhpAjax.OrderItemsMissing, items.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_orders_items (id INT NOT NULL PRIMARY KEY, order_id INT NOT NULL, status INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_orders_items (id, order_id, status) VALUES (4, 12, 1)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_orders_logs (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, time BIGINT NOT NULL, user_id INT NOT NULL, is_manager TINYINT NOT NULL, text VARCHAR(255) NOT NULL, is_robot TINYINT NOT NULL)");
+            var status = await SendAsync(client, CpLegacyPhpAjaxLinks.OrdersOms, Form(("csrf_guard_key", "admin-csrf"), ("action", "set_item_status"), ("order_id", "12"), ("item_id", "4"), ("status", "2")), staff);
+            Assert.True(status.Json.RootElement.GetProperty("status").GetBoolean(), status.Body);
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT CAST(status AS CHAR) FROM shop_orders_items WHERE id = 4"));
+            Assert.Contains("status to 2", await ScalarAsync(connectionString, "SELECT text FROM shop_orders_logs WHERE order_id = 12"), StringComparison.Ordinal);
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static async Task<ProbeHost> StartAsync(string connectionString, string? configRoot = null, bool configured = true)
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);

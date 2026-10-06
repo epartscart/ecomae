@@ -57,7 +57,8 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(PypricesHealth, StringComparison.OrdinalIgnoreCase)
             || path.Equals(OrdersDetailPane, StringComparison.OrdinalIgnoreCase)
             || path.Equals(SaoExec, StringComparison.OrdinalIgnoreCase)
-            || path.Equals(OrderPayRefund, StringComparison.OrdinalIgnoreCase);
+            || path.Equals(OrderPayRefund, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(OrdersOms, StringComparison.OrdinalIgnoreCase);
     }
 
     public const string PricePackSetup = "/cp/content/shop/prices_upload/ajax_1_prepare_tmp_dir.php";
@@ -70,6 +71,7 @@ public static class CpLegacyPhpAjaxLinks
     public const string OrdersDetailPane = "/cp/content/shop/order_process/ajax_epc_orders_detail_pane.php";
     public const string SaoExec = "/cp/content/shop/sao/ajax_exec_action.php";
     public const string OrderPayRefund = "/cp/content/shop/order_process/ajax_order_pay_refund.php";
+    public const string OrdersOms = "/cp/content/shop/order_process/ajax_epc_orders_oms.php";
 
     public static bool TryRewrite(string? method, PathString path, string? action, out PathString target, out bool operatorPost)
     {

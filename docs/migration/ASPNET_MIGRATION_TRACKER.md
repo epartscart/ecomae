@@ -87,11 +87,21 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 68 of 75 (91%) | OMS, commerce and multivendor ingest, the prices init include, price review, and crosses lookup |
-| Broader `cp/content` ajax | 81 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 69 of 75 (92%) | Commerce and multivendor ingest, the prices init include, price review, and crosses lookup |
+| Broader `cp/content` ajax | 82 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 7 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: finish the 6 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — OMS item status uses the existing OMS writer
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 69 are mapped. 6 stay unmapped. The previous checkpoint had 68 mapped and 7 unmapped. The broader `cp/content` ajax scan is 82 of 110 mapped.
+- `ajax_epc_orders_oms.php` with no database says “DB unavailable”. A guest is “Forbidden”. A missing CSRF value is `Error! CSRF 1`. Order 0 is “Invalid order”. A missing orders table says “Orders are not in this database.” and does not create `shop_orders`.
+- `set_item_status` calls `ICpOmsWriteService.SetItemStatusAsync`. Item 4 on order 12 moves from status 1 to 2, and the order log contains “status to 2”. A missing items table says “Order items are not in this database.”
+- `erp_document_map` returns “ERP document map stays on the ERP read.” and does not create `epc_erp%`. Warehouse lookup, message list, and supplier fulfillment status stay on the classic readers. The other OMS write actions call the same OMS writer.
+- Commerce ingest, multivendor ingest, the prices init include, price review, and crosses lookup stay open.
 
 ### Checkpoint 2026-10-06 — order pay refund uses the existing OMS writer
 

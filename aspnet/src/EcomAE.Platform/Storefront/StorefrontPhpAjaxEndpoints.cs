@@ -361,6 +361,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.OrderPayRefund, ["GET", "POST"], CpOrderPayRefundAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.OrdersOms, ["GET", "POST"], CpOrdersOmsAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3167,6 +3169,43 @@ public static class StorefrontPhpAjaxEndpoints
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.FlagBody(false, "No DB connect"));
+
+    private static async Task<IResult> CpOrdersOmsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpOmsWriteService orders,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var pair in context.Request.Query)
+        {
+            fields[pair.Key] = pair.Value.ToString();
+        }
+
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        string? csrf = fields.TryGetValue("csrf_guard_key", out var posted) ? posted : null;
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, token) => StorefrontPhpAjax.OrdersOmsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                csrf,
+                fields,
+                orders,
+                token),
+            new StorefrontPhpAjax.FlagBody(false, "DB unavailable")).ConfigureAwait(false);
+    }
 
     private static async Task<IResult> CpOrderPayRefundAsync(
         HttpContext context,
