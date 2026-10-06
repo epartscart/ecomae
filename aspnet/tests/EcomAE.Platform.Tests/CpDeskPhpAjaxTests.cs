@@ -1236,6 +1236,99 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task PartsCatalogues_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var settings = """
+            {"autoxp_show":"on","autoxp_caption":"AutoXP","autoxp_order":"2","autoxp_id":"99","autoxp_show_cars":[3],"ilcats_show":"on","ilcats_caption":"Ilcats","ilcats_order":"1","ilcats_clid":"CL1","ilcats_car_3":"PID3","catalogs_parts_com_show":"on","catalogs_parts_com_caption":"Catalogs Parts","catalogs_parts_com_order":"3","catalogs_parts_com_id":"CLIENT","catalogs_parts_com_show_cars":["3"],"levam_show":"on","levam_caption":"Levam","levam_order":"4"}
+            """;
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, StorefrontPartsCatalogues.Path, null, string.Empty);
+                Assert.False(offline.Json.RootElement.GetProperty("status").GetBoolean());
+                Assert.Equal(StorefrontPhpAjax.NoDbConnect, offline.Json.RootElement.GetProperty("message").GetString());
+                var clicksOff = await SendAsync(closedClient, StorefrontPartsCatalogues.AutoxpClicksPath, null, string.Empty);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnect, clicksOff.Body);
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var missing = await SendAsync(client, StorefrontPartsCatalogues.Path, null, string.Empty);
+            Assert.Equal(StorefrontPartsCatalogues.NotInDatabase, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(0, missing.Json.RootElement.GetProperty("brands").GetArrayLength());
+            var clicksMissing = await SendAsync(client, StorefrontPartsCatalogues.AutoxpClicksPath, null, string.Empty);
+            Assert.Equal(StorefrontPartsCatalogues.AutoxpMissing, clicksMissing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('shop_docpart_search_tabs','shop_docpart_cars','shop_docpart_cars_catalogues','shop_docpart_cars_catalogue_links','shop_docpart_autoxp_clicks')"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_search_tabs (id INT NOT NULL PRIMARY KEY, name VARCHAR(64) NOT NULL, parameters_values TEXT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_cars (id INT NOT NULL PRIMARY KEY, caption VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_cars_catalogues (id INT NOT NULL PRIMARY KEY, assoc_name VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_cars_catalogue_links (id INT NOT NULL PRIMARY KEY, car_id INT NOT NULL, catalogue_id INT NOT NULL, href VARCHAR(512) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_search_tabs (id, name, parameters_values) VALUES (1, 'parts_catalogues', '" + settings.Replace("'", "''", StringComparison.Ordinal) + "')");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_cars (id, caption) VALUES (3, 'Toyota'), (5, 'Bmw')");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_cars_catalogues (id, assoc_name) VALUES (1, 'autoxp'), (2, 'ilcats'), (3, 'catalogs_parts_com'), (4, 'levam'), (5, 'hidden')");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_cars_catalogue_links (id, car_id, catalogue_id, href) VALUES (1, 3, 1, 'https://autoxp.example/?'), (2, 3, 2, 'https://ilcats.example/?pid=<pid>&clid=<clid>'), (3, 3, 3, 'http://toyota.catalogs-parts.com/#{client:;page:models}'), (4, 3, 4, 'https://levam.example/toyota'), (5, 5, 1, 'https://autoxp.example/bmw?'), (6, 5, 5, 'https://hidden.example/bmw')");
+            var listed = await SendAsync(client, StorefrontPartsCatalogues.Path, null, string.Empty);
+            Assert.True(listed.Json.RootElement.GetProperty("status").GetBoolean(), listed.Body);
+            Assert.Equal(1, listed.Json.RootElement.GetProperty("brands").GetArrayLength());
+            var toyota = listed.Json.RootElement.GetProperty("brands")[0];
+            Assert.Equal("TOYOTA", toyota.GetProperty("caption").GetString());
+            Assert.Equal(3, toyota.GetProperty("car_id").GetInt32());
+            var catalogues = toyota.GetProperty("catalogues");
+            Assert.Equal(4, catalogues.GetArrayLength());
+            Assert.Equal("ilcats", catalogues[0].GetProperty("name").GetString());
+            Assert.Equal("https://ilcats.example/?pid=PID3&clid=CL1", catalogues[0].GetProperty("href").GetString());
+            Assert.Equal("autoxp", catalogues[1].GetProperty("name").GetString());
+            Assert.Equal("https://autoxp.example/?99", catalogues[1].GetProperty("href").GetString());
+            Assert.Equal("catalogs_parts_com", catalogues[2].GetProperty("name").GetString());
+            Assert.Equal("http://toyota.catalogs-parts.com/#{client:CLIENT;page:models}", catalogues[2].GetProperty("href").GetString());
+            Assert.Equal("levam", catalogues[3].GetProperty("name").GetString());
+            Assert.Equal("https://levam.example/toyota", catalogues[3].GetProperty("href").GetString());
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_autoxp_clicks (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, month INT NOT NULL, year INT NOT NULL, clicks_count INT NOT NULL)");
+            var allowed = await SendAsync(client, StorefrontPartsCatalogues.AutoxpClicksPath, null, string.Empty);
+            Assert.Equal("1", allowed.Body);
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT clicks_count FROM shop_docpart_autoxp_clicks"));
+            await ExecuteAsync(connectionString, "UPDATE shop_docpart_autoxp_clicks SET clicks_count = 2000");
+            var blocked = await SendAsync(client, StorefrontPartsCatalogues.AutoxpClicksPath, null, string.Empty);
+            Assert.Equal("0", blocked.Body);
+            Assert.Equal("2000", await ScalarAsync(connectionString, "SELECT clicks_count FROM shop_docpart_autoxp_clicks"));
+            using var redirectHandler = new HttpClientHandler { AllowAutoRedirect = false };
+            using var redirectClient = new HttpClient(redirectHandler) { BaseAddress = host.BaseAddress };
+            await ExecuteAsync(connectionString, "UPDATE shop_docpart_autoxp_clicks SET clicks_count = 1");
+            var redirected = await SendAsync(redirectClient, StorefrontPartsCatalogues.AutoxpClicksPath + "?next=" + Uri.EscapeDataString("https://autoxp.example/?99"), null, string.Empty);
+            Assert.Equal(HttpStatusCode.Redirect, redirected.Status);
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT clicks_count FROM shop_docpart_autoxp_clicks"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())

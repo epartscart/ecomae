@@ -381,6 +381,10 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.MarketingBroadcast, ["GET", "POST"], CpMarketingBroadcastAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPartsCatalogues.Path, ["GET", "POST"], CpPartsCataloguesAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPartsCatalogues.AutoxpClicksPath, ["GET", "POST"], CpAutoxpClicksAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3521,6 +3525,51 @@ public static class StorefrontPhpAjaxEndpoints
                 broadcasts,
                 cancel),
             new StorefrontPhpAjax.BroadcastBody(false, "DB unavailable")).ConfigureAwait(false);
+    }
+
+    private static Task<IResult> CpPartsCataloguesAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => (object)await StorefrontPartsCatalogues.LoadAsync(connection, token).ConfigureAwait(false),
+            new StorefrontPartsCatalogues.ListBody(false, StorefrontPhpAjax.NoDbConnect, []));
+
+    private static async Task<IResult> CpAutoxpClicksAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Results.Text(StorefrontPhpAjax.NoDbConnect, "application/json; charset=utf-8");
+        }
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var gate = await StorefrontPartsCatalogues.RecordAutoxpClickAsync(connection, cancellationToken).ConfigureAwait(false);
+            if (gate.Message is not null)
+            {
+                return Results.Json(new { status = false, message = gate.Message });
+            }
+
+            var next = context.Request.Query["next"].ToString();
+            if (gate.Allowed && StorefrontPartsCatalogues.IsHttpTarget(next))
+            {
+                return Results.Redirect(next);
+            }
+
+            return Results.Text(gate.Allowed ? "1" : "0", "application/json; charset=utf-8");
+        }
+        catch (Exception)
+        {
+            return Results.Text(StorefrontPhpAjax.NoDbConnect, "application/json; charset=utf-8");
+        }
     }
 
     private static async Task<IResult> CpOrdersOmsAsync(
