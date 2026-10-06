@@ -87,11 +87,23 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 69 of 75 (92%) | Commerce and multivendor ingest, the prices init include, price review, and crosses lookup |
-| Broader `cp/content` ajax | 82 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 70 of 75 (93%) | Commerce ingest, the prices init include, price review, and crosses lookup |
+| Broader `cp/content` ajax | 83 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 6 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: finish the 5 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — multivendor sample, ACL, and vendor code use the existing prices-upload writer
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 70 are mapped. 5 stay unmapped. The previous checkpoint had 69 mapped and 6 unmapped. The broader `cp/content` ajax scan is 83 of 110 mapped.
+- `ajax_epc_multivendor_ingest.php` with no database says “No DB Connect”. A missing CSRF value is `Error! CSRF 1`.
+- `sample` returns status true, filename `epc-multivendor-sample.csv`, and a CSV that contains `TOYOTA,446610010`.
+- `min_price_acl_get` before the ACL table exists returns restrict true and does not create `epc_mv_min_price_acl`. `min_price_acl_save` before the table exists says the table is missing and does not create it. After the table exists, restrict 0, group ids `[3]`, and user ids `[7]` are stored, and the message is “Minimum price access saved”. Schema CREATE stays classic.
+- `vendor_codes_list` before `shop_storages` exists returns count 0 and does not create the table. `vendor_code_save` on storage 4 changes short name `OLD` to `S-UAE` and name to `Gulf Parts`. The list then returns count 1.
+- `upload` without a file returns “Choose an Excel/CSV file with multiple vendors” and does not add warehouses. File ingest stays on the classic importer. No `epc_erp%` table is created.
+- Commerce ingest, the prices init include, price review, and crosses lookup stay open.
 
 ### Checkpoint 2026-10-06 — OMS item status uses the existing OMS writer
 

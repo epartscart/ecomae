@@ -416,6 +416,87 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task MultivendorIngest_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.MultivendorIngest + "?action=sample", null, staff);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnectChange, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("action", "sample")), staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var sample = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "sample")), staff);
+            Assert.True(sample.Json.RootElement.GetProperty("status").GetBoolean(), sample.Body);
+            Assert.Equal("epc-multivendor-sample.csv", sample.Json.RootElement.GetProperty("filename").GetString());
+            Assert.Contains("TOYOTA,446610010", sample.Json.RootElement.GetProperty("csv").GetString(), StringComparison.Ordinal);
+            var aclMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "min_price_acl_get")), staff);
+            Assert.True(aclMissing.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.True(aclMissing.Json.RootElement.GetProperty("acl").GetProperty("restrict").GetBoolean());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_mv_min_price_acl'"));
+            var saveMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "min_price_acl_save"), ("restrict", "0"), ("group_ids", "[3]"), ("user_ids", "[7]")), staff);
+            Assert.Contains("missing", saveMissing.Json.RootElement.GetProperty("message").GetString(), StringComparison.OrdinalIgnoreCase);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_mv_min_price_acl'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_mv_min_price_acl (id INT NOT NULL PRIMARY KEY, restrict_min TINYINT NOT NULL, group_ids_json TEXT NULL, user_ids_json TEXT NULL, updated_at BIGINT NOT NULL, updated_by INT NOT NULL)");
+            var saved = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "min_price_acl_save"), ("restrict", "0"), ("group_ids", "[3]"), ("user_ids", "[7]")), staff);
+            Assert.True(saved.Json.RootElement.GetProperty("status").GetBoolean(), saved.Body);
+            Assert.Equal("Minimum price access saved", saved.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT CAST(restrict_min AS CHAR) FROM epc_mv_min_price_acl WHERE id = 1"));
+            Assert.Equal("[3]", await ScalarAsync(connectionString, "SELECT group_ids_json FROM epc_mv_min_price_acl WHERE id = 1"));
+            Assert.Equal("[7]", await ScalarAsync(connectionString, "SELECT user_ids_json FROM epc_mv_min_price_acl WHERE id = 1"));
+
+            var vendorsMissing = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "vendor_codes_list")), staff);
+            Assert.Equal(0, vendorsMissing.Json.RootElement.GetProperty("count").GetInt32());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_storages'"));
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_storages (id INT NOT NULL PRIMARY KEY, name VARCHAR(255) NOT NULL, short_name VARCHAR(64) NOT NULL, hidden TINYINT NOT NULL, connection_options TEXT NULL, interface_type INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_storages (id, name, short_name, hidden, connection_options, interface_type) VALUES (4, 'Old Vendor', 'OLD', 0, '{}', 2)");
+            var renamed = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "vendor_code_save"), ("storage_id", "4"), ("vendor_code", "S-UAE"), ("vendor_full", "Gulf Parts")), staff);
+            Assert.True(renamed.Json.RootElement.GetProperty("status").GetBoolean(), renamed.Body);
+            Assert.Equal("S-UAE", await ScalarAsync(connectionString, "SELECT short_name FROM shop_storages WHERE id = 4"));
+            Assert.Equal("Gulf Parts", await ScalarAsync(connectionString, "SELECT name FROM shop_storages WHERE id = 4"));
+            var listed = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "vendor_codes_list")), staff);
+            Assert.Equal(1, listed.Json.RootElement.GetProperty("count").GetInt32());
+            Assert.Equal("S-UAE", listed.Json.RootElement.GetProperty("vendors")[0].GetProperty("vendor_code").GetString());
+            var upload = await SendAsync(client, CpLegacyPhpAjaxLinks.MultivendorIngest, Form(("csrf_guard_key", "admin-csrf"), ("action", "upload")), staff);
+            Assert.Equal(StorefrontPhpAjax.MultivendorChooseFile, upload.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM shop_storages"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static async Task<ProbeHost> StartAsync(string connectionString, string? configRoot = null, bool configured = true)
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -440,6 +521,7 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<IErpAdvanceVatService, ErpAdvanceVatService>();
         builder.Services.AddSingleton<IErpCashWriteService, ErpCashWriteService>();
         builder.Services.AddSingleton<ICpOmsWriteService>(sp => new CpOmsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpPricesUploadWriteService>(sp => new CpPricesUploadWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<IStorefrontPriceAccess>(new GuestPrices());
         builder.Services.AddSingleton<ICpPriceImportService>(new IdleImports());
         builder.Services.AddSingleton(ReporterStub.Create());
