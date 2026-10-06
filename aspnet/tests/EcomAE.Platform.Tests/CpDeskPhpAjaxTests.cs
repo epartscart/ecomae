@@ -1042,6 +1042,127 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task Portal_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var settings = Form(
+            ("action", "save_settings"),
+            ("industry_code", "platform_host"),
+            ("access_mode", "full_commerce"),
+            ("system_name", "Desk Parts"),
+            ("enabled_packs[0]", "super_platform"),
+            ("enabled_packs[1]", "commerce"),
+            ("hidden_groups[0]", "4"));
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.Portal, settings, staff);
+                Assert.False(offline.Json.RootElement.GetProperty("status").GetBoolean());
+                Assert.Equal("Database connection failed", offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, settings, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, settings, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.Equal(StorefrontPhpAjax.IntegrationsAdminRequired, guest.Json.RootElement.GetProperty("message").GetString());
+            var unknown = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "missing")), staff);
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+            var badIndustry = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "save_settings"), ("industry_code", "nope")), staff);
+            Assert.Equal("Unknown industry code: nope", badIndustry.Json.RootElement.GetProperty("message").GetString());
+            var missingTable = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, settings, staff);
+            Assert.Contains("Settings save failed", missingTable.Json.RootElement.GetProperty("message").GetString(), StringComparison.Ordinal);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_portal_site_settings'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_portal_site_settings (host VARCHAR(120) NOT NULL PRIMARY KEY, industry_code VARCHAR(64) NOT NULL, theme_template VARCHAR(64) NOT NULL, access_mode VARCHAR(32) NOT NULL, erp_modules_json TEXT NULL, cp_default_lang VARCHAR(8) NOT NULL, country_code CHAR(2) NOT NULL, system_name VARCHAR(120) NOT NULL, hub_name VARCHAR(120) NOT NULL, tagline VARCHAR(255) NOT NULL, domain_path VARCHAR(255) NOT NULL, contact_json TEXT NULL, enabled_packs_json TEXT NULL, theme_json TEXT NULL, cp_menu_json TEXT NULL, updated_at INT NOT NULL DEFAULT 0)");
+            var saved = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, settings, staff);
+            Assert.True(saved.Json.RootElement.GetProperty("status").GetBoolean(), saved.Body);
+            Assert.Equal("Settings saved.", saved.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("auto_parts", await ScalarAsync(connectionString, "SELECT industry_code FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+            Assert.Equal("full", await ScalarAsync(connectionString, "SELECT access_mode FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+            Assert.Equal("Desk Parts", await ScalarAsync(connectionString, "SELECT system_name FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+            Assert.Equal("AE", await ScalarAsync(connectionString, "SELECT country_code FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT IF(JSON_CONTAINS(enabled_packs_json, '\"core\"'), '1', '0') FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT IF(JSON_CONTAINS(enabled_packs_json, '\"commerce\"'), '1', '0') FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT IF(JSON_CONTAINS(enabled_packs_json, '\"super_platform\"'), '1', '0') FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+            Assert.Equal("4", await ScalarAsync(connectionString, "SELECT JSON_UNQUOTE(JSON_EXTRACT(cp_menu_json, '$.hidden_groups[0]')) FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+
+            var pushed = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "save_settings"), ("industry_code", "auto_parts"), ("system_name", "Platform Desk"), ("target_host", "client.example.test")), staff, "ecomae.com");
+            Assert.True(pushed.Json.RootElement.GetProperty("status").GetBoolean(), pushed.Body);
+            Assert.Contains(StorefrontPhpAjax.PortalPushStaysClassic, pushed.Json.RootElement.GetProperty("message").GetString(), StringComparison.Ordinal);
+            Assert.Equal("Platform Desk", await ScalarAsync(connectionString, "SELECT system_name FROM epc_portal_site_settings WHERE host = 'ecomae.com'"));
+            Assert.Equal("Desk Parts", await ScalarAsync(connectionString, "SELECT system_name FROM epc_portal_site_settings WHERE host = '127.0.0.1'"));
+
+            var menu = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "menu_items"), ("group_id", "3")), staff);
+            Assert.Equal(StorefrontPhpAjax.PortalMenuStaysClassic, menu.Json.RootElement.GetProperty("message").GetString());
+            var seed = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "seed_storefront_data")), staff);
+            Assert.Equal(StorefrontPhpAjax.PortalSeedStaysClassic, seed.Json.RootElement.GetProperty("message").GetString());
+            var deployTenant = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "deploy_site"), ("site_key", "epc_demo")), staff);
+            Assert.Equal(StorefrontPhpAjax.PortalDeployOnlyOnPlatform, deployTenant.Json.RootElement.GetProperty("message").GetString());
+            var deploy = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "deploy_site"), ("site_key", "epc_demo")), staff, "ecomae.com");
+            Assert.Equal(StorefrontPhpAjax.PortalDeployStaysClassic, deploy.Json.RootElement.GetProperty("message").GetString());
+            var resetTenant = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_reset_password"), ("site_key", "epc_demo")), staff);
+            Assert.Equal(HttpStatusCode.Forbidden, resetTenant.Status);
+            var reset = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_reset_password"), ("site_key", "epc_demo")), staff, "ecomae.com");
+            Assert.Equal(StorefrontPhpAjax.PortalPasswordStaysClassic, reset.Json.RootElement.GetProperty("message").GetString());
+            Assert.False(reset.Json.RootElement.TryGetProperty("password", out _));
+            var reveal = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_reveal_password"), ("site_key", "epc_demo")), staff, "ecomae.com");
+            Assert.Equal(StorefrontPhpAjax.PortalRevealStaysClassic, reveal.Json.RootElement.GetProperty("message").GetString());
+
+            var activeTenant = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_set_active"), ("site_key", "epc_demo"), ("active", "0")), staff);
+            Assert.Equal(HttpStatusCode.Forbidden, activeTenant.Status);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_portal_tenants'"));
+            var badKey = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_set_active"), ("site_key", "!!!"), ("active", "0")), staff, "ecomae.com");
+            Assert.Equal("Invalid site key", badKey.Json.RootElement.GetProperty("message").GetString());
+            var missingTenants = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_set_active"), ("site_key", "epc_demo"), ("active", "0")), staff, "ecomae.com");
+            Assert.Equal("Tenant registry table is missing — schema-ensure stays Classic.", missingTenants.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_portal_tenants'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_portal_tenants (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, site_key VARCHAR(64) NOT NULL, is_active TINYINT NOT NULL DEFAULT 1, updated_at INT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_portal_tenants (site_key, is_active, updated_at) VALUES ('epc_demo', 1, 1)");
+            var disabled = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_set_active"), ("site_key", "epc_demo"), ("active", "0")), staff, "ecomae.com");
+            Assert.True(disabled.Json.RootElement.GetProperty("status").GetBoolean(), disabled.Body);
+            Assert.Equal("Tenant disabled — storefront and CP blocked", disabled.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(0, disabled.Json.RootElement.GetProperty("is_active").GetInt32());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT IF(is_active = 0, '0', '1') FROM epc_portal_tenants WHERE site_key = 'epc_demo'"));
+            var absent = await SendAsync(client, CpLegacyPhpAjaxLinks.Portal, Form(("action", "tenant_set_active"), ("site_key", "missing"), ("active", "1")), staff, "ecomae.com");
+            Assert.Equal("Tenant not in registry", absent.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_portal_site_settings"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_portal_deploy_targets'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -1082,6 +1203,8 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpMobileAppsWriteService>(sp => new CpMobileAppsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpTenantFeaturesWriteService>(sp => new CpTenantFeaturesWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpTenantEmailWriteService>(sp => new CpTenantEmailWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpIndustrySettingsWriteService>(sp => new CpIndustrySettingsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpTenantsWriteService>(sp => new CpTenantsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpSmsGateway, IdleSms>();
         builder.Services.AddSingleton<ICpCommunicationsTestService>(sp => new CpCommunicationsTestService(
             sp.GetRequiredService<IErpWriteConnectionFactory>(),

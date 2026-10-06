@@ -377,6 +377,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.Integrations, ["GET", "POST"], CpIntegrationsAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.Portal, ["GET", "POST"], CpPortalAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3444,6 +3446,39 @@ public static class StorefrontPhpAjaxEndpoints
                 mobile,
                 features,
                 email,
+                cancel),
+            new StorefrontPhpAjax.FlagBody(false, "Database connection failed")).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpPortalAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpIndustrySettingsWriteService settings,
+        ICpTenantsWriteService tenants,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.PortalAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                fields,
+                context.Request.Host.Host,
+                settings,
+                tenants,
                 cancel),
             new StorefrontPhpAjax.FlagBody(false, "Database connection failed")).ConfigureAwait(false);
     }
