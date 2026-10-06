@@ -87,11 +87,21 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 67 of 75 (89%) | OMS, pay and refund, commerce and multivendor ingest, the prices init include, price review, and crosses lookup |
-| Broader `cp/content` ajax | 80 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 68 of 75 (91%) | OMS, commerce and multivendor ingest, the prices init include, price review, and crosses lookup |
+| Broader `cp/content` ajax | 81 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 8 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: finish the 7 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — order pay refund uses the existing OMS writer
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 68 are mapped. 7 stay unmapped. The previous checkpoint had 67 mapped and 8 unmapped. The broader `cp/content` ajax scan is 81 of 110 mapped.
+- `ajax_order_pay_refund.php` calls `ICpOmsWriteService.PayRefundAsync`. With no database the message is “No DB connect”. A post without `direct_refund` is “Forbidden”. A missing orders table says “Orders are not in this database.” and does not create `shop_orders`.
+- A manager who is not listed on the order office is “Forbidden”. An unpaid order is “Order is not paid.”
+- A missing accounting-codes table says “Refund accounting is not in this database.” Order 12, paid sum `25.50`, direct refund, stores the income row on operation code 5, the cash row on operation code 6, and sets `paid` to 0. The success message is empty, matching PHP. No `epc_erp%` table is created. Manager email stays on the classic notify path.
+- OMS, commerce ingest, multivendor ingest, the prices init include, price review, and crosses lookup stay open.
 
 ### Checkpoint 2026-10-05 — SAO exec checks the tech key and does not run supplier scripts
 

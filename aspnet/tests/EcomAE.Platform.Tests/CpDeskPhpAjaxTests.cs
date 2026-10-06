@@ -265,6 +265,84 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task OrderPayRefund_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("csrf_guard_key", "admin-csrf"), ("order_id", "12"), ("direct_refund", "1")), staff);
+                Assert.Equal(StorefrontPhpAjax.NoDbConnect, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("order_id", "12"), ("direct_refund", "1")), staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var fields = await SendAsync(client, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("csrf_guard_key", "admin-csrf"), ("order_id", "12")), staff);
+            Assert.Equal("Forbidden", fields.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("csrf_guard_key", "admin-csrf"), ("order_id", "12"), ("direct_refund", "1")), staff);
+            Assert.Equal(StorefrontPhpAjax.OrdersMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_orders'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_orders (id INT NOT NULL PRIMARY KEY, paid INT NOT NULL, user_id INT NOT NULL, office_id INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_orders (id, paid, user_id, office_id) VALUES (12, 0, 7, 3)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_offices (id INT NOT NULL PRIMARY KEY, users VARCHAR(255) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_offices (id, users) VALUES (3, '[\"8\"]')");
+            var office = await SendAsync(client, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("csrf_guard_key", "admin-csrf"), ("order_id", "12"), ("direct_refund", "1")), staff);
+            Assert.Equal("Forbidden", office.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "UPDATE shop_offices SET users = '[\"9\"]' WHERE id = 3");
+            var unpaid = await SendAsync(client, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("csrf_guard_key", "admin-csrf"), ("order_id", "12"), ("direct_refund", "1")), staff);
+            Assert.Equal("Order is not paid.", unpaid.Json.RootElement.GetProperty("message").GetString());
+
+            await ExecuteAsync(connectionString, "UPDATE shop_orders SET paid = 1 WHERE id = 12");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_users_accounting (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, time BIGINT NOT NULL, income TINYINT NOT NULL, amount DECIMAL(12,2) NOT NULL, operation_code INT NOT NULL, active TINYINT NOT NULL, order_id INT NOT NULL, office_id INT NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_users_accounting (user_id, time, income, amount, operation_code, active, order_id, office_id) VALUES (7, 1, 0, 25.50, 1, 1, 12, 3)");
+            var codes = await SendAsync(client, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("csrf_guard_key", "admin-csrf"), ("order_id", "12"), ("direct_refund", "1")), staff);
+            Assert.Equal(StorefrontPhpAjax.RefundAccountingMissing, codes.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'shop_accounting_codes'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_accounting_codes (id INT NOT NULL PRIMARY KEY, `key` VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_accounting_codes (id, `key`) VALUES (5, '5_refund_from_order_to_balance'), (6, '6_refund_from_balance')");
+            var refund = await SendAsync(client, CpLegacyPhpAjaxLinks.OrderPayRefund, Form(("csrf_guard_key", "admin-csrf"), ("order_id", "12"), ("direct_refund", "1")), staff);
+            Assert.True(refund.Json.RootElement.GetProperty("status").GetBoolean(), refund.Body);
+            Assert.Equal(string.Empty, refund.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT CAST(paid AS CHAR) FROM shop_orders WHERE id = 12"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT CAST(income AS CHAR) FROM shop_users_accounting WHERE order_id = 12 AND operation_code = 5"));
+            Assert.Equal("25.50", await ScalarAsync(connectionString, "SELECT CAST(amount AS CHAR) FROM shop_users_accounting WHERE order_id = 12 AND operation_code = 5"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT CAST(income AS CHAR) FROM shop_users_accounting WHERE order_id = 0 AND operation_code = 6"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static async Task<ProbeHost> StartAsync(string connectionString, string? configRoot = null, bool configured = true)
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
@@ -288,6 +366,7 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<IErpSettlementAllocationService, ErpSettlementAllocationService>();
         builder.Services.AddSingleton<IErpAdvanceVatService, ErpAdvanceVatService>();
         builder.Services.AddSingleton<IErpCashWriteService, ErpCashWriteService>();
+        builder.Services.AddSingleton<ICpOmsWriteService>(sp => new CpOmsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<IStorefrontPriceAccess>(new GuestPrices());
         builder.Services.AddSingleton<ICpPriceImportService>(new IdleImports());
         builder.Services.AddSingleton(ReporterStub.Create());
