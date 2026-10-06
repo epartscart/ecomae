@@ -87,11 +87,22 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | Surface | Measured now | Still short of the PHP reference |
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
-| Control Panel shop, users, and requests ajax | 70 of 75 (93%) | Commerce ingest, the prices init include, price review, and crosses lookup |
-| Broader `cp/content` ajax | 83 of 110 | Control, content, and menu ajax outside the 75 |
+| Control Panel shop, users, and requests ajax | 71 of 75 (95%) | The prices init include, price review, and crosses lookup |
+| Broader `cp/content` ajax | 84 of 110 | Control, content, and menu ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
-Next build order on this branch, excluding ERP journals: finish the 5 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+Next build order on this branch, excluding ERP journals: finish the 4 Control Panel ajax URLs, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — commerce source list reads price lists; file and URL refresh stay classic
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax is 75 files. 71 are mapped. 4 stay unmapped. The previous checkpoint had 70 mapped and 5 unmapped. The broader `cp/content` ajax scan is 84 of 110 mapped.
+- `ajax_epc_commerce_ingest.php` with no database says “No DB Connect”. A missing CSRF value is `Error! CSRF 1`.
+- `list_sources` before `shop_docpart_prices` exists returns count 0 and does not create the table. After the table exists, without a `records_count` column, the list returns 4 commerce names. `Parts.P` keeps meta role `purchase`, base `PartsBook`, and margin `12.5`. `Stock-L` is inventory and `has_url` is false. `url_only=1` returns `Parts.P` and `Spare-S`.
+- `refresh_url` for price 0 is “price_id required”. A missing id is “Price list not found”. A list with no http(s) link is “No http(s) link on this price list”. `Orphan` is “Cannot detect commerce role from list name Orphan”. Price 2, which has an http link, returns “URL refresh stays on the classic importer.” and `last_updated` stays 22.
+- `refresh_all` with URL-linked lists returns the same classic message, total 2, and does not change `last_updated`. Upload with no file is “Choose an Excel/CSV file, or paste a file URL”. A pasted URL stays on the classic importer and the price-list count stays 5. No `epc_erp%` table is created.
+- The prices init include, price review, and crosses lookup stay open.
 
 ### Checkpoint 2026-10-06 — multivendor sample, ACL, and vendor code use the existing prices-upload writer
 
