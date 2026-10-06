@@ -88,10 +88,22 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 89 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 90 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — portal settings use the existing writers
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 90 of 110. The previous checkpoint had 89 of 110.
+- `ajax_portal.php` with no database says “Database connection failed”. A missing sessions table says “Admin sessions are not in this database.” A guest is HTTP 403 “Admin login required”. An unknown action is “Unknown action”.
+- `save_settings` for industry `nope` says “Unknown industry code: nope”. Before `epc_portal_site_settings` exists, the save fails and does not create the table. After the table exists, host `127.0.0.1` stores industry `auto_parts` when `platform_host` was posted, access mode `full` when `full_commerce` was posted, system name `Desk Parts`, country `AE`, packs `core` and `commerce`, and not `super_platform`. Hidden group `4` is stored.
+- A Super CP save with `target_host` stores the local host `ecomae.com` and says “Client host push stays Classic.” The tenant row is left as `Desk Parts`.
+- `menu_items` stays on the classic helper. `seed_storefront_data` stays on the classic helper. `deploy_site` on a tenant host says deploy is only available on the platform control panel. On `ecomae.com` it says “Site deploy stays Classic.” No deploy target table is created.
+- `tenant_reset_password` and `tenant_reveal_password` on a tenant host are HTTP 403 “Super CP only”. On `ecomae.com` they stay classic and the response has no password field.
+- `tenant_set_active` on a tenant host is HTTP 403 and does not create `epc_portal_tenants`. Site key `!!!` is “Invalid site key”. A missing registry says “Tenant registry table is missing — schema-ensure stays Classic.” After the table exists, `epc_demo` with `active=0` stores inactive and says “Tenant disabled — storefront and CP blocked”. An unknown site key is “Tenant not in registry”. No `epc_erp%` table is created.
 
 ### Checkpoint 2026-10-06 — integrations settings use the existing writers
 
