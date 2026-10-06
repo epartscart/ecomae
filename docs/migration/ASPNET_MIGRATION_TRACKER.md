@@ -88,10 +88,21 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 88 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 89 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-06 — integrations settings use the existing writers
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 89 of 110. The previous checkpoint had 88 of 110.
+- `ajax_integrations.php` with no database says “Database connection failed”. A missing sessions table says “Admin sessions are not in this database.” A guest is HTTP 403 “Admin login required”. This script does not check CSRF. An unknown action is “Unknown action”.
+- `save_mobile` before `epc_portal_site_settings` exists says the save failed and does not create the table. With the table present and no row, the message is “No epc_portal_site_settings row exists for this host yet.” The existing mobile writer adds `integrations_json`. A 130-character app name is stored as 120 characters. `enabled=1` stores true and `pwa_enabled=0` stores false.
+- `save_tenant_smtp` with no settings row says “Site settings row is missing. Schema ensure stays on the Classic twin.” After the row exists, host `mail.example.test` and password `desk-secret` are stored, encryption `starttls` is stored blank, and the mobile app name stays. A later save with an empty password keeps `desk-secret`.
+- `test_tenant_smtp` to `not-an-email` says “Valid test email required”. With tenant SMTP off, the message says use tenant SMTP is off. With tenant SMTP on and no host, the message is “SMTP host and port are required.” No mail is sent.
+- `save_feature_flags` on `127.0.0.1` says “Super CP only” and does not create `epc_tenant_feature_flags`. On `ecomae.com`, site key `!!!` is “Invalid site_key”. Site key `epc-demo` with `email_smtp` on saves the catalog flags through the existing writer, leaves `tenant_registry` out, and stores `email_smtp` enabled. No `epc_erp%` table is created.
 
 ### Checkpoint 2026-10-06 — social draft uses the existing social writer
 

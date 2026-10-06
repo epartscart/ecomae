@@ -1028,7 +1028,7 @@ public sealed class CpDeskPhpAjaxTests
             var flags = await SendAsync(client, CpLegacyPhpAjaxLinks.Integrations, Form(("action", "save_feature_flags"), ("site_key", "epc-demo"), ("features[email_smtp]", "1"), ("features[tenant_registry]", "1")), staff, "ecomae.com");
             Assert.True(flags.Json.RootElement.GetProperty("status").GetBoolean(), flags.Body);
             Assert.Equal("Saved " + CpTenantFeaturesWriteService.SaveableKeys.Count.ToString(CultureInfo.InvariantCulture) + " feature flags.", flags.Json.RootElement.GetProperty("message").GetString());
-            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT enabled FROM epc_tenant_feature_flags WHERE site_key = 'epc-demo' AND feature_key = 'email_smtp'"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT IF(enabled = 1, '1', '0') FROM epc_tenant_feature_flags WHERE site_key = 'epc-demo' AND feature_key = 'email_smtp'"));
             Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_tenant_feature_flags WHERE feature_key = 'tenant_registry'"));
             Assert.Equal(CpTenantFeaturesWriteService.SaveableKeys.Count.ToString(CultureInfo.InvariantCulture), await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_tenant_feature_flags"));
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_portal_site_settings"));
