@@ -1483,6 +1483,172 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task PlatformGovernance_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var list = CpLegacyPhpAjaxLinks.PlatformGovernance + "?action=list_rules";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, list, null, staff);
+                Assert.False(offline.Json.RootElement.GetProperty("status").GetBoolean());
+                Assert.Equal(StorefrontPhpAjax.GovernanceDbError, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, list, null, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, list, null, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.Equal("Admin login required", guest.Json.RootElement.GetProperty("message").GetString());
+            var tenant = await SendAsync(client, list, null, staff);
+            Assert.Equal(HttpStatusCode.Forbidden, tenant.Status);
+            Assert.Equal("Super CP only", tenant.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_platform_governance_rules'"));
+            var badKey = await SendAsync(client, CpLegacyPhpAjaxLinks.PlatformGovernance, Form(("action", "save_rule"), ("rule_key", "!!!")), staff, "ecomae.com");
+            Assert.Equal("Invalid rule_key", badKey.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, list, null, staff, "ecomae.com");
+            Assert.Equal(StorefrontPhpAjax.GovernanceRulesMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_platform_governance_rules'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_platform_governance_rules (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, rule_key VARCHAR(64) NOT NULL, category VARCHAR(24) NOT NULL DEFAULT 'tenant', title VARCHAR(160) NOT NULL DEFAULT '', enforcement VARCHAR(16) NOT NULL DEFAULT 'required', scope VARCHAR(32) NOT NULL DEFAULT 'all_tenants', active TINYINT NOT NULL DEFAULT 1, time_updated INT NOT NULL DEFAULT 0, UNIQUE KEY rule_key (rule_key))");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_platform_governance_rules (rule_key, category, title, enforcement, scope, active) VALUES ('auth_otp', 'auth', 'OTP', 'required', 'all_tenants', 1)");
+            var absent = await SendAsync(client, CpLegacyPhpAjaxLinks.PlatformGovernance, Form(("action", "save_rule"), ("rule_key", "missing_rule"), ("active", "0"), ("enforcement", "advisory")), staff, "ecomae.com");
+            Assert.Equal("Rule not found", absent.Json.RootElement.GetProperty("message").GetString());
+            var saved = await SendAsync(client, CpLegacyPhpAjaxLinks.PlatformGovernance, Form(("action", "save_rule"), ("rule_key", "auth_otp"), ("active", "0"), ("enforcement", "advisory")), staff, "ecomae.com");
+            Assert.True(saved.Json.RootElement.GetProperty("status").GetBoolean(), saved.Body);
+            Assert.Equal("auth_otp", saved.Json.RootElement.GetProperty("rule_key").GetString());
+            Assert.Equal("Rule saved", saved.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT IF(active = 0, '0', '1') FROM epc_platform_governance_rules WHERE rule_key = 'auth_otp'"));
+            Assert.Equal("advisory", await ScalarAsync(connectionString, "SELECT enforcement FROM epc_platform_governance_rules WHERE rule_key = 'auth_otp'"));
+            var listed = await SendAsync(client, list, null, staff, "ecomae.com");
+            Assert.True(listed.Json.RootElement.GetProperty("status").GetBoolean(), listed.Body);
+            Assert.Equal("auth_otp", listed.Json.RootElement.GetProperty("rules")[0].GetProperty("rule_key").GetString());
+            Assert.Equal(0, listed.Json.RootElement.GetProperty("rules")[0].GetProperty("active").GetInt32());
+            var unknown = await SendAsync(client, CpLegacyPhpAjaxLinks.PlatformGovernance + "?action=seed", null, staff, "ecomae.com");
+            Assert.Equal(HttpStatusCode.BadRequest, unknown.Status);
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_platform_governance_rules"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    [Fact]
+    public async Task FreeToolsAdmin_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var stats = CpLegacyPhpAjaxLinks.FreeToolsAdmin + "?action=stats";
+        var seen = DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(CultureInfo.InvariantCulture);
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, stats, null, staff);
+                Assert.False(offline.Json.RootElement.GetProperty("ok").GetBoolean());
+                Assert.Equal(StorefrontPhpAjax.FreeToolsDbError, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, stats, null, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, stats, null, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.Equal("Admin login required", guest.Json.RootElement.GetProperty("message").GetString());
+            var tenant = await SendAsync(client, CpLegacyPhpAjaxLinks.FreeToolsAdmin, Form(("action", "toggle"), ("tool", "vat"), ("active", "0")), staff);
+            Assert.Equal(HttpStatusCode.Forbidden, tenant.Status);
+            Assert.Equal("Super CP only", tenant.Json.RootElement.GetProperty("message").GetString());
+            var unknownTool = await SendAsync(client, CpLegacyPhpAjaxLinks.FreeToolsAdmin, Form(("action", "toggle"), ("tool", "nope"), ("active", "0")), staff, "ecomae.com");
+            Assert.Equal("Unknown tool", unknownTool.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.FreeToolsAdmin, Form(("action", "toggle"), ("tool", "vat"), ("active", "0")), staff, "ecomae.com");
+            Assert.Equal("Free-tools settings table is missing — schema-ensure stays Classic.", missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_free_tool_settings'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_free_tool_settings (name VARCHAR(64) NOT NULL PRIMARY KEY, val TEXT NULL, time_updated INT NOT NULL DEFAULT 0)");
+            var off = await SendAsync(client, CpLegacyPhpAjaxLinks.FreeToolsAdmin, Form(("action", "toggle"), ("tool", "vat"), ("active", "0")), staff, "ecomae.com");
+            Assert.True(off.Json.RootElement.GetProperty("ok").GetBoolean(), off.Body);
+            Assert.False(off.Json.RootElement.GetProperty("active").GetBoolean());
+            Assert.Equal(CpFreeToolsWriteService.ToggleMessage("vat", false), off.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT IF(JSON_CONTAINS(val, '\"vat\"'), '1', '0') FROM epc_free_tool_settings WHERE name = 'disabled_tools'"));
+            var on = await SendAsync(client, CpLegacyPhpAjaxLinks.FreeToolsAdmin, Form(("action", "toggle"), ("tool", "VAT"), ("active", "1")), staff, "ecomae.com");
+            Assert.True(on.Json.RootElement.GetProperty("active").GetBoolean());
+            Assert.Equal("[]", await ScalarAsync(connectionString, "SELECT val FROM epc_free_tool_settings WHERE name = 'disabled_tools'"));
+            var usageMissing = await SendAsync(client, stats, null, staff, "ecomae.com");
+            Assert.Equal(StorefrontPhpAjax.FreeToolsUsageMissing, usageMissing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('epc_free_tool_accounts','epc_free_tool_saves')"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_free_tool_accounts (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, email VARCHAR(120) NOT NULL DEFAULT '', company VARCHAR(120) NOT NULL DEFAULT '', country VARCHAR(8) NOT NULL DEFAULT '', pass_hash VARCHAR(255) NULL, time_created INT NOT NULL DEFAULT 0, time_last_seen INT NOT NULL DEFAULT 0, use_count INT NOT NULL DEFAULT 0, login_count INT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_free_tool_saves (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, tool VARCHAR(32) NOT NULL DEFAULT '', account_id INT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_free_tool_accounts (email, company, country, pass_hash, time_last_seen) VALUES ('a@b.test', 'Desk', 'AE', 'hash', " + seen + ")");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_free_tool_saves (tool, account_id) VALUES ('vat', 1)");
+            var counted = await SendAsync(client, stats, null, staff, "ecomae.com");
+            Assert.True(counted.Json.RootElement.GetProperty("ok").GetBoolean(), counted.Body);
+            Assert.Equal(1, counted.Json.RootElement.GetProperty("stats").GetProperty("accounts").GetInt64());
+            Assert.Equal(1, counted.Json.RootElement.GetProperty("stats").GetProperty("with_password").GetInt64());
+            Assert.Equal(1, counted.Json.RootElement.GetProperty("stats").GetProperty("active_30d").GetInt64());
+            Assert.Equal(1, counted.Json.RootElement.GetProperty("stats").GetProperty("saves").GetInt64());
+            var unknown = await SendAsync(client, CpLegacyPhpAjaxLinks.FreeToolsAdmin + "?action=send", null, staff, "ecomae.com");
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_boc%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -1526,6 +1692,8 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpIndustrySettingsWriteService>(sp => new CpIndustrySettingsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpTenantsWriteService>(sp => new CpTenantsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpMarketingBroadcastService>(sp => new CpMarketingBroadcastService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpPlatformGovernanceWriteService>(sp => new CpPlatformGovernanceWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpFreeToolsWriteService>(sp => new CpFreeToolsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpSmsGateway, IdleSms>();
         builder.Services.AddSingleton<ICpCommunicationsTestService>(sp => new CpCommunicationsTestService(
             sp.GetRequiredService<IErpWriteConnectionFactory>(),

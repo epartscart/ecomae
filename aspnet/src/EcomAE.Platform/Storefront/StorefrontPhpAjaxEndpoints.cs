@@ -383,6 +383,10 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.WebTracker, ["GET", "POST"], CpWebTrackerAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.PlatformGovernance, ["GET", "POST"], CpPlatformGovernanceAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.FreeToolsAdmin, ["GET", "POST"], CpFreeToolsAdminAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPartsCatalogues.Path, ["GET", "POST"], CpPartsCataloguesAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPartsCatalogues.AutoxpClicksPath, ["GET", "POST"], CpAutoxpClicksAsync)
@@ -3565,6 +3569,73 @@ public static class StorefrontPhpAjaxEndpoints
                 context.Request.Host.Host,
                 cancel),
             new StorefrontPhpAjax.CodedJson(503, new StorefrontPhpAjax.WebTrackerGate(false, "db"))).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpPlatformGovernanceAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpPlatformGovernanceWriteService rules,
+        CancellationToken cancellationToken)
+    {
+        var fields = await PostedThenQueryAsync(context, cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.PlatformGovernanceAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                fields,
+                context.Request.Host.Host,
+                rules,
+                cancel),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.GovernanceDbError)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpFreeToolsAdminAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpFreeToolsWriteService tools,
+        CancellationToken cancellationToken)
+    {
+        var fields = await PostedThenQueryAsync(context, cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.FreeToolsAdminAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                fields,
+                context.Request.Host.Host,
+                tools,
+                cancel),
+            new StorefrontPhpAjax.BroadcastBody(false, StorefrontPhpAjax.FreeToolsDbError)).ConfigureAwait(false);
+    }
+
+    private static async Task<Dictionary<string, string>> PostedThenQueryAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        foreach (var pair in context.Request.Query)
+        {
+            if (!fields.ContainsKey(pair.Key) && pair.Value.Count > 0)
+            {
+                fields[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        return fields;
     }
 
     private static Task<IResult> CpPartsCataloguesAsync(
