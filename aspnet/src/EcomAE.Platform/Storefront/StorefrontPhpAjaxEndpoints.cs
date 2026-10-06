@@ -379,6 +379,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.Portal, ["GET", "POST"], CpPortalAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.MarketingBroadcast, ["GET", "POST"], CpMarketingBroadcastAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.CurrencyRates, ["GET", "POST"], CpCurrencyFallbackAsync)
             .DisableAntiforgery().AllowAnonymous();
     }
@@ -3481,6 +3483,44 @@ public static class StorefrontPhpAjaxEndpoints
                 tenants,
                 cancel),
             new StorefrontPhpAjax.FlagBody(false, "Database connection failed")).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpMarketingBroadcastAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpMarketingBroadcastService broadcasts,
+        CancellationToken cancellationToken)
+    {
+        var fields = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            if (form.TryGetValue("action", out var posted) && context.Request.Query["action"].Count == 0)
+            {
+                fields["action"] = posted.ToString();
+            }
+        }
+
+        foreach (var name in new[] { "action", "audience_mode", "audience_meta", "channel", "template_key" })
+        {
+            if (context.Request.Query.TryGetValue(name, out var value) && value.Count > 0)
+            {
+                fields[name] = value.ToString();
+            }
+        }
+
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.MarketingBroadcastAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                fields,
+                broadcasts,
+                cancel),
+            new StorefrontPhpAjax.BroadcastBody(false, "DB unavailable")).ConfigureAwait(false);
     }
 
     private static async Task<IResult> CpOrdersOmsAsync(

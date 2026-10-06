@@ -1163,6 +1163,79 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task MarketingBroadcast_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var manual = CpLegacyPhpAjaxLinks.MarketingBroadcast
+            + "?action=count_recipients&audience_mode=manual&channel=email&audience_meta="
+            + Uri.EscapeDataString("a@b.test,nope,c@d.test");
+        var phones = CpLegacyPhpAjaxLinks.MarketingBroadcast
+            + "?action=count_recipients&audience_mode=manual&channel=whatsapp&audience_meta="
+            + Uri.EscapeDataString("971500000001;971500000002");
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, manual, null, staff);
+                Assert.False(offline.Json.RootElement.GetProperty("ok").GetBoolean());
+                Assert.Equal("DB unavailable", offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, manual, null, staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, manual, null, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.Equal("Forbidden", guest.Json.RootElement.GetProperty("message").GetString());
+            var unknown = await SendAsync(client, CpLegacyPhpAjaxLinks.MarketingBroadcast, Form(("action", "send_email")), staff);
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+            var postedMode = await SendAsync(client, CpLegacyPhpAjaxLinks.MarketingBroadcast, Form(("action", "count_recipients"), ("audience_mode", "manual"), ("audience_meta", "a@b.test")), staff);
+            Assert.True(postedMode.Json.RootElement.GetProperty("ok").GetBoolean(), postedMode.Body);
+            Assert.Equal(0, postedMode.Json.RootElement.GetProperty("count").GetInt32());
+            var counted = await SendAsync(client, manual, null, staff);
+            Assert.True(counted.Json.RootElement.GetProperty("ok").GetBoolean(), counted.Body);
+            Assert.Equal(2, counted.Json.RootElement.GetProperty("count").GetInt32());
+            var whatsapp = await SendAsync(client, phones, null, staff);
+            Assert.Equal(2, whatsapp.Json.RootElement.GetProperty("count").GetInt32());
+            var email = await SendAsync(client, CpLegacyPhpAjaxLinks.MarketingBroadcast + "?action=template_preview&channel=email&template_key=blank", null, staff);
+            Assert.Equal(MarketingBroadcastCatalog.EmailTemplate("blank").Subject, email.Json.RootElement.GetProperty("subject").GetString());
+            Assert.Equal(MarketingBroadcastCatalog.EmailTemplate("blank").Html, email.Json.RootElement.GetProperty("body_html").GetString());
+            var text = await SendAsync(client, CpLegacyPhpAjaxLinks.MarketingBroadcast + "?action=template_preview&channel=whatsapp&template_key=missing", null, staff);
+            Assert.Equal(MarketingBroadcastCatalog.WhatsappTemplate("blank").Body, text.Json.RootElement.GetProperty("body_text").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'users'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_marketing_broadcast_campaigns'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -1205,6 +1278,7 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpTenantEmailWriteService>(sp => new CpTenantEmailWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpIndustrySettingsWriteService>(sp => new CpIndustrySettingsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpTenantsWriteService>(sp => new CpTenantsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpMarketingBroadcastService>(sp => new CpMarketingBroadcastService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpSmsGateway, IdleSms>();
         builder.Services.AddSingleton<ICpCommunicationsTestService>(sp => new CpCommunicationsTestService(
             sp.GetRequiredService<IErpWriteConnectionFactory>(),
