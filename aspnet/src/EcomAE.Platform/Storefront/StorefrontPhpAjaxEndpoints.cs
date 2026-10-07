@@ -237,6 +237,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpStringInfoPath, ["GET", "POST"], CpStringInfoAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpTextStringsPath, ["GET", "POST"], CpTextStringsAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpSetStringErrorPath, ["GET", "POST"], CpSetStringErrorAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpSetStringCustomPath, ["GET", "POST"], CpSetStringCustomAsync)
@@ -2552,6 +2554,32 @@ public static class StorefrontPhpAjaxEndpoints
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
                 await OptionalPostedAsync(context, "str_key", token).ConfigureAwait(false),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+
+    private static Task<IResult> CpTextStringsAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.TextStringsAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                PhpConfig(context),
+                new StorefrontPhpAjax.TextStringsQuery(
+                    await OptionalPostedAsync(context, "items_filter", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "items_sort", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "limit_from", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "limit_count", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "items_new", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "left_lang", token).ConfigureAwait(false),
+                    await OptionalPostedAsync(context, "right_lang", token).ConfigureAwait(false),
+                    context.Request.Cookies["lang_cp"]),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
 
