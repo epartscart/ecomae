@@ -211,7 +211,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
 2. **Checkout and order side effects still on PHP.**
    - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
-   - Sales-invoice sale-demand capture: `epc_erp_inventory_record_sale_demand` runs when PHP saves a sales invoice. ASP.NET does not record it yet.
+   - Done: sales-invoice sale-demand capture (`epc_erp_inventory_record_sale_demand`). See the checkpoint below.
    - Done: SMS and WhatsApp Cloud API fan-out of `docpart_dispatch_notification()` (`content/notifications/send_notify_dispatch.php`, `epc_whatsapp_notify.php`). See the checkpoint below.
    - Still open: the non-GCC SMS handlers in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru), the legacy `send_notify.php` HTTP endpoint, and `epc_order_whatsapp_share.php`.
    - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
@@ -248,6 +248,18 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — sales-invoice sale demand like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 841 gap files (ratchet `--max-gap 841`, unchanged: the PHP function lives in the large inventory library, which stays a gap).
+- `ErpSaleDemand` (PHP `epc_erp_inventory_record_sale_demand`) runs after every tax-invoice save commits: the manual invoice, the sales-order invoice, the order invoice and the order tax-invoice print. Credit notes (381) and other categories are skipped.
+  - The order's product lines map to active ERP items by `product_id`; when none match, the invoice lines match by item name.
+  - One `sale_out` movement per item in the warehouse holding the most stock (else the first active warehouse), at the average cost. Stock is reduced by at most what is on hand.
+  - The `SALEINV-<id>` reference makes it run once per invoice. A database error never fails the invoice, like PHP's catch.
+- Fixed with it: ASP.NET created `epc_uae_vat_advance` without `einvoice_document_id` (PHP `epc_uae_tax_compliance_ensure_schema` has it). On a tenant without that table, every order tax-invoice save rolled back with "Unknown column". The table is now created with the column, and the column is added when missing.
+- Verified: the PHP harness (`php` running the real function over the same fixture: two invoices from orders, a repeat, a name-matched invoice, an invoice with nothing to match, document 0) gives byte-equal movements, stock and return values on a throwaway database. A manual invoice save and an order tax-invoice print on a running test host record the movement and take the stock. 5300 of 5300 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — Document Control print and the ERP access check like PHP
 
