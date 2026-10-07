@@ -105,6 +105,7 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             + " `vat_amount` decimal(14,2) NOT NULL DEFAULT 0.00,"
             + " `vat_rate` decimal(5,2) NOT NULL DEFAULT 5.00,"
             + " `payment_time` int(11) NOT NULL DEFAULT 0,"
+            + " `einvoice_document_id` int(11) NOT NULL DEFAULT 0,"
             + " `adjusted` tinyint(1) NOT NULL DEFAULT 0,"
             + " `time_created` int(11) NOT NULL DEFAULT 0,"
             + " PRIMARY KEY (`id`),"
@@ -123,6 +124,10 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
         await ErpDb.TryExecuteAsync(
             connection,
             "ALTER TABLE `epc_uae_vat_advance` ADD `source_type` varchar(16) NOT NULL DEFAULT 'order'",
+            cancellationToken).ConfigureAwait(false);
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `epc_uae_vat_advance` ADD `einvoice_document_id` int(11) NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
 
         await ErpDb.TryExecuteAsync(
