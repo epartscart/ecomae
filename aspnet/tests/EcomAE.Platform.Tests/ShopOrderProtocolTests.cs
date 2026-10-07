@@ -219,6 +219,45 @@ public sealed class ShopOrderProtocolTests
         });
 
     [Fact]
+    public Task OnlinePayment_SettlesToVendorThenPlatformAccounts_AndIpnIsIdempotent_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
+        {
+            await ExecuteAsync(cs, "CREATE TABLE shop_payment_systems (id INT NOT NULL PRIMARY KEY, handler VARCHAR(64) NOT NULL, anable TINYINT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 0, parameters_values TEXT NULL)");
+            await ExecuteAsync(cs, "INSERT INTO shop_payment_systems (id, handler, anable, active, parameters_values) VALUES (1, 'stripe', 1, 0, '{\"currency\":\"USD\",\"demo_mode\":true,\"live\":false}'), (2, 'tap', 0, 1, '{\"currency\":\"SAR\"}')");
+            await ExecuteAsync(cs, "CREATE TABLE epc_vendor_accounts (id INT NOT NULL PRIMARY KEY, storage_id INT NOT NULL, status VARCHAR(16) NOT NULL, vendor_full VARCHAR(64) NOT NULL DEFAULT '')");
+            await ExecuteAsync(cs, "INSERT INTO epc_vendor_accounts (id, storage_id, status) VALUES (3, 9, 'approved')");
+            await ExecuteAsync(cs, "UPDATE shop_orders_items SET t2_storage_id = 9 WHERE id = 3001");
+            await ExecuteAsync(cs, "INSERT INTO shop_users_accounting (id, user_id, time, income, amount, operation_code, active, order_id, office_id, pay_orders) VALUES (40, 5, 1, 1, 150, 3, 0, 0, 1, '300')");
+            await ExecuteAsync(cs, "INSERT INTO shop_users_accounting (id, user_id, time, income, amount, operation_code, active, order_id, office_id, pay_orders) VALUES (41, 0, 1, 1, 5, 3, 0, 0, 1, '200')");
+            await using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+            await StorefrontPaymentAccounts.EnsureSchemaAsync(connection, CancellationToken.None);
+            await ExecuteAsync(cs, "INSERT INTO epc_payment_accounts (id, owner_type, owner_id, handler, platform_fee_pct, status, is_default) VALUES (1, 'platform', 0, 'stripe', 2.5, 'active', 1)");
+            await ExecuteAsync(cs, "INSERT INTO epc_payment_accounts (id, owner_type, owner_id, handler, credentials, platform_fee_pct, status) VALUES (2, 'vendor', 3, 'tap', '{\"currency\":\"USD\"}', 10, 'active')");
+
+            var parameters = await StorefrontPaymentAccounts.ParametersAsync(connection, 999, "stripe", false, CancellationToken.None);
+            Assert.Equal(new Dictionary<string, string> { ["currency"] = "USD", ["demo_mode"] = "1", ["live"] = "" }, parameters.Values);
+            Assert.Null(parameters.Account);
+            var resolved = await StorefrontPaymentAccounts.ParametersAsync(connection, 40, "", false, CancellationToken.None);
+            Assert.Equal(("2", "tap"), (resolved.Account!["id"], resolved.Handler));
+            Assert.Equal(new Dictionary<string, string> { ["currency"] = "USD", ["demo_mode"] = "1" }, resolved.Values);
+
+            var notify = new RecordingDispatcher();
+            var mailer = new ConfigMailer();
+            var payments = new StorefrontPaymentWriteService(new WriteConnections(cs), new ShopOrderProtocolService(notify, mailer), notify, mailer);
+            Assert.True((await payments.NotifyAsync(connection, 5, 40, 0, StorefrontPaymentWriteService.DemoToken, "tap")).Ok);
+            Assert.True((await payments.NotifyAsync(connection, 0, 41, 0, StorefrontPaymentWriteService.DemoToken, "stripe")).Ok);
+            Assert.Equal(
+                "40|300|2|vendor|3|tap|150.00|15.00|135.00|USD|credited|Auto-settlement to vendor account~41|200|1|platform|0|stripe|5.00|0.13|4.87|AED|credited|Payment credited to individual account",
+                await ScalarAsync(cs, "SELECT GROUP_CONCAT(CONCAT_WS('|', operation_id, order_id, account_id, owner_type, owner_id, handler, gross_amount, fee_amount, net_amount, currency, status, note) ORDER BY id SEPARATOR '~') FROM epc_payment_settlements"));
+
+            Assert.Equal("already", (await payments.NotifyAsync(connection, 5, 40, 0, StorefrontPaymentWriteService.DemoToken, "tap")).Code);
+            var ipn = await payments.ApplyIpnAsync(connection, 40, 150);
+            Assert.Equal((true, "already", "already processed"), (ipn.Ok, ipn.Code, ipn.Message));
+            Assert.Equal("2", await ScalarAsync(cs, "SELECT COUNT(*) FROM epc_payment_settlements"));
+        });
+
+    [Fact]
     public Task PayForOrderProtocol_GatesLikePhp_OnThrowawayDatabase_ThenDropped()
         => WithDatabaseAsync(async cs =>
         {

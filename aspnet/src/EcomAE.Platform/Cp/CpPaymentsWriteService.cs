@@ -533,7 +533,7 @@ public sealed class CpPaymentsWriteService : ICpPaymentsWriteService
     }
 
     /// <summary>PHP <c>epc_pay_accounts_ensure_schema</c>.</summary>
-    private static async Task EnsureAccountSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
+    internal static async Task EnsureAccountSchemaAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         await ErpDb.TryExecuteAsync(
             connection,
@@ -582,6 +582,11 @@ public sealed class CpPaymentsWriteService : ICpPaymentsWriteService
             + "PRIMARY KEY (`id`), KEY `idx_op` (`operation_id`), KEY `idx_order` (`order_id`),"
             + "KEY `idx_account` (`account_id`), KEY `idx_status` (`status`)"
             + ") ENGINE=InnoDB DEFAULT CHARSET=utf8mb4",
+            cancellationToken).ConfigureAwait(false);
+
+        await ErpDb.TryExecuteAsync(
+            connection,
+            "ALTER TABLE `shop_users_accounting` ADD COLUMN `epc_payment_account_id` INT UNSIGNED NOT NULL DEFAULT 0",
             cancellationToken).ConfigureAwait(false);
     }
 

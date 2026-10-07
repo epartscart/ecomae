@@ -26,6 +26,29 @@ public interface IStorefrontPaymentWriteService
         string? handler,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// PHP shared <c>payment_systems/notification.php</c> on the caller's connection. Code <c>already</c> when the
+    /// operation is no longer pending (PHP redirects with the success message either way).
+    /// </summary>
+    Task<StorefrontPaymentWriteResult> NotifyAsync(
+        System.Data.Common.DbConnection connection,
+        int userId,
+        long operationId,
+        decimal sum,
+        string? demoToken,
+        string? handler,
+        CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// PHP <c>nowpayments/notification.php</c> after the IPN signature and status checks: activate the pending operation,
+    /// <c>pay_notify.php</c>, then <c>pay_for_order.php</c>; code <c>already</c> when the operation is not pending.
+    /// </summary>
+    Task<StorefrontPaymentWriteResult> ApplyIpnAsync(
+        System.Data.Common.DbConnection connection,
+        long operationId,
+        decimal sum,
+        CancellationToken cancellationToken = default);
+
     /// <summary>PHP <c>my_order.php</c> action <c>pay_on_place</c>: set <c>paid_type=1</c>, order log, then the robot status protocol to the <c>for_paid</c> status.</summary>
     Task<StorefrontPaymentWriteResult> PayOnPlaceAsync(
         int userId,
@@ -342,6 +365,11 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         string? handler,
         CancellationToken cancellationToken = default)
     {
+        if (!_connections.IsConfigured)
+        {
+            return (demoToken ?? string.Empty).Trim() != DemoToken ? Fail("forbidden", "Forbidden") : Fail("db", "TenantRegistry DB is not configured.");
+        }
+
         if ((demoToken ?? string.Empty).Trim() != DemoToken)
         {
             return Fail("forbidden", "Forbidden");
@@ -352,12 +380,25 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             return Fail("invalid", "Forbidden");
         }
 
-        if (!_connections.IsConfigured)
+        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        var result = await NotifyAsync(connection, userId, operationId, sum, demoToken, handler, cancellationToken).ConfigureAwait(false);
+        return result.Code == "already" ? Fail("forbidden", "Forbidden") : result;
+    }
+
+    public async Task<StorefrontPaymentWriteResult> NotifyAsync(
+        System.Data.Common.DbConnection connection,
+        int userId,
+        long operationId,
+        decimal sum,
+        string? demoToken,
+        string? handler,
+        CancellationToken cancellationToken = default)
+    {
+        if ((demoToken ?? string.Empty).Trim() != DemoToken)
         {
-            return Fail("db", "TenantRegistry DB is not configured.");
+            return Fail("forbidden", "Forbidden");
         }
 
-        await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         var pending = await ErpDb.LongAsync(
             connection,
             null,
@@ -366,7 +407,7 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             operationId).ConfigureAwait(false);
         if (pending != 1)
         {
-            return Fail("forbidden", "Forbidden");
+            return new StorefrontPaymentWriteResult(false, "already", "Operation is not pending", operationId, SanitizeHandler(handler), 0);
         }
 
         var opUser = await ErpDb.LongAsync(
@@ -380,6 +421,50 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             return Fail("forbidden", "Forbidden");
         }
 
+        var (writes, message, config) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
+        try
+        {
+            writes += await SettleAsync(connection, operationId, sum, SanitizeHandler(handler), config.Wholesaler, cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+        }
+
+        return new StorefrontPaymentWriteResult(true, "ok", message, operationId, SanitizeHandler(handler), writes);
+    }
+
+    public async Task<StorefrontPaymentWriteResult> ApplyIpnAsync(
+        System.Data.Common.DbConnection connection,
+        long operationId,
+        decimal sum,
+        CancellationToken cancellationToken = default)
+    {
+        var pending = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM `shop_users_accounting` WHERE `id` = ? AND `active` = 0;"),
+            cancellationToken,
+            operationId).ConfigureAwait(false);
+        if (pending != 1)
+        {
+            return new StorefrontPaymentWriteResult(true, "already", "already processed", operationId, "nowpayments", 0);
+        }
+
+        var (writes, message, _) = await ActivateAndPayAsync(connection, operationId, sum, cancellationToken).ConfigureAwait(false);
+        return new StorefrontPaymentWriteResult(true, "ok", message, operationId, "nowpayments", writes);
+    }
+
+    /// <summary>
+    /// The common tail of the PHP notifications: <c>active = 1</c> outside any transaction, <c>pay_notify.php</c>, then
+    /// <c>pay_for_order.php</c> with initiator 3 for the operation's <c>pay_orders</c>. A refused protocol leaves the
+    /// funds on the customer balance, like PHP.
+    /// </summary>
+    private async Task<(int Writes, string Message, ShopPayForOrderConfig Config)> ActivateAndPayAsync(
+        System.Data.Common.DbConnection connection,
+        long operationId,
+        decimal sum,
+        CancellationToken cancellationToken)
+    {
         var opAmount = await ErpDb.StringAsync(
             connection,
             null,
@@ -408,6 +493,7 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         }
 
         var message = "Payment applied";
+        var config = ShopPayForOrderConfig.From(_mailer?.ReadConfig() ?? new Dictionary<string, string>());
         var payOrders = await ErpDb.StringAsync(
             connection,
             null,
@@ -416,7 +502,6 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             operationId).ConfigureAwait(false) ?? string.Empty;
         if (payOrders.Length > 0)
         {
-            var config = ShopPayForOrderConfig.From(_mailer?.ReadConfig() ?? new Dictionary<string, string>());
             var paid = await PayForOrder.PayAsync(
                 connection,
                 new ShopPayForOrderRequest(ShopPayForOrderService.InitiatorPaymentSystem, payOrders, amount, "0", 0, 0, true, config),
@@ -431,7 +516,74 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             }
         }
 
-        return new StorefrontPaymentWriteResult(true, "ok", message, operationId, SanitizeHandler(handler), writes);
+        return (writes, message, config);
+    }
+
+    /// <summary>
+    /// PHP shared <c>notification.php</c> after the protocol: credit the funds to the individual payment account linked to
+    /// the operation (else resolved for its order), split per vendor account when order lines belong to vendors.
+    /// </summary>
+    private static async Task<int> SettleAsync(System.Data.Common.DbConnection connection, long operationId, decimal sum, string handler, bool wholesaler, CancellationToken cancellationToken)
+    {
+        IReadOnlyDictionary<string, string> parameters;
+        try
+        {
+            parameters = (await StorefrontPaymentAccounts.ParametersAsync(connection, operationId, handler, wholesaler, cancellationToken).ConfigureAwait(false)).Values;
+        }
+        catch (System.Data.Common.DbException)
+        {
+            parameters = new Dictionary<string, string>();
+        }
+
+        await StorefrontPaymentAccounts.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
+        var payOrders = await ErpDb.StringAsync(connection, null, ErpDb.Positional("SELECT `pay_orders` FROM `shop_users_accounting` WHERE `id` = ? LIMIT 1"), cancellationToken, operationId)
+            .ConfigureAwait(false);
+        var opAmount = await ErpDb.DecimalAsync(connection, null, ErpDb.Positional("SELECT IFNULL(`amount`, 0) FROM `shop_users_accounting` WHERE `id` = ? LIMIT 1"), cancellationToken, operationId)
+            .ConfigureAwait(false);
+        var orderId = StorefrontPaymentAccounts.Int(payOrders);
+        long accountId = 0;
+        try
+        {
+            accountId = await ErpDb.LongAsync(connection, null, ErpDb.Positional("SELECT `epc_payment_account_id` FROM `shop_users_accounting` WHERE `id` = ? LIMIT 1"), cancellationToken, operationId)
+                .ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+        }
+
+        var account = accountId > 0 ? await StorefrontPaymentAccounts.GetAsync(connection, accountId, cancellationToken).ConfigureAwait(false) : null;
+        account ??= await StorefrontPaymentAccounts.ResolveForOrderAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
+        if (account is null)
+        {
+            return 0;
+        }
+
+        var gross = sum > 0 ? sum : opAmount;
+        var currency = parameters.TryGetValue("currency", out var configured) && ShopPayForOrderService.PhpTruthy(configured) ? configured : "AED";
+        string Field(IReadOnlyDictionary<string, string?> row, string key, string fallback) => row.TryGetValue(key, out var value) && value is not null ? value : fallback;
+        decimal Fee(IReadOnlyDictionary<string, string?> row) => ShopPayForOrderService.PhpNumber(Field(row, "platform_fee_pct", "0")) ?? 0m;
+
+        var written = 0;
+        var splits = orderId > 0 ? await StorefrontPaymentAccounts.OrderSplitsAsync(connection, orderId, cancellationToken).ConfigureAwait(false) : [];
+        foreach (var split in splits.Where(s => s.Account is not null && s.VendorId > 0))
+        {
+            await StorefrontPaymentAccounts.CreateSettlementAsync(
+                connection,
+                new StorefrontPaymentSettlement(operationId, orderId, StorefrontPaymentAccounts.Int(Field(split.Account!, "id", "0")), "vendor", split.VendorId, Field(split.Account!, "handler", handler), split.Amount, Fee(split.Account!), currency, "credited", "Auto-settlement to vendor account"),
+                cancellationToken).ConfigureAwait(false);
+            written++;
+        }
+
+        if (written == 0)
+        {
+            await StorefrontPaymentAccounts.CreateSettlementAsync(
+                connection,
+                new StorefrontPaymentSettlement(operationId, orderId, StorefrontPaymentAccounts.Int(Field(account, "id", "0")), Field(account, "owner_type", "platform"), StorefrontPaymentAccounts.Int(Field(account, "owner_id", "0")), Field(account, "handler", handler), gross, Fee(account), currency, "credited", "Payment credited to individual account"),
+                cancellationToken).ConfigureAwait(false);
+            written++;
+        }
+
+        return written;
     }
 
     private IShopPayForOrderService PayForOrder
