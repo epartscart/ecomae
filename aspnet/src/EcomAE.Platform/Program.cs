@@ -707,6 +707,10 @@ builder.Services.AddSingleton<IStorefrontCartAddDryRun, StorefrontCartAddDryRun>
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartAddService, EcomAE.Platform.Storefront.StorefrontCartAddService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteService, EcomAE.Platform.Storefront.StorefrontCartWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
+builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformMailer, EcomAE.Platform.Cp.CpPlatformMailer>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontNotifyDispatcher, EcomAE.Platform.Storefront.StorefrontNotifyDispatcher>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontSupplierLpoNotifier, EcomAE.Platform.Storefront.StorefrontSupplierLpoNotifier>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontOrderCreatedPipeline, EcomAE.Platform.Storefront.StorefrontOrderCreatedPipeline>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontVendorPortalReader, EcomAE.Platform.Storefront.StorefrontVendorPortalReader>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontGuestSessionService, EcomAE.Platform.Storefront.StorefrontGuestSessionService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontPaymentWriteService, EcomAE.Platform.Storefront.StorefrontPaymentWriteService>();

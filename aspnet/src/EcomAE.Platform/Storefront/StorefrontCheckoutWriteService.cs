@@ -57,10 +57,14 @@ public sealed record StorefrontCheckoutWriteResult(
 public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteService
 {
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IStorefrontOrderCreatedPipeline? _orderCreated;
 
-    public StorefrontCheckoutWriteService(IErpWriteConnectionFactory connections)
+    public StorefrontCheckoutWriteService(
+        IErpWriteConnectionFactory connections,
+        IStorefrontOrderCreatedPipeline? orderCreated = null)
     {
         _connections = connections;
+        _orderCreated = orderCreated;
     }
 
     public async Task<StorefrontCheckoutWriteResult> CreateAsync(
@@ -188,6 +192,8 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             return Fail("status_missing", "Created-order status is not configured.");
         }
 
+        long committedOrderId;
+        int committedWrites;
         await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -476,19 +482,30 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             }
 
             await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return new(
-                true,
-                "written",
-                "ok",
-                "Order #" + orderId.ToString(CultureInfo.InvariantCulture) + " created. Staff email notify remains PHP until the notify helper is ported.",
-                orderId,
-                writes);
+            committedOrderId = orderId;
+            committedWrites = writes;
         }
         catch (Exception ex) when (ex is ErpWriteException or DbException)
         {
             await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return Fail("checkout_failed", ex.Message);
         }
+
+        var message = "Order #" + committedOrderId.ToString(CultureInfo.InvariantCulture) + " created.";
+        if (_orderCreated is not null)
+        {
+            // The order is committed; the supplier LPO / PO tail must finish even if the shopper disconnects.
+            var outcome = await _orderCreated.RunAsync(committedOrderId, userId, CancellationToken.None).ConfigureAwait(false);
+            message += " " + StorefrontOrderCreatedPipeline.Summary(outcome);
+        }
+
+        return new(
+            true,
+            "written",
+            "ok",
+            message + " Staff and customer order e-mails remain PHP until the notify helper is ported.",
+            committedOrderId,
+            committedWrites);
     }
 
     private static async Task<bool> GuestOrdersAllowedAsync(
