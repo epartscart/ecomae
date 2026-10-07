@@ -503,7 +503,7 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
             true,
             "written",
             "ok",
-            message + " Staff and customer order e-mails remain PHP until the notify helper is ported.",
+            message,
             committedOrderId,
             committedWrites);
     }

@@ -6,6 +6,7 @@ namespace EcomAE.Platform.Storefront;
 
 /// <summary>
 /// The non-blocking tail of PHP <c>ajax_checkout_create.php</c> after the order commits:
+/// <c>epc_checkout_send_order_notifications()</c> (staff + customer new-order e-mails with retry and order log),
 /// <c>epc_send_supplier_lpo_notifications()</c> (one LPO e-mail per warehouse, LPO number = order number),
 /// then — for signed-in customers — <c>epc_erp_order_fulfillment_bootstrap()</c> (ERP sales order plus one
 /// draft PO per supplier with <c>order_id</c> = customer order). Failures never undo the order; a bootstrap
@@ -17,6 +18,7 @@ public interface IStorefrontOrderCreatedPipeline
 }
 
 public sealed record StorefrontOrderCreatedOutcome(
+    StorefrontOrderNotifyResult? OrderEmails,
     int LpoSent,
     int LpoSkipped,
     long SalesOrderId,
@@ -30,19 +32,34 @@ public sealed class StorefrontOrderCreatedPipeline : IStorefrontOrderCreatedPipe
     private readonly IErpWriteConnectionFactory _connections;
     private readonly IStorefrontSupplierLpoNotifier _lpo;
     private readonly IErpOrderFulfillmentWriteService _fulfillment;
+    private readonly IStorefrontOrderNotificationService? _orderEmails;
 
     public StorefrontOrderCreatedPipeline(
         IErpWriteConnectionFactory connections,
         IStorefrontSupplierLpoNotifier lpo,
-        IErpOrderFulfillmentWriteService fulfillment)
+        IErpOrderFulfillmentWriteService fulfillment,
+        IStorefrontOrderNotificationService? orderEmails = null)
     {
         _connections = connections;
         _lpo = lpo;
         _fulfillment = fulfillment;
+        _orderEmails = orderEmails;
     }
 
     public async Task<StorefrontOrderCreatedOutcome> RunAsync(long orderId, int userId, CancellationToken cancellationToken = default)
     {
+        StorefrontOrderNotifyResult? emails = null;
+        if (_orderEmails is not null)
+        {
+            try
+            {
+                emails = await _orderEmails.SendAsync(orderId, cancellationToken).ConfigureAwait(false);
+            }
+            catch (Exception ex) when (ex is DbException or ErpWriteException or InvalidOperationException)
+            {
+            }
+        }
+
         var sent = 0;
         var skipped = 0;
         try
@@ -57,7 +74,7 @@ public sealed class StorefrontOrderCreatedPipeline : IStorefrontOrderCreatedPipe
 
         if (userId <= 0)
         {
-            return new StorefrontOrderCreatedOutcome(sent, skipped, 0, [], null);
+            return new StorefrontOrderCreatedOutcome(emails, sent, skipped, 0, [], null);
         }
 
         string? failure;
@@ -66,7 +83,7 @@ public sealed class StorefrontOrderCreatedPipeline : IStorefrontOrderCreatedPipe
             var result = await _fulfillment.BootstrapAsync(orderId, userId, cancellationToken).ConfigureAwait(false);
             if (result.Ok && result.Payload is ErpFulfillmentBootstrapPayload payload)
             {
-                return new StorefrontOrderCreatedOutcome(sent, skipped, payload.SalesOrderId, payload.PoIds, null);
+                return new StorefrontOrderCreatedOutcome(emails, sent, skipped, payload.SalesOrderId, payload.PoIds, null);
             }
 
             failure = result.Ok ? null : result.Message;
@@ -81,7 +98,7 @@ public sealed class StorefrontOrderCreatedPipeline : IStorefrontOrderCreatedPipe
             await LogSkippedAsync(orderId, failure, cancellationToken).ConfigureAwait(false);
         }
 
-        return new StorefrontOrderCreatedOutcome(sent, skipped, 0, [], failure);
+        return new StorefrontOrderCreatedOutcome(emails, sent, skipped, 0, [], failure);
     }
 
     private async Task LogSkippedAsync(long orderId, string message, CancellationToken cancellationToken)
@@ -105,11 +122,15 @@ public sealed class StorefrontOrderCreatedPipeline : IStorefrontOrderCreatedPipe
 
     public static string Summary(StorefrontOrderCreatedOutcome outcome)
     {
-        var parts = new List<string>
+        var parts = new List<string>();
+        if (outcome.OrderEmails is { } emails)
         {
+            parts.Add("Order e-mails: admin " + (emails.AdminSent ? "sent" : "FAILED") + ", customer " + (emails.CustomerSent ? "sent" : "FAILED") + ".");
+        }
+
+        parts.Add(
             "Supplier LPO e-mails: " + outcome.LpoSent.ToString(CultureInfo.InvariantCulture) + " sent, "
-                + outcome.LpoSkipped.ToString(CultureInfo.InvariantCulture) + " skipped.",
-        };
+                + outcome.LpoSkipped.ToString(CultureInfo.InvariantCulture) + " skipped.");
         if (outcome.SalesOrderId > 0)
         {
             parts.Add("ERP sales order #" + outcome.SalesOrderId.ToString(CultureInfo.InvariantCulture)
