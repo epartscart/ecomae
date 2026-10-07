@@ -215,7 +215,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: SMS and WhatsApp Cloud API fan-out of `docpart_dispatch_notification()` (`content/notifications/send_notify_dispatch.php`, `epc_whatsapp_notify.php`). See the checkpoint below.
    - Still open: the non-GCC SMS handlers in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru), the legacy `send_notify.php` HTTP endpoint, and `epc_order_whatsapp_share.php`.
    - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
-   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns` (`add_return`, `helper`, the return pages), `content/shop/print_docs`, `content/shop/document_control`.
+   - Done: creating a return request (`content/shop/returns/ajax/ajax_load_returns_data.php` with `helper.php`): line split, photos, notifications and line status. See the checkpoint below.
+   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns` pages (`add_return.php`, `return.php`, `returns.php`, `return_messages.php`), `content/shop/print_docs`, `content/shop/document_control`.
 3. **Control Panel shop pages.**
    - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
    - `cp/content/shop/catalogue/product.php` and its includes.
@@ -242,6 +243,22 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — return requests like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 872 gap files (ratchet `--max-gap 872`); unnamed PHP functions 8,125.
+- `/content/shop/returns/ajax/ajax_load_returns_data.php` now does the whole PHP flow instead of only the header and line rows:
+  - `tech_key` check, duplicate line refusal (string 4571), the first return status (4572).
+  - When fewer units are returned than ordered, the line is split: the original keeps the rest and a copy holds the returned units, which the return points to.
+  - Photos (`images[line][n]`): png, jpeg, jpg or bmp only, 5 MB each, 15 MB in total; stored under `content/files/returns_images` with random names and recorded in `shop_orders_returns_items_images`. A bad photo cancels the whole request (4576–4578).
+  - After the commit: `return_new_manager` to the office users and `return_new_customer` to the customer, the returned lines move to the `for_return` status with a robot history row, and the split lines get their catalogue reservation and history rows (5636, 5686) like `helper.php`.
+- Intended deviations:
+  - PHP's status-change history row has broken SQL and is never written; ASP.NET writes it.
+  - Notifications go out after the commit, and photo files already written are deleted when the request is rolled back.
+  - The line copy reads the columns of the current database only (PHP's `INFORMATION_SCHEMA` query is not limited to one database).
+- Verified on a throwaway database: a 2-of-5 return splits line 90 into 3 and 2, the 1-of-1 line is returned whole, the comment is stored HTML-escaped, three photos are stored and match the uploads, managers 3 and 4 and then customer 7 are notified, and the three history rows match. A repeat request is refused, a gif or a 5 MB+1 photo is refused with nothing left behind, and a wrong key answers Forbidden. 5195 of 5195 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — order and line status protocol like PHP
 
