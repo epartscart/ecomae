@@ -191,6 +191,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.OrderPrintPath, ["GET", "POST"], OrderPrintAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.DocumentControlPrintPath, ["GET", "POST"], DocumentControlPrintAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PayForOrderPath, ["GET", "POST"], PayForOrderAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
@@ -1785,6 +1787,42 @@ public static class StorefrontPhpAjaxEndpoints
         catch (System.Data.Common.DbException)
         {
             return Results.Text("Database connection error", "text/html; charset=utf-8", statusCode: 500);
+        }
+    }
+
+    private static async Task<IResult> DocumentControlPrintAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Results.Text("Database error", "text/html; charset=utf-8", statusCode: 500);
+        }
+
+        var query = context.Request.Query;
+        string? Value(string key) => query.TryGetValue(key, out var v) ? v.ToString() : null;
+        var request = new StorefrontPhpAjax.DocumentControlPrintRequest(
+            Value("doc"),
+            Value("order_id"),
+            Value("invoice_id"),
+            Value("preview"),
+            new ErpUserAccess.Cookies(
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"]));
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var result = await StorefrontPhpAjax.PrintDocumentControlAsync(connection, request, cancellationToken).ConfigureAwait(false);
+            return Results.Text(result.Body, result.ContentType, statusCode: result.StatusCode);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return Results.Text("Database error", "text/html; charset=utf-8", statusCode: 500);
         }
     }
 

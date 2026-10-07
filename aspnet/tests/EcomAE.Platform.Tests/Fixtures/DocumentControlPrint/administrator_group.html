@@ -1,0 +1,37 @@
+<!DOCTYPE html><html><head><meta charset="utf-8"><title>FTA Tax Invoice</title><style>
+.epc-doc { font-family: Arial, Helvetica, sans-serif; font-size: 12px; color: #111; max-width: 900px; margin: 0 auto; }
+.epc-doc table { width: 100%; border-collapse: collapse; }
+.epc-doc th, .epc-doc td { border: 1px solid #ccc; padding: 6px 8px; vertical-align: top; }
+.epc-doc th { background: #f4f4f4; text-align: left; }
+.epc-doc .no-border td, .epc-doc .no-border th { border: none; }
+.epc-doc .right { text-align: right; }
+.epc-doc .title { font-size: 20px; font-weight: bold; margin: 0 0 8px; }
+.epc-doc .muted { color: #555; font-size: 11px; }
+.epc-doc .legal { font-size: 10px; color: #444; border-top: 1px solid #999; margin-top: 16px; padding-top: 8px; }
+@media print { body { margin: 0; } .no-print { display:none; } }</style></head><body><div class="no-print" style="padding:10px;background:#eef2ff;margin-bottom:12px;"><button onclick="window.print()">Print</button> <button onclick="window.close()">Close</button></div><div class="epc-doc">
+<table class="no-border"><tr>
+<td width="55%"><img src="" alt="Logo" style="max-height:70px;max-width:220px;" onerror="this.style.display='none'" />
+<div class="title"></div>
+<div>Office 12, Business Bay</div>
+<div>TRN: 100123456700003 | Tel: +97140000000 | sales@parts.test</div>
+</td>
+<td width="45%" class="right">
+<div class="title">TAX INVOICE</div>
+<div><strong>No:</strong> PREVIEW-001</div>
+<div><strong>Date:</strong> 07 Oct 2026</div>
+<div><strong>Order ref:</strong> 0</div>
+</td></tr></table>
+<table class="no-border" style="margin:12px 0"><tr>
+<td width="50%"><strong>Bill To</strong><br/>{{buyer_name}}<br/>{{buyer_address}}<br/>TRN: {{buyer_trn}}</td>
+<td width="50%"><strong>Ship To</strong><br/>{{ship_to_name}}<br/>{{ship_to_address}}</td>
+</tr></table>
+<p class="muted">Tax Invoice — UAE Federal Tax Authority (FTA) compliant format. Supply date: {{supply_date}}</p>
+<p><em>Preview — select an order or invoice to populate line items.</em></p>
+<table style="width:320px;margin-left:auto;margin-top:12px">
+<tr><td>Subtotal (excl. VAT)</td><td class="right">{{subtotal_excl_vat}}</td></tr>
+<tr><td>VAT ({{vat_rate}}%)</td><td class="right">{{vat_amount}}</td></tr>
+<tr><th>Total (incl. VAT)</th><th class="right">{{total_incl_vat}}</th></tr>
+</table>
+<p><strong>Amount in words:</strong> {{amount_words}}</p>
+<p><strong>Payment terms:</strong> {{payment_terms}}</p>
+<p><strong>Bank:</strong> {{bank_name}} — IBAN: {{bank_iban}}</p><div class="legal">Footer text</div></div></body></html>

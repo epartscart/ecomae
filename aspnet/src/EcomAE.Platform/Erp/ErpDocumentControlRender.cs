@@ -9,7 +9,7 @@ namespace EcomAE.Platform.Erp;
 /// the schema with the default templates (<c>epc_doc_control_ensure_schema</c>, <c>epc_document_control_templates_default.php</c>),
 /// <c>epc_dc_render_template</c> with the order context or the preview placeholders, and the sales / packing / delivery line tables.
 /// </summary>
-public static class ErpDocumentControlRender
+public static partial class ErpDocumentControlRender
 {
     private const string CompanySeedFooter =
         "This document is issued in accordance with UAE Federal Tax Authority (FTA) requirements. VAT Registration Number (TRN) must appear on all tax invoices. Retain records for minimum 5 years.";
@@ -212,7 +212,11 @@ public static class ErpDocumentControlRender
     /// PHP <c>epc_dc_render_template($db, $code, $order_id)</c>. Throws <see cref="ErpWriteException"/> with the PHP message
     /// for an inactive or unknown template and for an order that is missing or not successfully created.
     /// </summary>
-    public static async Task<string> RenderTemplateAsync(DbConnection connection, string code, long orderId, CancellationToken cancellationToken)
+    public static Task<string> RenderTemplateAsync(DbConnection connection, string code, long orderId, CancellationToken cancellationToken)
+        => RenderTemplateAsync(connection, code, orderId, 0, cancellationToken);
+
+    /// <summary>PHP <c>epc_dc_render_template($db, $code, $order_id, array('invoice_id' => $invoiceId))</c>: an invoice wins over the order.</summary>
+    public static async Task<string> RenderTemplateAsync(DbConnection connection, string code, long orderId, long invoiceId, CancellationToken cancellationToken)
     {
         await EnsureAsync(connection, cancellationToken).ConfigureAwait(false);
         var template = await RowAsync(
@@ -225,9 +229,11 @@ public static class ErpDocumentControlRender
             throw new ErpWriteException("Template not found or inactive");
         }
 
-        var placeholders = orderId > 0
-            ? await OrderPlaceholdersAsync(connection, orderId, cancellationToken).ConfigureAwait(false)
-            : await PreviewPlaceholdersAsync(connection, cancellationToken).ConfigureAwait(false);
+        var placeholders = invoiceId > 0
+            ? await InvoicePlaceholdersAsync(connection, invoiceId, cancellationToken).ConfigureAwait(false)
+            : orderId > 0
+                ? await OrderPlaceholdersAsync(connection, orderId, cancellationToken).ConfigureAwait(false)
+                : await PreviewPlaceholdersAsync(connection, cancellationToken).ConfigureAwait(false);
 
         var html = Get(template, "header_html") + Get(template, "body_html") + Get(template, "footer_html");
         foreach (var (key, value) in placeholders)
