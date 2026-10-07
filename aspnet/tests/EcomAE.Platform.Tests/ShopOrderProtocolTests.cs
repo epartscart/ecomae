@@ -258,6 +258,82 @@ public sealed class ShopOrderProtocolTests
         });
 
     [Fact]
+    public Task CreateOperation_ChecksOrderThenPicksGatewayAccountAndOfficeLikePhp_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
+        {
+            await ExecuteAsync(cs, "CREATE TABLE shop_payment_systems (id INT NOT NULL PRIMARY KEY, handler VARCHAR(64) NOT NULL, anable TINYINT NOT NULL DEFAULT 0, active TINYINT NOT NULL DEFAULT 0, parameters_values TEXT NULL)");
+            await ExecuteAsync(cs, "INSERT INTO shop_payment_systems (id, handler, anable, active) VALUES (1, 'stripe', 1, 0), (2, 'tap', 0, 1), (3, 'tabby', 1, 0)");
+            await ExecuteAsync(cs, "INSERT INTO shop_accounting_codes (id, `key`) VALUES (3, '3_income_by_customer'), (4, '4_income_for_direct_pay')");
+            await ExecuteAsync(cs, "CREATE TABLE epc_vendor_accounts (id INT NOT NULL PRIMARY KEY, storage_id INT NOT NULL, status VARCHAR(16) NOT NULL, vendor_full VARCHAR(64) NOT NULL DEFAULT '')");
+            await ExecuteAsync(cs, "INSERT INTO epc_vendor_accounts (id, storage_id, status) VALUES (3, 9, 'approved')");
+            await ExecuteAsync(cs, "UPDATE shop_orders_items SET t2_storage_id = 9 WHERE id = 3001");
+            await ExecuteAsync(cs, "ALTER TABLE shop_offices ADD COLUMN caption VARCHAR(64) NOT NULL DEFAULT '', ADD COLUMN pay_system_id INT NOT NULL DEFAULT 0, ADD COLUMN pay_system_parameters TEXT NULL");
+            await ExecuteAsync(cs, "UPDATE shop_offices SET pay_system_id = 3 WHERE id = 1");
+            await ExecuteAsync(cs, "CREATE TABLE shop_geo (id INT NOT NULL PRIMARY KEY)");
+            await ExecuteAsync(cs, "CREATE TABLE shop_offices_geo_map (geo_id INT NOT NULL, office_id INT NOT NULL)");
+            await ExecuteAsync(cs, "INSERT INTO shop_geo (id) VALUES (4)");
+            await ExecuteAsync(cs, "INSERT INTO shop_offices_geo_map (geo_id, office_id) VALUES (4, 1)");
+            await using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+
+            var none = new Dictionary<string, string>();
+            async Task<string> Create(int user, string request, Dictionary<string, string>? config = null, string? city = null)
+            {
+                var answer = await StorefrontPhpAjax.CreateOperationAsync(connection, user, request, CancellationToken.None, config ?? none, city);
+                return answer as string ?? JsonSerializer.Serialize(answer, new JsonSerializerOptions { PropertyNamingPolicy = null, DefaultIgnoreCondition = System.Text.Json.Serialization.JsonIgnoreCondition.Never });
+            }
+
+            Assert.Equal(string.Empty, await Create(5, "{\"amount\":null}"));
+            Assert.Equal(string.Empty, await Create(5, "{\"order_id\":300}"));
+            Assert.Contains("\"user\":false", await Create(5, "{\"amount\":0,\"order_id\":200}"));
+            Assert.Contains("\"user\":false", await Create(5, "{\"amount\":10,\"order_id\":999}"));
+            Assert.Contains("\"message\":\"Forbidden\"", await Create(0, "{\"amount\":10,\"order_id\":999}"));
+            Assert.Contains("\"message\":\"Forbidden\"", await Create(5, "{\"amount\":50,\"order_id\":300}"));
+            var partial = new Dictionary<string, string> { ["partial_payment"] = "1", ["partial_payment_min_percent"] = "50" };
+            Assert.Contains("\"message\":\"Forbidden\"", await Create(5, "{\"amount\":50,\"order_id\":300}", partial));
+            Assert.Contains("\"message\":\"Forbidden\"", await Create(5, "{\"amount\":150.01,\"order_id\":300}", partial));
+            Assert.Equal("0", await ScalarAsync(cs, "SELECT COUNT(*) FROM shop_users_accounting WHERE operation_code IN (3, 4)"));
+
+            var officeAccount = await Create(5, "{\"amount\":80,\"order_id\":300}", partial);
+            Assert.Matches(
+                "^\\{\"result\":true,\"operation\":\\d+,\"pay_system\":\"tabby\",\"payment_account_id\":0,\"payment_account\":\\{\"id\":0,\"title\":\"\",\"owner_type\":\"office\",\"owner_id\":1,\"handler\":\"tabby\"\\}\\}$",
+                officeAccount);
+            Assert.Equal("80.00|300|1|0", await ScalarAsync(cs, "SELECT CONCAT_WS('|', amount, pay_orders, office_id, epc_payment_account_id) FROM shop_users_accounting WHERE id = " + JsonDocument.Parse(officeAccount).RootElement.GetProperty("operation").GetInt64()));
+
+            await StorefrontPaymentAccounts.EnsureSchemaAsync(connection, CancellationToken.None);
+            await ExecuteAsync(cs, "INSERT INTO epc_payment_accounts (id, owner_type, owner_id, title, handler, platform_fee_pct, status, is_default) VALUES (1, 'platform', 0, 'Platform', 'stripe', 2.5, 'active', 1)");
+            await ExecuteAsync(cs, "INSERT INTO epc_payment_accounts (id, owner_type, owner_id, title, handler, platform_fee_pct, status) VALUES (2, 'vendor', 3, 'Vendor \"Tap\"', 'tap', 10, 'active')");
+
+            var topUp = await Create(5, "{\"amount\":20}");
+            Assert.Matches(
+                "^\\{\"result\":true,\"operation\":\\d+,\"pay_system\":\"stripe\",\"payment_account_id\":1,\"payment_account\":\\{\"id\":1,\"title\":\"Platform\",\"owner_type\":\"platform\",\"owner_id\":0,\"handler\":\"stripe\"\\}\\}$",
+                topUp);
+            Assert.Equal(
+                "5|1|20.00|3|0||0|1",
+                await ScalarAsync(cs, "SELECT CONCAT_WS('|', user_id, income, amount, operation_code, active, pay_orders, office_id, epc_payment_account_id) FROM shop_users_accounting WHERE id = " + JsonDocument.Parse(topUp).RootElement.GetProperty("operation").GetInt64()));
+
+            Assert.Contains("\"pay_system\":\"tap\",\"payment_account_id\":2,", await Create(5, "{\"amount\":150,\"order_id\":300}"));
+            var picked = await Create(5, "{\"amount\":150,\"order_id\":\"300\",\"pay_handler\":\"Tabby\"}");
+            Assert.Contains("\"pay_system\":\"tap\",\"payment_account_id\":2,", picked);
+            picked = await Create(5, "{\"amount\":150,\"order_id\":300,\"pay_handler\":\"tabby\"}");
+            Assert.Contains("\"pay_system\":\"tabby\",\"payment_account_id\":2,\"payment_account\":{\"id\":2,\"title\":\"Vendor \\u0022Tap\\u0022\",\"owner_type\":\"vendor\",\"owner_id\":3,\"handler\":\"tap\"}", picked);
+            Assert.Equal(
+                "5|150.00|4|300|0|2",
+                await ScalarAsync(cs, "SELECT CONCAT_WS('|', user_id, amount, operation_code, pay_orders, office_id, epc_payment_account_id) FROM shop_users_accounting WHERE id = " + JsonDocument.Parse(picked).RootElement.GetProperty("operation").GetInt64()));
+
+            var wholesaler = new Dictionary<string, string> { ["wholesaler"] = "1" };
+            Assert.Equal(string.Empty, await Create(5, "{\"amount\":10,\"office_id\":2}", wholesaler));
+            var office = await Create(5, "{\"amount\":10,\"office_id\":\"1\",\"pay_handler\":\"stripe\"}", wholesaler, "4");
+            Assert.Contains("\"pay_system\":\"tabby\",\"payment_account_id\":1,", office);
+            Assert.Equal("1|1", await ScalarAsync(cs, "SELECT CONCAT_WS('|', office_id, epc_payment_account_id) FROM shop_users_accounting WHERE id = " + JsonDocument.Parse(office).RootElement.GetProperty("operation").GetInt64()));
+
+            await ExecuteAsync(cs, "DELETE FROM epc_payment_accounts");
+            var legacyOffice = await Create(0, "{\"amount\":12,\"order_id\":200}");
+            Assert.Contains("\"pay_system\":\"tabby\",\"payment_account_id\":0,\"payment_account\":{\"id\":0,\"title\":\"\",\"owner_type\":\"office\",\"owner_id\":1,\"handler\":\"tabby\"}", legacyOffice);
+            Assert.Equal("0|200|1|0", await ScalarAsync(cs, "SELECT CONCAT_WS('|', user_id, pay_orders, office_id, epc_payment_account_id) FROM shop_users_accounting WHERE id = " + JsonDocument.Parse(legacyOffice).RootElement.GetProperty("operation").GetInt64()));
+        });
+
+    [Fact]
     public Task PayForOrderProtocol_GatesLikePhp_OnThrowawayDatabase_ThenDropped()
         => WithDatabaseAsync(async cs =>
         {

@@ -911,7 +911,9 @@ public static class StorefrontPhpAjaxEndpoints
                 connection,
                 csrf.UserId,
                 await FieldAsync(context, "request_object", ct).ConfigureAwait(false),
-                ct).ConfigureAwait(false));
+                ct,
+                PhpConfig(context),
+                context.Request.Cookies["my_city"]).ConfigureAwait(false));
 
     private static Task<IResult> ReturnsCheckAsync(
         HttpContext context,
