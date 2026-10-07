@@ -157,7 +157,7 @@ public sealed class StorefrontOrderSupplierPoTests
             var delivered = mailer.Attempts.Where(a => a.Delivered).ToList();
             Assert.Equal(["own.stock@example.com", "supplier-a@example.com"], delivered.Select(a => a.To).ToArray());
             Assert.Equal("LPO #" + no + " — please supply parts (Own Warehouse Dubai)", delivered[0].Subject);
-            Assert.Contains("LPO number</td><td>" + no + "</td>", delivered[0].Body, StringComparison.Ordinal);
+            Assert.Contains("LPO number</td><td style=\"border: 1px solid #cfcfcf; padding: 5px;\">" + no + "</td>", delivered[0].Body, StringComparison.Ordinal);
             Assert.Contains("Brake pad", delivered[0].Body, StringComparison.Ordinal);
             Assert.Contains("Catalogue stock item", delivered[0].Body, StringComparison.Ordinal);
             Assert.Contains("W 712", delivered[1].Body, StringComparison.Ordinal);
@@ -226,7 +226,7 @@ public sealed class StorefrontOrderSupplierPoTests
         return services.BuildServiceProvider();
     }
 
-    private static readonly string[] Schema =
+    internal static readonly string[] Schema =
     [
         "CREATE TABLE users_profiles (user_id INT NOT NULL, data_key VARCHAR(64) NOT NULL, data_value TEXT NULL)",
         "CREATE TABLE shop_obtaining_modes (id INT NOT NULL PRIMARY KEY)",
