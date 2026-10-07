@@ -187,6 +187,14 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — translation editor string list
+
+Not complete. ERP work waits until this plan is finished.
+
+- Broader `cp/content` ajax is 96 of 110. `cp/content` holds 108 `ajax_*.php` files today, and 12 are unmapped: auto price, the visual page editor, three version-control scripts, five packs scripts, and the two price-review scripts. Storefront and API ajax stays 109 of 112. Control Panel shop, users, and requests stays 72 of 75. Weighted headline stays about 20.4%.
+- `ajax_get_text_strings.php` returns the editor's paged list with the PHP filters, `has_<lang>` columns, and the current-language translation. A guest gets the CSRF refusal before the admin check, as in PHP. An unknown table or column, a sort field outside `str_key`/`description`/`current_lang_translation`, or a limit outside 1 to 5000 returns an empty body, as PHP `exit` does. The PHP `SQL` echo is not returned. The work language follows the PHP backend rule: `backend_ui_lang`, then the `lang_cp` cookie, then the active default.
+- Full suite 5137 of 5137. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — storefront ajax writers resolve from services; merge with main is green
 
 Not complete.
