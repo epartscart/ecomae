@@ -441,7 +441,7 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                     orderId, time, userId, "Buyer PO: " + po);
             }
 
-            var note = (request.OrderMessage ?? string.Empty).Trim()
+            var note = StorefrontGuestSessionService.HtmlEntities((request.OrderMessage ?? string.Empty).Trim())
                 .Replace("\r", "", StringComparison.Ordinal)
                 .Replace("\t", "", StringComparison.Ordinal)
                 .Replace("\n", "<br/>", StringComparison.Ordinal);
