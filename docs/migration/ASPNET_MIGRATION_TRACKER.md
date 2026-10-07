@@ -93,6 +93,14 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — storefront ajax writers resolve from services; merge with main is green
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75, broader `cp/content` 95 of 110. Weighted headline stays about 20.4%.
+- The customer desk handler took two writer services. Hosts that do not register them inferred both as request bodies, and GET/POST routes refuse inferred bodies, so every route in `StorefrontPhpAjaxEndpoints.Map` returned 500 in 16 throwaway-database tests. Writer parameters on mapped handlers are now `[FromServices]`. All 18 writers are registered in `Program.cs`, so production resolution is unchanged.
+- This branch: 5090 of 5090 tests pass. A trial merge with `main` (Devin's ERP work, 43 commits) merged cleanly and passes 5121 of 5121. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — catalog sync saves UMAPI rows and C110J lists 720 crosses
 
 Not complete.
