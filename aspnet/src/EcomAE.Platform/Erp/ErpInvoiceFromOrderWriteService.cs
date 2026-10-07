@@ -51,7 +51,9 @@ public sealed record ErpOrderEinvoiceDraft(
     string TaxBreakdownJson,
     string Xml,
     IReadOnlyList<string> Errors,
-    ErpDashboardReadService.TenantVat Tax);
+    ErpDashboardReadService.TenantVat Tax,
+    string SupplyCategory,
+    decimal SupplyRate);
 
 public sealed record ErpInvoiceFromOrderResult(
     long OrderId,
@@ -640,8 +642,38 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             taxBreakdownJson,
             xml,
             errors,
-            tax);
+            tax,
+            supplyCategory,
+            supplyRate);
     }
+
+    /// <summary>
+    /// PHP <c>$doc['buyer'] = …</c> before <c>epc_einvoice_validate_document</c> / <c>epc_einvoice_save_document</c>:
+    /// the draft with another buyer, validated and serialized again.
+    /// </summary>
+    public static ErpOrderEinvoiceDraft WithBuyer(ErpOrderEinvoiceDraft draft, IReadOnlyDictionary<string, string> buyer)
+        => draft with
+        {
+            Buyer = buyer,
+            Errors = ValidateTaxInvoice(draft.Seller, buyer, draft.Lines, draft.Subtotal, draft.TotalVat, draft.Tax.VatRegistered),
+            Xml = BuildInvoiceXml(
+                draft.Uuid,
+                draft.InvoiceNumber,
+                draft.IssueDate,
+                draft.DueDate,
+                draft.PaymentMeans,
+                draft.BankAccount,
+                draft.Seller,
+                buyer,
+                draft.Lines,
+                draft.Subtotal,
+                draft.TotalVat,
+                draft.TotalIncl,
+                draft.Paid,
+                draft.AmountDue,
+                draft.SupplyCategory,
+                draft.SupplyRate),
+        };
 
     /// <summary>PHP <c>epc_einvoice_save_document</c> for a built draft: document, lines, 'created' event and advance-VAT adjustment in one transaction.</summary>
     public async Task<ErpEinvoiceCreateResult> SaveDocumentDraftAsync(DbConnection connection, ErpOrderEinvoiceDraft draft, int adminId, CancellationToken cancellationToken = default)
