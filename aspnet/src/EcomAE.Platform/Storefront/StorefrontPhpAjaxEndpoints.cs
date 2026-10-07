@@ -1585,9 +1585,10 @@ public static class StorefrontPhpAjaxEndpoints
     private static Task<IResult> SetOrderStatusAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        IShopOrderProtocolService protocol,
         CancellationToken cancellationToken)
     {
+        var protocol = context.RequestServices.GetService<IShopOrderProtocolService>()
+            ?? ActivatorUtilities.CreateInstance<ShopOrderProtocolService>(context.RequestServices);
         var query = context.Request.Query;
         return WithDbAsync(
             context,
@@ -1611,9 +1612,10 @@ public static class StorefrontPhpAjaxEndpoints
     private static Task<IResult> SetOrderItemStatusAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        IShopOrderProtocolService protocol,
         CancellationToken cancellationToken)
     {
+        var protocol = context.RequestServices.GetService<IShopOrderProtocolService>()
+            ?? ActivatorUtilities.CreateInstance<ShopOrderProtocolService>(context.RequestServices);
         var query = context.Request.Query;
         return WithDbAsync(
             context,
