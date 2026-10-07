@@ -187,6 +187,59 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### PHP reference re-review — missed items plan (2026-10-07)
+
+The ajax ratios count only ajax scripts. To make sure nothing in the PHP reference is missed, `scripts/php_reference_gap_inventory.py` now checks every PHP file and function against the ASP.NET implementation code. The migration catalogues, dry-runs, reporters and dashboards are left out, because they list PHP paths without porting them. The output is [`inventory/PHP_REFERENCE_GAP_INVENTORY.md`](inventory/PHP_REFERENCE_GAP_INVENTORY.md). Rerun it at every checkpoint with `--max-gap <current>`, so the gap count can only go down.
+
+| Triage | Files | Meaning |
+| --- | ---: | --- |
+| Mentioned | 771 | ASP.NET names the file or all its functions. This is a lead only; parity stays in the rows of this tracker |
+| ERP tab mapped | 118 | The `erp_tabs_*.php` key is routed by `ErpPhpTabRouteMap` (all 160 tabs are routed). Many tab writes are still PHP |
+| Third-party | 316 | PHPExcel, PHPMailer, PclZip, MobileDetect, elFinder, TinyMCE, inputmask, the Laximo SDK. Replaced by .NET packages, not ported |
+| Ops script | 417 | Root `epc-*.php`, `*-setup.php` and similar one-off deploy, seed, repair and audit scripts. Replaced by migrations and workers, not ported one-to-one |
+| Sitemap shard | 80 | Generated sitemap files |
+| **Gap** | **876 (about 298k lines)** | Nothing in ASP.NET references it. Each one must be ported, or retired with a reason in `inventory/PHP_RETIRED.tsv` |
+
+Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
+
+1. **Storefront customer pages (epartscart.com).**
+   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`, `get_customer_offices.php`.
+   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `forgot_password.php`, `new_password.php`, `check_user_access.php`, `check_reg_contact.php`, `epc_login_rate_limit.php`, `epc_session_security.php`, `epc_password_upgrade.php`, the agreement module.
+   - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
+   - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
+   - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
+   - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
+2. **Checkout and order side effects still on PHP.**
+   - Process-flow sync: `epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`. ASP.NET has only dry-runs.
+   - SMS and WhatsApp fan-out: `content/sms/handlers`, `content/notifications`, `epc_order_whatsapp_share.php`.
+   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns/ajax/helper.php`, `content/shop/protocol`, `content/shop/print_docs`, `content/shop/document_control`.
+3. **Control Panel shop pages.**
+   - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
+   - `cp/content/shop/catalogue/product.php` and its includes.
+   - `cp/content/shop/prices_upload` page bodies: `upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload. These must reuse the existing price importer.
+   - Smaller sets: logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics.
+   - `cp/content/users`, `cp/content/lang`, `cp/content/packs_control`, the file manager, `cp/content/requests`, the content structure dumps.
+   - The CP plugins `2fa` and `authentication`; CP modules (bread crumbs, left menu, SSL check, logout).
+4. **Control Panel control and portal.**
+   - `cp/content/control/portal` (52 files): the auto price engine shell, social media hub, auth settings, tax toolkit, industry kit, licence trends and consolidation, marketing broadcast, the visual page editor, the fleet dashboard, the customer board, tenant e-mail settings, governance, POS tenant management, mobile apps, the BOC panels, and the guides.
+   - Version control and admin-access check.
+   - Root CP includes: `epc_cp_mainstream_menu.php`, `epc_oms_menu_guide_lib.php`, `epc_storefront_stub_redirect.php`, `epc_static_serve.php`, `epc_deploy_auth.php`.
+5. **Marketing, platform, tenant, BOS and industries (`content/general_pages`, 205 files plus 31 industry templates).**
+   - The ecomae.com platform pages, router, data, capability guides, FAQ and legal content; the brochures; the free tools; the portal demo; the web tracker.
+   - The auth common, MFA, SMTP and OAuth providers; the API v1 and webhooks; Power BI.
+   - Commerce isolation, tenant data protection, and the portal tenant pages and intro.
+   - The BOS unified and blockchain BOS pages, and the BOC console.
+   - The industry consolidation and the industry templates (`_base_template.php`, the sub-industry page and 28 industries).
+   - `epc_cloudpanel_helpers.php` is moved to ops workers, not ported as a page.
+6. **Price engine.** `content/shop/price_engine` (23 files, including the 6,768-line `epc_auto_price_engine.php` and the discovery adapters) plus the CP auto-price shell. This must stay on the existing importer.
+7. **ERP to 100%, after the steps above.**
+   - The 152 finance libraries in `content/shop/finance`. The largest are the external reports build, the UAE tax compliance, jewellery, inventory, SCM, tax toolkit, `my_balance.php`, phase 8, order planning, AML, staff, concurrency, HR law, integration, access, datalink, industry packs, period close, WMS, payroll and procurement.
+   - The CP finance pages: nav areas, the dashboards, the operations editor and create operation, the payment systems, custom shipping.
+   - The write side of the 118 mapped tabs.
+   - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
+
+Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
 ### Checkpoint 2026-10-07 — checkout sends staff and customer order e-mails like PHP
 
 Not complete.
