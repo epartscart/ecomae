@@ -187,6 +187,23 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — every cp/content ajax endpoint has an ASP.NET route
+
+Not complete. The ajax layer is done, but pages, storefront surfaces, and ERP are not. ERP work waits until this plan is finished.
+
+- Broader `cp/content` ajax is 108 of 110. All 108 `ajax_*.php` endpoints are mapped. The two left are not endpoints, so they stay unmapped on purpose. `shop/prices_upload/epc_prices_ajax_init.php` is a bootstrap that the price-upload scripts include. `control/portal/epc-apai-ajax-probe.php` is a deploy probe that echoes server paths and error file and line numbers.
+- Control Panel shop, users, and requests ajax is 74 of 75; the one left is that same include. Storefront and API ajax stays 109 of 112: two includes, plus the ERP modules ajax, which waits for the ERP phase. Weighted headline stays about 20.4%, because that figure weights pages and workflows as well as ajax.
+- `ajax_visual_page_editor.php` `load_layout` ports `epc_vpe_layout_load`:
+  - default brand, saved brand merge, and the brand/homepage fallback for other levels;
+  - the six frontend levels;
+  - allowed site keys (the request tenant, or on Super CP the platform, ePartsCart, and `epc_portal_tenants`);
+  - preview URLs. Demo and ERP-only tenants preview on `www.ecomae.com`, as in PHP.
+
+  `save_layout` checks `blocks_json` as PHP does, then stays Classic. Info blocks, cross-tenant brand settings, and the cache clear have no ASP.NET writer. A missing table reads as no saved layout, and nothing is created.
+- The three `version_control/ajax` scripts and the five `packs_control` scripts keep the PHP `stop_csrf` and session gates and reply in their PHP shapes. They then refuse: no tmp clear, no call to the update server, no unzip or file copy. ASP.NET code ships through the deploy pipeline. Clear-tmp, delete-pack, and insert-extensions answer `Session duplication` to a signed-in admin, because PHP calls `fetchColumn()` twice on a one-row `COUNT(*)`. The eight paths stay on ajax; before this, the link map redirected them to `/cp/packs-app` and `/cp/ops-guides-app`.
+- `price_review/ajax_price_review.php` runs dry. It keeps the CSRF, admin, and argument gates, then evaluates the batch with the PHP MIN/MAX/AVG, manufacturer-synonym, and plus/minus percent rules. It reports `items` and `would_review` and does not write `price` or `reviewed`. `ajax_create_csv.php` counts rows for type 1, 2, or 3 and writes no file. Both answer `status: false`, so the Control Panel page stops on the dry-run message.
+- Full suite 5146 of 5146. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — auto-price discovery sources
 
 Not complete. ERP work waits until this plan is finished.
