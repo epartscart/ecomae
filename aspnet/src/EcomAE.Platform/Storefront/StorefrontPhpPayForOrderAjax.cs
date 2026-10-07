@@ -77,27 +77,15 @@ public static partial class StorefrontPhpAjax
     }
 
     /// <summary>PHP <c>stop_csrf.php</c> as pay_for_order.php runs it; null when the key matches.</summary>
-    private static async Task<RawHttp?> PayForOrderCsrfAsync(DbConnection connection, PayForOrderProtocolRequest request, CancellationToken cancellationToken)
-    {
-        RawHttp Error(string message) => new(JsonSerializer.Serialize(new { error = message, message, status = false }), PayForOrderJsonType);
-        if (request.CsrfKey is null)
-        {
-            return Error("Error! CSRF 1");
-        }
-
-        if (PhpEmptyValue(request.CsrfKey))
-        {
-            return Error("Error! CSRF 3");
-        }
-
-        var stored = RefererIsControlPanel(request.Referer)
-            ? await PrintSessionKeyAsync(connection, request.AdminSession, request.AdminUser, true, cancellationToken).ConfigureAwait(false)
-            : await PrintSessionKeyAsync(connection, request.Session, request.UserCookie, false, cancellationToken).ConfigureAwait(false);
-        if (stored is null)
-        {
-            return Error("Error! CSRF 3.1");
-        }
-
-        return string.Equals(stored, request.CsrfKey, StringComparison.Ordinal) ? null : Error("Error! CSRF 4");
-    }
+    private static Task<RawHttp?> PayForOrderCsrfAsync(DbConnection connection, PayForOrderProtocolRequest request, CancellationToken cancellationToken)
+        => StopCsrfAsync(
+            connection,
+            request.CsrfKey,
+            request.Session,
+            request.UserCookie,
+            request.AdminSession,
+            request.AdminUser,
+            request.Referer,
+            PayForOrderJsonType,
+            cancellationToken);
 }
