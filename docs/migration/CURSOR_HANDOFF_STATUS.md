@@ -22,6 +22,12 @@ ASP.NET Core migration foundation and diagnostics-only deploy tooling are in pla
 | Enterprise BOS stack readiness | `docs/migration/ENTERPRISE_BOS_ARCHITECTURE_COMPLIANCE.md` |
 | Repository foundation / deploy guardrails | Present under `aspnet/`, `deploy/aspnet/`, `scripts/` |
 
+## Surface ownership (2026-10-05)
+
+ECOM AE is an enterprise ERP + BOS + CRM platform, not a PHP-removal project. Devin owns ERP. Cursor owns BOS, Control Panel, CRM, storefront/frontend, marketing, and tenants. BOS is the control tower and CRM follows Dynamics 365 Sales / SAP Sales Cloud, both on shared ERP services. Do not add a second posting, approval, audit, or accounting engine. The benchmark matrix is in `ASPNET_MIGRATION_TRACKER.md`. Nothing on it is accepted.
+
+Cursor's current baseline is draft PR #1970, branch `cursor/cp-frontend-parity-4911`, tip `08373de0f5840065d53d150436b680a915ab56be`. That work is PHP parity. It is not enterprise completion.
+
 ## Cursor's standing tasks
 
 1. Keep ASP.NET Core as sole enterprise backend; Python AI-only; no Java/Node/Go/PHP backends.

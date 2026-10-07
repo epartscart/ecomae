@@ -2,6 +2,11 @@
 
 Status: **partial parity — PHP remains authoritative**
 
+This file is the financial-dimension and intercompany structure audit only.
+The platform benchmark (ERP processes plus BOS/CRM) is the matrix in
+`ASPNET_MIGRATION_TRACKER.md`. That matrix does not accept this structure.
+Dynamics 365 Finance & Operations is a benchmark, not a claim of parity.
+
 The PHP reference is the contract for the tenant's organizational and
 financial model. ASP.NET Core must not promote these workflows to ownership
 until the read, write, isolation, posting, and visual gates below are proven
