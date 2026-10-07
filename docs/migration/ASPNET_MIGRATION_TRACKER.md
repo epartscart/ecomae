@@ -205,7 +205,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 1. **Storefront customer pages (epartscart.com).**
    - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`, `get_customer_offices.php`.
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
-   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `check_user_access.php`, `check_reg_contact.php`, `epc_login_rate_limit.php`, `epc_session_security.php`, `epc_password_upgrade.php`, the agreement module.
+   - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
+   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `check_user_access.php`, `check_reg_contact.php`, `epc_session_security.php`, the agreement module.
    - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
    - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
@@ -253,6 +254,22 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — admin login rate limit and the bcrypt upgrade like PHP
+
+Not complete.
+
+- Ratios unchanged. Weighted headline stays about 20.4%. Inventory gap ratchet: 837 to 835 (`epc_login_rate_limit.php` and `epc_password_upgrade.php`).
+- The shared ASP.NET login (`DbLegacyAdminLoginService`) now does what the PHP authentication plugins do:
+  - CP, ERP, BOS and IP logins check `epc_login_attempts` first. At 10 failures from the client IP (CF-Connecting-IP, then the first X-Forwarded-For hop, then the remote address) or for the contact (`strtolower(trim())`) within 15 minutes, the login is refused with "Too many failed attempts. Please wait N minutes before trying again." The login page shows N through `?error=rate_limited&wait=N`.
+  - Every refused admin attempt is recorded, including a blocked one, as in PHP. A success deletes that IP and contact's attempts and records the success. The table is created with PHP's DDL when missing, and storage errors never block a login.
+  - Storefront and LifeOS logins are not rate limited, as in PHP.
+  - On every surface, a legacy md5 hash that matched is replaced with bcrypt cost 12 (`$2y$12$`) before the backend group check, as in PHP.
+- `epc_login_rate_limit_cleanup()` is ported (`LegacyLoginSecurity.CleanupAsync`). PHP calls it nowhere, so it is not scheduled.
+- Intended deviation: a failed hash upgrade is logged and the login goes on (PHP would stop on the exception).
+- Local testing note: a login on the local app now writes `epc_login_attempts` and can upgrade that account's hash. Do not log in to a local app whose tenant DB is `ecomae` or `docpart`.
+- Verified on a throwaway database: wrong password and missing backend access are recorded (and the md5 hash is upgraded on the second), a success upgrades the hash, clears and records, a bcrypt account logs in again unchanged, a storefront login is not recorded but is upgraded, 10 contact failures 61 seconds old block with a 14-minute wait and record one more failure without a session, the block lifts after 15 minutes, and cleanup removes rows older than 24 hours.
+- 5382 of 5382 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — password reset pages like PHP
 
