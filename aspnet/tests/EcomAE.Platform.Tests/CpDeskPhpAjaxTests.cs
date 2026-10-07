@@ -1163,6 +1163,172 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Theory]
+    [InlineData(" Demo-Shop! ", "", "demoshop")]
+    [InlineData("", "cp.epartscart.com", "epartscart")]
+    [InlineData("", "www.client-one.example.test", "client_one")]
+    [InlineData("", "127.0.0.1", "127")]
+    [InlineData("", "", "platform")]
+    public void AutoPriceSiteKey_FollowsPhpResolution(string posted, string host, string expected)
+        => Assert.Equal(expected, StorefrontPhpAjax.AutoPriceSiteKey(posted, host));
+
+    [Fact]
+    public async Task AutoPrice_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var path = StorefrontPhpAjax.CpAutoPricePath;
+        try
+        {
+            Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(path, out _));
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, path, Form(("action", "skip_source"), ("source_id", "1")), staff);
+                Assert.Equal(HttpStatusCode.InternalServerError, offline.Status);
+                Assert.Equal("Database unavailable", offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, path, Form(("action", "skip_source")), staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+
+            var guest = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("domain", "parts.example")), string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.False(guest.Json.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(StorefrontPhpAjax.AutoPriceAdminRequired, guest.Json.RootElement.GetProperty("message").GetString());
+
+            var unknown = await SendAsync(client, path, Form(("action", "missing")), staff);
+            Assert.Equal(HttpStatusCode.BadRequest, unknown.Status);
+            Assert.Equal("Unknown action: missing", unknown.Json.RootElement.GetProperty("message").GetString());
+            var crawl = await SendAsync(client, path + "?action=crawl_sources", null, staff);
+            Assert.Equal(StorefrontPhpAjax.AutoPriceActionStaysClassic + "crawl_sources", crawl.Json.RootElement.GetProperty("message").GetString());
+            var approve = await SendAsync(client, path, Form(("action", "bulk_approve"), ("queue_ids[0]", "4")), staff);
+            Assert.False(approve.Json.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal(StorefrontPhpAjax.AutoPriceActionStaysClassic + "bulk_approve", approve.Json.RootElement.GetProperty("message").GetString());
+
+            var missingTable = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("domain", "parts.example")), staff);
+            Assert.Equal("Discovery-source table is missing — schema-ensure stays Classic.", missingTable.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_discovery_sources'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_discovery_sources (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, site_key VARCHAR(64) NOT NULL DEFAULT '', source_type VARCHAR(32) NOT NULL DEFAULT 'custom_website', domain VARCHAR(255) NOT NULL DEFAULT '', label VARCHAR(120) NOT NULL DEFAULT '', config_json TEXT NULL, enabled TINYINT(1) NOT NULL DEFAULT 1, priority INT NOT NULL DEFAULT 100, last_crawl INT NOT NULL DEFAULT 0, created_at INT NOT NULL DEFAULT 0, updated_at INT NOT NULL DEFAULT 0, created_by_tenant TINYINT(1) NOT NULL DEFAULT 0, taxonomy_node_id INT NOT NULL DEFAULT 0, product_line_slug VARCHAR(120) NOT NULL DEFAULT '', auth_type VARCHAR(24) NOT NULL DEFAULT 'none', auth_username VARCHAR(190) NOT NULL DEFAULT '', auth_password TEXT NULL)");
+
+            var noDomain = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("domain", "  ")), staff);
+            Assert.Equal("Domain or URL is required", noDomain.Json.RootElement.GetProperty("message").GetString());
+            var own = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("domain", "https://www.epartscart.com/shop")), staff);
+            Assert.Equal("Your own storefront domain cannot be used as an external discovery source", own.Json.RootElement.GetProperty("message").GetString());
+            var login = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("domain", "b2b.example"), ("requires_login", "1"), ("auth_username", "buyer"), ("auth_password", "secret")), staff);
+            Assert.Equal(StorefrontPhpAjax.AutoPriceLoginStaysClassic, login.Json.RootElement.GetProperty("message").GetString());
+            var scoped = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("domain", "b2b.example"), ("taxonomy_node_id", "7")), staff);
+            Assert.Equal(StorefrontPhpAjax.AutoPriceLoginStaysClassic, scoped.Json.RootElement.GetProperty("message").GetString());
+            var otherTenant = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("domain", "parts.example")), staff, "ecomae.com");
+            Assert.Equal(StorefrontPhpAjax.AutoPriceTenantStaysClassic, otherTenant.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_discovery_sources"));
+
+            var added = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("domain", "https://www.Parts-Shop.example/catalog"), ("label", ""), ("auth_type", "none")), staff);
+            Assert.True(added.Json.RootElement.GetProperty("ok").GetBoolean(), added.Body);
+            Assert.Equal("Custom source saved", added.Json.RootElement.GetProperty("message").GetString());
+            var id = added.Json.RootElement.GetProperty("id").GetInt64();
+            var source = added.Json.RootElement.GetProperty("source");
+            Assert.Equal(id, source.GetProperty("id").GetInt64());
+            Assert.Equal("demo", source.GetProperty("site_key").GetString());
+            Assert.Equal("parts-shop.example", source.GetProperty("domain").GetString());
+            Assert.Equal("parts-shop.example", source.GetProperty("label").GetString());
+            Assert.True(source.GetProperty("enabled").GetBoolean());
+            Assert.Equal(100, source.GetProperty("priority").GetInt32());
+            Assert.Equal("custom", source.GetProperty("origin").GetString());
+            Assert.True(source.GetProperty("editable").GetBoolean());
+            Assert.False(source.GetProperty("scoped").GetBoolean());
+            Assert.Equal("none", source.GetProperty("auth_type").GetString());
+            Assert.False(source.GetProperty("login_configured").GetBoolean());
+            Assert.False(source.GetProperty("crawl_skipped").GetBoolean());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_discovery_sources WHERE site_key = 'demo' AND domain = 'parts-shop.example' AND created_by_tenant = 1 AND enabled = 1"));
+
+            var edited = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("id", id.ToString(CultureInfo.InvariantCulture)), ("domain", "parts-shop.example"), ("label", "Parts Shop"), ("enabled", "0"), ("priority", "20")), staff);
+            Assert.True(edited.Json.RootElement.GetProperty("ok").GetBoolean(), edited.Body);
+            Assert.Equal("Parts Shop", edited.Json.RootElement.GetProperty("source").GetProperty("label").GetString());
+            Assert.False(edited.Json.RootElement.GetProperty("source").GetProperty("enabled").GetBoolean());
+            Assert.Equal(20, edited.Json.RootElement.GetProperty("source").GetProperty("priority").GetInt32());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_discovery_sources"));
+
+            var toggled = await SendAsync(client, path, Form(("action", "toggle_discovery_source"), ("site_key", "demo"), ("id", id.ToString(CultureInfo.InvariantCulture))), staff);
+            Assert.True(toggled.Json.RootElement.GetProperty("ok").GetBoolean(), toggled.Body);
+            Assert.Equal("Source updated", toggled.Json.RootElement.GetProperty("message").GetString());
+            Assert.True(toggled.Json.RootElement.GetProperty("source").GetProperty("enabled").GetBoolean());
+            var forcedOff = await SendAsync(client, path + "?action=toggle_discovery_source&site_key=demo&enabled=0&id=" + id.ToString(CultureInfo.InvariantCulture), null, staff);
+            Assert.False(forcedOff.Json.RootElement.GetProperty("source").GetProperty("enabled").GetBoolean());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT IF(enabled = 1, '1', '0') FROM epc_discovery_sources WHERE id = " + id.ToString(CultureInfo.InvariantCulture)));
+            var wrongSite = await SendAsync(client, path, Form(("action", "toggle_discovery_source"), ("site_key", "other"), ("id", id.ToString(CultureInfo.InvariantCulture))), staff);
+            Assert.Equal("Source not found", wrongSite.Json.RootElement.GetProperty("message").GetString());
+            var noId = await SendAsync(client, path, Form(("action", "toggle_discovery_source"), ("site_key", "demo")), staff);
+            Assert.Equal("Source id required", noId.Json.RootElement.GetProperty("message").GetString());
+
+            var noSkipId = await SendAsync(client, path, Form(("action", "skip_source"), ("site_key", "demo")), staff);
+            Assert.Equal("source_id required", noSkipId.Json.RootElement.GetProperty("message").GetString());
+            var skipped = await SendAsync(client, path, Form(("action", "skip_source"), ("site_key", "demo"), ("source_id", id.ToString(CultureInfo.InvariantCulture)), ("hours", "500")), staff);
+            Assert.True(skipped.Json.RootElement.GetProperty("ok").GetBoolean(), skipped.Body);
+            Assert.Equal("Source skipped for 168h", skipped.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(id, skipped.Json.RootElement.GetProperty("source_id").GetInt64());
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT JSON_EXTRACT(config_json, '$.crawl_skip_manual') FROM epc_discovery_sources WHERE id = " + id.ToString(CultureInfo.InvariantCulture)));
+            var skippedRow = await SendAsync(client, path, Form(("action", "toggle_discovery_source"), ("site_key", "demo"), ("id", id.ToString(CultureInfo.InvariantCulture)), ("enabled", "1")), staff);
+            Assert.True(skippedRow.Json.RootElement.GetProperty("source").GetProperty("crawl_skipped").GetBoolean());
+            var skipMissing = await SendAsync(client, path, Form(("action", "skip_source"), ("site_key", "other"), ("source_id", id.ToString(CultureInfo.InvariantCulture))), staff);
+            Assert.False(skipMissing.Json.RootElement.GetProperty("ok").GetBoolean());
+            Assert.Equal("Source not found", skipMissing.Json.RootElement.GetProperty("message").GetString());
+
+            await ExecuteAsync(connectionString, "INSERT INTO epc_discovery_sources (site_key, domain, label, created_by_tenant) VALUES ('demo', 'pack.example', 'Pack', 0)");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_discovery_sources (site_key, domain, label, created_by_tenant, auth_type, auth_username, auth_password) VALUES ('demo', 'locked.example', 'Locked', 1, 'form_login', 'buyer', 'b64:c2VjcmV0')");
+            var packId = await ScalarAsync(connectionString, "SELECT id FROM epc_discovery_sources WHERE domain = 'pack.example'");
+            var lockedId = await ScalarAsync(connectionString, "SELECT id FROM epc_discovery_sources WHERE domain = 'locked.example'");
+            var editPack = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("id", packId), ("domain", "pack.example")), staff);
+            Assert.Equal("Country pack sources cannot be edited", editPack.Json.RootElement.GetProperty("message").GetString());
+            var deletePack = await SendAsync(client, path, Form(("action", "delete_discovery_source"), ("site_key", "demo"), ("id", packId)), staff);
+            Assert.Equal("Only custom tenant sources can be deleted", deletePack.Json.RootElement.GetProperty("message").GetString());
+            var editLocked = await SendAsync(client, path, Form(("action", "add_discovery_source"), ("site_key", "demo"), ("id", lockedId), ("domain", "locked.example")), staff);
+            Assert.Equal(StorefrontPhpAjax.AutoPriceLoginStaysClassic, editLocked.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("buyer", await ScalarAsync(connectionString, "SELECT auth_username FROM epc_discovery_sources WHERE id = " + lockedId));
+            var lockedRow = await SendAsync(client, path, Form(("action", "toggle_discovery_source"), ("site_key", "demo"), ("id", lockedId), ("enabled", "1")), staff);
+            Assert.True(lockedRow.Json.RootElement.GetProperty("source").GetProperty("login_configured").GetBoolean());
+            Assert.Equal("form_login", lockedRow.Json.RootElement.GetProperty("source").GetProperty("auth_type").GetString());
+            Assert.False(lockedRow.Json.RootElement.GetProperty("source").TryGetProperty("auth_password", out _));
+
+            var deleted = await SendAsync(client, path, Form(("action", "delete_discovery_source"), ("site_key", "demo"), ("id", id.ToString(CultureInfo.InvariantCulture))), staff);
+            Assert.True(deleted.Json.RootElement.GetProperty("ok").GetBoolean(), deleted.Body);
+            Assert.Equal("Custom source removed", deleted.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(id, deleted.Json.RootElement.GetProperty("id").GetInt64());
+            var deletedAgain = await SendAsync(client, path, Form(("action", "delete_discovery_source"), ("site_key", "demo"), ("id", id.ToString(CultureInfo.InvariantCulture))), staff);
+            Assert.Equal("Only custom tenant sources can be deleted", deletedAgain.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_discovery_sources"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_product_discovery_queue'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     [Fact]
     public async Task MarketingBroadcast_OnThrowawayDatabase_ThenDropped()
     {
@@ -1774,6 +1940,7 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpTenantEmailWriteService>(sp => new CpTenantEmailWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpIndustrySettingsWriteService>(sp => new CpIndustrySettingsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpTenantsWriteService>(sp => new CpTenantsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpAutoPriceWriteService>(sp => new CpAutoPriceWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpMarketingBroadcastService>(sp => new CpMarketingBroadcastService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpPlatformGovernanceWriteService>(sp => new CpPlatformGovernanceWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpFreeToolsWriteService>(sp => new CpFreeToolsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
