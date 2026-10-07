@@ -187,6 +187,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderStatusPath, ["GET", "POST"], SetOrderStatusAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.OrderPrintPath, ["GET", "POST"], OrderPrintAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpSetOrdersViewedPath, ["GET", "POST"], CpSetOrdersViewedAsync)
@@ -1657,6 +1659,52 @@ public static class StorefrontPhpAjaxEndpoints
                 query["status"].ToString(),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.RawHttp(StorefrontPhpAjax.NoDbConnect, "application/json;charset=utf-8;"));
+    }
+
+    private static async Task<IResult> OrderPrintAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return Results.Text("Database connection error", "text/html; charset=utf-8", statusCode: 500);
+        }
+
+        var invoices = context.RequestServices.GetService<IErpInvoiceFromOrderWriteService>()
+            ?? ActivatorUtilities.CreateInstance<ErpInvoiceFromOrderWriteService>(context.RequestServices);
+        var docControl = context.RequestServices.GetService<IErpDocControlWriteService>();
+        var query = context.Request.Query;
+        var form = HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType
+            ? await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+        var csrf = query.TryGetValue("csrf_guard_key", out var fromQuery)
+            ? fromQuery.ToString()
+            : form is not null && form.TryGetValue("csrf_guard_key", out var fromForm) ? fromForm.ToString() : null;
+        static bool Filled(string? v) => !string.IsNullOrEmpty(v) && v != "0";
+        var request = new StorefrontPhpAjax.OrderPrintRequest(
+            query["doc_name"].ToString(),
+            query["order_id"].ToString(),
+            csrf,
+            Filled(query["csrf_admin"].ToString()) || Filled(form?["csrf_admin"].ToString()),
+            context.Request.Cookies["session"],
+            context.Request.Cookies["u_id"],
+            context.Request.Cookies["admin_session"],
+            context.Request.Cookies["admin_u_id"],
+            context.Request.Headers.Referer.ToString(),
+            PhpConfig(context).TryGetValue("shop_currency", out var currency) ? currency : string.Empty);
+
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var result = await StorefrontPhpAjax.PrintOrderDocumentAsync(connection, request, invoices, docControl, cancellationToken).ConfigureAwait(false);
+            return Results.Text(result.Body, result.ContentType, statusCode: result.StatusCode);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return Results.Text("Database connection error", "text/html; charset=utf-8", statusCode: 500);
+        }
     }
 
     private static Task<IResult> SetOrderItemStatusAsync(

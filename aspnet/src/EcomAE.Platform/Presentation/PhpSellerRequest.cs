@@ -30,7 +30,7 @@ public static class PhpSellerRequest
 
     public static string SellerWriteHref => "/storefront/vin-request/create";
     public static string MessageWriteHref => "/storefront/vin-request/send-message";
-    public static string PrintWriteHref => "/php-reference/content/shop/print_docs/service/print.php";
+    public static string PrintWriteHref => "/content/shop/print_docs/service/print.php";
 
     public static string PrintHref(int orderId, string docName)
         => PrintWriteHref
