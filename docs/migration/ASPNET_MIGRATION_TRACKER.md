@@ -217,7 +217,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
    - Done: creating a return request (`content/shop/returns/ajax/ajax_load_returns_data.php` with `helper.php`): line split, photos, notifications and line status. See the checkpoint below.
    - Done: order print (`content/shop/print_docs/service/print.php` with `get_html_sales_receipt.php` and `get_html_uae_tax_invoice.php`) and the document control template render. See the checkpoint below.
-   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns` pages (`add_return.php`, `return.php`, `returns.php`, `return_messages.php`), `content/shop/document_control/service/print.php` (needs the ERP-team access check `epc_erp_user_can_access`), `content/shop/document_control/epc_document_control_cp_install.php`.
+   - Done: the `content/shop/returns` pages (`returns.php`, `return.php` with `return_messages.php`, `add_return.php`, `assets/add_return.js.php`), the payment method picker (`content/shop/payments/epc_payment_method_picker.php`) and the obtaining-mode includes (`content/shop/obtaining_modes`). See the checkpoint below.
+   - Still open: the return checkbox flow on `my_order` (`/shop/returns/add_return?items=`), `content/shop/document_control/service/print.php` (needs the ERP-team access check `epc_erp_user_can_access`), `content/shop/document_control/epc_document_control_cp_install.php`.
 3. **Control Panel shop pages.**
    - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
    - `cp/content/shop/catalogue/product.php` and its includes.
@@ -244,6 +245,21 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — customer returns pages like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 844 gap files, down from 860 (ratchet `--max-gap 844`); unnamed PHP functions 8,081.
+- `/shop/returns`, `/shop/returns/return?return_id=` and `/shop/returns/add_return?items=` render `StorefrontReturnsPages` (the list with the unread-messages filter, the return card with its lines, photos and manager chat, and the request form). `/content/shop/returns/assets/add_return.js.php` is served at its PHP URL with the language prefix taken from the referer. The page reads the PHP path the slug middleware rewrote, so all three URLs keep their own page.
+- Opening a return marks the manager messages read, like `return.php`.
+- Also in this tranche: `ajax_create_operation.php` checks the user first and uses the `DP_Config` partial minimum, the wholesaler office pay system and the payment-account handler; the payment method picker and the obtaining-mode includes (`show_details`, `manager_interface`, `show_office_info`) render like PHP on the pay, balance and checkout pages and the CP order card.
+- Intended deviations:
+  - `return_id` is HTML-escaped (PHP echoes it raw).
+  - The form no longer carries the `DP_Config` `tech_key` (PHP prints it into customer HTML). It carries an HMAC of the session CSRF key, which `ajax_load_returns_data.php` accepts in place of the tech key for that session only.
+  - `items` accepts integers only (PHP puts it into SQL unchecked); an empty list renders no lines instead of a PHP fatal.
+  - `domain_path` is the request origin; the script is served as `application/javascript`; the guest redirect script renders inside the page chrome (PHP exits).
+- Verified: 15 PHP goldens (`php -d short_open_tag=1` over the same fixture: guest, list, unread filter, another user, pending, decided and foreign return, list after read, request disabled, request with and without a retention period, foreign items, no items, the script) are byte-equal on a throwaway database. On a running app over a throwaway database, the three URLs render the list (returns 1–3), return 1 (total 0.3, chat with the session CSRF key), the request form (total 2289.6, derived key, script include). User 8's return 4 is “Return not found”, user 8's item 97 is not offered, and a guest is sent to the site root. The derived key from another session is Forbidden. 5268 of 5268 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — order payments and UAE gateway stubs like PHP
 
