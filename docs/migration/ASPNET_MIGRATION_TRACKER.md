@@ -210,7 +210,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
    - Front templates `expan`, `modex` and `limo`; `core/dp_core.php` and `dp_helper.php` behaviour; plugins (metadata handler, phone/tablet, error pages, shop cart).
 2. **Checkout and order side effects still on PHP.**
-   - Process-flow sync: `epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`. ASP.NET has only dry-runs.
+   - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
+   - Sales-invoice sale-demand capture: `epc_erp_inventory_record_sale_demand` runs when PHP saves a sales invoice. ASP.NET does not record it yet.
    - SMS and WhatsApp fan-out: `content/sms/handlers`, `content/notifications`, `epc_order_whatsapp_share.php`.
    - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns/ajax/helper.php`, `content/shop/protocol`, `content/shop/print_docs`, `content/shop/document_control`.
 3. **Control Panel shop pages.**
@@ -240,6 +241,24 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-07 — process-flow order and PO cases sync like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 876 gap files (ratchet `--max-gap 876`); unnamed PHP functions down from 8,152 to 8,145.
+- ASP.NET now runs PHP `epc_pf_sync_order_case` and `epc_pf_sync_po_case` at the same points as PHP:
+  - at the end of the checkout fulfillment bootstrap (order case);
+  - after each new supplier PO, after PO save, after PO status changes and goods receipt (PO case);
+  - in the fulfillment status, sync and auto-post actions (order case);
+  - after a sales tax invoice is saved for an order (order case).
+- The process-flow tables are created with PHP's DDL if missing (`ErpPfSchema`), and the order case advances by the PHP facts: sales order, paid, procured, fulfilled, delivered, invoiced. The PO case advances on approved, partial, received and received plus invoiced, and is cancelled when the PO is cancelled.
+- Checkout has no CP admin, so the case actor and the final assignee fallback is the customer, as with PHP `epc_pf_user_id()`.
+- Intended deviation: PHP's checkout only syncs a new PO case when the function is already loaded, which it never is at checkout. ASP.NET always syncs it.
+- Fixed: the order facts read `name`, `surname` and `email` columns that `shop_orders` does not have, so no order case could ever start. They are now read like PHP's `SELECT *`.
+- Sync failures are swallowed, like PHP, so they never block checkout or a PO save.
+- Still on PHP: SMS/WhatsApp fan-out, and the sales-invoice sale-demand capture.
+- Verified on a throwaway database: checkout creates the two processes, the order case at step 2 (sales head) and one case per PO assigned to the customer. A rerun stays at 3 cases. Approving a PO moves its case to step 2. 5171 of 5171 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — checkout sends staff and customer order e-mails like PHP
 
 Not complete.
@@ -267,7 +286,7 @@ Not complete.
   - PHP `require_once` wraps only the first notification in a request. ASP.NET wraps every e-mail, including LPOs.
   - The Yandex map `<script>` of `show_office_info.php` is not put into e-mails.
 - Fixed: checkout now stores the order comment through `htmlentities()` like PHP. Before this, raw HTML reached the e-mails.
-- Still on PHP: process-flow sync, and SMS/WhatsApp fan-out for these notifications.
+- Still on PHP: SMS/WhatsApp fan-out for these notifications. (Process-flow sync is done since the next checkpoint.)
 - Verified on a throwaway database. The signed-in checkout sends 7 e-mails in PHP order: admin (fails), CRM, office manager, admin retry, customer, then 2 LPOs, and the totals match (630.00 gross, 600.01 net, courier VAT 2.00, total 672.00). A guest order goes to the pickup office. A missing template is logged as FAILED. 5170 of 5170 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — checkout raises supplier POs and LPO e-mails like PHP
