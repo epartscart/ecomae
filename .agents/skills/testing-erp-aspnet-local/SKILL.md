@@ -140,9 +140,9 @@ direction in/out, and a transfer voucher appears as two rows sharing one `TV-` n
 number or inserting either leg, so an invalid target account cannot be used to force a second-leg
 rollback — it only proves pre-validation (no orphan row, no voucher consumed). Report it as such.
 The paired rows link mutually via `transfer_pair_id`, `counterparty_type='internal'`.
-Watch the GL on transfers: the legs have posted `Dr 6100 Operating expense / Cr 1010 Bank` (out) and
-`Dr 1000 Cash / Cr 4000 Revenue` (in), which inflates expense and revenue instead of being a pure
-cash-to-cash reclass — verify the journal lines, not just that `gl_journal_id > 0`.
+Transfer legs post against `1090 Cash in transit` (out: `Dr 1090 / Cr source cash`, in:
+`Dr destination cash / Cr 1090`), so 1090 nets to zero and 4000/6100 are untouched. PHP still posts
+the legs to 6100/4000. Verify the journal lines, not just that `gl_journal_id > 0`.
 
 ## Document lifecycle (void / amend / delete / cancel) testing
 Routes live under `/erp/<entity>/<action>` (`/erp/cash-entries/void|amend`,
