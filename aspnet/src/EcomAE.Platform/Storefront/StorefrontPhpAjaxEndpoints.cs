@@ -185,6 +185,10 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpAddOrderLogPath, ["GET", "POST"], CpAddOrderLogAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.SetOrderStatusPath, ["GET", "POST"], SetOrderStatusAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpSetOrdersViewedPath, ["GET", "POST"], CpSetOrdersViewedAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpOrdersInfoPath, ["GET", "POST"], CpOrdersInfoAsync)
@@ -1577,6 +1581,60 @@ public static class StorefrontPhpAjaxEndpoints
                 await FieldAsync(context, "text", token).ConfigureAwait(false),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.NoDbConnect));
+
+    private static Task<IResult> SetOrderStatusAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IShopOrderProtocolService protocol,
+        CancellationToken cancellationToken)
+    {
+        var query = context.Request.Query;
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.SetOrderStatusProtocolAsync(
+                connection,
+                protocol,
+                query["initiator"].ToString(),
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                query["key"].ToString(),
+                ExpectedTechKey(context),
+                query["orders"].ToString(),
+                query["status"].ToString(),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.RawHttp(StorefrontPhpAjax.NoDbConnect, "application/json;charset=utf-8;"));
+    }
+
+    private static Task<IResult> SetOrderItemStatusAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        IShopOrderProtocolService protocol,
+        CancellationToken cancellationToken)
+    {
+        var query = context.Request.Query;
+        return WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.SetOrderItemStatusProtocolAsync(
+                connection,
+                protocol,
+                query["initiator"].ToString(),
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
+                query.ContainsKey("key") ? query["key"].ToString() : null,
+                ExpectedTechKey(context),
+                query["orders_items"].ToString(),
+                query["status"].ToString(),
+                query["retun"].ToString(),
+                query["count"].ToString(),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.RawHttp(StorefrontPhpAjax.NoDbConnect, "application/json;charset=utf-8;"));
+    }
 
     private static Task<IResult> CpSetOrdersViewedAsync(
         HttpContext context,
