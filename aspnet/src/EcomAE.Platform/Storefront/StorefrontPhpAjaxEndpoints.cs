@@ -2976,8 +2976,8 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpCustomerMgmtAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        IErpEinvoiceProfileWriteService buyers,
-        IErpCashWriteService cash,
+        [Microsoft.AspNetCore.Mvc.FromServices] IErpEinvoiceProfileWriteService buyers,
+        [Microsoft.AspNetCore.Mvc.FromServices] IErpCashWriteService cash,
         CancellationToken cancellationToken)
     {
         var action = await OptionalPostedAsync(context, "action", cancellationToken).ConfigureAwait(false) ?? string.Empty;
@@ -3013,7 +3013,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpDocumentControlAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpDocumentControlWriteService documents,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpDocumentControlWriteService documents,
         CancellationToken cancellationToken)
     {
         var action = await OptionalPostedAsync(context, "action", cancellationToken).ConfigureAwait(false) ?? string.Empty;
@@ -3127,7 +3127,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static Task<IResult> CpPriceImportCsvAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpPriceImportService imports,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpPriceImportService imports,
         CancellationToken cancellationToken)
     {
         var initiator = context.Request.Query["initiator"].ToString();
@@ -3203,7 +3203,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpMultivendorIngestAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpPricesUploadWriteService prices,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpPricesUploadWriteService prices,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3270,7 +3270,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpCrossCpAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpCrossWriteService crosses,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpCrossWriteService crosses,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3354,7 +3354,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpNotificationTestAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpCommunicationsTestService tests,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpCommunicationsTestService tests,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3386,7 +3386,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpSocialMediaAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpSocialHubWriteService social,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpSocialHubWriteService social,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3432,9 +3432,9 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpIntegrationsAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpMobileAppsWriteService mobile,
-        ICpTenantFeaturesWriteService features,
-        ICpTenantEmailWriteService email,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpMobileAppsWriteService mobile,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpTenantFeaturesWriteService features,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpTenantEmailWriteService email,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3467,8 +3467,8 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpPortalAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpIndustrySettingsWriteService settings,
-        ICpTenantsWriteService tenants,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpIndustrySettingsWriteService settings,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpTenantsWriteService tenants,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3500,7 +3500,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpMarketingBroadcastAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpMarketingBroadcastService broadcasts,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpMarketingBroadcastService broadcasts,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3576,7 +3576,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpPlatformGovernanceAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpPlatformGovernanceWriteService rules,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpPlatformGovernanceWriteService rules,
         CancellationToken cancellationToken)
     {
         var fields = await PostedThenQueryAsync(context, cancellationToken).ConfigureAwait(false);
@@ -3598,7 +3598,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpFreeToolsAdminAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpFreeToolsWriteService tools,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpFreeToolsWriteService tools,
         CancellationToken cancellationToken)
     {
         var fields = await PostedThenQueryAsync(context, cancellationToken).ConfigureAwait(false);
@@ -3620,7 +3620,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpCreateSitemapAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpSitemapEditorService sitemap,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpSitemapEditorService sitemap,
         CancellationToken cancellationToken)
     {
         var fields = await PostedThenQueryAsync(context, cancellationToken).ConfigureAwait(false);
@@ -3709,7 +3709,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpOrdersOmsAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpOmsWriteService orders,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpOmsWriteService orders,
         CancellationToken cancellationToken)
     {
         var fields = new Dictionary<string, string>(StringComparer.Ordinal);
@@ -3746,7 +3746,7 @@ public static class StorefrontPhpAjaxEndpoints
     private static async Task<IResult> CpOrderPayRefundAsync(
         HttpContext context,
         ITenantDbConnectionFactory connections,
-        ICpOmsWriteService orders,
+        [Microsoft.AspNetCore.Mvc.FromServices] ICpOmsWriteService orders,
         CancellationToken cancellationToken)
     {
         var postedOrder = false;
