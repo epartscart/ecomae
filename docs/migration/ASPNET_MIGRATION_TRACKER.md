@@ -187,6 +187,15 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — auto-price discovery sources
+
+Not complete. ERP work waits until this plan is finished.
+
+- Broader `cp/content` ajax is 97 of 110. Of the 108 `ajax_*.php` files in `cp/content`, 11 are unmapped: the visual page editor, three version-control scripts, five packs scripts, and the two price-review scripts. Storefront and API ajax stays 109 of 112. Control Panel shop, users, and requests stays 72 of 75. Weighted headline stays about 20.4%.
+- `ajax_auto_price.php` add, toggle, skip, and delete of discovery sources go through the existing `ICpAutoPriceWriteService`. They return the PHP JSON shapes, and add and toggle include the `epc_disc_source_format_row` source object. A guest gets 403 `Admin login required`, and an unknown action gets 400 `Unknown action: X`, as in PHP. The site key follows the PHP rule: the posted key, then the five known hosts, then the hostname, then `platform`.
+- These requests return an explicit stays-Classic message: sources with a login or a product-line scope (the service does not store those fields), Super CP writes to another tenant's database, and the 24 search, crawl, fetch, job, approve, and warehouse actions. Schema-ensure stays Classic, so a missing table returns the service message and nothing is created.
+- Full suite 5143 of 5143. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — translation editor string list
 
 Not complete. ERP work waits until this plan is finished.
