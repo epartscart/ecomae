@@ -88,10 +88,18 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 | --- | --- | --- |
 | Storefront and API ajax | 109 of 112 (97%) | Two includes and the ERP finance ajax script stay unmapped on purpose |
 | Control Panel shop, users, and requests ajax | 72 of 75 (96%) | The prices init include and price review. Both price-review scripts stay dry-run |
-| Broader `cp/content` ajax | 94 of 110 | Control, portal, packs, and language ajax outside the 75 |
+| Broader `cp/content` ajax | 95 of 110 | Control, portal, packs, and language ajax outside the 75 |
 | Marketing, industries, LifeOS, BOS, tenant CP | ASP.NET apps and shells exist | Same-to-same page, form, and host evidence is still open. The weighted phase headline stays 24/24 Phase A and about 20.4% done until those gates close |
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
+
+### Checkpoint 2026-10-07 — sitemap files use the existing editor
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan is 95 of 110. The previous checkpoint had 94 of 110. Storefront and API ajax stays 109 of 112.
+- `ajax_create_sitemap.php` with no database says “No DB connect”. A missing sessions table says “Admin sessions are not in this database.” A guest says “Forbidden”. A missing CSRF key is “Error! CSRF 1”. A wrong key is “Error! CSRF 4”. An empty page list says “Select at least one page for the sitemap.” Missing catalogue tables say “Catalogue tables are not in this database.” and are not created. No sitemap file is written in that case.
+- After the catalogue tables exist, page `about`, published category `parts`, and published product `brake` are written into `sitemap1.xml` under `https://www.epartscart.com/`. Unpublished `hidden`, its child `secret`, and unpublished product `draft` stay out. `sitemap.xml` points at `sitemap1.xml`. The answer body is `Ok`. No `epc_erp%` table is created.
 
 ### Checkpoint 2026-10-06 — governance and free tools use the existing writers
 
