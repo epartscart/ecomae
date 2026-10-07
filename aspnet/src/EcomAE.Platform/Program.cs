@@ -926,6 +926,8 @@ builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsDeskService, Ecom
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpCommunicationsTestService, EcomAE.Platform.Cp.CpCommunicationsTestService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpSmsGateway, EcomAE.Platform.Cp.CpSmsGateway>();
 builder.Services.AddHttpClient("epc-sms", client => client.Timeout = TimeSpan.FromSeconds(25));
+builder.Services.AddHttpClient(EcomAE.Platform.Cp.CpSmsLegacyOperators.NoRedirectClient, client => client.Timeout = TimeSpan.FromSeconds(25))
+    .ConfigurePrimaryHttpMessageHandler(() => new HttpClientHandler { AllowAutoRedirect = false });
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPriceStorageRuleWriteService, EcomAE.Platform.Cp.CpPriceStorageRuleWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpContentManagerWriteService, EcomAE.Platform.Cp.CpContentManagerWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpMenuWriteService, EcomAE.Platform.Cp.CpMenuWriteService>();

@@ -232,7 +232,7 @@ public sealed class StorefrontNotifySmsWhatsappTests
     {
         public List<(string Handler, IReadOnlyDictionary<string, string> Parameters, string Phone, string Body)> Sent { get; } = [];
 
-        public Task<CpSmsSendOutcome> SendAsync(string handler, IReadOnlyDictionary<string, string> parameters, string phone, string body, CancellationToken cancellationToken = default)
+        public Task<CpSmsSendOutcome> SendAsync(string handler, IReadOnlyDictionary<string, string> parameters, string phone, string body, CancellationToken cancellationToken = default, CpSmsHandlerContext? context = null)
         {
             Sent.Add((handler, parameters, phone, body));
             return Task.FromResult(new CpSmsSendOutcome(true, string.Empty));

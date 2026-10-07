@@ -246,7 +246,8 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
             return CpSmsSendOutcome.Fail("No SMS operator is active — activate one under SMS operators.");
         }
 
-        return await _sms.SendAsync(handler, parameters, phone, template.SmsBody, cancellationToken).ConfigureAwait(false);
+        return await _sms.SendAsync(
+            handler, parameters, phone, template.SmsBody, cancellationToken, CpSmsHandlerContext.For(connection, _mailer.ReadConfig())).ConfigureAwait(false);
     }
 
     /// <summary>Flattens <c>sms_api.parameters_values</c> (PHP stores scalars as JSON strings or numbers).</summary>

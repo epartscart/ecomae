@@ -224,7 +224,8 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
                 phone = SmsPhone(phone);
                 var sms = _sms is null
                     ? CpSmsSendOutcome.Fail("SMS gateway is not available")
-                    : await _sms.SendAsync(api.Handler, api.Parameters, phone, smsBody, cancellationToken).ConfigureAwait(false);
+                    : await _sms.SendAsync(
+                        api.Handler, api.Parameters, phone, smsBody, cancellationToken, CpSmsHandlerContext.For(connection, config ??= _mailer.ReadConfig())).ConfigureAwait(false);
                 result = result with { Sms = new StorefrontNotifyChannel(true, sms.Ok, sms.Ok ? string.Empty : sms.Message) };
             }
 

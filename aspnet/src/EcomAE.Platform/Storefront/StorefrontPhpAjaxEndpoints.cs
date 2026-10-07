@@ -193,6 +193,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.DocumentControlPrintPath, ["GET", "POST"], DocumentControlPrintAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontSmsHandlers.PathPattern, ["GET", "POST"], SmsHandlerAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PayForOrderPath, ["GET", "POST"], PayForOrderAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
@@ -1823,6 +1825,62 @@ public static class StorefrontPhpAjaxEndpoints
         catch (System.Data.Common.DbException)
         {
             return Results.Text("Database error", "text/html; charset=utf-8", statusCode: 500);
+        }
+    }
+
+    private static async Task<IResult> SmsHandlerAsync(
+        HttpContext context,
+        string handler,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        if (!StorefrontSmsHandlers.IsHandler(handler))
+        {
+            return Results.NotFound();
+        }
+
+        var gateway = context.RequestServices.GetRequiredService<ICpSmsGateway>();
+        var clients = context.RequestServices.GetRequiredService<IHttpClientFactory>();
+
+        var post = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                post[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        System.Data.Common.DbConnection? connection = null;
+        try
+        {
+            if (connections.IsConfigured)
+            {
+                var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+                connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (System.Data.Common.DbException)
+        {
+            connection = null;
+        }
+
+        try
+        {
+            var answer = await StorefrontSmsHandlers.RunAsync(handler, post, PhpConfig(context), connection, gateway, clients, cancellationToken).ConfigureAwait(false);
+            return Results.Text(answer.Body, answer.ContentType);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return Results.Text(string.Empty, "text/html; charset=utf-8", statusCode: 500);
+        }
+        finally
+        {
+            if (connection is not null)
+            {
+                await connection.DisposeAsync().ConfigureAwait(false);
+            }
         }
     }
 

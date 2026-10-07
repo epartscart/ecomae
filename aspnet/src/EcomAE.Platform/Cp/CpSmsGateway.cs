@@ -25,7 +25,8 @@ public interface ICpSmsGateway
         IReadOnlyDictionary<string, string> parameters,
         string phone,
         string body,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        CpSmsHandlerContext? context = null);
 }
 
 public static class CpSmsMsisdn
@@ -168,7 +169,7 @@ public sealed class CpSmsGateway : ICpSmsGateway
         _clients = clients;
     }
 
-    /// <summary>Handlers implemented natively on ASP.NET; every other PHP handler stays on the Classic twin.</summary>
+    /// <summary>The GCC/MENA handlers; the legacy operators are <see cref="CpSmsLegacyOperators.Handlers"/>.</summary>
     public static IReadOnlyList<string> NativeHandlers { get; } =
         ["epc_unifonic", "epc_etisalat", "epc_du", "epc_pakistan"];
 
@@ -177,13 +178,20 @@ public sealed class CpSmsGateway : ICpSmsGateway
         IReadOnlyDictionary<string, string> parameters,
         string phone,
         string body,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        CpSmsHandlerContext? context = null)
     {
         var slug = (handler ?? string.Empty).Trim().ToLowerInvariant();
+        if (CpSmsLegacyOperators.Handlers.Contains(slug))
+        {
+            var answer = await CpSmsLegacyOperators.SendAsync(
+                _clients, slug, parameters, phone ?? string.Empty, body ?? string.Empty, context ?? CpSmsHandlerContext.None, cancellationToken).ConfigureAwait(false);
+            return new CpSmsSendOutcome(answer.Status, answer.Message);
+        }
+
         if (!NativeHandlers.Contains(slug))
         {
-            return CpSmsSendOutcome.Fail(
-                "Operator '" + slug + "' is not implemented on ASP.NET yet — send the test from the Classic twin.");
+            return CpSmsSendOutcome.Fail("Operator '" + slug + "' is not an SMS handler.");
         }
 
         var message = (body ?? string.Empty).Trim();

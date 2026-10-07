@@ -1905,7 +1905,7 @@ public sealed class CpDeskPhpAjaxTests
 
     private sealed class IdleSms : ICpSmsGateway
     {
-        public Task<CpSmsSendOutcome> SendAsync(string handler, IReadOnlyDictionary<string, string> parameters, string phone, string body, CancellationToken cancellationToken = default)
+        public Task<CpSmsSendOutcome> SendAsync(string handler, IReadOnlyDictionary<string, string> parameters, string phone, string body, CancellationToken cancellationToken = default, CpSmsHandlerContext? context = null)
             => throw new InvalidOperationException("SMS was called");
     }
 
