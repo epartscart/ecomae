@@ -1,2 +1,3 @@
 # PHP files retired without an ASP.NET port. One line per file: path<TAB>reason.
 # scripts/php_reference_gap_inventory.py ignores lines with an empty reason.
+content/shop/document_control/epc_document_control_cp_install.php	PHP CP CMS installer: registers content, content_access and control_items rows and lang strings for the PHP CP, builds PHP CP URLs and rebinds the PHP PDO link. ASP.NET serves Document Control from code routes (/cp/document-control-app via CpShopModuleRouteMap and CpNavTree), creates its schema with ErpDocumentControlRender.EnsureAsync, and opens tenant connections through ITenantDbConnectionFactory, so none of it applies.

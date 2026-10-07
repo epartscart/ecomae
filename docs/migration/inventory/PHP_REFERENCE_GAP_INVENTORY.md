@@ -31,14 +31,15 @@ Functions defined: 9867; not mentioned anywhere in ASP.NET: 8070.
 
 | Triage | Files |
 |---|---:|
-| gap | 842 |
+| gap | 841 |
 | mapped-tab | 118 |
 | mentioned | 806 |
 | ops-script | 416 |
+| retired | 1 |
 | sitemap-shard | 80 |
 | third-party | 316 |
 
-Gap files: 842 (287858 lines).
+Gap files: 841 (287553 lines).
 
 ## Gap areas (largest first)
 
@@ -99,7 +100,6 @@ Gap files: 842 (287858 lines).
 | `content/shop/customer_mgmt` | 1 | 340 |
 | `modules/login/code` | 1 | 334 |
 | `cp/content/shop/eparts-cata` | 1 | 320 |
-| `content/shop/document_control` | 1 | 305 |
 | `cp/content/lang` | 2 | 276 |
 | `content/shop` | 2 | 275 |
 | `cp/content/shop/pos` | 3 | 272 |
@@ -1091,10 +1091,6 @@ Gap files: 842 (287858 lines).
 ### cp/content/shop/eparts-cata (1)
 
 - `cp/content/shop/eparts-cata/eparts_cata.php` (320 lines, 0/1 functions mentioned)
-
-### content/shop/document_control (1)
-
-- `content/shop/document_control/epc_document_control_cp_install.php` (305 lines, 0/9 functions mentioned)
 
 ### cp/content/lang (2)
 

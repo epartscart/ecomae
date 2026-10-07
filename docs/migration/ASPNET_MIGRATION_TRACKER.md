@@ -220,7 +220,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the `content/shop/returns` pages (`returns.php`, `return.php` with `return_messages.php`, `add_return.php`, `assets/add_return.js.php`), the payment method picker (`content/shop/payments/epc_payment_method_picker.php`) and the obtaining-mode includes (`content/shop/obtaining_modes`). See the checkpoint below.
    - Done: the return selection on the customer order page (`my_order.php` `confirm_return()`).
    - Done: Document Control print (`content/shop/document_control/service/print.php`) with the ERP access check `epc_erp_user_can_access` and the e-invoice context `epc_dc_einvoice_context`. See the checkpoint below.
-   - Still open: `content/shop/document_control/epc_document_control_cp_install.php`; the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`).
+   - Retired: `content/shop/document_control/epc_document_control_cp_install.php` (PHP CP CMS installer; reason in `inventory/PHP_RETIRED.tsv`).
+   - Still open: the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`).
 3. **Control Panel shop pages.**
    - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
    - `cp/content/shop/catalogue/product.php` and its includes.
@@ -252,7 +253,7 @@ Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway
 
 Not complete.
 
-- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 842 gap files, down from 844 (ratchet `--max-gap 842`); unnamed PHP functions 8,070.
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 841 gap files, down from 844 (ratchet `--max-gap 841`), with `epc_document_control_cp_install.php` retired; unnamed PHP functions 8,070.
 - `/content/shop/document_control/service/print.php` runs in ASP.NET at its PHP URL (`StorefrontPhpAjax.PrintDocumentControlAsync`). The CP order pane, the Document Control page and the ERP document tab already link there.
 - Access is one engine, `ErpUserAccess` (PHP `epc_erp_access.php`). It applies the same checks as PHP, in the same order:
   - a CP admin session (`DP_User::isAdmin`), or a customer session in the backend group or one of its direct children (`isBackendGroup`);
