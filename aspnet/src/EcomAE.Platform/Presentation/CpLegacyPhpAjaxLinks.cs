@@ -1,6 +1,7 @@
 namespace EcomAE.Platform.Presentation;
 
 using EcomAE.Platform.Routing;
+using EcomAE.Platform.Storefront;
 
 /// <summary>
 /// Control Panel pages still post to the PHP ajax URLs. Procurement posts use the existing
@@ -71,7 +72,10 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(WebTracker, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PlatformGovernance, StringComparison.OrdinalIgnoreCase)
             || path.Equals(FreeToolsAdmin, StringComparison.OrdinalIgnoreCase)
-            || path.Equals(CreateSitemap, StringComparison.OrdinalIgnoreCase);
+            || path.Equals(CreateSitemap, StringComparison.OrdinalIgnoreCase)
+            || StorefrontPhpAjax.VersionControlPaths.Contains(path, StringComparer.OrdinalIgnoreCase)
+            || StorefrontPhpAjax.PackCountGatePaths.Contains(path, StringComparer.OrdinalIgnoreCase)
+            || StorefrontPhpAjax.PackSessionGatePaths.Contains(path, StringComparer.OrdinalIgnoreCase);
     }
 
     public const string PricePackSetup = "/cp/content/shop/prices_upload/ajax_1_prepare_tmp_dir.php";

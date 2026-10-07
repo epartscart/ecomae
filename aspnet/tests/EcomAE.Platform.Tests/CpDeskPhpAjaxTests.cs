@@ -1330,6 +1330,83 @@ public sealed class CpDeskPhpAjaxTests
     }
 
     [Fact]
+    public async Task UpdaterAndPacks_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var shopper = "admin_session=user-token";
+        try
+        {
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf'), (16, 'user-token', 4, 0, 'user-csrf')");
+
+            foreach (var path in StorefrontPhpAjax.VersionControlPaths)
+            {
+                Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(path, out _));
+                var noKey = await SendAsync(client, path, Form(("args", "{\"action\":\"list\"}")), staff);
+                Assert.Equal("Error! CSRF 1", noKey.Json.RootElement.GetProperty("message").GetString());
+                Assert.False(noKey.Json.RootElement.GetProperty("status").GetBoolean());
+                var wrongKey = await SendAsync(client, path, Form(("csrf_guard_key", "nope")), staff);
+                Assert.Equal("Error! CSRF 4", wrongKey.Json.RootElement.GetProperty("message").GetString());
+                var refused = await SendAsync(client, path + "?update_id=3", Form(("csrf_guard_key", "admin-csrf"), ("args", "{\"action\":\"list\"}")), staff);
+                Assert.Equal("ERROR", refused.Json.RootElement.GetProperty("status").GetString());
+                Assert.Equal(StorefrontPhpAjax.VersionControlStaysClassic, refused.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            foreach (var path in StorefrontPhpAjax.PackCountGatePaths.Concat(StorefrontPhpAjax.PackSessionGatePaths))
+            {
+                Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(path, out _));
+            }
+
+            foreach (var path in StorefrontPhpAjax.PackCountGatePaths)
+            {
+                var guest = await SendAsync(client, path, Form(("csrf_guard_key", "admin-csrf")), string.Empty);
+                Assert.Equal("Error! CSRF 3.1", guest.Json.RootElement.GetProperty("message").GetString());
+                var notAdmin = await SendAsync(client, path, Form(("csrf_guard_key", "user-csrf"), ("pack_id", "1")), shopper);
+                Assert.Equal("No access", notAdmin.Body);
+                var signedIn = await SendAsync(client, path, Form(("csrf_guard_key", "admin-csrf"), ("pack_id", "1")), staff);
+                Assert.Equal("Session duplication", signedIn.Body);
+            }
+
+            foreach (var path in StorefrontPhpAjax.PackSessionGatePaths)
+            {
+                var notAdmin = await SendAsync(client, path, Form(("csrf_guard_key", "user-csrf"), ("pack_file", "/etc/passwd")), shopper);
+                Assert.Equal("Forbidden", notAdmin.Body);
+                var refused = await SendAsync(client, path, Form(("csrf_guard_key", "admin-csrf"), ("pack_file", "/etc/passwd"), ("pack_id", "1")), staff);
+                Assert.Equal(1, refused.Json.RootElement.GetProperty("result_code").GetInt32());
+                Assert.Equal(StorefrontPhpAjax.PackInstallStaysClassic, refused.Json.RootElement.GetProperty("message").GetString());
+                Assert.Equal(JsonValueKind.Null, refused.Json.RootElement.GetProperty("pack_id").ValueKind);
+            }
+
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE()"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    [Fact]
     public async Task VisualPageEditor_OnThrowawayDatabase_ThenDropped()
     {
         var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");

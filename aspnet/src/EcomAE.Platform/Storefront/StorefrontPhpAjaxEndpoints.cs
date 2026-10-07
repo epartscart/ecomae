@@ -385,6 +385,17 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpVisualPageEditorPath, ["GET", "POST"], CpVisualPageEditorAsync)
             .DisableAntiforgery().AllowAnonymous();
+        foreach (var path in StorefrontPhpAjax.VersionControlPaths)
+        {
+            endpoints.MapMethods(path, ["GET", "POST"], CpVersionControlAsync)
+                .DisableAntiforgery().AllowAnonymous();
+        }
+
+        foreach (var path in StorefrontPhpAjax.PackCountGatePaths.Concat(StorefrontPhpAjax.PackSessionGatePaths))
+        {
+            endpoints.MapMethods(path, ["GET", "POST"], CpPacksAsync)
+                .DisableAntiforgery().AllowAnonymous();
+        }
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.MarketingBroadcast, ["GET", "POST"], CpMarketingBroadcastAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.WebTracker, ["GET", "POST"], CpWebTrackerAsync)
@@ -3567,6 +3578,46 @@ public static class StorefrontPhpAjaxEndpoints
                 sources,
                 cancel),
             new StorefrontPhpAjax.CodedJson(500, new StorefrontPhpAjax.OkMessage(false, "Database unavailable"))).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpVersionControlAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var csrf = await OptionalPostedAsync(context, "csrf_guard_key", cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.VersionControlAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                csrf,
+                cancel),
+            new StorefrontPhpAjax.VersionAnswer("ERROR", "No DB connect")).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpPacksAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var csrf = await OptionalPostedAsync(context, "csrf_guard_key", cancellationToken).ConfigureAwait(false);
+        var path = context.Request.Path.Value ?? string.Empty;
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.PacksAsync(
+                connection,
+                path,
+                context.Request.Cookies["admin_session"],
+                csrf,
+                cancel),
+            StorefrontPhpAjax.PackCountGatePaths.Contains(path, StringComparer.OrdinalIgnoreCase)
+                ? "\"No DB connect\""
+                : new StorefrontPhpAjax.PackResultMessage(1, "No DB connect", null)).ConfigureAwait(false);
     }
 
     private static async Task<IResult> CpVisualPageEditorAsync(
