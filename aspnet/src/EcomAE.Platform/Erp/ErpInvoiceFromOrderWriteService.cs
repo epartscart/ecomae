@@ -80,19 +80,31 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
     private readonly IErpGlPostingService _gl;
     private readonly IErpAdvanceVatService _advanceVat;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpProcessFlowSyncService? _processFlow;
 
     public ErpInvoiceFromOrderWriteService(
         IErpWriteConnectionFactory connections,
         IErpCashWriteService cash,
         IErpGlPostingService gl,
         IErpAdvanceVatService advanceVat,
-        IErpAuditLogWriter audit)
+        IErpAuditLogWriter audit,
+        IErpProcessFlowSyncService? processFlow = null)
     {
         _connections = connections;
         _cash = cash;
         _gl = gl;
         _advanceVat = advanceVat;
         _audit = audit;
+        _processFlow = processFlow;
+    }
+
+    /// <summary>PHP <c>epc_einvoice_save_document</c>: advance the order's process-flow case once a tax invoice is saved (best-effort).</summary>
+    private async Task SyncOrderCaseAsync(long orderId, int adminId, CancellationToken cancellationToken)
+    {
+        if (_processFlow is not null && orderId > 0)
+        {
+            await _processFlow.SyncOrderCaseAsync(orderId, adminId, adminId, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     private sealed record LegacyOrderRow(long Id, int UserId, long Time, string HowGetJson);
@@ -414,6 +426,7 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             throw;
         }
 
+        await SyncOrderCaseAsync(orderId, adminId, cancellationToken).ConfigureAwait(false);
         return new ErpInvoiceFromOrderResult(
             orderId,
             invoiceId,
@@ -673,6 +686,7 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             throw;
         }
 
+        await SyncOrderCaseAsync(orderId, adminId, cancellationToken).ConfigureAwait(false);
         return new ErpEinvoiceCreateResult(orderId, documentId, invoiceNumber, true, advanceVatCredit);
     }
 

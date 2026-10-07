@@ -57,6 +57,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
     private readonly IErpCashWriteService _cash;
     private readonly IErpGlPostingService _gl;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpProcessFlowSyncService? _processFlow;
 
     public ErpSalesInvoiceWriteService(
         IErpWriteConnectionFactory connections,
@@ -64,7 +65,8 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         IErpTaxAmountCalculator tax,
         IErpCashWriteService cash,
         IErpGlPostingService gl,
-        IErpAuditLogWriter audit)
+        IErpAuditLogWriter audit,
+        IErpProcessFlowSyncService? processFlow = null)
     {
         _connections = connections;
         _vouchers = vouchers;
@@ -72,6 +74,16 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
         _cash = cash;
         _gl = gl;
         _audit = audit;
+        _processFlow = processFlow;
+    }
+
+    /// <summary>PHP <c>epc_einvoice_save_document</c>: advance the order's process-flow case once a tax invoice is saved (best-effort).</summary>
+    private async Task SyncOrderCaseAsync(long orderId, int adminId, CancellationToken cancellationToken)
+    {
+        if (_processFlow is not null && orderId > 0)
+        {
+            await _processFlow.SyncOrderCaseAsync(orderId, adminId, adminId, cancellationToken).ConfigureAwait(false);
+        }
     }
 
     public async Task<ErpSoToInvoiceResult> ConvertSalesOrderAsync(long salesOrderId, int adminId, CancellationToken cancellationToken = default)
@@ -301,6 +313,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
             throw;
         }
 
+        await SyncOrderCaseAsync(order.ShopOrderId, adminId, cancellationToken).ConfigureAwait(false);
         return new ErpSoToInvoiceResult(salesOrderId, invoiceId, invoiceNumber, subtotal, totalVat, totalIncl, ledgerId, glJournalId);
     }
 

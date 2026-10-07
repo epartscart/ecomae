@@ -80,7 +80,8 @@ public sealed class StorefrontOrderCreatedPipeline : IStorefrontOrderCreatedPipe
         string? failure;
         try
         {
-            var result = await _fulfillment.BootstrapAsync(orderId, userId, cancellationToken).ConfigureAwait(false);
+            // Checkout has no CP admin session: epc_erp_admin_id() falls back to the customer, epc_pf_admin_id() is 0.
+            var result = await _fulfillment.BootstrapAsync(orderId, userId, cancellationToken, new ErpPfActor(0, userId)).ConfigureAwait(false);
             if (result.Ok && result.Payload is ErpFulfillmentBootstrapPayload payload)
             {
                 return new StorefrontOrderCreatedOutcome(emails, sent, skipped, payload.SalesOrderId, payload.PoIds, null);

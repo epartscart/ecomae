@@ -10,13 +10,16 @@ namespace EcomAE.Platform.Erp;
 /// purchase orders, receipt-synced PO statuses, PO→purchase-invoice and SO/order→sales-invoice posting,
 /// and mid-fulfillment supplier swaps. Operations are sequential (PHP is non-transactional); writes run
 /// only behind confirm_writes. Bootstrap runs PHP's additive fulfillment schema-ensure (voucher/extended
-/// ensures stay Classic); the other operations fail closed when it has not run. Deviations: (1) the best-effort
-/// process-flow sync (<c>epc_pf_sync_order_case</c>/<c>epc_pf_sync_po_case</c>) is skipped — no ASP.NET
-/// process-flow twin yet; (2) the APAI supplier hint is decoded from <c>t2_json_params</c> only.
+/// ensures stay Classic); the other operations fail closed when it has not run. The best-effort process-flow
+/// sync runs where PHP runs it: <c>epc_pf_sync_po_case</c> after each new PO and every PO status change, and
+/// <c>epc_pf_sync_order_case</c> at the end of bootstrap and in every fulfilment status read. Deviations: (1) PHP
+/// only syncs a new PO's case when <c>epc_erp_processflow.php</c> is already loaded (never in checkout); ASP.NET
+/// always does; (2) the APAI supplier hint is decoded from <c>t2_json_params</c> only.
 /// </summary>
 public interface IErpOrderFulfillmentWriteService
 {
-    Task<ErpFulfillmentResult> BootstrapAsync(long orderId, int adminId, CancellationToken cancellationToken = default);
+    /// <param name="processFlowActor">PHP <c>epc_pf_admin_id()</c> / <c>epc_pf_user_id()</c>; defaults to <paramref name="adminId"/> for both.</param>
+    Task<ErpFulfillmentResult> BootstrapAsync(long orderId, int adminId, CancellationToken cancellationToken = default, ErpPfActor? processFlowActor = null);
     Task<ErpFulfillmentResult> StatusAsync(long orderId, int adminId, CancellationToken cancellationToken = default);
     Task<ErpFulfillmentResult> SyncAsync(long orderId, int adminId, CancellationToken cancellationToken = default);
     Task<ErpFulfillmentResult> PostPoInvoiceAsync(long poId, int adminId, CancellationToken cancellationToken = default);
@@ -24,6 +27,8 @@ public interface IErpOrderFulfillmentWriteService
     Task<ErpFulfillmentResult> AutoPostAsync(long orderId, int adminId, CancellationToken cancellationToken = default);
     Task<ErpFulfillmentResult> SwapLineSupplierAsync(long orderId, long orderItemId, long newStorageId, int adminId, CancellationToken cancellationToken = default);
 }
+
+public sealed record ErpPfActor(int AdminId, long SessionUserId);
 
 public sealed record ErpFulfillmentResult(bool Ok, string Message, object? Payload, int Writes)
 {
@@ -49,6 +54,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
     private readonly IErpSalesInvoiceWriteService _soInvoices;
     private readonly IErpInvoiceFromOrderWriteService _orderInvoices;
     private readonly IErpAuditLogWriter _audit;
+    private readonly IErpProcessFlowSyncService? _processFlow;
 
     public ErpOrderFulfillmentWriteService(
         IErpWriteConnectionFactory connections,
@@ -58,7 +64,8 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         IErpPurchaseInvoiceWriteService purchases,
         IErpSalesInvoiceWriteService soInvoices,
         IErpInvoiceFromOrderWriteService orderInvoices,
-        IErpAuditLogWriter audit)
+        IErpAuditLogWriter audit,
+        IErpProcessFlowSyncService? processFlow = null)
     {
         _connections = connections;
         _vouchers = vouchers;
@@ -68,10 +75,28 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         _soInvoices = soInvoices;
         _orderInvoices = orderInvoices;
         _audit = audit;
+        _processFlow = processFlow;
     }
 
-    public async Task<ErpFulfillmentResult> BootstrapAsync(long orderId, int adminId, CancellationToken cancellationToken = default)
+    private async Task SyncOrderCaseAsync(long orderId, ErpPfActor actor, CancellationToken ct)
     {
+        if (_processFlow is not null)
+        {
+            await _processFlow.SyncOrderCaseAsync(orderId, actor.AdminId, actor.SessionUserId, ct).ConfigureAwait(false);
+        }
+    }
+
+    private async Task SyncPoCaseAsync(long poId, ErpPfActor actor, CancellationToken ct)
+    {
+        if (_processFlow is not null)
+        {
+            await _processFlow.SyncPoCaseAsync(poId, actor.AdminId, actor.SessionUserId, ct).ConfigureAwait(false);
+        }
+    }
+
+    public async Task<ErpFulfillmentResult> BootstrapAsync(long orderId, int adminId, CancellationToken cancellationToken = default, ErpPfActor? processFlowActor = null)
+    {
+        var pfActor = processFlowActor ?? new ErpPfActor(adminId, adminId);
         if (!_connections.IsConfigured) return ErpFulfillmentResult.Fail("TenantRegistry DB is not configured.");
         if (orderId <= 0) return ErpFulfillmentResult.Fail("Order ID required");
 
@@ -124,9 +149,14 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             {
                 poIds.Add(created.poId);
                 writes += created.writes;
+                if (created.writes > 0)
+                {
+                    await SyncPoCaseAsync(created.poId, pfActor, cancellationToken).ConfigureAwait(false);
+                }
             }
         }
 
+        await SyncOrderCaseAsync(orderId, pfActor, cancellationToken).ConfigureAwait(false);
         return ErpFulfillmentResult.Success(new ErpFulfillmentBootstrapPayload(orderId, soId.id, poIds, true), writes);
     }
 
@@ -204,6 +234,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         writes += await SyncPoStatusesAsync(c, orderId, adminId, cancellationToken).ConfigureAwait(false);
         var fulfillment = await SyncSalesStatusAsync(c, orderId, cancellationToken).ConfigureAwait(false);
         if (fulfillment is not "none") writes++;
+        await SyncOrderCaseAsync(orderId, new ErpPfActor(adminId, adminId), cancellationToken).ConfigureAwait(false);
         var status = await ReadStatusAsync(c, orderId, fulfillment, cancellationToken).ConfigureAwait(false);
         return ErpFulfillmentResult.Success(status, writes);
     }
@@ -224,6 +255,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         poUpdates.AddRange(updated.items);
         var fulfillment = await SyncSalesStatusAsync(c, orderId, cancellationToken).ConfigureAwait(false);
         if (fulfillment is not "none") writes++;
+        await SyncOrderCaseAsync(orderId, new ErpPfActor(adminId, adminId), cancellationToken).ConfigureAwait(false);
         var status = await ReadStatusAsync(c, orderId, fulfillment, cancellationToken).ConfigureAwait(false);
         return ErpFulfillmentResult.Success(new
         {
@@ -280,7 +312,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
                 cancellationToken, poId).ConfigureAwait(false);
             if (openQty <= 0.001)
             {
-                writes += await SetPoStatusAsync(c, poId, "received", cancellationToken).ConfigureAwait(false);
+                writes += await SetPoStatusAsync(c, poId, "received", adminId, cancellationToken).ConfigureAwait(false);
                 writes += await ErpDb.ExecuteAsync(
                     c, null,
                     ErpDb.Positional("UPDATE `epc_erp_purchase_orders` SET `received_at` = ?, `time_updated` = ? WHERE `id` = ?"),
@@ -477,6 +509,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             salesInvoice = r.Ok ? r.Payload : new { error = r.Message };
         }
 
+        await SyncOrderCaseAsync(orderId, new ErpPfActor(adminId, adminId), cancellationToken).ConfigureAwait(false);
         var status = await ReadStatusAsync(c, orderId, null, cancellationToken).ConfigureAwait(false);
         return ErpFulfillmentResult.Success(new
         {
@@ -555,7 +588,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             cancellationToken, oldPoId).ConfigureAwait(false);
         if (openCount == 0)
         {
-            writes += await SetPoStatusAsync(c, oldPoId, "cancelled", cancellationToken).ConfigureAwait(false);
+            writes += await SetPoStatusAsync(c, oldPoId, "cancelled", adminId, cancellationToken).ConfigureAwait(false);
         }
 
         writes += await ErpDb.ExecuteAsync(
@@ -843,7 +876,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
 
             if (!string.Equals(newStatus, status, StringComparison.Ordinal))
             {
-                writes += await SetPoStatusAsync(c, poId, newStatus, ct).ConfigureAwait(false);
+                writes += await SetPoStatusAsync(c, poId, newStatus, adminId, ct).ConfigureAwait(false);
                 items.Add(new { po_id = poId, status = newStatus });
             }
         }
@@ -1061,7 +1094,7 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
         return (supplierId, supplierName, storageId);
     }
 
-    private async Task<int> SetPoStatusAsync(DbConnection c, long poId, string status, CancellationToken ct)
+    private async Task<int> SetPoStatusAsync(DbConnection c, long poId, string status, int adminId, CancellationToken ct)
     {
         if (!new[] { "draft", "approved", "partial", "received", "cancelled" }.Contains(status, StringComparer.Ordinal))
         {
@@ -1074,10 +1107,12 @@ public sealed class ErpOrderFulfillmentWriteService : IErpOrderFulfillmentWriteS
             "received" => ", `received_at` = " + now,
             _ => string.Empty,
         };
-        return await ErpDb.ExecuteAsync(
+        var writes = await ErpDb.ExecuteAsync(
             c, null,
             "UPDATE `epc_erp_purchase_orders` SET `status` = '" + status + "', `time_updated` = " + now + stamp + " WHERE `id` = " + poId,
             ct).ConfigureAwait(false);
+        await SyncPoCaseAsync(poId, new ErpPfActor(adminId, adminId), ct).ConfigureAwait(false);
+        return writes;
     }
 
     private async Task<OrderRow?> LoadOrderAsync(DbConnection c, long orderId, CancellationToken ct)
