@@ -213,7 +213,9 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
    - Done: sales-invoice sale-demand capture (`epc_erp_inventory_record_sale_demand`). See the checkpoint below.
    - Done: SMS and WhatsApp Cloud API fan-out of `docpart_dispatch_notification()` (`content/notifications/send_notify_dispatch.php`, `epc_whatsapp_notify.php`). See the checkpoint below.
-   - Still open: the non-GCC SMS handlers in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru), the legacy `send_notify.php` HTTP endpoint, and `epc_order_whatsapp_share.php`.
+   - Done: the legacy SMS operators in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru) and the handler URLs of all 14 operators. See the checkpoint below.
+   - Retired: `content/sms/handlers/smsaero/send_sms_old.php` (reason in `inventory/PHP_RETIRED.tsv`).
+   - Still open: the legacy `send_notify.php` HTTP endpoint. `epc_order_whatsapp_share.php` is a CP order page include and moves to step 3.
    - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
    - Done: creating a return request (`content/shop/returns/ajax/ajax_load_returns_data.php` with `helper.php`): line split, photos, notifications and line status. See the checkpoint below.
    - Done: order print (`content/shop/print_docs/service/print.php` with `get_html_sales_receipt.php` and `get_html_uae_tax_invoice.php`) and the document control template render. See the checkpoint below.
@@ -221,9 +223,9 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the return selection on the customer order page (`my_order.php` `confirm_return()`).
    - Done: Document Control print (`content/shop/document_control/service/print.php`) with the ERP access check `epc_erp_user_can_access` and the e-invoice context `epc_dc_einvoice_context`. See the checkpoint below.
    - Retired: `content/shop/document_control/epc_document_control_cp_install.php` (PHP CP CMS installer; reason in `inventory/PHP_RETIRED.tsv`).
-   - Still open: the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`).
+   - Moved to step 7: the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`). Only the ERP shell (`erp_main.php`) and the `/erp` portal pages use it.
 3. **Control Panel shop pages.**
-   - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
+   - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides, `epc_order_whatsapp_share.php`.
    - `cp/content/shop/catalogue/product.php` and its includes.
    - `cp/content/shop/prices_upload` page bodies: `upload_file.php`, `price_review.php`, the download manager, update history, multivendor and commerce upload. These must reuse the existing price importer.
    - Smaller sets: logistics, crosses, data transfer, document control, channels, marketing, tenant hub, POS, payments, demand countries, manufacturer synonyms, eparts catalogue and mod, accessories, statistics.
@@ -245,9 +247,30 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The 152 finance libraries in `content/shop/finance`. The largest are the external reports build, the UAE tax compliance, jewellery, inventory, SCM, tax toolkit, `my_balance.php`, phase 8, order planning, AML, staff, concurrency, HR law, integration, access, datalink, industry packs, period close, WMS, payroll and procurement.
    - The CP finance pages: nav areas, the dashboards, the operations editor and create operation, the payment systems, custom shipping.
    - The write side of the 118 mapped tabs.
+   - The ERP portal half of `epc_erp_access.php`: portal URLs, the CP-admin session bridge, the guest session and auth post, and the tab rights by department (`epc_erp_staff_allowed_tabs`).
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — the legacy SMS operators and the handler URLs like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 839 gap files, down from 841 (ratchet `--max-gap 839`): `smsimple.class.php` is ported and `smsaero/send_sms_old.php` is retired; unnamed PHP functions 8,066.
+- `CpSmsLegacyOperators` ports the ten legacy handlers. Each sends the same provider request as its `send_sms.php` (URL, query encoding, form or JSON body, basic auth, user agent) and reads the reply the same way, including PHP's loose `==` and `>=`:
+  - sms_ru strips whitespace from the reply before decoding it, and an empty `sms` list prints nothing;
+  - iqsms reports success for any two-part reply, with the code text as the message;
+  - semysms treats a missing `code` as 0; terasms treats an undecodable reply as success; smsvizitka succeeds whenever the raw response contains "200 OK";
+  - smsgorod prefixes the shop host when `domain` is on, and sends the sender only on the `char` channel.
+- The order notification dispatcher and the CP communications test now reach these operators (before, they answered "not implemented on ASP.NET"). Messages use `translate_str_by_id` in English, as PHP does for a server-to-server POST.
+- `/content/sms/handlers/<handler>/send_sms.php` answers in ASP.NET for all 14 operators. That is the URL the PHP dispatcher, password recovery and contact confirmation post to.
+  - Legacy handlers: the database first ("Error"), then the loose `check` against `secret_succession` ("Forbidden"), then the `sms_api` row by handler (active or not). They answer `json_encode` as HTML.
+  - GCC handlers: "Database error", a strict non-empty `check`, "<operator> operator not configured", and the POSTed `parameters_values` override, with the unescaped JSON of `epc_sms_exit_json`.
+- Intended deviations:
+  - smsimple cannot run on PHP 8: it includes a missing `lib/xmlrpc.inc`, and the xmlrpc extension was removed, so it always answers "XmlRpc libraries not available". ASP.NET sends its XML-RPC calls (`pajm.user.auth`, then `pajm.sms.send` with `signature_id`).
+  - rocketsms, smsgorod and terasms no longer write request logs with phone numbers and credentials into the web root.
+  - Certificates are verified (PHP turns verification off). Each call has a time limit (5 seconds for smstraffic and 20 for smsgorod and terasms, as in PHP; 25 where PHP waits forever). sms_ru, iqsms and rocketsms do not follow redirects, as in PHP.
+- Verified: the real PHP handlers, run in a harness with stubbed curl, PDO and translator (`Fixtures/SmsHandlers/harness.sh`), produce 36 goldens across the nine operators that run on PHP 8. ASP.NET sends byte-equal requests (method, URL, body, headers) and prints byte-equal answers for all 36. The smsimple XML-RPC exchange, its faults and a failed login have their own tests. On Kestrel over a throwaway database: an sms_ru send through the URL, Forbidden for a wrong or missing check (legacy and GCC), "du operator not configured", the Unifonic AppSid check and 404 for an unknown handler. 5357 of 5357 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — sales-invoice sale demand like PHP
 
