@@ -216,7 +216,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Still open: the non-GCC SMS handlers in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru), the legacy `send_notify.php` HTTP endpoint, and `epc_order_whatsapp_share.php`.
    - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
    - Done: creating a return request (`content/shop/returns/ajax/ajax_load_returns_data.php` with `helper.php`): line split, photos, notifications and line status. See the checkpoint below.
-   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns` pages (`add_return.php`, `return.php`, `returns.php`, `return_messages.php`), `content/shop/print_docs`, `content/shop/document_control`.
+   - Done: order print (`content/shop/print_docs/service/print.php` with `get_html_sales_receipt.php` and `get_html_uae_tax_invoice.php`) and the document control template render. See the checkpoint below.
+   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns` pages (`add_return.php`, `return.php`, `returns.php`, `return_messages.php`), `content/shop/document_control/service/print.php` (needs the ERP-team access check `epc_erp_user_can_access`), `content/shop/document_control/epc_document_control_cp_install.php`.
 3. **Control Panel shop pages.**
    - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
    - `cp/content/shop/catalogue/product.php` and its includes.
@@ -243,6 +244,22 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — order print like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 868 gap files, down from 872 (ratchet `--max-gap 868`); unnamed PHP functions 8,116.
+- `/content/shop/print_docs/service/print.php` now runs in ASP.NET for the CP order card and the customer order page:
+  - Admin or customer CSRF as PHP decides it (`csrf_admin`, an admin cookie without a customer session, or a `/cp/` or `/control/` referer); an empty admin key is filled from the admin session.
+  - `sales_receipt` (and every unknown document) prints the receipt. `invoice_for_payment`, `uae_tax_invoice` and `fta_tax_invoice` print the UAE tax invoice: the saved e-invoice of the order, else the PINT-AE invoice built from the order (saved when it validates with the filled-in buyer), else the document control `fta_tax_invoice` template.
+  - Before a tax invoice the document control company is synced from the e-invoice seller settings with PHP's force mode.
+  - The customer print page now sends its CSRF key; before, PHP would have refused it.
+- Intended deviations:
+  - The tax invoice leaves out the blockchain BOS proof block.
+  - `content/shop/document_control/service/print.php` stays on PHP until `epc_erp_user_can_access` is ported.
+  - `get_html_invoice_for_payment.php` (the legacy Russian invoice) is not ported; PHP `print.php` no longer routes to it.
+- Verified: the real PHP generators were run on `Fixtures/OrderPrint/fixture.sql` (`harness.php`) and their HTML is the golden. ASP.NET gives the same bytes, with only the UUID normalized, for receipt 40, tax invoice 40, the reprint of the saved tax invoice 40, the document control fallback for order 41 (no lines), and receipt 41 after the seller sync. Both save `EINV-2026-00001` once. CSRF 1, 3, 3.1 and 4, the 400 and the 404 for another customer's order are covered. 5196 of 5196 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — return requests like PHP
 
