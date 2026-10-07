@@ -145,6 +145,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
             amountDue,
             taxBreakdown);
 
+        long invoiceId;
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
@@ -187,7 +188,7 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 now,
                 now,
                 request.AdminId).ConfigureAwait(false);
-            var invoiceId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
+            invoiceId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
 
             var lineNo = 1;
             foreach (var line in lines)
@@ -227,13 +228,15 @@ public sealed class ErpManualInvoiceWriteService : IErpManualInvoiceWriteService
                 now).ConfigureAwait(false);
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return new(invoiceId, invoiceNumber, subtotal, totalVat, totalIncl);
         }
         catch
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             throw;
         }
+
+        await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, invoiceId, request.AdminId, cancellationToken).ConfigureAwait(false);
+        return new(invoiceId, invoiceNumber, subtotal, totalVat, totalIncl);
     }
 
     private static async Task<ErpManualInvoiceWriteResult> UpdateAsync(

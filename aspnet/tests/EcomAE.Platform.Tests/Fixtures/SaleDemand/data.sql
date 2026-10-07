@@ -1,0 +1,5 @@
+CREATE TABLE shop_orders_items (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, product_id INT NOT NULL DEFAULT 0, count_need DECIMAL(10,2) NOT NULL DEFAULT 0, status INT NOT NULL DEFAULT 1);
+INSERT INTO shop_orders_items (order_id, product_id, count_need) VALUES (40, 101, 2), (40, 101, 1), (40, 102, 5), (40, 0, 4), (40, 103, 1), (40, 104, 0), (41, 999, 2);
+INSERT INTO epc_erp_inv_warehouses (id, code, name, active) VALUES (1, 'MAIN', 'Main', 1), (2, 'DXB', 'Dubai', 1), (3, 'OLD', 'Old', 0);
+INSERT INTO epc_erp_inv_items (id, sku, name, product_id, active) VALUES (1, 'OF-1', 'Oil filter', 101, 1), (2, 'BP-1', 'Brake pad', 102, 1), (3, 'SP-1', 'Spark plug', 103, 0), (4, 'WP-1', 'Wiper', 0, 1), (5, 'BP-OLD', 'Brake pad', 0, 0), (6, 'BU-1', 'Bulb', 104, 1);
+INSERT INTO epc_erp_inv_stock (warehouse_id, item_id, qty_on_hand, avg_unit_cost, batch_no, time_updated) VALUES (1, 1, 1.000, 4.0000, NULL, 1), (2, 1, 10.000, 4.5000, NULL, 1), (2, 2, 3.000, 12.3456, NULL, 1), (1, 2, 50.000, 7.0000, 'B1', 1);

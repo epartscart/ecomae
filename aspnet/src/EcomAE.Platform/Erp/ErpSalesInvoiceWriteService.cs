@@ -313,6 +313,7 @@ public sealed class ErpSalesInvoiceWriteService : IErpSalesInvoiceWriteService
             throw;
         }
 
+        await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, invoiceId, adminId, cancellationToken).ConfigureAwait(false);
         await SyncOrderCaseAsync(order.ShopOrderId, adminId, cancellationToken).ConfigureAwait(false);
         return new ErpSoToInvoiceResult(salesOrderId, invoiceId, invoiceNumber, subtotal, totalVat, totalIncl, ledgerId, glJournalId);
     }

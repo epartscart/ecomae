@@ -455,6 +455,7 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             throw;
         }
 
+        await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, invoiceId, adminId, cancellationToken).ConfigureAwait(false);
         await SyncOrderCaseAsync(orderId, adminId, cancellationToken).ConfigureAwait(false);
         return new ErpInvoiceFromOrderResult(
             orderId,
@@ -783,6 +784,7 @@ public sealed class ErpInvoiceFromOrderWriteService : IErpInvoiceFromOrderWriteS
             throw;
         }
 
+        await ErpSaleDemand.RecordForSavedInvoiceAsync(connection, documentId, adminId, cancellationToken).ConfigureAwait(false);
         await SyncOrderCaseAsync(draft.OrderId, adminId, cancellationToken).ConfigureAwait(false);
         return new ErpEinvoiceCreateResult(draft.OrderId, documentId, draft.InvoiceNumber, true, advanceVatCredit);
     }
