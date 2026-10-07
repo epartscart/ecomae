@@ -145,7 +145,7 @@ public sealed class StorefrontOrderPrintTests
         return Convert.ToString(await command.ExecuteScalarAsync(), CultureInfo.InvariantCulture) ?? string.Empty;
     }
 
-    private static async Task<ProbeHost> StartAsync(string cs, string docRoot)
+    internal static async Task<ProbeHost> StartAsync(string cs, string docRoot)
     {
         using var listener = new TcpListener(IPAddress.Loopback, 0);
         listener.Start();
@@ -175,7 +175,7 @@ public sealed class StorefrontOrderPrintTests
         return new ProbeHost(app, new Uri("http://127.0.0.1:" + port.ToString(CultureInfo.InvariantCulture) + "/"));
     }
 
-    private sealed class ProbeHost(WebApplication app, Uri baseAddress) : IAsyncDisposable
+    internal sealed class ProbeHost(WebApplication app, Uri baseAddress) : IAsyncDisposable
     {
         public Uri BaseAddress { get; } = baseAddress;
 

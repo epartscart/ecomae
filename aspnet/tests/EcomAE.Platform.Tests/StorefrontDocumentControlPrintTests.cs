@@ -92,6 +92,41 @@ public sealed class StorefrontDocumentControlPrintTests
             Assert.Equal((403, "Access denied — sign in to ERP or the control panel."), (result.StatusCode, result.Body));
         });
 
+    [Fact]
+    public Task PrintRoute_ServesThePhpUrl_WithTheCookiesAndQueryPhpReads()
+        => WithDatabaseAsync(async (_, cs) =>
+        {
+            var docRoot = Path.Combine(Path.GetTempPath(), "ecomae-dc-print-" + Guid.NewGuid().ToString("N")[..8]);
+            Directory.CreateDirectory(docRoot);
+            try
+            {
+                await using var host = await StorefrontOrderPrintTests.StartAsync(cs, docRoot);
+                using var client = new HttpClient(new HttpClientHandler { UseCookies = false }) { BaseAddress = host.BaseAddress };
+                async Task<(int Status, string Type, string Body)> GetAsync(string query, string cookies)
+                {
+                    using var request = new HttpRequestMessage(HttpMethod.Get, StorefrontPhpAjax.DocumentControlPrintPath.TrimStart('/') + "?" + query);
+                    if (cookies.Length > 0)
+                    {
+                        request.Headers.Add("Cookie", cookies);
+                    }
+
+                    using var response = await client.SendAsync(request);
+                    return ((int)response.StatusCode, response.Content.Headers.ContentType?.ToString() ?? string.Empty, await response.Content.ReadAsStringAsync());
+                }
+
+                var golden = File.ReadAllText(Path.Combine(FixtureDir, "invoice_7.html"));
+                Assert.Equal((200, "text/html; charset=utf-8", golden), await GetAsync("doc=fta_tax_invoice&invoice_id=7", Admin));
+                var team = await GetAsync("doc=packing_slip&invoice_id=7", "session=tok-27; u_id=27");
+                Assert.Equal((200, File.ReadAllText(Path.Combine(FixtureDir, "invoice_7_packing.html"))), (team.Status, team.Body));
+                Assert.Equal((403, "text/html; charset=utf-8", "Access denied — sign in to ERP or the control panel."), await GetAsync("invoice_id=7", "session=tok-28; u_id=28"));
+                Assert.Equal((400, "text/html; charset=utf-8", "<p>Invoice not found</p>"), await GetAsync("invoice_id=9", Admin));
+            }
+            finally
+            {
+                Directory.Delete(docRoot, true);
+            }
+        });
+
     private static StorefrontPhpAjax.DocumentControlPrintRequest Request(string query, string cookies)
     {
         var q = QueryHelpers.ParseQuery(query).ToDictionary(p => p.Key, p => p.Value.ToString(), StringComparer.Ordinal);
@@ -110,7 +145,10 @@ public sealed class StorefrontDocumentControlPrintTests
         await command.ExecuteNonQueryAsync();
     }
 
-    private static async Task WithDatabaseAsync(Func<DbConnection, Task> run)
+    private static Task WithDatabaseAsync(Func<DbConnection, Task> run)
+        => WithDatabaseAsync((connection, _) => run(connection));
+
+    private static async Task WithDatabaseAsync(Func<DbConnection, string, Task> run)
     {
         var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
         if (string.IsNullOrWhiteSpace(password))
@@ -139,7 +177,7 @@ public sealed class StorefrontDocumentControlPrintTests
                 await ExecAsync(connection, statement);
             }
 
-            await run(connection);
+            await run(connection, cs);
         }
         finally
         {
