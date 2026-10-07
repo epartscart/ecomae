@@ -132,7 +132,7 @@ public static partial class StorefrontPhpAjax
         ["cancelled"] = "Cancelled"
     };
 
-    public static async Task<object> LoadReturnsAsync(
+    public static Task<object> LoadReturnsAsync(
         DbConnection connection,
         string expectedTechKey,
         string postedTechKey,
@@ -140,146 +140,7 @@ public static partial class StorefrontPhpAjax
         string userId,
         string totalSum,
         CancellationToken cancellationToken)
-    {
-        if (!string.Equals(postedTechKey ?? string.Empty, expectedTechKey ?? string.Empty, StringComparison.Ordinal))
-        {
-            return ReturnError(ReturnsForbidden);
-        }
-
-        if (items.Count == 0)
-        {
-            return OrderItemsMissing;
-        }
-
-        var ids = string.Join(",", items.Select(item => item.ItemId.ToString(CultureInfo.InvariantCulture)));
-        try
-        {
-            await ErpDb.ExecuteAsync(
-                connection,
-                null,
-                "CREATE TEMPORARY TABLE `tmp` SELECT * FROM `shop_orders_items` WHERE `id` IN (" + ids + ")",
-                cancellationToken).ConfigureAwait(false);
-        }
-        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
-        {
-            return OrderItemsMissing;
-        }
-
-        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        try
-        {
-            foreach (var item in items)
-            {
-                long count;
-                try
-                {
-                    count = await ErpDb.LongAsync(
-                        connection,
-                        transaction,
-                        ErpDb.Positional("SELECT COUNT(*) FROM `shop_orders_returns_items` WHERE `item_id` = ?"),
-                        cancellationToken,
-                        item.ItemId).ConfigureAwait(false);
-                }
-                catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
-                {
-                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                    return ReturnsMissing;
-                }
-
-                if (count > 0)
-                {
-                    await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                    return ReturnError(ReturnsDuplicate);
-                }
-            }
-
-            int statusId;
-            try
-            {
-                statusId = await ReturnStatusIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
-            }
-            catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
-            {
-                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ReturnStatusesMissing;
-            }
-
-            if (statusId < 1)
-            {
-                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ReturnError(ReturnsNoStatus);
-            }
-
-            try
-            {
-                await ErpDb.ExecuteAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional("INSERT INTO `shop_orders_returns` (`status_id`, `user_id`, `sum`) VALUES (?, ?, ?)"),
-                    cancellationToken,
-                    statusId,
-                    userId,
-                    totalSum).ConfigureAwait(false);
-            }
-            catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
-            {
-                await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return ReturnsHeaderMissing;
-            }
-
-            var returnId = await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
-            foreach (var item in items)
-            {
-                var countNeed = await OrderCountNeedAsync(connection, transaction, item.ItemId, cancellationToken).ConfigureAwait(false);
-                var itemId = item.ItemId;
-                if (countNeed > 0 && ItemCount(item.Count) < countNeed)
-                {
-                    itemId = item.ItemId;
-                }
-
-                await ErpDb.ExecuteAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional("INSERT INTO `shop_orders_returns_items` (`comment`, `reason_id`, `return_id`, `item_id`, `count_need`) VALUES (?, ?, ?, ?, ?)"),
-                    cancellationToken,
-                    HtmlCompat(item.Comment),
-                    item.ReasonId,
-                    returnId,
-                    itemId,
-                    item.Count).ConfigureAwait(false);
-            }
-
-            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
-        {
-            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            return ReturnsHeaderMissing;
-        }
-
-        try
-        {
-            var status = await ErpDb.LongAsync(
-                connection,
-                null,
-                "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `for_return` = 1 LIMIT 1",
-                cancellationToken).ConfigureAwait(false);
-            if (status > 0)
-            {
-                await ErpDb.ExecuteAsync(
-                    connection,
-                    null,
-                    "UPDATE `shop_orders_items` SET `status` = ? WHERE `id` IN (" + ids + ")",
-                    cancellationToken,
-                    status).ConfigureAwait(false);
-            }
-        }
-        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
-        {
-        }
-
-        return new ReturnLoadBody(true, "success", null);
-    }
+        => LoadReturnsFullAsync(connection, expectedTechKey, postedTechKey, items, userId, totalSum, string.Empty, [], string.Empty, null, cancellationToken);
 
     public static async Task<object> WorkshopPublicAsync(
         DbConnection connection,

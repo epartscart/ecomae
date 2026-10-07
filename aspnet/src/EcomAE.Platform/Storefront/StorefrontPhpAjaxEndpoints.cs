@@ -1352,14 +1352,64 @@ public static class StorefrontPhpAjaxEndpoints
             connections,
             cancellationToken,
             Plain(StorefrontPhpAjax.NoDbConnect),
-            async (connection, _, token) => await StorefrontPhpAjax.LoadReturnsAsync(
+            async (connection, _, token) => await StorefrontPhpAjax.LoadReturnsFullAsync(
                 connection,
                 ExpectedTechKey(context),
                 await FieldAsync(context, "tech_key", token).ConfigureAwait(false),
                 await ReturnLinesAsync(context, token).ConfigureAwait(false),
                 await FieldAsync(context, "user_id", token).ConfigureAwait(false),
                 await FieldAsync(context, "total_sum", token).ConfigureAwait(false),
+                await FieldAsync(context, "office_id", token).ConfigureAwait(false),
+                await ReturnImagesAsync(context, token).ConfigureAwait(false),
+                ReturnImagesDirectory(context),
+                context.RequestServices.GetService<IStorefrontNotifyDispatcher>(),
                 token).ConfigureAwait(false));
+
+    private static async Task<IReadOnlyList<StorefrontPhpAjax.ReturnImage>> ReturnImagesAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        if (!HttpMethods.IsPost(context.Request.Method) || !context.Request.HasFormContentType)
+        {
+            return [];
+        }
+
+        var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+        var images = new List<StorefrontPhpAjax.ReturnImage>();
+        foreach (var file in form.Files)
+        {
+            var match = Regex.Match(file.Name, @"^images\[(\d+)\]\[\d*\]$");
+            if (!match.Success || !int.TryParse(match.Groups[1].Value, NumberStyles.Integer, CultureInfo.InvariantCulture, out var itemId))
+            {
+                continue;
+            }
+
+            var posted = file;
+            images.Add(new StorefrontPhpAjax.ReturnImage(
+                itemId,
+                posted.ContentType ?? string.Empty,
+                posted.Length,
+                async token =>
+                {
+                    await using var stream = posted.OpenReadStream();
+                    using var buffer = new MemoryStream();
+                    await stream.CopyToAsync(buffer, token).ConfigureAwait(false);
+                    return buffer.ToArray();
+                }));
+        }
+
+        return images;
+    }
+
+    /// <summary>PHP <c>$_SERVER["DOCUMENT_ROOT"]/content/files/returns_images/</c>; without a PHP docroot, the app content root.</summary>
+    private static string ReturnImagesDirectory(HttpContext context)
+    {
+        var root = context.RequestServices.GetService<IOptions<PhpReferenceOptions>>()?.Value.PhpDocRoot;
+        if (string.IsNullOrWhiteSpace(root))
+        {
+            root = context.RequestServices.GetService<Microsoft.AspNetCore.Hosting.IWebHostEnvironment>()?.ContentRootPath ?? AppContext.BaseDirectory;
+        }
+
+        return Path.Combine(root, "content", "files", "returns_images");
+    }
 
     private static Task<IResult> WorkshopPublicAsync(
         HttpContext context,
