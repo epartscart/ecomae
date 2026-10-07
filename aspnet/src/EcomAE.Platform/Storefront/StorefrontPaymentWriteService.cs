@@ -25,7 +25,7 @@ public interface IStorefrontPaymentWriteService
         string? handler,
         CancellationToken cancellationToken = default);
 
-    /// <summary>PHP <c>my_order.php</c> action <c>pay_on_place</c>: set <c>paid_type=1</c> plus order log. Status protocol HTTP stays uncalled.</summary>
+    /// <summary>PHP <c>my_order.php</c> action <c>pay_on_place</c>: set <c>paid_type=1</c>, order log, then the robot status protocol to the <c>for_paid</c> status.</summary>
     Task<StorefrontPaymentWriteResult> PayOnPlaceAsync(
         int userId,
         long orderId,
@@ -61,10 +61,12 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
     public const string DemoToken = "epc-demo-ok";
 
     private readonly IErpWriteConnectionFactory _connections;
+    private readonly IShopOrderProtocolService? _protocol;
 
-    public StorefrontPaymentWriteService(IErpWriteConnectionFactory connections)
+    public StorefrontPaymentWriteService(IErpWriteConnectionFactory connections, IShopOrderProtocolService? protocol = null)
     {
         _connections = connections;
+        _protocol = protocol;
     }
 
     public async Task<StorefrontPaymentWriteResult> CreateOperationAsync(
@@ -276,6 +278,7 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
             // Log table is optional on throwaway DBs.
         }
 
+        var message = "Pay on place saved.";
         try
         {
             var forPaidStatus = await ErpDb.LongAsync(
@@ -285,24 +288,35 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
                 cancellationToken).ConfigureAwait(false);
             if (forPaidStatus > 0)
             {
-                var statusRows = await ErpDb.ExecuteAsync(
+                if (_protocol is not null)
+                {
+                    var changed = await _protocol.SetOrderStatusAsync(connection, [orderId], forPaidStatus, ShopProtocolActor.Robot, cancellationToken).ConfigureAwait(false);
+                    if (changed.Status)
+                    {
+                        writes++;
+                    }
+                    else
+                    {
+                        message = "Pay on place saved. Order status was not changed.";
+                    }
+                }
+                else if (await ErpDb.ExecuteAsync(
                     connection,
                     null,
                     ErpDb.Positional("UPDATE `shop_orders` SET `status`=? WHERE `id`=? AND `user_id`=?"),
                     cancellationToken,
-                    forPaidStatus, orderId, userId).ConfigureAwait(false);
-                if (statusRows > 0)
+                    forPaidStatus, orderId, userId).ConfigureAwait(false) > 0)
                 {
                     writes++;
                 }
             }
         }
-        catch
+        catch (System.Data.Common.DbException)
         {
-            // for_paid status protocol HTTP stays uncalled; missing ref table is optional.
+            // Missing status ref table is optional on throwaway DBs.
         }
 
-        return new StorefrontPaymentWriteResult(true, "ok", "Pay on place saved.", orderId, null, writes);
+        return new StorefrontPaymentWriteResult(true, "ok", message, orderId, null, writes);
     }
 
     public async Task<StorefrontPaymentWriteResult> NotifyAsync(

@@ -56,38 +56,9 @@ public sealed class ShopOrderProtocolTests
         => Assert.Equal(expected, ShopOrderProtocolService.PhpFloat(decimal.Parse(value, CultureInfo.InvariantCulture)));
 
     [Fact]
-    public async Task Protocol_StatusesRefundsStockAndCascadesLikePhp_OnThrowawayDatabase_ThenDropped()
-    {
-        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
-        if (string.IsNullOrWhiteSpace(password))
+    public Task Protocol_StatusesRefundsStockAndCascadesLikePhp_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
         {
-            return;
-        }
-
-        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
-        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";";
-        await using (var adminConnection = new MySqlConnection(admin))
-        {
-            await adminConnection.OpenAsync();
-            await using var create = adminConnection.CreateCommand();
-            create.CommandText = "CREATE DATABASE `" + database + "`";
-            await create.ExecuteNonQueryAsync();
-        }
-
-        var cs = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";";
-        Assert.DoesNotContain("Database=docpart", cs, StringComparison.OrdinalIgnoreCase);
-        try
-        {
-            foreach (var ddl in Schema)
-            {
-                await ExecuteAsync(cs, ddl);
-            }
-
-            foreach (var seed in Seed)
-            {
-                await ExecuteAsync(cs, seed);
-            }
-
             var notify = new RecordingDispatcher();
             var protocol = new ShopOrderProtocolService(notify, new ConfigMailer());
             await using var connection = new MySqlConnection(cs);
@@ -178,6 +149,60 @@ public sealed class ShopOrderProtocolTests
                 "Split 3002 from  ID 3001. Was 5 now 3",
                 await ScalarAsync(cs, "SELECT text FROM shop_orders_logs WHERE order_id = 300 AND text LIKE 'Split%'"));
             Assert.Equal("1", await ScalarAsync(cs, "SELECT status FROM shop_orders WHERE id = 300"));
+        });
+
+    [Fact]
+    public Task PayOnPlace_RunsTheRobotStatusProtocolLikePhp_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
+        {
+            var notify = new RecordingDispatcher();
+            var payments = new StorefrontPaymentWriteService(new WriteConnections(cs), new ShopOrderProtocolService(notify, new ConfigMailer()));
+
+            var result = await payments.PayOnPlaceAsync(5, 300);
+            Assert.True(result.Ok);
+            Assert.Equal("Pay on place saved.", result.Message);
+            Assert.Equal("2|1", await ScalarAsync(cs, "SELECT CONCAT_WS('|', status, paid_type) FROM shop_orders WHERE id = 300"));
+            Assert.Equal(["order_status_to_manager", "order_status_to_customer"], notify.Sent.Select(s => s.Name));
+            Assert.Equal("Paid", notify.Sent[1].Vars["status_name"]);
+            Assert.Equal(
+                "Status changed to <b>Paid</b>|0|0|1",
+                await ScalarAsync(cs, "SELECT CONCAT_WS('|', text, user_id, is_manager, is_robot) FROM shop_orders_logs WHERE order_id = 300 ORDER BY id DESC LIMIT 1"));
+            Assert.Equal("already", (await payments.PayOnPlaceAsync(5, 300)).Code);
+        });
+
+    private static async Task WithDatabaseAsync(Func<string, Task> run)
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";";
+        await using (var adminConnection = new MySqlConnection(admin))
+        {
+            await adminConnection.OpenAsync();
+            await using var create = adminConnection.CreateCommand();
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var cs = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";";
+        Assert.DoesNotContain("Database=docpart", cs, StringComparison.OrdinalIgnoreCase);
+        try
+        {
+            foreach (var ddl in Schema)
+            {
+                await ExecuteAsync(cs, ddl);
+            }
+
+            foreach (var seed in Seed)
+            {
+                await ExecuteAsync(cs, seed);
+            }
+
+            await run(cs);
         }
         finally
         {
@@ -192,7 +217,8 @@ public sealed class ShopOrderProtocolTests
 
     private static readonly string[] Schema =
     [
-        "CREATE TABLE shop_orders (id INT NOT NULL PRIMARY KEY, user_id INT NOT NULL DEFAULT 0, status INT NOT NULL DEFAULT 0, paid TINYINT NOT NULL DEFAULT 0, office_id INT NOT NULL DEFAULT 0, email_not_auth VARCHAR(255) NOT NULL DEFAULT '', phone_not_auth VARCHAR(64) NOT NULL DEFAULT '', time INT NOT NULL DEFAULT 0)",
+        "CREATE TABLE shop_orders (id INT NOT NULL PRIMARY KEY, user_id INT NOT NULL DEFAULT 0, status INT NOT NULL DEFAULT 0, paid TINYINT NOT NULL DEFAULT 0, office_id INT NOT NULL DEFAULT 0, email_not_auth VARCHAR(255) NOT NULL DEFAULT '', phone_not_auth VARCHAR(64) NOT NULL DEFAULT '', time INT NOT NULL DEFAULT 0, paid_type INT NOT NULL DEFAULT 0)",
+        "CREATE TABLE shop_orders_paid_type (id INT NOT NULL PRIMARY KEY, name VARCHAR(64) NOT NULL, active TINYINT NOT NULL DEFAULT 1, `order` INT NOT NULL DEFAULT 0)",
         "CREATE TABLE shop_orders_items (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, product_type INT NOT NULL DEFAULT 1, status INT NOT NULL DEFAULT 0, price DECIMAL(10,2) NOT NULL DEFAULT 0, count_need INT NOT NULL DEFAULT 0, t2_manufacturer VARCHAR(64) NOT NULL DEFAULT '', t2_article VARCHAR(64) NOT NULL DEFAULT '', t2_article_show VARCHAR(64) NULL, t2_name VARCHAR(255) NOT NULL DEFAULT '', t2_storage_id INT NOT NULL DEFAULT 0)",
         "CREATE TABLE shop_orders_items_details (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, order_item_id INT NOT NULL, office_id INT NOT NULL DEFAULT 0, storage_id INT NOT NULL DEFAULT 0, storage_record_id INT NOT NULL DEFAULT 0, count_reserved INT NOT NULL DEFAULT 0, count_issued INT NOT NULL DEFAULT 0, count_canceled INT NOT NULL DEFAULT 0, price_purchase DECIMAL(10,2) NOT NULL DEFAULT 0)",
         "CREATE TABLE shop_storages_data (id INT NOT NULL PRIMARY KEY, exist INT NOT NULL DEFAULT 0, reserved INT NOT NULL DEFAULT 0, issued INT NOT NULL DEFAULT 0)",
@@ -213,6 +239,7 @@ public sealed class ShopOrderProtocolTests
     [
         """
         INSERT INTO lang_text_strings_translation (str_key, lang_code, value) VALUES
+        ('pt_place','en','Pay on place'), ('pt_card','en','Card online'), ('pt_balance','en','From balance'),
         ('st_new','en','New'), ('st_paid','en','Paid'), ('st_finish','en','Finished'), ('st_cancel','en','Cancelled'),
         ('it_wait','en','Waiting'), ('it_issue','en','Issued'), ('it_cancel','en','Line cancelled'),
         ('4568','en','Status changed to'), ('4569','en','Line'), ('4570','en','changed to'), ('5296','en','Order is not paid'),
@@ -228,6 +255,7 @@ public sealed class ShopOrderProtocolTests
         INSERT INTO shop_orders_items_statuses_ref (id, name, `order`, count_flag, issue_flag, for_finish, to_manager_sms) VALUES
         (10,'it_wait',1,1,0,0,1), (11,'it_issue',2,1,1,1,1), (12,'it_cancel',3,0,0,0,0)
         """,
+        "INSERT INTO shop_orders_paid_type (id, name, active, `order`) VALUES (1, 'pt_place', 1, 1), (2, 'pt_balance', 1, 2), (3, 'pt_card', 1, 3)",
         "INSERT INTO shop_offices (id, users) VALUES (1, '[\"7\",\"8\"]')",
         "INSERT INTO `groups` (id, parent, for_backend) VALUES (1, 0, 1), (2, 1, 0), (3, 0, 0)",
         "INSERT INTO users_groups_bind (user_id, group_id) VALUES (7, 2), (8, 3)",
@@ -277,6 +305,18 @@ public sealed class ShopOrderProtocolTests
 
         public Task<CpSmsSendOutcome> SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
             => Task.FromResult(new CpSmsSendOutcome(true, string.Empty));
+    }
+
+    private sealed class WriteConnections(string cs) : EcomAE.Platform.Erp.IErpWriteConnectionFactory
+    {
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(cs);
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
     }
 
     private sealed class RecordingDispatcher : IStorefrontNotifyDispatcher
