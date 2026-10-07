@@ -195,15 +195,15 @@ public sealed class EpartscartCustomerJourneyParityTests
         Assert.Contains("name=\"email\"", newsletter, StringComparison.Ordinal);
         Assert.Contains("name=\"confirmWrites\"", newsletter, StringComparison.Ordinal);
 
+        Assert.Contains("StorefrontReturnsPages.ListAsync", File.ReadAllText(Find(
+            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontReturnsApp.razor")), StringComparison.Ordinal);
         var returns = File.ReadAllText(Find(
-            "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontReturnsApp.razor"));
-        Assert.Contains("panel panel-primary", returns, StringComparison.Ordinal);
+            "aspnet/src/EcomAE.Platform/Storefront/StorefrontReturnsPages.Markup.cs")).Replace("\\\"", "\"", StringComparison.Ordinal);
         Assert.Contains("id=\"search-text\"", returns, StringComparison.Ordinal);
         Assert.Contains("id=\"orders_returns_table\"", returns, StringComparison.Ordinal);
         Assert.Contains("return_options_data", returns, StringComparison.Ordinal);
         Assert.Contains("id=\"chat_block\"", returns, StringComparison.Ordinal);
         Assert.Contains("id=\"new_message_area\"", returns, StringComparison.Ordinal);
-        Assert.Contains("name=\"order_id\"", returns, StringComparison.Ordinal);
         Assert.Contains("name=\"item_id\"", returns, StringComparison.Ordinal);
         Assert.Contains("name=\"reason_id\"", returns, StringComparison.Ordinal);
         Assert.Contains("name=\"comment\"", returns, StringComparison.Ordinal);

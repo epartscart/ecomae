@@ -1,0 +1,80 @@
+<link rel="stylesheet" href="../../content/shop/returns/assets/return.css">
+<p class="lead">Order items</p>
+<div style="overflow: hidden; overflow-x: auto;">
+    <table class="table">
+        <tr>
+            <th style="vertical-align: middle; white-space: nowrap;">Manufacturer</th>
+            <th style="vertical-align: middle; white-space: nowrap;">Article</th>
+            <th style="vertical-align: middle;">Name</th>
+            <th style="vertical-align: middle; white-space: nowrap;">Price</th>
+            <th style="vertical-align: middle; white-space: nowrap; text-align:center;"></th>
+            <th style="vertical-align: middle; white-space: nowrap;">Sum</th>
+        </tr>
+                    <style>
+                textarea {
+                    width: 100%; /* Ширина поля в процентах */
+                    height: 200px; /* Высота поля в пикселах */
+                    resize: none; /* Запрещаем изменять размер */
+                }
+            </style>
+            <tr style="">
+                <td style="vertical-align: middle; white-space: nowrap;">Brembo</td>
+                <td style="vertical-align: middle; white-space: nowrap;">P-91</td>
+                <td style="vertical-align: middle; width: 100%; min-width: 200px; max-width: 800px; word-wrap: break-word;">Brake pad/set</td>
+								<td style="vertical-align: middle; white-space: nowrap;">
+                    <input type="hidden" id="item_price_91" value="1234.50">
+                    1 234.50                </td>
+                <td style="vertical-align: middle; white-space: nowrap; text-align:center;">
+                    <input type="number" style="width: 70px;" onblur="check_val();" data-count="2" id="item_count_91" value="2">
+                </td>
+								<td style="vertical-align: middle; white-space: nowrap;">2 469.00</td>
+            </tr>
+            <tr>
+                <td colspan="6">
+                    <div class="return_options">
+                        <form class="return_options_data" enctype="multipart/form-data" method="post">
+                            <input type="hidden" name="item_id" value="91">
+                            <input type="hidden" name="csrf_guard_key" value="csrf-seven">
+                            <input type="hidden" name="tech_key" value="tk-secret";>
+
+                            <div class="col-lg-6 col-sm-6 col-md-12" style="margin-top: 10px;">
+                                <label for="">Reason</label>
+                                <select name="reason_id" id="" class="form-control">
+                                    <option value="-1">Choose a reason</option>
+                                    <option value="1">Wrong part</option><option value="2">Damaged <box> & "worn"</option>                                </select>
+                            </div>
+                            <div class="col-lg-6 col-sm-6 col-md-12" style="margin-top: 10px;">
+                                <label for="">Photos</label> <input name="images[]" type="file" multiple
+                                                                         id="file_form_db" class="form-control"/>
+                            </div>
+                            <div class="col-lg-12 col-sm-6 col-md-12" style="margin-top: 10px;">
+                                <label for="">Comment</label> <br><textarea name="comment" id="" cols="30" rows="10"
+                                                                                placeholder="Comment"></textarea>
+                            </div>
+                        </form>
+                    </div>
+                </td>
+            </tr>
+                </table>
+
+</div>
+<p class="lead">Total: <span id="total_price_span">2469</span></p>
+
+<form id="return_info" enctype="multipart/form-data" method="post">
+    <input type="hidden" name="user_id" value="7">
+    <input type="hidden" name="return_id" id="return_id" value="">
+    <input type="hidden" name="csrf_guard_key" value="csrf-seven">
+    <input type="hidden" name="tech_key" value="tk-secret";>
+    <input type="hidden" name="office_id" value="3";>
+</form>
+
+<p>
+	<input type="button" id="btn_confirm_return" class="btn btn-ar btn-primary" value="Request a return" onclick="confirm_return()">
+</p>
+
+<script>
+    let main_url = "https://www.epartscart.com/";
+		                var retention_percentage = 0;
+                var main_total_price = "2469";
+</script>
+<script src="https://www.epartscart.com/content/shop/returns/assets/add_return.js.php"></script>

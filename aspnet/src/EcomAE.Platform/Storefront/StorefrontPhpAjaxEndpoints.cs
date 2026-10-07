@@ -159,6 +159,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.ReturnsLoadPath, ["GET", "POST"], ReturnsLoadAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontReturnsPages.AddReturnScriptPath, ["GET", "POST"], AddReturnScriptAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.WorkshopPublicPath, ["GET", "POST"], WorkshopPublicAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.GarageManagerPath, ["GET", "POST"], GarageManagerAsync)
@@ -1361,7 +1363,7 @@ public static class StorefrontPhpAjaxEndpoints
             async (connection, _, token) => await StorefrontPhpAjax.LoadReturnsFullAsync(
                 connection,
                 ExpectedTechKey(context),
-                await FieldAsync(context, "tech_key", token).ConfigureAwait(false),
+                await ReturnsTechKeyAsync(context, token).ConfigureAwait(false),
                 await ReturnLinesAsync(context, token).ConfigureAwait(false),
                 await FieldAsync(context, "user_id", token).ConfigureAwait(false),
                 await FieldAsync(context, "total_sum", token).ConfigureAwait(false),
@@ -1370,6 +1372,43 @@ public static class StorefrontPhpAjaxEndpoints
                 ReturnImagesDirectory(context),
                 context.RequestServices.GetService<IStorefrontNotifyDispatcher>(),
                 token).ConfigureAwait(false));
+
+    /// <summary>
+    /// The posted <c>tech_key</c>, with the ASP.NET add-return pages' <see cref="StorefrontReturnsPages.FormKey"/> for this
+    /// request's CSRF key standing in for DP_Config <c>tech_key</c>.
+    /// </summary>
+    private static async Task<string> ReturnsTechKeyAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        var posted = await FieldAsync(context, "tech_key", cancellationToken).ConfigureAwait(false);
+        var expected = ExpectedTechKey(context);
+        var csrf = await FieldAsync(context, "csrf_guard_key", cancellationToken).ConfigureAwait(false);
+        return expected.Length > 0
+               && !string.IsNullOrEmpty(posted)
+               && System.Security.Cryptography.CryptographicOperations.FixedTimeEquals(
+                   System.Text.Encoding.UTF8.GetBytes(posted),
+                   System.Text.Encoding.UTF8.GetBytes(StorefrontReturnsPages.FormKey(expected, csrf ?? string.Empty)))
+            ? expected
+            : posted;
+    }
+
+    private static Task<IResult> AddReturnScriptAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+        => WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) =>
+            {
+                var lang = StorefrontReturnsPages.LangHrefSlashAfter(context.Request.Headers.Referer.ToString());
+                var script = await StorefrontReturnsPages.AddReturnScriptAsync(
+                    new StorefrontPhpTranslator(connection, lang.Length == 0 ? "en" : lang.TrimEnd('/')),
+                    lang,
+                    token).ConfigureAwait(false);
+                return new StorefrontPhpAjax.RawHttp(script, "application/javascript; charset=utf-8");
+            },
+            StorefrontPhpAjax.NoDbConnect);
 
     private static async Task<IReadOnlyList<StorefrontPhpAjax.ReturnImage>> ReturnImagesAsync(HttpContext context, CancellationToken cancellationToken)
     {

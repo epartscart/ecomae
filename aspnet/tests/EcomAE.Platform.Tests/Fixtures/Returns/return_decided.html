@@ -1,0 +1,139 @@
+    <h3><label for="">Return request 2</label></h3>
+    <label for="">Return status: </label>
+Closed "done"    <p class="lead" style="border-bottom: 2px solid; padding-bottom: 10px;"><strong>Order items</strong></p>
+    <div style="overflow: hidden; overflow-x: auto;">
+        <table class="table">
+            <tr>
+                <th style="vertical-align: middle; white-space: nowrap;">Manufacturer</th>
+                <th style="vertical-align: middle; white-space: nowrap;">Article</th>
+                <th style="vertical-align: middle;">Name</th>
+                <th style="vertical-align: middle; white-space: nowrap;">Price</th>
+                <th style="vertical-align: middle; white-space: nowrap; text-align:center;"></th>
+                <th style="vertical-align: middle; white-space: nowrap;">Sum</th>
+            </tr>
+                            <tr style="border-top: 1px solid; ">
+                    <td style="vertical-align: middle; white-space: nowrap;">Toyota</td>
+                    <td style="vertical-align: middle; white-space: nowrap;">E96</td>
+                    <td style="vertical-align: middle; width: 100%; min-width: 200px; max-width: 800px; word-wrap: break-word;">Engine</td>
+                    <td style="vertical-align: middle; white-space: nowrap;">1 000 000.25</td>
+                    <td style="vertical-align: middle; white-space: nowrap; text-align:center;">1</td>
+                    <td style="vertical-align: middle; white-space: nowrap;">1 000 000.25</td>
+                </tr>
+                <tr style="border-bottom: 1px solid;">
+                    <td colspan="6">
+
+                        <div class="col-lg-12 col-sm-12 col-md-12" style="margin-top: 10px;">
+                            <label for="">Фото товара: </label>
+                            <div style="display: flex;">
+
+                                                            </div>
+                        </div>
+                        <div class="col-lg-12 col-sm-12 col-md-12" style="margin-top: 10px;">
+                            <label for="">Reason: </label>                         </div>
+                        <div class="col-lg-12 col-sm-12 col-md-12" style="margin-top: 10px;">
+                            <label for="">Comment: </label> <br>
+                            <div>
+                                                            </div>
+                        </div>
+                        <div class="col-lg-12 col-sm-12 col-md-12" style="margin-top: 10px;">
+                            <label for="">Status: </label> <br>
+                            <div>
+                                Return rejected                            </div>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="6" style="padding-top: 10px; border-top: 2px solid;">
+
+                    </td>
+                </tr>
+                        </table>
+        <p class="lead">Total: 0 руб.</p>
+    </div>
+    </div>
+    </div>
+    </div>
+
+	<script>
+		function openImage(image)
+		{
+			let w = window.open("");
+			w.document.write(image.outerHTML);
+		}
+	</script>
+
+	<link rel="stylesheet" href="https://www.epartscart.com/content/shop/returns/assets/return.css">
+
+<!-- Переписка с покупателем -->
+<p class="lead">Messages</p>
+<div>
+    <div class="chat_block" id="chat_block">
+    </div>
+
+    <br>
+    New message:
+    <textarea id="new_message_area"></textarea>
+    <button class="btn btn-ar btn-primary" onclick="sendMessage();">Send</button>
+</div>
+<script>
+    // --------------------------------------------------------------------------
+    //Получить сообщения по заказу
+    function getOrderMessages() {
+        jQuery.ajax({
+            type: "GET",
+            async: true,
+            url: "/content/shop/messager/ajax_get_order_messages.php",
+            dataType: "json",//Тип возвращаемого значения
+            data: "return_id=2" + "&csrf_guard_key=csrf-seven",
+            success: function (answer) {
+                var html = "";
+                for (var i = 0; i < answer.length; i++) {
+                    var class_str = "bubble";
+                    var sender = "You";
+                    if (answer[i].is_customer == false) {
+                        class_str += "2";
+                        sender = "Manager";
+                    }
+                    html += "<div class=\"" + class_str + "\">" + sender + " " + answer[i].time + "<br>" + answer[i].text + "</div>";
+                }
+                if (html == "") html = "<div align=\"center\">No messages</div>";
+                document.getElementById("chat_block").innerHTML = html;
+
+                document.getElementById("chat_block").scrollTop = document.getElementById("chat_block").scrollHeight;
+            }
+        });
+    }
+
+    // --------------------------------------------------------------------------
+    //Отправить сообщение
+    function sendMessage() {
+        var text = document.getElementById("new_message_area").value;
+        if (text == "") {
+            alert("Enter a message");
+            return;
+        }
+
+        jQuery.ajax({
+            type: "GET",
+            async: true,
+            url: "/content/shop/messager/ajax_send_message.php",
+            dataType: "json",//Тип возвращаемого значения
+            data: "return_id=2&text=" + encodeURI(text) + "&csrf_guard_key=csrf-seven",
+            success: function (answer) {
+                if (answer == true) {
+                    document.getElementById("new_message_area").value = "";
+                    getOrderMessages();
+                } else {
+                    alert("Message not sent");
+                }
+            }
+        });
+    }
+
+    // --------------------------------------------------------------------------
+    getOrderMessages();//Запрашиваем переписку по заказу
+
+    setInterval(function () {
+        getOrderMessages();
+    }, 300000);
+</script>

@@ -112,6 +112,11 @@ public sealed class StorefrontReturnsLoadTests
 
             var forbidden = await PostAsync(client, [("items[0][item_id]", "99"), ("items[0][count]", "1")], [], "wrong");
             Assert.Equal("{\"status\":false,\"error_message\":\"Forbidden\"}", forbidden);
+
+            var pageKey = await PostAsync(client, [("items[0][item_id]", "91"), ("items[0][count]", "1")], [], StorefrontReturnsPages.FormKey("local-tech", "csrf-1"));
+            Assert.Equal("{\"status\":false,\"error_message\":\"Already in a return\"}", pageKey);
+            var otherSessionKey = await PostAsync(client, [("items[0][item_id]", "91"), ("items[0][count]", "1")], [], StorefrontReturnsPages.FormKey("local-tech", "csrf-2"));
+            Assert.Equal("{\"status\":false,\"error_message\":\"Forbidden\"}", otherSessionKey);
         }
         finally
         {
