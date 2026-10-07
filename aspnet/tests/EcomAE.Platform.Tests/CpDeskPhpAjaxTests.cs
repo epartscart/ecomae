@@ -1330,6 +1330,124 @@ public sealed class CpDeskPhpAjaxTests
     }
 
     [Fact]
+    public async Task VisualPageEditor_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var path = StorefrontPhpAjax.CpVisualPageEditorPath;
+        try
+        {
+            Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(path, out _));
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+
+            var guest = await SendAsync(client, path + "?action=load_layout&site_key=platform", null, string.Empty);
+            Assert.Equal(HttpStatusCode.Forbidden, guest.Status);
+            Assert.False(guest.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal("Admin login required", guest.Json.RootElement.GetProperty("message").GetString());
+            var noSite = await SendAsync(client, path + "?action=load_layout", null, staff);
+            Assert.Equal("Invalid site", noSite.Json.RootElement.GetProperty("message").GetString());
+            var foreign = await SendAsync(client, path + "?action=load_layout&site_key=shopone", null, staff);
+            Assert.Equal("Invalid site", foreign.Json.RootElement.GetProperty("message").GetString());
+            var unknown = await SendAsync(client, path + "?action=nope&site_key=platform", null, staff);
+            Assert.Equal(HttpStatusCode.OK, unknown.Status);
+            Assert.Equal("Unknown action", unknown.Json.RootElement.GetProperty("message").GetString());
+
+            var empty = await SendAsync(client, path + "?action=load_layout&site_key=ecomae", null, staff);
+            Assert.True(empty.Json.RootElement.GetProperty("status").GetBoolean(), empty.Body);
+            var emptyLayout = empty.Json.RootElement.GetProperty("layout");
+            Assert.Equal("platform", emptyLayout.GetProperty("site_key").GetString());
+            Assert.Equal("homepage", emptyLayout.GetProperty("page_key").GetString());
+            Assert.Equal("layout", emptyLayout.GetProperty("mode").GetString());
+            Assert.Equal(0, emptyLayout.GetProperty("blocks").GetArrayLength());
+            Assert.Equal("#2563eb", emptyLayout.GetProperty("brand").GetProperty("primary").GetString());
+            Assert.False(emptyLayout.GetProperty("is_published").GetBoolean());
+            Assert.Equal(0, emptyLayout.GetProperty("updated_at").GetInt32());
+            Assert.Equal("https://www.ecomae.com/en/", empty.Json.RootElement.GetProperty("preview_url").GetString());
+            var levels = empty.Json.RootElement.GetProperty("levels");
+            Assert.Equal(["homepage", "product_list", "footer", "checkout", "login", "brand"], levels.EnumerateObject().Select(level => level.Name).ToArray());
+            Assert.Equal("brand_only", levels.GetProperty("brand").GetProperty("mode").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_page_builder_layouts'"));
+
+            var badJson = await SendAsync(client, path, Form(("action", "save_layout"), ("site_key", "platform"), ("blocks_json", "{oops")), staff);
+            Assert.Equal("Invalid blocks JSON", badJson.Json.RootElement.GetProperty("message").GetString());
+            var scalarJson = await SendAsync(client, path, Form(("action", "save_layout"), ("site_key", "platform"), ("blocks_json", "7")), staff);
+            Assert.Equal("Invalid blocks JSON", scalarJson.Json.RootElement.GetProperty("message").GetString());
+            var save = await SendAsync(client, path, Form(("action", "save_layout"), ("site_key", "platform"), ("blocks_json", "[{\"type\":\"hero\"}]"), ("publish", "1")), staff);
+            Assert.False(save.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.Equal(StorefrontPhpAjax.VisualEditorSaveStaysClassic, save.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_page_builder_layouts'"));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_page_builder_layouts (id INT UNSIGNED NOT NULL AUTO_INCREMENT PRIMARY KEY, site_key VARCHAR(64) NOT NULL DEFAULT '', page_key VARCHAR(64) NOT NULL DEFAULT 'homepage', layout_json MEDIUMTEXT NULL, brand_json TEXT NULL, is_published TINYINT(1) NOT NULL DEFAULT 0, updated_at INT NOT NULL DEFAULT 0, published_at INT NOT NULL DEFAULT 0, UNIQUE KEY site_page (site_key, page_key))");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_page_builder_layouts (site_key, page_key, layout_json, brand_json, is_published, updated_at) VALUES ('platform', 'homepage', '[{\"id\":\"blk_1\",\"type\":\"hero\",\"props\":{\"headline\":\"Fleet parts\"}}]', '{\"primary\":\"#111111\",\"tagline\":\"Hi there\",\"extra\":\"kept\"}', 1, 1700000100)");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_page_builder_layouts (site_key, page_key, layout_json, brand_json, is_published, updated_at) VALUES ('platform', 'brand', '[]', '{\"tagline\":\"Brand line\",\"logo_url\":\"/logo.png\"}', 0, 1700000200)");
+
+            var home = await SendAsync(client, path + "?action=load_layout&site_key=platform&page_key=HOMEPAGE", null, staff);
+            var homeLayout = home.Json.RootElement.GetProperty("layout");
+            Assert.Equal("Fleet parts", homeLayout.GetProperty("blocks")[0].GetProperty("props").GetProperty("headline").GetString());
+            Assert.Equal("#111111", homeLayout.GetProperty("brand").GetProperty("primary").GetString());
+            Assert.Equal("#0ea5e9", homeLayout.GetProperty("brand").GetProperty("accent").GetString());
+            Assert.Equal("Hi there", homeLayout.GetProperty("brand").GetProperty("tagline").GetString());
+            Assert.Equal("", homeLayout.GetProperty("brand").GetProperty("logo_url").GetString());
+            Assert.Equal("kept", homeLayout.GetProperty("brand").GetProperty("extra").GetString());
+            Assert.True(homeLayout.GetProperty("is_published").GetBoolean());
+            Assert.Equal(1700000100, homeLayout.GetProperty("updated_at").GetInt32());
+
+            var footer = await SendAsync(client, path, Form(("action", "load_layout"), ("site_key", "platform"), ("page_key", "footer")), staff);
+            var footerLayout = footer.Json.RootElement.GetProperty("layout");
+            Assert.Equal("footer", footerLayout.GetProperty("page_key").GetString());
+            Assert.Equal(0, footerLayout.GetProperty("blocks").GetArrayLength());
+            Assert.Equal("#2563eb", footerLayout.GetProperty("brand").GetProperty("primary").GetString());
+            Assert.Equal("Brand line", footerLayout.GetProperty("brand").GetProperty("tagline").GetString());
+            Assert.Equal("/logo.png", footerLayout.GetProperty("brand").GetProperty("logo_url").GetString());
+            Assert.False(footerLayout.GetProperty("is_published").GetBoolean());
+
+            var odd = await SendAsync(client, path + "?action=load_layout&site_key=platform&page_key=nowhere", null, staff);
+            Assert.Equal("homepage", odd.Json.RootElement.GetProperty("layout").GetProperty("page_key").GetString());
+            var brandLevel = await SendAsync(client, path + "?action=load_layout&site_key=platform&page_key=brand", null, staff);
+            Assert.Equal("brand_only", brandLevel.Json.RootElement.GetProperty("layout").GetProperty("mode").GetString());
+
+            var superCp = await SendAsync(client, path + "?action=load_layout&site_key=shopone&page_key=checkout", null, staff, "ecomae.com");
+            Assert.Equal("Invalid site", superCp.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE epc_portal_tenants (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, site_key VARCHAR(64) NOT NULL, hostname VARCHAR(190) NOT NULL DEFAULT '', is_demo TINYINT(1) NOT NULL DEFAULT 0, erp_only_shared TINYINT(1) NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "INSERT INTO epc_portal_tenants (site_key, hostname, is_demo, erp_only_shared) VALUES ('shopone', 'https://www.Shop-One.example/en/', 0, 0), ('demoone', 'demo.example', 1, 0)");
+            var shop = await SendAsync(client, path + "?action=load_layout&site_key=shopone&page_key=checkout", null, staff, "ecomae.com");
+            Assert.True(shop.Json.RootElement.GetProperty("status").GetBoolean(), shop.Body);
+            Assert.Equal("https://www.shop-one.example/en/shop/cart", shop.Json.RootElement.GetProperty("preview_url").GetString());
+            var demo = await SendAsync(client, path + "?action=load_layout&site_key=demoone&page_key=login", null, staff, "ecomae.com");
+            Assert.Equal("https://www.ecomae.com/en/users/login", demo.Json.RootElement.GetProperty("preview_url").GetString());
+            var parts = await SendAsync(client, path + "?action=load_layout&site_key=epartscart&page_key=product_list", null, staff, "ecomae.com");
+            Assert.Equal("https://www.epartscart.com/en/shop", parts.Json.RootElement.GetProperty("preview_url").GetString());
+            Assert.Equal("2", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM epc_page_builder_layouts"));
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'epc_info_blocks'"));
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    [Fact]
     public async Task MarketingBroadcast_OnThrowawayDatabase_ThenDropped()
     {
         var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");

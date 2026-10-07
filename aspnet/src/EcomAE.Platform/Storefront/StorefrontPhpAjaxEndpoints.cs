@@ -383,6 +383,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpAutoPricePath, ["GET", "POST"], CpAutoPriceAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.CpVisualPageEditorPath, ["GET", "POST"], CpVisualPageEditorAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.MarketingBroadcast, ["GET", "POST"], CpMarketingBroadcastAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.WebTracker, ["GET", "POST"], CpWebTrackerAsync)
@@ -3565,6 +3567,44 @@ public static class StorefrontPhpAjaxEndpoints
                 sources,
                 cancel),
             new StorefrontPhpAjax.CodedJson(500, new StorefrontPhpAjax.OkMessage(false, "Database unavailable"))).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpVisualPageEditorAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var posted = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                posted[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        var query = new Dictionary<string, string>(StringComparer.Ordinal);
+        foreach (var pair in context.Request.Query)
+        {
+            query[pair.Key] = pair.Value.ToString();
+        }
+
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.VisualPageEditorAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                posted,
+                query,
+                context.Request.Host.Host,
+                tenant?.SiteKey,
+                cancel),
+            new StorefrontPhpAjax.FlagBody(false, "Database connection failed")).ConfigureAwait(false);
     }
 
     private static async Task<IResult> CpMarketingBroadcastAsync(
