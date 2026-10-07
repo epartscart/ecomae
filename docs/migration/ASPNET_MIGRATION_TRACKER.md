@@ -187,6 +187,15 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — Cursor owns ERP; journal precision and transfer posting fixed
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75, broader `cp/content` 95 of 110. Weighted headline stays about 20.4%.
+- Release `20261007084903` (`debe2654e`) is live with #1970, #2027, #2028, and #2029. `/health` and `/ready` return 200.
+- GL journals are balanced on their stored two-decimal values. Cash transfers post through `1090 Cash in transit` and no longer raise revenue and expense. Findings and order of work are in `docs/migration/ERP_OWNERSHIP_AUDIT_2026-10-07.md`.
+- Full suite 5139 of 5139. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — storefront ajax writers resolve from services; merge with main is green
 
 Not complete.
