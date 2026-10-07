@@ -93,6 +93,16 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — catalog sync saves UMAPI rows and C110J lists 720 crosses
+
+Not complete.
+
+- Control Panel shop, users, and requests ajax stays 72 of 75. The broader `cp/content` ajax scan stays 95 of 110. Storefront and API ajax stays 109 of 112. Weighted headline stays about 20.4%.
+- `/api/umapi_proxy.php` manufacturers now call the catalog, then `REPLACE` into `epc_umapi_manufacturers`, `epc_umapi_cache`, and `epc_umapi_sync_status`. The next request is served from those rows and does not call the catalog again. A later HTTP 402 leaves the saved Toyota row in place and the status message is `Payment Required`. VIN `1HGBH41JXMN109186` is stored in `epc_umapi_vin_cache` and reused. The key is `config.php` `umapi_api_key`, otherwise the built-in key.
+- A live call to `api.umapi.ru` with that built-in key returned HTTP 402 `App key is not in the access list`. `image.umapi.ru` returned the supplier logo. Homepage grids still answer `[]` on that rejection so the widget does not show an error.
+- Article C110J / JS ASAKASHI returned 720 unique crosses in 22 ms on the throwaway database. The part page seeds the list with the 5000 cap instead of 200. The client script still requests `limit=5000` with crossbase and paints every row.
+- Supplier price upload of 2000 CSV rows finished in 214 ms (about 9309 rows per second). The storefront part search for `BOSCH SPEED0001` returned that offer in 16 ms. `www.epartscart.com` port 443 was refused from this environment, so the timing was measured on the storefront search service, not on the public host.
+
 ### Checkpoint 2026-10-07 — sitemap files use the existing editor
 
 Not complete.

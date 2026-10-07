@@ -1,12 +1,16 @@
 using System.Data.Common;
 using System.Globalization;
 using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Json;
+using EcomAE.Platform.Configuration;
+using EcomAE.Platform.Cp.PriceImport;
 using EcomAE.Platform.Data;
 using EcomAE.Platform.Middleware;
 using EcomAE.Platform.Services;
+using Microsoft.Extensions.Options;
 
 namespace EcomAE.Platform.Storefront;
 
@@ -23,6 +27,33 @@ public static class HomeCatalogWidgets
 
     /// <summary>PHP <c>epc_config_key</c> fallback when config.php has no key.</summary>
     public const string DefaultUmapiKey = "2da16082-e7bc-4bd9-bee2-62b38c79ad8b";
+
+    /// <summary>PHP <c>epc_config_key</c>: config.php <c>umapi_api_key</c>, else the last segment of <c>umapi_api_url</c>, else the built-in key.</summary>
+    public static string ResolveUmapiKey(IReadOnlyDictionary<string, string>? config)
+    {
+        var key = string.Empty;
+        if (config is not null)
+        {
+            if (config.TryGetValue("umapi_api_key", out var configured) && !string.IsNullOrWhiteSpace(configured))
+            {
+                key = configured;
+            }
+            else if (config.TryGetValue("umapi_api_url", out var url) && !string.IsNullOrWhiteSpace(url))
+            {
+                key = url;
+            }
+        }
+
+        key = key.Trim().TrimEnd('/');
+        var slash = key.LastIndexOf('/');
+        if (slash >= 0)
+        {
+            key = key[(slash + 1)..];
+        }
+
+        key = key.Trim();
+        return key.Length == 0 ? DefaultUmapiKey : key;
+    }
 
     private static readonly JsonSerializerOptions Json = new()
     {
@@ -707,16 +738,76 @@ public static class HomeCatalogWidgets
         try
         {
             var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
-            if (action == "suppliers" || action == "brand_parts" || action == "manufacturers" || action == "models" || action == "modifications")
+            var refresh = string.Equals(context.Request.Query["refresh"], "1", StringComparison.Ordinal);
+            if (connections.IsConfigured && action is "status" or "suppliers" or "brand_parts" or "manufacturers" or "models" or "modifications" or "vin")
             {
-                if (connections.IsConfigured)
+                await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                await EnsureUmapiCacheTablesAsync(connection, cancellationToken).ConfigureAwait(false);
+                if (action == "status")
                 {
-                    await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
-                    await EnsureUmapiCacheTablesAsync(connection, cancellationToken).ConfigureAwait(false);
+                    return WriteJson(StatusCodes.Status200OK, await UmapiStatusJsonAsync(connection, cancellationToken).ConfigureAwait(false), noStore: false, cacheSeconds: 60);
+                }
+
+                if (!refresh)
+                {
                     var cached = await TryLocalUmapiAsync(connection, action, section, context, cancellationToken).ConfigureAwait(false);
                     if (cached is not null)
                     {
-                        return WriteJson(StatusCodes.Status200OK, cached, noStore: false, cacheSeconds: action == "suppliers" ? 7200 : 3600);
+                        await LogUmapiAccessAsync(connection, action, section, 200, fromCache: true, isLive: false, "Saved catalog", cancellationToken).ConfigureAwait(false);
+                        return WriteJson(StatusCodes.Status200OK, cached, noStore: false, cacheSeconds: action == "vin" ? 600 : 7200);
+                    }
+                }
+            }
+            else if (action == "status")
+            {
+                return WriteJson(StatusCodes.Status200OK, """{"connected":false,"message":"Database connection unavailable.","last_checked":0,"last_success":0,"counts":{"manufacturers":0,"models":0,"modifications":0,"brands":0}}""", noStore: false, cacheSeconds: 60);
+            }
+
+            if (action == "brand_parts")
+            {
+                return WriteJson(StatusCodes.Status200OK, UmapiMessageBrandPartsEmpty(context.Request.Query["brand"].ToString()), noStore: false, cacheSeconds: 600);
+            }
+
+            if (action is "categories" or "products" or "articles" or "vin" or "manufacturers" or "models" or "modifications" or "suppliers"
+                or "brands" or "analogs" or "article" or "article_links" or "engines" or "engine")
+            {
+                var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
+                if (live is not null && live.Value.Status is >= 200 and < 300)
+                {
+                    var body = live.Value.Body;
+                    if (connections.IsConfigured)
+                    {
+                        try
+                        {
+                            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                            await EnsureUmapiCacheTablesAsync(connection, cancellationToken).ConfigureAwait(false);
+                            await PersistLiveUmapiAsync(connection, action, section, context, live.Value.Status, body, cancellationToken).ConfigureAwait(false);
+                            var saved = await TryLocalUmapiAsync(connection, action, section, context, cancellationToken).ConfigureAwait(false);
+                            if (saved is not null)
+                            {
+                                body = saved;
+                            }
+                        }
+                        catch (DbException)
+                        {
+                            // The live catalog answer still goes back. A later request can save it.
+                        }
+                    }
+
+                    var cache = action == "suppliers" ? 7200 : 3600;
+                    return WriteJson(StatusCodes.Status200OK, body, noStore: false, cacheSeconds: cache);
+                }
+
+                if (connections.IsConfigured)
+                {
+                    try
+                    {
+                        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+                        await EnsureUmapiCacheTablesAsync(connection, cancellationToken).ConfigureAwait(false);
+                        await SaveUmapiSyncStatusAsync(connection, false, live?.Status ?? StatusCodes.Status502BadGateway, UmapiErrorMessage(live?.Body, "Catalog service did not return a saved catalog."), UmapiAppKey(context), cancellationToken).ConfigureAwait(false);
+                    }
+                    catch (DbException)
+                    {
                     }
                 }
 
@@ -731,26 +822,11 @@ public static class HomeCatalogWidgets
                 {
                     return WriteJson(StatusCodes.Status200OK, EmptySuppliersJson(), noStore: false, cacheSeconds: 60);
                 }
-            }
 
-            if (action == "brand_parts")
-            {
-                return WriteJson(StatusCodes.Status200OK, UmapiMessageBrandPartsEmpty(context.Request.Query["brand"].ToString()), noStore: false, cacheSeconds: 600);
-            }
-
-            if (action is "categories" or "products" or "articles" or "vin")
-            {
-                var live = await TryLiveUmapiAsync(httpClientFactory, action, section, context, cancellationToken).ConfigureAwait(false);
                 if (live is not null)
                 {
-                    var cache = live.Value.Status is >= 200 and < 300 ? 3600 : 0;
-                    return WriteJson(live.Value.Status, live.Value.Body, noStore: false, cacheSeconds: cache);
+                    return WriteJson(live.Value.Status, live.Value.Body, noStore: false);
                 }
-            }
-
-            if (action == "status")
-            {
-                return WriteJson(StatusCodes.Status200OK, """{"connected":false,"message":"No Epart catalog check saved yet.","last_checked":0,"last_success":0,"counts":{"manufacturers":0,"models":0,"modifications":0,"brands":0}}""", noStore: false, cacheSeconds: 60);
             }
 
             return WriteJson(StatusCodes.Status502BadGateway, """{"message":"Catalog service did not return a response.","statusCode":502}""", noStore: false);
@@ -780,6 +856,430 @@ public static class HomeCatalogWidgets
         return WriteJson(StatusCodes.Status502BadGateway, """{"message":"Catalog service did not return a response.","statusCode":502}""", noStore: false);
     }
 
+    private static async Task<string> UmapiStatusJsonAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var connected = false;
+        var statusCode = 0;
+        var message = "No Epart catalog check saved yet.";
+        long lastChecked = 0;
+        long lastSuccess = 0;
+        long lastError = 0;
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `connected`, `status_code`, `message`, `last_checked`, `last_success`, `last_error` FROM `epc_umapi_sync_status` WHERE `id` = 1";
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                connected = !reader.IsDBNull(0) && Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture) == 1;
+                statusCode = reader.IsDBNull(1) ? 0 : Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture);
+                message = reader.IsDBNull(2) ? message : reader.GetString(2);
+                lastChecked = reader.IsDBNull(3) ? 0 : Convert.ToInt64(reader.GetValue(3), CultureInfo.InvariantCulture);
+                lastSuccess = reader.IsDBNull(4) ? 0 : Convert.ToInt64(reader.GetValue(4), CultureInfo.InvariantCulture);
+                lastError = reader.IsDBNull(5) ? 0 : Convert.ToInt64(reader.GetValue(5), CultureInfo.InvariantCulture);
+            }
+        }
+        catch (DbException)
+        {
+            message = "No Epart catalog check saved yet.";
+        }
+
+        var manufacturers = await CountUmapiAsync(connection, "SELECT COUNT(*) FROM `epc_umapi_manufacturers`", cancellationToken).ConfigureAwait(false);
+        var models = await CountUmapiAsync(connection, "SELECT COUNT(*) FROM `epc_umapi_models`", cancellationToken).ConfigureAwait(false);
+        var modifications = await CountUmapiAsync(connection, "SELECT COUNT(*) FROM `epc_umapi_modifications`", cancellationToken).ConfigureAwait(false);
+        var brands = await CountUmapiAsync(connection, "SELECT COUNT(*) FROM `epc_umapi_brands`", cancellationToken).ConfigureAwait(false);
+        var cacheRows = await CountUmapiAsync(connection, "SELECT COUNT(*) FROM `epc_umapi_cache`", cancellationToken).ConfigureAwait(false);
+        return JsonSerializer.Serialize(new Dictionary<string, object?>
+        {
+            ["connected"] = connected,
+            ["status_code"] = statusCode,
+            ["message"] = message,
+            ["last_checked"] = lastChecked,
+            ["last_success"] = lastSuccess,
+            ["last_error"] = lastError,
+            ["counts"] = new Dictionary<string, int>
+            {
+                ["manufacturers"] = manufacturers,
+                ["models"] = models,
+                ["modifications"] = modifications,
+                ["brands"] = brands,
+            },
+            ["cache_rows"] = cacheRows,
+            ["offline_ready"] = manufacturers >= 20 || cacheRows >= 5,
+        }, Json);
+    }
+
+    private static async Task<int> CountUmapiAsync(DbConnection connection, string sql, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = sql;
+            var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+            return value is null or DBNull ? 0 : Convert.ToInt32(value, CultureInfo.InvariantCulture);
+        }
+        catch (DbException)
+        {
+            return 0;
+        }
+    }
+
+    private static async Task PersistLiveUmapiAsync(
+        DbConnection connection,
+        string action,
+        string section,
+        HttpContext context,
+        int status,
+        string body,
+        CancellationToken cancellationToken)
+    {
+        JsonDocument? document = null;
+        try
+        {
+            document = JsonDocument.Parse(body);
+        }
+        catch (JsonException)
+        {
+            document = null;
+        }
+
+        using (document)
+        {
+            var items = document is null ? [] : UmapiItems(document.RootElement);
+            var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+            if (action == "manufacturers")
+            {
+                foreach (var item in items)
+                {
+                    var id = UmapiInt(item, "MFA_ID");
+                    if (id <= 0)
+                    {
+                        continue;
+                    }
+
+                    var popularKey = section == "commercial" ? "POPULAR_CV" : section == "motorbike" ? "POPULAR_MTB" : "POPULAR_PC";
+                    await ExecuteUmapiAsync(
+                        connection,
+                        """
+                        REPLACE INTO `epc_umapi_manufacturers`
+                        (`section`, `mfa_id`, `manufacturer`, `manufacturer_ru`, `type`, `country`, `popular`, `is_logo`, `raw_json`, `updated_at`)
+                        VALUES (@section, @id, @name, @nameRu, @type, @country, @popular, @logo, @raw, @now)
+                        """,
+                        cancellationToken,
+                        ("@section", Cut(section, 20)),
+                        ("@id", id),
+                        ("@name", Cut(UmapiText(item, "MANUFACTURER"), 255)),
+                        ("@nameRu", Cut(UmapiText(item, "MANUFACTURER_RU"), 255)),
+                        ("@type", Cut(UmapiText(item, "TYPE"), 255)),
+                        ("@country", Cut(UmapiText(item, "COUNTRY"), 120)),
+                        ("@popular", UmapiFlag(item, popularKey)),
+                        ("@logo", UmapiFlag(item, "IS_LOGO")),
+                        ("@raw", item.GetRawText()),
+                        ("@now", now)).ConfigureAwait(false);
+                }
+            }
+            else if (action == "models")
+            {
+                var mfa = UmapiQueryInt(context, "MFA_ID");
+                foreach (var item in items)
+                {
+                    var id = UmapiInt(item, "MS_ID");
+                    if (id <= 0)
+                    {
+                        continue;
+                    }
+
+                    await ExecuteUmapiAsync(
+                        connection,
+                        """
+                        REPLACE INTO `epc_umapi_models`
+                        (`section`, `mfa_id`, `ms_id`, `model_series`, `year_from`, `year_to`, `raw_json`, `updated_at`)
+                        VALUES (@section, @mfa, @id, @name, @from, @to, @raw, @now)
+                        """,
+                        cancellationToken,
+                        ("@section", Cut(section, 20)),
+                        ("@mfa", mfa),
+                        ("@id", id),
+                        ("@name", Cut(UmapiText(item, "MODEL_SERIES"), 255)),
+                        ("@from", Cut(UmapiText(item, "CI_FROM"), 20)),
+                        ("@to", Cut(UmapiText(item, "CI_TO"), 20)),
+                        ("@raw", item.GetRawText()),
+                        ("@now", now)).ConfigureAwait(false);
+                }
+            }
+            else if (action == "modifications")
+            {
+                var ms = UmapiQueryInt(context, "MS_ID");
+                foreach (var item in items)
+                {
+                    var id = UmapiInt(item, "PC_ID");
+                    if (id <= 0)
+                    {
+                        id = UmapiInt(item, "CV_ID");
+                    }
+
+                    if (id <= 0)
+                    {
+                        id = UmapiInt(item, "MTB_ID");
+                    }
+
+                    if (id <= 0)
+                    {
+                        id = UmapiInt(item, "ID");
+                    }
+
+                    if (id <= 0)
+                    {
+                        continue;
+                    }
+
+                    var title = UmapiText(item, "PASSENGER_CAR");
+                    if (title.Length == 0)
+                    {
+                        title = UmapiText(item, "COMMERCIAL_VEHICLE");
+                    }
+
+                    if (title.Length == 0)
+                    {
+                        title = UmapiText(item, "MOTORBIKE");
+                    }
+
+                    await ExecuteUmapiAsync(
+                        connection,
+                        """
+                        REPLACE INTO `epc_umapi_modifications`
+                        (`section`, `ms_id`, `modification_id`, `title`, `year_from`, `year_to`, `power_kw`, `capacity_lt`, `fuel_type`, `raw_json`, `updated_at`)
+                        VALUES (@section, @ms, @id, @title, @from, @to, @kw, @lt, @fuel, @raw, @now)
+                        """,
+                        cancellationToken,
+                        ("@section", Cut(section, 20)),
+                        ("@ms", ms),
+                        ("@id", id),
+                        ("@title", Cut(title, 255)),
+                        ("@from", Cut(UmapiText(item, "CI_FROM"), 20)),
+                        ("@to", Cut(UmapiText(item, "CI_TO"), 20)),
+                        ("@kw", Cut(UmapiText(item, "POWER_KW"), 50)),
+                        ("@lt", Cut(UmapiText(item, "CAPACITY_LT"), 50)),
+                        ("@fuel", Cut(UmapiText(item, "FUEL_TYPE"), 120)),
+                        ("@raw", item.GetRawText()),
+                        ("@now", now)).ConfigureAwait(false);
+                }
+            }
+            else if (action == "suppliers")
+            {
+                foreach (var item in items)
+                {
+                    var id = UmapiInt(item, "SUP_ID");
+                    if (id <= 0)
+                    {
+                        continue;
+                    }
+
+                    var brand = UmapiText(item, "SUP_BRAND");
+                    if (brand.Length == 0)
+                    {
+                        brand = UmapiText(item, "BRAND");
+                    }
+
+                    if (brand.Length == 0)
+                    {
+                        brand = UmapiText(item, "SUP_FULL_NAME");
+                    }
+
+                    if (brand.Length == 0)
+                    {
+                        continue;
+                    }
+
+                    await ExecuteUmapiAsync(
+                        connection,
+                        """
+                        REPLACE INTO `epc_umapi_brands` (`sup_id`, `brand`, `full_name`, `raw_json`, `updated_at`)
+                        VALUES (@id, @brand, @full, @raw, @now)
+                        """,
+                        cancellationToken,
+                        ("@id", id),
+                        ("@brand", Cut(brand, 255)),
+                        ("@full", Cut(UmapiText(item, "SUP_FULL_NAME"), 255)),
+                        ("@raw", item.GetRawText()),
+                        ("@now", now)).ConfigureAwait(false);
+                }
+            }
+            else if (action == "vin" && document is not null)
+            {
+                await SaveUmapiVinAsync(connection, context, document.RootElement, status, cancellationToken).ConfigureAwait(false);
+            }
+
+            var language = UmapiLanguage(context);
+            var region = UmapiRegion(context);
+            var requestJson = JsonSerializer.Serialize(new Dictionary<string, string>
+            {
+                ["action"] = action,
+                ["section"] = section,
+            }, Json);
+            var rows = items.Count;
+            await ExecuteUmapiAsync(
+                connection,
+                """
+                REPLACE INTO `epc_umapi_cache`
+                (`cache_key`, `action`, `section`, `language`, `region`, `request_json`, `response_json`, `rows_count`, `http_status`, `last_sync`)
+                VALUES (@key, @action, @section, @language, @region, @request, @response, @rows, @status, @now)
+                """,
+                cancellationToken,
+                ("@key", UmapiCacheKey(action, section, language, region, requestJson)),
+                ("@action", Cut(action, 40)),
+                ("@section", Cut(section, 20)),
+                ("@language", language),
+                ("@region", region),
+                ("@request", requestJson),
+                ("@response", body),
+                ("@rows", rows),
+                ("@status", status),
+                ("@now", now)).ConfigureAwait(false);
+            await SaveUmapiSyncStatusAsync(connection, true, status, "Connected", UmapiAppKey(context), cancellationToken).ConfigureAwait(false);
+            await LogUmapiAccessAsync(connection, action, section, status, fromCache: false, isLive: true, "HTTP " + status.ToString(CultureInfo.InvariantCulture), cancellationToken).ConfigureAwait(false);
+        }
+    }
+
+    private static async Task SaveUmapiVinAsync(DbConnection connection, HttpContext context, JsonElement payload, int status, CancellationToken cancellationToken)
+    {
+        var vin = NormalizeArticle(context.Request.Query["vin"].ToString());
+        if (vin.Length is < 11 or > 17)
+        {
+            return;
+        }
+
+        var vehicles = 0;
+        var data = payload.ValueKind == JsonValueKind.Object && payload.TryGetProperty("data", out var inner) && inner.ValueKind == JsonValueKind.Object
+            ? inner
+            : payload;
+        if (data.ValueKind == JsonValueKind.Object && data.TryGetProperty("matchingVehicles", out var matching) && matching.ValueKind == JsonValueKind.Array)
+        {
+            vehicles = matching.GetArrayLength();
+        }
+
+        if (vehicles <= 0)
+        {
+            return;
+        }
+
+        var manufacturer = string.Empty;
+        if (data.TryGetProperty("matchingManufacturers", out var makers) && makers.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var maker in makers.EnumerateArray())
+            {
+                manufacturer = UmapiText(maker, "manuName");
+                if (manufacturer.Length == 0)
+                {
+                    manufacturer = UmapiText(maker, "MANUFACTURER");
+                }
+
+                if (manufacturer.Length > 0)
+                {
+                    break;
+                }
+            }
+        }
+
+        await ExecuteUmapiAsync(
+            connection,
+            """
+            REPLACE INTO `epc_umapi_vin_cache`
+            (`vin`, `language`, `region`, `response_json`, `vehicle_count`, `manufacturer`, `model_label`, `http_status`, `updated_at`)
+            VALUES (@vin, @language, @region, @response, @count, @manufacturer, '', @status, @now)
+            """,
+            cancellationToken,
+            ("@vin", vin),
+            ("@language", UmapiLanguage(context)),
+            ("@region", UmapiRegion(context)),
+            ("@response", payload.GetRawText()),
+            ("@count", vehicles),
+            ("@manufacturer", Cut(manufacturer, 255)),
+            ("@status", status),
+            ("@now", DateTimeOffset.UtcNow.ToUnixTimeSeconds())).ConfigureAwait(false);
+    }
+
+    private static async Task SaveUmapiSyncStatusAsync(DbConnection connection, bool connected, int status, string message, string appKey, CancellationToken cancellationToken)
+    {
+        long lastSuccess = 0;
+        long lastError = 0;
+        try
+        {
+            await using var read = connection.CreateCommand();
+            read.CommandText = "SELECT `last_success`, `last_error` FROM `epc_umapi_sync_status` WHERE `id` = 1";
+            await using var reader = await read.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                lastSuccess = reader.IsDBNull(0) ? 0 : Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
+                lastError = reader.IsDBNull(1) ? 0 : Convert.ToInt64(reader.GetValue(1), CultureInfo.InvariantCulture);
+            }
+        }
+        catch (DbException)
+        {
+        }
+
+        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        if (connected)
+        {
+            lastSuccess = now;
+        }
+        else
+        {
+            lastError = now;
+        }
+
+        var hash = Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(string.IsNullOrWhiteSpace(appKey) ? DefaultUmapiKey : appKey))).ToLowerInvariant();
+        await ExecuteUmapiAsync(
+            connection,
+            """
+            REPLACE INTO `epc_umapi_sync_status`
+            (`id`, `connected`, `status_code`, `message`, `last_checked`, `last_success`, `last_error`, `key_hash`)
+            VALUES (1, @connected, @status, @message, @now, @success, @error, @hash)
+            """,
+            cancellationToken,
+            ("@connected", connected ? 1 : 0),
+            ("@status", status),
+            ("@message", Cut(message, 255)),
+            ("@now", now),
+            ("@success", lastSuccess),
+            ("@error", lastError),
+            ("@hash", hash)).ConfigureAwait(false);
+    }
+
+    private static async Task LogUmapiAccessAsync(
+        DbConnection connection,
+        string action,
+        string section,
+        int status,
+        bool fromCache,
+        bool isLive,
+        string message,
+        CancellationToken cancellationToken)
+    {
+        try
+        {
+            await ExecuteUmapiAsync(
+                connection,
+                """
+                INSERT INTO `epc_umapi_usage_log`
+                (`usage_date`, `created_at`, `action`, `section`, `source`, `request_path`, `http_status`, `from_cache`, `quota_blocked`, `is_live`, `message`, `ip`)
+                VALUES (CURDATE(), @now, @action, @section, 'storefront', @path, @status, @cache, 0, @live, @message, '')
+                """,
+                cancellationToken,
+                ("@now", DateTimeOffset.UtcNow.ToUnixTimeSeconds()),
+                ("@action", Cut(action, 40)),
+                ("@section", Cut(section, 20)),
+                ("@path", Cut("/api/umapi_proxy.php?action=" + action, 255)),
+                ("@status", status),
+                ("@cache", fromCache ? 1 : 0),
+                ("@live", isLive ? 1 : 0),
+                ("@message", Cut(message, 255))).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+        }
+    }
+
     private static async Task EnsureUmapiCacheTablesAsync(DbConnection connection, CancellationToken cancellationToken)
     {
         foreach (var sql in UmapiCacheDdl)
@@ -807,6 +1307,22 @@ public static class HomeCatalogWidgets
         try
         {
             await using var command = connection.CreateCommand();
+            if (action == "vin")
+            {
+                var vin = NormalizeArticle(context.Request.Query["vin"].ToString());
+                command.CommandText = """
+                    SELECT `response_json` FROM `epc_umapi_vin_cache`
+                    WHERE `vin` = @vin AND `language` = @language AND `region` = @region AND `vehicle_count` > 0
+                    LIMIT 1
+                    """;
+                Add(command, "@vin", vin);
+                Add(command, "@language", UmapiLanguage(context));
+                Add(command, "@region", UmapiRegion(context));
+                var savedVin = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                var text = savedVin is string raw ? raw : null;
+                return string.IsNullOrWhiteSpace(text) ? null : text;
+            }
+
             if (action == "manufacturers")
             {
                 command.CommandText = "SELECT `raw_json` FROM `epc_umapi_manufacturers` WHERE `section` = @section ORDER BY `manufacturer` ASC";
@@ -891,6 +1407,11 @@ public static class HomeCatalogWidgets
                 catch (DbException)
                 {
                     // Price table missing. Saved brands still apply; PHP's combined query would have returned null.
+                }
+
+                if (cachedBrands.Count == 0 && stock.Count == 0)
+                {
+                    return null;
                 }
 
                 return SuppliersJson(cachedBrands, stock);
@@ -1032,22 +1553,40 @@ public static class HomeCatalogWidgets
             region = "WWW";
         }
 
+        var catalog = "/v2/autocatalog/" + language + "-" + region;
         var path = action switch
         {
-            "manufacturers" => "/v2/autocatalog/" + language + "-" + region + "/Manufacturers?popular=false&type=PC&type=E-PC&type=LCV&type=E-LCV",
-            "models" => "/v2/autocatalog/" + language + "-" + region + "/ModelSeries?MFA_ID=" + Uri.EscapeDataString(context.Request.Query["MFA_ID"].ToString()) + "&type=PC",
-            "modifications" => "/v2/autocatalog/" + language + "-" + region + "/Passangers?MS_ID=" + Uri.EscapeDataString(context.Request.Query["MS_ID"].ToString()) + "&type=PC",
-            "suppliers" => "/v2/autocatalog/" + language + "-" + region + "/Suppliers?limit=100&offset=0",
-            "vin" => "/v2/autocatalog/" + language + "-" + region + "/Vin/" + Uri.EscapeDataString(context.Request.Query["vin"].ToString()),
+            "manufacturers" => catalog + "/Manufacturers?popular=false&type=PC&type=E-PC&type=LCV&type=E-LCV",
+            "models" => catalog + "/ModelSeries?MFA_ID=" + Uri.EscapeDataString(context.Request.Query["MFA_ID"].ToString()) + "&type=PC",
+            "modifications" => catalog + "/Passangers?MS_ID=" + Uri.EscapeDataString(context.Request.Query["MS_ID"].ToString()) + "&type=PC",
+            "suppliers" => catalog + "/Suppliers?limit=100&offset=0",
+            "vin" => catalog + "/Vin/" + Uri.EscapeDataString(context.Request.Query["vin"].ToString()),
+            "categories" => catalog + "/Categories?ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=PC",
+            "products" => catalog + "/Products?CATEGORY_ID=" + Uri.EscapeDataString(context.Request.Query["CATEGORY_ID"].ToString()) + "&ID=" + Uri.EscapeDataString(context.Request.Query["ID"].ToString()) + "&type=PC",
+            "articles" => catalog + "/Articles?PT_IDS=" + Uri.EscapeDataString(context.Request.Query["PT_IDS"].ToString()) + "&type=PC",
+            "brands" => catalog + "/BrandRefinement/" + Uri.EscapeDataString(context.Request.Query["article"].ToString()),
+            "analogs" => catalog + "/Analogs/" + Uri.EscapeDataString(context.Request.Query["article"].ToString()) + "/" + Uri.EscapeDataString(context.Request.Query["brand"].ToString()),
+            "article" => catalog + "/Article/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
+            "article_links" => catalog + "/ArticleLinks/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
+            "engines" => catalog + "/Engines?MFA_ID=" + Uri.EscapeDataString(context.Request.Query["MFA_ID"].ToString()),
+            "engine" => catalog + "/Engine/" + Uri.EscapeDataString(context.Request.Query["id"].ToString()),
             _ => "",
         };
         if (section == "commercial" && action == "manufacturers")
         {
-            path = "/v2/autocatalog/" + language + "-" + region + "/Manufacturers?popular=false&type=CV&type=Bus&type=E-Bus&type=Tractor";
+            path = catalog + "/Manufacturers?popular=false&type=CV&type=Bus&type=E-Bus&type=Tractor";
         }
         else if (section == "motorbike" && action == "manufacturers")
         {
-            path = "/v2/autocatalog/" + language + "-" + region + "/Manufacturers?popular=false&type=Motorcycle&type=E-Motorcycle";
+            path = catalog + "/Manufacturers?popular=false&type=Motorcycle&type=E-Motorcycle";
+        }
+        else if (section == "commercial" && action == "modifications")
+        {
+            path = catalog + "/CommercialVehicles?MS_ID=" + Uri.EscapeDataString(context.Request.Query["MS_ID"].ToString()) + "&type=CV";
+        }
+        else if (section == "motorbike" && action == "modifications")
+        {
+            path = catalog + "/Motorbikes?MS_ID=" + Uri.EscapeDataString(context.Request.Query["MS_ID"].ToString()) + "&type=Motorcycle";
         }
 
         if (path.Length == 0)
@@ -1061,7 +1600,7 @@ public static class HomeCatalogWidgets
             http.Timeout = TimeSpan.FromSeconds(12);
             using var request = new HttpRequestMessage(HttpMethod.Get, "https://api.umapi.ru" + path);
             request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            request.Headers.TryAddWithoutValidation("X-App-Key", DefaultUmapiKey);
+            request.Headers.TryAddWithoutValidation("X-App-Key", UmapiAppKey(context));
             using var response = await http.SendAsync(request, cancellationToken).ConfigureAwait(false);
             var status = (int)response.StatusCode;
             var body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
@@ -1089,6 +1628,164 @@ public static class HomeCatalogWidgets
         {
             return null;
         }
+    }
+
+    private static List<JsonElement> UmapiItems(JsonElement root)
+    {
+        var items = new List<JsonElement>();
+        if (root.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in root.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.Object)
+                {
+                    items.Add(item);
+                }
+            }
+
+            return items;
+        }
+
+        if (root.ValueKind == JsonValueKind.Object && root.TryGetProperty("data", out var data) && data.ValueKind == JsonValueKind.Array)
+        {
+            foreach (var item in data.EnumerateArray())
+            {
+                if (item.ValueKind == JsonValueKind.Object)
+                {
+                    items.Add(item);
+                }
+            }
+        }
+
+        return items;
+    }
+
+    private static int UmapiInt(JsonElement item, string name)
+    {
+        if (!item.TryGetProperty(name, out var value))
+        {
+            return 0;
+        }
+
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number))
+        {
+            return number;
+        }
+
+        return value.ValueKind == JsonValueKind.String
+            && int.TryParse(value.GetString(), NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed)
+            ? parsed
+            : 0;
+    }
+
+    private static string UmapiText(JsonElement item, string name)
+    {
+        if (!item.TryGetProperty(name, out var value))
+        {
+            return string.Empty;
+        }
+
+        return value.ValueKind switch
+        {
+            JsonValueKind.String => value.GetString() ?? string.Empty,
+            JsonValueKind.Number => value.GetRawText(),
+            JsonValueKind.True => "1",
+            JsonValueKind.False => string.Empty,
+            _ => string.Empty,
+        };
+    }
+
+    private static int UmapiFlag(JsonElement item, string name)
+    {
+        if (!item.TryGetProperty(name, out var value))
+        {
+            return 0;
+        }
+
+        if (value.ValueKind == JsonValueKind.True)
+        {
+            return 1;
+        }
+
+        if (value.ValueKind == JsonValueKind.Number && value.TryGetInt32(out var number))
+        {
+            return number == 0 ? 0 : 1;
+        }
+
+        var text = value.ValueKind == JsonValueKind.String ? value.GetString() : null;
+        return string.IsNullOrWhiteSpace(text) || text is "0" or "false" ? 0 : 1;
+    }
+
+    private static int UmapiQueryInt(HttpContext context, string name)
+        => int.TryParse(context.Request.Query[name], NumberStyles.Integer, CultureInfo.InvariantCulture, out var parsed) ? parsed : 0;
+
+    private static string UmapiAppKey(HttpContext context)
+    {
+        var reference = context.RequestServices.GetService<IOptions<PhpReferenceOptions>>()?.Value ?? new PhpReferenceOptions();
+        return ResolveUmapiKey(CpPhpConfig.Read(reference));
+    }
+
+    private static string UmapiErrorMessage(string? body, string fallback)
+    {
+        if (string.IsNullOrWhiteSpace(body))
+        {
+            return fallback;
+        }
+
+        try
+        {
+            using var document = JsonDocument.Parse(body);
+            if (document.RootElement.TryGetProperty("message", out var message) && message.ValueKind == JsonValueKind.String)
+            {
+                var text = message.GetString();
+                if (!string.IsNullOrWhiteSpace(text))
+                {
+                    return text;
+                }
+            }
+        }
+        catch (JsonException)
+        {
+        }
+
+        return fallback;
+    }
+
+    private static string UmapiLanguage(HttpContext context)
+    {
+        var language = context.Request.Query["language"].ToString().Trim().ToLowerInvariant();
+        return language.Length == 2 ? language : "en";
+    }
+
+    private static string UmapiRegion(HttpContext context)
+    {
+        var region = context.Request.Query["region"].ToString().Trim().ToUpperInvariant();
+        return region.Length == 0 ? "WWW" : Cut(region, 20);
+    }
+
+    private static string UmapiCacheKey(string action, string section, string language, string region, string requestJson)
+        => Convert.ToHexString(SHA1.HashData(Encoding.UTF8.GetBytes(action + "|" + section + "|" + language + "|" + region + "|" + requestJson))).ToLowerInvariant();
+
+    private static string Cut(string? value, int max)
+    {
+        var text = value ?? string.Empty;
+        return text.Length <= max ? text : text[..max];
+    }
+
+    private static async Task ExecuteUmapiAsync(
+        DbConnection connection,
+        string sql,
+        CancellationToken cancellationToken,
+        params (string Name, object Value)[] parameters)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = sql;
+        foreach (var (name, value) in parameters)
+        {
+            Add(command, name, value);
+        }
+
+        await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
     }
 
     private static void Add(DbCommand command, string name, object value)

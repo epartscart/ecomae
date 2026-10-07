@@ -1810,7 +1810,7 @@
         {
             using var crossCts = new CancellationTokenSource(TimeSpan.FromMilliseconds(3500));
             var crossSeed = await Dashboards.BuildStorefrontCrossSearchAsync(
-                _articleInput, _brandInput, 200, crossCts.Token, includeCrossbase: false);
+                _articleInput, _brandInput, LegacySurfaceDashboardSql.StorefrontCrossSearchMax, crossCts.Token, includeCrossbase: false);
             if (crossSeed.References.Count > 0)
             {
                 _crossRefs = crossSeed.References;

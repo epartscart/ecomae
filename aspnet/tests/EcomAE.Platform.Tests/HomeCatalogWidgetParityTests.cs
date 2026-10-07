@@ -103,6 +103,15 @@ public sealed class HomeCatalogWidgetParityTests
     }
 
     [Fact]
+    public void UmapiKey_UsesConfigThenFallback()
+    {
+        Assert.Equal(HomeCatalogWidgets.DefaultUmapiKey, HomeCatalogWidgets.ResolveUmapiKey(null));
+        Assert.Equal(HomeCatalogWidgets.DefaultUmapiKey, HomeCatalogWidgets.ResolveUmapiKey(new Dictionary<string, string>()));
+        Assert.Equal("configured-key", HomeCatalogWidgets.ResolveUmapiKey(new Dictionary<string, string> { ["umapi_api_key"] = "configured-key" }));
+        Assert.Equal("from-url", HomeCatalogWidgets.ResolveUmapiKey(new Dictionary<string, string> { ["umapi_api_url"] = "https://api.umapi.ru/from-url/" }));
+    }
+
+    [Fact]
     public void UmapiImageUrl_MatchesPhp()
     {
         Assert.False(HomeCatalogWidgets.TryUmapiImageUrl("", "1", out _));

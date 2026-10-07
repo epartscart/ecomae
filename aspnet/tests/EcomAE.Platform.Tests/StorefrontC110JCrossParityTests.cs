@@ -24,6 +24,8 @@ public sealed class StorefrontC110JCrossParityTests
             "aspnet/src/EcomAE.Platform/Components/Pages/StorefrontSearchApp.razor"));
         Assert.Contains("fetchCross(800, 20000, false)", text, StringComparison.Ordinal);
         Assert.Contains("fetchCross(5000, 60000, true)", text, StringComparison.Ordinal);
+        Assert.Contains("LegacySurfaceDashboardSql.StorefrontCrossSearchMax, crossCts.Token, includeCrossbase: false", text, StringComparison.Ordinal);
+        Assert.DoesNotContain(", 200, crossCts.Token", text, StringComparison.Ordinal);
         Assert.Contains("opts.showAll ? 5000 : refs.length", text, StringComparison.Ordinal);
         Assert.Contains("Genuine (OE)", text, StringComparison.Ordinal);
         Assert.Contains("Aftermarket", text, StringComparison.Ordinal);
