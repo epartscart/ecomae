@@ -170,6 +170,44 @@ public sealed class ShopOrderProtocolTests
             Assert.Equal("already", (await payments.PayOnPlaceAsync(5, 300)).Code);
         });
 
+    [Fact]
+    public Task OnlinePayment_RunsPhpPayForOrderSideEffects_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
+        {
+            await ExecuteAsync(cs, "INSERT INTO shop_users_accounting (id, user_id, time, income, amount, operation_code, active, order_id, office_id, pay_orders) VALUES (40, 5, 1, 1, 150, 3, 0, 0, 1, '300')");
+            await ExecuteAsync(cs, "INSERT INTO shop_users_accounting (id, user_id, time, income, amount, operation_code, active, order_id, office_id, pay_orders) VALUES (41, 0, 1, 1, 5, 3, 0, 0, 1, '200')");
+            var notify = new RecordingDispatcher();
+            var mailer = new ConfigMailer();
+            var payments = new StorefrontPaymentWriteService(new WriteConnections(cs), new ShopOrderProtocolService(notify, mailer), notify, mailer);
+
+            var result = await payments.NotifyAsync(5, 40, 0, StorefrontPaymentWriteService.DemoToken, "epc_demo");
+            Assert.True(result.Ok);
+            Assert.Equal("1|3|2", await ScalarAsync(cs, "SELECT CONCAT_WS('|', paid, paid_type, status) FROM shop_orders WHERE id = 300"));
+            Assert.Equal(
+                [
+                    "Payment. Amount <b>150.00</b><br/>Paid status: <b>Fully paid</b>|1",
+                    "Payment method: <b>Card online</b>|1",
+                    "Status changed to <b>Paid</b>|1",
+                ],
+                (await ScalarAsync(cs, "SELECT GROUP_CONCAT(CONCAT_WS('|', text, is_robot) ORDER BY id SEPARATOR '~') FROM shop_orders_logs WHERE order_id = 300 AND text NOT LIKE 'WhatsApp%'")).Split('~'));
+            Assert.Equal(["order_pay_to_manager", "order_pay_to_customer", "order_status_to_manager", "order_status_to_customer"], notify.Sent.Select(s => s.Name));
+            Assert.Equal([7, 8], notify.Sent[0].Persons.Select(p => p.UserId));
+            var vars = notify.Sent[1].Vars;
+            Assert.Equal(("300", "150.00", "Fully paid", "150.00", "150", "0"), (vars["order_id"], vars["pay_value"], vars["paid"], vars["order_sum"], vars["paid_sum"], vars["paid_left"]));
+            Assert.Contains("background: #123456;", vars["order_link"], StringComparison.Ordinal);
+            Assert.Contains("href=\"https://www.epartscart.com/shop/orders/order?order_id=300\">Open order</a>", vars["order_link"], StringComparison.Ordinal);
+            Assert.Contains("href=\"https://www.epartscart.com/cp/shop/orders/order?order_id=300\"", notify.Sent[0].Vars["order_link"], StringComparison.Ordinal);
+
+            // A partial guest payment notifies the guest directly and leaves the status alone.
+            notify.Sent.Clear();
+            Assert.True((await payments.NotifyAsync(0, 41, 0, StorefrontPaymentWriteService.DemoToken, "epc_demo")).Ok);
+            Assert.Equal("2|3|1", await ScalarAsync(cs, "SELECT CONCAT_WS('|', paid, paid_type, status) FROM shop_orders WHERE id = 200"));
+            Assert.Equal(["order_pay_to_manager", "order_pay_to_customer"], notify.Sent.Select(s => s.Name));
+            Assert.Equal(StorefrontNotifyPerson.Direct("guest@example.com", "+971 50 999 9999"), Assert.Single(notify.Sent[1].Persons));
+            Assert.Equal(("Part paid", "12.00", "5", "7"), (notify.Sent[1].Vars["paid"], notify.Sent[1].Vars["order_sum"], notify.Sent[1].Vars["paid_sum"], notify.Sent[1].Vars["paid_left"]));
+            Assert.Contains("shop/orders/zakaz-bez-registracii?order_id=200", notify.Sent[1].Vars["order_link"], StringComparison.Ordinal);
+        });
+
     private static async Task WithDatabaseAsync(Func<string, Task> run)
     {
         var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
@@ -226,7 +264,8 @@ public sealed class ShopOrderProtocolTests
         "CREATE TABLE shop_orders_items_statuses_ref (id INT NOT NULL PRIMARY KEY, name VARCHAR(64) NOT NULL, color VARCHAR(16) NOT NULL DEFAULT '', `order` INT NOT NULL, count_flag TINYINT NOT NULL DEFAULT 1, issue_flag TINYINT NOT NULL DEFAULT 0, for_finish TINYINT NOT NULL DEFAULT 0, to_manager_sms TINYINT NOT NULL DEFAULT 1, to_customer_sms TINYINT NOT NULL DEFAULT 1)",
         "CREATE TABLE shop_offices (id INT NOT NULL PRIMARY KEY, users TEXT NULL)",
         "CREATE TABLE shop_accounting_codes (id INT NOT NULL PRIMARY KEY, `key` VARCHAR(64) NOT NULL)",
-        "CREATE TABLE shop_users_accounting (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, time INT NOT NULL, income TINYINT NOT NULL, amount DECIMAL(10,2) NOT NULL, operation_code INT NULL, active TINYINT NOT NULL, order_id INT NOT NULL DEFAULT 0, office_id INT NULL)",
+        "CREATE TABLE shop_users_accounting (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, user_id INT NOT NULL, time INT NOT NULL, income TINYINT NOT NULL, amount DECIMAL(10,2) NOT NULL, operation_code INT NULL, active TINYINT NOT NULL, order_id INT NOT NULL DEFAULT 0, office_id INT NULL, pay_orders VARCHAR(64) NULL)",
+        "CREATE TABLE templates (id INT NOT NULL PRIMARY KEY, is_frontend TINYINT NOT NULL, current TINYINT NOT NULL, data_value TEXT NULL)",
         "CREATE TABLE shop_orders_logs (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, time INT NOT NULL, user_id INT NOT NULL DEFAULT 0, is_manager TINYINT NOT NULL DEFAULT 0, text TEXT NOT NULL, is_robot TINYINT NOT NULL DEFAULT 0)",
         "CREATE TABLE users (user_id INT NOT NULL PRIMARY KEY, email VARCHAR(255) NOT NULL DEFAULT '', phone VARCHAR(64) NOT NULL DEFAULT '')",
         "CREATE TABLE `groups` (id INT NOT NULL PRIMARY KEY, parent INT NOT NULL DEFAULT 0, for_backend TINYINT NOT NULL DEFAULT 0, value VARCHAR(64) NOT NULL DEFAULT '')",
@@ -239,6 +278,8 @@ public sealed class ShopOrderProtocolTests
     [
         """
         INSERT INTO lang_text_strings_translation (str_key, lang_code, value) VALUES
+        ('1316','en','Payment'), ('4366','en','Amount'), ('4529','en','Paid status'), ('3584','en','Fully paid'), ('3515','en','Part paid'),
+        ('4645','en','Payment method'), ('4643','en','Open order'),
         ('pt_place','en','Pay on place'), ('pt_card','en','Card online'), ('pt_balance','en','From balance'),
         ('st_new','en','New'), ('st_paid','en','Paid'), ('st_finish','en','Finished'), ('st_cancel','en','Cancelled'),
         ('it_wait','en','Waiting'), ('it_issue','en','Issued'), ('it_cancel','en','Line cancelled'),
@@ -259,7 +300,8 @@ public sealed class ShopOrderProtocolTests
         "INSERT INTO shop_offices (id, users) VALUES (1, '[\"7\",\"8\"]')",
         "INSERT INTO `groups` (id, parent, for_backend) VALUES (1, 0, 1), (2, 1, 0), (3, 0, 0)",
         "INSERT INTO users_groups_bind (user_id, group_id) VALUES (7, 2), (8, 3)",
-        "INSERT INTO shop_accounting_codes (id, `key`) VALUES (5, '5_refund_from_order_to_balance'), (6, '6_refund_from_balance')",
+        "INSERT INTO shop_accounting_codes (id, `key`) VALUES (1, '1_pay_for_order'), (5, '5_refund_from_order_to_balance'), (6, '6_refund_from_balance')",
+        "INSERT INTO templates (id, is_frontend, current, data_value) VALUES (1, 1, 1, '{\"main_color\":\"#123456\"}')",
         "INSERT INTO users (user_id, email, phone) VALUES (5, 'buyer@example.com', '+971 50-111 1111')",
         "INSERT INTO epc_portal_site_settings (host, hub_name, contact_json) VALUES ('www.epartscart.com', 'Hub', '{\"trade_name\":\"eParts Cart\"}')",
         """
@@ -301,7 +343,7 @@ public sealed class ShopOrderProtocolTests
     private sealed class ConfigMailer : ICpPlatformMailer
     {
         public IReadOnlyDictionary<string, string> ReadConfig()
-            => new Dictionary<string, string> { ["domain_path"] = "https://www.epartscart.com/" };
+            => new Dictionary<string, string> { ["domain_path"] = "https://www.epartscart.com/", ["backend_dir"] = "cp" };
 
         public Task<CpSmsSendOutcome> SendHtmlAsync(string to, string subject, string htmlBody, CancellationToken cancellationToken = default)
             => Task.FromResult(new CpSmsSendOutcome(true, string.Empty));
