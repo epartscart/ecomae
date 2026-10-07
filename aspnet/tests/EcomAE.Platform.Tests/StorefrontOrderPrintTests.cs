@@ -186,7 +186,7 @@ public sealed class StorefrontOrderPrintTests
         }
     }
 
-    private sealed class FixedConnections(string cs) : ITenantDbConnectionFactory
+    internal sealed class FixedConnections(string cs) : ITenantDbConnectionFactory
     {
         public bool IsConfigured => true;
 

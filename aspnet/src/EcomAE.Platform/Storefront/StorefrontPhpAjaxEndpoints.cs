@@ -197,6 +197,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontNotifyDispatcher.SendNotifyPath, ["GET", "POST"], SendNotifyAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapPost(StorefrontPhpAjax.ForgotPasswordSendPath, ForgotPasswordSendAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PayForOrderPath, ["GET", "POST"], PayForOrderAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
@@ -1888,6 +1890,63 @@ public static class StorefrontPhpAjaxEndpoints
             var answer = await dispatcher.SendNotifyHttpAsync(connection, post, config, cancellationToken).ConfigureAwait(false);
             return answer is null ? Results.Text(string.Empty, "text/html; charset=utf-8", statusCode: 500) : Results.Text(answer, json);
         }
+    }
+
+    private static async Task<IResult> ForgotPasswordSendAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var post = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                post[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        var lang = StorefrontReturnsPages.LangHrefSlashAfter(context.Request.Headers.Referer.ToString());
+        var page = lang == "en/" ? "/en/users/forgot_password" : "/users/forgot_password";
+        if (!connections.IsConfigured)
+        {
+            return Results.Redirect(page + "?r=4722");
+        }
+
+        var config = context.RequestServices.GetService<ICpPlatformMailer>()?.ReadConfig() ?? PhpConfig(context);
+        StorefrontPhpAjax.ForgotPasswordOutcome outcome;
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            outcome = await StorefrontPhpAjax.ForgotPasswordSendAsync(
+                connection,
+                context.Request.Cookies["session"],
+                context.Request.Cookies["u_id"],
+                post,
+                context.RequestServices.GetService<IStorefrontNotifyDispatcher>() as StorefrontNotifyDispatcher,
+                config,
+                lang,
+                cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return Results.Redirect(page + "?r=2122");
+        }
+
+        if (outcome.LoggedIn)
+        {
+            return Results.Redirect("/");
+        }
+
+        if (outcome.MessageId is null)
+        {
+            return Results.Redirect(page);
+        }
+
+        return Results.Redirect(page + "?r=" + outcome.MessageId
+            + (outcome.MessageId == StorefrontPhpAjax.ForgotPhoneSent ? "&contact=" + Uri.EscapeDataString(post["forgot_password_contact"]) : string.Empty));
     }
 
     private static async Task<IResult> SmsHandlerAsync(
