@@ -189,6 +189,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.OrderPrintPath, ["GET", "POST"], OrderPrintAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.PayForOrderPath, ["GET", "POST"], PayForOrderAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpSetOrdersViewedPath, ["GET", "POST"], CpSetOrdersViewedAsync)
@@ -1659,6 +1661,44 @@ public static class StorefrontPhpAjaxEndpoints
                 query["status"].ToString(),
                 token).ConfigureAwait(false),
             new StorefrontPhpAjax.RawHttp(StorefrontPhpAjax.NoDbConnect, "application/json;charset=utf-8;"));
+    }
+
+    private static async Task<IResult> PayForOrderAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        var engine = context.RequestServices.GetService<IShopPayForOrderService>()
+            ?? ActivatorUtilities.CreateInstance<ShopPayForOrderService>(context.RequestServices);
+        var query = context.Request.Query;
+        var form = HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType
+            ? await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false)
+            : null;
+        string? Get(string key) => query.TryGetValue(key, out var value) ? value.ToString() : null;
+        var request = new StorefrontPhpAjax.PayForOrderProtocolRequest(
+            Get("initiator"),
+            Get("order_id"),
+            Get("pay_sum"),
+            Get("direct_pay"),
+            Get("code"),
+            Get("csrf_guard_key") ?? (form is not null && form.TryGetValue("csrf_guard_key", out var posted) ? posted.ToString() : null),
+            context.Request.Cookies["session"],
+            context.Request.Cookies["u_id"],
+            context.Request.Cookies["admin_session"],
+            context.Request.Cookies["admin_u_id"],
+            context.Request.Headers.Referer.ToString());
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            async (connection, token) => await StorefrontPhpAjax.PayForOrderProtocolAsync(
+                connection,
+                engine,
+                request,
+                PhpConfig(context),
+                ExpectedTechKey(context),
+                token).ConfigureAwait(false),
+            new StorefrontPhpAjax.RawHttp(JsonSerializer.Serialize(new { status = false, message = "No DB connect" }), "application/json;charset=utf-8;")).ConfigureAwait(false);
     }
 
     private static async Task<IResult> OrderPrintAsync(

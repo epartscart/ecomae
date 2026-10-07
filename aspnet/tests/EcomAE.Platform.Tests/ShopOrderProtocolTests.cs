@@ -1,6 +1,8 @@
 using System.Data.Common;
 using System.Globalization;
+using System.Text.Json;
 using EcomAE.Platform.Cp;
+using EcomAE.Platform.Erp;
 using EcomAE.Platform.Storefront;
 using MySqlConnector;
 using Xunit;
@@ -182,6 +184,12 @@ public sealed class ShopOrderProtocolTests
 
             var result = await payments.NotifyAsync(5, 40, 0, StorefrontPaymentWriteService.DemoToken, "epc_demo");
             Assert.True(result.Ok);
+            Assert.Equal("1", await ScalarAsync(cs, "SELECT active FROM shop_users_accounting WHERE id = 40"));
+            var payBySite = notify.Sent[0];
+            Assert.Equal("pay_by_site", payBySite.Name);
+            Assert.Equal(("40", "150.00"), (payBySite.Vars["operation_id"], payBySite.Vars["amount"]));
+            Assert.Equal([7, 8], payBySite.Persons.Select(p => p.UserId));
+            notify.Sent.RemoveAt(0);
             Assert.Equal("1|3|2", await ScalarAsync(cs, "SELECT CONCAT_WS('|', paid, paid_type, status) FROM shop_orders WHERE id = 300"));
             Assert.Equal(
                 [
@@ -201,12 +209,139 @@ public sealed class ShopOrderProtocolTests
             // A partial guest payment notifies the guest directly and leaves the status alone.
             notify.Sent.Clear();
             Assert.True((await payments.NotifyAsync(0, 41, 0, StorefrontPaymentWriteService.DemoToken, "epc_demo")).Ok);
+            Assert.Equal("pay_by_site", notify.Sent[0].Name);
+            notify.Sent.RemoveAt(0);
             Assert.Equal("2|3|1", await ScalarAsync(cs, "SELECT CONCAT_WS('|', paid, paid_type, status) FROM shop_orders WHERE id = 200"));
             Assert.Equal(["order_pay_to_manager", "order_pay_to_customer"], notify.Sent.Select(s => s.Name));
             Assert.Equal(StorefrontNotifyPerson.Direct("guest@example.com", "+971 50 999 9999"), Assert.Single(notify.Sent[1].Persons));
             Assert.Equal(("Part paid", "12.00", "5", "7"), (notify.Sent[1].Vars["paid"], notify.Sent[1].Vars["order_sum"], notify.Sent[1].Vars["paid_sum"], notify.Sent[1].Vars["paid_left"]));
             Assert.Contains("shop/orders/zakaz-bez-registracii?order_id=200", notify.Sent[1].Vars["order_link"], StringComparison.Ordinal);
         });
+
+    [Fact]
+    public Task PayForOrderProtocol_GatesLikePhp_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
+        {
+            await using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+            var engine = new ShopPayForOrderService();
+
+            Task<string> Run(string? initiator, string? directPay, string? csrf = null, string? code = null, string session = "cs", string user = "5")
+                => PayAsync(connection, engine, new StorefrontPhpAjax.PayForOrderProtocolRequest(initiator, "300", "10", directPay, code, csrf, session, user, null, null, ""), PayConfig());
+
+            Assert.Equal(string.Empty, await Run("2", null));
+            Assert.Equal(string.Empty, await Run("4", "0"));
+            Assert.Equal(string.Empty, await Run("2", "2"));
+            Assert.Equal(string.Empty, await Run("2", ""));
+            Assert.Equal("{\"error\":\"Error! CSRF 1\",\"message\":\"Error! CSRF 1\",\"status\":false}", await Run("2", "0"));
+            Assert.Equal("{\"error\":\"Error! CSRF 3\",\"message\":\"Error! CSRF 3\",\"status\":false}", await Run("2", "0", ""));
+            Assert.Equal("{\"error\":\"Error! CSRF 3.1\",\"message\":\"Error! CSRF 3.1\",\"status\":false}", await Run("2", "0", "ck", session: "nope"));
+            Assert.Equal("{\"error\":\"Error! CSRF 4\",\"message\":\"Error! CSRF 4\",\"status\":false}", await Run("2", "0", "bad"));
+            Assert.Equal("{\"status\":false,\"message\":\"Forbidden\"}", await Run("3", "0", code: "wrong"));
+            Assert.Equal("{\"status\":false,\"message\":\"Forbidden\"}", await Run("2", "0", "ck", user: "8", session: "cs8"));
+            Assert.Equal(
+                "{\"status\":false,\"message\":\"Forbidden\"}",
+                await PayAsync(connection, engine, new StorefrontPhpAjax.PayForOrderProtocolRequest("3", "100", "5", "0", "tech", null, null, null, null, null, null), PayConfig()));
+            Assert.Equal(
+                "{\"status\":false,\"message\":\"Forbidden\"}",
+                await PayAsync(connection, engine, new StorefrontPhpAjax.PayForOrderProtocolRequest("3", "300", "150.01", "0", "tech", null, null, null, null, null, null), PayConfig()));
+            Assert.Equal("1", await ScalarAsync(cs, "SELECT COUNT(*) FROM shop_users_accounting"));
+            Assert.Equal("0", await ScalarAsync(cs, "SELECT COUNT(*) FROM shop_orders_logs"));
+        });
+
+    [Fact]
+    public Task PayForOrderProtocol_CustomerPaysFromBalance_WithPartialAndOverdraftRulesAndAdvanceVat_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
+        {
+            await ExecuteAsync(cs, "INSERT INTO shop_users_accounting (user_id, time, income, amount, operation_code, active, order_id, office_id) VALUES (5, 1, 1, 125, NULL, 1, 0, 1)");
+            await using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+            var notify = new RecordingDispatcher();
+            var engine = new ShopPayForOrderService(notify, new ShopOrderProtocolService(notify, new ConfigMailer()), new ErpAdvanceVatService(new ErpGlPostingService(new ErpVoucherNumberService())));
+
+            Task<string> Pay(string sum, Dictionary<string, string> config)
+                => PayAsync(connection, engine, new StorefrontPhpAjax.PayForOrderProtocolRequest("2", "300", sum, "0", null, "ck", "cs", "5", null, null, "https://www.epartscart.com/shop/orders/order?order_id=300"), config);
+
+            const string forbidden = "{\"status\":false,\"message\":\"Forbidden\"}";
+            Assert.Equal(forbidden, await Pay("50", PayConfig()));
+            Assert.Equal(forbidden, await Pay("50", PayConfig(("partial_payment", "1"), ("partial_payment_min_percent", "50"))));
+            Assert.Equal(forbidden, await Pay("150", PayConfig()));
+            Assert.Equal(forbidden, await Pay("150", PayConfig(("client_overdraft", "1"), ("client_overdraft_value", "20"))));
+            Assert.Equal("0", await ScalarAsync(cs, "SELECT COUNT(*) FROM shop_orders_logs"));
+
+            Assert.Equal("{\"status\":true,\"message\":\"\"}", await Pay("80", PayConfig(("partial_payment", "1"), ("partial_payment_min_percent", "50"))));
+            Assert.Equal("2|2", await ScalarAsync(cs, "SELECT CONCAT_WS('|', paid, paid_type) FROM shop_orders WHERE id = 300"));
+            Assert.Equal(
+                "5|0|80.00|1|1|300|1",
+                await ScalarAsync(cs, "SELECT CONCAT_WS('|', user_id, income, amount, operation_code, active, order_id, office_id) FROM shop_users_accounting WHERE order_id = 300"));
+            Assert.Equal(
+                "Payment. Amount <b>80</b><br/>Paid status: <b>Part paid</b>|5|0|0~Payment method: <b>From balance</b>|5|0|0",
+                await ScalarAsync(cs, "SELECT GROUP_CONCAT(CONCAT_WS('|', text, user_id, is_manager, is_robot) ORDER BY id SEPARATOR '~') FROM shop_orders_logs WHERE order_id = 300"));
+            Assert.Equal(
+                "300|5|80.00|76.19|3.81|5.00",
+                await ScalarAsync(cs, "SELECT CONCAT_WS('|', a.order_id, a.user_id, a.payment_amount, a.amount_ex_vat, a.vat_amount, a.vat_rate) FROM epc_uae_vat_advance a JOIN shop_users_accounting l ON l.id = a.ledger_id WHERE l.order_id = 300"));
+            Assert.Equal(["order_pay_to_manager", "order_pay_to_customer"], notify.Sent.Select(s => s.Name));
+            var vars = notify.Sent[1].Vars;
+            Assert.Equal(("300", "80", "Part paid", "150.00", "80", "70"), (vars["order_id"], vars["pay_value"], vars["paid"], vars["order_sum"], vars["paid_sum"], vars["paid_left"]));
+
+            // The rest of the debt is above the balance (20 left): an unlimited overdraft (value 0) lets it through.
+            notify.Sent.Clear();
+            Assert.Equal("{\"status\":true,\"message\":\"\"}", await Pay("70", PayConfig(("client_overdraft", "1"), ("client_overdraft_value", "0"))));
+            Assert.Equal("1|2|2", await ScalarAsync(cs, "SELECT CONCAT_WS('|', paid, paid_type, status) FROM shop_orders WHERE id = 300"));
+            Assert.Equal(["order_pay_to_manager", "order_pay_to_customer", "order_status_to_manager", "order_status_to_customer"], notify.Sent.Select(s => s.Name));
+            Assert.Equal(forbidden, await Pay("1", PayConfig(("client_overdraft", "1"))));
+        });
+
+    [Fact]
+    public Task PayForOrderProtocol_ManagerDirectPayment_AddsTheIncomeFirst_OnThrowawayDatabase_ThenDropped()
+        => WithDatabaseAsync(async cs =>
+        {
+            await using var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+            var notify = new RecordingDispatcher();
+            var engine = new ShopPayForOrderService(notify, new ShopOrderProtocolService(notify, new ConfigMailer()));
+            const string cp = "https://www.epartscart.com/cp/shop/orders/order?order_id=200";
+
+            Task<string> Pay(string orderId, string directPay, string adminSession, string adminUser, string csrf)
+                => PayAsync(connection, engine, new StorefrontPhpAjax.PayForOrderProtocolRequest("1", orderId, "12", directPay, null, csrf, null, null, adminSession, adminUser, cp), PayConfig());
+
+            Assert.Equal("{\"error\":\"Error! CSRF 4\",\"message\":\"Error! CSRF 4\",\"status\":false}", await Pay("200", "1", "as", "7", "ck"));
+            Assert.Equal("{\"status\":false,\"message\":\"Forbidden\"}", await Pay("200", "1", "as9", "9", "ak9"));
+            Assert.Equal("{\"status\":false,\"message\":\"Forbidden\"}", await Pay("200", "0", "as", "7", "ak"));
+
+            Assert.Equal("{\"status\":true,\"message\":\"\"}", await Pay("200", "1", "as", "7", "ak"));
+            Assert.Equal(
+                "1|12.00|2|200~0|12.00|1|",
+                await ScalarAsync(cs, "SELECT GROUP_CONCAT(CONCAT_WS('|', income, amount, operation_code, IFNULL(pay_orders, '')) ORDER BY id SEPARATOR '~') FROM shop_users_accounting WHERE order_id = 200 OR pay_orders = '200'"));
+            Assert.Equal("1|1|2", await ScalarAsync(cs, "SELECT CONCAT_WS('|', paid, paid_type, status) FROM shop_orders WHERE id = 200"));
+            Assert.Equal(
+                "Payment. Amount <b>12</b><br/>Paid status: <b>Fully paid</b>|7|1|0~Payment method: <b>Pay on place</b>|7|1|0",
+                await ScalarAsync(cs, "SELECT GROUP_CONCAT(CONCAT_WS('|', text, user_id, is_manager, is_robot) ORDER BY id SEPARATOR '~') FROM shop_orders_logs WHERE order_id = 200 AND text NOT LIKE 'Status%' AND text NOT LIKE 'WhatsApp%'"));
+            Assert.Equal(StorefrontNotifyPerson.Direct("guest@example.com", "+971 50 999 9999"), Assert.Single(notify.Sent[1].Persons));
+        });
+
+    private static Dictionary<string, string> PayConfig(params (string Key, string Value)[] extra)
+    {
+        var config = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["domain_path"] = "https://www.epartscart.com/",
+            ["backend_dir"] = "cp",
+            ["partial_payment"] = "",
+            ["client_overdraft"] = "",
+        };
+        foreach (var (key, value) in extra)
+        {
+            config[key] = value;
+        }
+
+        return config;
+    }
+
+    private static async Task<string> PayAsync(DbConnection connection, IShopPayForOrderService engine, StorefrontPhpAjax.PayForOrderProtocolRequest request, Dictionary<string, string> config)
+    {
+        var payload = await StorefrontPhpAjax.PayForOrderProtocolAsync(connection, engine, request, config, "tech", CancellationToken.None);
+        return payload is StorefrontPhpAjax.RawHttp raw ? raw.Body : JsonSerializer.Serialize(payload);
+    }
 
     private static async Task WithDatabaseAsync(Func<string, Task> run)
     {
@@ -255,7 +390,7 @@ public sealed class ShopOrderProtocolTests
 
     private static readonly string[] Schema =
     [
-        "CREATE TABLE shop_orders (id INT NOT NULL PRIMARY KEY, user_id INT NOT NULL DEFAULT 0, status INT NOT NULL DEFAULT 0, paid TINYINT NOT NULL DEFAULT 0, office_id INT NOT NULL DEFAULT 0, email_not_auth VARCHAR(255) NOT NULL DEFAULT '', phone_not_auth VARCHAR(64) NOT NULL DEFAULT '', time INT NOT NULL DEFAULT 0, paid_type INT NOT NULL DEFAULT 0)",
+        "CREATE TABLE shop_orders (id INT NOT NULL PRIMARY KEY, user_id INT NOT NULL DEFAULT 0, successfully_created TINYINT NOT NULL DEFAULT 1, status INT NOT NULL DEFAULT 0, paid TINYINT NOT NULL DEFAULT 0, office_id INT NOT NULL DEFAULT 0, email_not_auth VARCHAR(255) NOT NULL DEFAULT '', phone_not_auth VARCHAR(64) NOT NULL DEFAULT '', time INT NOT NULL DEFAULT 0, paid_type INT NOT NULL DEFAULT 0)",
         "CREATE TABLE shop_orders_paid_type (id INT NOT NULL PRIMARY KEY, name VARCHAR(64) NOT NULL, active TINYINT NOT NULL DEFAULT 1, `order` INT NOT NULL DEFAULT 0)",
         "CREATE TABLE shop_orders_items (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, product_type INT NOT NULL DEFAULT 1, status INT NOT NULL DEFAULT 0, price DECIMAL(10,2) NOT NULL DEFAULT 0, count_need INT NOT NULL DEFAULT 0, t2_manufacturer VARCHAR(64) NOT NULL DEFAULT '', t2_article VARCHAR(64) NOT NULL DEFAULT '', t2_article_show VARCHAR(64) NULL, t2_name VARCHAR(255) NOT NULL DEFAULT '', t2_storage_id INT NOT NULL DEFAULT 0)",
         "CREATE TABLE shop_orders_items_details (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, order_id INT NOT NULL, order_item_id INT NOT NULL, office_id INT NOT NULL DEFAULT 0, storage_id INT NOT NULL DEFAULT 0, storage_record_id INT NOT NULL DEFAULT 0, count_reserved INT NOT NULL DEFAULT 0, count_issued INT NOT NULL DEFAULT 0, count_canceled INT NOT NULL DEFAULT 0, price_purchase DECIMAL(10,2) NOT NULL DEFAULT 0)",
@@ -271,6 +406,7 @@ public sealed class ShopOrderProtocolTests
         "CREATE TABLE `groups` (id INT NOT NULL PRIMARY KEY, parent INT NOT NULL DEFAULT 0, for_backend TINYINT NOT NULL DEFAULT 0, value VARCHAR(64) NOT NULL DEFAULT '')",
         "CREATE TABLE users_groups_bind (user_id INT NOT NULL, group_id INT NOT NULL)",
         "CREATE TABLE lang_text_strings_translation (str_key VARCHAR(64) NOT NULL, lang_code VARCHAR(8) NOT NULL, value TEXT NOT NULL)",
+        "CREATE TABLE sessions (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL DEFAULT 0, csrf_guard_key VARCHAR(64) NOT NULL DEFAULT '')",
         "CREATE TABLE epc_portal_site_settings (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, host VARCHAR(255) NOT NULL, hub_name VARCHAR(120) NOT NULL DEFAULT '', contact_json TEXT NULL)",
     ];
 
@@ -300,7 +436,8 @@ public sealed class ShopOrderProtocolTests
         "INSERT INTO shop_offices (id, users) VALUES (1, '[\"7\",\"8\"]')",
         "INSERT INTO `groups` (id, parent, for_backend) VALUES (1, 0, 1), (2, 1, 0), (3, 0, 0)",
         "INSERT INTO users_groups_bind (user_id, group_id) VALUES (7, 2), (8, 3)",
-        "INSERT INTO shop_accounting_codes (id, `key`) VALUES (1, '1_pay_for_order'), (5, '5_refund_from_order_to_balance'), (6, '6_refund_from_balance')",
+        "INSERT INTO sessions (session, user_id, type, csrf_guard_key) VALUES ('cs', 5, 0, 'ck'), ('cs8', 8, 0, 'ck'), ('as', 7, 1, 'ak'), ('as9', 9, 1, 'ak9')",
+        "INSERT INTO shop_accounting_codes (id, `key`) VALUES (1, '1_pay_for_order'), (2, '2_income_for_direct_pay'), (5, '5_refund_from_order_to_balance'), (6, '6_refund_from_balance')",
         "INSERT INTO templates (id, is_frontend, current, data_value) VALUES (1, 1, 1, '{\"main_color\":\"#123456\"}')",
         "INSERT INTO users (user_id, email, phone) VALUES (5, 'buyer@example.com', '+971 50-111 1111')",
         "INSERT INTO epc_portal_site_settings (host, hub_name, contact_json) VALUES ('www.epartscart.com', 'Hub', '{\"trade_name\":\"eParts Cart\"}')",

@@ -33,6 +33,19 @@ public interface IErpAdvanceVatService
         long paymentTime,
         CancellationToken cancellationToken = default);
 
+    /// <summary>
+    /// PHP <c>epc_uae_vat_record_advance_on_payment</c> for a <c>1_pay_for_order</c> ledger row, on the caller's
+    /// transaction. Schema must already be ensured (DDL would commit the transaction). Returns 0 when not applicable.
+    /// </summary>
+    Task<long> RecordOrderPaymentAdvanceAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        long ledgerId,
+        long orderId,
+        decimal paymentAmount,
+        long paymentTime,
+        CancellationToken cancellationToken = default);
+
     /// <summary>PHP <c>epc_uae_vat_record_supplier_advance_on_payment</c>. Returns 0 when not applicable.</summary>
     Task<long> RecordSupplierAdvanceAsync(
         DbConnection connection,
@@ -137,21 +150,97 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
         await SeedCoaAsync(connection, cancellationToken).ConfigureAwait(false);
     }
 
-    public async Task<ErpAdvanceVatSplit> SplitInclusiveAsync(
+    public Task<ErpAdvanceVatSplit> SplitInclusiveAsync(
         DbConnection connection,
         decimal amountInclusive,
         CancellationToken cancellationToken = default)
+        => SplitInclusiveAsync(connection, null, amountInclusive, cancellationToken);
+
+    private static async Task<ErpAdvanceVatSplit> SplitInclusiveAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        decimal amountInclusive,
+        CancellationToken cancellationToken)
     {
         ArgumentNullException.ThrowIfNull(connection);
         var amount = ErpTaxAmountCalculator.Round2(decimal.Max(0m, amountInclusive));
-        if (amount <= 0m || !await SalesVatEnabledAsync(connection, cancellationToken).ConfigureAwait(false))
+        if (amount <= 0m || !await SalesVatEnabledAsync(connection, transaction, cancellationToken).ConfigureAwait(false))
         {
             return new ErpAdvanceVatSplit(amount, 0m, 0m);
         }
 
-        var rate = await VatRatePercentAsync(connection, cancellationToken).ConfigureAwait(false);
+        var rate = await VatRatePercentAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
         var ex = ErpTaxAmountCalculator.Round2(amount / (1m + (rate / 100m)));
         return new ErpAdvanceVatSplit(ex, ErpTaxAmountCalculator.Round2(amount - ex), rate);
+    }
+
+    public async Task<long> RecordOrderPaymentAdvanceAsync(
+        DbConnection connection,
+        DbTransaction? transaction,
+        long ledgerId,
+        long orderId,
+        decimal paymentAmount,
+        long paymentTime,
+        CancellationToken cancellationToken = default)
+    {
+        ArgumentNullException.ThrowIfNull(connection);
+        if (!await AdvanceVatEnabledAsync(connection, transaction, cancellationToken).ConfigureAwait(false)
+            || ledgerId <= 0 || orderId <= 0 || paymentAmount <= 0m)
+        {
+            return 0L;
+        }
+
+        if (!await SalesVatEnabledAsync(connection, transaction, cancellationToken).ConfigureAwait(false))
+        {
+            return 0L;
+        }
+
+        var duplicate = await ErpDb.LongAsync(
+            connection,
+            transaction,
+            ErpDb.Positional("SELECT `id` FROM `epc_uae_vat_advance` WHERE `ledger_id` = ? LIMIT 1"),
+            cancellationToken,
+            ledgerId).ConfigureAwait(false);
+        if (duplicate > 0)
+        {
+            return 0L;
+        }
+
+        var userId = await ErpDb.LongAsync(
+            connection,
+            transaction,
+            ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id` = ? AND `successfully_created` = 1 LIMIT 1"),
+            cancellationToken,
+            orderId).ConfigureAwait(false);
+        if (userId <= 0)
+        {
+            return 0L;
+        }
+
+        var split = await SplitInclusiveAsync(connection, transaction, paymentAmount, cancellationToken).ConfigureAwait(false);
+        if (split.VatAmount <= 0m)
+        {
+            return 0L;
+        }
+
+        var now = paymentTime > 0 ? paymentTime : DateTimeOffset.UtcNow.ToUnixTimeSeconds();
+        await ErpDb.ExecuteAsync(
+            connection,
+            transaction,
+            ErpDb.Positional(
+                "INSERT INTO `epc_uae_vat_advance` (`order_id`, `user_id`, `ledger_id`, `payment_amount`, `amount_ex_vat`,"
+                + " `vat_amount`, `vat_rate`, `payment_time`, `time_created`) VALUES (?,?,?,?,?,?,?,?,?)"),
+            cancellationToken,
+            orderId,
+            userId,
+            ledgerId,
+            ErpTaxAmountCalculator.Round2(paymentAmount),
+            split.AmountExVat,
+            split.VatAmount,
+            split.VatRate,
+            now,
+            now).ConfigureAwait(false);
+        return await ErpDb.LastInsertIdAsync(connection, transaction, cancellationToken).ConfigureAwait(false);
     }
 
     public async Task<long> RecordCustomerAdvanceAsync(
@@ -172,8 +261,8 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
             return 0L;
         }
 
-        if (!await AdvanceVatEnabledAsync(connection, cancellationToken).ConfigureAwait(false)
-            || !await SalesVatEnabledAsync(connection, cancellationToken).ConfigureAwait(false))
+        if (!await AdvanceVatEnabledAsync(connection, null, cancellationToken).ConfigureAwait(false)
+            || !await SalesVatEnabledAsync(connection, null, cancellationToken).ConfigureAwait(false))
         {
             return 0L;
         }
@@ -536,27 +625,27 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
     }
 
     /// <summary>PHP <c>epc_uae_vat_on_advance_enabled</c>.</summary>
-    private static async Task<bool> AdvanceVatEnabledAsync(DbConnection connection, CancellationToken cancellationToken)
-        => Truthy(await SettingAsync(connection, "vat_on_advance_enabled", "1", cancellationToken).ConfigureAwait(false));
+    private static async Task<bool> AdvanceVatEnabledAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
+        => Truthy(await SettingAsync(connection, transaction, "vat_on_advance_enabled", "1", cancellationToken).ConfigureAwait(false));
 
     /// <summary>PHP <c>epc_uae_vat_sales_enabled</c>: tenant registered in the UAE and VAT-registered.</summary>
-    private static async Task<bool> SalesVatEnabledAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<bool> SalesVatEnabledAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
-        if (!Truthy(await SettingAsync(connection, "vat_uae_sales_only", "1", cancellationToken).ConfigureAwait(false)))
+        if (!Truthy(await SettingAsync(connection, transaction, "vat_uae_sales_only", "1", cancellationToken).ConfigureAwait(false)))
         {
             return false;
         }
 
-        var country = (await SettingAsync(connection, "company_country_code", "AE", cancellationToken).ConfigureAwait(false))
+        var country = (await SettingAsync(connection, transaction, "company_country_code", "AE", cancellationToken).ConfigureAwait(false))
             .Trim()
             .ToUpperInvariant();
-        var vatRegistered = Truthy(await SettingAsync(connection, "company_vat_registered", "1", cancellationToken).ConfigureAwait(false));
+        var vatRegistered = Truthy(await SettingAsync(connection, transaction, "company_vat_registered", "1", cancellationToken).ConfigureAwait(false));
         return vatRegistered && country is "AE" or "ARE" or "UAE";
     }
 
-    private static async Task<decimal> VatRatePercentAsync(DbConnection connection, CancellationToken cancellationToken)
+    private static async Task<decimal> VatRatePercentAsync(DbConnection connection, DbTransaction? transaction, CancellationToken cancellationToken)
     {
-        var raw = await SettingAsync(connection, "vat_percent", "5.00", cancellationToken).ConfigureAwait(false);
+        var raw = await SettingAsync(connection, transaction, "vat_percent", "5.00", cancellationToken).ConfigureAwait(false);
         return decimal.TryParse(raw, NumberStyles.Float, CultureInfo.InvariantCulture, out var parsed)
             ? decimal.Round(decimal.Clamp(parsed, 0m, 100m), 2, MidpointRounding.AwayFromZero)
             : 5m;
@@ -571,6 +660,7 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
 
     private static async Task<string> SettingAsync(
         DbConnection connection,
+        DbTransaction? transaction,
         string key,
         string fallback,
         CancellationToken cancellationToken)
@@ -579,7 +669,7 @@ public sealed class ErpAdvanceVatService : IErpAdvanceVatService
         {
             var value = await ErpDb.StringAsync(
                 connection,
-                null,
+                transaction,
                 ErpDb.Positional("SELECT `setting_value` FROM `epc_price_settings` WHERE `setting_key` = ? LIMIT 1"),
                 cancellationToken,
                 key).ConfigureAwait(false);

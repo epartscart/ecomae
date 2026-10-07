@@ -4,8 +4,9 @@ using EcomAE.Platform.Erp;
 namespace EcomAE.Platform.Storefront;
 
 /// <summary>
-/// Live twins of PHP <c>ajax_create_operation.php</c>, demo <c>go_to_pay</c>,
-/// <c>notification.php</c>, and <c>protocol/pay_for_order.php</c> (initiator=3).
+/// Live twins of PHP <c>ajax_create_operation.php</c>, demo <c>go_to_pay</c> and the shared gateway
+/// <c>notification.php</c> (activate the operation, <c>pay_notify.php</c>, then <c>protocol/pay_for_order.php</c>
+/// with initiator=3 through <see cref="IShopPayForOrderService"/>).
 /// Card-capture acquirer APIs stay unconfigured the same way PHP demo stubs are.
 /// </summary>
 public interface IStorefrontPaymentWriteService
@@ -64,17 +65,23 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
     private readonly IShopOrderProtocolService? _protocol;
     private readonly IStorefrontNotifyDispatcher? _notify;
     private readonly EcomAE.Platform.Cp.ICpPlatformMailer? _mailer;
+    private readonly IErpAdvanceVatService? _advanceVat;
+    private IShopPayForOrderService? _payForOrder;
 
     public StorefrontPaymentWriteService(
         IErpWriteConnectionFactory connections,
         IShopOrderProtocolService? protocol = null,
         IStorefrontNotifyDispatcher? notify = null,
-        EcomAE.Platform.Cp.ICpPlatformMailer? mailer = null)
+        EcomAE.Platform.Cp.ICpPlatformMailer? mailer = null,
+        IShopPayForOrderService? payForOrder = null,
+        IErpAdvanceVatService? advanceVat = null)
     {
         _connections = connections;
         _protocol = protocol;
         _notify = notify;
         _mailer = mailer;
+        _payForOrder = payForOrder;
+        _advanceVat = advanceVat;
     }
 
     public async Task<StorefrontPaymentWriteResult> CreateOperationAsync(
@@ -351,340 +358,146 @@ public sealed class StorefrontPaymentWriteService : IStorefrontPaymentWriteServi
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var translator = new StorefrontPhpTranslator(connection);
-        var strings = new Dictionary<int, string>();
-        foreach (var key in new[] { 1316, 4366, 4529, 3584, 3515 })
+        var pending = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT COUNT(*) FROM `shop_users_accounting` WHERE `id` = ? AND `active` = 0;"),
+            cancellationToken,
+            operationId).ConfigureAwait(false);
+        if (pending != 1)
         {
-            strings[key] = await translator.TextAsync(key, cancellationToken).ConfigureAwait(false);
+            return Fail("forbidden", "Forbidden");
         }
 
-        PayApplied? applied = null;
-        await using var tx = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        try
+        var opUser = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `user_id` FROM `shop_users_accounting` WHERE `id`=?"),
+            cancellationToken,
+            operationId).ConfigureAwait(false);
+        if (userId > 0 && opUser != userId)
         {
-            var pending = await ErpDb.LongAsync(
-                connection,
-                tx,
-                ErpDb.Positional("SELECT COUNT(*) FROM `shop_users_accounting` WHERE `id`=? AND `active`=0"),
-                cancellationToken,
-                operationId).ConfigureAwait(false);
-            if (pending != 1)
-            {
-                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return Fail("forbidden", "Forbidden");
-            }
-
-            var opUser = await ErpDb.LongAsync(
-                connection,
-                tx,
-                ErpDb.Positional("SELECT `user_id` FROM `shop_users_accounting` WHERE `id`=?"),
-                cancellationToken,
-                operationId).ConfigureAwait(false);
-            if (userId > 0 && opUser != userId)
-            {
-                await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                return Fail("forbidden", "Forbidden");
-            }
-
-            var opAmount = await ErpDb.DecimalAsync(
-                connection,
-                tx,
-                ErpDb.Positional("SELECT `amount` FROM `shop_users_accounting` WHERE `id`=?"),
-                cancellationToken,
-                operationId).ConfigureAwait(false);
-            var applySum = sum > 0 ? sum : opAmount;
-            await ErpDb.ExecuteAsync(
-                connection,
-                tx,
-                ErpDb.Positional("UPDATE `shop_users_accounting` SET `active`=1 WHERE `id`=?"),
-                cancellationToken,
-                operationId).ConfigureAwait(false);
-
-            var payOrders = await ErpDb.StringAsync(
-                connection,
-                tx,
-                ErpDb.Positional("SELECT `pay_orders` FROM `shop_users_accounting` WHERE `id`=?"),
-                cancellationToken,
-                operationId).ConfigureAwait(false) ?? "";
-            if (long.TryParse(payOrders, NumberStyles.Integer, CultureInfo.InvariantCulture, out var orderId) && orderId > 0)
-            {
-                var (result, done) = await ApplyPayForOrderAsync(connection, tx, orderId, applySum, strings, cancellationToken).ConfigureAwait(false);
-                if (!result.Ok)
-                {
-                    await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
-                    return result;
-                }
-
-                applied = done;
-            }
-
-            await tx.CommitAsync(cancellationToken).ConfigureAwait(false);
-        }
-        catch
-        {
-            await tx.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            throw;
+            return Fail("forbidden", "Forbidden");
         }
 
-        if (applied is not null)
-        {
-            await AfterPayForOrderAsync(connection, translator, applied, cancellationToken).ConfigureAwait(false);
-        }
+        var opAmount = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `amount` FROM `shop_users_accounting` WHERE `id`=?"),
+            cancellationToken,
+            operationId).ConfigureAwait(false) ?? "0";
+        var amount = sum > 0 ? StorefrontOrderNotificationService.PhpFloat(sum) : opAmount;
 
-        return new StorefrontPaymentWriteResult(true, "ok", "Payment applied", operationId, SanitizeHandler(handler), 1);
-    }
-
-    /// <summary>What PHP pay_for_order.php still needs after the commit.</summary>
-    private sealed record PayApplied(long OrderId, long UserId, long OfficeId, decimal PaySum, decimal OrderSum, decimal PaidLeftNew, int NewPaid, string NewPaidText);
-
-    /// <summary>
-    /// PHP pay_for_order.php after <c>commit()</c> for <c>initiator=3</c> (payment system): <c>paid_type=3</c> with its
-    /// log line, <c>order_pay_to_manager</c> (raw office <c>users</c> list) and <c>order_pay_to_customer</c>, then the
-    /// robot status protocol to the <c>for_paid</c> status once the order is fully paid. Failures are not reported, like PHP.
-    /// </summary>
-    private async Task AfterPayForOrderAsync(System.Data.Common.DbConnection connection, StorefrontPhpTranslator translator, PayApplied pay, CancellationToken cancellationToken)
-    {
-        try
-        {
-            var cardName = await ErpDb.StringAsync(
-                connection,
-                null,
-                ErpDb.Positional("SELECT `name` FROM `shop_orders_paid_type` WHERE `id` = 3 AND `active` = 1 LIMIT 1"),
-                cancellationToken).ConfigureAwait(false);
-            await ErpDb.ExecuteAsync(connection, null, ErpDb.Positional("UPDATE `shop_orders` SET `paid_type` = 3 WHERE `id` = ?"), cancellationToken, pay.OrderId)
-                .ConfigureAwait(false);
-            await ErpDb.ExecuteAsync(
-                connection,
-                null,
-                ErpDb.Positional("INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`, `is_robot`) VALUES (?, ?, ?, ?, ?, ?)"),
-                cancellationToken,
-                pay.OrderId,
-                DateTimeOffset.UtcNow.ToUnixTimeSeconds(),
-                0,
-                0,
-                await translator.TextAsync(4645, cancellationToken).ConfigureAwait(false) + ": <b>"
-                    + (cardName is null ? string.Empty : await translator.TextAsync(cardName, cancellationToken).ConfigureAwait(false)) + "</b>",
-                1).ConfigureAwait(false);
-        }
-        catch (System.Data.Common.DbException)
-        {
-        }
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional("UPDATE `shop_users_accounting` SET `active` = 1 WHERE `id` = ?;"),
+            cancellationToken,
+            operationId).ConfigureAwait(false);
+        var writes = 1;
 
         if (_notify is not null)
         {
             try
             {
-                await NotifyPaymentAsync(connection, translator, pay, cancellationToken).ConfigureAwait(false);
+                await PayBySiteAsync(connection, operationId, amount, cancellationToken).ConfigureAwait(false);
             }
             catch (System.Data.Common.DbException)
             {
             }
         }
 
-        if (pay.NewPaid == 1 && _protocol is not null)
+        var message = "Payment applied";
+        var payOrders = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `pay_orders` FROM `shop_users_accounting` WHERE `id` = ?;"),
+            cancellationToken,
+            operationId).ConfigureAwait(false) ?? string.Empty;
+        if (payOrders.Length > 0)
+        {
+            var config = ShopPayForOrderConfig.From(_mailer?.ReadConfig() ?? new Dictionary<string, string>());
+            var paid = await PayForOrder.PayAsync(
+                connection,
+                new ShopPayForOrderRequest(ShopPayForOrderService.InitiatorPaymentSystem, payOrders, amount, "0", 0, 0, true, config),
+                cancellationToken).ConfigureAwait(false);
+            if (paid.Status)
+            {
+                writes++;
+            }
+            else
+            {
+                message = "Payment credited to the balance; the order was not paid: " + paid.Message;
+            }
+        }
+
+        return new StorefrontPaymentWriteResult(true, "ok", message, operationId, SanitizeHandler(handler), writes);
+    }
+
+    private IShopPayForOrderService PayForOrder
+        => _payForOrder ??= new ShopPayForOrderService(_notify, _protocol, _advanceVat);
+
+    /// <summary>
+    /// PHP <c>finance/pay_notify.php</c>: <c>pay_by_site</c> to the managers of the operation's office, or of every
+    /// office when the operation has none, each manager once.
+    /// </summary>
+    private async Task PayBySiteAsync(System.Data.Common.DbConnection connection, long operationId, string amount, CancellationToken cancellationToken)
+    {
+        var officeId = await ErpDb.LongAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `office_id` FROM `shop_users_accounting` WHERE `id` = ?;"),
+            cancellationToken,
+            operationId).ConfigureAwait(false);
+        var usersLists = new List<string>();
+        await using (var command = connection.CreateCommand())
+        {
+            command.CommandText = ErpDb.Positional("SELECT `users` FROM `shop_offices` " + (officeId > 0 ? " WHERE `id` = ? " : string.Empty) + ";");
+            if (officeId > 0)
+            {
+                ErpDb.AddParameters(command, officeId);
+            }
+
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                usersLists.Add(reader.IsDBNull(0) ? string.Empty : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? string.Empty);
+            }
+        }
+
+        var seen = new HashSet<int>();
+        var persons = new List<StorefrontNotifyPerson>();
+        foreach (var users in usersLists)
         {
             try
             {
-                var forPaid = await ErpDb.LongAsync(
-                    connection,
-                    null,
-                    "SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_paid` = 1 LIMIT 1",
-                    cancellationToken).ConfigureAwait(false);
-                if (forPaid > 0)
-                {
-                    await _protocol.SetOrderStatusAsync(connection, [pay.OrderId], forPaid, ShopProtocolActor.Robot, cancellationToken).ConfigureAwait(false);
-                }
-            }
-            catch (System.Data.Common.DbException)
-            {
-            }
-        }
-    }
-
-    private async Task NotifyPaymentAsync(System.Data.Common.DbConnection connection, StorefrontPhpTranslator translator, PayApplied pay, CancellationToken cancellationToken)
-    {
-        var config = _mailer?.ReadConfig() ?? new Dictionary<string, string>();
-        var domain = config.TryGetValue("domain_path", out var d) ? d : string.Empty;
-        var backend = config.TryGetValue("backend_dir", out var b) ? b : string.Empty;
-        var color = "#799658";
-        try
-        {
-            var raw = await ErpDb.StringAsync(connection, null, "SELECT `data_value` FROM `templates` WHERE `is_frontend` = 1 AND `current` = 1 LIMIT 1", cancellationToken)
-                .ConfigureAwait(false);
-            if (!string.IsNullOrWhiteSpace(raw))
-            {
-                using var doc = System.Text.Json.JsonDocument.Parse(raw);
-                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Object
-                    && doc.RootElement.TryGetProperty("main_color", out var main)
-                    && main.ValueKind == System.Text.Json.JsonValueKind.String
-                    && !string.IsNullOrEmpty(main.GetString())
-                    && main.GetString() != "0")
-                {
-                    color = main.GetString()!;
-                }
-            }
-        }
-        catch (Exception ex) when (ex is System.Data.Common.DbException or System.Text.Json.JsonException)
-        {
-        }
-
-        var linkText = await translator.TextAsync(4643, cancellationToken).ConfigureAwait(false);
-        string Link(string href)
-            => "<div style=\"margin-top:10px;\"><a style=\"background: " + color
-                + "; color: #fff; text-decoration: none; padding: 7px 13px; font-size: 16px; border-radius: 5px; display: inline-block;\" target=\"_blank\" href=\""
-                + href + "\">" + linkText + "</a></div>";
-
-        var id = pay.OrderId.ToString(CultureInfo.InvariantCulture);
-        Dictionary<string, string> Vars(string link) => new(StringComparer.Ordinal)
-        {
-            ["order_id"] = id,
-            ["pay_value"] = pay.PaySum.ToString(CultureInfo.InvariantCulture),
-            ["paid"] = pay.NewPaidText,
-            ["order_sum"] = pay.OrderSum.ToString(CultureInfo.InvariantCulture),
-            ["paid_sum"] = ShopOrderProtocolService.PhpFloat(pay.OrderSum - pay.PaidLeftNew),
-            ["paid_left"] = ShopOrderProtocolService.PhpFloat(pay.PaidLeftNew),
-            ["order_link"] = link,
-        };
-
-        var managers = new List<StorefrontNotifyPerson>();
-        var users = await ErpDb.StringAsync(connection, null, ErpDb.Positional("SELECT `users` FROM `shop_offices` WHERE `id` = ?"), cancellationToken, pay.OfficeId)
-            .ConfigureAwait(false);
-        try
-        {
-            if (!string.IsNullOrWhiteSpace(users))
-            {
                 using var doc = System.Text.Json.JsonDocument.Parse(users);
-                if (doc.RootElement.ValueKind == System.Text.Json.JsonValueKind.Array)
+                if (doc.RootElement.ValueKind != System.Text.Json.JsonValueKind.Array)
                 {
-                    foreach (var element in doc.RootElement.EnumerateArray())
+                    continue;
+                }
+
+                foreach (var element in doc.RootElement.EnumerateArray())
+                {
+                    var raw = element.ValueKind == System.Text.Json.JsonValueKind.String ? element.GetString() : element.GetRawText();
+                    var uid = (int)ShopPayForOrderService.PhpIntCast(raw);
+                    if (seen.Add(uid))
                     {
-                        var raw = element.ValueKind == System.Text.Json.JsonValueKind.String ? element.GetString() : element.GetRawText();
-                        _ = int.TryParse(new string((raw ?? string.Empty).Trim().TakeWhile(char.IsAsciiDigit).ToArray()), NumberStyles.Integer, CultureInfo.InvariantCulture, out var uid);
-                        managers.Add(StorefrontNotifyPerson.User(uid));
+                        persons.Add(StorefrontNotifyPerson.User(uid));
                     }
                 }
             }
+            catch (System.Text.Json.JsonException)
+            {
+            }
         }
-        catch (System.Text.Json.JsonException)
+
+        var vars = new Dictionary<string, string>(StringComparer.Ordinal)
         {
-        }
-
-        await _notify!.SendAsync(connection, "order_pay_to_manager", Vars(Link(domain + backend + "/shop/orders/order?order_id=" + id)), managers, cancellationToken)
-            .ConfigureAwait(false);
-
-        var guest = await ErpDb.StringAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT CONCAT(IFNULL(`email_not_auth`, ''), CHAR(1), IFNULL(`phone_not_auth`, '')) FROM `shop_orders` WHERE `id` = ?"),
-            cancellationToken,
-            pay.OrderId).ConfigureAwait(false) ?? "\u0001";
-        var parts = guest.Split('\u0001');
-        StorefrontNotifyPerson customer = pay.UserId > 0
-            ? StorefrontNotifyPerson.User((int)pay.UserId)
-            : StorefrontNotifyPerson.Direct(parts[0], parts.Length > 1 ? parts[1] : string.Empty);
-        var customerLink = Link(domain + (pay.UserId > 0 ? "shop/orders/order?order_id=" : "shop/orders/zakaz-bez-registracii?order_id=") + id);
-        await _notify.SendAsync(connection, "order_pay_to_customer", Vars(customerLink), [customer], cancellationToken).ConfigureAwait(false);
-    }
-
-    private static async Task<(StorefrontPaymentWriteResult Result, PayApplied? Applied)> ApplyPayForOrderAsync(
-        System.Data.Common.DbConnection connection,
-        System.Data.Common.DbTransaction tx,
-        long orderId,
-        decimal paySum,
-        IReadOnlyDictionary<int, string> strings,
-        CancellationToken cancellationToken)
-    {
-        if (paySum <= 0)
-        {
-            return (Fail("forbidden", "Forbidden"), null);
-        }
-
-        var paid = await ErpDb.LongAsync(
-            connection,
-            tx,
-            ErpDb.Positional("SELECT `paid` FROM `shop_orders` WHERE `id`=? LIMIT 1"),
-            cancellationToken,
-            orderId).ConfigureAwait(false);
-        if (paid == 1)
-        {
-            return (Fail("forbidden", "Forbidden"), null);
-        }
-
-        var orderUser = await ErpDb.LongAsync(
-            connection,
-            tx,
-            ErpDb.Positional("SELECT `user_id` FROM `shop_orders` WHERE `id`=? LIMIT 1"),
-            cancellationToken,
-            orderId).ConfigureAwait(false);
-        var officeId = await ErpDb.LongAsync(
-            connection,
-            tx,
-            ErpDb.Positional("SELECT `office_id` FROM `shop_orders` WHERE `id`=? LIMIT 1"),
-            cancellationToken,
-            orderId).ConfigureAwait(false);
-        var orderSum = await OrderSumAsync(connection, orderId, cancellationToken, tx).ConfigureAwait(false);
-        var paidSum = await PaidSumAsync(connection, orderId, cancellationToken, tx).ConfigureAwait(false);
-        var paidLeft = orderSum - paidSum;
-        if (paySum > paidLeft)
-        {
-            return (Fail("forbidden", "Forbidden"), null);
-        }
-
-        var expenseCode = await ErpDb.LongAsync(
-            connection,
-            tx,
-            ErpDb.Positional("SELECT `id` FROM `shop_accounting_codes` WHERE `key`=? LIMIT 1"),
-            cancellationToken,
-            "1_pay_for_order").ConfigureAwait(false);
-        if (expenseCode <= 0)
-        {
-            return (Fail("invalid", "Forbidden"), null);
-        }
-
-        var now = DateTimeOffset.UtcNow.ToUnixTimeSeconds();
-        await ErpDb.ExecuteAsync(
-            connection,
-            tx,
-            ErpDb.Positional(
-                "INSERT INTO `shop_users_accounting` (`user_id`,`time`,`income`,`amount`,`operation_code`,`active`,`order_id`,`office_id`) VALUES (?,?,?,?,?,?,?,?)"),
-            cancellationToken,
-            orderUser, now, 0, paySum, expenseCode, 1, orderId, officeId).ConfigureAwait(false);
-
-        var paidLeftNew = paidLeft - paySum;
-        var newPaid = paidLeftNew == 0 ? 1 : 2;
-        if (paidLeftNew < 0)
-        {
-            return (Fail("forbidden", "Forbidden"), null);
-        }
-
-        var newPaidText = strings[newPaid == 1 ? 3584 : 3515];
-
-        await ErpDb.ExecuteAsync(
-            connection,
-            tx,
-            ErpDb.Positional("UPDATE `shop_orders` SET `paid`=? WHERE `id`=?"),
-            cancellationToken,
-            newPaid, orderId).ConfigureAwait(false);
-        try
-        {
-            var logText = strings[1316] + ". " + strings[4366] + " <b>" + paySum.ToString(CultureInfo.InvariantCulture)
-                          + "</b><br/>" + strings[4529] + ": <b>" + newPaidText + "</b>";
-            await ErpDb.ExecuteAsync(
-                connection,
-                tx,
-                ErpDb.Positional(
-                    "INSERT INTO `shop_orders_logs` (`order_id`,`time`,`user_id`,`is_manager`,`text`,`is_robot`) VALUES (?,?,?,?,?,?)"),
-                cancellationToken,
-                orderId, now, 0L, 0, logText, 1).ConfigureAwait(false);
-        }
-        catch
-        {
-            // Log table is optional on throwaway DBs.
-        }
-
-        return (
-            new StorefrontPaymentWriteResult(true, "ok", "Payment applied", orderId, "epc_demo", 1),
-            new PayApplied(orderId, orderUser, officeId, paySum, orderSum, paidLeftNew, newPaid, newPaidText));
+            ["operation_id"] = operationId.ToString(CultureInfo.InvariantCulture),
+            ["amount"] = amount,
+        };
+        await _notify!.SendAsync(connection, "pay_by_site", vars, persons, cancellationToken).ConfigureAwait(false);
     }
 
     private static async Task<decimal> OrderSumAsync(
