@@ -214,7 +214,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Sales-invoice sale-demand capture: `epc_erp_inventory_record_sale_demand` runs when PHP saves a sales invoice. ASP.NET does not record it yet.
    - Done: SMS and WhatsApp Cloud API fan-out of `docpart_dispatch_notification()` (`content/notifications/send_notify_dispatch.php`, `epc_whatsapp_notify.php`). See the checkpoint below.
    - Still open: the non-GCC SMS handlers in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru), the legacy `send_notify.php` HTTP endpoint, and `epc_order_whatsapp_share.php`.
-   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns/ajax/helper.php`, `content/shop/protocol`, `content/shop/print_docs`, `content/shop/document_control`.
+   - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
+   - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns` (`add_return`, `helper`, the return pages), `content/shop/print_docs`, `content/shop/document_control`.
 3. **Control Panel shop pages.**
    - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
    - `cp/content/shop/catalogue/product.php` and its includes.
@@ -241,6 +242,25 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — order and line status protocol like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 872 gap files (ratchet `--max-gap 872`); unnamed PHP functions 8,128.
+- New `ShopOrderProtocolService` is the one engine for order and line status changes (PHP `set_order_status.php` and `set_order_item_status.php`):
+  - Order status: a manager cancel first cancels the open lines; a manager finish needs a fully paid order (else PHP string 5296, code 101) and first issues the open lines. Then the status write, `order_status_to_manager` (backend office managers) and `order_status_to_customer` (user, or the guest e-mail and phone), the WhatsApp tracking line in the order history (`epc_wa_notify_order_status_change`), and the history row (manager as himself, robot as `is_robot` = 1).
+  - Line status: the optional return split (`retun=1`, one line, count checked, line and catalogue details copied, two history rows), the refund to balance when cancelling lines of a paid order (`5_refund_from_order_to_balance`, plus `6_refund_from_balance` for guests, then the paid flag is recomputed), the catalogue stock moves between exist, reserved and issued, the status write, the paid recheck, `order_item_status_*` notifications, the history, and for a manager the automatic order status (finished, cancelled, back to the paid status).
+  - Status notifications now pass the status row, so SMS and WhatsApp obey `to_manager_sms` / `to_customer_sms` when `orders_statuses_notifications_settings` = 1, like PHP.
+- The PHP URLs `/content/shop/protocol/set_order_status.php` (initiator 1 manager with session and CSRF, 4 robot with `tech_key`) and `set_order_item_status.php` (1 manager, 2 robot) are served by ASP.NET with the PHP JSON answers. The CP order card can call them as before.
+- Pay on place (`my_order.php`) now moves the order to the `for_paid` status through the robot protocol, so it gets the notifications and history like PHP.
+- Online payment (`pay_for_order.php` initiator 3) now does what PHP does after the commit: `paid_type` = 3 with its history line, `order_pay_to_manager` and `order_pay_to_customer` (amounts, paid state, order link in the template colour), and the robot status change once fully paid. The payment history line uses the PHP strings (1316, 4366, 4529, 3584/3515) instead of fixed English.
+- Intended deviations:
+  - An empty `tech_key` never opens the robot routes. PHP accepted any key when `tech_key` was empty.
+  - The return split copies the line through its column list instead of PHP's temporary table.
+  - An unreadable office manager list sends to nobody (PHP 8 would stop with a TypeError).
+- Fixed on the way: translated messages in the return split were read while a transaction was open, which the driver rejects; they are now read first.
+- Verified on a throwaway database: unpaid finish is refused; cancelling a paid line refunds 20.00 to the balance, returns 2 units to stock and keeps the order paid; issuing the last line finishes the order by robot with the WhatsApp tracking link to `971501111111`; a manager cancel of a guest order cancels its line, returns stock and notifies the guest directly; the return split refuses two lines and a bad count, then splits 5 into 3 and 2. The routes answer `Wrong key` 503, `Forbidden` 501, the CSRF errors and an empty body for unknown initiators. Pay on place moves order 300 to Paid; a full online payment sets paid, `paid_type` 3 and Paid, and a partial guest payment notifies the guest only. 5194 of 5194 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — notifications send SMS and WhatsApp like PHP
 
