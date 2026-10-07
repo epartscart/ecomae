@@ -323,14 +323,14 @@ public sealed class StorefrontCheckoutWriteService : IStorefrontCheckoutWriteSer
                              `t2_time_to_exe`, `t2_time_to_exe_guaranteed`, `t2_storage`, `t2_min_order`,
                              `t2_probability`, `t2_markup`, `t2_price_purchase`, `t2_office_id`, `t2_storage_id`,
                              `t2_product_json`, `sao_state`, `sao_robot`, `t2_json_params`)
-                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, '?', '?', ?)
+                            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?, ?, ?, ?, ?)
                             """),
                         cancellationToken,
                         orderId, line.ProductType, line.Price, line.CountNeed, line.ProductId, itemStatus,
                         line.Manufacturer, line.Article, line.ArticleShow, line.Name, line.Exist,
                         line.TimeToExe, line.TimeToExeGuaranteed, line.Storage, line.MinOrder,
                         line.Probability, line.Markup, 0m, line.OfficeId, line.StorageId,
-                        productJson, line.JsonParams);
+                        productJson, line.StorageId, line.StorageId, line.JsonParams);
                 }
 
                 var itemId = await ErpDb.LastInsertIdAsync(connection, tx, cancellationToken).ConfigureAwait(false);
