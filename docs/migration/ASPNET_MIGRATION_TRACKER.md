@@ -245,6 +245,37 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-07 — order payments and UAE gateway stubs like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 860 gap files, down from 868 (ratchet `--max-gap 860`); unnamed PHP functions 8,105.
+- `/content/shop/protocol/pay_for_order.php` runs in ASP.NET (`ShopPayForOrderService`):
+  - The manager (initiator 1, office access), the customer (initiator 2, from the balance) and the payment system (initiator 3, tech key). CSRF as `stop_csrf.php` for 1 and 2.
+  - The partial payment minimum, the client overdraft, the direct-pay income for managers, the expense line, the UAE advance VAT row (`epc_uae_vat_record_advance_on_payment`), the paid flag, the order logs, the paid type, the pay notifications and the robot `for_paid` status.
+- The individual payment accounts (`epc_payment_accounts.php`) and `get_pay_system_parameters.php`:
+  - The account linked to the operation, else resolved for the order (vendor of the largest storage, office, the office's legacy pay system as a virtual account, platform).
+  - The settlements after a demo payment: one per vendor split, else one for the account, with the platform fee.
+- The gateway stubs under `content/shop/finance/payment_systems/` are served at their PHP URLs:
+  - `go_to_pay.php` for the 24 UAE handlers: CSRF, the pending operation of the user, then the crypto form, the "Configure gateway" alert or the demo form.
+  - `pay_page_entry.php`, `pay_page.php` and `epc_demo/pay_page.php`: the demo checkout and `pay_execute`.
+  - `crypto_pay_page.php`: the coin picker, the demo invoice and the live NOWPayments `/payment` call.
+  - `{handler}/notification.php`: activate, `pay_notify.php`, `pay_for_order.php`, settlements, then the redirect with translation 4355.
+  - `nowpayments/notification.php`: the IPN with the HMAC-SHA512 check, 400 "IPN rejected", "already processed".
+  - The direct `go_to_pay.php`, `notification.php` and `epc_demo/*` answer "No handler".
+- Intended deviations:
+  - The demo notification always needs the demo token; PHP skips the check when the gateway is in demo mode.
+  - The customer pay notification links the order's user; PHP reads an undefined `$user_id`.
+  - The KKT receipt include is skipped: the file is missing in the reference and PHP fails on it.
+  - The advance VAT schema is ensured before the transaction (DDL commits implicitly).
+  - A notification with sum 0 notifies and pays the operation amount; PHP passes 0.
+  - Not ported yet: the legacy Russian gateways (alfabank, assist, avangard, cdekpay, chronopay, maib_md, payanyway, paybox, paykeeper, paymaster, promsvbank, rbkmoney, robokassa, sbr, tinkoff, walletone, webpay_by, yandex, yookassa, docpart_emulator).
+- Verified:
+  - `Fixtures/PaymentGateways/harness.sh` serves the real PHP files with `php -S` on `fixture.sql`. ASP.NET gives the same bytes, status, content type and `Location` for 31 cases: go_to_pay order, top-up, live, nowpayments, code 2, CSRF 1, 3.1 and 4, no handler; pay pages including handler `0` and upper-case input; crypto pick, btc, small btc (`1.5384615384615E-5`), usdt, unknown coin, wrong coin, confirm, live with a dummy key; notifications; IPN rejected, bad signature, already processed.
+  - Throwaway-DB tests cover the pay_for_order gates, partial and overdraft rules, advance VAT, the manager direct payment, the vendor and platform settlements and the idempotent IPN. The live NOWPayments payload is checked against PHP `json_encode`.
+  - Over HTTP on a throwaway tenant: go_to_pay, checkout, pay_execute, the notification (302, operation activated, replay redirects without a second write), the IPN (400, applied, already processed) and the crypto invoice.
+  - 5246 of 5246 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — order print like PHP
 
 Not complete.
