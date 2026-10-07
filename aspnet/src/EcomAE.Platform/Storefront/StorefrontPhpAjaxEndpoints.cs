@@ -1541,9 +1541,20 @@ public static class StorefrontPhpAjaxEndpoints
                     hasType,
                     hasAction,
                     hasCsrf,
+                    ContactNotify(context, connections),
                     token).ConfigureAwait(false);
             },
             StorefrontPhpAjax.NoDbConnect);
+
+    private static StorefrontPhpAjax.ContactNotify ContactNotify(HttpContext context, ITenantDbConnectionFactory connections)
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        return new StorefrontPhpAjax.ContactNotify(
+            context.RequestServices.GetService<IStorefrontNotifyDispatcher>(),
+            token => connections.OpenForTenantAsync(tenant, token),
+            context.RequestServices.GetService<ICpPlatformMailer>()?.ReadConfig() ?? PhpConfig(context),
+            StorefrontReturnsPages.LangHrefSlashAfter(context.Request.Headers.Referer.ToString()).TrimEnd('/'));
+    }
 
     private static async Task<IResult> LoginSendCodeAsync(
         HttpContext context,
@@ -1562,6 +1573,9 @@ public static class StorefrontPhpAjaxEndpoints
                 body.TryGetValue("csrf_guard_key", out var csrf) ? csrf : null,
                 body.GetValueOrDefault("method"),
                 body.GetValueOrDefault("contact"),
+                body.GetValueOrDefault("type"),
+                body.GetValueOrDefault("contact_string"),
+                ContactNotify(context, connections),
                 token),
             StorefrontPhpAjax.NoDbConnect).ConfigureAwait(false);
     }

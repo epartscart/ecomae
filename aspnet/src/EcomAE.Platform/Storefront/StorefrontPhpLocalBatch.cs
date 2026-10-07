@@ -300,6 +300,22 @@ public static partial class StorefrontPhpAjax
         return new FlagBody(false, WorkshopUnknown);
     }
 
+    /// <summary>
+    /// What the PHP contact and login-code scripts reach outside the request: <c>DP_Config</c>, the notification
+    /// dispatcher, the <c>lang_href_no_slash</c> of the page and, for sends made while a transaction is open, a
+    /// separate connection (PHP posts to <c>send_notify.php</c>, another process).
+    /// </summary>
+    public sealed record ContactNotify(
+        IStorefrontNotifyDispatcher? Dispatcher,
+        Func<CancellationToken, Task<DbConnection>>? OpenSideConnection,
+        IReadOnlyDictionary<string, string> Config,
+        string Lang)
+    {
+        public static ContactNotify None { get; } = new(null, null, new Dictionary<string, string>(StringComparer.Ordinal), string.Empty);
+
+        public string Setting(string key) => Config.TryGetValue(key, out var value) ? value : string.Empty;
+    }
+
     public static async Task<object> ContactsAsync(
         DbConnection connection,
         string? session,
@@ -311,6 +327,28 @@ public static partial class StorefrontPhpAjax
         bool hasType,
         bool hasAction,
         bool hasCsrf,
+        ContactNotify notify,
+        CancellationToken cancellationToken)
+    {
+        var answer = await ContactsCoreAsync(connection, session, userCookie, type, action, csrf, contact, hasType, hasAction, hasCsrf, notify, cancellationToken)
+            .ConfigureAwait(false);
+        return answer is FlagBody { Status: false } failed
+            ? failed with { Message = await TranslateIdAsync(new StorefrontPhpTranslator(connection, TranslatorLang(notify)), failed.Message, cancellationToken).ConfigureAwait(false) }
+            : answer;
+    }
+
+    private static async Task<object> ContactsCoreAsync(
+        DbConnection connection,
+        string? session,
+        string? userCookie,
+        string? type,
+        string? action,
+        string? csrf,
+        string? contact,
+        bool hasType,
+        bool hasAction,
+        bool hasCsrf,
+        ContactNotify notify,
         CancellationToken cancellationToken)
     {
         int userId;
@@ -410,7 +448,7 @@ public static partial class StorefrontPhpAjax
                 return new FlagBody(false, RegistrationFieldsMissing);
             }
 
-            if (!string.IsNullOrEmpty(pattern) && !Regex.IsMatch(contact, pattern))
+            if (!string.IsNullOrEmpty(pattern) && !PregWholeMatch(pattern, contact))
             {
                 return new FlagBody(false, ContactsRegexp);
             }
@@ -461,8 +499,180 @@ public static partial class StorefrontPhpAjax
             return new FlagBody(false, ContactsLock);
         }
 
-        return new FlagBody(false, ContactsNotifyFailed);
+        var contactNew = string.Empty;
+        var contactConfirmed = "0";
+        if (action == "change")
+        {
+            contactNew = contact ?? string.Empty;
+            contact = current;
+            contactConfirmed = confirmed;
+        }
+        else if (action == "confirm")
+        {
+            contact = current;
+        }
+
+        contact ??= string.Empty;
+        var code = type == "email"
+            ? Md5Hex(Md5Hex(contact + contactNew + PhpRand().ToString(CultureInfo.InvariantCulture)) + Md5Hex(notify.Setting("secret_succession")))
+            : PhpRand().ToString(CultureInfo.InvariantCulture);
+        var now = UnixNow();
+
+        var translator = new StorefrontPhpTranslator(connection, TranslatorLang(notify));
+        var siteNameKey = notify.Setting("site_name");
+        var siteName = await translator.RawAsync(siteNameKey, cancellationToken).ConfigureAwait(false);
+        var vars = new Dictionary<string, string>(StringComparer.Ordinal)
+        {
+            ["site_name"] = string.IsNullOrEmpty(siteName) ? siteNameKey : siteName,
+            ["email_confirm_href"] = "<a target='_blank' href='" + notify.Setting("domain_path") + notify.Lang
+                + "/users/confirm_contact?code=" + code + "&u_id=" + userId.ToString(CultureInfo.InvariantCulture) + "&type=email'>"
+                + await TranslateIdAsync(translator, ContactsConfirmLink, cancellationToken).ConfigureAwait(false) + "</a>",
+            ["phone_confirm_code"] = code,
+        };
+        var target = action == "change" ? contactNew : contact;
+        var person = type == "email" ? StorefrontNotifyPerson.Direct(target) : StorefrontNotifyPerson.Direct(string.Empty, target);
+
+        await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                "UPDATE `users` SET `" + type + "` = ?, `" + type + "_confirmed` = ?, `" + type + "_new` = ?, `" + type + "_code` = ?, `"
+                    + type + "_code_expired` = ?, `" + type + "_code_attempts` = ?, `" + type + "_code_send_lock_expired` = ? WHERE `user_id` = ?",
+                cancellationToken,
+                contact,
+                contactConfirmed,
+                contactNew,
+                code,
+                now + 1800,
+                0,
+                now + 300,
+                userId).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return new FlagBody(false, ContactsSaveFailed);
+        }
+
+        var failure = await SendContactCodeAsync(notify, type + "_confirm_other", vars, person, type, cancellationToken).ConfigureAwait(false);
+        if (failure is not null)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return new FlagBody(false, failure);
+        }
+
+        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+        return new ContactsBody(true, string.Empty, type, action, contact);
     }
+
+    /// <summary>
+    /// PHP <c>$curl_result["status"] == false</c> (no notification, dispatch error) gives 4697, and a false
+    /// <c>persons[0].contacts[$type].status</c> gives 4698; <c>null</c> when the code went out.
+    /// </summary>
+    private static async Task<string?> SendContactCodeAsync(
+        ContactNotify notify,
+        string name,
+        IReadOnlyDictionary<string, string> vars,
+        StorefrontNotifyPerson person,
+        string type,
+        CancellationToken cancellationToken,
+        DbConnection? connection = null)
+    {
+        if (notify.Dispatcher is null || (connection is null && notify.OpenSideConnection is null))
+        {
+            return ContactsNotifyFailed;
+        }
+
+        StorefrontNotifyAnswer answer;
+        try
+        {
+            if (connection is not null)
+            {
+                answer = await notify.Dispatcher.SendAsync(connection, name, vars, [person], cancellationToken).ConfigureAwait(false);
+            }
+            else
+            {
+                await using var side = await notify.OpenSideConnection!(cancellationToken).ConfigureAwait(false);
+                answer = await notify.Dispatcher.SendAsync(side, name, vars, [person], cancellationToken).ConfigureAwait(false);
+            }
+        }
+        catch (Exception ex) when (ex is DbException or InvalidOperationException or HttpRequestException)
+        {
+            return ContactsNotifyFailed;
+        }
+
+        if (!answer.Found || answer.Persons.Count == 0)
+        {
+            return ContactsNotifyFailed;
+        }
+
+        var result = answer.Persons[0];
+        var sent = type == "email" ? result.TriedToSend && result.Status : result.Sms.Status;
+        return sent ? null : ContactsNotSent;
+    }
+
+    /// <summary>
+    /// PHP <c>preg_match("/".$regexp."/", $value, $matches)</c> accepted only when <c>count($matches) == 1</c> and
+    /// <c>$matches[0] == $value</c>: a match, the whole value, and no capturing group taking part.
+    /// </summary>
+    public static bool PregWholeMatch(string pattern, string value)
+    {
+        for (var i = 0; i < pattern.Length; i++)
+        {
+            if (pattern[i] == '\\')
+            {
+                i++;
+            }
+            else if (pattern[i] == '/')
+            {
+                return false;
+            }
+        }
+
+        Match match;
+        try
+        {
+            match = Regex.Match(value, pattern, RegexOptions.None, TimeSpan.FromSeconds(1));
+        }
+        catch (Exception ex) when (ex is ArgumentException or RegexMatchTimeoutException)
+        {
+            return false;
+        }
+
+        if (!match.Success || match.Value != value)
+        {
+            return false;
+        }
+
+        for (var g = 1; g < match.Groups.Count; g++)
+        {
+            if (match.Groups[g].Success)
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    /// <summary><c>translate_str_by_id()</c> for a bare string id; other messages (and ids without a translation) stay as they are.</summary>
+    private static async Task<string> TranslateIdAsync(StorefrontPhpTranslator translator, string message, CancellationToken cancellationToken)
+    {
+        if (message.Length == 0 || !message.All(char.IsAsciiDigit))
+        {
+            return message;
+        }
+
+        var value = await translator.RawAsync(message, cancellationToken).ConfigureAwait(false);
+        return string.IsNullOrEmpty(value) ? message : value;
+    }
+
+    private static string TranslatorLang(ContactNotify notify)
+        => string.IsNullOrWhiteSpace(notify.Lang) ? "en" : notify.Lang;
+
+    private static int PhpRand() => System.Security.Cryptography.RandomNumberGenerator.GetInt32(100000, 1000000);
 
     public static async Task<object> SendLoginCodeAsync(
         DbConnection connection,
@@ -471,6 +681,30 @@ public static partial class StorefrontPhpAjax
         string? postedCsrf,
         string? method,
         string? contact,
+        string? postedType,
+        string? contactString,
+        ContactNotify notify,
+        CancellationToken cancellationToken)
+    {
+        var translator = new StorefrontPhpTranslator(connection, TranslatorLang(notify));
+        var answer = await SendLoginCodeCoreAsync(connection, session, userCookie, postedCsrf, method, contact, postedType, contactString, notify, translator, cancellationToken)
+            .ConfigureAwait(false);
+        return answer is LoginCodeBody { Message: { } message } body
+            ? body with { Message = await TranslateIdAsync(translator, message, cancellationToken).ConfigureAwait(false) }
+            : answer;
+    }
+
+    private static async Task<object> SendLoginCodeCoreAsync(
+        DbConnection connection,
+        string? session,
+        string? userCookie,
+        string? postedCsrf,
+        string? method,
+        string? contact,
+        string? postedType,
+        string? contactString,
+        ContactNotify notify,
+        StorefrontPhpTranslator translator,
         CancellationToken cancellationToken)
     {
         var csrf = await SessionCsrfAsync(connection, session, userCookie, postedCsrf, cancellationToken).ConfigureAwait(false);
@@ -497,7 +731,10 @@ public static partial class StorefrontPhpAjax
                     if (elapsed < 30)
                     {
                         var wait = 30 - elapsed;
-                        return new LoginCodeBody(501, "5656 " + wait.ToString(CultureInfo.InvariantCulture) + " 5647");
+                        return new LoginCodeBody(
+                            501,
+                            await TranslateIdAsync(translator, "5656", cancellationToken).ConfigureAwait(false) + " " + wait.ToString(CultureInfo.InvariantCulture)
+                                + " " + await TranslateIdAsync(translator, "5647", cancellationToken).ConfigureAwait(false));
                     }
                 }
             }
@@ -527,13 +764,57 @@ public static partial class StorefrontPhpAjax
             return new FlagBody(false, RegistrationFieldsMissing);
         }
 
-        if (!string.IsNullOrEmpty(pattern) && !Regex.IsMatch(contact ?? string.Empty, pattern))
+        if (!string.IsNullOrEmpty(pattern) && !PregWholeMatch(pattern, contact ?? string.Empty))
         {
             return new LoginCodeBody(501, LoginBadContact);
         }
 
-        return new LoginCodeBody(501, LoginNotifyFailed);
+        var code = PhpRand().ToString(CultureInfo.InvariantCulture);
+        var person = field == "email"
+            ? StorefrontNotifyPerson.Direct(contact ?? string.Empty)
+            : StorefrontNotifyPerson.Direct(string.Empty, contact ?? string.Empty);
+        var failure = await SendContactCodeAsync(
+            notify,
+            "verification_code",
+            new Dictionary<string, string>(StringComparer.Ordinal) { ["verification_code"] = code },
+            person,
+            field,
+            cancellationToken,
+            connection).ConfigureAwait(false);
+        if (failure is not null)
+        {
+            return new LoginCodeBody(501, failure);
+        }
+
+        var now = UnixNow();
+        var json = "{\"timeSendFaCode\":" + now.ToString(CultureInfo.InvariantCulture)
+            + ",\"expireFaCode\":" + (now + 300).ToString(CultureInfo.InvariantCulture)
+            + ",\"type\":" + PhpJsonOrNull(postedType)
+            + ",\"method\":" + PhpJsonOrNull(method)
+            + ",\"contact_string\":" + PhpJsonOrNull(contactString)
+            + ",\"contact\":" + PhpJsonOrNull(contact) + "}";
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `sessions` SET `2fa_code` = ?, `data` = ?, `2fa_attempts` = ? WHERE `session` = ?"),
+                cancellationToken,
+                code,
+                json,
+                3,
+                session ?? string.Empty).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return new LoginCodeBody(501, LoginSaveFailed);
+        }
+
+        return new LoginCodeBody(200, null);
     }
+
+    private static string PhpJsonOrNull(string? value)
+        => value is null ? "null" : Auth.OAuthStart.PhpJsonString(value);
 
     public static async Task<object> CheckLoginCodeAsync(
         DbConnection connection,
@@ -1597,6 +1878,13 @@ public static partial class StorefrontPhpAjax
         [property: JsonPropertyName("status")] string Status,
         [property: JsonPropertyName("plate")] string Plate,
         [property: JsonPropertyName("customer_name")] string CustomerName);
+
+    public sealed record ContactsBody(
+        [property: JsonPropertyName("status")] bool Status,
+        [property: JsonPropertyName("message")] string Message,
+        [property: JsonPropertyName("type")] string Type,
+        [property: JsonPropertyName("action")] string Action,
+        [property: JsonPropertyName("contact")] string Contact);
 
     public sealed record LoginCodeBody(
         [property: JsonPropertyName("status")] int Status,
