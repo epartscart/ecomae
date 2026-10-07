@@ -204,7 +204,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 1. **Storefront customer pages (epartscart.com).**
    - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`, `get_customer_offices.php`.
-   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `forgot_password.php`, `new_password.php`, `check_user_access.php`, `check_reg_contact.php`, `epc_login_rate_limit.php`, `epc_session_security.php`, `epc_password_upgrade.php`, the agreement module.
+   - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
+   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `check_user_access.php`, `check_reg_contact.php`, `epc_login_rate_limit.php`, `epc_session_security.php`, `epc_password_upgrade.php`, the agreement module.
    - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
    - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
@@ -216,7 +217,7 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the legacy SMS operators in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru) and the handler URLs of all 14 operators. See the checkpoint below.
    - Retired: `content/sms/handlers/smsaero/send_sms_old.php` (reason in `inventory/PHP_RETIRED.tsv`).
    - Done: contact confirmation (`content/users/ajax_contacts_works.php`) and the login code (`modules/login/code/frontAjax/ajax_sendCode.php`) send through the dispatcher and store their rows. See the checkpoint below.
-   - Still open: the legacy `send_notify.php` HTTP endpoint, including its `debug_results` upsert for e-mail and SMS. `epc_order_whatsapp_share.php` is a CP order page include and moves to step 3.
+   - Done: the legacy `send_notify.php` HTTP endpoint, including its `debug_results` upsert for e-mail and SMS. See the checkpoint below. `epc_order_whatsapp_share.php` is a CP order page include and moves to step 3.
    - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
    - Done: creating a return request (`content/shop/returns/ajax/ajax_load_returns_data.php` with `helper.php`): line split, photos, notifications and line status. See the checkpoint below.
    - Done: order print (`content/shop/print_docs/service/print.php` with `get_html_sales_receipt.php` and `get_html_uae_tax_invoice.php`) and the document control template render. See the checkpoint below.
@@ -252,6 +253,32 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — password reset pages like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112 (these are pages, not ajax scripts). Weighted headline stays about 20.4%. Inventory gap ratchet: 839 to 837 (`forgot_password.php` and `new_password.php`).
+- The forgot password page (`/users/forgot_password`, `/en/users/forgot_password`) shows the contact type select the way `available_communications()` decides: both types when every SMTP setting is filled and exactly one SMS operator is active, otherwise phone only or e-mail only.
+- The form posts to `/storefront/forgot-password-app/send`, which follows PHP:
+  - A logged-in customer goes home. No contact shows the form again. A missing or unknown type gives 4719. No account with that confirmed contact gives 4720. An active lock gives 4694.
+  - E-mail: a 64-hex code and the `new_password` link in the page language. Phone: a five-digit code.
+  - `forgot_password_time`, `forgot_password_code` and `{type}_code_send_lock_expired` (now + 300) are stored, then `forgot_password_by_email` or `forgot_password_by_phone` goes through the `send_notify.php` logic. A failed answer gives 4722, an unsent contact 4723. Success gives 4724 (e-mail) or the SMS code form (phone).
+  - The result redirects back to the page with `?r=<id>`, and only the ids above are shown.
+- `new_password` goes home unless the type, contact and stored code are valid. A wrong code (PHP loose compare) is discarded with 4729, and a code older than 30 minutes with 4730. Otherwise the password becomes `md5(new.secret_succession)` for a 10-hex new password, which is shown once under 4732.
+- Intended deviations: the e-mail link URL-escapes the contact. There is no captcha (PHP only checks it in the browser). Ids without a translation show English text.
+- Verified on Kestrel over a throwaway database, with the real dispatcher, a recording mailer and a recording SMS gateway: every redirect above; the stored code, time and lock; the mailed link; the lock refusal; the late and wrong code resets; a phone reset with a leading-zero code that sets the md5 password; and both `available_communications()` cases. The pages were also rendered on the local app.
+- 5378 of 5378 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
+### Checkpoint 2026-10-07 — the send_notify.php endpoint like PHP
+
+Not complete.
+
+- Ratios unchanged. Weighted headline stays about 20.4%. Inventory: 839 gap files (the page itself was already mentioned).
+- `content/notifications/send_notify.php` answers on the same path (GET and POST). The secret is compared loosely ("Forbidden"). Missing input gives 4072, a bad persons list 4073 and an unknown notification 4074.
+- It differs from the inline dispatcher the way PHP does: bare translations; e-mail and SMS gated on `status_ref` when `orders_statuses_notifications_settings` is set (a missing flag counts as 0); SMS marked as tried even without an operator (4077); `debug_results` upserted for e-mail and SMS; `persons` echoed in PHP key order with typed user columns.
+- Verified against goldens from the real PHP script (php-cli with pdo_mysql on a throwaway schema, mailer, translator, template and curl stubbed): 11 cases compare the exact body, the `debug_results` rows and the mails.
+- Intended deviations: `debug_results.status` is written as 0 or 1 (PHP writes '', which fails on an int column in strict mode); the e-mail debug text is the mailer message; file attachments are ignored.
 
 ### Checkpoint 2026-10-07 — contact confirmation and the login code like PHP
 
