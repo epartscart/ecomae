@@ -102,7 +102,7 @@ public sealed record StorefrontNotifyAnswer(bool Found, string Message, IReadOnl
 /// <summary><c>Found</c> mirrors the PHP <c>status</c>; <c>EmailSent</c> mirrors <c>epc_notify_email_status()</c>.</summary>
 public sealed record StorefrontNotifyOutcome(bool Found, bool EmailSent, string Message);
 
-public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
+public sealed partial class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
 {
     public const string NotFoundMessage = "Notification not found";
     public const string NotSentMessage = "E-mail not sent for this notification";

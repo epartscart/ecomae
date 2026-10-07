@@ -288,7 +288,7 @@ public sealed class CpCommunicationsTestService : ICpCommunicationsTestService
     }
 
     /// <summary>PHP <c>send_notify.php</c> upsert of the channel row in <c>debug_results</c>.</summary>
-    private static async Task RecordDebugAsync(
+    internal static async Task RecordDebugAsync(
         DbConnection connection,
         string name,
         bool ok,

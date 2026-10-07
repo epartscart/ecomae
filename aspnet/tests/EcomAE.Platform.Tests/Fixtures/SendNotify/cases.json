@@ -1,0 +1,51 @@
+[
+  { "name": "forbidden", "post": { "check": "nope", "name": "n1" } },
+  { "name": "forbidden_missing_check", "post": { "name": "n1" } },
+  { "name": "no_input", "post": { "check": "sek" } },
+  { "name": "bad_json", "post": { "check": "sek", "name": "n1", "vars": "x", "persons": "5" } },
+  { "name": "unknown_notification", "post": { "check": "sek", "name": "zz", "vars": "{}", "persons": "[]" } },
+  {
+    "name": "users_and_direct",
+    "post": {
+      "check": "sek",
+      "name": "n1",
+      "vars": "{\"name\":\"Ann/\u00e9\",\"n\":5}",
+      "persons": "[{\"type\":\"user_id\",\"user_id\":7},{\"type\":\"user_id\",\"user_id\":8},{\"type\":\"user_id\",\"user_id\":99},{\"type\":\"direct_contact\",\"contacts\":{\"email\":{\"value\":\"d@x.test\"},\"phone\":{\"value\":\"+971 50\"}}}]"
+    }
+  },
+  {
+    "name": "not_confirmed_and_failure",
+    "post": {
+      "check": "sek",
+      "name": "n2",
+      "vars": "[]",
+      "persons": "[{\"type\":\"direct_contact\",\"contacts\":{\"email\":{\"value\":\"fail@x.test\"}},\"extra\":\"k/\u00e9\",\"n\":1.5,\"z\":null,\"e\":{}},{\"type\":\"direct_contact\"},{\"type\":\"user_id\",\"user_id\":\"7\",\"contacts\":{\"x\":1}},{\"type\":\"other\",\"contacts\":{\"phone\":{\"value\":\"1\"}}}]"
+    }
+  },
+  {
+    "name": "status_ref_gate",
+    "osns": true,
+    "post": {
+      "check": "sek",
+      "name": "order_status_to_customer",
+      "vars": "{\"status_ref\":{\"to_customer_email\":\"0\",\"to_customer_sms\":1}}",
+      "persons": "[{\"type\":\"user_id\",\"user_id\":7}]"
+    }
+  },
+  {
+    "name": "status_ref_missing",
+    "osns": true,
+    "post": {
+      "check": "sek",
+      "name": "order_status_to_customer",
+      "vars": "{}",
+      "persons": "[{\"type\":\"user_id\",\"user_id\":7}]"
+    }
+  },
+  {
+    "name": "sms_operator_unreachable",
+    "setup": ["INSERT INTO sms_api (handler, parameters_values, active) VALUES ('sms_ru', '{}', 1)"],
+    "post": { "check": "sek", "name": "n1", "vars": "{\"name\":\"A\"}", "persons": "[{\"type\":\"user_id\",\"user_id\":8}]" }
+  },
+  { "name": "persons_not_array", "post": { "check": "sek", "name": "n1", "vars": "{}", "persons": "5" } }
+]

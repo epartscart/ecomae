@@ -1,0 +1,158 @@
+{
+  "forbidden": {
+    "body": "{\"status\":false,\"message\":\"Forbidden\"}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ]
+    ],
+    "mails": []
+  },
+  "forbidden_missing_check": {
+    "body": "{\"status\":false,\"message\":\"Forbidden\"}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ]
+    ],
+    "mails": []
+  },
+  "no_input": {
+    "body": "{\"status\":false,\"message\":\"No input data\"}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ]
+    ],
+    "mails": []
+  },
+  "bad_json": {
+    "body": "{\"status\":false,\"message\":null}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ]
+    ],
+    "mails": []
+  },
+  "unknown_notification": {
+    "body": "{\"status\":false,\"message\":\"Notification not found\"}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ]
+    ],
+    "mails": []
+  },
+  "users_and_direct": {
+    "body": "{\"status\":true,\"message\":\"\",\"persons\":[{\"type\":\"user_id\",\"user_id\":7,\"contacts\":{\"phone\":{\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"email\":{\"tried_to_send\":true,\"email_confirmed\":1,\"status\":true},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}},{\"type\":\"user_id\",\"user_id\":8,\"contacts\":{\"phone\":{\"tried_to_send\":true,\"phone_confirmed\":1,\"status\":false},\"email\":{\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}},{\"type\":\"user_id\",\"user_id\":99,\"contacts\":{\"phone\":{\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"email\":{\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}},{\"type\":\"direct_contact\",\"contacts\":{\"email\":{\"value\":\"d@x.test\",\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"phone\":{\"value\":\"+971 50\",\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}}]}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "1"
+      ],
+      [
+        "sms",
+        ""
+      ]
+    ],
+    "mails": [
+      {
+        "to": [
+          "u7@x.test"
+        ],
+        "subject": "Hi Ann/é",
+        "body": "<p>Hello Ann/é, </p>"
+      }
+    ]
+  },
+  "not_confirmed_and_failure": {
+    "body": "{\"status\":true,\"message\":\"\",\"persons\":[{\"type\":\"direct_contact\",\"contacts\":{\"email\":{\"value\":\"fail@x.test\",\"tried_to_send\":true,\"email_confirmed\":false,\"status\":false},\"phone\":{\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}},\"extra\":\"k\\/\\u00e9\",\"n\":1.5,\"z\":null,\"e\":[]},{\"type\":\"direct_contact\",\"contacts\":{\"email\":{\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"phone\":{\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}},{\"type\":\"user_id\",\"user_id\":\"7\",\"contacts\":{\"phone\":{\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"email\":{\"tried_to_send\":true,\"email_confirmed\":1,\"status\":true},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}},{\"type\":\"other\",\"contacts\":{\"phone\":{\"value\":\"1\",\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"email\":{\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}}]}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "1"
+      ]
+    ],
+    "mails": [
+      {
+        "to": [
+          "fail@x.test"
+        ],
+        "subject": "Hi ",
+        "body": "<p>Hello , %missing%</p>"
+      },
+      {
+        "to": [
+          "u7@x.test"
+        ],
+        "subject": "Hi ",
+        "body": "<p>Hello , %missing%</p>"
+      }
+    ]
+  },
+  "status_ref_gate": {
+    "body": "{\"status\":true,\"message\":\"\",\"persons\":[{\"type\":\"user_id\",\"user_id\":7,\"contacts\":{\"phone\":{\"tried_to_send\":true,\"phone_confirmed\":0,\"status\":false},\"email\":{\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}}]}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ],
+      [
+        "sms",
+        ""
+      ]
+    ],
+    "mails": []
+  },
+  "status_ref_missing": {
+    "body": "{\"status\":true,\"message\":\"\",\"persons\":[{\"type\":\"user_id\",\"user_id\":7,\"contacts\":{\"phone\":{\"tried_to_send\":false,\"phone_confirmed\":false,\"status\":false},\"email\":{\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}}]}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ]
+    ],
+    "mails": []
+  },
+  "sms_operator_unreachable": {
+    "body": "{\"status\":true,\"message\":\"\",\"persons\":[{\"type\":\"user_id\",\"user_id\":8,\"contacts\":{\"phone\":{\"tried_to_send\":true,\"phone_confirmed\":1,\"status\":false},\"email\":{\"tried_to_send\":false,\"email_confirmed\":false,\"status\":false},\"whatsapp\":{\"tried_to_send\":false,\"status\":false,\"error\":\"\"}}}]}",
+    "fatal": false,
+    "debug": [
+      [
+        "email",
+        "0"
+      ],
+      [
+        "sms",
+        ""
+      ]
+    ],
+    "mails": []
+  },
+  "persons_not_array": {
+    "body": "",
+    "fatal": true,
+    "debug": [
+      [
+        "email",
+        "0"
+      ]
+    ],
+    "mails": []
+  }
+}

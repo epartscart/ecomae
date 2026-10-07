@@ -195,6 +195,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontSmsHandlers.PathPattern, ["GET", "POST"], SmsHandlerAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontNotifyDispatcher.SendNotifyPath, ["GET", "POST"], SendNotifyAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.PayForOrderPath, ["GET", "POST"], PayForOrderAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
@@ -1839,6 +1841,52 @@ public static class StorefrontPhpAjaxEndpoints
         catch (System.Data.Common.DbException)
         {
             return Results.Text("Database error", "text/html; charset=utf-8", statusCode: 500);
+        }
+    }
+
+    private static async Task<IResult> SendNotifyAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        CancellationToken cancellationToken)
+    {
+        const string json = "application/json; charset=utf-8";
+        var post = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                post[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        var config = context.RequestServices.GetService<ICpPlatformMailer>()?.ReadConfig() ?? PhpConfig(context);
+        var secret = config.TryGetValue("secret_succession", out var configured) ? configured : string.Empty;
+        if (!StorefrontSmsHandlers.LooseEquals(post.GetValueOrDefault("check"), secret))
+        {
+            return Results.Text("{\"status\":false,\"message\":\"Forbidden\"}", json);
+        }
+
+        if (context.RequestServices.GetService<IStorefrontNotifyDispatcher>() is not StorefrontNotifyDispatcher dispatcher || !connections.IsConfigured)
+        {
+            return Results.Text("{\"status\":false,\"message\":\"Error\"}", json);
+        }
+
+        System.Data.Common.DbConnection connection;
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return Results.Text("{\"status\":false,\"message\":\"Error\"}", json);
+        }
+
+        await using (connection)
+        {
+            var answer = await dispatcher.SendNotifyHttpAsync(connection, post, config, cancellationToken).ConfigureAwait(false);
+            return answer is null ? Results.Text(string.Empty, "text/html; charset=utf-8", statusCode: 500) : Results.Text(answer, json);
         }
     }
 
