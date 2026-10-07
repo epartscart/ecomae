@@ -24,7 +24,8 @@ public interface IStorefrontNotifyDispatcher
         string name,
         IReadOnlyDictionary<string, string> vars,
         IReadOnlyList<StorefrontNotifyPerson> persons,
-        CancellationToken cancellationToken = default);
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, string>? statusRef = null);
 
     Task<StorefrontNotifyOutcome> SendDirectEmailAsync(
         DbConnection connection,
@@ -150,7 +151,8 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
         string name,
         IReadOnlyDictionary<string, string> vars,
         IReadOnlyList<StorefrontNotifyPerson> persons,
-        CancellationToken cancellationToken = default)
+        CancellationToken cancellationToken = default,
+        IReadOnlyDictionary<string, string>? statusRef = null)
     {
         ArgumentNullException.ThrowIfNull(connection);
         ArgumentNullException.ThrowIfNull(vars);
@@ -194,6 +196,13 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
         string? wrapped = null;
         var smsApi = await ActiveSmsApiAsync(connection, cancellationToken).ConfigureAwait(false);
         IReadOnlyDictionary<string, string>? config = null;
+        var (smsAllowed, whatsappAllowed) = (true, true);
+        if (statusRef is not null)
+        {
+            config = _mailer.ReadConfig();
+            (smsAllowed, whatsappAllowed) = StatusAllows(name, statusRef, config);
+        }
+
         var waNotify = new StorefrontWhatsappNotify(name, emailOn, smsOn);
 
         var results = new List<StorefrontNotifyPersonResult>(persons.Count);
@@ -210,7 +219,7 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
                 result = new StorefrontNotifyPersonResult(person, true, sent.Ok, sent.Message);
             }
 
-            if (phone.Length > 0 && smsOn && smsApi is { } api)
+            if (phone.Length > 0 && smsOn && smsAllowed && smsApi is { } api)
             {
                 phone = SmsPhone(phone);
                 var sms = _sms is null
@@ -219,7 +228,7 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
                 result = result with { Sms = new StorefrontNotifyChannel(true, sms.Ok, sms.Ok ? string.Empty : sms.Message) };
             }
 
-            if (phone.Length > 0 && _whatsapp is not null)
+            if (phone.Length > 0 && whatsappAllowed && _whatsapp is not null)
             {
                 config ??= _mailer.ReadConfig();
                 var wa = await _whatsapp.DispatchForPersonAsync(connection, config, waNotify, vars, smsBody, body, phone, cancellationToken)
@@ -231,6 +240,32 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
         }
 
         return new StorefrontNotifyAnswer(true, string.Empty, results);
+    }
+
+    /// <summary>
+    /// PHP <c>status_ref</c> rule (dispatch SMS gate and <c>epc_wa_status_allows_send()</c>): with
+    /// <c>orders_statuses_notifications_settings</c> = 1, a status whose <c>to_manager_sms</c> / <c>to_customer_sms</c>
+    /// is 0 sends no SMS; WhatsApp needs the flag missing or exactly 1.
+    /// </summary>
+    public static (bool Sms, bool WhatsApp) StatusAllows(string name, IReadOnlyDictionary<string, string> statusRef, IReadOnlyDictionary<string, string> config)
+    {
+        if (!config.TryGetValue("orders_statuses_notifications_settings", out var on) || on != "1")
+        {
+            return (true, true);
+        }
+
+        var key = name switch
+        {
+            "order_status_to_manager" or "order_item_status_to_manager" => "to_manager_sms",
+            "order_status_to_customer" or "order_item_status_to_customer" => "to_customer_sms",
+            _ => string.Empty,
+        };
+        if (key.Length == 0 || !statusRef.TryGetValue(key, out var flag))
+        {
+            return (true, true);
+        }
+
+        return (PhpInt(flag) != 0, PhpInt(flag) == 1);
     }
 
     /// <summary>PHP strips these before posting the number to the SMS handler; WhatsApp then gets the stripped number.</summary>
