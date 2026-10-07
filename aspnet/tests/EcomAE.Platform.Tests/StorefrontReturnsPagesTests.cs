@@ -25,6 +25,20 @@ public sealed class StorefrontReturnsPagesTests
     }
 
     [Fact]
+    public void OrderReturnSelection_ChecksLinesThenOpensAddReturnLikeMyOrderPhp()
+    {
+        var script = EcomAE.Platform.Components.Pages.StorefrontOrdersApp.ReturnSelectionScript(
+            "Check \"items\" </script>.", "Not returnable", "csrf-seven", "/en/shop/returns/add_return?items=");
+
+        Assert.Contains("fetch(\"/content/shop/order_process/ajax_check_items_returns.php\"", script, StringComparison.Ordinal);
+        Assert.Contains("items_id: items, csrf_guard_key: \"csrf-seven\"", script, StringComparison.Ordinal);
+        Assert.Contains("answer.count_confirm > 0 || !answer.all_complete", script, StringComparison.Ordinal);
+        Assert.Contains("location = \"/en/shop/returns/add_return?items=\" + JSON.stringify(items)", script, StringComparison.Ordinal);
+        Assert.Contains("alert(\"Check \\u0022items\\u0022 \\u003C/script\\u003E.\")", script, StringComparison.Ordinal);
+        Assert.Equal(1, script.Split("</script>").Length - 1);
+    }
+
+    [Fact]
     public void NumberFormat_GroupsThousandsWithSpacesLikePhp()
     {
         Assert.Equal("1 000 000.25", StorefrontReturnsPages.NumberFormat("1000000.25"));
