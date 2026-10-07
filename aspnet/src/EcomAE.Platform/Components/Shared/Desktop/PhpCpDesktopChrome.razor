@@ -199,6 +199,7 @@ else
                     </a>
                 }
                 <a href="/cp">Control panel</a>
+                <a href="/attention">Attention</a>
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/CP/")" target="_blank" rel="noopener">Classic CP</a>
                 <a href="@PhpSurfaceLinkMap.PhpReferenceOnlyHref("/ERP/")" target="_blank" rel="noopener">Classic ERP</a>
                 @if (_showBos)
@@ -304,6 +305,7 @@ else
                     </div>
                     <div class="epc-module-visual-frame__scope">@_brand.Label · @(_industryLabel ?? "Tenant workspace")</div>
                 </div>
+                <OperatingNavigationContextBar Surface="cp" />
                 <div class="row">
                     <!--epc-cp-main-begin-->
                     @ChildContent

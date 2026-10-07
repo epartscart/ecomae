@@ -1091,6 +1091,7 @@ builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodLockReopenWriteService,
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpPeriodReadService, EcomAE.Platform.Erp.ErpPeriodReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpFinanceAjaxReadService, EcomAE.Platform.Erp.ErpFinanceAjaxReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpCommandCenterReadService, EcomAE.Platform.Erp.ErpCommandCenterReadService>();
+builder.Services.AddScoped<EcomAE.Platform.Bos.IBosCommandCentreReadService, EcomAE.Platform.Bos.BosCommandCentreReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDashboardReadService, EcomAE.Platform.Erp.ErpDashboardReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpAiReadService, EcomAE.Platform.Erp.ErpAiReadService>();
 builder.Services.AddScoped<EcomAE.Platform.Erp.IErpDocControlWriteService, EcomAE.Platform.Erp.ErpDocControlWriteService>();

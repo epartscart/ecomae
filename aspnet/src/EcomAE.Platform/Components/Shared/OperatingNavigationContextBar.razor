@@ -1,0 +1,99 @@
+@namespace EcomAE.Platform.Components.Shared
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Services
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject ISurfaceDashboardSummaryReporter Dashboards
+
+<div class="epc-op-context" data-product-job="@_context.ProductJob" data-surface="@_context.Surface" data-active-company="@_context.ActiveCompanyIdText" data-tenant="@_context.Host">
+    <span class="epc-op-context__job">@_context.JobStatement</span>
+    <span class="epc-op-context__tenant">@_context.TenantLabel</span>
+    <span class="epc-op-context__company">@_context.ActiveCompanyLabel</span>
+    @if (!string.IsNullOrWhiteSpace(_context.Role))
+    {
+        <span class="epc-op-context__role">@_context.Role</span>
+    }
+    @if (!string.IsNullOrWhiteSpace(_context.UserLabel))
+    {
+        <span class="epc-op-context__user">@_context.UserLabel</span>
+    }
+    @if (_request is not null && _companies.Count > 0)
+    {
+        <details class="epc-op-context__switch">
+            <summary>Legal entity</summary>
+            <a href="@OperatingNavigationContext.ClearCompanyHref(_request)">Tenant scope</a>
+            @foreach (var company in _companies)
+            {
+                <a href="@ErpHostContext.SwitchCompanyHref(_request, company.Id)">@OperatingNavigationContext.FormatCompany(company)</a>
+            }
+        </details>
+    }
+</div>
+
+<style>
+    .epc-op-context {
+        display: flex; flex-wrap: wrap; align-items: center; gap: .4rem .75rem;
+        margin: 0 0 .75rem; padding: .45rem .7rem; border: 1px solid #e2e8f0; border-left-width: 4px;
+        border-radius: .4rem; background: #fff; font-size: 12.5px; line-height: 1.35;
+    }
+    .epc-op-context[data-product-job="administers"] { border-left-color: #1d4ed8; background: #eff6ff; }
+    .epc-op-context[data-product-job="operates"] { border-left-color: #166534; background: #f0fdf4; }
+    .epc-op-context[data-product-job="attention"] { border-left-color: #b45309; background: #fffbeb; }
+    .epc-op-context__job { font-weight: 800; }
+    .epc-op-context__tenant, .epc-op-context__company, .epc-op-context__role, .epc-op-context__user { color: #334155; }
+    .epc-op-context__switch { position: relative; }
+    .epc-op-context__switch summary { cursor: pointer; font-weight: 700; }
+    .epc-op-context__switch a { display: block; padding: .2rem 0; color: #1d4ed8; text-decoration: none; }
+</style>
+
+@code {
+    [Parameter] public string Surface { get; set; } = "bos";
+
+    private OperatingNavigationContext _context = OperatingNavigationContext.Resolve("bos", null, null, [], null, null);
+    private HttpRequest? _request;
+    private IReadOnlyList<OperatingCompanyRef> _companies = [];
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = Http.HttpContext;
+        _request = http?.Request;
+        var requested = ErpHostContext.ActiveCompanyIdFromQuery(_request);
+        var role = _request?.Query["role"].FirstOrDefault();
+        string? user = null;
+        if (http is not null)
+        {
+            try
+            {
+                var session = await Sessions.ValidateAsync(http, http.RequestAborted);
+                if (session.Kind == LegacySessionKind.Admin && !string.IsNullOrWhiteSpace(session.Email))
+                {
+                    user = session.Email;
+                }
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                user = null;
+            }
+        }
+
+        if (http is not null)
+        {
+            try
+            {
+                var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, http.RequestAborted);
+                _companies = digest.Companies
+                    .Where(company => company.Id > 0 && company.Id <= int.MaxValue)
+                    .Select(company => new OperatingCompanyRef((int)company.Id, company.Code ?? string.Empty, company.Name ?? string.Empty))
+                    .ToList();
+            }
+            catch (Exception ex) when (ex is not OperationCanceledException)
+            {
+                _companies = [];
+            }
+        }
+
+        _context = OperatingNavigationContext.Resolve(Surface, _request?.Host.Host, requested, _companies, user, role);
+    }
+}

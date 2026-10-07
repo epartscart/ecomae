@@ -1,0 +1,234 @@
+@page "/attention"
+@layout Layout.PhpChromeLayout
+@using System.Globalization
+@using EcomAE.Platform.Auth
+@using EcomAE.Platform.Bos
+@using EcomAE.Platform.Migration
+@using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Routing
+@inject IHttpContextAccessor Http
+@inject ILegacySessionValidator Sessions
+@inject ISurfaceDashboardSummaryReporter Dashboards
+@inject IBosCommandCentreReadService Reads
+
+<PageTitle>Attention</PageTitle>
+<PhpChromeStyles Surface="bos" />
+
+<div class="epc-attn" data-product-job="attention">
+    <header class="epc-attn__head">
+        <div>
+            <p class="epc-attn__kicker">Business Operating System</p>
+            <h1>Attention</h1>
+            <p>@OperatingNavigationContext.StatementBos ERP posts the documents. CP administers the platform.</p>
+        </div>
+        <nav class="epc-attn__jumps" aria-label="Product jobs">
+            <a href="/cp">CP · administers</a>
+            <a href="/erp">ERP · operates</a>
+            <a href="@EcomAeRoutes.Attention" aria-current="page">BOS · attention</a>
+        </nav>
+    </header>
+
+    <OperatingNavigationContextBar Surface="bos" />
+
+    <nav class="epc-attn__roles" aria-label="Role centres">
+        <a href="@OperatingNavigationContext.AttentionHref(_companyId, null)">All sourced</a>
+        @foreach (var role in OperatingNavigationContext.Roles)
+        {
+            <a href="@OperatingNavigationContext.AttentionHref(_companyId, role)" aria-current="@(_role == role ? "page" : null)">@role</a>
+        }
+    </nav>
+
+    @if (!_signedIn)
+    {
+        <p class="epc-attn__empty">Sign in to read ERP and CRM records for this tenant.</p>
+    }
+    else if (_view is { ReadDenied: true })
+    {
+        <p class="epc-attn__empty">This sign-in cannot read ERP or CRM records.</p>
+    }
+    else if (_view is { DatabaseConfigured: false })
+    {
+        <p class="epc-attn__empty">Tenant database is not configured.</p>
+    }
+    else if (_view is not null)
+    {
+        @if (_view.ReadAtUtc is DateTimeOffset readAt)
+        {
+            <p class="epc-attn__read">Read @_view.Context.Host at @readAt.ToString("yyyy-MM-dd HH:mm:ss'Z'", CultureInfo.InvariantCulture).</p>
+        }
+        @foreach (var note in _view.Unread)
+        {
+            <p class="epc-attn__unread">@note</p>
+        }
+
+        <section aria-label="Tenant records">
+            <h2>@_view.Context.TenantLabel</h2>
+            <p>Tenant records. These rows are not a figure for a legal entity.</p>
+            @if (_view.WeightedPipelineText is not null)
+            {
+                <p>Weighted pipeline of the open opportunities listed: @_view.WeightedPipelineText</p>
+            }
+            @if (_view.TenantRows.Count == 0 && _view.WeightedPipelineText is null)
+            {
+                @if (_view.SourcesEmpty)
+                {
+                    <p class="epc-attn__empty">No open records in the sources this view can read.</p>
+                }
+            }
+            else
+            {
+                @RowTable(_view.TenantRows)
+            }
+        </section>
+
+        @if (_view.Context.CompanyId is > 0)
+        {
+            <section aria-label="Legal entity records">
+                <h2>@_view.Context.ActiveCompanyLabel</h2>
+                @if (_view.CompanyRows.Count == 0 && _view.Unread.Count == 0)
+                {
+                    <p class="epc-attn__empty">No records are stored against this legal entity.</p>
+                }
+                else
+                {
+                    @RowTable(_view.CompanyRows)
+                }
+            </section>
+        }
+    }
+</div>
+
+<style>
+    .epc-attn { width: min(1100px, calc(100% - 1.5rem)); margin: 1rem auto 2rem; color: #0f172a; font-size: 14px; }
+    .epc-attn__head { display: flex; justify-content: space-between; gap: 1rem; flex-wrap: wrap; margin-bottom: .75rem; }
+    .epc-attn__kicker { margin: 0; font-size: 12px; font-weight: 800; letter-spacing: .04em; text-transform: uppercase; color: #b45309; }
+    .epc-attn h1 { margin: .15rem 0; font-size: 1.6rem; }
+    .epc-attn h2 { margin: 0 0 .35rem; font-size: 1.05rem; }
+    .epc-attn p { margin: .25rem 0 .6rem; }
+    .epc-attn__jumps, .epc-attn__roles { display: flex; flex-wrap: wrap; gap: .4rem; margin: 0 0 .75rem; }
+    .epc-attn__jumps a, .epc-attn__roles a { padding: .3rem .55rem; border: 1px solid #e2e8f0; border-radius: .35rem; background: #fff; text-decoration: none; font-weight: 700; font-size: 12.5px; }
+    .epc-attn__roles a[aria-current="page"], .epc-attn__jumps a[aria-current="page"] { border-color: #b45309; background: #fffbeb; }
+    .epc-attn section { margin: 1rem 0; }
+    .epc-attn table { width: 100%; border-collapse: collapse; background: #fff; }
+    .epc-attn th, .epc-attn td { text-align: left; padding: .45rem .5rem; border-bottom: 1px solid #e2e8f0; vertical-align: top; }
+    .epc-attn__empty, .epc-attn__unread, .epc-attn__read { color: #334155; }
+    @@media (max-width: 720px) {
+        .epc-attn table, .epc-attn thead, .epc-attn tbody, .epc-attn tr, .epc-attn th, .epc-attn td { display: block; }
+        .epc-attn thead { display: none; }
+    }
+</style>
+
+@code {
+    private bool _signedIn;
+    private string? _role;
+    private int? _companyId;
+    private BosCommandCentreView? _view;
+
+    private static RenderFragment RowTable(IReadOnlyList<BosCommandRow> rows) => builder =>
+    {
+        if (rows.Count == 0)
+        {
+            return;
+        }
+
+        builder.OpenElement(0, "table");
+        builder.OpenElement(1, "thead");
+        builder.OpenElement(2, "tr");
+        foreach (var heading in new[] { "Record", "Status", "Amount", "Open" })
+        {
+            builder.OpenElement(3, "th");
+            builder.AddContent(4, heading);
+            builder.CloseElement();
+        }
+        builder.CloseElement();
+        builder.CloseElement();
+        builder.OpenElement(5, "tbody");
+        foreach (var row in rows)
+        {
+            builder.OpenElement(6, "tr");
+            builder.OpenElement(7, "td");
+            builder.AddContent(8, string.IsNullOrWhiteSpace(row.Reference) ? row.Title : row.Reference);
+            if (!string.IsNullOrWhiteSpace(row.Title) && !string.Equals(row.Title, row.Reference, StringComparison.Ordinal))
+            {
+                builder.OpenElement(9, "div");
+                builder.AddContent(10, row.Title);
+                builder.CloseElement();
+            }
+            builder.CloseElement();
+            builder.OpenElement(11, "td");
+            builder.AddContent(12, row.Status);
+            builder.CloseElement();
+            builder.OpenElement(13, "td");
+            builder.AddContent(14, row.AmountText);
+            builder.CloseElement();
+            builder.OpenElement(15, "td");
+            if (!string.IsNullOrWhiteSpace(row.DrillHref))
+            {
+                builder.OpenElement(16, "a");
+                builder.AddAttribute(17, "href", row.DrillHref);
+                builder.AddContent(18, "Open");
+                builder.CloseElement();
+            }
+            builder.CloseElement();
+            builder.CloseElement();
+        }
+        builder.CloseElement();
+        builder.CloseElement();
+    };
+
+    protected override async Task OnInitializedAsync()
+    {
+        var http = Http.HttpContext;
+        if (http is null)
+        {
+            return;
+        }
+
+        var requestedCompany = ErpHostContext.ActiveCompanyIdFromQuery(http.Request);
+        _role = OperatingNavigationContext.NormalizeRole(http.Request.Query["role"].FirstOrDefault());
+        var session = await Sessions.ValidateAsync(http, http.RequestAborted);
+        _signedIn = session.Kind == LegacySessionKind.Admin
+            && (session.HasBackendAccess
+                || session.Capabilities.Contains("cp")
+                || session.Capabilities.Contains("erp")
+                || session.Capabilities.Contains("bos"));
+        if (!_signedIn)
+        {
+            return;
+        }
+
+        IReadOnlyList<OperatingCompanyRef> companies = [];
+        try
+        {
+            var digest = await Dashboards.BuildErpCompaniesDigestAsync(50, http.RequestAborted);
+            companies = digest.Companies
+                .Where(company => company.Id > 0 && company.Id <= int.MaxValue)
+                .Select(company => new OperatingCompanyRef((int)company.Id, company.Code ?? string.Empty, company.Name ?? string.Empty))
+                .ToList();
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+            companies = [];
+        }
+
+        var context = OperatingNavigationContext.Resolve(
+            "bos",
+            http.Request.Host.Host,
+            requestedCompany,
+            companies,
+            session.Email,
+            _role);
+        _companyId = context.CompanyId;
+
+        var canErp = session.Capabilities.Contains("erp");
+        var canCrm = session.Capabilities.Contains("cp");
+        if (!canErp && !canCrm)
+        {
+            _view = BosCommandCentreView.Denied(context, null);
+            return;
+        }
+
+        var load = await Reads.LoadAsync(http.RequestAborted);
+        _view = BosCommandCentreComposer.Project(context, load, canErp, canCrm);
+    }
+}

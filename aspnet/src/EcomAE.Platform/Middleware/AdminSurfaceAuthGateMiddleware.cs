@@ -129,6 +129,7 @@ public sealed class AdminSurfaceAuthGateMiddleware
             || path.Equals("/erp", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/bos", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/ip", StringComparison.OrdinalIgnoreCase)
+            || path.Equals("/attention", StringComparison.OrdinalIgnoreCase)
             || path.Equals("/CP", StringComparison.Ordinal)
             || path.Equals("/ERP", StringComparison.Ordinal)
             || path.Equals("/BOS", StringComparison.Ordinal)
@@ -141,6 +142,7 @@ public sealed class AdminSurfaceAuthGateMiddleware
             || path.StartsWith("/erp/", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/bos/", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/ip/", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/attention/", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/CP/", StringComparison.Ordinal)
             || path.StartsWith("/ERP/", StringComparison.Ordinal)
             || path.StartsWith("/BOS/", StringComparison.Ordinal)
@@ -178,7 +180,9 @@ public sealed class AdminSurfaceAuthGateMiddleware
     private static string LoginPathFor(string path)
     {
         if (path.StartsWith("/erp", StringComparison.OrdinalIgnoreCase)
-            || path.StartsWith("/ERP", StringComparison.Ordinal))
+            || path.StartsWith("/ERP", StringComparison.Ordinal)
+            || path.Equals("/attention", StringComparison.OrdinalIgnoreCase)
+            || path.StartsWith("/attention/", StringComparison.OrdinalIgnoreCase))
         {
             return EcomAeRoutes.ErpLogin;
         }
