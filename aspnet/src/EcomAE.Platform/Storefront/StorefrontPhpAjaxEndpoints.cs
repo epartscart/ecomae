@@ -385,6 +385,10 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CpVisualPageEditorPath, ["GET", "POST"], CpVisualPageEditorAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.PriceReviewPath, ["GET", "POST"], CpPriceReviewAsync)
+            .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontPhpAjax.PriceReviewCsvPath, ["GET", "POST"], CpPriceReviewCsvAsync)
+            .DisableAntiforgery().AllowAnonymous();
         foreach (var path in StorefrontPhpAjax.VersionControlPaths)
         {
             endpoints.MapMethods(path, ["GET", "POST"], CpVersionControlAsync)
@@ -3578,6 +3582,41 @@ public static class StorefrontPhpAjaxEndpoints
                 sources,
                 cancel),
             new StorefrontPhpAjax.CodedJson(500, new StorefrontPhpAjax.OkMessage(false, "Database unavailable"))).ConfigureAwait(false);
+    }
+
+    private static Task<IResult> CpPriceReviewAsync(HttpContext context, ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
+        => CpPriceReviewRunAsync(context, connections, StorefrontPhpAjax.PriceReviewAsync, cancellationToken);
+
+    private static Task<IResult> CpPriceReviewCsvAsync(HttpContext context, ITenantDbConnectionFactory connections, CancellationToken cancellationToken)
+        => CpPriceReviewRunAsync(context, connections, StorefrontPhpAjax.PriceReviewCsvAsync, cancellationToken);
+
+    private static async Task<IResult> CpPriceReviewRunAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        Func<System.Data.Common.DbConnection, string?, string?, IReadOnlyDictionary<string, string>, CancellationToken, Task<object>> run,
+        CancellationToken cancellationToken)
+    {
+        var posted = new Dictionary<string, string>(StringComparer.Ordinal);
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            foreach (var pair in form)
+            {
+                posted[pair.Key] = pair.Value.ToString();
+            }
+        }
+
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => run(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                posted,
+                cancel),
+            new StorefrontPhpAjax.FlagBody(false, "No DB connect")).ConfigureAwait(false);
     }
 
     private static async Task<IResult> CpVersionControlAsync(

@@ -1407,6 +1407,126 @@ public sealed class CpDeskPhpAjaxTests
     }
 
     [Fact]
+    public async Task PriceReview_RunsDryOnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var shopper = "admin_session=user-token";
+        var review = StorefrontPhpAjax.PriceReviewPath;
+        var csv = StorefrontPhpAjax.PriceReviewCsvPath;
+        Dictionary<string, string> Review(params (string Key, string Value)[] overrides)
+        {
+            var form = Form(
+                ("csrf_guard_key", "admin-csrf"),
+                ("price_id", "1"),
+                ("start", "1"),
+                ("base_mark", "min"),
+                ("plus_minus", "plus"),
+                ("percent", "10"),
+                ("prices", "[\"2\"]"),
+                ("from", "0"),
+                ("items_per_time", "10"),
+                ("end", "1"));
+            foreach (var (key, value) in overrides)
+            {
+                if (value.Length == 0)
+                {
+                    form.Remove(key);
+                }
+                else
+                {
+                    form[key] = value;
+                }
+            }
+
+            return form;
+        }
+
+        try
+        {
+            Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(review, out _));
+            Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(csv, out _));
+            await using var host = await StartAsync(connectionString);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf'), (16, 'user-token', 4, 0, 'user-csrf')");
+
+            var noKey = await SendAsync(client, review, Form(("price_id", "1")), staff);
+            Assert.Equal("Error! CSRF 1", noKey.Json.RootElement.GetProperty("message").GetString());
+            var shopperReview = await SendAsync(client, review, Review(("csrf_guard_key", "user-csrf")), shopper);
+            Assert.Equal("Forbidden", shopperReview.Json.RootElement.GetProperty("message").GetString());
+            var missingTable = await SendAsync(client, review, Review(), staff);
+            Assert.Equal("Price rows are not in this database.", missingTable.Json.RootElement.GetProperty("message").GetString());
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_prices_data (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, price_id INT NOT NULL, article VARCHAR(64) NOT NULL, manufacturer VARCHAR(64) NOT NULL, name VARCHAR(120) NOT NULL DEFAULT '', exist INT NOT NULL DEFAULT 0, price DECIMAL(12,2) NOT NULL DEFAULT 0, reviewed TINYINT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_manufacturers (id INT NOT NULL PRIMARY KEY, name VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_docpart_manufacturers_synonyms (id INT NOT NULL AUTO_INCREMENT PRIMARY KEY, manufacturer_id INT NOT NULL, synonym VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_manufacturers (id, name) VALUES (1, 'TOYOTA')");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_manufacturers_synonyms (manufacturer_id, synonym) VALUES (1, 'LEXUS'), (1, 'TOYOTA MOTOR')");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_docpart_prices_data (price_id, article, manufacturer, price, reviewed) VALUES (1, 'A1', 'TOYOTA', 0, 1), (1, 'A2', 'LEXUS', 0, 0), (1, 'A3', 'NONAME', 0, 0), (2, 'A1', 'TOYOTA', 100, 0), (2, 'A1', 'TOYOTA', 50, 0), (2, 'A2', 'TOYOTA MOTOR', 200, 0), (3, 'A3', 'NONAME', 75, 0)");
+
+            var missingField = await SendAsync(client, review, Review(("end", "")), staff);
+            Assert.Equal("", missingField.Body);
+            var badMark = await SendAsync(client, review, Review(("base_mark", "median")), staff);
+            Assert.Equal("", badMark.Body);
+            var dry = await SendAsync(client, review, Review(), staff);
+            Assert.False(dry.Json.RootElement.GetProperty("status").GetBoolean());
+            Assert.True(dry.Json.RootElement.GetProperty("dry_run").GetBoolean());
+            Assert.Equal(StorefrontPhpAjax.PriceReviewDryRun, dry.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal(3, dry.Json.RootElement.GetProperty("items").GetInt32());
+            Assert.Equal(2, dry.Json.RootElement.GetProperty("would_review").GetInt32());
+            var page = await SendAsync(client, review, Review(("from", "1"), ("items_per_time", "1")), staff);
+            Assert.Equal(1, page.Json.RootElement.GetProperty("items").GetInt32());
+            Assert.Equal(1, page.Json.RootElement.GetProperty("would_review").GetInt32());
+            var oddSign = await SendAsync(client, review, Review(("plus_minus", "sideways")), staff);
+            Assert.Equal(0, oddSign.Json.RootElement.GetProperty("would_review").GetInt32());
+            var otherSource = await SendAsync(client, review, Review(("prices", "[3]"), ("percent", "0")), staff);
+            Assert.Equal(1, otherSource.Json.RootElement.GetProperty("would_review").GetInt32());
+            Assert.Equal("0.00", await ScalarAsync(connectionString, "SELECT SUM(price) FROM shop_docpart_prices_data WHERE price_id = 1"));
+            Assert.Equal("1", await ScalarAsync(connectionString, "SELECT SUM(reviewed) FROM shop_docpart_prices_data WHERE price_id = 1"));
+
+            var shopperCsv = await SendAsync(client, csv, Form(("csrf_guard_key", "user-csrf"), ("price_id", "1"), ("type", "1")), shopper);
+            Assert.Equal("Forbidden", shopperCsv.Json.RootElement.GetProperty("message").GetString());
+            var badType = await SendAsync(client, csv, Form(("csrf_guard_key", "admin-csrf"), ("price_id", "1"), ("type", "9")), staff);
+            Assert.Equal("", badType.Body);
+            var noType = await SendAsync(client, csv, Form(("csrf_guard_key", "admin-csrf"), ("price_id", "1")), staff);
+            Assert.Equal("", noType.Body);
+            foreach (var (type, rows) in new[] { ("1", 3), ("2", 1), ("3", 2) })
+            {
+                var export = await SendAsync(client, csv, Form(("csrf_guard_key", "admin-csrf"), ("price_id", "1"), ("type", type)), staff);
+                Assert.False(export.Json.RootElement.GetProperty("status").GetBoolean());
+                Assert.True(export.Json.RootElement.GetProperty("dry_run").GetBoolean());
+                Assert.Equal(StorefrontPhpAjax.PriceReviewCsvDryRun, export.Json.RootElement.GetProperty("message").GetString());
+                Assert.Equal(int.Parse(type, CultureInfo.InvariantCulture), export.Json.RootElement.GetProperty("type").GetInt32());
+                Assert.Equal(rows, export.Json.RootElement.GetProperty("rows").GetInt32());
+                Assert.False(export.Json.RootElement.TryGetProperty("csv_path_rel", out _));
+            }
+        }
+        finally
+        {
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
+    [Fact]
     public async Task VisualPageEditor_OnThrowawayDatabase_ThenDropped()
     {
         var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");

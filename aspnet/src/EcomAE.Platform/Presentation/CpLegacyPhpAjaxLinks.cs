@@ -75,7 +75,9 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(CreateSitemap, StringComparison.OrdinalIgnoreCase)
             || StorefrontPhpAjax.VersionControlPaths.Contains(path, StringComparer.OrdinalIgnoreCase)
             || StorefrontPhpAjax.PackCountGatePaths.Contains(path, StringComparer.OrdinalIgnoreCase)
-            || StorefrontPhpAjax.PackSessionGatePaths.Contains(path, StringComparer.OrdinalIgnoreCase);
+            || StorefrontPhpAjax.PackSessionGatePaths.Contains(path, StringComparer.OrdinalIgnoreCase)
+            || path.Equals(StorefrontPhpAjax.PriceReviewPath, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(StorefrontPhpAjax.PriceReviewCsvPath, StringComparison.OrdinalIgnoreCase);
     }
 
     public const string PricePackSetup = "/cp/content/shop/prices_upload/ajax_1_prepare_tmp_dir.php";
