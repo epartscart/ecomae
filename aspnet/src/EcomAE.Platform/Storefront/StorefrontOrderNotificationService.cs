@@ -67,6 +67,7 @@ public sealed class StorefrontOrderNotificationService : IStorefrontOrderNotific
         var userId = data.Order is null ? 0 : (int)PhpLong(Field(data.Order, "user_id"));
         var officeId = data.Order is null ? 0 : (int)PhpLong(Field(data.Order, "office_id"));
         var guestEmail = data.Order is null ? string.Empty : WebUtility.HtmlDecode(Field(data.Order, "email_not_auth"));
+        var guestPhone = data.Order is null ? string.Empty : WebUtility.HtmlDecode(Field(data.Order, "phone_not_auth"));
 
         var adminEmail = await AdminEmailAsync(connection, config, cancellationToken).ConfigureAwait(false);
         var managerVars = new Dictionary<string, string>(StringComparer.Ordinal)
@@ -96,7 +97,9 @@ public sealed class StorefrontOrderNotificationService : IStorefrontOrderNotific
 
         StorefrontNotifyPerson customer = userId > 0
             ? StorefrontNotifyPerson.User(userId)
-            : StorefrontNotifyPerson.Direct(StorefrontGuestSessionService.HtmlEntities(guestEmail));
+            : StorefrontNotifyPerson.Direct(
+                StorefrontGuestSessionService.HtmlEntities(guestEmail),
+                StorefrontGuestSessionService.HtmlEntities(guestPhone));
         var customerMatch = userId > 0 ? userId.ToString(CultureInfo.InvariantCulture) : guestEmail.Trim().ToLowerInvariant();
         var customerText = await BuildCustomerHtmlAsync(connection, translator, data, config, cancellationToken).ConfigureAwait(false);
         var comment = await FirstCustomerMessageAsync(connection, orderId, cancellationToken).ConfigureAwait(false);
@@ -1457,7 +1460,7 @@ public sealed class StorefrontOrderNotificationService : IStorefrontOrderNotific
         return map;
     }
 
-    private static string HostOf(string domainPath)
+    internal static string HostOf(string domainPath)
     {
         var raw = domainPath.Trim();
         if (Uri.TryCreate(raw, UriKind.Absolute, out var uri))

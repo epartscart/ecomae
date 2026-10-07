@@ -10,11 +10,12 @@ using Microsoft.Extensions.Options;
 namespace EcomAE.Platform.Storefront;
 
 /// <summary>
-/// PHP <c>docpart_dispatch_notification()</c> e-mail branch: the <c>notifications_settings</c> template
-/// (language-resolved), <c>%var%</c> substitution of the declared text vars, the
-/// content/notifications/template.php wrapper, the per-person <c>user_id</c> / <c>direct_contact</c>
-/// e-mail rules (<c>email_confirmed</c> or <c>send_for_not_confirmed</c>, <c>email_on</c>) and delivery
-/// through the platform SMTP (<c>DocpartMailer</c>). SMS / WhatsApp fan-out stays with the Classic dispatcher.
+/// PHP <c>docpart_dispatch_notification()</c>: the <c>notifications_settings</c> template (language-resolved),
+/// <c>%var%</c> substitution of the declared text vars, the content/notifications/template.php wrapper, and per
+/// <c>user_id</c> / <c>direct_contact</c> person the e-mail (<c>email_on</c>, <c>email_confirmed</c> or
+/// <c>send_for_not_confirmed</c>) through the platform SMTP (<c>DocpartMailer</c>), the SMS (<c>sms_on</c>,
+/// <c>phone_confirmed</c> or <c>send_for_not_confirmed</c>) through the active <c>sms_api</c> operator, and the
+/// WhatsApp Cloud API message (epc_whatsapp_notify.php) to the same phone.
 /// </summary>
 public interface IStorefrontNotifyDispatcher
 {
@@ -33,18 +34,25 @@ public interface IStorefrontNotifyDispatcher
         CancellationToken cancellationToken = default);
 }
 
-/// <summary>A PHP <c>$persons[]</c> entry: <c>user_id</c> (e-mail from <c>users</c>) or <c>direct_contact</c>.</summary>
-public sealed record StorefrontNotifyPerson(string Type, int UserId, string Email)
+/// <summary>A PHP <c>$persons[]</c> entry: <c>user_id</c> (contacts from <c>users</c>) or <c>direct_contact</c>.</summary>
+public sealed record StorefrontNotifyPerson(string Type, int UserId, string Email, string Phone = "")
 {
     public const string UserIdType = "user_id";
     public const string DirectContactType = "direct_contact";
 
     public static StorefrontNotifyPerson User(int userId) => new(UserIdType, userId, string.Empty);
 
-    public static StorefrontNotifyPerson Direct(string email) => new(DirectContactType, 0, email ?? string.Empty);
+    public static StorefrontNotifyPerson Direct(string email, string phone = "")
+        => new(DirectContactType, 0, email ?? string.Empty, phone ?? string.Empty);
 }
 
-public sealed record StorefrontNotifyPersonResult(StorefrontNotifyPerson Person, bool TriedToSend, bool Status, string Message);
+/// <summary><c>TriedToSend</c> / <c>Status</c> / <c>Message</c> are the e-mail flags; <c>Sms</c> and <c>WhatsApp</c> the phone channels.</summary>
+public sealed record StorefrontNotifyPersonResult(StorefrontNotifyPerson Person, bool TriedToSend, bool Status, string Message)
+{
+    public StorefrontNotifyChannel Sms { get; init; } = StorefrontNotifyChannel.None;
+
+    public StorefrontNotifyChannel WhatsApp { get; init; } = StorefrontNotifyChannel.None;
+}
 
 /// <summary>PHP dispatch answer: <c>status</c>, <c>message</c> and the per-person e-mail flags.</summary>
 public sealed record StorefrontNotifyAnswer(bool Found, string Message, IReadOnlyList<StorefrontNotifyPersonResult> Persons)
@@ -101,11 +109,19 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
     private static readonly TimeZoneInfo PlatformZone = ResolveZone();
 
     private readonly ICpPlatformMailer _mailer;
+    private readonly ICpSmsGateway? _sms;
+    private readonly IStorefrontWhatsappNotifier? _whatsapp;
     private readonly string _docRoot;
 
-    public StorefrontNotifyDispatcher(ICpPlatformMailer mailer, IOptions<PhpReferenceOptions>? reference = null)
+    public StorefrontNotifyDispatcher(
+        ICpPlatformMailer mailer,
+        IOptions<PhpReferenceOptions>? reference = null,
+        ICpSmsGateway? sms = null,
+        IStorefrontWhatsappNotifier? whatsapp = null)
     {
         _mailer = mailer;
+        _sms = sms;
+        _whatsapp = whatsapp;
         _docRoot = (reference?.Value.PhpDocRoot ?? Environment.GetEnvironmentVariable("ECOMAE_PHP_DOCROOT") ?? string.Empty).Trim();
     }
 
@@ -142,25 +158,27 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
 
         var found = false;
         var emailOn = false;
+        var smsOn = false;
         var sendForNotConfirmed = false;
         var subject = string.Empty;
         var body = string.Empty;
+        var smsBody = string.Empty;
         var varsJson = string.Empty;
         await using (var command = connection.CreateCommand())
         {
-            command.CommandText = ErpDb.Positional(
-                "SELECT IFNULL(`email_on`,0), IFNULL(`send_for_not_confirmed`,0), IFNULL(`email_subject`,''), IFNULL(`email_body`,''), IFNULL(`vars`,'') "
-                + "FROM `notifications_settings` WHERE `name` = ? LIMIT 1");
+            command.CommandText = ErpDb.Positional("SELECT * FROM `notifications_settings` WHERE `name` = ? LIMIT 1");
             ErpDb.AddParameters(command, name);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 found = true;
-                emailOn = Convert.ToInt32(reader.GetValue(0), CultureInfo.InvariantCulture) != 0;
-                sendForNotConfirmed = Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture) != 0;
-                subject = Convert.ToString(reader.GetValue(2), CultureInfo.InvariantCulture) ?? string.Empty;
-                body = Convert.ToString(reader.GetValue(3), CultureInfo.InvariantCulture) ?? string.Empty;
-                varsJson = Convert.ToString(reader.GetValue(4), CultureInfo.InvariantCulture) ?? string.Empty;
+                emailOn = PhpLong(Column(reader, "email_on")) != 0;
+                smsOn = PhpLong(Column(reader, "sms_on")) != 0;
+                sendForNotConfirmed = PhpLong(Column(reader, "send_for_not_confirmed")) != 0;
+                subject = Column(reader, "email_subject");
+                body = Column(reader, "email_body");
+                smsBody = Column(reader, "sms_body");
+                varsJson = Column(reader, "vars");
             }
         }
 
@@ -172,24 +190,82 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
         var translator = new StorefrontPhpTranslator(connection);
         subject = Render(await TranslateOrRawAsync(translator, subject, cancellationToken).ConfigureAwait(false), varsJson, vars);
         body = Render(await TranslateOrRawAsync(translator, body, cancellationToken).ConfigureAwait(false), varsJson, vars);
+        smsBody = Render(await TranslateOrRawAsync(translator, smsBody, cancellationToken).ConfigureAwait(false), varsJson, vars);
         string? wrapped = null;
+        var smsApi = await ActiveSmsApiAsync(connection, cancellationToken).ConfigureAwait(false);
+        IReadOnlyDictionary<string, string>? config = null;
+        var waNotify = new StorefrontWhatsappNotify(name, emailOn, smsOn);
 
         var results = new List<StorefrontNotifyPersonResult>(persons.Count);
         foreach (var person in persons)
         {
-            var to = await RecipientAsync(connection, person, sendForNotConfirmed, cancellationToken).ConfigureAwait(false);
-            if (to.Length == 0 || !emailOn)
+            var contacts = await ContactsAsync(connection, person, sendForNotConfirmed, cancellationToken).ConfigureAwait(false);
+            var phone = contacts.Phone;
+
+            var result = new StorefrontNotifyPersonResult(person, false, false, NotSentMessage);
+            if (contacts.Email.Length > 0 && emailOn)
             {
-                results.Add(new StorefrontNotifyPersonResult(person, false, false, NotSentMessage));
-                continue;
+                wrapped ??= await WrapAsync(connection, translator, subject, body, cancellationToken).ConfigureAwait(false);
+                var sent = await _mailer.SendHtmlAsync(contacts.Email, subject, wrapped, cancellationToken).ConfigureAwait(false);
+                result = new StorefrontNotifyPersonResult(person, true, sent.Ok, sent.Message);
             }
 
-            wrapped ??= await WrapAsync(connection, translator, subject, body, cancellationToken).ConfigureAwait(false);
-            var sent = await _mailer.SendHtmlAsync(to, subject, wrapped, cancellationToken).ConfigureAwait(false);
-            results.Add(new StorefrontNotifyPersonResult(person, true, sent.Ok, sent.Message));
+            if (phone.Length > 0 && smsOn && smsApi is { } api)
+            {
+                phone = SmsPhone(phone);
+                var sms = _sms is null
+                    ? CpSmsSendOutcome.Fail("SMS gateway is not available")
+                    : await _sms.SendAsync(api.Handler, api.Parameters, phone, smsBody, cancellationToken).ConfigureAwait(false);
+                result = result with { Sms = new StorefrontNotifyChannel(true, sms.Ok, sms.Ok ? string.Empty : sms.Message) };
+            }
+
+            if (phone.Length > 0 && _whatsapp is not null)
+            {
+                config ??= _mailer.ReadConfig();
+                var wa = await _whatsapp.DispatchForPersonAsync(connection, config, waNotify, vars, smsBody, body, phone, cancellationToken)
+                    .ConfigureAwait(false);
+                result = result with { WhatsApp = wa };
+            }
+
+            results.Add(result);
         }
 
         return new StorefrontNotifyAnswer(true, string.Empty, results);
+    }
+
+    /// <summary>PHP strips these before posting the number to the SMS handler; WhatsApp then gets the stripped number.</summary>
+    public static string SmsPhone(string phone)
+    {
+        foreach (var token in new[] { " ", "+7", "(", ")", "-", "_", "+" })
+        {
+            phone = phone.Replace(token, string.Empty, StringComparison.Ordinal);
+        }
+
+        return phone;
+    }
+
+    private sealed record SmsApi(string Handler, IReadOnlyDictionary<string, string> Parameters);
+
+    /// <summary>PHP <c>SELECT * FROM sms_api WHERE active = 1</c> (first row); no table or no active operator means no SMS.</summary>
+    private static async Task<SmsApi?> ActiveSmsApiAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        try
+        {
+            await using var command = connection.CreateCommand();
+            command.CommandText = ErpDb.Positional("SELECT * FROM `sms_api` WHERE `active` = ?");
+            ErpDb.AddParameters(command, 1);
+            await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+            if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+            {
+                return null;
+            }
+
+            return new SmsApi(Column(reader, "handler"), CpCommunicationsTestService.ParseParameters(Column(reader, "parameters_values")));
+        }
+        catch (DbException)
+        {
+            return null;
+        }
     }
 
     /// <summary>PHP replaces <c>%name%</c> only for vars the template declares with <c>type = text</c>; undeclared vars stay literal.</summary>
@@ -415,7 +491,8 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
         }
     }
 
-    private static async Task<string> RecipientAsync(
+    /// <summary>The e-mail and phone PHP would send to (empty when the person does not qualify for that channel).</summary>
+    private static async Task<(string Email, string Phone)> ContactsAsync(
         DbConnection connection,
         StorefrontNotifyPerson person,
         bool sendForNotConfirmed,
@@ -423,34 +500,53 @@ public sealed class StorefrontNotifyDispatcher : IStorefrontNotifyDispatcher
     {
         if (person.Type == StorefrontNotifyPerson.DirectContactType)
         {
-            return sendForNotConfirmed ? person.Email.Trim() : string.Empty;
+            return sendForNotConfirmed ? (person.Email.Trim(), person.Phone.Trim()) : (string.Empty, string.Empty);
         }
 
         if (person.Type != StorefrontNotifyPerson.UserIdType || person.UserId <= 0)
         {
-            return string.Empty;
+            return (string.Empty, string.Empty);
         }
 
         try
         {
             await using var command = connection.CreateCommand();
-            command.CommandText = ErpDb.Positional("SELECT IFNULL(`email`,''), IFNULL(`email_confirmed`,0) FROM `users` WHERE `user_id` = ? LIMIT 1");
+            command.CommandText = ErpDb.Positional("SELECT * FROM `users` WHERE `user_id` = ? LIMIT 1");
             ErpDb.AddParameters(command, person.UserId);
             await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
-                return string.Empty;
+                return (string.Empty, string.Empty);
             }
 
-            var email = (Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture) ?? string.Empty).Trim();
-            var confirmed = Convert.ToInt32(reader.GetValue(1), CultureInfo.InvariantCulture) != 0;
-            return email.Length > 0 && (confirmed || sendForNotConfirmed) ? email : string.Empty;
+            var email = Column(reader, "email").Trim();
+            var emailConfirmed = PhpLong(Column(reader, "email_confirmed")) != 0;
+            var phone = Column(reader, "phone");
+            var phoneConfirmed = PhpLong(Column(reader, "phone_confirmed")) != 0;
+            return (
+                email.Length > 0 && (emailConfirmed || sendForNotConfirmed) ? email : string.Empty,
+                phone.Length > 0 && phone != "0" && (phoneConfirmed || sendForNotConfirmed) ? phone : string.Empty);
         }
         catch (DbException)
         {
-            return string.Empty;
+            return (string.Empty, string.Empty);
         }
     }
+
+    private static string Column(DbDataReader reader, string name)
+    {
+        for (var i = 0; i < reader.FieldCount; i++)
+        {
+            if (string.Equals(reader.GetName(i), name, StringComparison.OrdinalIgnoreCase))
+            {
+                return reader.IsDBNull(i) ? string.Empty : Convert.ToString(reader.GetValue(i), CultureInfo.InvariantCulture) ?? string.Empty;
+            }
+        }
+
+        return string.Empty;
+    }
+
+    private static long PhpLong(string raw) => PhpInt(raw);
 
     /// <summary>PHP falls back to the raw template text when the translation is null / empty.</summary>
     private static async Task<string> TranslateOrRawAsync(StorefrontPhpTranslator translator, string key, CancellationToken cancellationToken)

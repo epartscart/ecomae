@@ -710,6 +710,7 @@ builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCartWriteServic
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontCheckoutWriteService, EcomAE.Platform.Storefront.StorefrontCheckoutWriteService>();
 builder.Services.AddScoped<EcomAE.Platform.Cp.ICpPlatformMailer, EcomAE.Platform.Cp.CpPlatformMailer>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontNotifyDispatcher, EcomAE.Platform.Storefront.StorefrontNotifyDispatcher>();
+builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontWhatsappNotifier, EcomAE.Platform.Storefront.StorefrontWhatsappNotifier>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontOrderNotificationService, EcomAE.Platform.Storefront.StorefrontOrderNotificationService>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontSupplierLpoNotifier, EcomAE.Platform.Storefront.StorefrontSupplierLpoNotifier>();
 builder.Services.AddScoped<EcomAE.Platform.Storefront.IStorefrontOrderCreatedPipeline, EcomAE.Platform.Storefront.StorefrontOrderCreatedPipeline>();
