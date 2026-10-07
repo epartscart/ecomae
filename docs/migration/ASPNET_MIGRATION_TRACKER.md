@@ -187,6 +187,22 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — checkout raises supplier POs and LPO e-mails like PHP
+
+Not complete.
+
+- Ratios on this branch (based on `main`): storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75, broader `cp/content` 95 of 110. The open CP parity branch (PR #2031) has 74 of 75 and 108 of 110. Weighted headline stays about 20.4%.
+- After the order commits, ASP.NET checkout now runs the same tail as PHP `ajax_checkout_create.php`, in the same order:
+  - One `lpo_to_supplier` e-mail per warehouse on the order. This includes own warehouses and catalogue stock found through `shop_orders_items_details`. The LPO number is the customer order number.
+  - The recipient comes from `connection_options` `order_email` / `supplier_order_email` / `lpo_email`, otherwise from the price list `sender_email`.
+  - Each send is retried once. Every outcome goes to `shop_orders_logs` with the PHP wording: sent, FAILED, skipped (no order e-mail), and the "0 sent" hint.
+  - For signed-in customers, `epc_erp_order_fulfillment_bootstrap` runs next. It creates a confirmed ERP sales order (`shop_order_id` = order) and one draft PO per supplier, with `order_id` = customer order, notes `Customer order ref #N` and title `PO for order #N — supplier`.
+  - A warehouse without an ERP supplier gets one auto-created from the warehouse name, so own warehouses get a PO too. A bootstrap failure is logged as `ERP fulfillment bootstrap skipped: …` and the order stays.
+- Bootstrap now runs PHP's additive fulfillment schema-ensure instead of failing closed.
+- Fixed own-catalogue (product type 1) checkout. Quoted `'?'` placeholders were renumbered, so `t2_json_params` bound to a missing parameter. They now bind `t2_storage_id`, `t2_storage_id`, `t2_json_params`, as PHP does.
+- Still on PHP: the staff and customer new-order e-mails (`get_order_info_html_*`), and the process-flow sync.
+- Verified with a throwaway-database checkout covering an own warehouse, a price-list supplier and a supplier with no e-mail: 3 POs, 1 sales order, 2 LPO e-mails (one after a retry), the exact log lines, and an idempotent re-run. 5152 of 5152 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — storefront ajax writers resolve from services; merge with main is green
 
 Not complete.
