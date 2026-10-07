@@ -1649,6 +1649,89 @@ public sealed class CpDeskPhpAjaxTests
         }
     }
 
+    [Fact]
+    public async Task CreateSitemap_OnThrowawayDatabase_ThenDropped()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        await using var adminConnection = new MySqlConnection(admin);
+        await adminConnection.OpenAsync();
+        await using (var create = adminConnection.CreateCommand())
+        {
+            create.CommandText = "CREATE DATABASE `" + database + "`";
+            await create.ExecuteNonQueryAsync();
+        }
+
+        var connectionString = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";AllowUserVariables=true;";
+        var staff = "admin_session=admin-token; admin_u_id=9";
+        var docroot = Path.Combine(Path.GetTempPath(), "ecomae-sitemap-" + Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(docroot);
+        var pages = "[{\"url\":\"about\"}]";
+        try
+        {
+            await using (var closed = await StartAsync(connectionString, configured: false))
+            {
+                using var closedClient = new HttpClient { BaseAddress = closed.BaseAddress };
+                var offline = await SendAsync(closedClient, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("csrf_guard_key", "admin-csrf"), ("url_list", pages)), staff);
+                Assert.False(offline.Json.RootElement.GetProperty("status").GetBoolean());
+                Assert.Equal(StorefrontPhpAjax.SitemapNoDb, offline.Json.RootElement.GetProperty("message").GetString());
+            }
+
+            await using var host = await StartAsync(connectionString, docroot);
+            using var client = new HttpClient { BaseAddress = host.BaseAddress };
+            var sessions = await SendAsync(client, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("csrf_guard_key", "admin-csrf"), ("url_list", pages)), staff);
+            Assert.Equal(StorefrontPhpAjax.AdminSessionsMissing, sessions.Json.RootElement.GetProperty("message").GetString());
+            await ExecuteAsync(connectionString, "CREATE TABLE sessions (id INT NOT NULL PRIMARY KEY, session VARCHAR(64) NOT NULL, user_id INT NOT NULL, type INT NOT NULL, csrf_guard_key VARCHAR(64) NOT NULL)");
+            await ExecuteAsync(connectionString, "INSERT INTO sessions (id, session, user_id, type, csrf_guard_key) VALUES (15, 'admin-token', 9, 1, 'admin-csrf')");
+            var guest = await SendAsync(client, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("csrf_guard_key", "admin-csrf"), ("url_list", pages)), string.Empty);
+            Assert.Equal(StorefrontPhpAjax.SitemapForbidden, guest.Json.RootElement.GetProperty("message").GetString());
+            var csrf = await SendAsync(client, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("url_list", pages)), staff);
+            Assert.Equal("Error! CSRF 1", csrf.Json.RootElement.GetProperty("message").GetString());
+            var mismatch = await SendAsync(client, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("csrf_guard_key", "nope"), ("url_list", pages)), staff);
+            Assert.Equal("Error! CSRF 4", mismatch.Json.RootElement.GetProperty("message").GetString());
+            var empty = await SendAsync(client, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("csrf_guard_key", "admin-csrf"), ("url_list", "[]")), staff);
+            Assert.Equal("Select at least one page for the sitemap.", empty.Json.RootElement.GetProperty("message").GetString());
+            var missing = await SendAsync(client, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("csrf_guard_key", "admin-csrf"), ("url_list", pages)), staff);
+            Assert.Equal(StorefrontPhpAjax.SitemapCatalogueMissing, missing.Json.RootElement.GetProperty("message").GetString());
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name IN ('shop_catalogue_categories','shop_catalogue_products')"));
+            Assert.False(File.Exists(Path.Combine(docroot, "sitemap.xml")));
+
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_catalogue_categories (id INT NOT NULL PRIMARY KEY, parent INT NOT NULL DEFAULT 0, url VARCHAR(255) NOT NULL, published_flag TINYINT NOT NULL DEFAULT 1, level INT NOT NULL DEFAULT 1, `order` INT NOT NULL DEFAULT 0)");
+            await ExecuteAsync(connectionString, "CREATE TABLE shop_catalogue_products (id INT NOT NULL PRIMARY KEY, category_id INT NOT NULL, alias VARCHAR(255) NOT NULL, published_flag TINYINT NOT NULL DEFAULT 1)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_catalogue_categories (id, parent, url, published_flag, level, `order`) VALUES (1, 0, 'parts', 1, 1, 1), (2, 0, 'hidden', 0, 1, 2), (3, 2, 'secret', 1, 2, 1)");
+            await ExecuteAsync(connectionString, "INSERT INTO shop_catalogue_products (id, category_id, alias, published_flag) VALUES (10, 1, 'brake', 1), (11, 1, 'draft', 0), (12, 2, 'skip', 1)");
+            var written = await SendAsync(client, CpLegacyPhpAjaxLinks.CreateSitemap, Form(("csrf_guard_key", "admin-csrf"), ("url_list", pages)), staff);
+            Assert.Equal("Ok", written.Body);
+            var chunk = await File.ReadAllTextAsync(Path.Combine(docroot, "sitemap1.xml"));
+            Assert.Contains("https://www.epartscart.com/about", chunk, StringComparison.Ordinal);
+            Assert.Contains("https://www.epartscart.com/parts<", chunk, StringComparison.Ordinal);
+            Assert.Contains("https://www.epartscart.com/parts/brake", chunk, StringComparison.Ordinal);
+            Assert.DoesNotContain("hidden", chunk, StringComparison.Ordinal);
+            Assert.DoesNotContain("secret", chunk, StringComparison.Ordinal);
+            Assert.DoesNotContain("draft", chunk, StringComparison.Ordinal);
+            var index = await File.ReadAllTextAsync(Path.Combine(docroot, "sitemap.xml"));
+            Assert.Contains("sitemap1.xml", index, StringComparison.Ordinal);
+            Assert.Equal("0", await ScalarAsync(connectionString, "SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'epc_erp%'"));
+        }
+        finally
+        {
+            if (Directory.Exists(docroot))
+            {
+                Directory.Delete(docroot, true);
+            }
+
+            await using var drop = adminConnection.CreateCommand();
+            drop.CommandText = "DROP DATABASE IF EXISTS `" + database + "`";
+            await drop.ExecuteNonQueryAsync();
+        }
+    }
+
     private static JsonElement SourceNamed(JsonElement body, string name)
     {
         foreach (var source in body.GetProperty("sources").EnumerateArray())
@@ -1694,6 +1777,9 @@ public sealed class CpDeskPhpAjaxTests
         builder.Services.AddSingleton<ICpMarketingBroadcastService>(sp => new CpMarketingBroadcastService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpPlatformGovernanceWriteService>(sp => new CpPlatformGovernanceWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
         builder.Services.AddSingleton<ICpFreeToolsWriteService>(sp => new CpFreeToolsWriteService(sp.GetRequiredService<IErpWriteConnectionFactory>()));
+        builder.Services.AddSingleton<ICpSitemapEditorService>(sp => new CpSitemapEditorService(
+            sp.GetRequiredService<IErpWriteConnectionFactory>(),
+            sp.GetRequiredService<Microsoft.Extensions.Options.IOptions<PhpReferenceOptions>>()));
         builder.Services.AddSingleton<ICpSmsGateway, IdleSms>();
         builder.Services.AddSingleton<ICpCommunicationsTestService>(sp => new CpCommunicationsTestService(
             sp.GetRequiredService<IErpWriteConnectionFactory>(),

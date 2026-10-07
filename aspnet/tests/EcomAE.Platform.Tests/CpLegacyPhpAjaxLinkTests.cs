@@ -118,5 +118,6 @@ public sealed class CpLegacyPhpAjaxLinkTests
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.WebTracker, out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.PlatformGovernance, out _));
         Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.FreeToolsAdmin, out _));
+        Assert.False(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(CpLegacyPhpAjaxLinks.CreateSitemap, out _));
     }
 }

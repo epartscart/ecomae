@@ -387,6 +387,8 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(CpLegacyPhpAjaxLinks.FreeToolsAdmin, ["GET", "POST"], CpFreeToolsAdminAsync)
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(CpLegacyPhpAjaxLinks.CreateSitemap, ["GET", "POST"], CpCreateSitemapAsync)
+            .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPartsCatalogues.Path, ["GET", "POST"], CpPartsCataloguesAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPartsCatalogues.AutoxpClicksPath, ["GET", "POST"], CpAutoxpClicksAsync)
@@ -3613,6 +3615,27 @@ public static class StorefrontPhpAjaxEndpoints
                 tools,
                 cancel),
             new StorefrontPhpAjax.BroadcastBody(false, StorefrontPhpAjax.FreeToolsDbError)).ConfigureAwait(false);
+    }
+
+    private static async Task<IResult> CpCreateSitemapAsync(
+        HttpContext context,
+        ITenantDbConnectionFactory connections,
+        ICpSitemapEditorService sitemap,
+        CancellationToken cancellationToken)
+    {
+        var fields = await PostedThenQueryAsync(context, cancellationToken).ConfigureAwait(false);
+        return await WithDbAsync(
+            context,
+            connections,
+            cancellationToken,
+            (connection, cancel) => StorefrontPhpAjax.CreateSitemapAsync(
+                connection,
+                context.Request.Cookies["admin_session"],
+                context.Request.Cookies["admin_u_id"],
+                fields,
+                sitemap,
+                cancel),
+            new StorefrontPhpAjax.FlagBody(false, StorefrontPhpAjax.SitemapNoDb)).ConfigureAwait(false);
     }
 
     private static async Task<Dictionary<string, string>> PostedThenQueryAsync(HttpContext context, CancellationToken cancellationToken)

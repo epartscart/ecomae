@@ -70,7 +70,8 @@ public static class CpLegacyPhpAjaxLinks
             || path.Equals(MarketingBroadcast, StringComparison.OrdinalIgnoreCase)
             || path.Equals(WebTracker, StringComparison.OrdinalIgnoreCase)
             || path.Equals(PlatformGovernance, StringComparison.OrdinalIgnoreCase)
-            || path.Equals(FreeToolsAdmin, StringComparison.OrdinalIgnoreCase);
+            || path.Equals(FreeToolsAdmin, StringComparison.OrdinalIgnoreCase)
+            || path.Equals(CreateSitemap, StringComparison.OrdinalIgnoreCase);
     }
 
     public const string PricePackSetup = "/cp/content/shop/prices_upload/ajax_1_prepare_tmp_dir.php";
@@ -96,6 +97,7 @@ public static class CpLegacyPhpAjaxLinks
     public const string WebTracker = "/cp/content/control/portal/ajax_epc_web_tracker.php";
     public const string PlatformGovernance = "/cp/content/control/portal/ajax_platform_governance.php";
     public const string FreeToolsAdmin = "/cp/content/control/portal/ajax_epc_free_tools_admin.php";
+    public const string CreateSitemap = "/cp/content/content/ajax_create_sitemap.php";
 
     public static bool TryRewrite(string? method, PathString path, string? action, out PathString target, out bool operatorPost)
     {
