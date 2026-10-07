@@ -521,7 +521,10 @@ public static partial class StorefrontPhpAjax
     /// <summary>One NOWPayments invoice as the crypto page prints it.</summary>
     public sealed record CryptoInvoice(string PayAmount, string PayAddress, string? PayCurrency, string PaymentId, bool Demo);
 
-    /// <summary>PHP <c>epc_crypto_allowed_coins</c>: the <c>allowed_coins</c> CSV, unknown codes labelled by their upper case; the defaults otherwise.</summary>
+    /// <summary>
+    /// PHP <c>epc_crypto_allowed_coins</c> (<c>content/shop/payments/epc_crypto_payments.php</c>): the <c>allowed_coins</c>
+    /// CSV, unknown codes labelled by their upper case; <c>epc_crypto_default_coins</c> otherwise.
+    /// </summary>
     public static IReadOnlyList<(string Code, string Label, string Network)> CryptoAllowedCoins(IReadOnlyDictionary<string, string> parameters)
     {
         IReadOnlyList<(string Code, string Label, string Network)> all =
@@ -584,6 +587,10 @@ public static partial class StorefrontPhpAjax
         return new CryptoInvoice(PhpFloatString(payAmount), address, coin, "demo_" + op + "_" + coin, true);
     }
 
+    /// <summary>
+    /// PHP <c>epc_crypto_create_nowpayment</c>: no call for an empty or DUMMY key, the <c>epc_crypto_api_base</c> sandbox or
+    /// live URL, <c>epc_crypto_http_json</c> (ok on 2xx with a JSON array), else the API message, error or HTTP code.
+    /// </summary>
     private static async Task<(bool Ok, string Message, CryptoInvoice? Payment)> CryptoCreateNowPaymentAsync(
         IReadOnlyDictionary<string, string> parameters,
         string payload,
