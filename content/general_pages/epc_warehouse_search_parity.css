@@ -72,18 +72,110 @@
 #all_table_products tr.epc-warehouse-subrow .td_name {
 	color: #94a3b8;
 }
+#all_table_products td.td_price {
+	text-align: right;
+	white-space: nowrap;
+	vertical-align: top;
+}
+#all_table_products td.td_price .epc-price-sell {
+	display: block;
+	font-weight: 700;
+	font-size: 14px;
+	color: #0f172a;
+}
+#all_table_products td.td_price .epc-price-purchase,
 #all_table_products td.td_price .show_data_class {
+	display: block;
 	font-size: 10px;
+	font-weight: 500;
 	color: #959393;
-	position: relative;
-	top: 1px;
+	position: static;
+	margin-top: 2px;
+}
+#all_table_products .epc-price-purchase__label {
+	font-weight: 700;
+	letter-spacing: .02em;
+	text-transform: uppercase;
+	margin-right: 4px;
+}
+#all_table_products .td_exist,
+#all_table_products .td_time_to_exe,
+#all_table_products .td_exist > span,
+#all_table_products .td_time_to_exe > span,
+#all_table_products .epc-warehouse-term {
+	border-bottom: 0 !important;
+	text-decoration: none !important;
+	box-shadow: none !important;
+}
+#all_table_products .td_exist {
+	font-weight: 700;
+	text-align: right;
+}
+#all_table_products .epc-warehouse-label {
+	margin: 4px 0 0;
+	max-width: 11rem;
+	font-size: 12px;
+	font-weight: 700;
+	color: #0f766e;
+	white-space: normal;
+}
+#all_table_products .epc-info-cell {
+	margin: 3px 0;
+}
+.epc-part-breadcrumb {
+	font-size: 13px;
+	color: #475569;
+	margin: 0 0 10px;
+}
+.epc-part-breadcrumb a {
+	color: #1e3a5f;
+	font-weight: 700;
+	text-decoration: none;
+}
+.epc-parts-desk {
+	position: fixed;
+	left: 1rem;
+	bottom: 4.5rem;
+	z-index: 30;
+}
+.epc-parts-desk__launcher {
+	border: 0;
+	border-radius: 999px;
+	background: #0f172a;
+	color: #f8fafc;
+	font-weight: 800;
+	font-size: .82rem;
+	padding: .45rem .8rem;
+	cursor: pointer;
+	box-shadow: 0 8px 18px rgba(15, 23, 42, .22);
+}
+.epc-parts-desk__panel {
+	margin-top: .4rem;
+	width: 16rem;
+	background: #0f172a;
+	color: #f8fafc;
+	border-radius: .7rem;
+	padding: .85rem .95rem;
+	box-shadow: 0 12px 28px rgba(15, 23, 42, .28);
+}
+.epc-parts-desk__panel[hidden] {
+	display: none !important;
+}
+#all_table_products td.td_manufacturer,
+#all_table_products .epc-warehouse-subrow__label,
+#all_table_products .epc-warehouse-label,
+#all_table_products .epc-warehouse-label .info_box {
+	white-space: normal !important;
+	overflow: visible !important;
+	text-overflow: clip !important;
+	max-width: none;
 }
 .epc-warehouse-subrow__label {
 	color: #0f766e;
 	font-size: 11px;
 	font-weight: 700;
 	margin-top: 2px;
-	white-space: nowrap;
+	line-height: 1.3;
 }
 .epc-warehouse-subrow__label .fa {
 	margin-right: 3px;

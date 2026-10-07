@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -126,6 +127,10 @@ public sealed class CpStatisticsReportService : ICpStatisticsReportService
             }
 
             return new(request with { From = from, To = to, Limit = limit }, totalHits, uniqueArticles, uniqueIps, rating, days, "shop_stat_article_queries", string.Empty);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new(request with { From = from, To = to, Limit = limit }, 0, 0, 0, [], [], "shop_stat_article_queries", string.Empty);
         }
         catch (DbException ex)
         {

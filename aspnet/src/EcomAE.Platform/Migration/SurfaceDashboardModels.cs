@@ -2694,7 +2694,8 @@ public sealed record StorefrontPartOfferDigest(
     decimal PricePurchase = 0m,
     int Markup = 0,
     int Probability = 100,
-    string TimeToExeGuaranteed = "");
+    string TimeToExeGuaranteed = "",
+    string WarehouseCaption = "");
 
 public sealed record StorefrontPartSearchResult(
     string Article,
@@ -2753,7 +2754,9 @@ public sealed record StorefrontCrossStockDigest(
     string Delivery,
     string Warehouse,
     int StorageId,
-    int PriceId);
+    int PriceId,
+    decimal PricePurchase = 0m,
+    int Markup = 0);
 
 public sealed record StorefrontCrossRefsResult(
     string Article,

@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -219,6 +220,10 @@ public sealed class CpPaymentsDeskService : ICpPaymentsDeskService
                 cancellationToken).ConfigureAwait(false);
 
             return new CpPaymentsDesk(true, "", gateways, accounts, settlements, offices, vendors);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new CpPaymentsDesk(true, string.Empty, [], [], [], [], []);
         }
         catch (DbException ex)
         {

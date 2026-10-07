@@ -11,6 +11,7 @@ using EcomAE.Platform.Presentation;
 using EcomAE.Platform.Routing;
 using EcomAE.Platform.Security;
 using EcomAE.Platform.Services;
+using EcomAE.Platform.Storefront;
 using EcomAE.Platform.Surfaces;
 using Microsoft.AspNetCore.ResponseCompression;
 using Microsoft.AspNetCore.DataProtection;
@@ -1291,6 +1292,10 @@ app.UseMiddleware<PhpServingDeactivatedMiddleware>();
 app.UseMiddleware<BlockchainVerifyJsonMiddleware>();
 // Industry {slug}.ecomae.com hubs/subs — before PHP product redirects (sub-paths must not 302→/).
 app.UseMiddleware<EcomaeIndustryShowcaseMiddleware>();
+// Public /erp-demo, tenant /brochure-cp, and marketing /shop (storefront demo) before /shop/* product redirects.
+app.UseMiddleware<PublicAnonymousPagesMiddleware>();
+// Tenant CP ajax posts → the existing procurement dispatcher and ERP ajax endpoint, before a browse redirect.
+app.UseMiddleware<CpLegacyPhpAjaxLinkMiddleware>();
 // Deep /CP|/ERP|/BOS|/shop product paths → ASP.NET; PHP only via /php-reference/* (503 when serving deactivated).
 app.UseMiddleware<PhpProductPathRedirectMiddleware>();
 // Thin /marketing/{slug} stubs → PHP canonical full pages (except /marketing/app home). Skipped when PHP serving off.
@@ -1329,6 +1334,10 @@ app.UseMiddleware<LifeOsPersonalAuthGateMiddleware>();
 app.UseMiddleware<LegacyLoginBridgeMiddleware>();
 // Exact /en/ /ar/ /me/ /ru/ homes → same storefront as / (browser URL stays /en/).
 app.UseMiddleware<LangHomeFallbackMiddleware>();
+// /ar|/ru|/me deep storefront URLs → the /en Blazor twins (browser URL stays).
+app.UseMiddleware<StorefrontLangAliasMiddleware>();
+// Bare / on www.ecomae.com and www.epartscart.com (nginx classic-entry proxy, in-process).
+app.UseMiddleware<PublicHomeRewriteMiddleware>();
 // Industry package slugs (/gaming, /gold, /kontakty) + tax /shop/erp → dedicated apps.
 app.UseMiddleware<IndustryStorefrontSlugMiddleware>();
 // Explicit routing after host gates so any future Path rewrites before this line re-match.
@@ -1364,11 +1373,216 @@ app.MapGet(EcomAeRoutes.ReleaseIdentity, (IHostEnvironment environment) =>
     });
 });
 
-// robots.txt advertises /sitemap.xml; PHP child maps remain authoritative under sitemap-index.php.
-app.MapGet(EcomAeRoutes.SitemapXml, () =>
+// Public sitemap + robots. /sitemap.xml stays a urlset. sitemap-index.php is its own route.
+app.MapGet("/robots.txt", (HttpContext context) =>
+    Results.Text(StorefrontPublicSeo.RobotsTxt(context.Request.Host.Host), "text/plain; charset=utf-8"));
+
+IResult IndustriesSitemap(HttpContext context)
 {
-    var response = Results.Redirect(StorefrontPublicSeo.PhpSitemapIndex, permanent: false);
-    return response;
+    if (PublicSeoSitemaps.ShouldRedirectIndustriesSitemap(context.Request.Host.Host))
+    {
+        return Results.Redirect("https://www.ecomae.com/sitemap-industries.php", permanent: false);
+    }
+
+    context.Response.Headers["X-Robots-Tag"] = "noindex";
+    return Results.Content(PublicSeoSitemaps.IndustryUrlset(), "application/xml; charset=utf-8");
+}
+
+app.MapGet("/sitemap-industries.php", IndustriesSitemap);
+app.MapGet("/sitemap-industries.xml", IndustriesSitemap);
+
+app.MapGet("/sitemap-marketing.php", () =>
+    Results.Content(PublicSeoSitemaps.MarketingUrlset(), "application/xml; charset=utf-8"));
+
+app.MapGet("/sitemap-index.php", async (
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
+{
+    var host = context.Request.Host.Host ?? string.Empty;
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    var children = PublicSeoSitemaps.IndexChildren(host).ToList();
+    if (!StorefrontPublicSeo.IsEcomaeMarketingHost(host)
+        && !PublicSeoSitemaps.ShouldRedirectIndustriesSitemap(host))
+    {
+        try
+        {
+            var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+            await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+            var shards = await PublicSeoSitemaps.CountWarehouseShardsAsync(connection, cancellationToken).ConfigureAwait(false);
+            children.AddRange(PublicSeoSitemaps.WarehouseShardChildren(shards));
+        }
+        catch (Exception ex) when (ex is not OperationCanceledException)
+        {
+        }
+    }
+
+    return Results.Content(PublicSeoSitemaps.SitemapIndex(origin, children), "application/xml; charset=utf-8");
+});
+
+app.Map("/epc-api/v1", EpcPublicApiEndpoint.Handle);
+app.Map("/epc-api/v1/{**rest}", EpcPublicApiEndpoint.Handle);
+
+app.MapMethods("/api/v1/catalog", ["GET", "HEAD", "POST"], CatalogPhpEntry);
+app.MapMethods("/api/v1/catalog.php", ["GET", "HEAD", "POST"], CatalogPhpEntry);
+
+static async Task<IResult> CatalogPhpEntry(
+    HttpContext context,
+    ILegacyApiClientAuthenticator authenticator,
+    CancellationToken cancellationToken)
+{
+    var action = context.Request.Query["action"].ToString().Trim();
+    if (action.Length == 0)
+    {
+        return CatalogClientJson(
+            StatusCodes.Status400BadRequest,
+            PublicCatalogApiEntry.MissingActionCode,
+            PublicCatalogApiEntry.MissingActionMessage);
+    }
+
+    var auth = await authenticator.RequireAsync(context.Request, "catalog", action.ToLowerInvariant(), cancellationToken)
+        .ConfigureAwait(false);
+    if (!auth.Succeeded)
+    {
+        return CatalogClientJson(auth.StatusCode, auth.Code, auth.Message);
+    }
+
+    context.Response.StatusCode = StatusCodes.Status400BadRequest;
+    context.Response.ContentType = "application/json; charset=utf-8";
+    context.Response.Headers.CacheControl = "no-cache, must-revalidate";
+    return Results.Text(
+        "{\"message\":\"" + PublicCatalogApiEntry.UnknownActionMessage + "\"}",
+        "application/json; charset=utf-8",
+        statusCode: StatusCodes.Status400BadRequest);
+}
+
+static IResult CatalogClientJson(int status, string code, string message)
+    => new CatalogClientJsonResult(status, PublicCatalogApiEntry.ErrorJson(code, message));
+
+app.MapGet("/sitemap-wh-{shard:int}.php", async (
+    int shard,
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
+{
+    if (!PublicSeoSitemaps.IsServedWarehouseShard(shard))
+    {
+        return Results.NotFound();
+    }
+
+    var origin = StorefrontPublicSeo.PublicOrigin(context.Request.Host.Host);
+    IReadOnlyList<(string Brand, string Article)> pairs = [];
+    try
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+        pairs = await PublicSeoSitemaps.ReadWarehouseShardAsync(connection, shard, cancellationToken).ConfigureAwait(false);
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+    }
+
+    context.Response.Headers["X-Sitemap-Cache"] = "miss";
+    return Results.Content(
+        PublicSeoSitemaps.WarehouseShardUrlset(origin, pairs),
+        "application/xml; charset=utf-8");
+});
+
+app.MapGet("/sitemap-pages.php", async (
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
+{
+    var host = context.Request.Host.Host ?? string.Empty;
+    if (StorefrontPublicSeo.IsEcomaeMarketingHost(host))
+    {
+        return Results.Content(PublicSeoSitemaps.MarketingPagesUrlset(), "application/xml; charset=utf-8");
+    }
+
+    if (PublicSeoSitemaps.ShouldRedirectIndustriesSitemap(host))
+    {
+        return Results.Content(PublicSeoSitemaps.IndustryHostUrlset(host), "application/xml; charset=utf-8");
+    }
+
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    try
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+        var xml = await PublicSeoSitemaps.TenantPagesUrlsetAsync(connection, origin, cancellationToken).ConfigureAwait(false);
+        return Results.Content(xml, "application/xml; charset=utf-8");
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        return Results.Content(PublicSeoSitemaps.TenantPageFallbackUrlset(origin), "application/xml; charset=utf-8");
+    }
+});
+
+app.MapGet("/sitemap-products.php", async (
+    HttpContext context,
+    ITenantDbConnectionFactory connections,
+    CancellationToken cancellationToken) =>
+{
+    var host = context.Request.Host.Host ?? string.Empty;
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    var brand = context.Request.Query["brand"].ToString().Trim();
+    try
+    {
+        var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
+        await using var connection = await connections.OpenForTenantAsync(tenant, cancellationToken).ConfigureAwait(false);
+        if (brand.Length == 0)
+        {
+            var brands = await PublicSeoSitemaps.ReadInStockManufacturersAsync(connection, cancellationToken).ConfigureAwait(false);
+            return Results.Content(PublicSeoSitemaps.ProductHubUrlset(origin, brands), "application/xml; charset=utf-8");
+        }
+
+        var articles = await PublicSeoSitemaps.ReadBrandArticlesAsync(connection, brand, cancellationToken).ConfigureAwait(false);
+        return Results.Content(PublicSeoSitemaps.ProductBrandUrlset(origin, brand, articles), "application/xml; charset=utf-8");
+    }
+    catch (Exception ex) when (ex is not OperationCanceledException)
+    {
+        var xml = brand.Length == 0
+            ? PublicSeoSitemaps.ProductHubUrlset(origin, [])
+            : PublicSeoSitemaps.ProductBrandUrlset(origin, brand, []);
+        return Results.Content(xml, "application/xml; charset=utf-8");
+    }
+});
+
+app.MapGet(EcomAeRoutes.SitemapXml, async (
+    HttpContext context,
+    ISurfaceDashboardSummaryReporter dashboards,
+    CancellationToken cancellationToken) =>
+{
+    var host = context.Request.Host.Host ?? string.Empty;
+    var origin = StorefrontPublicSeo.PublicOrigin(host);
+    IEnumerable<string> paths;
+    if (StorefrontPublicSeo.IsEcomaeMarketingHost(host))
+    {
+        paths = StorefrontPublicSeo.EcomaeMarketingSitemapPaths;
+    }
+    else
+    {
+        var parts = await dashboards.ListStorefrontSitemapPartsAsync(2000, cancellationToken).ConfigureAwait(false);
+        var list = new List<string> { "/", "/en/" };
+        foreach (var (brand, article) in parts)
+        {
+            if (string.IsNullOrWhiteSpace(brand) || string.IsNullOrWhiteSpace(article))
+            {
+                continue;
+            }
+
+            list.Add("/en/parts/"
+                     + Uri.EscapeDataString(brand.Trim().ToUpperInvariant())
+                     + "/"
+                     + Uri.EscapeDataString(article.Trim()));
+        }
+
+        paths = list;
+    }
+
+    return Results.Content(
+        StorefrontPublicSeo.SitemapUrlset(origin, paths),
+        "application/xml; charset=utf-8");
 });
 
 app.MapGet(EcomAeRoutes.MigrationStatus, (IMigrationParityReporter reporter) => Results.Ok(reporter.BuildReport()));
@@ -1675,6 +1889,10 @@ app.MapEcomAeSurfaceModules();
 // Serve PHP chrome CSS/static from the monorepo so ASP.NET shells match PHP look
 // even when PHP-FPM is not fronting Kestrel (local + loopback probes).
 PhpLegacyAssetBridge.Map(app, app.Environment);
+OAuthStartEndpoint.Map(app);
+OAuthCallbackEndpoint.Map(app);
+HomeCatalogWidgets.Map(app);
+AccessoriesMarketplaceSearch.Map(app);
 // LifeOS cinematic MP4/PNG — platform does not UseStaticFiles; serve wwwroot explicitly.
 EcomAE.Platform.LifeOs.Cinematic.LifeOsCinematicAssets.Map(app, app.Environment);
 EcomAE.Platform.LifeOs.Clients.LifeOsPwaAssets.Map(app, app.Environment);

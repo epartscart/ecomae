@@ -2,7 +2,10 @@
 @page "/en/vehicle-catalog"
 @page "/vehicle-catalog"
 @layout Layout.PhpChromeLayout
+@using EcomAE.Platform.Data
 @using EcomAE.Platform.Presentation
+@using EcomAE.Platform.Storefront
+@inject ITenantDbConnectionFactory Db
 
 <PageTitle>Vehicle parts catalog · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -37,12 +40,51 @@
     <p class="epc-sf-vc-note">
         Choose year, make, model, and engine, then continue into part search.
     </p>
+
+    <section aria-label="Linked parts catalogues" style="margin-top:1rem">
+        <h2 style="font-size:1.05rem;margin:0 0 .6rem">Linked parts catalogues</h2>
+        @if (_brands.Count == 0)
+        {
+            <p class="epc-sf-vc-note" style="margin-top:0">@_cataloguesMessage</p>
+        }
+        else
+        {
+            <p class="epc-sf-vc-note" style="margin-top:0">AutoXP, Ilcats, Catalogs-Parts, and any other catalogue enabled for this shop.</p>
+            @foreach (var group in _brands.GroupBy(brand => brand.Caption.Length == 0 ? "#" : brand.Caption[..1]))
+            {
+                <h3 style="font-size:.95rem;margin:1rem 0 .35rem">@group.Key</h3>
+                <ul style="list-style:none;padding:0;margin:0">
+                    @foreach (var brand in group)
+                    {
+                        <li style="margin:0 0 .65rem">
+                            <strong>@brand.Caption</strong>
+                            <span style="display:flex;flex-wrap:wrap;gap:.4rem;margin-top:.3rem">
+                                @foreach (var catalogue in brand.Catalogues)
+                                {
+                                    if (catalogue.Name == "autoxp")
+                                    {
+                                        <a rel="nofollow" href="@("/autoxp_clicks_control.php?next=" + Uri.EscapeDataString(catalogue.Href))">@catalogue.Caption</a>
+                                    }
+                                    else
+                                    {
+                                        <a rel="nofollow" href="@catalogue.Href" target="_blank">@catalogue.Caption</a>
+                                    }
+                                }
+                            </span>
+                        </li>
+                    }
+                </ul>
+            }
+        }
+    </section>
 </StorefrontTenantChrome>
 
 @code {
     private string _html = "";
+    private string _cataloguesMessage = "";
+    private IReadOnlyList<StorefrontPartsCatalogues.Brand> _brands = [];
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         _html = PhpHomeWidgetHtml.VehicleCatalog();
         if (string.IsNullOrWhiteSpace(_html))
@@ -50,6 +92,24 @@
             _html = "<p style=\"margin:0;color:#64748b\">Vehicle catalog widget is unavailable in this environment. "
                   + "<a href=\"" + StorefrontAspNetCanonical.PartSearch + "\">Part search</a> · "
                   + "<a href=\"" + StorefrontAspNetCanonical.LaximoVin + "\">VIN / Frame</a>.</p>";
+        }
+
+        if (!Db.IsConfigured)
+        {
+            _cataloguesMessage = StorefrontPhpAjax.NoDbConnect;
+            return;
+        }
+
+        try
+        {
+            await using var connection = await Db.OpenForTenantAsync(null, CancellationToken.None).ConfigureAwait(false);
+            var loaded = await StorefrontPartsCatalogues.LoadAsync(connection, CancellationToken.None).ConfigureAwait(false);
+            _brands = loaded.Brands;
+            _cataloguesMessage = loaded.Message;
+        }
+        catch (Exception)
+        {
+            _cataloguesMessage = StorefrontPartsCatalogues.NotInDatabase;
         }
     }
 }

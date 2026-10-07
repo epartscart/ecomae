@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Configuration;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Options;
 
@@ -298,6 +299,10 @@ public sealed class CpConfigEditorService : ICpConfigEditorService
 
             return new(result, fileOk ? "config.php" : "database-defaults", message, path, fileOk);
         }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], "database", message, path, fileOk);
+        }
         catch (DbException ex)
         {
             return new([], "migration", ex.Message, path, fileOk);
@@ -395,10 +400,15 @@ public sealed class CpConfigEditorService : ICpConfigEditorService
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Fail("invalid", ex.Message);
         }
-        catch (DbException ex)
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
-            return ErpSimpleWriteResult.Fail("db", ex.Message);
+            return ErpSimpleWriteResult.Fail("invalid", "Settings cannot be saved because config items are not in this database.");
+        }
+        catch (DbException)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Could not save settings.");
         }
         catch (IOException ex)
         {

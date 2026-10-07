@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -95,38 +97,45 @@ public sealed class CpLangWriteService : ICpLangWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        if (value is not null)
+        try
         {
-            var langs = await ErpDb.LongAsync(
+            if (value is not null)
+            {
+                var langs = await ErpDb.LongAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages` WHERE `lang_code` = ?"),
+                    cancellationToken,
+                    value);
+                if (langs != 1)
+                {
+                    return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of same.");
+                }
+            }
+
+            var exists = await ErpDb.LongAsync(
                 connection,
                 null,
-                ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages` WHERE `lang_code` = ?"),
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
                 cancellationToken,
-                value);
-            if (langs != 1)
+                key);
+            if (exists != 1)
             {
-                return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of same.");
+                return ErpSimpleWriteResult.Fail("not_found", "No such string.");
             }
-        }
 
-        var exists = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-            cancellationToken,
-            key);
-        if (exists != 1)
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `lang_text_strings` SET `same` = ? WHERE `str_key` = ?"),
+                cancellationToken,
+                value, key);
+            return ErpSimpleWriteResult.Ok("Language same flag saved.", 0);
+        }
+        catch (DbException ex)
         {
-            return ErpSimpleWriteResult.Fail("not_found", "No such string.");
+            return LanguageWriteFailed(ex, "Could not save the language string.");
         }
-
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `lang_text_strings` SET `same` = ? WHERE `str_key` = ?"),
-            cancellationToken,
-            value, key);
-        return ErpSimpleWriteResult.Ok("Language same flag saved.", 0);
     }
 
     public async Task<ErpSimpleWriteResult> SaveTranslationAsync(
@@ -159,54 +168,61 @@ public sealed class CpLangWriteService : ICpLangWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var strings = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-            cancellationToken,
-            key);
-        if (strings != 1)
+        try
         {
-            return ErpSimpleWriteResult.Fail("not_found", "String not found.");
-        }
-
-        var langs = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages` WHERE `lang_code` = ?"),
-            cancellationToken,
-            lang);
-        if (langs != 1)
-        {
-            return ErpSimpleWriteResult.Fail("not_found", "Language not found.");
-        }
-
-        var existing = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = ?"),
-            cancellationToken,
-            key, lang);
-        if (existing == 1)
-        {
-            await ErpDb.ExecuteAsync(
+            var strings = await ErpDb.LongAsync(
                 connection,
                 null,
-                ErpDb.Positional("UPDATE `lang_text_strings_translation` SET `value` = ? WHERE `str_key` = ? AND `lang_code` = ?"),
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
                 cancellationToken,
-                text, key, lang);
-        }
-        else
-        {
-            await ErpDb.ExecuteAsync(
+                key);
+            if (strings != 1)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "String not found.");
+            }
+
+            var langs = await ErpDb.LongAsync(
                 connection,
                 null,
-                ErpDb.Positional("INSERT INTO `lang_text_strings_translation` (`str_key`,`lang_code`,`value`) VALUES (?,?,?)"),
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages` WHERE `lang_code` = ?"),
                 cancellationToken,
-                key, lang, text);
-        }
+                lang);
+            if (langs != 1)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "Language not found.");
+            }
 
-        return ErpSimpleWriteResult.Ok("Translation saved.", 0);
+            var existing = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings_translation` WHERE `str_key` = ? AND `lang_code` = ?"),
+                cancellationToken,
+                key, lang);
+            if (existing == 1)
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("UPDATE `lang_text_strings_translation` SET `value` = ? WHERE `str_key` = ? AND `lang_code` = ?"),
+                    cancellationToken,
+                    text, key, lang);
+            }
+            else
+            {
+                await ErpDb.ExecuteAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("INSERT INTO `lang_text_strings_translation` (`str_key`,`lang_code`,`value`) VALUES (?,?,?)"),
+                    cancellationToken,
+                    key, lang, text);
+            }
+
+            return ErpSimpleWriteResult.Ok("Translation saved.", 0);
+        }
+        catch (DbException ex)
+        {
+            return LanguageWriteFailed(ex, "Could not save the translation.");
+        }
     }
 
     public async Task<ErpSimpleWriteResult> SaveDescriptionAsync(
@@ -237,24 +253,31 @@ public sealed class CpLangWriteService : ICpLangWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var exists = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-            cancellationToken,
-            key);
-        if (exists != 1)
+        try
         {
-            return ErpSimpleWriteResult.Fail("not_found", "String not found.");
-        }
+            var exists = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
+                cancellationToken,
+                key);
+            if (exists != 1)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "String not found.");
+            }
 
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `lang_text_strings` SET `description` = ? WHERE `str_key` = ?"),
-            cancellationToken,
-            text, key);
-        return ErpSimpleWriteResult.Ok("String description saved.", 0);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `lang_text_strings` SET `description` = ? WHERE `str_key` = ?"),
+                cancellationToken,
+                text, key);
+            return ErpSimpleWriteResult.Ok("String description saved.", 0);
+        }
+        catch (DbException ex)
+        {
+            return LanguageWriteFailed(ex, "Could not save the language string.");
+        }
     }
 
     public async Task<ErpSimpleWriteResult> DeleteUnusedCustomAsync(CancellationToken cancellationToken = default)
@@ -266,20 +289,28 @@ public sealed class CpLangWriteService : ICpLangWriteService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        var translations = await ErpDb.ExecuteAsync(
-            connection,
-            transaction,
-            ErpDb.Positional("DELETE FROM `lang_text_strings_translation` WHERE `str_key` IN (SELECT `str_key` FROM `lang_text_strings` WHERE `is_custom` = ? AND `used_found` = ?)"),
-            cancellationToken,
-            1, 2);
-        var strings = await ErpDb.ExecuteAsync(
-            connection,
-            transaction,
-            ErpDb.Positional("DELETE FROM `lang_text_strings` WHERE `is_custom` = ? AND `used_found` = ?"),
-            cancellationToken,
-            1, 2);
-        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        return new ErpSimpleWriteResult(true, "ok", "Unused custom strings deleted.", 0, Math.Max(translations + strings, 1));
+        try
+        {
+            var translations = await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `lang_text_strings_translation` WHERE `str_key` IN (SELECT `str_key` FROM `lang_text_strings` WHERE `is_custom` = ? AND `used_found` = ?)"),
+                cancellationToken,
+                1, 2);
+            var strings = await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional("DELETE FROM `lang_text_strings` WHERE `is_custom` = ? AND `used_found` = ?"),
+                cancellationToken,
+                1, 2);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "Unused custom strings deleted.", 0, Math.Max(translations + strings, 1));
+        }
+        catch (DbException ex)
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return LanguageWriteFailed(ex, "Could not delete unused language strings.");
+        }
     }
 
     public async Task<ErpSimpleWriteResult> CreateStringAsync(
@@ -323,32 +354,32 @@ public sealed class CpLangWriteService : ICpLangWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        if (same is not null)
-        {
-            var langs = await ErpDb.LongAsync(
-                connection,
-                null,
-                ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages` WHERE `lang_code` = ?"),
-                cancellationToken,
-                same).ConfigureAwait(false);
-            if (langs != 1)
-            {
-                return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of same");
-            }
-        }
-
-        var languageCount = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages`"),
-            cancellationToken).ConfigureAwait(false);
-        if (languageCount <= 0)
-        {
-            return ErpSimpleWriteResult.Fail("invalid", "No languages are configured.");
-        }
-
         try
         {
+            if (same is not null)
+            {
+                var langs = await ErpDb.LongAsync(
+                    connection,
+                    null,
+                    ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages` WHERE `lang_code` = ?"),
+                    cancellationToken,
+                    same).ConfigureAwait(false);
+                if (langs != 1)
+                {
+                    return ErpSimpleWriteResult.Fail("invalid", "Incorrect value of same");
+                }
+            }
+
+            var languageCount = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_languages`"),
+                cancellationToken).ConfigureAwait(false);
+            if (languageCount <= 0)
+            {
+                return ErpSimpleWriteResult.Fail("invalid", "No languages are configured.");
+            }
+
             var key = await AllocateStrKeyAsync(connection, request.DomainPath, cancellationToken).ConfigureAwait(false);
             await ErpDb.ExecuteAsync(
                 connection,
@@ -373,9 +404,9 @@ public sealed class CpLangWriteService : ICpLangWriteService
         {
             return ErpSimpleWriteResult.Fail("invalid", ex.Message);
         }
-        catch (System.Data.Common.DbException)
+        catch (DbException ex)
         {
-            return ErpSimpleWriteResult.Fail("invalid", "Could not create the language string.");
+            return LanguageWriteFailed(ex, "Could not create the language string.");
         }
     }
 
@@ -467,25 +498,37 @@ public sealed class CpLangWriteService : ICpLangWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var exists = await ErpDb.LongAsync(
-            connection,
-            null,
-            ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
-            cancellationToken,
-            key);
-        if (exists != 1)
+        try
         {
-            return ErpSimpleWriteResult.Fail("not_found", "No such string.");
-        }
+            var exists = await ErpDb.LongAsync(
+                connection,
+                null,
+                ErpDb.Positional("SELECT COUNT(*) FROM `lang_text_strings` WHERE `str_key` = ?"),
+                cancellationToken,
+                key);
+            if (exists != 1)
+            {
+                return ErpSimpleWriteResult.Fail("not_found", "No such string.");
+            }
 
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `lang_text_strings` SET `" + column + "` = ? WHERE `str_key` = ?"),
-            cancellationToken,
-            flag, key);
-        return ErpSimpleWriteResult.Ok("Language " + label + " flag saved.", 0);
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `lang_text_strings` SET `" + column + "` = ? WHERE `str_key` = ?"),
+                cancellationToken,
+                flag, key);
+            return ErpSimpleWriteResult.Ok("Language " + label + " flag saved.", 0);
+        }
+        catch (DbException ex)
+        {
+            return LanguageWriteFailed(ex, "Could not save the language string.");
+        }
     }
+
+    private static ErpSimpleWriteResult LanguageWriteFailed(DbException exception, string fallback)
+        => CpMissingSchema.IsMissing(exception)
+            ? ErpSimpleWriteResult.Fail("invalid", "Language tables are not in this database.")
+            : ErpSimpleWriteResult.Fail("invalid", fallback);
 
     private static string NormalizeKey(string? strKey)
     {

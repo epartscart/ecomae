@@ -151,7 +151,12 @@ public static class StorefrontPublicSeo
             path = "/" + path;
         }
 
-        var host = request.Host.Value;
+        var hostName = (request.Host.Host ?? string.Empty).Trim();
+        if (hostName.Length == 0)
+        {
+            hostName = "localhost";
+        }
+
         var scheme = request.Headers.TryGetValue("X-Forwarded-Proto", out var proto)
             && !string.IsNullOrWhiteSpace(proto)
             ? proto.ToString().Split(',')[0].Trim()
@@ -161,7 +166,46 @@ public static class StorefrontPublicSeo
             scheme = "https";
         }
 
-        return $"{scheme}://{host}{path}";
+        // Public product hosts are HTTPS. Local HTTP (no TLS terminator) must not
+        // publish http:// canonical, og:url, or hreflang.
+        if (PreferHttpsPublicHost(hostName))
+        {
+            scheme = "https";
+        }
+
+        return $"{scheme}://{hostName}{path}";
+    }
+
+    /// <summary>PHP <c>epc_portal_is_epartscart_hostname</c>: www stripped, exact <c>epartscart.com</c>.</summary>
+    public static bool IsEpartscartHostname(string? host)
+    {
+        var h = (host ?? string.Empty).Trim().TrimEnd('.').ToLowerInvariant();
+        var colon = h.IndexOf(':');
+        if (colon >= 0)
+        {
+            h = h[..colon];
+        }
+
+        if (h.StartsWith("www.", StringComparison.Ordinal))
+        {
+            h = h[4..];
+        }
+
+        return h == "epartscart.com";
+    }
+
+    public static bool PreferHttpsPublicHost(string? host)
+    {
+        var h = (host ?? string.Empty).Trim().TrimEnd('.').ToLowerInvariant();
+        var colon = h.IndexOf(':');
+        if (colon >= 0)
+        {
+            h = h[..colon];
+        }
+
+        return h is "epartscart.com" or "ecomae.com"
+            || h.EndsWith(".epartscart.com", StringComparison.Ordinal)
+            || h.EndsWith(".ecomae.com", StringComparison.Ordinal);
     }
 
     public static string CanonicalForStorefrontHome(HttpRequest request)
@@ -470,5 +514,120 @@ public static class StorefrontPublicSeo
         return "<script type=\"application/ld+json\">"
                + JsonSerializer.Serialize(schema, JsonLdOptions)
                + "</script>";
+    }
+
+    /// <summary>PHP <c>epc_ecomae_marketing_serve_seo_file</c> core marketing paths.</summary>
+    public static readonly string[] EcomaeMarketingSitemapPaths =
+    [
+        "/",
+        "/platform",
+        "/platform/capabilities",
+        "/platform/free-tools",
+        "/platform/industries",
+        "/platform/pricing",
+        "/platform/demo",
+        "/platform/customer-results",
+        "/platform/about",
+        "/platform/contact",
+        "/platform/business-continuity",
+        "/platform/platform-guides",
+        "/platform/api-documentation",
+        "/platform/api-services",
+        "/platform/auto-price-ai",
+        "/platform/faq",
+        "/documentation",
+        "/compare",
+        "/blockchain",
+        "/brochure",
+        "/brochure/cp",
+        "/solutions",
+        "/legal",
+        "/privacy",
+        "/terms",
+    ];
+
+    public static bool IsEcomaeMarketingHost(string? host)
+    {
+        var h = (host ?? string.Empty).Trim().TrimEnd('.').ToLowerInvariant();
+        var colon = h.IndexOf(':');
+        if (colon >= 0)
+        {
+            h = h[..colon];
+        }
+
+        return h is "www.ecomae.com" or "ecomae.com";
+    }
+
+    public static string PublicOrigin(string? host)
+    {
+        var h = (host ?? string.Empty).Trim().TrimEnd('.');
+        var colon = h.IndexOf(':');
+        if (colon >= 0)
+        {
+            h = h[..colon];
+        }
+
+        if (h.Length == 0)
+        {
+            h = "localhost";
+        }
+
+        var scheme = PreferHttpsPublicHost(h) ? "https" : "http";
+        return scheme + "://" + h;
+    }
+
+    public static string RobotsTxt(string? host)
+    {
+        var origin = PublicOrigin(host);
+        var sb = new System.Text.StringBuilder();
+        sb.Append("User-agent: *\nAllow: /\nDisallow: /cp/\nDisallow: /erp/\n");
+        if (!IsEcomaeMarketingHost(host))
+        {
+            sb.Append("Disallow: /en/parts/brands/\n");
+        }
+
+        sb.Append('\n');
+        if (IsEcomaeMarketingHost(host))
+        {
+            // PHP epc_ecomae_marketing_serve_seo_file on www.
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-industries.php\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap.xml\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-index.php\n");
+        }
+        else if (EcomaeIndustryShowcaseSnapshots.TryResolveHostSlug(host, out _))
+        {
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap.xml\n");
+        }
+        else
+        {
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap.xml\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-index.php\n");
+            sb.Append("Sitemap: ").Append(origin).Append("/sitemap-products.php\n");
+        }
+
+        return sb.ToString();
+    }
+
+    public static string SitemapUrlset(string origin, IEnumerable<string> paths)
+    {
+        var root = (origin ?? string.Empty).TrimEnd('/');
+        var today = DateTime.UtcNow.ToString("yyyy-MM-dd", System.Globalization.CultureInfo.InvariantCulture);
+        var sb = new System.Text.StringBuilder();
+        sb.Append("<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n");
+        sb.Append("<urlset xmlns=\"http://www.sitemaps.org/schemas/sitemap/0.9\">\n");
+        foreach (var path in paths)
+        {
+            if (string.IsNullOrWhiteSpace(path) || !path.StartsWith('/'))
+            {
+                continue;
+            }
+
+            var loc = System.Net.WebUtility.HtmlEncode(root + path);
+            sb.Append("\t<url><loc>").Append(loc).Append("</loc><lastmod>").Append(today)
+                .Append("</lastmod><changefreq>weekly</changefreq><priority>0.6</priority></url>\n");
+        }
+
+        sb.Append("</urlset>\n");
+        return sb.ToString();
     }
 }

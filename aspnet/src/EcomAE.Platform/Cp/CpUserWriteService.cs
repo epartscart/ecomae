@@ -1,8 +1,10 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Net;
 using System.Text.Json;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -491,8 +493,10 @@ public sealed class CpUserWriteService : ICpUserWriteService
         if (actorUserId == userId)
         {
             var current = new List<long>();
-            await using (var cmd = connection.CreateCommand())
+            var groupsKnown = true;
+            try
             {
+                await using var cmd = connection.CreateCommand();
                 cmd.CommandText = ErpDb.Positional("SELECT `group_id` FROM `users_groups_bind` WHERE `user_id` = ? ORDER BY `group_id`");
                 ErpDb.AddParameters(cmd, userId);
                 await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
@@ -501,8 +505,12 @@ public sealed class CpUserWriteService : ICpUserWriteService
                     current.Add(reader.GetInt64(0));
                 }
             }
+            catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+            {
+                groupsKnown = false;
+            }
 
-            if (!current.OrderBy(g => g).SequenceEqual(groups.GroupIds.Select(g => (long)g).OrderBy(g => g)))
+            if (groupsKnown && !current.OrderBy(g => g).SequenceEqual(groups.GroupIds.Select(g => (long)g).OrderBy(g => g)))
             {
                 return ErpSimpleWriteResult.Fail("forbidden", "You cannot change the groups of your own account.");
             }
@@ -515,30 +523,52 @@ public sealed class CpUserWriteService : ICpUserWriteService
 
         var unlockedFlag = unlocked == 1 ? 1 : 0;
         var variant = regVariant > 0 ? regVariant : 1;
+        HashSet<string> userColumns;
+        try
+        {
+            userColumns = await TableColumnsAsync(connection, "users", cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "User columns are not in this database.");
+        }
+        var withPassword = plain.Length > 0 && userColumns.Contains("password");
+        var updateSql = UserUpdateSql(userColumns, withPassword);
+        if (updateSql.Length == 0)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "User columns are not in this database.");
+        }
+
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
         try
         {
-            int rows;
-            if (plain.Length > 0)
+            var args = new List<object?>();
+            void Add(string column, object? value)
             {
-                rows = await ErpDb.ExecuteAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional(
-                        "UPDATE `users` SET `email`=?, `email_confirmed`=?, `phone`=?, `phone_confirmed`=?, `password`=?, `unlocked`=?, `reg_variant`=? WHERE `user_id` = ?"),
-                    cancellationToken,
-                    emailNorm.Value, emailNorm.Confirmed, phoneNorm.Value, phoneNorm.Confirmed, HashStaffPassword(plain), unlockedFlag, variant, userId).ConfigureAwait(false);
+                if (userColumns.Contains(column))
+                {
+                    args.Add(value);
+                }
             }
-            else
+
+            Add("email", emailNorm.Value);
+            Add("email_confirmed", emailNorm.Confirmed);
+            Add("phone", phoneNorm.Value);
+            Add("phone_confirmed", phoneNorm.Confirmed);
+            if (withPassword)
             {
-                rows = await ErpDb.ExecuteAsync(
-                    connection,
-                    transaction,
-                    ErpDb.Positional(
-                        "UPDATE `users` SET `email`=?, `email_confirmed`=?, `phone`=?, `phone_confirmed`=?, `unlocked`=?, `reg_variant`=? WHERE `user_id` = ?"),
-                    cancellationToken,
-                    emailNorm.Value, emailNorm.Confirmed, phoneNorm.Value, phoneNorm.Confirmed, unlockedFlag, variant, userId).ConfigureAwait(false);
+                Add("password", HashStaffPassword(plain));
             }
+
+            Add("unlocked", unlockedFlag);
+            Add("reg_variant", variant);
+            args.Add(userId);
+            var rows = await ErpDb.ExecuteAsync(
+                connection,
+                transaction,
+                ErpDb.Positional(updateSql),
+                cancellationToken,
+                args.ToArray()).ConfigureAwait(false);
 
             if (rows <= 0)
             {
@@ -556,7 +586,9 @@ public sealed class CpUserWriteService : ICpUserWriteService
             }
 
             var writes = 1;
-            if (plain.Length > 0 && (emailNorm.Confirmed == 1 || phoneNorm.Confirmed == 1))
+            var notes = new List<string>();
+            if (withPassword && (emailNorm.Confirmed == 1 || phoneNorm.Confirmed == 1)
+                && await TableExistsAsync(connection, transaction, "sessions", cancellationToken).ConfigureAwait(false))
             {
                 var keep = (actorSession ?? string.Empty).Trim();
                 writes += await ErpDb.ExecuteAsync(
@@ -567,39 +599,54 @@ public sealed class CpUserWriteService : ICpUserWriteService
                     userId, keep).ConfigureAwait(false);
             }
 
-            writes += await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("DELETE FROM `users_profiles` WHERE `user_id` = ?"),
-                cancellationToken,
-                userId).ConfigureAwait(false);
-            foreach (var field in fields.Fields)
+            if (await TableExistsAsync(connection, transaction, "users_profiles", cancellationToken).ConfigureAwait(false))
             {
                 writes += await ErpDb.ExecuteAsync(
                     connection,
                     transaction,
-                    ErpDb.Positional("INSERT INTO `users_profiles` (`user_id`, `data_key`, `data_value`) VALUES (?,?,?)"),
+                    ErpDb.Positional("DELETE FROM `users_profiles` WHERE `user_id` = ?"),
                     cancellationToken,
-                    userId, field.Name, field.Value).ConfigureAwait(false);
+                    userId).ConfigureAwait(false);
+                foreach (var field in fields.Fields)
+                {
+                    writes += await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("INSERT INTO `users_profiles` (`user_id`, `data_key`, `data_value`) VALUES (?,?,?)"),
+                        cancellationToken,
+                        userId, field.Name, field.Value).ConfigureAwait(false);
+                }
+            }
+            else if (fields.Fields.Count > 0)
+            {
+                notes.Add("Profile fields are not in this database.");
             }
 
-            writes += await ErpDb.ExecuteAsync(
-                connection,
-                transaction,
-                ErpDb.Positional("DELETE FROM `users_groups_bind` WHERE `user_id` = ?"),
-                cancellationToken,
-                userId).ConfigureAwait(false);
-            foreach (var groupId in groups.GroupIds)
+            if (await TableExistsAsync(connection, transaction, "users_groups_bind", cancellationToken).ConfigureAwait(false))
             {
                 writes += await ErpDb.ExecuteAsync(
                     connection,
                     transaction,
-                    ErpDb.Positional("INSERT INTO `users_groups_bind` (`user_id`, `group_id`) VALUES (?,?)"),
+                    ErpDb.Positional("DELETE FROM `users_groups_bind` WHERE `user_id` = ?"),
                     cancellationToken,
-                    userId, groupId).ConfigureAwait(false);
+                    userId).ConfigureAwait(false);
+                foreach (var groupId in groups.GroupIds)
+                {
+                    writes += await ErpDb.ExecuteAsync(
+                        connection,
+                        transaction,
+                        ErpDb.Positional("INSERT INTO `users_groups_bind` (`user_id`, `group_id`) VALUES (?,?)"),
+                        cancellationToken,
+                        userId, groupId).ConfigureAwait(false);
+                }
+            }
+            else if (groups.GroupIds.Count > 0)
+            {
+                notes.Add("Group bindings are not in this database.");
             }
 
-            if (unlockedFlag == 0 || (emailNorm.Confirmed == 0 && phoneNorm.Confirmed == 0))
+            if ((unlockedFlag == 0 || (emailNorm.Confirmed == 0 && phoneNorm.Confirmed == 0))
+                && await TableExistsAsync(connection, transaction, "sessions", cancellationToken).ConfigureAwait(false))
             {
                 writes += await ErpDb.ExecuteAsync(
                     connection,
@@ -610,13 +657,73 @@ public sealed class CpUserWriteService : ICpUserWriteService
             }
 
             await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-            return new ErpSimpleWriteResult(true, "ok", "User saved.", userId, Math.Max(writes, 1));
+            var message = notes.Count == 0 ? "User saved." : "User saved. " + string.Join(" ", notes);
+            return new ErpSimpleWriteResult(true, "ok", message, userId, Math.Max(writes, 1));
         }
-        catch (System.Data.Common.DbException)
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "User columns are not in this database.");
+        }
+        catch (DbException)
         {
             await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
             return ErpSimpleWriteResult.Fail("invalid", "Could not save the account.");
         }
+    }
+
+    /// <summary>PHP user.php update. Missing registration or password columns are omitted so the account row still saves.</summary>
+    public static string UserUpdateSql(IReadOnlySet<string> columns, bool withPassword)
+    {
+        var names = new List<string>();
+        void Add(string name)
+        {
+            if (columns.Contains(name))
+            {
+                names.Add(name);
+            }
+        }
+
+        Add("email");
+        Add("email_confirmed");
+        Add("phone");
+        Add("phone_confirmed");
+        if (withPassword)
+        {
+            Add("password");
+        }
+
+        Add("unlocked");
+        Add("reg_variant");
+        if (names.Count == 0)
+        {
+            return string.Empty;
+        }
+
+        return "UPDATE `users` SET " + string.Join(", ", names.Select(name => "`" + name + "` = ?")) + " WHERE `user_id` = ?";
+    }
+
+    private static async Task<HashSet<string>> TableColumnsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        var columns = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW COLUMNS FROM `" + table + "`";
+        await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
+        while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
+        {
+            columns.Add(reader.GetString(0));
+        }
+
+        return columns;
+    }
+
+    private static async Task<bool> TableExistsAsync(DbConnection connection, DbTransaction transaction, string table, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = "SHOW TABLES LIKE '" + table.Replace("'", "''", StringComparison.Ordinal) + "'";
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is not null and not DBNull;
     }
 
     public async Task<ErpSimpleWriteResult> DeleteAsync(

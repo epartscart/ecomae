@@ -2,7 +2,7 @@ namespace EcomAE.Platform.Presentation;
 
 /// <summary>
 /// PHP <c>prices_upload_guide.php</c> / <c>prices_manager.php</c> upload channels
-/// for ePartsCart CP. Writes stay on PHP; this catalogue drives the ASP.NET console.
+/// for ePartsCart CP. File, remote and schedule writes use the native price routes.
 /// </summary>
 public static class CpPricesUploadWaysCatalog
 {

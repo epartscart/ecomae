@@ -3,6 +3,7 @@ using System.Net;
 using System.Text.Json;
 using EcomAE.Platform.Auth;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -48,16 +49,27 @@ public sealed class CpSearchTabWriteService : ICpSearchTabWriteService
 
         var flag = enabled == 1 ? 1 : 0;
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        var rows = await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `shop_docpart_search_tabs` SET `enabled` = ? WHERE `id` = ?"),
-            cancellationToken,
-            flag,
-            tabId).ConfigureAwait(false);
-        return rows > 0
-            ? ErpSimpleWriteResult.Ok(flag == 1 ? "Search tab activated." : "Search tab deactivated.", tabId)
-            : ErpSimpleWriteResult.Fail("not_found", "Search tab was not updated.");
+        try
+        {
+            var rows = await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_docpart_search_tabs` SET `enabled` = ? WHERE `id` = ?"),
+                cancellationToken,
+                flag,
+                tabId).ConfigureAwait(false);
+            return rows > 0
+                ? ErpSimpleWriteResult.Ok(flag == 1 ? "Search tab activated." : "Search tab deactivated.", tabId)
+                : ErpSimpleWriteResult.Fail("not_found", "Search tab was not updated.");
+        }
+        catch (System.Data.Common.DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Search tabs are not in this database.");
+        }
+        catch (System.Data.Common.DbException)
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Could not update the search tab.");
+        }
     }
 
     public async Task<ErpSimpleWriteResult> SaveAsync(CpSearchTabSaveRequest request, CancellationToken cancellationToken = default)

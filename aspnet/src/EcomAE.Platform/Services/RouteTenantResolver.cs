@@ -96,6 +96,35 @@ public sealed class RouteTenantResolver : ITenantResolver
             mode = TenantMode.LiveTenant;
         }
 
+        // PHP epc_portal_sites() names these hosts, and epc_portal_resolve_tenant_db()
+        // binds them to docpart when epc_portal_tenants has no dedicated row. That bind
+        // is the degraded shared-docpart fallback. A registry database still wins.
+        if (string.IsNullOrWhiteSpace(databaseName) && IsDegradedSharedShopHost(host))
+        {
+            databaseName = "docpart";
+            siteKey ??= DegradedShopSiteKey(host);
+            mode = TenantMode.LiveTenant;
+            dedicated = false;
+        }
+
+        // industries.ecomae.com is a platform hostname in PHP. /cp uses the platform
+        // operator database, not a shop database and not a new portal row.
+        if (string.IsNullOrWhiteSpace(databaseName)
+            && EcomaeIndustryShowcaseSnapshots.IsIndustriesDirectoryHost(host)
+            && surface is TenantSurface.ControlPanel or TenantSurface.Erp or TenantSurface.Bos)
+        {
+            return new TenantContext(
+                host,
+                path,
+                surface,
+                TenantMode.Platform,
+                "platform",
+                PlatformSeedDatabase(),
+                null,
+                null,
+                DedicatedDb: false);
+        }
+
         return new TenantContext(
             host,
             path,
@@ -124,6 +153,32 @@ public sealed class RouteTenantResolver : ITenantResolver
         }
 
         return string.Equals(h, "epartscart.com", StringComparison.OrdinalIgnoreCase);
+    }
+
+    /// <summary>
+    /// Named shops in <c>epc_portal_sites()</c> other than eParts Cart. PHP still opens
+    /// shared <c>docpart</c> when no dedicated <c>epc_portal_tenants</c> database is stored.
+    /// </summary>
+    public static bool IsDegradedSharedShopHost(string host)
+    {
+        var h = BareHost(host);
+        return h is "electronicae.com" or "stylenlook.com" or "thejewellerytrend.com" or "taxofinca.com";
+    }
+
+    public static string DegradedShopSiteKey(string host)
+        => BareHost(host) switch
+        {
+            "electronicae.com" => "electronicae",
+            "stylenlook.com" => "stylenlook",
+            "thejewellerytrend.com" => "thejewellerytrend",
+            "taxofinca.com" => "taxofinca",
+            _ => string.Empty,
+        };
+
+    private static string BareHost(string host)
+    {
+        var h = PlatformHostPolicy.NormalizeHost(host);
+        return h.StartsWith("www.", StringComparison.Ordinal) ? h[4..] : h;
     }
 
     private string? PlatformSeedDatabase()

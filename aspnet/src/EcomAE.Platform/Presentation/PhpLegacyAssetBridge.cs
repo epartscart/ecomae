@@ -174,6 +174,20 @@ public static class PhpLegacyAssetBridge
                          "content/general_pages/epc_web_tracker.js"),
                      ("/content/general_pages/epc_web_tracker.js",
                          "content/general_pages/epc_web_tracker.js"),
+                     ("/content/general_pages/epc_storefront_animations.css",
+                         "content/general_pages/epc_storefront_animations.css"),
+                     ("/content/general_pages/epc_storefront_animations.js",
+                         "content/general_pages/epc_storefront_animations.js"),
+                     ("/content/general_pages/vin_zapros/hystmodal.min.css",
+                         "content/general_pages/vin_zapros/hystmodal.min.css"),
+                     ("/content/general_pages/vin_zapros/hystmodal.min.js",
+                         "content/general_pages/vin_zapros/hystmodal.min.js"),
+                     ("/content/general_pages/vin_zapros/vin_zapros.css",
+                         "content/general_pages/vin_zapros/vin_zapros.css"),
+                     ("/lib/jQuery_ui/jquery-ui.css",
+                         "lib/jQuery_ui/jquery-ui.css"),
+                     ("/lib/jQuery_ui/jquery-ui.js",
+                         "lib/jQuery_ui/jquery-ui.js"),
                      ("/platform-assets/epc_sku_media.css",
                          "content/shop/catalogue/epc_sku_media.css"),
                      ("/platform-assets/epc_pos.css",
@@ -347,22 +361,51 @@ public static class PhpLegacyAssetBridge
             return File.Exists(path) ? Results.File(path, "application/javascript; charset=utf-8") : Results.NotFound();
         });
 
-        endpoints.MapGet("/platform-assets/ecomae-mark.svg", () =>
+        endpoints.MapGet("/platform-assets/ecomae-mark.svg", () => ServeEcomaeMark(repoRoot));
+        // PHP docroot files. Browsers request /favicon.ico on every public page.
+        endpoints.MapGet("/favicon.ico", () => ServeRepoFile(repoRoot, "favicon.ico", "image/x-icon"));
+        endpoints.MapGet("/favicon.svg", () => ServeRepoFile(repoRoot, "favicon.svg", "image/svg+xml; charset=utf-8"));
+        // PHP templates/nero/desktop.php PWA block, epartscart host only in the HTML.
+        endpoints.MapGet("/manifest.webmanifest", () =>
+            ServeRepoFile(repoRoot, "manifest.webmanifest", "application/manifest+json; charset=utf-8"));
+        endpoints.MapGet("/sw.js", (HttpContext context) =>
         {
-            foreach (var candidate in new[]
-                     {
-                         "content/general_pages/epc_ecomae_logo.svg",
-                         "aspnet/src/EcomAE.Platform/wwwroot/assets/media/logos/ecomae_mark.svg"
-                     })
+            context.Response.Headers.CacheControl = "no-cache";
+            return ServeRepoFile(repoRoot, "sw.js", "application/javascript; charset=utf-8");
+        });
+        endpoints.MapGet("/icons/pwa-icon-192.svg", () =>
+            ServeRepoFile(repoRoot, "icons/pwa-icon-192.svg", "image/svg+xml"));
+        endpoints.MapGet("/icons/pwa-icon-512.svg", () =>
+            ServeRepoFile(repoRoot, "icons/pwa-icon-512.svg", "image/svg+xml"));
+        // PHP cp/epc_cp_pwa_assets.php — served before the CP login wall.
+        endpoints.MapGet("/cp/manifest.webmanifest", () =>
+            ServeRepoFile(repoRoot, "cp/manifest.webmanifest", "application/manifest+json; charset=utf-8"));
+        endpoints.MapGet("/cp/sw.js", (HttpContext context) =>
+        {
+            context.Response.Headers.CacheControl = "no-cache";
+            context.Response.Headers["Service-Worker-Allowed"] = "/cp/";
+            return ServeRepoFile(repoRoot, "cp/sw.js", "application/javascript; charset=utf-8");
+        });
+        endpoints.MapGet("/cp/offline.html", () =>
+            ServeRepoFile(repoRoot, "cp/offline.html", "text/html; charset=utf-8"));
+        endpoints.MapGet("/cp/assets/app/icon-192.svg", () =>
+            ServeRepoFile(repoRoot, "cp/assets/app/icon-192.svg", "image/svg+xml"));
+        endpoints.MapGet("/cp/assets/app/icon-512.svg", () =>
+            ServeRepoFile(repoRoot, "cp/assets/app/icon-512.svg", "image/svg+xml"));
+        endpoints.MapGet(BrochureProcessPhoto.PhpPath, BrochureProcessPhoto.Serve);
+        endpoints.MapGet(BrochureProcessPhoto.AssetPath, BrochureProcessPhoto.Serve);
+        // App.razor favicon. UseStaticFiles is off, so the wwwroot path 404s unless mapped.
+        endpoints.MapGet("/assets/media/logos/ecomae_mark.svg", () => ServeEcomaeMark(repoRoot));
+        // Nero/modex/limo/expan desktop.php — linked from every storefront shell.
+        endpoints.MapGet("/modules/slider/css/style.css", () =>
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, "modules", "slider", "css", "style.css"));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
             {
-                var path = Path.GetFullPath(Path.Combine(repoRoot, candidate));
-                if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
-                {
-                    return Results.File(path, "image/svg+xml");
-                }
+                return Results.File(path, "text/css; charset=utf-8");
             }
 
-            return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
+            return Results.NotFound();
         });
 
         // PHP animated-logo helpers die with "No access" outside _ASTEXE_ (and when PHP
@@ -452,6 +495,35 @@ public static class PhpLegacyAssetBridge
 
             return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
         });
+    }
+
+    private static IResult ServeRepoFile(string repoRoot, string relative, string contentType)
+    {
+        var path = Path.GetFullPath(Path.Combine(repoRoot, relative));
+        if (!path.StartsWith(repoRoot, StringComparison.Ordinal) || !File.Exists(path))
+        {
+            return Results.NotFound();
+        }
+
+        return Results.File(path, contentType);
+    }
+
+    private static IResult ServeEcomaeMark(string repoRoot)
+    {
+        foreach (var candidate in new[]
+                 {
+                     "content/general_pages/epc_ecomae_logo.svg",
+                     "aspnet/src/EcomAE.Platform/wwwroot/assets/media/logos/ecomae_mark.svg"
+                 })
+        {
+            var path = Path.GetFullPath(Path.Combine(repoRoot, candidate));
+            if (path.StartsWith(repoRoot, StringComparison.Ordinal) && File.Exists(path))
+            {
+                return Results.File(path, "image/svg+xml");
+            }
+        }
+
+        return Results.Text(PhpEpartsCartLogoAssets.EcomaeMarkSvg, "image/svg+xml");
     }
 
     private static IResult ServeUniverseStill(string repoRoot, string fileName)

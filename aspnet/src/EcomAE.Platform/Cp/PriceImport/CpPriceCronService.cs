@@ -3,6 +3,7 @@ using System.Globalization;
 using System.Text.Encodings.Web;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp.PriceImport;
 
@@ -51,6 +52,8 @@ public sealed class CpPriceCronService : ICpPriceCronService
     public async Task<IReadOnlyList<CpPriceCronSchedule>> ListAsync(long priceId, CancellationToken cancellationToken = default)
     {
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
         var sql = priceId > 0
             ? "SELECT `id`, `active`, `day_week`, `hour`, `minute` FROM `shop_docpart_pyprices_crontab` WHERE `id` IN (SELECT `crontab_task_id` FROM `shop_docpart_pyprices_crontab_prices` WHERE `price_id` = @p0) ORDER BY `id`"
             : "SELECT `id`, `active`, `day_week`, `hour`, `minute` FROM `shop_docpart_pyprices_crontab` ORDER BY `id`";
@@ -98,6 +101,11 @@ public sealed class CpPriceCronService : ICpPriceCronService
         }
 
         return schedules;
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return [];
+        }
     }
 
     /// <summary>PHP <c>create_edit_cron_task.php</c> validation ("Validation error 1…8") and write.</summary>
@@ -148,6 +156,8 @@ public sealed class CpPriceCronService : ICpPriceCronService
         var dayWeek = string.Join(",", dayList);
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
         var placeholders = string.Join(",", prices.Select(_ => "?"));
         var found = await ErpDb.LongAsync(
             connection,
@@ -217,6 +227,12 @@ public sealed class CpPriceCronService : ICpPriceCronService
 
         await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
         return new ErpSimpleWriteResult(true, "ok", message, scheduleId, 1 + prices.Count);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Price schedules are not in this database.");
+        }
     }
 
     public async Task<ErpSimpleWriteResult> DeleteAsync(long id, CancellationToken cancellationToken = default)
@@ -228,10 +244,18 @@ public sealed class CpPriceCronService : ICpPriceCronService
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var transaction = await connection.BeginTransactionAsync(cancellationToken).ConfigureAwait(false);
-        var deleted = await ErpDb.ExecuteAsync(connection, transaction, ErpDb.Positional("DELETE FROM `shop_docpart_pyprices_crontab` WHERE `id` = ?"), cancellationToken, id).ConfigureAwait(false);
-        var links = await ErpDb.ExecuteAsync(connection, transaction, ErpDb.Positional("DELETE FROM `shop_docpart_pyprices_crontab_prices` WHERE `crontab_task_id` = ?"), cancellationToken, id).ConfigureAwait(false);
-        await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
-        return new ErpSimpleWriteResult(true, "ok", "OK", id, deleted + links);
+        try
+        {
+            var deleted = await ErpDb.ExecuteAsync(connection, transaction, ErpDb.Positional("DELETE FROM `shop_docpart_pyprices_crontab` WHERE `id` = ?"), cancellationToken, id).ConfigureAwait(false);
+            var links = await ErpDb.ExecuteAsync(connection, transaction, ErpDb.Positional("DELETE FROM `shop_docpart_pyprices_crontab_prices` WHERE `crontab_task_id` = ?"), cancellationToken, id).ConfigureAwait(false);
+            await transaction.CommitAsync(cancellationToken).ConfigureAwait(false);
+            return new ErpSimpleWriteResult(true, "ok", "OK", id, deleted + links);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            await transaction.RollbackAsync(cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Fail("invalid", "Price schedules are not in this database.");
+        }
     }
 
     /// <summary>PHP <c>cron_crutch.php</c>: active, not running (a launch younger than 30 min without <c>time_end</c>), due now.</summary>
@@ -240,6 +264,8 @@ public sealed class CpPriceCronService : ICpPriceCronService
         var dayOfWeek = now.DayOfWeek == DayOfWeek.Sunday ? 7 : (int)now.DayOfWeek;
         var unix = now.ToUnixTimeSeconds();
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        try
+        {
         var due = new List<long>();
         await using (var command = connection.CreateCommand())
         {
@@ -269,6 +295,11 @@ public sealed class CpPriceCronService : ICpPriceCronService
         }
 
         return launches;
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return [];
+        }
     }
 
     /// <summary>PHP <c>cron_task_executor.php</c> after its launch row exists.</summary>

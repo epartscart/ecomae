@@ -86,8 +86,15 @@ internal static class CpPriceImportEndpoints
 
                 if (layout.Count > 0)
                 {
-                    await using var connection = await connections.OpenAsync(cancellationToken);
-                    await CpPriceListConfig.SaveLayoutAsync(connection, priceId, layout, cancellationToken);
+                    try
+                    {
+                        await using var connection = await connections.OpenAsync(cancellationToken);
+                        await CpPriceListConfig.SaveLayoutAsync(connection, priceId, layout, cancellationToken);
+                    }
+                    catch (Exception ex) when (CpMissingSchema.IsMissing(ex))
+                    {
+                        return Answer(context, false, "invalid", "Price lists are not in this database.", sessionPayload(session));
+                    }
                 }
             }
 

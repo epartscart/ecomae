@@ -14,6 +14,12 @@ namespace EcomAE.Platform.Erp;
 public interface IErpDashboardReadService
 {
     Task<ErpDashboardReadResult> DashboardAsync(string? dateFrom, string? dateTo, CancellationToken cancellationToken = default);
+
+    /// <summary>
+    /// KPI read of <c>epc_erp_dashboard</c> on an already-open tenant connection.
+    /// Does not provision schema and does not attach command-center tiles.
+    /// </summary>
+    Task<ErpDashboardReadResult> DashboardOnConnectionAsync(DbConnection connection, CancellationToken cancellationToken = default);
 }
 
 public sealed record ErpDashboardReadResult(ErpSimpleWriteResult Result, IReadOnlyDictionary<string, object?> Data);
@@ -46,11 +52,23 @@ public sealed class ErpDashboardReadService : IErpDashboardReadService
             return new(ErpSimpleWriteResult.Fail("db", "TenantRegistry DB is not configured."), new Dictionary<string, object?>(StringComparer.Ordinal));
         }
 
+        await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+        return await ReadKpisAsync(c, dateFrom, dateTo, includeCommandCenter: true, cancellationToken).ConfigureAwait(false);
+    }
+
+    public Task<ErpDashboardReadResult> DashboardOnConnectionAsync(DbConnection connection, CancellationToken cancellationToken = default)
+        => ReadKpisAsync(connection, null, null, includeCommandCenter: false, cancellationToken);
+
+    private async Task<ErpDashboardReadResult> ReadKpisAsync(
+        DbConnection c,
+        string? dateFrom,
+        string? dateTo,
+        bool includeCommandCenter,
+        CancellationToken cancellationToken)
+    {
         var now = _clock.GetUtcNow();
         var from = ErpFinanceAjaxReadService.FromUnix(dateFrom, now);
         var to = ErpFinanceAjaxReadService.ToUnix(dateTo, now);
-
-        await using var c = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
 
         var orderFinish = await IdsAsync(c, "SELECT `id` FROM `shop_orders_statuses_ref` WHERE `for_finish` = 1 ORDER BY `order` ASC", cancellationToken).ConfigureAwait(false);
         var itemFinish = await IdsAsync(c, "SELECT `id` FROM `shop_orders_items_statuses_ref` WHERE `for_finish` = 1 ORDER BY `order` ASC", cancellationToken).ConfigureAwait(false);
@@ -107,9 +125,6 @@ public sealed class ErpDashboardReadService : IErpDashboardReadService
         var inputVat = await SafeDecimalAsync(c, "SELECT IFNULL(SUM(p.`vat_amount`), 0) FROM `epc_erp_purchases` p WHERE p.`active` = 1 AND p.`purchase_date` >= ? AND p.`purchase_date` <= ?", cancellationToken, from, to).ConfigureAwait(false);
         var net = Round2(outputVat - inputVat);
 
-        var tiles = await _commandCenter.KpiTilesAsync(dateFrom, dateTo, cancellationToken).ConfigureAwait(false);
-        var queue = await _commandCenter.ApprovalQueueAsync(cancellationToken).ConfigureAwait(false);
-
         var data = new Dictionary<string, object?>(StringComparer.Ordinal)
         {
             ["date_from"] = from,
@@ -128,9 +143,15 @@ public sealed class ErpDashboardReadService : IErpDashboardReadService
             ["vat_net_payable"] = net,
             ["vat_net_status"] = net >= 0 ? "payable_to_fta" : "recoverable_from_fta",
             ["sales_incl_vat"] = salesIncl,
-            ["kpi_tiles"] = tiles.Rows,
-            ["approval_queue"] = queue.Rows,
         };
+        if (includeCommandCenter)
+        {
+            var tiles = await _commandCenter.KpiTilesAsync(dateFrom, dateTo, cancellationToken).ConfigureAwait(false);
+            var queue = await _commandCenter.ApprovalQueueAsync(cancellationToken).ConfigureAwait(false);
+            data["kpi_tiles"] = tiles.Rows;
+            data["approval_queue"] = queue.Rows;
+        }
+
         return new(new ErpSimpleWriteResult(true, "ok", "OK", 0, 0), data);
     }
 

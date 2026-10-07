@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.Net;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -51,12 +53,20 @@ public sealed class CpCatalogueWriteService : ICpCatalogueWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `shop_catalogue_products` SET `min_limit_enable` = ? WHERE `id` = ?"),
-            cancellationToken,
-            enabled, productId);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_catalogue_products` SET `min_limit_enable` = ? WHERE `id` = ?"),
+                cancellationToken,
+                enabled, productId);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Catalogue products are not in this database.");
+        }
+
         return ErpSimpleWriteResult.Ok("Product min-limit flag saved.", productId);
     }
 
@@ -76,12 +86,20 @@ public sealed class CpCatalogueWriteService : ICpCatalogueWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("UPDATE `shop_catalogue_products` SET `min_limit` = ? WHERE `id` = ?"),
-            cancellationToken,
-            value, productId);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("UPDATE `shop_catalogue_products` SET `min_limit` = ? WHERE `id` = ?"),
+                cancellationToken,
+                value, productId);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Catalogue products are not in this database.");
+        }
+
         return ErpSimpleWriteResult.Ok("Product min-limit value saved.", productId);
     }
 
@@ -119,17 +137,24 @@ public sealed class CpCatalogueWriteService : ICpCatalogueWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("INSERT INTO `shop_catalogue_categories_templates` (`caption`, `category_object`, `image`, `image_name`) VALUES (?, ?, ?, ?)"),
-            cancellationToken,
-            caption,
-            parsed.Json,
-            image.Bytes,
-            string.IsNullOrWhiteSpace(imageName) ? null : imageName);
-        var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
-        return ErpSimpleWriteResult.Ok("Category template created.", id);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("INSERT INTO `shop_catalogue_categories_templates` (`caption`, `category_object`, `image`, `image_name`) VALUES (?, ?, ?, ?)"),
+                cancellationToken,
+                caption,
+                parsed.Json,
+                image.Bytes,
+                string.IsNullOrWhiteSpace(imageName) ? null : imageName);
+            var id = await ErpDb.LastInsertIdAsync(connection, null, cancellationToken).ConfigureAwait(false);
+            return ErpSimpleWriteResult.Ok("Category template created.", id);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Catalogue templates are not in this database.");
+        }
     }
 
     public async Task<ErpSimpleWriteResult> DeleteCategoryTemplateAsync(
@@ -147,12 +172,20 @@ public sealed class CpCatalogueWriteService : ICpCatalogueWriteService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-        await ErpDb.ExecuteAsync(
-            connection,
-            null,
-            ErpDb.Positional("DELETE FROM `shop_catalogue_categories_templates` WHERE `id` = ?"),
-            cancellationToken,
-            templateId);
+        try
+        {
+            await ErpDb.ExecuteAsync(
+                connection,
+                null,
+                ErpDb.Positional("DELETE FROM `shop_catalogue_categories_templates` WHERE `id` = ?"),
+                cancellationToken,
+                templateId);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return ErpSimpleWriteResult.Fail("invalid", "Catalogue templates are not in this database.");
+        }
+
         return ErpSimpleWriteResult.Ok("Category template deleted.", templateId);
     }
 

@@ -22,20 +22,15 @@ public static class EcomaeIndustryShowcaseSnapshots
     public static bool TryResolveHostSlug(string? host, out string slug)
     {
         slug = string.Empty;
-        if (string.IsNullOrWhiteSpace(host))
+        var normalized = NormalizeHost(host);
+        if (string.IsNullOrEmpty(normalized))
         {
             return false;
         }
 
-        var normalized = host.Trim().TrimEnd('.').ToLowerInvariant();
-        var colon = normalized.IndexOf(':');
-        if (colon > 0)
-        {
-            normalized = normalized[..colon];
-        }
-
         if (!normalized.EndsWith(".ecomae.com", StringComparison.Ordinal)
-            || normalized is "www.ecomae.com" or "ecomae.com" or "cp.ecomae.com" or "lifeos.ecomae.com")
+            || normalized is "www.ecomae.com" or "ecomae.com" or "cp.ecomae.com" or "lifeos.ecomae.com"
+            || normalized is "industries.ecomae.com")
         {
             return false;
         }
@@ -52,11 +47,36 @@ public static class EcomaeIndustryShowcaseSnapshots
     }
 
     /// <summary>
-    /// Snapshot HTML for an industry host + path. Empty when not an industry showcase page.
-    /// Treats nginx remaps of home → <c>/storefront/app</c> as the hub.
+    /// <c>industries.ecomae.com</c> (and www) is the industries directory, not one of the
+    /// 28 <c>{slug}.ecomae.com</c> hubs. It serves the same page as www
+    /// <c>/platform/industries</c>.
     /// </summary>
+    public static bool IsIndustriesDirectoryHost(string? host)
+    {
+        var normalized = NormalizeHost(host);
+        return normalized is "industries.ecomae.com";
+    }
+
+    /// <summary>Home and the public industries aliases on the directory host.</summary>
+    public static bool IsIndustriesDirectoryPath(string? path)
+    {
+        var value = StripQuery(path);
+        return value is "/"
+            or "/industries"
+            or "/platform/industries"
+            or "/index.php"
+            or "/storefront/app"
+            or "/storefront"
+            or "/marketing/app";
+    }
+
     public static string HtmlFor(string? host, string? path)
     {
+        if (IsIndustriesDirectoryHost(host) && IsIndustriesDirectoryPath(path))
+        {
+            return EcomaeMarketingSnapshots.HtmlFor("/platform/industries");
+        }
+
         if (!TryResolveHostSlug(host, out var hostSlug))
         {
             return string.Empty;
@@ -100,7 +120,29 @@ public static class EcomaeIndustryShowcaseSnapshots
         return marker + html;
     }
 
-    public static string? FileSlugFor(string hostSlug, string? path)
+    private static string NormalizeHost(string? host)
+    {
+        if (string.IsNullOrWhiteSpace(host))
+        {
+            return string.Empty;
+        }
+
+        var normalized = host.Trim().TrimEnd('.').ToLowerInvariant();
+        var colon = normalized.IndexOf(':');
+        if (colon > 0)
+        {
+            normalized = normalized[..colon];
+        }
+
+        if (normalized.StartsWith("www.", StringComparison.Ordinal))
+        {
+            normalized = normalized[4..];
+        }
+
+        return normalized;
+    }
+
+    private static string StripQuery(string? path)
     {
         var value = (path ?? "/").Trim();
         var q = value.IndexOf('?', StringComparison.Ordinal);
@@ -110,6 +152,12 @@ public static class EcomaeIndustryShowcaseSnapshots
         }
 
         value = "/" + value.Trim('/');
+        return value.Length == 0 ? "/" : value;
+    }
+
+    public static string? FileSlugFor(string hostSlug, string? path)
+    {
+        var value = StripQuery(path);
         if (value is "/" or "/storefront/app" or "/storefront" or "/index.php" or "/marketing/app")
         {
             return hostSlug;

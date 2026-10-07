@@ -4,6 +4,7 @@ using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp.PriceImport;
 
@@ -47,6 +48,8 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         await using var command = connection.CreateCommand();
         command.CommandText = "SELECT `id`, `name`, `last_updated`, (SELECT COUNT(*) FROM `shop_docpart_prices_data` d WHERE d.`price_id` = `shop_docpart_prices`.`id`) AS `records_count` FROM `shop_docpart_prices` ORDER BY `id`";
+        try
+        {
         var rows = new List<Dictionary<string, object?>>();
         await using var reader = await command.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
         while (await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
@@ -61,6 +64,11 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
         }
 
         return rows;
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return [];
+        }
     }
 
     public async Task<IReadOnlyList<Dictionary<string, object?>>> ListLatestUploadsAsync(CancellationToken cancellationToken = default)
@@ -100,8 +108,9 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
 
         long resolvedId;
         string resolvedName;
-        await using (var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             var list = await ResolveOrCreateListAsync(connection, priceId, priceName ?? string.Empty, cancellationToken).ConfigureAwait(false);
             if (list is null)
             {
@@ -117,6 +126,10 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
                 cancellationToken,
                 resolvedName,
                 resolvedId).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return Failure("Price lists are not in this database.");
         }
 
         var result = await _imports.ImportUploadAsync(new CpPriceImportRequest(resolvedId, "api", 0, upload), cancellationToken).ConfigureAwait(false);
@@ -141,8 +154,9 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
         string sourcePath;
         string originalName;
         long sourceHistoryId;
-        await using (var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
+            await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
             await CpPriceUploadHistory.EnsureSchemaAsync(connection, cancellationToken).ConfigureAwait(false);
             var list = await ResolveOrCreateListAsync(connection, priceId, name, cancellationToken).ConfigureAwait(false);
             if (list is null)
@@ -166,6 +180,10 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
             }
 
             await LinkStorageToListAsync(connection, resolvedName, resolvedId, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return Failure("Price lists are not in this database.");
         }
 
         await using var content = File.OpenRead(sourcePath);
@@ -243,13 +261,14 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
             return;
         }
 
-        await using var select = connection.CreateCommand();
-        select.CommandText = ErpDb.Positional("SELECT `id`, `connection_options` FROM `shop_storages` WHERE UPPER(`name`) = UPPER(?) LIMIT 1");
-        ErpDb.AddParameters(select, storageName);
         long storageId;
         string raw;
-        await using (var reader = await select.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false))
+        try
         {
+            await using var select = connection.CreateCommand();
+            select.CommandText = ErpDb.Positional("SELECT `id`, `connection_options` FROM `shop_storages` WHERE UPPER(`name`) = UPPER(?) LIMIT 1");
+            ErpDb.AddParameters(select, storageName);
+            await using var reader = await select.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
                 return;
@@ -257,6 +276,10 @@ public sealed class CpPriceDeployApiService : ICpPriceDeployApiService
 
             storageId = Convert.ToInt64(reader.GetValue(0), CultureInfo.InvariantCulture);
             raw = reader.IsDBNull(1) ? string.Empty : Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture) ?? string.Empty;
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return;
         }
 
         JsonObject options;

@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -107,6 +108,10 @@ public sealed class CpSaoDeskService : ICpSaoDeskService
             var actions = await LoadActionsAsync(connection, cancellationToken).ConfigureAwait(false);
 
             return new CpSaoDesk(true, "", states, statuses, queue, actions);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new CpSaoDesk(true, string.Empty, [], [], [], []);
         }
         catch (DbException ex)
         {

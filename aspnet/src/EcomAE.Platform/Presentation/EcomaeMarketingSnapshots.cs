@@ -27,13 +27,44 @@ public static class EcomaeMarketingSnapshots
         ["/capabilities"] = "/platform/capabilities",
         ["/free-tools"] = "/platform/free-tools",
         ["/tools"] = "/platform/free-tools",
+        // PHP epc_ecomae_platform_match_path: /platform/tools is the same free-tools page.
+        ["/platform/tools"] = "/platform/free-tools",
         ["/platform/brochure"] = "/brochure",
         ["/platform/brochure/cp"] = "/brochure/cp",
         ["/brochure-cp"] = "/brochure/cp",
         ["/platform/catalog-api"] = "/platform/api-services",
         ["/platform/price-pro-api"] = "/platform/api-services",
         ["/platform/customer-testimonials"] = "/platform/customer-results",
+        // PHP customer-results page. /customers was 404; it is the short public URL for that page.
+        ["/customers"] = "/platform/customer-results",
+        // PHP epc_ecomae_legal_top_level_aliases — shop hosts use the same privacy body.
+        ["/en/privacy"] = "/privacy",
     };
+
+    /// <summary>Shop hosts serve these legal aliases; the rest of marketing stays on www.ecomae.com.</summary>
+    public static bool IsShopPrivacyPath(string? path)
+    {
+        var value = NormalizePath(path);
+        return value is "/privacy" or "/en/privacy";
+    }
+
+    private static string NormalizePath(string? path)
+    {
+        if (string.IsNullOrWhiteSpace(path))
+        {
+            return "/";
+        }
+
+        var value = path.Trim();
+        var q = value.IndexOf('?', StringComparison.Ordinal);
+        if (q >= 0)
+        {
+            value = value[..q];
+        }
+
+        value = "/" + value.Trim('/');
+        return value == "//" ? "/" : value;
+    }
 
     public static bool IsMarketingHost(string? host)
     {
@@ -91,6 +122,13 @@ public static class EcomaeMarketingSnapshots
             value = aliased;
         }
 
+        // PHP epc_ecomae_platform_match_path: /platform/industries/{code}
+        // (hyphen or underscore) is the public alias of /platform/industry/{code}.
+        if (TryAliasIndustriesPlural(value, out var industryPath))
+        {
+            value = industryPath;
+        }
+
         // Bare /bos is the product BOS app (Super-CP only) — never a marketing snapshot.
         if (value.Equals("/bos", StringComparison.OrdinalIgnoreCase))
         {
@@ -112,6 +150,39 @@ public static class EcomaeMarketingSnapshots
         }
 
         return slug;
+    }
+
+    /// <summary>
+    /// PHP <c>industries/{code}</c> alias. Hyphens become underscores so
+    /// <c>/platform/industries/auto-parts</c> serves the <c>auto_parts</c> snapshot.
+    /// The index <c>/platform/industries</c> is not an alias.
+    /// </summary>
+    internal static bool TryAliasIndustriesPlural(string path, out string industryPath)
+    {
+        industryPath = path;
+        const string prefix = "/platform/industries/";
+        if (!path.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+        {
+            return false;
+        }
+
+        var code = path[prefix.Length..].Trim('/');
+        if (code.Length == 0 || code.Contains('/', StringComparison.Ordinal))
+        {
+            return false;
+        }
+
+        var normalized = code.ToLowerInvariant().Replace('-', '_');
+        foreach (var ch in normalized)
+        {
+            if (!char.IsAsciiLetterOrDigit(ch) && ch != '_')
+            {
+                return false;
+            }
+        }
+
+        industryPath = "/platform/industry/" + normalized;
+        return true;
     }
 
     /// <summary>
@@ -181,6 +252,12 @@ public static class EcomaeMarketingSnapshots
             @"/(?:content/general_pages/)(marketing_screens/[^""'\s?]+)",
             "/platform-assets/$1",
             RegexOptions.IgnoreCase | RegexOptions.CultureInvariant);
+
+        // Brochure process cards. The PHP script is an SVG generator; keep the query string.
+        html = html.Replace(
+            "/content/general_pages/epc_brochure_process_photo.php",
+            BrochureProcessPhoto.AssetPath,
+            StringComparison.Ordinal);
 
         // Public verify UI is ASP.NET — never leave the PHP script in product HTML.
         html = Regex.Replace(

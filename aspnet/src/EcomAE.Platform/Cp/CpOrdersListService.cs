@@ -136,7 +136,10 @@ public sealed partial class CpOrdersListService : ICpOrdersListService
         }
 
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
-
+        var openIds = new List<int>();
+        var completedIds = new List<int>();
+        try
+        {
         await using (var c = connection.CreateCommand())
         {
             c.CommandText = "SELECT `id`, IFNULL(`name`,''), IFNULL(`color`,''), IFNULL(`for_finish`,0), IFNULL(`for_inverse`,0), IFNULL(`for_created`,0) FROM `shop_orders_statuses_ref` ORDER BY `order` ASC, `id` ASC";
@@ -147,8 +150,8 @@ public sealed partial class CpOrdersListService : ICpOrdersListService
             }
         }
 
-        var openIds = statuses.Where(s => !s.ForFinish && !s.ForInverse).Select(s => s.Id).ToList();
-        var completedIds = statuses.Where(s => s.ForFinish).Select(s => s.Id).ToList();
+        openIds.AddRange(statuses.Where(s => !s.ForFinish && !s.ForInverse).Select(s => s.Id));
+        completedIds.AddRange(statuses.Where(s => s.ForFinish).Select(s => s.Id));
 
         await using (var c = connection.CreateCommand())
         {
@@ -323,6 +326,13 @@ public sealed partial class CpOrdersListService : ICpOrdersListService
         }
 
         return new CpOrdersList(rows, total, page, pageSize, totals, statuses, paidTypes, offices, items, openIds, completedIds);
+        }
+        catch (DbException)
+        {
+            // Throwaway tenants often lack PHP OMS tables. Render an empty list instead of HTTP 500.
+            return new CpOrdersList([], 0, Math.Max(1, filter.Page), pageSize, new(0, 0, 0, 0), statuses, paidTypes, offices,
+                new Dictionary<long, IReadOnlyList<CpOrdersItemRow>>(), openIds, completedIds);
+        }
     }
 
     /// <summary>PHP $SQL_SELECT_CUSTOMER: guest orders show phone/e-mail typed at checkout; registered orders show ID, e-mail, phone and to_users_table profile fields.</summary>

@@ -1,6 +1,7 @@
 using System.Data.Common;
 using System.Globalization;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -292,6 +293,10 @@ public sealed class CpKktDeskService : ICpKktDeskService
                 paymentTypes,
                 manual,
                 online);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new CpKktDesk(true, string.Empty, [], [], [], [], [], [], [], CpKktDefaults.Empty(2), CpKktDefaults.Empty(1));
         }
         catch (DbException ex)
         {

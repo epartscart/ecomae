@@ -114,6 +114,12 @@ public sealed class AdminSurfaceAuthGateMiddleware
             return false;
         }
 
+        // PHP cp/index.php serves these before the CP login wall (epc_cp_pwa_maybe_serve_asset).
+        if (IsPublicCpPwaAsset(value))
+        {
+            return false;
+        }
+
         return IsAdminSurface(value);
     }
 
@@ -139,6 +145,17 @@ public sealed class AdminSurfaceAuthGateMiddleware
             || path.StartsWith("/ERP/", StringComparison.Ordinal)
             || path.StartsWith("/BOS/", StringComparison.Ordinal)
             || path.StartsWith("/IP/", StringComparison.Ordinal);
+    }
+
+    /// <summary>PHP <c>epc_cp_pwa_maybe_serve_asset</c> map. Anonymous.</summary>
+    internal static bool IsPublicCpPwaAsset(string path)
+    {
+        var bare = path.TrimEnd('/');
+        return bare.Equals("/cp/manifest.webmanifest", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/cp/sw.js", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/cp/offline.html", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/cp/assets/app/icon-192.svg", StringComparison.OrdinalIgnoreCase)
+            || bare.Equals("/cp/assets/app/icon-512.svg", StringComparison.OrdinalIgnoreCase);
     }
 
     internal static bool IsAllowlistedLoginOrLogout(string path)

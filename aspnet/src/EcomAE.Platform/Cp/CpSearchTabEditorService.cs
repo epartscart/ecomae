@@ -2,6 +2,7 @@ using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using EcomAE.Platform.Migration;
 
 namespace EcomAE.Platform.Cp;
 
@@ -90,6 +91,10 @@ public sealed class CpSearchTabEditorService : ICpSearchTabEditorService
 
             return new(rows, "shop_docpart_search_tabs", string.Empty);
         }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return new([], "database", string.Empty);
+        }
         catch (DbException ex)
         {
             return new([], "migration", ex.Message);
@@ -106,16 +111,20 @@ public sealed class CpSearchTabEditorService : ICpSearchTabEditorService
         await using var connection = await _connections.OpenAsync(cancellationToken).ConfigureAwait(false);
         string name, captionKey, caption, parametersJson, valuesJson;
         int order, enabled;
+        try
+        {
+        var translations = await TableExistsAsync(connection, "lang_text_strings_translation", cancellationToken).ConfigureAwait(false);
         await using (var cmd = connection.CreateCommand())
         {
-            cmd.CommandText = ErpDb.Positional(
-                """
-                SELECT IFNULL(t.`name`,''), IFNULL(t.`caption`,''), IFNULL(t.`order`,0), IFNULL(t.`enabled`,0),
-                       IFNULL(t.`parameters`,''), IFNULL(t.`parameters_values`,''),
-                       IFNULL((SELECT x.`translation` FROM `lang_text_strings_translation` x WHERE x.`str_key` = t.`caption` AND x.`lang_code` = ? LIMIT 1), '')
-                FROM `shop_docpart_search_tabs` t WHERE t.`id` = ? LIMIT 1
-                """);
-            ErpDb.AddParameters(cmd, CpCustomTranslationWriter.NormalizeLang(langCode), tabId);
+            cmd.CommandText = ErpDb.Positional(SearchTabSelectSql(translations));
+            if (translations)
+            {
+                ErpDb.AddParameters(cmd, CpCustomTranslationWriter.NormalizeLang(langCode), tabId);
+            }
+            else
+            {
+                ErpDb.AddParameters(cmd, tabId);
+            }
             await using var reader = await cmd.ExecuteReaderAsync(cancellationToken).ConfigureAwait(false);
             if (!await reader.ReadAsync(cancellationToken).ConfigureAwait(false))
             {
@@ -135,6 +144,31 @@ public sealed class CpSearchTabEditorService : ICpSearchTabEditorService
         var values = ParseValues(valuesJson);
         var groups = await BuildGroupsAsync(connection, parametersJson, values, cancellationToken).ConfigureAwait(false);
         return new CpSearchTabEditor(tabId, name, captionKey, caption, order, enabled, groups, valuesJson);
+        }
+        catch (DbException ex) when (CpMissingSchema.IsMissing(ex))
+        {
+            return null;
+        }
+    }
+
+    /// <summary>PHP search_tab.php. Without the translation table the caption key is the caption.</summary>
+    public static string SearchTabSelectSql(bool translations)
+    {
+        var caption = translations
+            ? "IFNULL((SELECT x.`translation` FROM `lang_text_strings_translation` x WHERE x.`str_key` = t.`caption` AND x.`lang_code` = ? LIMIT 1), '')"
+            : "''";
+        return "SELECT IFNULL(t.`name`,''), IFNULL(t.`caption`,''), IFNULL(t.`order`,0), IFNULL(t.`enabled`,0), "
+            + "IFNULL(t.`parameters`,''), IFNULL(t.`parameters_values`,''), "
+            + caption
+            + " FROM `shop_docpart_search_tabs` t WHERE t.`id` = ? LIMIT 1";
+    }
+
+    private static async Task<bool> TableExistsAsync(DbConnection connection, string table, CancellationToken cancellationToken)
+    {
+        await using var command = connection.CreateCommand();
+        command.CommandText = "SHOW TABLES LIKE '" + table + "'";
+        var value = await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+        return value is not null and not DBNull;
     }
 
     /// <summary>parameters_values is <c>json_encode($_POST)</c> in PHP: scalars or arrays (multiselect <c>name[]</c>).</summary>

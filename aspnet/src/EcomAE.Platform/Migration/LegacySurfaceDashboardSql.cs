@@ -678,6 +678,42 @@ public static class LegacySurfaceDashboardSql
         LIMIT @limit
         """;
 
+    /// <summary>
+    /// PHP <c>epc_dl_customers</c>: keep columns this <c>users</c> table has.
+    /// Missing <c>time_registered</c> and <c>time_last_visit</c> are <c>0</c>, not a query error.
+    /// </summary>
+    public static string SelectCpUsersForColumns(IReadOnlySet<string> columns)
+    {
+        static bool Has(IReadOnlySet<string> cols, string name)
+        {
+            if (cols.Contains(name))
+            {
+                return true;
+            }
+
+            foreach (var column in cols)
+            {
+                if (string.Equals(column, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static string Field(IReadOnlySet<string> cols, string name, string whenMissing)
+            => Has(cols, name) ? "`" + name + "`" : whenMissing;
+
+        return "SELECT `user_id`, "
+            + Field(columns, "email", "'' AS `email`") + ", "
+            + Field(columns, "phone", "'' AS `phone`") + ", "
+            + Field(columns, "unlocked", "0 AS `unlocked`") + ", "
+            + Field(columns, "time_registered", "0 AS `time_registered`") + ", "
+            + Field(columns, "time_last_visit", "0 AS `time_last_visit`")
+            + " FROM `users` ORDER BY `user_id` DESC LIMIT @limit";
+    }
+
     /// <summary>PHP <c>users/usermanager/user</c> core row.</summary>
     public const string SelectCpUserById = """
         SELECT `user_id`, `email`, `email_confirmed`, `phone`, `phone_confirmed`,
@@ -1238,6 +1274,43 @@ public static class LegacySurfaceDashboardSql
         ORDER BY `id` ASC
         LIMIT @limit
         """;
+
+    /// <summary>
+    /// PHP modules list. Columns this <c>modules</c> table does not have are literals
+    /// (<c>is_frontend</c> and <c>control_available</c> as 0) so an empty slim table still loads.
+    /// </summary>
+    public static string SelectCpModulesForColumns(IReadOnlySet<string> columns)
+    {
+        static bool Has(IReadOnlySet<string> cols, string name)
+        {
+            if (cols.Contains(name))
+            {
+                return true;
+            }
+
+            foreach (var column in cols)
+            {
+                if (string.Equals(column, name, StringComparison.OrdinalIgnoreCase))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        static string Field(IReadOnlySet<string> cols, string name, string whenMissing)
+            => Has(cols, name) ? "`" + name + "`" : whenMissing;
+
+        var caption = Has(columns, "caption") ? "IFNULL(`caption`, '') AS caption" : "'' AS `caption`";
+        var where = Has(columns, "is_prototype") ? " WHERE `is_prototype` = 0" : string.Empty;
+        return "SELECT `id`, " + caption + ", "
+            + Field(columns, "activated", "0 AS `activated`") + ", "
+            + Field(columns, "is_frontend", "0 AS `is_frontend`") + ", "
+            + Field(columns, "is_prototype", "0 AS `is_prototype`") + ", "
+            + Field(columns, "control_available", "0 AS `control_available`")
+            + " FROM `modules`" + where + " ORDER BY `id` ASC LIMIT @limit";
+    }
 
     /// <summary>Opened module. Body is a short excerpt; full HTML and data JSON omitted.</summary>
     public const string SelectCpModulesDetail = """

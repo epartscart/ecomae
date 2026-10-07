@@ -2750,6 +2750,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 : await CpCrmActionInput.FromJsonAsync(context, cancellationToken);
             var key = input.Text("action");
             var confirm = input.Flag("confirmWrites", "confirm_writes");
+            if (context.Items.ContainsKey(CpLegacyPhpAjaxLinks.OperatorPostItem))
+            {
+                confirm = true;
+            }
+
             var canonical = key.StartsWith("crm_", StringComparison.Ordinal) ? key.Substring(4) : key;
             var sessionPayload = SessionPayload(session);
 
@@ -7407,7 +7412,7 @@ public sealed class ControlPanelModule : ISurfaceModule
                 written.Message,
                 new { ok = written.Succeeded, writes = written.Writes, phpAuthoritative = false, validation_code = written.Code, message = written.Message, session = SessionPayload(session) });
         }).DisableAntiforgery();
-        endpoints.MapGet(EcomAeRoutes.CpQuoteAltOptions, async (
+        endpoints.MapMethods(EcomAeRoutes.CpQuoteAltOptions, ["GET", "POST"], async (
             HttpContext context,
             ILegacySessionValidator validator,
             ICpQuoteRequestEditorService quotes,
@@ -7419,8 +7424,24 @@ public sealed class ControlPanelModule : ISurfaceModule
                 return Results.Json(new { status = false, message = "Access denied" }, statusCode: StatusCodes.Status403Forbidden);
             }
 
-            var quoteId = long.TryParse(context.Request.Query["quote_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var q) ? q : 0;
-            var lineId = long.TryParse(context.Request.Query["line_id"], NumberStyles.Integer, CultureInfo.InvariantCulture, out var l) ? l : 0;
+            var quoteText = context.Request.Query["quote_id"].ToString();
+            var lineText = context.Request.Query["line_id"].ToString();
+            if ((quoteText.Length == 0 || lineText.Length == 0) && context.Request.HasFormContentType)
+            {
+                var form = await context.Request.ReadFormAsync(cancellationToken);
+                if (quoteText.Length == 0)
+                {
+                    quoteText = form["quote_id"].ToString();
+                }
+
+                if (lineText.Length == 0)
+                {
+                    lineText = form["line_id"].ToString();
+                }
+            }
+
+            var quoteId = long.TryParse(quoteText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var q) ? q : 0;
+            var lineId = long.TryParse(lineText, NumberStyles.Integer, CultureInfo.InvariantCulture, out var l) ? l : 0;
             if (quoteId <= 0 || lineId <= 0)
             {
                 return Results.BadRequest(new { status = false, message = "quote_id and line_id required" });
@@ -8424,6 +8445,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
+            if (context.Items.ContainsKey(CpLegacyPhpAjaxLinks.OperatorPostItem))
+            {
+                confirm = true;
+            }
+
             if (!confirm)
             {
                 return Results.Ok(new
@@ -8540,6 +8566,11 @@ public sealed class ControlPanelModule : ISurfaceModule
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
             }
 
+            if (context.Items.ContainsKey(CpLegacyPhpAjaxLinks.OperatorPostItem))
+            {
+                confirm = true;
+            }
+
             if (!confirm)
             {
                 return Results.Ok(new { status = "dry-run", writes = 0, writesBlocked = true, validation_code = "dry_run", message = "Set confirmWrites=true to apply live FX rates on ASP.NET.", session = SessionPayload(session) });
@@ -8590,6 +8621,11 @@ public sealed class ControlPanelModule : ISurfaceModule
             {
                 var form = await context.Request.ReadFormAsync(cancellationToken);
                 confirm = LiveWriteFormBinder.Flag(form, "confirmWrites", "confirm_writes");
+            }
+
+            if (context.Items.ContainsKey(CpLegacyPhpAjaxLinks.OperatorPostItem))
+            {
+                confirm = true;
             }
 
             if (!confirm)

@@ -79,6 +79,10 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/CP/shop/orders/order?order_id=9", "/cp/orders?order_id=9")]
     [InlineData("/ERP/?epc_erp_shell=1&area=sales&tab=sales_orders", "/erp/sales-orders-app")]
     [InlineData("/shop/part_search?q=abc", "/en/shop/part_search?q=abc")]
+    [InlineData("/cp/shop/orders/orders", "/cp/orders")]
+    [InlineData("/cp/shop/orders/orders?order_id=42", "/cp/orders?order_id=42")]
+    [InlineData("/cp/shop/payments/payments", "/cp/payment-gateways-app")]
+    [InlineData("/cp/modules/modules_manager", "/cp/modules-app")]
     public void TryMapIncomingPhpProductPath_DeepShells(string incoming, string expected)
     {
         Assert.True(PhpSurfaceLinkMap.TryMapIncomingPhpProductPath(incoming, out var mapped));
@@ -91,6 +95,10 @@ public sealed class PhpSurfaceLinkMapTests
     [InlineData("/ERP/")]
     [InlineData("/BOS")]
     [InlineData("/cp/orders")]
+    [InlineData("/cp/users")]
+    [InlineData("/cp/login")]
+    [InlineData("/cp/price-lists-app")]
+    [InlineData("/cp/shop/prices/price?price_id=4")]
     [InlineData("/php-reference/cp")]
     public void TryMapIncomingPhpProductPath_SkipsExactShellsAndAspNet(string incoming)
     {
