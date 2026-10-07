@@ -24,6 +24,9 @@ public static class LoginErrorHelper
             "account_locked" => "This account is locked.",
             "no_backend_access" => "Account lacks backend permissions for Control Panel.",
             "missing_fields" => "Enter login and password.",
+            "rate_limited" => "Too many failed attempts. Please wait "
+                + (query.TryGetValue("wait", out var wait) && int.TryParse(wait, System.Globalization.NumberStyles.None, System.Globalization.CultureInfo.InvariantCulture, out var minutes) && minutes > 0 ? minutes : 15)
+                + " minutes before trying again.",
             _ => "Incorrect login or password. Use the tenant host where the account was registered (e.g. taxofinca.com vs epartscart.com). If PHP login works on this same host, operator must sync SecretSuccession + shop db_name."
         };
     }

@@ -1846,7 +1846,7 @@ app.MapPost(EcomAeRoutes.LegacyAdminLogin, async (HttpContext context, ILegacyAd
         {
             if (wantsHtml)
             {
-                return Results.Redirect($"/{LegacyLoginSurfaceParser.Key(surface)}/login?error={Uri.EscapeDataString(outcome.Failure?.Code ?? "invalid_credentials")}");
+                return Results.Redirect($"/{LegacyLoginSurfaceParser.Key(surface)}/login?" + (outcome.Failure ?? new LegacyLoginFailure(string.Empty, "invalid_credentials")).Query);
             }
 
             return Results.Json(new

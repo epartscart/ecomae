@@ -125,7 +125,8 @@ public sealed class LegacyLoginBridgeMiddleware
                     surface,
                     outcome.Failure?.Code ?? "invalid_credentials",
                     outcome.Failure?.Message ?? "Incorrect login or password.",
-                    401).ConfigureAwait(false);
+                    401,
+                    outcome.Failure?.WaitMinutes ?? 0).ConfigureAwait(false);
                 return;
             }
 
@@ -215,13 +216,14 @@ public sealed class LegacyLoginBridgeMiddleware
         string surface,
         string code,
         string message,
-        int jsonStatus)
+        int jsonStatus,
+        int waitMinutes = 0)
     {
         if (wantsHtml)
         {
             context.Response.StatusCode = StatusCodes.Status302Found;
             context.Response.Headers.Location =
-                $"/{LegacyLoginSurfaceParser.Key(surface)}/login?error={Uri.EscapeDataString(code)}";
+                $"/{LegacyLoginSurfaceParser.Key(surface)}/login?" + new LegacyLoginFailure(message, code, waitMinutes).Query;
             return;
         }
 
