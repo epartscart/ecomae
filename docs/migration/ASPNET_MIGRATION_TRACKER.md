@@ -187,6 +187,36 @@ ERP posting stays on the ERP engine. This plan is the other surfaces. A surface 
 
 Next build order on this branch, excluding ERP journals: the prices init include stays unmapped, price review stays on its dry-run, then the rest of `cp/content` ajax, then storefront pages that still render a digest, then marketing, industry hosts, LifeOS, and BOS against the PHP pages for the same URL.
 
+### Checkpoint 2026-10-07 — checkout sends staff and customer order e-mails like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%.
+- ASP.NET checkout now runs PHP `epc_checkout_send_order_notifications()` before the supplier LPO step, as PHP does:
+  - `new_order_to_manager` goes to the admin inbox, the customer's CRM manager and the office managers. CRM comes from `users_profiles` keys in PHP priority order. Office managers come from `shop_offices.users`, filtered to backend groups and their child groups.
+  - The admin inbox is the tenant `contact_json` admin_email, then from_email, then config `from_email`, otherwise `admin@` + host.
+  - If the admin did not get it, one admin-only retry follows. The log line reads `Order email to admin X: sent`, `sent (retry)` or `FAILED after retry`.
+  - `new_order_to_user` goes to the signed-in user (e-mail from `users`, with the `email_confirmed` / `send_for_not_confirmed` rule) or to the guest e-mail, with one retry. The log reads `Order email to customer (user #N | email): sent|FAILED`.
+- Staff body ports `get_order_info_html_epc_staff.php`:
+  - the Control Panel order link and the customer profile block;
+  - delivery address, delivery type, payment and cart;
+  - the warehouse line table with dual AED/USD prices (USD rate from currency 840);
+  - the destination-aware VAT and courier totals, using the ERP VAT twins;
+  - margin, weight and the comment.
+- Customer body ports `get_order_info_html_for_user.php`: status and payment tables, the courier or pickup-office block, the line table, and the comment block (string 4509).
+- `StorefrontNotifyDispatcher` now applies `content/notifications/template.php`:
+  - logo, subject and Dubai-time date;
+  - the 4929/4930 footer;
+  - the office-map hide and obtain-caption replacements;
+  - inline table styles.
+  - It also resolves `translate_str_by_key` like PHP (`is_error`, `same`, empty when missing).
+- Intended deviations:
+  - PHP `require_once` wraps only the first notification in a request. ASP.NET wraps every e-mail, including LPOs.
+  - The Yandex map `<script>` of `show_office_info.php` is not put into e-mails.
+- Fixed: checkout now stores the order comment through `htmlentities()` like PHP. Before this, raw HTML reached the e-mails.
+- Still on PHP: process-flow sync, and SMS/WhatsApp fan-out for these notifications.
+- Verified on a throwaway database. The signed-in checkout sends 7 e-mails in PHP order: admin (fails), CRM, office manager, admin retry, customer, then 2 LPOs, and the totals match (630.00 gross, 600.01 net, courier VAT 2.00, total 672.00). A guest order goes to the pickup office. A missing template is logged as FAILED. 5170 of 5170 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-07 — checkout raises supplier POs and LPO e-mails like PHP
 
 Not complete.
