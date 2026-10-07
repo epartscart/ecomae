@@ -43,6 +43,18 @@ public sealed class ErpGlPostingServiceTests
     }
 
     [Fact]
+    public void JournalThatOnlyBalancesBelowStoredPrecisionIsRejected()
+    {
+        var ex = Assert.Throws<ErpWriteException>(() => ErpGlPostingService.Validate(
+        [
+            new ErpGlLine(1, 10.005m, 0m, "Cash"),
+            new ErpGlLine(2, 0m, 5.0025m, "Revenue"),
+            new ErpGlLine(3, 0m, 5.0025m, "Revenue"),
+        ]));
+        Assert.Equal("Journal not balanced: debit 10.01 vs credit 10.00", ex.Message);
+    }
+
+    [Fact]
     public void ZeroValueJournalIsRejected()
     {
         var ex = Assert.Throws<ErpWriteException>(() => ErpGlPostingService.Validate(

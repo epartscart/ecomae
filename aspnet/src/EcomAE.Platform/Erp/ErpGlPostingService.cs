@@ -272,7 +272,18 @@ public sealed class ErpGlPostingService : IErpGlPostingService
         }
 
         var lines = new List<ErpGlLine>(2);
-        if (direction == 1)
+        if (string.Equals(counterpartyType, "internal", StringComparison.Ordinal))
+        {
+            // Transfer legs net to zero on the clearing account and leave revenue and expense untouched.
+            var transit = await TransitCoaIdAsync(connection, cancellationToken).ConfigureAwait(false);
+            lines.Add(direction == 1
+                ? new ErpGlLine(cashCoaId, amount, 0m, "Transfer in")
+                : new ErpGlLine(cashCoaId, 0m, amount, "Transfer out"));
+            lines.Add(direction == 1
+                ? new ErpGlLine(transit, 0m, amount, "Cash in transit")
+                : new ErpGlLine(transit, amount, 0m, "Cash in transit"));
+        }
+        else if (direction == 1)
         {
             lines.Add(new ErpGlLine(cashCoaId, amount, 0m, "Receipt"));
             var receivable = string.Equals(counterpartyType, "customer", StringComparison.Ordinal)
@@ -362,11 +373,12 @@ public sealed class ErpGlPostingService : IErpGlPostingService
                 throw new ErpWriteException("Ledger posting values must be greater than or equal to zero (no double-negatives allowed)");
             }
 
-            totalDebit += decimal.Round(line.Debit, 4, MidpointRounding.AwayFromZero);
-            totalCredit += decimal.Round(line.Credit, 4, MidpointRounding.AwayFromZero);
+            // Lines are stored as decimal(14,2), so balance must hold on the stored values.
+            totalDebit += ErpTaxAmountCalculator.Round2(line.Debit);
+            totalCredit += ErpTaxAmountCalculator.Round2(line.Credit);
         }
 
-        if (Math.Abs(totalDebit - totalCredit) > 0.0001m)
+        if (totalDebit != totalCredit)
         {
             throw new ErpWriteException(
                 "Journal not balanced: debit "
@@ -581,6 +593,37 @@ public sealed class ErpGlPostingService : IErpGlPostingService
 
     private static Task<long> CoaIdByCodeAsync(DbConnection connection, string code, CancellationToken cancellationToken)
         => CoaIdByCodeAsync(connection, null, code, cancellationToken);
+
+    private static async Task<long> TransitCoaIdAsync(DbConnection connection, CancellationToken cancellationToken)
+    {
+        var transit = ErpGlChartOfAccountsSeeder.SystemAccounts.First(a => a.Code == ErpGlChartOfAccountsSeeder.CashInTransitCode);
+        await ErpDb.ExecuteAsync(
+            connection,
+            null,
+            ErpDb.Positional(
+                "INSERT IGNORE INTO `epc_erp_coa_accounts` (`code`, `name`, `account_type`, `normal_side`, `description`, `system_flag`, `time_created`)"
+                + " VALUES (?, ?, ?, ?, ?, 1, ?)"),
+            cancellationToken,
+            transit.Code,
+            transit.Name,
+            transit.Type,
+            transit.Side,
+            transit.Description,
+            DateTimeOffset.UtcNow.ToUnixTimeSeconds()).ConfigureAwait(false);
+
+        var type = await ErpDb.StringAsync(
+            connection,
+            null,
+            ErpDb.Positional("SELECT `account_type` FROM `epc_erp_coa_accounts` WHERE `code` = ? AND `active` = 1 LIMIT 1"),
+            cancellationToken,
+            transit.Code).ConfigureAwait(false);
+        if (!string.Equals(type, "asset", StringComparison.Ordinal))
+        {
+            throw new ErpWriteException("Account " + transit.Code + " must be an active asset account to post cash transfers");
+        }
+
+        return await CoaIdByCodeAsync(connection, transit.Code, cancellationToken).ConfigureAwait(false);
+    }
 
     private static Task<long> CoaIdByCodeAsync(DbConnection connection, DbTransaction? transaction, string code, CancellationToken cancellationToken)
         => ErpDb.LongAsync(
