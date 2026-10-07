@@ -10,6 +10,7 @@
 @using EcomAE.Platform.Presentation
 @inject ILegacySessionValidator Sessions
 @inject IHttpContextAccessor Http
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 
 <PageTitle>Pay · @_brand</PageTitle>
 <PhpSurfaceHead Surface="storefront" IncludeStorefrontAnalytics="true" ApplyStorefrontIndustryAttrs="true" />
@@ -56,9 +57,9 @@
                             <div class="epc-pay-method-picker" style="margin:12px 0 16px">
                                 <label for="epc_pay_handler">Pay with</label>
                                 <select id="epc_pay_handler" name="pay_handler" class="form-control">
-                                    @foreach (var gate in PhpCustomerWrites.PayGateways)
+                                    @foreach (var gate in _payMethods)
                                     {
-                                        <option value="@gate.Code">@gate.Label</option>
+                                        <option value="@gate.Code" selected="@gate.Selected">@gate.Label</option>
                                     }
                                 </select>
                             </div>
@@ -73,9 +74,9 @@
                             <input id="operation" class="form-control" type="text" name="operation" required value="@Operation" />
                             <label for="gateway">Gateway</label>
                             <select id="gateway" name="pay_system" class="form-control">
-                                @foreach (var gate in PhpCustomerWrites.PayGateways)
+                                @foreach (var gate in _payMethods)
                                 {
-                                    <option value="@gate.Code">@gate.Label</option>
+                                    <option value="@gate.Code" selected="@gate.Selected">@gate.Label</option>
                                 }
                             </select>
                             <button type="submit" class="btn btn-ar btn-primary" style="margin-top:.75rem">Continue to pay</button>
@@ -92,6 +93,7 @@
     private bool _isCustomer;
     private string _flashOk = "";
     private string _flashErr = "";
+    private IReadOnlyList<(string Code, string Label, bool Selected)> _payMethods = [];
 
     [SupplyParameterFromQuery(Name = "operation")]
     public string? Operation { get; set; }
@@ -116,5 +118,6 @@
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         var session = await Sessions.ValidateCustomerAsync(ctx, ctx.RequestAborted);
         _isCustomer = session.Kind == LegacySessionKind.Customer && session.UserId > 0;
+        _payMethods = await EcomAE.Platform.Storefront.StorefrontPaymentMethodPicker.OptionsAsync(Connections, "en", ctx.RequestAborted);
     }
 }

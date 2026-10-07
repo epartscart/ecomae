@@ -1,0 +1,13 @@
+<div class="epc-pay-method-picker" style="margin:12px 0 16px;padding:12px 14px;border:1px solid #e2e8f0;border-radius:10px;background:#f8fafc;">
+	<label for="epc_pay_handler" style="display:block;font-weight:700;font-size:13px;color:#0f172a;margin:0 0 8px;">Pay with</label>
+	<select id="epc_pay_handler" class="form-control" style="max-width:420px;">
+			</select>
+	<p style="margin:8px 0 0;font-size:12px;color:#64748b;">Cards, BNPL, wallets, Pakistan methods, and cryptocurrency when enabled in CP.</p>
+</div>
+<script>
+window.EPC_PAY_HANDLERS = [];
+window.epcSelectedPayHandler = function () {
+	var el = document.getElementById('epc_pay_handler');
+	return el ? String(el.value || '') : '';
+};
+</script>
