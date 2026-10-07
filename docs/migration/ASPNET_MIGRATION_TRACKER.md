@@ -212,7 +212,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 2. **Checkout and order side effects still on PHP.**
    - Done: process-flow sync (`epc_pf_sync_order_case` and `epc_pf_sync_po_case` in `content/shop/finance/epc_erp_processflow.php`). See the checkpoint below.
    - Sales-invoice sale-demand capture: `epc_erp_inventory_record_sale_demand` runs when PHP saves a sales invoice. ASP.NET does not record it yet.
-   - SMS and WhatsApp fan-out: `content/sms/handlers`, `content/notifications`, `epc_order_whatsapp_share.php`.
+   - Done: SMS and WhatsApp Cloud API fan-out of `docpart_dispatch_notification()` (`content/notifications/send_notify_dispatch.php`, `epc_whatsapp_notify.php`). See the checkpoint below.
+   - Still open: the non-GCC SMS handlers in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru), the legacy `send_notify.php` HTTP endpoint, and `epc_order_whatsapp_share.php`.
    - `content/shop/payments`, `content/shop/obtaining_modes`, `content/shop/returns/ajax/helper.php`, `content/shop/protocol`, `content/shop/print_docs`, `content/shop/document_control`.
 3. **Control Panel shop pages.**
    - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
@@ -240,6 +241,24 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — notifications send SMS and WhatsApp like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 875 gap files (ratchet `--max-gap 875`); unnamed PHP functions 8,133.
+- `StorefrontNotifyDispatcher` now runs the phone branches of PHP `docpart_dispatch_notification()` for every person, after the e-mail:
+  - The phone comes from `users.phone` (needs `phone_confirmed` or `send_for_not_confirmed`) or from the `direct_contact` phone (needs `send_for_not_confirmed`).
+  - SMS goes when `sms_on` = 1 and an `sms_api` operator is active. The number is stripped like PHP (spaces, `+7`, brackets, `-`, `_`, `+`) and sent through the existing typed gateway (`CpSmsGateway`) with the operator's `parameters_values`. The `sms_body` template is translated and its declared vars are substituted.
+  - WhatsApp goes to the same phone through the Meta Cloud API (`StorefrontWhatsappNotifier`, a twin of `epc_whatsapp_notify.php`). It needs `epc_whatsapp_api_enabled` = 1 plus the token and phone number id in `config.php`, `email_on` or `sms_on`, and the notification name in `epc_whatsapp_notify_names` (PHP default list).
+  - The WhatsApp body is the SMS text, else the plain e-mail, else the order text, else `<site> — order #N`; capped at 3,500 bytes; with the Arabic line when `epc_whatsapp_bilingual_notify` is on (default). The site name is the site contact `trade_name`, then `hub_name`, then `ecomae`.
+  - Every WhatsApp attempt is written to `epc_whatsapp_notify_log` (created if missing), like PHP.
+- Checkout guests now pass their phone (`phone_not_auth`) with the e-mail, as PHP does, so a guest order can get the SMS and WhatsApp too.
+- Intended deviations:
+  - Only the four GCC/MENA operators (`epc_unifonic`, `epc_etisalat`, `epc_du`, `epc_pakistan`) send natively. A tenant on one of the legacy Russian-market handlers gets a "not implemented" SMS outcome instead of PHP's HTTP call to the handler script.
+  - The site name does not consult PHP's built-in site catalogue or the tenant registry row; it reads the site settings row only.
+  - Order-status SMS suppression (`status_ref`) is not ported, because no ASP.NET status notification passes it yet.
+- Verified on a throwaway database with a fake SMS gateway and a fake Graph API: a confirmed user gets e-mail, SMS (`971501111111`, "Order 77 received") and WhatsApp (bilingual body, Bearer token, `/v21.0/PHONE-ID/messages`, log row status 1). An unconfirmed phone and a direct contact without `send_for_not_confirmed` get nothing. With `sms_on` = 0, WhatsApp still goes with the plain e-mail text, and a Graph error is reported and logged as status 0. A notification outside the WhatsApp list sends SMS only, and an inactive operator stops SMS. 5179 of 5179 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — process-flow order and PO cases sync like PHP
 
@@ -286,7 +305,7 @@ Not complete.
   - PHP `require_once` wraps only the first notification in a request. ASP.NET wraps every e-mail, including LPOs.
   - The Yandex map `<script>` of `show_office_info.php` is not put into e-mails.
 - Fixed: checkout now stores the order comment through `htmlentities()` like PHP. Before this, raw HTML reached the e-mails.
-- Still on PHP: SMS/WhatsApp fan-out for these notifications. (Process-flow sync is done since the next checkpoint.)
+- Still on PHP: process-flow sync, and SMS/WhatsApp fan-out for these notifications.
 - Verified on a throwaway database. The signed-in checkout sends 7 e-mails in PHP order: admin (fails), CRM, office manager, admin retry, customer, then 2 LPOs, and the totals match (630.00 gross, 600.01 net, courier VAT 2.00, total 672.00). A guest order goes to the pickup office. A missing template is logged as FAILED. 5170 of 5170 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — checkout raises supplier POs and LPO e-mails like PHP
