@@ -215,7 +215,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: SMS and WhatsApp Cloud API fan-out of `docpart_dispatch_notification()` (`content/notifications/send_notify_dispatch.php`, `epc_whatsapp_notify.php`). See the checkpoint below.
    - Done: the legacy SMS operators in `content/sms/handlers` (iqsms, rocketsms_by, semysms, smsaero, smsgorod_ru, smsimple, sms_ru, smstraffic, smsvizitka_com, terasms_ru) and the handler URLs of all 14 operators. See the checkpoint below.
    - Retired: `content/sms/handlers/smsaero/send_sms_old.php` (reason in `inventory/PHP_RETIRED.tsv`).
-   - Still open: the legacy `send_notify.php` HTTP endpoint. `epc_order_whatsapp_share.php` is a CP order page include and moves to step 3.
+   - Done: contact confirmation (`content/users/ajax_contacts_works.php`) and the login code (`modules/login/code/frontAjax/ajax_sendCode.php`) send through the dispatcher and store their rows. See the checkpoint below.
+   - Still open: the legacy `send_notify.php` HTTP endpoint, including its `debug_results` upsert for e-mail and SMS. `epc_order_whatsapp_share.php` is a CP order page include and moves to step 3.
    - Done: the order and line status protocol (`content/shop/protocol/set_order_status.php`, `set_order_item_status.php`), pay on place through it, and the post-commit part of `pay_for_order.php` for online payments. See the checkpoint below.
    - Done: creating a return request (`content/shop/returns/ajax/ajax_load_returns_data.php` with `helper.php`): line split, photos, notifications and line status. See the checkpoint below.
    - Done: order print (`content/shop/print_docs/service/print.php` with `get_html_sales_receipt.php` and `get_html_uae_tax_invoice.php`) and the document control template render. See the checkpoint below.
@@ -251,6 +252,24 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — contact confirmation and the login code like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112 (these two files were already mapped; their success paths were missing). Weighted headline stays about 20.4%. Inventory: 839 gap files.
+- `ajax_contacts_works.php` now finishes like PHP.
+  - Set, change and confirm write the `users` columns `{type}`, `_confirmed`, `_new`, `_code`, `_code_expired` (now + 1800), `_code_attempts` and `_code_send_lock_expired` (now + 300) in a transaction.
+  - The e-mail code is `md5(md5(contact.contact_new.rand).md5(secret_succession))`; the phone code is a six-digit number.
+  - It then sends `{type}_confirm_other` with `site_name`, `email_confirm_href` and `phone_confirm_code`, to the new contact on change. The send uses a second connection, as PHP's `send_notify.php` runs in another process.
+  - A missing notification or dispatch error rolls back with 4697. An unsent contact rolls back with 4698. Success answers `{status, message, type, action, contact}`.
+- `ajax_sendCode.php` sends `verification_code`. Then `sessions` gets `2fa_code`, `2fa_attempts` 3 and the PHP `json_encode` data (`timeSendFaCode`, `expireFaCode` + 300, `type`, `method`, `contact_string`, `contact`), and the answer is `{"status":200}`. A failed update is 5650.
+- Messages are translated in the page language taken from the referer, and the confirmation link carries that language. The regexp checks follow `preg_match`'s rule: the whole value must match, and no capture group may take part.
+- Intended deviation: an id with no translation is shown as the id, not as an empty message.
+- Verified on Kestrel over a throwaway database, with the real dispatcher and a recording mailer:
+  - Contact confirmation: a notification without `send_for_not_confirmed` gives "Code not sent" and nothing is stored. A partial regexp match gives "Bad contact". Set stores a 32-hex code and its expiry and lock, and mails the link. A locked change gives 4694. Change keeps the old e-mail, stores `email_new` and mails the new address with the `ar` link and text. A refused SMTP send rolls the confirm back.
+  - Login code: the send stores a six-digit `2fa_code` that matches the mailed code.
+  - 5365 of 5365 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — the legacy SMS operators and the handler URLs like PHP
 
@@ -846,7 +865,7 @@ Not complete.
 - `ajax_load_returns_data.php` now answers on ASP.NET. A missing order-item, return-item, status, or returns table names that gap and is not created. An empty status list is `4572.`. A wrong tech key is `Forbidden`. A posted line stores status 1, user 7, sum `10.00`, and the encoded comment. The same item again is `4571`. Notify was not called.
 - `ajax_workshop_public.php` creates the PHP `epc_ws_*` tables and books job `WS-` plus the day plus `-001` with plate `D-9` and status `checkin`. Tracking returns `Check-in`. A phone whose last 7 digits differ is “No job found for that reference.”
 - `ajax_garage_manager.php` returns “Access denied — garage staff login required” without creating `epc_ws_jobs`. A bad admin CSRF is “CSRF failed — refresh and retry”. A staff create stores plate `G-2` as the next job number.
-- `ajax_contacts_works.php` returns `4689`, `4690`, `4691`, `4693`, and `4697`. The notify HTTP call was not made, so user 7’s email stays empty.
+- `ajax_contacts_works.php` returns `4689`, `4690`, `4691`, `4693`, and `4697`. The notify HTTP call was not made, so user 7’s email stays empty. (Superseded: the 2026-10-07 contact confirmation checkpoint sends and stores.)
 - `ajax_sendCode.php` returns `5648` for an unknown method and `4697` for SMTP, and does not change `2fa_code`. A send inside 30 seconds is `5656` … `5647`. `ajax_checkCode.php` returns `200` for a match, `5643: 2.` after a mismatch, `5642` when the code is expired, and `4003` when no attempts remain.
 - `ajax_process.php` returns the PHP login, CSRF, profile, history, warehouse, file, and part-number sentences. A file or a cross article says “Price lists are not in this database.” No price rows were written and no supplier HTTP was called.
 - `ajax_vendor_ingest.php` returns the sign-in, missing-account, approval, token, file, type, and size sentences. A CSV that would be ingested is “Import failed”. `storage_id` stays 0. No stock or price table was created.
