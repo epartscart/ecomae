@@ -1,0 +1,2 @@
+# PHP files retired without an ASP.NET port. One line per file: path<TAB>reason.
+# scripts/php_reference_gap_inventory.py ignores lines with an empty reason.
