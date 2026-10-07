@@ -219,7 +219,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: order print (`content/shop/print_docs/service/print.php` with `get_html_sales_receipt.php` and `get_html_uae_tax_invoice.php`) and the document control template render. See the checkpoint below.
    - Done: the `content/shop/returns` pages (`returns.php`, `return.php` with `return_messages.php`, `add_return.php`, `assets/add_return.js.php`), the payment method picker (`content/shop/payments/epc_payment_method_picker.php`) and the obtaining-mode includes (`content/shop/obtaining_modes`). See the checkpoint below.
    - Done: the return selection on the customer order page (`my_order.php` `confirm_return()`).
-   - Still open: `content/shop/document_control/service/print.php` (needs the ERP-team access check `epc_erp_user_can_access`), `content/shop/document_control/epc_document_control_cp_install.php`.
+   - Done: Document Control print (`content/shop/document_control/service/print.php`) with the ERP access check `epc_erp_user_can_access` and the e-invoice context `epc_dc_einvoice_context`. See the checkpoint below.
+   - Still open: `content/shop/document_control/epc_document_control_cp_install.php`; the ERP portal half of `epc_erp_access.php` (`epc_erp_portal_*`, tab rights `epc_erp_user_allowed_tabs` / `epc_erp_user_can_access_tab`).
 3. **Control Panel shop pages.**
    - `cp/content/shop/order_process` (20 files): `order_card.php`, `orders_items.php` and its add, edit and reload modals, the orders detail pane, the fulfilment, OMS and WhatsApp guides.
    - `cp/content/shop/catalogue/product.php` and its includes.
@@ -246,6 +247,25 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-07 — Document Control print and the ERP access check like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory: 842 gap files, down from 844 (ratchet `--max-gap 842`); unnamed PHP functions 8,070.
+- `/content/shop/document_control/service/print.php` runs in ASP.NET at its PHP URL (`StorefrontPhpAjax.PrintDocumentControlAsync`). The CP order pane, the Document Control page and the ERP document tab already link there.
+- Access is one engine, `ErpUserAccess` (PHP `epc_erp_access.php`). It applies the same checks as PHP, in the same order:
+  - a CP admin session (`DP_User::isAdmin`), or a customer session in the backend group or one of its direct children (`isBackendGroup`);
+  - otherwise `epc_erp_user_can_access`: the admin with content access to `shop/finance/erp`, then for the signed-in user the whole backend tree, an “Administrator” group, the CP ERP page access list with its subgroups (no list lets every signed-in user in, like PHP), an `EPC_ERP_DEPT_*` group or an active staff profile department (read only when a department group exists, like PHP), or the `EPC_ERP_TEAM` group;
+  - a database error in that chain denies, like PHP's catch.
+- `ErpDocumentControlRender` now renders from an e-invoice (`invoice_id`, PHP `epc_dc_einvoice_context`) as well as from an order or the preview. The invoice wins over `order_id`, and `preview` ignores both. The company row falls back to the e-invoice seller settings, and the stored buyer profile's NULL fields fall back to the document, then the defaults.
+- Intended deviations: when no group has `for_backend = 1`, PHP's `isBackendGroup` builds `IN ()` and dies with a SQL error; ASP.NET treats the user as not backend. A database error while rendering shows the driver's message (PHP shows PDO's).
+- Verified: 22 PHP goldens (php -S serving the real `print.php`, `dp_user.php` and `epc_erp_access.php` over the same fixture) are byte-equal on a throwaway database:
+  - the guest, a mismatched cookie, a plain customer and an inactive staff profile get 403;
+  - the backend child, a backend grandchild, an Administrator group, a CP ERP subgroup, a staff profile, a department group and the ERP team get the page;
+  - as admin: the default template, order 40, preview with an invoice, invoice 7 as tax invoice, packing slip and receipt, invoice 8 as delivery note (no lines, no order, supply date 0), invoice 10 (no buyer), and the 400s for an inactive invoice, a missing order and an unknown template.
+  - Four more tests cover the no-access-list rule, the backend tree fallback to groups 1 and 3, department codes without department groups, and denial on a database error.
+  - 5295 of 5295 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-07 — customer returns pages like PHP
 
