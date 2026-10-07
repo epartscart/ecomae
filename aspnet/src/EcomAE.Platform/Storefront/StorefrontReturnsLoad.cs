@@ -22,7 +22,7 @@ public static partial class StorefrontPhpAjax
     private sealed record ReturnSplit(int ItemId, int NewItemId, int OrderId, int CountNeed, int Count, int ProductType);
 
     /// <summary>
-    /// PHP content/shop/returns/ajax/ajax_load_returns_data.php with helper.php: the return header and lines in one
+    /// PHP content/shop/returns/ajax/ajax_load_returns_data.php with content/shop/returns/ajax/helper.php: the return header and lines in one
     /// transaction (a partial count clones the order line first), the photos, <c>return_new_manager</c> then
     /// <c>return_new_customer</c>, the lines moved to the <c>for_return</c> status, and the split lines reduced
     /// with their history rows.
