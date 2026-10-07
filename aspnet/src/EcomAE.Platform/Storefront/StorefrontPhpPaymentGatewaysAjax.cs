@@ -754,7 +754,7 @@ public static partial class StorefrontPhpAjax
         => (double)Math.Round((decimal)value, places, MidpointRounding.AwayFromZero);
 
     /// <summary>PHP <c>(string)</c> of a decoded JSON scalar: ints as written, floats by precision 14, <c>true</c> → "1", <c>false</c> → "".</summary>
-    private static string PhpJsonScalarString(JsonElement value)
+    internal static string PhpJsonScalarString(JsonElement value)
         => value.ValueKind switch
         {
             JsonValueKind.String => value.GetString() ?? string.Empty,

@@ -154,7 +154,7 @@ public static class EpcObtainModes
     public static string DemoBasesJson()
         => JsonSerializer.Serialize(Carriers.ToDictionary(c => c.Code, c => c.DemoBase, StringComparer.Ordinal));
 
-    private static string UnescapeCookie(string cookie)
+    public static string UnescapeCookie(string cookie)
     {
         var raw = cookie.Trim();
         if (!raw.Contains('%', StringComparison.Ordinal))

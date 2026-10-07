@@ -20,6 +20,7 @@
 @inject IStorefrontGuestSessionService Guests
 @inject IHttpContextAccessor Http
 @inject NavigationManager Nav
+@inject EcomAE.Platform.Data.ITenantDbConnectionFactory Connections
 
 <PageTitle>Checkout · @_brand</PageTitle>
 <PhpChromeStyles Surface="storefront" />
@@ -324,7 +325,11 @@
                         <div style="margin-bottom: 0px; text-align: right; font-size: 18px; font-weight: bold;"><span style="font-size: 14px; font-weight: normal;">Total:</span> <font class="price">@_lines.Sum(l => l.Price * l.CountNeed).ToString("N2", CultureInfo.InvariantCulture)</font></div>
                     }
                     <div style="overflow-x: auto;">
-                        @if (_currentHandler == EpcObtainModes.GetInOffice)
+                        @if (_obtainDetailsHtml.Length > 0)
+                        {
+                            @((MarkupString)_obtainDetailsHtml)
+                        }
+                        else if (_currentHandler == EpcObtainModes.GetInOffice)
                         {
                             var picked = _offices.FirstOrDefault(o => o.Id == (_howGet?.OfficeId ?? 0));
                             <p class="lead">How to obtain - @_currentModeLabel</p>
@@ -441,6 +446,7 @@
     private decimal _carrierWeight = 1.5m;
     private string _flashOk = "";
     private string _flashErr = "";
+    private string _obtainDetailsHtml = "";
     protected override async Task OnInitializedAsync()
     {
         ResolveStep();
@@ -451,6 +457,7 @@
         _brand = StorefrontIndustryHostResolver.ResolveBrandLabel(ctx.Request.Host.Host);
         await LoadOfficesAndModesAsync(ctx);
         ApplyObtainCookies(ctx);
+        await LoadObtainDetailsAsync(ctx);
 
         var session = await Sessions.ValidateAsync(ctx, ctx.RequestAborted);
         var shopper = session.Kind == LegacySessionKind.Customer && session.UserId > 0
@@ -522,6 +529,55 @@
         if (_obtainModes.Count == 0)
         {
             _obtainModes = EpcObtainModes.FallbackModes;
+        }
+    }
+
+    /// <summary>PHP <c>checkout_confirm.php</c>: the selected available mode's <c>obtaining_modes/{handler}/show_details.php</c>.</summary>
+    private async Task LoadObtainDetailsAsync(HttpContext ctx)
+    {
+        if (_step != "confirm" || !_howGetOk || !Connections.IsConfigured)
+        {
+            return;
+        }
+
+        ctx.Request.Cookies.TryGetValue("how_get", out var howGetCookie);
+        try
+        {
+            await using var connection = await Connections.OpenAsync(null, ctx.RequestAborted);
+            await using var command = connection.CreateCommand();
+            command.CommandText = "SELECT `caption`, `handler` FROM `shop_obtaining_modes` WHERE `id` = @id AND `available` = 1";
+            var id = command.CreateParameter();
+            id.ParameterName = "@id";
+            id.Value = _currentObtainModeId;
+            command.Parameters.Add(id);
+            string? caption = null;
+            string? handler = null;
+            await using (var reader = await command.ExecuteReaderAsync(ctx.RequestAborted))
+            {
+                if (await reader.ReadAsync(ctx.RequestAborted))
+                {
+                    caption = reader.IsDBNull(0) ? "" : Convert.ToString(reader.GetValue(0), CultureInfo.InvariantCulture);
+                    handler = reader.IsDBNull(1) ? "" : EpcObtainModes.SanitizeHandler(Convert.ToString(reader.GetValue(1), CultureInfo.InvariantCulture));
+                }
+            }
+
+            if (handler is null)
+            {
+                return;
+            }
+
+            _obtainDetailsHtml = await StorefrontObtainModeViews.ShowDetailsAsync(
+                connection,
+                new StorefrontPhpTranslator(connection, "en"),
+                handler,
+                caption,
+                EpcObtainModes.UnescapeCookie(howGetCookie ?? ""),
+                "en",
+                ctx.RequestAborted);
+        }
+        catch (System.Data.Common.DbException)
+        {
+            _obtainDetailsHtml = "";
         }
     }
 
