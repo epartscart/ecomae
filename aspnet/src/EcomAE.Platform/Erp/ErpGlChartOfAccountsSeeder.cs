@@ -10,10 +10,13 @@ namespace EcomAE.Platform.Erp;
 /// </summary>
 public static class ErpGlChartOfAccountsSeeder
 {
+    public const string CashInTransitCode = "1090";
+
     public static readonly IReadOnlyList<(string Code, string Name, string Type, string Side, string Description)> SystemAccounts =
     [
         ("1000", "Cash on hand", "asset", "debit", "Petty cash and cash drawers"),
         ("1010", "Bank", "asset", "debit", "Bank current accounts"),
+        (CashInTransitCode, "Cash in transit", "asset", "debit", "Clearing for transfers between cash and bank accounts"),
         ("1100", "Accounts receivable", "asset", "debit", "Customer trade debtors"),
         ("1150", "VAT input (recoverable)", "asset", "debit", "UAE VAT 5% on purchases"),
         ("2000", "Accounts payable", "liability", "credit", "Supplier trade creditors"),
