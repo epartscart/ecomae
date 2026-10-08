@@ -40,7 +40,10 @@ public sealed class CpNavMenuService : ICpNavMenuService
         _env = env;
     }
 
-    public async Task<IReadOnlyList<CpNavGroup>> BuildAsync(string? host, LegacySessionContext session, CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<CpNavGroup>> BuildAsync(string? host, LegacySessionContext session, CancellationToken cancellationToken = default) =>
+        Presentation.TopMenuLinks.DedupeCp(await BuildPhpTreeAsync(host, session, cancellationToken).ConfigureAwait(false));
+
+    private async Task<IReadOnlyList<CpNavGroup>> BuildPhpTreeAsync(string? host, LegacySessionContext session, CancellationToken cancellationToken)
     {
         var isSuperHost = PlatformHostPolicy.IsSuperCpHost(host);
         var isAdmin = session.Kind == LegacySessionKind.Admin;

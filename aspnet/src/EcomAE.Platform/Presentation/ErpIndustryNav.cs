@@ -158,6 +158,7 @@ public static class ErpIndustryNav
     {
         var filtered = new List<LegacyDesktopChromeCatalog.MegaGroup>();
         var seenTabIds = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var seenDestinations = new HashSet<string>(StringComparer.Ordinal);
         foreach (var group in groups)
         {
             var columns = new List<LegacyDesktopChromeCatalog.MegaAreaColumn>();
@@ -168,6 +169,7 @@ public static class ErpIndustryNav
                     .Where(t => !IsDisabled(t, audience))
                     .Where(t => IsEnabled(t, audience))
                     .Where(t => seenTabIds.Add(t.Id))
+                    .Where(t => seenDestinations.Add(TopMenuLinks.DestinationKey(TopMenuLinks.ErpHref(t.Href))))
                     .ToList();
                 if (tabs.Count == 0)
                 {
