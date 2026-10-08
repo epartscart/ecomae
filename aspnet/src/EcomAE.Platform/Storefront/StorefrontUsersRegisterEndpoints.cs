@@ -12,7 +12,8 @@ namespace EcomAE.Platform.Storefront;
 /// <summary>
 /// <c>/users/register</c> and <c>/{lang}/users/register</c>: a GET goes to the registration form, a POST runs
 /// <see cref="StorefrontPhpAjax.UsersRegisterAsync"/>. A refusal redirects to <c>{lang}/?error_message=</c>; the page text
-/// after a registration is carried to <see cref="ResultPath"/> in a short-lived protected token.
+/// after a registration is carried to <see cref="ResultPath"/> in a short-lived protected token. The form's captcha image,
+/// check and refresh button (<see cref="StorefrontCaptcha"/>) are served here too.
 /// </summary>
 public static class StorefrontUsersRegisterEndpoints
 {
@@ -32,6 +33,42 @@ public static class StorefrontUsersRegisterEndpoints
         endpoints.MapMethods("/{lang:regex(^[a-z]{{2}}$)}" + StorefrontPhpAjax.UsersRegisterPath, ["GET", "POST"], (HttpContext context, ITenantDbConnectionFactory connections, string lang, CancellationToken ct)
                 => RegisterAsync(context, connections, "/" + lang, ct))
             .DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontCaptcha.ImagePath, ["GET", "POST"], CaptchaImage).DisableAntiforgery().AllowAnonymous();
+        endpoints.MapMethods(StorefrontCaptcha.CheckPath, ["GET", "POST"], CaptchaCheckAsync).DisableAntiforgery().AllowAnonymous();
+        endpoints.MapGet(StorefrontCaptcha.RefreshPath, () => Results.Bytes(StorefrontCaptcha.RefreshImage(), "image/png")).AllowAnonymous();
+    }
+
+    private static IResult CaptchaImage(HttpContext context)
+    {
+        var code = StorefrontCaptcha.GenerateCode(Random.Shared);
+        context.Response.Cookies.Append(StorefrontCaptcha.CookieName, StorefrontCaptcha.CookieValue(code), new CookieOptions
+        {
+            Path = "/",
+            Expires = DateTimeOffset.UtcNow.AddSeconds(StorefrontCaptcha.CookieSeconds),
+            MaxAge = TimeSpan.FromSeconds(StorefrontCaptcha.CookieSeconds),
+        });
+        foreach (var (name, value) in StorefrontCaptcha.ImageHeaders)
+        {
+            context.Response.Headers.Append(name, value);
+        }
+
+        return Results.Bytes(StorefrontCaptcha.RenderPng(code, Random.Shared), "image/png");
+    }
+
+    private static async Task<IResult> CaptchaCheckAsync(HttpContext context, CancellationToken cancellationToken)
+    {
+        string? posted = context.Request.Query.TryGetValue("captcha_check", out var query) ? query.ToString() : null;
+        if (HttpMethods.IsPost(context.Request.Method) && context.Request.HasFormContentType)
+        {
+            var form = await context.Request.ReadFormAsync(cancellationToken).ConfigureAwait(false);
+            if (form.TryGetValue("captcha_check", out var value))
+            {
+                posted = value.ToString();
+            }
+        }
+
+        var correct = StorefrontCaptcha.Check(posted, context.Request.Cookies[StorefrontCaptcha.CookieName]);
+        return Results.Bytes(System.Text.Encoding.ASCII.GetBytes(correct is null ? string.Empty : correct.Value ? "true" : "false"), "text/html; charset=UTF-8");
     }
 
     /// <summary>The page text a <see cref="ResultPath"/> token carries, or <c>null</c> when it is missing, forged or expired.</summary>

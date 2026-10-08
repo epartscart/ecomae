@@ -12,8 +12,14 @@
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="10.0.0" />
     <PackageReference Include="MySqlConnector" Version="2.6.1" />
     <PackageReference Include="SharpCompress" Version="0.50.4" />
+    <PackageReference Include="SkiaSharp" Version="3.119.4" />
+    <PackageReference Include="SkiaSharp.NativeAssets.Linux.NoDependencies" Version="3.119.4" />
   </ItemGroup>
   <ItemGroup>
     <Content Update="Migration/Data/erp-guide-modules.json" CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Remove="Storefront/Captcha/*" />
+    <EmbeddedResource Include="Storefront/Captcha/*" LogicalName="EcomAE.Platform.Captcha.%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>
