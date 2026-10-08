@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`, `checkout_login_offer.php`. Done: `get_customer_offices.php` (see the checkpoint below).
+   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`, `common_add_to_basket.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -321,6 +321,17 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-08 — the checkout login offer (`checkout_login_offer.php`) like PHP
+
+Not complete.
+
+- Ratchet 758 to 757. Inventory content 384 to 385 of 952. Unnamed PHP functions stay at 7,907 (the page defines none). The weighted headline (about 20.4%) is unchanged.
+- `/shop/checkout/login_offer` now prints PHP's page through `StorefrontCheckoutLoginOffer`: the shared sign-in form (`login_form_general.php`, postfix `login_offer_1`, target `shop/checkout/how_get`) and the "Order without registration" button (string 4523) only when `config.php` has `order_without_auth == 1`, compared like PHP 8 (`" 1"` and `1.0` count, `yes` and empty do not). The old page always showed a hand-written "Continue as guest" button.
+- Sign-in from the page works: `StorefrontLoginPostMiddleware` now also takes the `authentication` POST on the login offer path, and a failed sign-in re-renders the page with PHP's alert.
+- Fixed: the guest-order gate (`ajax_checkout_create.php` and the checkout write service) read `config_items.value`, a column that does not exist, so guests could always order. It now reads `order_without_auth` from `config.php` like PHP: unset allows guests, set and `!= 1` refuses them with string 4470.
+- Intended deviation: PHP's `epc_redirect_safe_target()` turns the page's relative target into `/`, so a customer who signs in mid-checkout lands on the home page. That exact target now continues to `/{lang}/shop/checkout/how_get`. Every other target is still filtered as in PHP.
+- Evidence: `Fixtures/LoginForm/harness.py` ran the real page (PHP 8.3) for 9 new cases (guest with the setting unset, on, off, `" 1"`, `1.0`, `yes`, empty; signed in with it on and unset). `StorefrontLoginFormTests` matches all of them, plus 24 PHP-checked loose `== 1` values, the path match, the target and the guest refusal. Full suite 5,847 passed. A Kestrel GET of `/en/shop/checkout/login_offer` returns 200 with PHP's form. The captions are blank on this VM only because the local database has no `lang_text_strings_translation` table, which also blanks `/en/users/login`.
 
 ### Checkpoint 2026-10-08 — the customer's offices (`get_customer_offices.php`) like PHP
 
