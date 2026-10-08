@@ -131,7 +131,7 @@ public static partial class StorefrontPhpAjax
                 throw new RegisterRefusal("2122", " 1.2");
             }
 
-            var storedContact = PhpHtmlEntities.Encode(regContact);
+            var storedContact = global::EcomAE.Platform.Storefront.PhpHtmlEntities.Encode(regContact);
             var taken = await ErpDb.LongAsync(connection, transaction, ErpDb.Positional("SELECT COUNT(*) FROM `users` WHERE `" + column + "` = ?"), cancellationToken, storedContact).ConfigureAwait(false);
             if (taken != 0)
             {
@@ -238,7 +238,7 @@ public static partial class StorefrontPhpAjax
                         continue;
                     }
 
-                    await InsertProfileAsync(name, PhpHtmlEntities.Encode(P(name) ?? string.Empty)).ConfigureAwait(false);
+                    await InsertProfileAsync(name, global::EcomAE.Platform.Storefront.PhpHtmlEntities.Encode(P(name) ?? string.Empty)).ConfigureAwait(false);
                 }
                 else if (showFor is not null && showFor.Any(v => LooseEqualsString(v, regVariant)))
                 {

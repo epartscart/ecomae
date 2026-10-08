@@ -81,6 +81,7 @@ public static partial class StorefrontPhpAjax
 
     public static async Task<object> TextStringsAsync(
         DbConnection connection,
+        CpLangRequest cpLang,
         string? adminSession,
         string? adminUser,
         string? postedCsrf,
@@ -89,6 +90,7 @@ public static partial class StorefrontPhpAjax
         CancellationToken cancellationToken)
         => await LangAdminAsync(
             connection,
+            cpLang,
             adminSession,
             adminUser,
             postedCsrf,

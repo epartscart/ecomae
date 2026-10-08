@@ -346,7 +346,6 @@ public sealed class StorefrontPhpLocalGapTests
             Assert.Equal("1", await ScalarAsync(connectionString, "SELECT is_error FROM lang_text_strings WHERE str_key = 'hello'"));
             WriteConfig(configRoot, false, false, false);
 
-            await ExecuteAsync(connectionString, "ALTER TABLE lang_languages ADD active INT NOT NULL DEFAULT 1, ADD is_default INT NOT NULL DEFAULT 0");
             await ExecuteAsync(connectionString, "UPDATE lang_languages SET is_default = 1 WHERE lang_code = 'en'");
             await ExecuteAsync(connectionString, "INSERT INTO lang_languages (id, lang_code) VALUES (2, 'ar')");
             await ExecuteAsync(connectionString, "ALTER TABLE lang_text_strings ADD used_found INT NOT NULL DEFAULT 0");

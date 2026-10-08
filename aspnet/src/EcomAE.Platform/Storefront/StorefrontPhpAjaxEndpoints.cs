@@ -3076,6 +3076,7 @@ public static class StorefrontPhpAjaxEndpoints
             cancellationToken,
             async (connection, token) => await StorefrontPhpAjax.TextStringsAsync(
                 connection,
+                CpLang(context),
                 context.Request.Cookies["admin_session"],
                 context.Request.Cookies["admin_u_id"],
                 await OptionalPostedAsync(context, "csrf_guard_key", token).ConfigureAwait(false),
