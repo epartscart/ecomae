@@ -1020,6 +1020,8 @@ public static class EcomAeRoutes
     public const string ErpQualityNcrCreateForm = "/erp/quality/ncr-create";
     /// <summary>HTML form POST for PHP <c>inv_create_item</c> dry-run.</summary>
     public const string ErpProductInfoCreateItemForm = "/erp/product-info/create-item";
+    /// <summary>PIM attributes tab form POST (<c>pinfo_action</c> = create/deactivate field, add/remove option). Needs <c>confirmWrites=true</c>.</summary>
+    public const string ErpProductInfoPimAction = "/erp/product-info/pim";
     /// <summary>HTML form POST for PHP <c>jw_repair_create</c>. <c>confirmWrites=true</c> inserts <c>epc_erp_jw_repairs</c>.</summary>
     public const string ErpJewelleryRepairCreateForm = "/erp/jewellery/repair-create";
     /// <summary>PHP design/diamond list helpers. Read-only company-scoped master projection.</summary>

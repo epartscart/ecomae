@@ -301,6 +301,25 @@ public static partial class ErpPimCustomFields
         return RenderFormFields(fields, options, values);
     }
 
+    /// <summary>Blank create-form inputs for a module, or "" while the PIM tables do not exist yet.</summary>
+    public static async Task<string> TryRenderNewItemFieldsAsync(IErpWriteConnectionFactory connections, string module, CancellationToken cancellationToken)
+    {
+        if (!connections.IsConfigured)
+        {
+            return "";
+        }
+
+        try
+        {
+            await using var connection = await connections.OpenAsync(cancellationToken).ConfigureAwait(false);
+            return await RenderFormFieldsAsync(connection, module, 0, cancellationToken).ConfigureAwait(false);
+        }
+        catch (DbException)
+        {
+            return "";
+        }
+    }
+
     public static async Task<IReadOnlyList<DisplayRow>> DisplayRowsAsync(DbConnection connection, long itemId, string module, CancellationToken cancellationToken)
     {
         var fields = await ListFieldsAsync(connection, "", cancellationToken).ConfigureAwait(false);

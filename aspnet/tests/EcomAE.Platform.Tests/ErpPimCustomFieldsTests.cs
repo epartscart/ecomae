@@ -1,6 +1,8 @@
+using System.Data.Common;
 using System.Globalization;
 using System.Text.Json;
 using EcomAE.Platform.Erp;
+using Microsoft.Extensions.Primitives;
 using MySqlConnector;
 using Xunit;
 
@@ -187,6 +189,117 @@ public sealed class ErpPimCustomFieldsTests
             MySqlConnection.ClearAllPools();
             await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + name + "`");
         }
+    }
+
+    [Fact]
+    public void Reads_only_numeric_pim_keys_from_a_form_post()
+    {
+        var post = ErpPimWriteService.PostFrom(new Dictionary<string, StringValues>
+        {
+            ["pim_field_3"] = "Japan",
+            ["pim_field_7[]"] = new StringValues(["21", "23"]),
+            ["pim_field_x"] = "no",
+            ["pim_field_"] = "no",
+            ["sku"] = "A1",
+        });
+        Assert.Equal(["pim_field_3", "pim_field_7"], post.Keys.Order());
+        Assert.Equal(["21", "23"], post["pim_field_7"]);
+    }
+
+    [Fact]
+    public void Pages_and_endpoints_are_wired()
+    {
+        var root = RepoRoot();
+        var info = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpProductInfoApp.razor"));
+        Assert.Contains("(\"pim_attrs\", \"PIM attributes\")", info, StringComparison.Ordinal);
+        Assert.Contains("EcomAeRoutes.ErpProductInfoPimAction", info, StringComparison.Ordinal);
+        foreach (var action in ErpPimWriteService.Actions)
+        {
+            Assert.Contains("value=\"" + action + "\"", info, StringComparison.Ordinal);
+        }
+
+        Assert.Contains("ErpPimCustomFields.RenderDisplayTable(_openedItemPim)", info, StringComparison.Ordinal);
+        var stock = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Components/Pages/ErpInventoryStockApp.razor"));
+        Assert.Contains("TryRenderNewItemFieldsAsync(TenantDb, \"inventory\"", stock, StringComparison.Ordinal);
+        var module = File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Modules/ErpModule.cs"));
+        Assert.Contains("endpoints.MapPost(EcomAeRoutes.ErpProductInfoPimAction", module, StringComparison.Ordinal);
+        Assert.Contains("pim.ValidateItemPostAsync(pimPost, \"inventory\"", module, StringComparison.Ordinal);
+        Assert.Contains("pim.SaveItemPostAsync(written.Id, pimPost, \"inventory\"", module, StringComparison.Ordinal);
+        Assert.Contains("IErpPimWriteService, EcomAE.Platform.Erp.ErpPimWriteService", File.ReadAllText(Path.Combine(root, "aspnet/src/EcomAE.Platform/Program.cs")), StringComparison.Ordinal);
+    }
+
+    [Fact]
+    public async Task Write_service_applies_actions_with_audit_rows()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var name = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";";
+        var cs = "Server=127.0.0.1;Port=3306;Database=" + name + ";User ID=ecomae;Password=" + password + ";";
+        await ExecAsync(admin, "CREATE DATABASE `" + name + "`");
+        try
+        {
+            await ExecAsync(cs, "CREATE TABLE `epc_erp_audit_log` (`id` INT AUTO_INCREMENT PRIMARY KEY, `time` INT, `admin_id` INT, `action` VARCHAR(64), `entity_type` VARCHAR(32), `entity_id` INT, `summary` VARCHAR(512), `detail_json` TEXT, `old_json` TEXT, `new_json` TEXT, `ip_address` VARCHAR(64), `user_agent` VARCHAR(255))");
+            var service = new ErpPimWriteService(new Connections(cs), new ErpAuditLogWriter());
+            var ct = CancellationToken.None;
+
+            var bad = await service.ApplyAsync(3, new ErpPimActionRequest("pim_drop_table"), ct);
+            Assert.False(bad.Succeeded);
+            var empty = await service.ApplyAsync(3, new ErpPimActionRequest("pim_create_field", Name: " "), ct);
+            Assert.Equal(("invalid", "Field name is required."), (empty.Code, empty.Message));
+
+            var created = await service.ApplyAsync(3, new ErpPimActionRequest("pim_create_field", Name: "Grade", FieldType: "single_option", Required: true, ShowSales: false, Options: "A, B"), ct);
+            Assert.True(created.Succeeded);
+            Assert.Equal("PIM attribute \"Grade\" created (type: single_option).", created.Message);
+            var option = await service.ApplyAsync(3, new ErpPimActionRequest("pim_add_option", FieldId: created.Id, OptionLabel: "C"), ct);
+            Assert.Equal("Option \"C\" added.", option.Message);
+            Assert.True((await service.ApplyAsync(3, new ErpPimActionRequest("pim_delete_option", OptionId: option.Id), ct)).Succeeded);
+            Assert.Equal("not_found", (await service.ApplyAsync(3, new ErpPimActionRequest("pim_delete_option", OptionId: option.Id), ct)).Code);
+
+            var missing = await service.ValidateItemPostAsync(new Dictionary<string, IReadOnlyList<string>>(), "inventory", ct);
+            Assert.Equal(["Grade is required."], missing);
+            Assert.Empty(await service.ValidateItemPostAsync(new Dictionary<string, IReadOnlyList<string>>(), "sales", ct));
+
+            Assert.True((await service.ApplyAsync(3, new ErpPimActionRequest("pim_delete_field", FieldId: created.Id), ct)).Succeeded);
+            Assert.Equal("not_found", (await service.ApplyAsync(3, new ErpPimActionRequest("pim_delete_field", FieldId: created.Id), ct)).Code);
+
+            await using var db = new MySqlConnection(cs);
+            await db.OpenAsync();
+            Assert.Equal(4, await CountAsync(db, "SELECT COUNT(*) FROM `epc_erp_audit_log` WHERE `entity_type` = 'pim_field' AND `admin_id` = 3"));
+            Assert.Equal(1, await CountAsync(db, "SELECT COUNT(*) FROM `epc_erp_audit_log` WHERE `action` = 'pim_create_field' AND `entity_id` = " + created.Id));
+        }
+        finally
+        {
+            MySqlConnection.ClearAllPools();
+            await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + name + "`");
+        }
+    }
+
+    private sealed class Connections(string cs) : IErpWriteConnectionFactory
+    {
+        public bool IsConfigured => true;
+
+        public async Task<DbConnection> OpenAsync(CancellationToken cancellationToken = default)
+        {
+            var connection = new MySqlConnection(cs);
+            await connection.OpenAsync(cancellationToken);
+            return connection;
+        }
+    }
+
+    private static string RepoRoot()
+    {
+        var dir = new DirectoryInfo(AppContext.BaseDirectory);
+        while (dir is not null && !File.Exists(Path.Combine(dir.FullName, "aspnet", "src", "EcomAE.Platform", "EcomAE.Platform.csproj")))
+        {
+            dir = dir.Parent;
+        }
+
+        return dir?.FullName ?? throw new DirectoryNotFoundException("Could not find repo root.");
     }
 
     private static string? NullableText(JsonElement element, string property)

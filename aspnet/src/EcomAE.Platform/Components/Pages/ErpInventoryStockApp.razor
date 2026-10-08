@@ -10,6 +10,7 @@
 @inject IHttpContextAccessor Http
 @inject IErpDimensionCatalogReadService DimensionCatalog
 @inject IErpDimensionLinkReadService DimensionLinks
+@inject IErpWriteConnectionFactory TenantDb
 
 <PageTitle>Inventory Stock · ERP · eParts Cart</PageTitle>
 <PhpChromeStyles Surface="erp" />
@@ -87,6 +88,13 @@
                 </select>
             </label>
             <label>Unit <input type="text" name="unit" value="pcs" maxlength="16" /></label>
+            @if (_pimFormHtml.Length > 0)
+            {
+                <div style="flex-basis:100%;max-width:640px;">
+                    <h5 style="margin:6px 0;"><i class="fa fa-tags"></i> PIM custom attributes</h5>
+                    @((MarkupString)_pimFormHtml)
+                </div>
+            }
             <button type="submit" class="btn btn-sm btn-primary">Create item</button>
         </form>
         <form method="post" action="/erp/ajax/inv-sync-warehouses" style="display:flex;flex-wrap:wrap;gap:.4rem;align-items:end;margin:0 0 .65rem">
@@ -258,6 +266,7 @@
     private IReadOnlyList<ErpDimensionLink> _openedDimensionLinks = [];
     private string _dimensionEntityType = "inventory_item";
     private long _dimensionEntityId;
+    private string _pimFormHtml = "";
 
     protected override async Task OnInitializedAsync()
     {
@@ -289,6 +298,7 @@
         _lowStock = result.LowStock;
         _message = result.Message;
         _dimensionCatalog = await DimensionCatalog.LoadAsync(100, ctx.RequestAborted);
+        _pimFormHtml = await ErpPimCustomFields.TryRenderNewItemFieldsAsync(TenantDb, "inventory", ctx.RequestAborted);
         if (_dimensionEntityId > 0)
         {
             _openedDimensionLinks = await DimensionLinks.LoadAsync(
