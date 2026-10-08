@@ -260,6 +260,31 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the registration form post (`/users/register`) like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap stays 828: `register.php` was already counted as mentioned through older route notes. Unnamed PHP functions: 8,017 to 8,016.
+- `StorefrontPhpAjax.UsersRegisterAsync` ports `content/users/register.php`. It runs in one transaction:
+  - The signed-in refusal, captcha, user agreement, contact type, regexp, uniqueness, empty IP and 24-hour IP checks.
+  - The enhanced and UAE field checks.
+  - The `users` row with the e-mail activation code or a random SMS code.
+  - The `simple_register` SMS-code account: attempts, a wrong code, expiry and a generated password.
+  - The registration fields (`show_for` loose match, file widgets and wholesale-only fields skipped, values through `htmlentities`) and the registered-customer group.
+  - The trade account, the buyer profile and KYC documents, then the `reg_email_confirm` or `reg_phone_confirm` send (strings 4697 and 4698, or `registration_continue_if_confirm_email_fails`).
+  - After the commit: `reg_notify_admin` to the admin inbox, the CRM manager and the backend groups, with the profile table, profile button and login-event block.
+  - The page text: e-mail sent or not, retail approved or wholesale pending, or the SMS code form.
+- `PhpHtmlEntities` is PHP 8.1 `htmlentities` (HTML 4.01 table plus `&#039;`).
+- Endpoint: GET `/users/register` and `/{lang}/users/register` redirect to the form as PHP does. POST runs the port; a refusal is a 302 to `{lang}/?error_message=`. The page text goes to `/users/registered` in a ten-minute protected token and renders inside the storefront chrome. The Blazor registration page keeps `/users/registration` and `/users/regform`, and its own write route, until `regform.php` (captcha and agreement) is ported.
+- Intended deviations:
+  - The e-invoice schema is ensured before the transaction, and its DDL runs once per connection. In MySQL that DDL commits implicitly, so in PHP 8 a refused confirmation send keeps the account and the final `commit()` throws.
+  - A 302 replaces the `<script>location=` page.
+  - The `simple_register` hand-over form escapes the posted values.
+  - A signed-in user gets the 4740 redirect; in PHP, `rollBack()` dies there because no transaction has started.
+  - A `reg_fields` row with an invalid `show_for` is skipped on the `simple_register` path; PHP throws a TypeError there.
+- `StorefrontUsersRegisterTests` compares 21 cases with **goldens from the real PHP** (`Fixtures/UsersRegister/harness.py`): the real `register.php`, `dp_user.php`, translator, trade, e-invoice, enhanced-registration and admin-notification code behind `php -S`, with only `send_notify` stubbed to record calls. The checks cover the redirect or page; the `users`, `users_profiles`, `users_groups_bind`, `sessions` and buyer rows; every notify call (name, variables, persons); and the KYC files. One Fact covers the signed-in refusal. Another drives the HTTP endpoint end to end: GET redirects, a refusal, an e-mail registration with its result token, and a wholesale post with multipart KYC uploads.
+- Full suite: 5485 of 5485. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-08 — registration fields, KYC documents and e-invoice buyer profiles like PHP
 
 Not complete.
