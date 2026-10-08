@@ -207,7 +207,8 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
-   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `check_user_access.php`, `epc_session_security.php`, the agreement module.
+   - Done: the page access include `content/users/check_user_access.php`, used by the CP lang editor ajax and the storefront storage toggle. See the checkpoint below.
+   - `content/users`: `dp_user.php`, `epc_registration_enhanced.php`, `profileform.php`, `epc_reg_fields_compliance.php`, `epc_countries.php`, `epc_session_security.php`, the agreement module.
    - `content/shop/catalogue` (41 files): `printProducts.php`, `printProducts_2.php`, `printProduct_Info.php`, the product pages, compare, bookmarks, SKU media, the text search algorithm, the tree lists.
    - `content/shop/docpart` (44 files): `part_search_page.php` and `part_search_page_1.php`, the parts agent, demand intelligence, garage, fitment, cross interchange, the multivendor and commerce price ingest.
    - `modules/*`: login (password, code, social), menu, bread crumbs, slider, news, lang, and `shop/*` (cart, balance, search string, geo, ucats).
@@ -255,6 +256,21 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
    - The deferred findings: cash without journals, integrity gaps, POS without GL, voucher gaps, untested services, money typed as double, the emergency-publish flag. Reposting the wrong 4000/6100 production transfers needs approval.
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
+
+### Checkpoint 2026-10-08 — page access checks like PHP check_user_access.php
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap ratchet: 834 to 833 (`check_user_access.php`); unnamed PHP functions 8,063.
+- `StorefrontPhpAjax.CheckUserAccessAsync` is the shared twin of the include. The group must reach every listed page:
+  - `content_access` rules plus the groups nested under them, recursively, only below a group whose `count` is not 0.
+  - A frontend page without rules is open; a backend page without rules is closed.
+  - Backend pages use the admin's bound groups. Frontend pages use the customer profile groups: the guest group, the bound groups, or else the first `for_registrated` group.
+  - No pages gives string 2387, a refusal 2388, both translated and `null` when untranslated.
+- The denial language follows `multilang_init()` for CP ajax: the active `backend_ui_lang`, else the active `lang_cp` cookie, else the active default language (multilang off: the default language).
+- The 10 CP lang editor ajax handlers and the storefront storage toggle now use it. Before this they ignored nested groups and answered the literal "2388".
+- Verified against goldens from the real include with the real `dp_user.php` and `lang/dp_lang.php` (php-cli, throwaway schema, only the config stubbed): 23 cases compare the decision and the `status`, `error` and `message` values. The CP ajax suites now seed `groups` and the `lang_languages` flags, as a PHP database has them.
+- 5427 of 5427 tests pass. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
 
 ### Checkpoint 2026-10-08 — the registration contact check like PHP
 
