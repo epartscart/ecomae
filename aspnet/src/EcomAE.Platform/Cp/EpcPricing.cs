@@ -107,6 +107,20 @@ public static class EpcPricing
         int storageId,
         CancellationToken cancellationToken)
     {
+        var sell = await SellFromPurchaseAsync(connection, groupId, brand, purchase, article, storageId, cancellationToken).ConfigureAwait(false);
+        return Math.Round(sell.Price, 2, MidpointRounding.AwayFromZero);
+    }
+
+    /// <summary>The full PHP <c>epc_pricing_apply_sell_from_purchase</c> array: <c>visible</c> and the unrounded <c>price</c>.</summary>
+    public static async Task<SellFromPurchase> SellFromPurchaseAsync(
+        DbConnection connection,
+        int groupId,
+        string? brand,
+        decimal purchase,
+        string? article,
+        int storageId,
+        CancellationToken cancellationToken)
+    {
         var result = await ApplyPriceRulesAsync(
             connection, groupId, brand, purchase, 0m, article, storageId, cancellationToken).ConfigureAwait(false);
         var price = result.Price;
@@ -138,8 +152,7 @@ public static class EpcPricing
             }
         }
 
-        _ = markup;
-        return Math.Round(price, 2, MidpointRounding.AwayFromZero);
+        return new SellFromPurchase(result.Visible, price, purchase, markup);
     }
 
     public sealed record PriceStep(string Type, string Label, decimal Percent, decimal PriceAfter);
