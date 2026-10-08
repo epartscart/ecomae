@@ -127,7 +127,7 @@ function epc_cp_nuclear_critical_css(): string
 		body.epc-cp-shell .content .epc-cp-content-inner,
 		body.epc-cp-shell .content .epc-portal-settings,
 		body.epc-cp-shell .content .epc-cp-content-inner .row,
-		body.epc-cp-shell .content .epc-cp-content-inner .row > *,
+		body.epc-cp-shell .content .epc-cp-content-inner .row > *:not(script):not(style):not(link):not(template),
 		body.epc-cp-shell .content .epc-cp-content-inner [class*="col-"] {
 			display: block !important;
 			opacity: 1 !important;
