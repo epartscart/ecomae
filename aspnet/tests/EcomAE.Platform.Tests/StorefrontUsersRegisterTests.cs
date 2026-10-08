@@ -6,6 +6,10 @@ using System.Text.Json.Nodes;
 using System.Text.RegularExpressions;
 using EcomAE.Platform.Erp;
 using EcomAE.Platform.Storefront;
+using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using MySqlConnector;
 using Xunit;
 
@@ -247,6 +251,145 @@ public sealed class StorefrontUsersRegisterTests
         {
             MySqlConnection.ClearAllPools();
             await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + database + "`");
+        }
+    }
+
+    [Fact]
+    public async Task Endpoint_RedirectsGets_RefusesAndRegistersPosts_AndCarriesThePageToTheResultPage()
+    {
+        var password = Environment.GetEnvironmentVariable("ECOMAE_LOCAL_MARIADB_E2E_DSN");
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return;
+        }
+
+        var database = "ecomae_cpw_" + Guid.NewGuid().ToString("N")[..12];
+        var admin = "Server=127.0.0.1;Port=3306;Database=mysql;User ID=ecomae;Password=" + password + ";";
+        await ExecAsync(admin, "CREATE DATABASE `" + database + "` DEFAULT CHARACTER SET utf8mb4");
+        var cs = "Server=127.0.0.1;Port=3306;Database=" + database + ";User ID=ecomae;Password=" + password + ";";
+        Assert.DoesNotContain("Database=docpart", cs, StringComparison.OrdinalIgnoreCase);
+        var docRoot = Directory.CreateTempSubdirectory("epc-register-host-").FullName;
+        await File.WriteAllTextAsync(Path.Combine(docRoot, "config.php"), """
+            <?php
+            class DP_Config {
+            public $site_name = 'Parts';
+            public $domain_path = 'http://shop.test/';
+            public $backend_dir = 'cp';
+            public $secret_succession = 's3cr3t';
+            public $from_email = 'noreply@shop.test';
+            }
+            """);
+        try
+        {
+            await ExecAsync(cs, await File.ReadAllTextAsync(Path.Combine(FixtureDir, "seed.sql")));
+            var dispatcher = new RecordingDispatcher([]);
+            using var listener = new System.Net.Sockets.TcpListener(IPAddress.Loopback, 0);
+            listener.Start();
+            var port = ((IPEndPoint)listener.LocalEndpoint).Port;
+            listener.Stop();
+            var builder = WebApplication.CreateBuilder();
+            builder.WebHost.UseUrls("http://127.0.0.1:" + port.ToString(CultureInfo.InvariantCulture));
+            builder.Services.AddSingleton<EcomAE.Platform.Data.ITenantDbConnectionFactory>(new FixedConnections(cs));
+            builder.Services.AddSingleton<IStorefrontNotifyDispatcher>(dispatcher);
+            builder.Services.Configure<EcomAE.Platform.Configuration.PhpReferenceOptions>(options => options.PhpDocRoot = docRoot);
+            builder.Services.AddDataProtection();
+            await using var app = builder.Build();
+            app.UseRouting();
+            StorefrontUsersRegisterEndpoints.Map(app);
+            await app.StartAsync();
+            using var client = new HttpClient(new HttpClientHandler { AllowAutoRedirect = false, UseCookies = false }) { BaseAddress = new Uri("http://127.0.0.1:" + port.ToString(CultureInfo.InvariantCulture) + "/") };
+
+            foreach (var path in new[] { "/users/register", "/en/users/register" })
+            {
+                using var get = await client.GetAsync(path);
+                Assert.Equal(HttpStatusCode.Redirect, get.StatusCode);
+                Assert.Equal("/en/users/registration", get.Headers.Location!.OriginalString);
+            }
+
+            var cases = JsonDocument.Parse(File.ReadAllText(Path.Combine(FixtureDir, "cases.json"))).RootElement;
+            JsonElement Case(string caseName) => cases.EnumerateArray().First(c => c.GetProperty("name").GetString() == caseName);
+
+            using (var refused = await PostAsync(client, "/en/users/register", Case("bad_captcha")))
+            {
+                Assert.Equal(HttpStatusCode.Redirect, refused.StatusCode);
+                Assert.Equal("/en/?error_message=Wrong+captcha", refused.Headers.Location!.OriginalString);
+            }
+
+            using (var registered = await PostAsync(client, "/en/users/register", Case("email_retail_ok")))
+            {
+                Assert.Equal(HttpStatusCode.Redirect, registered.StatusCode);
+                var location = registered.Headers.Location!.OriginalString;
+                Assert.StartsWith("/en" + StorefrontUsersRegisterEndpoints.ResultPath + "?r=", location, StringComparison.Ordinal);
+                var token = Uri.UnescapeDataString(location[(location.IndexOf("?r=", StringComparison.Ordinal) + 3)..]);
+                var provider = app.Services.GetRequiredService<IDataProtectionProvider>();
+                var html = StorefrontUsersRegisterEndpoints.ReadResult(provider, token);
+                Assert.Equal(JsonNode.Parse(File.ReadAllText(Path.Combine(FixtureDir, "goldens.json")))!["email_retail_ok"]!["html"]!.GetValue<string>(), html);
+                Assert.Null(StorefrontUsersRegisterEndpoints.ReadResult(provider, token[..^2] + "xx"));
+            }
+
+            using (var wholesale = await PostAsync(client, "/users/register", Case("phone_wholesale_pending")))
+            {
+                Assert.Equal(HttpStatusCode.Redirect, wholesale.StatusCode);
+                Assert.StartsWith(StorefrontUsersRegisterEndpoints.ResultPath + "?r=", wholesale.Headers.Location!.OriginalString, StringComparison.Ordinal);
+            }
+
+            await using var check = new MySqlConnection(cs);
+            await check.OpenAsync();
+            var users = await RowsAsync(check, "SELECT user_id, email, phone FROM users WHERE user_id > 7 ORDER BY user_id");
+            Assert.Equal("[[\"8\",\"new@example.test\",\"\"],[\"9\",\"\",\"\\u002B971 50 123 4567\"]]", users!.ToJsonString());
+            Assert.Equal(["reg_email_confirm", "reg_notify_admin", "reg_phone_confirm", "reg_notify_admin"], dispatcher.Calls.Select(c => c!["name"]!.GetValue<string>()));
+            Assert.Equal(2, Directory.GetFiles(Path.Combine(docRoot, "content", "files", "kyc", "9")).Length);
+            await app.StopAsync();
+        }
+        finally
+        {
+            MySqlConnection.ClearAllPools();
+            await ExecAsync(admin, "DROP DATABASE IF EXISTS `" + database + "`");
+            Directory.Delete(docRoot, true);
+        }
+    }
+
+    private static async Task<HttpResponseMessage> PostAsync(HttpClient client, string path, JsonElement testCase)
+    {
+        var content = new MultipartFormDataContent();
+        foreach (var field in testCase.GetProperty("post").EnumerateObject())
+        {
+            content.Add(new StringContent(field.Value.GetString()!), field.Name);
+        }
+
+        if (testCase.TryGetProperty("files", out var files))
+        {
+            foreach (var file in files.EnumerateObject())
+            {
+                var bytes = new byte[file.Value[1].GetInt32()];
+                Array.Fill(bytes, (byte)'x');
+                content.Add(new ByteArrayContent(bytes), file.Name, file.Value[0].GetString()!);
+            }
+        }
+
+        var cookies = Strings(testCase, "cookies") ?? DefaultCookies;
+        var request = new HttpRequestMessage(HttpMethod.Post, path) { Content = content };
+        request.Headers.TryAddWithoutValidation("Cookie", string.Join("; ", cookies.Select(c => c.Key + "=" + Uri.EscapeDataString(c.Value))));
+        return await client.SendAsync(request);
+    }
+
+    private sealed class FixedConnections(string cs) : EcomAE.Platform.Data.ITenantDbConnectionFactory
+    {
+        public bool IsConfigured => true;
+
+        public Task<DbConnection> OpenAsync(string? databaseName, CancellationToken cancellationToken = default) => OpenAsync();
+
+        public Task<DbConnection> OpenAsync(string? databaseName, string? userName, string? password, CancellationToken cancellationToken = default) => OpenAsync();
+
+        public Task<DbConnection> OpenForTenantAsync(EcomAE.Platform.Services.TenantContext? tenant, CancellationToken cancellationToken = default) => OpenAsync();
+
+        public Task<DbConnection> OpenRegistryAsync(CancellationToken cancellationToken = default) => OpenAsync();
+
+        private async Task<DbConnection> OpenAsync()
+        {
+            var connection = new MySqlConnection(cs);
+            await connection.OpenAsync();
+            return connection;
         }
     }
 

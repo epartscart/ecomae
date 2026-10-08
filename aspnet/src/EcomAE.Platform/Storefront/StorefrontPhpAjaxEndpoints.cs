@@ -201,6 +201,7 @@ public static class StorefrontPhpAjaxEndpoints
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.CheckRegContactPath, ["GET", "POST"], CheckRegContactAsync)
             .DisableAntiforgery().AllowAnonymous();
+        StorefrontUsersRegisterEndpoints.Map(endpoints);
         endpoints.MapMethods(StorefrontPhpAjax.PayForOrderPath, ["GET", "POST"], PayForOrderAsync)
             .DisableAntiforgery().AllowAnonymous();
         endpoints.MapMethods(StorefrontPhpAjax.SetOrderItemStatusPath, ["GET", "POST"], SetOrderItemStatusAsync)
