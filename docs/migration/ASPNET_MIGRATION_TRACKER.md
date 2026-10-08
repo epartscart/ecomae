@@ -260,6 +260,22 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the registration captcha (`lib/captcha`) like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap stays 828, because the inventory classes `lib/captcha` as third-party. Unnamed PHP functions: 8,016 to 8,014.
+- `StorefrontCaptcha` ports `captcha.php` and `check_captcha.php`, the first `regform.php` dependency:
+  - The image: a code of 4 to 7 shuffled characters from the PHP set, on one of the 30 PHP backgrounds. It has lines under and over the text and Agency letters at a random 20 to 30 points, with the same angle and position ranges, drawn with SkiaSharp.
+  - The `captcha` cookie is `md5(code)` for two minutes on `/`. The PHP cache headers are sent.
+  - The check: an empty body when `captcha_check` is missing, otherwise `true` or `false` from a PHP 8 loose comparison. A POST value overrides the query.
+  - The refresh button image is served at its PHP URL.
+- Intended deviations:
+  - Only PNG backgrounds are picked. PHP can pick the directory's `index.html` and then fails with a 500.
+  - Kestrel writes header names in its own order. The values and their order within each name match PHP.
+- `StorefrontCaptchaTests` compares 10 check cases with **goldens from the real PHP** (`Fixtures/Captcha/harness.py`, `php -S`, `request_order=GP`). The cases cover GET, POST, POST over GET, a missing cookie, an empty value, the `0` and `0e1` magic hashes, and an uppercase cookie. The tests also check the image headers and cookie, that a 150×70 PNG decodes, the refresh image bytes, and that generated codes pass their own check. A corrupted golden makes exactly one case fail.
+- Full suite: 5498 of 5498. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+
 ### Checkpoint 2026-10-08 — the registration form post (`/users/register`) like PHP
 
 Not complete.
