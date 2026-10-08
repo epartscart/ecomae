@@ -260,6 +260,21 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the registration form render half like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 74 of 75, broader `cp/content` 108 of 110. Weighted headline stays about 20.4%. Ratchet stays 818 (inventory prints 817). No file closes: `epc_registration_enhanced.php` was already counted through its save half, so the render functions only lower the unnamed PHP functions from 7,979 to 7,963 (that file goes from 11 of 33 to 27 of 33).
+- `EpcRegistrationEnhancedRender` ports the render half of the enhanced registration form:
+  - The social sign-up panel: the "Register and join" title (trade name, else the login label, else "our store"), the provider buttons with the "Or" divider only when they render, the e-mail code input and the send and verify script with the return URL from the language prefix. It is empty when the modern auth core is unavailable.
+  - The country select with the selected option, and the Retail / Wholesale tabs with the wholesale company, TRN and KYC / AML document fields.
+  - The tab script: dial-code and address metadata maps, the phone hint, the retail country UI, the wholesale TRN rules, the pane enable and disable logic, and client validation.
+  - The legacy UAE panel stays a no-op.
+- The markup segments were generated from the PHP file, so the output is PHP's byte for byte.
+- `EpcRegistrationEnhancedRenderTests` compares 11 cases with **goldens from the real PHP functions** (`Fixtures/RegistrationEnhancedRender/harness.py`, php-cli). Each case gets a temp docroot with the real registration and country files and stubs for the auth core, the login context and the provider buttons. The cases cover auth unavailable; defaults; quotes, `<>`, `&` and `</script>` in the trade name, tenant key and URLs; a blank trade name; no trade-name function; Unicode; empty and present buttons; four country-select variants; the tabs; and the UAE panel. A corrupted golden makes exactly one case fail.
+- Full suite: 5557 of 5557. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next for `regform.php`: the page itself on the `/users/register` engine, then login verify with provisioning and the session.
+
 ### Checkpoint 2026-10-08 — the six-box e-mail code modal like PHP
 
 Not complete.
