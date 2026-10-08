@@ -34,6 +34,30 @@ public sealed class StorefrontPhpHomeLinksTests
         Assert.Equal("/ar/zapros-prodavczu", StorefrontPhpHomeLinks.SellerRequest(lang));
     }
 
+    [Theory]
+    [InlineData("/ar/users/editform", "/ar")]
+    [InlineData("/ru/users/profile", "/ru")]
+    [InlineData("/me/users/login", "/me")]
+    [InlineData("/en/users/editform", "/en")]
+    [InlineData("/users/profile", "/en")]
+    public async Task Users_pages_keep_the_visitor_prefix_before_and_after_the_lang_alias_rewrite(string path, string expected)
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = path;
+        Assert.Equal(expected, StorefrontPhpHomeLinks.LangHref(ctx));
+
+        string? routed = null;
+        string? pageLang = null;
+        await new StorefrontLangAliasMiddleware(next =>
+        {
+            routed = next.Request.Path.Value;
+            pageLang = StorefrontPhpHomeLinks.LangHref(next);
+            return Task.CompletedTask;
+        }).InvokeAsync(ctx);
+        Assert.StartsWith(path.StartsWith("/users/", StringComparison.Ordinal) ? "/users/" : "/en/users/", routed, StringComparison.Ordinal);
+        Assert.Equal(expected, pageLang);
+    }
+
     [Fact]
     public void HomeAppWiresPhpHrefHelper()
     {

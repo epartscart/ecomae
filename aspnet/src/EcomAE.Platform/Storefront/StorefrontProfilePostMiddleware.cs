@@ -31,10 +31,6 @@ public sealed class StorefrontProfilePostMiddleware
             || (value.Length == 17 && value[0] == '/' && char.IsAsciiLetterLower(value[1]) && char.IsAsciiLetterLower(value[2]) && value.EndsWith("/users/profile", StringComparison.Ordinal));
     }
 
-    /// <summary>The <c>$multilang_params['lang_href']</c> of a storefront path: its two-letter prefix, else <c>/en</c>.</summary>
-    public static string LangHref(string path)
-        => path.Length > 3 && path[0] == '/' && path[3] == '/' && char.IsAsciiLetterLower(path[1]) && char.IsAsciiLetterLower(path[2]) ? path[..3] : "/en";
-
     public async Task InvokeAsync(HttpContext context, ITenantDbConnectionFactory connections)
     {
         if (!HttpMethods.IsPost(context.Request.Method) || !IsProfilePagePath(context.Request.Path))
@@ -60,7 +56,7 @@ public sealed class StorefrontProfilePostMiddleware
         var request = new StorefrontProfileForm.Request(
             context.Request.Cookies["session"],
             context.Request.Cookies["u_id"],
-            LangHref(context.Request.Path.Value ?? string.Empty),
+            EcomAE.Platform.Presentation.StorefrontPhpHomeLinks.LangHref(context),
             config);
         var query = context.Request.Query.ToDictionary(p => p.Key, p => p.Value.Count > 0 ? p.Value[^1] ?? string.Empty : string.Empty, StringComparer.Ordinal);
         var tenant = context.Items[TenantResolutionMiddleware.HttpContextItemKey] as TenantContext;
