@@ -203,7 +203,7 @@ The ajax ratios count only ajax scripts. To make sure nothing in the PHP referen
 Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported pages often do not name their PHP includes, so every gap file is triaged before it is built. The gaps go into the plan in this order (ERP last, as agreed):
 
 1. **Storefront customer pages (epartscart.com).**
-   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`, `my_quotes.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php` (see the checkpoints below).
+   - `content/shop/order_process`: `cart.php`, `my_orders.php`, `my_orders_items.php`, `checkout_confirm.php`, `my_order_not_authorized.php`. Done: `get_customer_offices.php`, `checkout_login_offer.php`, `common_add_to_basket.php`, `my_quotes.php` (see the checkpoints below).
    - Done: the password reset pages `content/users/forgot_password.php` and `new_password.php`, with `DP_User::available_communications()`. See the checkpoint below.
    - Done: the login rate limit `content/users/epc_login_rate_limit.php` and the hash upgrade `epc_password_upgrade.php`. See the checkpoint below.
    - Done: the contact uniqueness check `content/users/check_reg_contact.php`. See the checkpoint below.
@@ -321,6 +321,24 @@ Evidence per page, recorded in its checkpoint:
 Order:
 - New CP and ERP ports meet the bar when they are built.
 - Pages that are already ported get a UX pass in this order: CP dashboard, orders and order card, price upload and review, catalogue product, customers and CRM board, then the ERP shell, the document workspaces (O2C, P2P, inventory, treasury) and the ERP dashboards.
+
+### Checkpoint 2026-10-08 — the customer quotes page (`my_quotes.php`) like PHP
+
+Not complete.
+
+- Ratchet 756 to 755. Inventory content 386 to 387 of 952. Unnamed PHP functions stay at 7,896. The weighted headline (about 20.4%) is unchanged.
+- `/en/shop/quotes` (also `/shop/quotes` and `/storefront/quotes-app`) now prints PHP's page through `StorefrontMyQuotes`:
+  - a visitor gets the login panel (string 4559) with PHP's general login form, postfix `my_quotes`. A `?id=` adds the "is protected" heading and the control panel link;
+  - a customer sees only their own quotes, and an administrator (CP admin session) sees all quotes, with the User column and the administrator texts;
+  - the detail shows status, update date, both notes (`nl2br`), and one row per line. Alternatives replace the offer only when `offer_alternative` is 1 and both the alternative brand and article are set. Prices are in the visitor's currency (`epc_currency.php`: dealing currency, then the `epc_currency` cookie, then the `epc_country` cookie), in the configured display mode;
+  - a draft with lines gets the note box and the submit script, and a quoted quote gets the accept script. Both post to the ported `ajax_quote_submit.php` and `ajax_quote_accept.php`.
+- The earlier ASP.NET redesign of this page is gone. That includes its manual "add a quote line" form, which PHP does not have. The `/storefront/quotes/*` POST endpoints stay mapped.
+- Evidence: `Fixtures/MyQuotes/harness.php` ran the real PHP 8.3 page for 16 cases on throwaway databases, each in its own process:
+  - visitor, customer and administrator views of the list and of draft, quoted, foreign, empty, odd-status (`?id=9abc`) and missing quotes;
+  - USD by cookie with `short_name_after`, a country cookie with `sign_after` and no language prefix, and mode `no`.
+
+  `StorefrontMyQuotesTests` matches all 16 byte for byte. Full suite 5,851 of 5,852 passed; the one failure was a source check for the old page markup, which now checks the renderer and passes. Kestrel GETs with fake cookies print the visitor panel and the login form, with and without `?id=5`. No session rows were created during testing.
+- Local data limit: the local `docpart` tenant has no `shop_quote_requests` table, so signed-in and administrator views show the "Quotes are unavailable right now" message there, where PHP would fail with an error page. The golden test covers those views.
 
 ### Checkpoint 2026-10-08 — the bottom panel cart refresh (`bottom_panel.php` cart block) like PHP
 
