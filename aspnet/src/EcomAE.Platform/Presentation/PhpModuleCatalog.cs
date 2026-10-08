@@ -18,6 +18,36 @@ public static partial class PhpModuleCatalog
     [
         new("inventory_mgmt/syncron", "Inventory policy (Syncron)", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=syncron", "fa-sliders", "inventory_mgmt",
             "Safety stock, reorder points, demand forecast and service levels", false, false, "Periodic"),
+
+        // Ported ERP pages that the PHP catalog leaves out of the top menu; each sits in the area that owns its data.
+        new("overview/favorites", "Workspace favorites", "/ERP/?epc_erp_shell=1&area=overview&tab=favorites", "fa-star", "overview",
+            "Pinned ERP pages and shortcut icons", false, false, "Common"),
+        new("finance/accounts", "Accounts summary", "/ERP/?epc_erp_shell=1&area=finance&tab=accounts", "fa-list-alt", "finance",
+            "Chart of accounts with balances", false, false, "Common"),
+        new("finance/report_scheduler", "Report scheduler", "/ERP/?epc_erp_shell=1&area=finance&tab=report_scheduler", "fa-clock-o", "finance",
+            "Scheduled financial report delivery", false, false, "Periodic"),
+        new("banking/bank_entries", "Cash entries", "/ERP/?epc_erp_shell=1&area=banking&tab=bank_entries", "fa-exchange", "banking",
+            "Cash and bank receipts and payments", false, false, "Common"),
+        new("sales/customer_groups", "Customer groups", "/ERP/?epc_erp_shell=1&area=sales&tab=customer_groups", "fa-users", "sales",
+            "Customer groups and their pricing", false, false, "Setup"),
+        new("inventory_mgmt/movements", "Stock movements", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=movements", "fa-random", "inventory_mgmt",
+            "Stock ledger of receipts, issues and transfers", false, false, "Inquiries"),
+        new("inventory_mgmt/inventory_report", "Inventory report", "/ERP/?epc_erp_shell=1&area=inventory_mgmt&tab=inventory_report", "fa-bar-chart", "inventory_mgmt",
+            "On-hand quantity and value by item and warehouse", false, false, "Reports"),
+        new("warehouse/warehouses", "Warehouses", "/ERP/?epc_erp_shell=1&area=warehouse&tab=warehouse", "fa-building-o", "warehouse",
+            "Warehouse list, addresses and virtual warehouses", false, false, "Setup"),
+        new("warehouse/rfid", "RFID", "/ERP/?epc_erp_shell=1&area=warehouse&tab=rfid", "fa-wifi", "warehouse",
+            "RFID tags and reads", false, false, "Common"),
+        new("common/doc_attachment", "Document attachments", "/ERP/?epc_erp_shell=1&area=common&tab=doc_attachment", "fa-paperclip", "common",
+            "Files attached to ERP records", false, false, "Common"),
+        new("setup/on_premises", "On-premises", "/ERP/?epc_erp_shell=1&area=setup&tab=on_premises", "fa-server", "setup",
+            "On-premises deployment and sync", false, false, "Setup"),
+        new("finance/multi_currency_gl", "Multi-currency GL", "/erp/multi-currency-gl-app", "fa-globe", "finance",
+            "Foreign-currency balances and revaluation", false, false, "Periodic"),
+        new("sales/order_pipeline", "Order to ERP pipeline", "/erp/order-pipeline-app", "fa-exchange", "sales",
+            "Storefront orders posted into ERP documents", false, false, "Common"),
+        new("inventory_mgmt/inventory_forecast", "Inventory forecast", "/erp/inventory-forecast-app", "fa-line-chart", "inventory_mgmt",
+            "Demand forecast and reorder suggestions", false, false, "Periodic"),
     ];
 
     public static int TotalTrackedCount =>
