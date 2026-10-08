@@ -260,6 +260,19 @@ Of 9,867 PHP functions, 8,152 are not named anywhere in ASP.NET. Natively ported
 
 Each item closes only when ASP.NET does the PHP behaviour (tested on a throwaway database, full suite green), or when it is retired with a reason. The inventory gap ratchet is lowered in the same commit.
 
+### Checkpoint 2026-10-08 — the user agreement module and the auth card layout like PHP
+
+Not complete.
+
+- Ratios unchanged: storefront and API ajax 109 of 112, Control Panel shop, users, and requests 72 of 75 (74 of 75 on PR #2031), broader `cp/content` 95 of 110 (108 of 110 on PR #2031). Weighted headline stays about 20.4%. Inventory gap 828 to 826. Unnamed PHP functions: 8,014 to 8,011.
+- `StorefrontAuthPartials` ports two includes that `regform.php` and the login page need:
+  - `content/users/users_agreement_module.php`: the checkbox (strings 4751 to 4753), the `{lang}/polzovatelskoe-soglashenie` link, the script that resets the `users_agreement` cookie to `no` and sets it on change, and `check_user_agreement()` with the 4754 alert.
+  - `content/users/epc_storefront_auth_layout.php`: the stylesheet link (printed once per page), the `epc-auth-page` card (`--wide` for registration) and its close.
+- The output is PHP's byte for byte, including the file's CRLF line endings and translations echoed unescaped. `/content/users/epc_storefront_auth.css` is now served from the reference tree.
+- `StorefrontAuthPartialsTests` compares 7 cases with **goldens from the real PHP includes** (`Fixtures/AuthPartials/harness.py`). Translations are stubbed with HTML and quotes. The cases cover three language prefixes, the default and wide cards, the stylesheet printed once, and an unknown variant. A corrupted golden makes exactly one case fail.
+- Full suite: 5505 of 5505. Throwaway schemas left: 0. `docpart.users` and `ecomae.users` stay at 2.
+- Next for `regform.php`: the render half of `epc_registration_enhanced.php` (social block, account tabs, tab scripts, UAE panel) and the email OTP modal with its send and verify-only endpoints, which need the modern auth core.
+
 ### Checkpoint 2026-10-08 — the registration captcha (`lib/captcha`) like PHP
 
 Not complete.
