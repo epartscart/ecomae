@@ -36,6 +36,7 @@ public sealed class PhpProductPathRedirectMiddleware
             || path.Equals("/epc_php_reference_boot.php", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/epc-static", StringComparison.OrdinalIgnoreCase)
             || path.StartsWith("/content/general_pages/", StringComparison.OrdinalIgnoreCase)
+            || PhpAssetWrappers.IsWrapperPath(path)
             || path.StartsWith("/api/epc_oauth_", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".css", StringComparison.OrdinalIgnoreCase)
             || path.EndsWith(".js", StringComparison.OrdinalIgnoreCase)
